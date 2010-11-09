@@ -1,0 +1,95 @@
+/**
+ * Proteus-Modifier.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Proteus-Modifier"
+Extends
+Uses
+	"Kernel",
+	"Proteus-Entity"
+Names
+	"Intrinsic Modifier",
+	"Modifier",
+	"_adjustment",
+	"_describer",
+	"_source",
+	"_having value_described by_",
+	"_for_having value_described by_"
+Body
+
+/* Define the structure and behavior of modifiers, a core concept of Proteus. */
+
+privateAdjustment ::= lookup "adjustment";
+privateDescriber ::= lookup "describer";
+privateSource ::= lookup "source";
+
+"Intrinsic Modifier" is explicit subtype of Object with
+	[privateAdjustment -> integer]
+	[privateDescriber -> [] -> string];
+Intrinsic Modifier has fields <"adjustment", "describer">;
+
+"Modifier" is explicit subtype of Intrinsic Modifier with
+	[privateSource -> Entity];
+Modifier has fields <"source">;
+
+Method "_having value_described by_" is [
+		modifierClass : Intrinsic Modifier type,
+		value : integer,
+		describer : [] -> string |
+	modifierClass new with <
+		<privateAdjustment, value>,
+		<privateDescriber, describer>
+	>;
+]
+returns [
+		modifierClassType : Intrinsic Modifier type type,
+		valueType : integer type,
+		describerType : ([] -> string) type |
+	modifierClassType instance;
+];
+
+Method "_for_having value_described by_" is [
+		modifierClass : Modifier type,
+		entity : Entity,
+		value : integer,
+		describer : [] -> string |
+	modifierClass new with <
+		<privateAdjustment, value>,
+		<privateDescriber, describer>,
+		<privateSource, entity>
+	>;
+]
+returns [
+		modifierClassType : Modifier type type,
+		entityType : Entity type,
+		valueType : integer type,
+		describerType : ([] -> string) type |
+	modifierClassType instance;
+];

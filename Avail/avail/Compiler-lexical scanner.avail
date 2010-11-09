@@ -1,0 +1,247 @@
+/**
+ * Compiler-lexical scanner.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Compiler-lexical scanner"
+Extends
+Uses
+	"Kernel",
+	"Compiler-tokens"
+Names
+	"Scanner",
+	"Character Source",
+	"_as tokens"
+Body
+
+
+/* This module defines the lexical scanner for the metacircular Avail compiler. */
+
+/* Some field names... */
+source ::= lookup "source";
+current ::= lookup "current";
+tokens ::= lookup "tokens";
+
+
+"Character Source" is implicit subtype of Iterator with
+	[elementType->[]->character];
+
+
+"Scanner" is explicit subtype of Object with
+	[source -> Character Source]
+	[current -> & : character]
+	[tokens -> & : tuple of Token];
+
+
+/* Utility methods first... */
+
+Method "peek_" is [sc : Scanner |
+	*sc -> current;
+] : character;
+
+Method "next_" is [sc : Scanner |
+	chr ::= *sc -> current;
+	if sc -> source is at end then [
+		*sc -> current := code point 26;   /* Fake Ctrl-z indicates end of data. */
+	] else [
+		*sc -> current := next sc -> source;
+	];
+	chr;
+] : character;
+
+Method "_add token_" is [sc : Scanner, tk : Token |
+	tokVar ::= sc -> tokens;
+	*tokVar := clearing* tokVar then <tk>;
+];
+
+
+
+/* Now the scanning methods... */
+
+Method "_scan whitespace" is [sc : Scanner |
+	Discard next sc;
+];
+
+
+Method "_scan alpha" is [sc : Scanner |
+	str : string := "";
+	Loop [
+		str := str then <next sc>;
+	] while [
+		codePoint ::= code point of peek sc;
+		#"a" <= codePoint <= #"z" | [
+			#"A" <= codePoint <= #"Z" | [
+				#"0" <= codePoint <= #"9";
+			];
+		];
+	];
+	sc add token str;
+];
+
+
+Method "_scan digit" is [sc : Scanner |
+	str : string := "";
+	Loop [
+		str := str then <next sc>;
+	] while [
+		#"0" <= code point of peek sc <= #"9";
+	];
+	sc add token str;
+];
+
+
+Method "_scan operator" is [sc : Scanner |
+	sc add token <next sc>;
+];
+
+
+Method "_scan quote" is [sc : Scanner |
+	/* Scan a quoted string.  Leave the string quoted, and internal quotes
+	   doubled.  This might change when I introduce real token objects.  */
+	Discard next sc;
+	result : string := "";
+	exit : boolean := false;
+	Loop [
+		chr ::= next sc;
+		result := result then <chr>;
+		if chr = $"""" then [
+			if peek sc = $"""" then [
+				/* It's two internal quotes - keep both. */
+				result := result then <next sc>;
+			] else [
+				exit := true;
+			];
+		];
+	] until [
+		exit;
+	];
+	result;
+];
+
+
+Method "_scan slash" is [sc : Scanner |
+	/* If the slash is followed by an asterisk, parse a comment just like
+	   the one you're reading right now.  Comments may nest. */
+	Discard next sc;
+	if peek sc = $"*" then [
+		Discard next sc;
+		depth : integer := 1;
+		Loop [
+			chr ::= next sc;
+			if chr = $"/" then [
+				if peek sc = $"*" then [
+					Discard next sc;
+					depth := depth + 1;
+				];
+			] else [
+				if chr = $"*" then [
+					if peek sc = $"/" then [
+						Discard next sc;
+						depth := depth - 1;
+					];
+				];
+			];
+		] until [
+			depth = 0;
+		];
+	] else [
+		/* Treat the slash like an ordinary operator. */
+		sc add token "/";
+	];
+];
+
+
+Method "_scan semicolon" is [sc : Scanner |
+	sc add token <next sc>;
+];
+
+
+/* Set up the dispatch table... */
+
+dispatch : map from character to [Scanner]->void;
+dispatch := [->];
+
+
+<9,10,12,13,32> do [codePoint : whole number |
+	/* This includes tab (9), linefeed (10), formfeed (12),
+	   carriage return (13), and space (32).   */
+	*&dispatch [code point codePoint] := [sc : Scanner | sc scan whitespace;];
+];
+
+#"a" to #"z" do [codePoint : whole number |
+	*&dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
+];
+
+#"A" to #"Z" do [codePoint : whole number |
+	*&dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
+];
+
+#"0" to #"9" do [codePoint : whole number |
+	*&dispatch [code point codePoint] := [sc : Scanner | sc scan digit;];
+];
+
+"%&*+,-/|~\^`<=>?@!#$().:[]{}'" do [chr : character |
+	/* The regular 8-bit operator characters. */
+	*&dispatch [chr] := [sc : Scanner | sc scan operator;];
+];
+
+"'£€¥§¡¢°±¶·÷¿´¯¨¸®©«»'" do [chr : character |
+	/* The unusual 8-bit operator characters. */
+	*&dispatch [chr] := [sc : Scanner | sc scan operator;];
+];
+
+*&dispatch [$""""] := [sc : Scanner | sc scan quote;];
+*&dispatch [$"/"] := [sc : Scanner | sc scan slash;];
+*&dispatch [$";"] := [sc : Scanner | sc scan semicolon;];
+
+
+Method "new Scanner from_" is [src : Character Source |
+	curr : character;
+	toks : tuple of Token := <>;
+	Scanner new with <
+		<source, src>,
+		<current, &curr>,
+		<tokens, &toks>
+	>;
+] : Scanner;
+
+Method "_as tokens" is [src : Character Source |
+	sc ::= new Scanner from src;
+	*sc->current := next src;
+	chr : character;
+	Until [
+		chr := peek sc;
+		chr = code point 26;
+	] loop [
+		dispatch [chr] (sc);
+	];
+	*sc -> tokens := *sc -> tokens then <<code point 26>>;   /* Write a Ctrl-z token as a sentinel. */
+	*sc -> tokens;
+] : tuple of Token;
+

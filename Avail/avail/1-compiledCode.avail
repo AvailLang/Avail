@@ -1,0 +1,108 @@
+/**
+ * 1-compiledCode.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "1-compiledCode"
+Extends
+Uses
+	"0-bootstrapRaw",
+	"1-block",
+	"1-integer",
+	"1-tuple"
+Names
+	"_numArgs",
+	"_numLocals",
+	"_numOuters",
+	"_stackSize",
+	"_nybbles",
+	"_closureType",
+	"_literals",
+	"_primitive",
+	"compiledCode for_args_locals_outers_stack entries,with nybbles_closureType_primitive_literals_"
+Body
+
+
+/* Here are some accessors to manipulate compiledCode objects... */
+
+Method "_numArgs" is [cc : compiledCode |
+	Primitive 180;
+	Failed;
+] : whole number;
+
+Method "_numLocals" is [cc : compiledCode |
+	Primitive 181;
+	Failed;
+] : whole number;
+
+Method "_numOuters" is [cc : compiledCode |
+	Primitive 182;
+	Failed;
+] : whole number;
+
+Method "_stackSize" is [cc : compiledCode |
+	Primitive 183;
+	Failed;
+] : whole number;
+
+Method "_nybbles" is [cc : compiledCode |
+	Primitive 184;
+	Failed;
+] : tuple of [0..15];
+
+Method "_closureType" is [cc : compiledCode |
+	Primitive 185;
+	Failed;
+] : closureType;
+
+Method "_primitive" is [cc : compiledCode |
+	Primitive 186;
+	Failed;
+] : [0..65535];
+
+Method "_literals" is [cc : compiledCode |
+	Primitive 187;
+	Failed;
+] : tuple;
+
+/* Construction... */
+
+Method "compiledCode for_args_locals_outers_stack entries,with nybbles_closureType_primitive_literals_" is [
+		numArgs : whole number,
+		numLocals : whole number,
+		numOuters: whole number,
+		stackSize : whole number,
+		nybbles : tuple of [0..15],
+		closureType : closureType,
+		prim : [0..65535],
+		literals : tuple |
+	Primitive 188;
+	Failed;
+] : compiledCode;
+

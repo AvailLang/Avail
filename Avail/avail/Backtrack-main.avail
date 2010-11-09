@@ -1,0 +1,157 @@
+/**
+ * Backtrack-main.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Backtrack-main"
+Extends
+Uses
+	"3-main",
+	"Process-process"
+Names
+	"maybe",
+	"fail",
+	"capture all_",
+	"capture first_of_",
+	"each_"
+Body
+
+
+/* Backtracking support.  Supports multiple threads safely.  */
+
+topRetry ::= lookup "topRetry";
+
+[
+	firstTime : boolean := true;
+	[
+		$here : $[]->void;
+		if firstTime then [
+			current process[topRetry] := here;
+			firstTime := false;
+		] else [
+			Crash "Attempted to backtrack past last retry point.";
+		];
+	]:void();
+]:void();
+
+
+/* The maybe method answers true, but encountering a fail statement later can
+   cause the innermost "true" maybe to be recontinued using false as its value. */
+
+Method "maybe" is [
+	previousRetry ::= current process [topRetry];
+	nextState : boolean := true;
+	currentValue : boolean;
+	[
+		$here : $[]->void;
+		if nextState then [
+			nextState := false;   /* for next time */
+			current process [topRetry] := here;
+			currentValue := true;
+		] else [
+			current process [topRetry] := previousRetry;
+			currentValue := false;
+		];
+	]:void();
+	currentValue;
+] : boolean;
+
+Method "fail" is [
+	cast current process [topRetry] into [it : $[]->void |
+		Restart it;
+	];
+] : terminates;
+
+
+
+Method "capture all_" is [blk : []->all |
+	/* Answer a tuple containing all possible values of the block.  Invoke fail after
+	   getting each answer from the block to cause all internal maybes to be
+	   recontinued. */
+	soFar : tuple := <>;
+	if maybe then [
+		attempt ::= blk();
+		soFar := soFar then <attempt>;
+		fail;
+	];
+	soFar;
+] : tuple
+returns [blkT : closureType |
+	tuple of blkT result;
+];
+
+
+Method "capture first_of_" is [n : whole number, blk : []->all |
+	/* Answer a tuple containing the first n solutions of the block.  If fewer than n
+	   solutions can be provided by this block, answer as many as there were.  Invoke
+	   fail after the block provides each answer, to force it it to recontinue.  When this
+	   method returns, no further internal backtracking is possible (only backtracking
+	   of maybes that had already been activated when this method was called, or
+	   that were invoked after this method returned).  */
+	soFar : tuple := <>;
+	previousRetry ::= current process [topRetry];
+	nextState : boolean := true;
+	[
+		$capture : $[]->void;
+		current process [topRetry] := capture;
+		if nextState then [
+			nextState := false;
+			current process [topRetry] := capture;
+			result ::= blk();
+			soFar := soFar then <result>;
+			if ||soFar|| < n then [
+				fail;
+			];
+		];
+	]:void();
+	current process [topRetry] := previousRetry;
+	soFar;
+] : tuple
+returns [nT : integerType, blkT : closureType |
+	tuple [0..nT upper bound + 1) of blkT result;
+];
+
+
+/* Answer an item from the tuple.  Under backtracking it will return each of the items in
+  turn, hence the name. */
+
+Method "each_" is [t : tuple |
+	$there : $[tuple]->all;
+	1 to ||t|| do [i : natural number |
+		if maybe then [
+			Exit there with t[i];
+		];
+	];
+	fail;
+] : all
+returns [tT : tupleType |
+	type union of (union of types in tT leading types) and (tT default type);
+];
+
+

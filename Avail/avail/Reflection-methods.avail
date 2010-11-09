@@ -1,0 +1,220 @@
+/**
+ * Reflection-methods.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Reflection-methods"
+Extends
+Uses
+	"Kernel"
+Names
+	"messageBundle",
+	"_message",
+	"_message parts",
+	"_signatures",
+	"_has restrictions",
+	"_restrictions",
+
+	"signature",
+		"abstractSignature",
+		"forwardSignature",
+		"methodSignature",
+	"implementationSet",
+
+	"_bodyType",
+	"_body",
+	"_requires block",
+	"_returns block",
+	"_is forward",
+	"_is abstract",
+
+	"messageBundleTree",
+	"_complete",
+	"_incomplete",
+
+	"_implementation set",
+	"_name"
+
+Body
+
+
+/* This module deals with messages and methods.  Ok, quick overview.
+   At compile time, message sends are looked up in the visible modules.
+   The result of this lookup is a cyclicType, which is looked up in another
+   map to produce an implementationSet.  Since cyclicTypes have identity,
+   method hierarchies defined in unrelated modules won't interfere.  The
+   implementationSet is plugged into the calling method's literal frame, and
+   is used at runtime.  A fast search tree is lazily computed for each
+   implementationSet.  Also associated with the cyclicType is something
+   called a messageBundle.  A messageBundle contains all the method
+   implementations (called signatures), as well as the precedence rules
+   defined for it.  You can get all signatures associated with the
+   messageBundle (actually they're associated with the implementationSet,
+   but that's reachable from the messageBundle).  These signatures
+   come in three flavors: methodSignature, abstractSignature, and
+   forwardSignature.  A methodSignature is an actual implementation
+   of a method, including its body, a requires block, and a returns block.
+   An abstractSignature just specifies what closureType the body would
+   be if there were one, which there isn't.  It's like subclassResponsibility.
+   A forwardSignature corresponds with a forward declaration of a
+   method - it must be replaced by a methodSignature by the end of
+   compilation of the current module, or that module is in error.
+   I'm not currently requiring that each call site invokes an unambiguous,
+   or even non-abstract, method implementation.  That's very tricky, and
+   requires more thought about type coverage and issues like that.
+*/
+
+
+
+privateMessageBundle		::= Special Object 40;
+privateSignature			::= Special Object 41;
+privateAbstractSignature	::= Special Object 42;
+privateForwardSignature	::= Special Object 43;
+privateMethodSignature	::= Special Object 44;
+privateMessageBundleTree	::= Special Object 45;
+privateImplementationSet	::= Special Object 46;
+
+Method "messageBundle" is [privateMessageBundle;] : primType;
+Method "signature" is [privateSignature;] : primType;
+Method "abstractSignature" is [privateAbstractSignature;] : primType;
+Method "forwardSignature" is [privateForwardSignature;] : primType;
+Method "methodSignature" is [privateMethodSignature;] : primType;
+Method "messageBundleTree" is [privateMessageBundleTree;] : primType;
+Method "implementationSet" is [privateImplementationSet;] : primType;
+
+
+/* messageBundle accessors.. */
+
+Method "_message" is [bundle : messageBundle |
+	Primitive 211;
+	Failed;
+] : cyclicType;
+
+Method "_message parts" is [bundle : messageBundle |
+	Primitive 212;
+	Failed;
+] : tuple of string;
+
+Method "_signatures" is [bundle : messageBundle |
+	Primitive 213;
+	Failed;
+] : set of signature;
+
+Method "_has restrictions" is [bundle : messageBundle |
+	Primitive 214;
+	Failed;
+] : boolean;
+
+Method "_restrictions" is [bundle : messageBundle |
+	Primitive 215;
+	Failed;
+] : tuple of set of cyclicType;
+
+
+
+/* signature accessors... */
+
+Method "_bodyType" is [sig : signature |
+	Primitive 216;
+	Failed;
+] : closureType;
+
+Method "_body" is [methSig : methodSignature |
+	Primitive 217;
+	Failed;
+] : closure;
+
+Method "_requires block" is [sig : signature |
+	Primitive 218;
+	Failed;
+] : [...]->boolean;
+
+Method "_returns block" is [sig : signature |
+	Primitive 219;
+	Failed;
+] : [...]->type;
+
+
+/* Now some simple type-testers... */
+
+Method "_is forward" is [sig : signature |
+	false;
+]  : boolean;
+
+Method "_is forward" is [forwardSig : forwardSignature |
+	true;
+];
+
+
+Method "_is abstract" is [sig : signature |
+	false;
+]  : boolean;
+
+Method "_is abstract" is [abstractSig : abstractSignature |
+	true;
+];
+
+
+/* Message bundle tree operations... */
+
+Method "_complete" is [tree : messageBundleTree |
+	/* Answer the messages that are complete at this point
+	   in the tree.  Answer a map from messages to bundles. */
+	Primitive 207;
+	Failed;
+] : map from cyclicType to messageBundle;
+
+Method "_incomplete" is [tree : messageBundleTree |
+	/* Answer the messages that are incomplete at this point
+	   in the tree.  Answer a map from strings (the next piece
+	   to be parsed) to messageBundleTrees. */
+	Primitive 208;
+	Failed;
+] : map from string to messageBundleTree;
+
+
+
+/* This method looks up a name (a cyclicType) and answers the
+   implementationSet associated with it.  This is only needed for
+   constructing new methods from within Avail... */
+
+Method "_implementation set" is [message : cyclicType |
+	Primitive 220;
+	Failed;
+] : implementationSet;
+
+
+/* Extract the cyclicType associated with the implementationSet. */
+
+Method "_name" is [impSet : implementationSet |
+	Primitive 221;
+	Failed;
+] : cyclicType;
+
+

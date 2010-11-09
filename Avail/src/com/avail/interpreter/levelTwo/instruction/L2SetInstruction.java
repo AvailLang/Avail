@@ -1,0 +1,126 @@
+/**
+ * interpreter/levelTwo/instruction/L2SetInstruction.java
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.interpreter.levelTwo.instruction;
+
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.levelTwo.L2CodeGenerator;
+import com.avail.interpreter.levelTwo.L2Translator;
+import com.avail.interpreter.levelTwo.instruction.L2SetInstruction;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import java.util.ArrayList;
+import static com.avail.interpreter.levelTwo.L2Operation.*;
+
+public class L2SetInstruction extends L2Instruction
+{
+	L2ObjectRegister _variable;
+	L2ObjectRegister _value;
+
+
+	// accessing
+
+	public ArrayList<L2Register> destinationRegisters ()
+	{
+		//  Answer a collection of registers written to by this instruction.
+
+		return new ArrayList<L2Register>();
+	}
+
+	public ArrayList<L2Register> sourceRegisters ()
+	{
+		//  Answer a collection of registers read by this instruction.
+
+		ArrayList<L2Register> result = new ArrayList<L2Register>(2);
+		result.add(_variable);
+		result.add(_value);
+		return result;
+	}
+
+
+
+	// code generation
+
+	public void emitOn (
+			final L2CodeGenerator anL2CodeGenerator)
+	{
+		//  Emit this instruction to the code generator.
+
+		anL2CodeGenerator.emitWord(L2_doSetVariable_sourceObject_.ordinal());
+		anL2CodeGenerator.emitObjectRegister(_variable);
+		anL2CodeGenerator.emitObjectRegister(_value);
+	}
+
+
+
+	// initialization
+
+	public L2SetInstruction variableValue (
+			final L2ObjectRegister var, 
+			final L2ObjectRegister val)
+	{
+		_variable = var;
+		_value = val;
+		return this;
+	}
+
+
+
+	// typing
+
+	public void propagateTypeInfoFor (
+			final L2Translator anL2Translator)
+	{
+		//  Propagate type information due to this instruction.
+		//
+		//  This is kind of strange.  Because of the way outer variables can lose all type information,
+		//  we use the fact that the compiler set up an assignment to a variable to indicate that the
+		//  variable really is a variable.
+
+		AvailObject varType;
+		if (anL2Translator.registerHasTypeAt(_variable))
+		{
+			varType = anL2Translator.registerTypeAt(_variable);
+			varType = varType.typeIntersection(TypeDescriptor.container());
+		}
+		else
+		{
+			varType = TypeDescriptor.container();
+		}
+		anL2Translator.registerTypeAtPut(_variable, varType);
+	}
+
+
+
+
+
+}

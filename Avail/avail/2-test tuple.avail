@@ -1,0 +1,134 @@
+/**
+ * 2-test tuple.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "2-test tuple"
+Extends
+Uses
+	"1-main",
+	"2-blockA",
+	"2-tuple"
+Names
+Body
+
+
+n : tuple := <>;
+n := n [1..0 -> <10>];
+Assert n = <10>;
+n := <1> then <2> then <3>;
+Assert n = <1,2,3>;
+Assert ||n|| = 3;
+Assert "foodisdivine" [2 -> code point 376] = "fŸodisdivine";
+Assert 123 radix 10 = "123";
+Assert 16r"Abc123" = 11256099;
+
+[
+	t ::= tuple [1..INF) like <> default all;
+	start ::= [2..2];
+	end ::= [1..INF);
+	t1 ::= type of subtuple t from range start to range end;
+	if t1 not = tuple [0..INF) like <> default all then [
+		Print "Problem with tuple type t1";
+	];
+]();
+
+[
+	t ::= tuple like <
+		integer,
+		extended integer,
+		terminatesType,
+		[]->[85..125],
+		[]->[1..100],
+		character>;
+	start ::= [1..10];
+	end ::= [20..INF);
+	t2 ::= type of subtuple t from range start to range end;
+	if t2 not = terminates then [
+		Print "Problem with tuple type t2";
+	];
+	t3 ::= type of subtuple t from range [1..10] to range [4..5];
+	if t3 not = tuple [0..5] like <all, all, all, []->[1..125]> default []->[1..100] then [
+		Print "Problem with tuple type t3";
+	];
+]();
+
+
+
+Assert 123 radix 10 = "123";
+
+Assert [<1,2,3>;] type
+	= []->tuple like <[1..1],[2..2],[3..3]>;
+Assert [<1,2> then <3,4>;] type
+	= []->tuple like <[1..1],[2..2],[3..3],[4..4]>;
+Assert [<1,2> then <3,4> then <5,6>;] type
+	= []->tuple like <[1..1],[2..2],[3..3],[4..4],[5..5],[6..6]>;
+Assert [splice <<1,2>,<3,4>,<5,6>>;] type
+	= []->tuple like <[1..1],[2..2],[3..3],[4..4],[5..5],[6..6]>;
+
+x : type union of <50,2> type and <50,2,3,4> type;
+y : tuple [5..INF) like <[10..10],[20..20]> default [30..30];
+
+Assert [x;] type
+	= []->tuple [2..4] like <[50..50],[2..2],[3..3],[4..4]> default terminates;
+Assert [x then x;] type
+	= []->tuple [4..8] like <
+		[50..50],[2..2],[3..50],[2..50],
+		[2..50],[2..4],[3..4],[4..4]> default terminates;
+Assert [x then y;] type
+	= []->tuple [7..INF) like <
+		[50..50],[2..2],[3..10],[4..20],
+		[10..30],[20..30],[30..30]> default [30..30];
+Assert [y then x;] type
+	= []->tuple [7..INF) like <
+		[10..10],[20..20],[30..30],[30..30],[30..30],
+		[30..50],[2..50]> default [2..50];
+Assert [y then y;] type
+	= []->tuple [10..INF) like <
+		[10..10],[20..20],[30..30],[30..30],[30..30],
+		[10..30],[10..30],[10..30]> default [10..30];
+
+
+t1 : type union of<1,2,3,4> type and <1,2,3,4,4,4,4> type;
+t2 : type union of <5,6,7,7> type and <5,6,7,7,7> type;
+t3 : tuple [3..INF) like<[8..8],[9..9],[10..10]> default [11..11];
+t4 : <12,13> type;
+t5a : tuple [1..INF) like <> default (<14,15> type);
+t5 : [splice t5a;] type result;
+
+/* Note the approximation that must be produced here... */
+Assert [t5;] type result
+	= tuple [2..INF) like <
+		[14..14],[15..15]> default [14..15];
+
+Assert [splice <t1,t2,t3,t4,t5>;] type result
+	= tuple [15..INF) like <
+		[1..1],[2..2],[3..3],[4..4],
+		[4..5],[4..6],[4..7],[5..7],[6..8],[7..9],[7..10],[7..12],
+		[8..13],[9..14],[10..15],[11..15]> default [11..15];

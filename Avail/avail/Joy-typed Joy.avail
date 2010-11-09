@@ -1,0 +1,167 @@
+/**
+ * Joy-typed Joy.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Joy-typed Joy"
+Extends
+Uses "Kernel"
+Names
+Body
+
+/*  Define a trivial Joy interpreter, directly *embedded* in the Avail syntax. */
+
+/* Some useful types... */
+stack ::= tuple of all;
+stackType ::= stack type;
+
+typePart ::= lookup "typePart";
+runPart ::= lookup "runPart";
+"TypedFunct" is implicit subtype of Object with
+	[typePart -> [terminates]->stackType]
+	[runPart -> [terminates]->stack];
+
+Method "_withType_" is [body : [terminates]->stack, typer : [terminates]->stackType |
+	TypedFunct new with <
+		<runPart, body>,
+		<typePart, typer>
+	>;
+];
+
+Method "like_" is [t : tuple of type |
+	/* A stack type where the top elements match the given tuple of types. */
+	concatenate tuple type (tuple like t) and tuple;
+]:stackType;
+
+Method "_popped_" is [sT : stackType, N : natural number |
+	/* A stack type where the top N elements have been removed from the given stack type sT. */
+	type of subtuple sT
+		from range [N+1..N+1]
+		to range [sT sizes lower bound - N .. sT sizes upper bound - N + 1);
+]:stackType;
+
+Method "_with_" is [sT : stackType, toPush : tuple of type |
+	/* A stack type similar to sT, but with the given tuple of types pushed on it. */
+	concatenate tuple type (tuple like toPush) and sT;
+]:stackType;
+
+
+/* Polymorphic utility for evaluation... */
+Method "_run_" is [a : all, s : stack |
+	/* Most objects just push themselves. */
+	<a> then  s;
+]:stack;
+
+Method "_run_" is [f : TypedFunct, s : stack |
+	f->runPart apply <s>;
+]:stack;
+
+Method "_runAll_" is [quotation : tuple, s : stack |
+	s2 : stack := s;
+	quotation do [x : all | s2 := x run s2;];
+	s2;
+];
+
+
+/* Polymorphic utility for type-checking... */
+Method "_check_" is [a : all, sT : stackType |
+	sT with <a type>;
+];
+
+Method "_check_" is [f : TypedFunct, sT : stackType |
+	f->typePart apply <sT>;
+];
+
+
+/* Some useful primitive operations... */
+pop ::= [s:stack | s[2..||s||];]
+	withType [sT : stackType | sT popped 1;];
+dup ::= [s:stack | <s[1]> then s;]
+	withType [sT : stackType | sT with <sT[1]>;];
+swap ::= [s:stack | <s[2],s[1]> then (s[3..||s||]);]
+	withType [sT : stackType | (sT popped 2) with <sT[2], sT[1]>;];
+print ::= [s:stack | Print s[1]; s[2..||s||];]
+	withType [sT : stackType | sT popped 1;];
+i ::= [s:stack | cast s[1] into [f : TypedFunct | f run (s[2..||s||]);];]
+	withType [sT : stackType |
+		Assert sT[1] <= TypedFunct;
+		/* Something isn't right here. */
+		Halt;
+		sT with <TypedFunct>;];
+is ::= [s:stack |
+		cast s[1] into [str : string |
+			cast s[2] into [f : TypedFunct |
+				Method str is [ [s:stack | f run s;];];];];
+		s[2..||s||];]   /* leaves quoted program on stack */
+	withType [sT : stackType | sT popped 1;];
+Method "+" is [
+	[s:stack |
+		cast s[1..2] into [t : tuple like <integer, integer> |
+			<t[1]+t[2]> then (s[3..||s||]);];]
+	withType [sT : stackType |
+		Assert sT[1] <= integer;
+		Assert sT[2] <= integer;
+		sT popped 1;];];
+Method "*" is [
+	[s:stack |
+		cast s[1..2] into [t : tuple like <integer, integer> |
+			<t[1]*t[2]> then (s[3..||s||]);];]
+	withType [sT : stackType |
+		Assert sT[1] <= integer;
+		Assert sT[2] <= integer;
+		sT popped 1;];];
+
+
+/* Quoting (0, 1, >1)... */
+Method "[]" is [ [s:stack | s;] withType [sT:stackType | sT with <TypedFunct>;]; ];
+Method "[_]" is [x : all | [s:stack | <x> then s;] withType [sT:stackType | sT with <TypedFunct>;]; ];
+Method "[_]" is [aList : list |
+	[s:stack |
+		s2 : stack := s;
+		<aList> do [x : all | s2 := x run s2;];
+		s2;]
+	withType [sT:stackType | sT with <TypedFunct>;];];
+
+/* And, of course, the outer 'evaluator'... */
+Method "_Joy run" is [f : TypedFunct |
+	Halt;
+	residueType ::= f check (<> type);
+	Print <"residue type=", residueType>;
+	Assert residueType = (<> type);
+	residue ::= f run <>;
+	Print <"residue=", residue>;
+	Assert residue = <>;
+]:void;
+
+[1, 2, +, print, pop] Joy run;
+
+[[dup, *], "square", is, pop] Joy run;
+
+[5, square, print] Joy run;
+

@@ -1,0 +1,253 @@
+/**
+ * 2-map.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "2-map"
+Extends
+Uses
+	"1-main",
+	"2-blockA",
+	"2-container",
+	"2-integer",
+	"2-set",
+	"2-tuple"
+Names
+	"map_from_to_",
+	"map from_to_",
+	"map",
+	"_sizes",
+	"_keyType",
+	"_valueType",
+	"||_||",
+	"_[_]?",
+	"_[_]",
+	"_[_->_]",
+	"_[_->nil]",
+	"*_[_]:=_",
+	"*_[_]:=nil",
+	"[->]",
+	"[_->_]",
+	"_keys",
+	"_values"
+Body
+
+
+
+/* Maps are discrete functions mapping keys onto values.  A map type consists of a range
+   of sizes, a keyType, and a valueType.  Instances of a map type are precisely those maps
+   that respect these three constraints.
+*/
+
+
+/* mapType construction and manipulation primitives... */
+
+Method "map_from_to_" is [
+		sizes : integerType,
+		keyType : type,
+		valueType : type |
+	Primitive 87;
+	Failed;
+] : mapType;
+
+
+Method "map from_to_" is [
+		keyType : type,
+		valueType : type |
+	map whole number from keyType to valueType;
+] : mapType;
+
+
+Method "map" is [
+	map from all to all;
+] : mapType;
+
+
+Method "_sizes" is [mt : mapType |
+	Primitive 88;
+	Failed;
+] : integerType;
+
+
+Method "_keyType" is [mt : mapType |
+	Primitive 89;
+	Failed;
+] : type;
+
+
+Method "_valueType" is [mt : mapType |
+	Primitive 90;
+	Failed;
+] : type;
+
+
+Method "||_||" is [m : map |
+	Primitive 80;
+	Failed;
+] : integer
+returns [mt : mapType |
+	mt sizes;
+];
+
+
+Method "_[_]?" is [m : map, k : all |
+	/* Test if the key is present */
+	Primitive 81;
+	Failed;
+] : boolean
+returns [mt : mapType, kt : type |
+	if type intersection of mt keyType and kt = terminates | [mt sizes upper bound = 0;] then [
+		/* No value of the k argument could ever be in the map. */
+		falseType;
+	] else [
+		boolean;
+	];
+];
+
+
+Method "_[_]" is [m : map, k : all |
+	Primitive 82;
+	Failed;
+] : all
+returns [mt : mapType, kt : type |
+	if type intersection of mt keyType and kt = terminates then [
+		/* No value of the k argument could ever be in the map. */
+		terminates;
+	] else [
+		mt valueType;
+	];
+];
+
+
+Method "_[_->_]" is [m : map, k : all, v : all |
+	/* Copy map but with k->v in it. */
+	Primitive 83;
+	Failed;
+] : map
+returns [mt : mapType, kt : type, vt : type |
+	map [mt sizes lower bound .. mt sizes upper bound + 2)
+		from (type union of mt keyType and kt)
+		to (type union of mt valueType and vt);
+];
+
+
+Method "_[_->nil]" is [m : map, k : all |
+	/* Copy map but without the given key. */
+	Primitive 84;
+	Failed;
+] : map
+returns [mt : mapType, kt : type |
+	/* Original map type but allowing one fewer element (dealing with possibly
+	   empty map). */
+	map [(mt sizes lower bound - 1) max 0 .. mt sizes upper bound + 1)
+		from (mt keyType)
+		to (mt valueType);
+];
+
+
+
+/* Store-back forms... */
+
+Method "*_[_]:=_" is [mapVar : container, key : all, value : all |
+	/* Copy map but with k->v in it.  Store back in mapVar. */
+	*mapVar ?:=
+		cast	
+			clearing* mapVar
+		into [m : map | m[key->value];];
+] : void
+requires [mvt : containerType, kt : type, vt : type |
+	cast mvt contentType into [mt : mapType |
+		mt sizes upper bound = INF
+			& kt <= mt keyType
+			& vt <= mt valueType;]
+	otherwise [false;];
+];
+
+
+Method "*_[_]:=nil" is [mapVar : container, k : all |
+	/* Copy map but without the given key.  Store back in mv. */
+	*mapVar ?:= cast *mapVar into [m : map | m[k->nil];];
+] : void
+requires [mvt : containerType, kt : type |
+	/* Allow nonexistent keys to be excluded.  Hence, don't check key
+	   types here. */
+	cast mvt contentType into [mt : mapType |
+		/* Make sure map can shrink arbitrarily small and still fit in variable. */
+		mt sizes lower bound = 0;]
+	otherwise [false;];
+];
+
+
+
+/* Map constructors... */
+
+Method "[->]" is [
+	/* Answer the empty map. */
+	Primitive 85;
+	Failed;
+] : map [0..0] from terminates to terminates;
+
+
+Method "[_->_]" is [k : all, v : all |
+	/* Answer a map with a single key and value. */
+	[->][k->v];
+] : map
+returns [kt : type, vt : type |
+	map [1..1] from kt to vt;
+];
+
+
+/* Iteration support... */
+
+Method "_keys" is [m : map |
+	Primitive 86;
+	Failed;
+] : set
+returns [mt : mapType |
+	set mt sizes of mt keyType;
+];
+
+Method "_values" is [m : map |
+	Primitive 91;
+	Failed;
+] : tuple
+returns [mt : mapType |
+	tuple mt sizes of mt valueType;
+];
+
+Method "_do_" is [m : map , blk : [terminates, terminates]->void |
+	m keys do [key : all |
+		blk apply <key, m[key]>;
+	];
+] : void
+requires [mt : mapType, bT : closureType |
+	mt keyType <= bT[1] & mt valueType <= bT[2];
+];
+
+

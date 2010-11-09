@@ -1,0 +1,249 @@
+/**
+ * interpreter/levelOne/L1InstructionWriter.java
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.interpreter.levelOne;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ClosureTypeDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.L2ChunkDescriptor;
+import com.avail.descriptor.NybbleTupleDescriptor;
+import com.avail.descriptor.ObjectTupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.levelOne.L1Instruction;
+import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelOne.L1StackTracker;
+
+public class L1InstructionWriter
+{
+
+	private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+	final List<AvailObject> literals = new ArrayList<AvailObject>();
+
+	private final Map<AvailObject, Integer> reverseLiterals = new HashMap<AvailObject, Integer>();
+
+	public int addLiteral (AvailObject literal)
+	{
+		Integer index = reverseLiterals.get(literal);
+		if (index == null)
+		{
+			literals.add(literal);
+			index = literals.size();
+			reverseLiterals.put(literal, index);
+		}
+		return index;
+	}
+
+	private List<AvailObject> argumentTypes;
+
+	public void argumentTypes (AvailObject ... argTypes)
+	{
+		assert localTypes.size() == 0: "Must declare argument types before allocating locals";
+		this.argumentTypes = Arrays.asList(argTypes);
+	}
+
+	private AvailObject returnType;
+
+	public void returnType (AvailObject retType)
+	{
+		this.returnType = retType;
+	}
+
+	private List<AvailObject> localTypes = new ArrayList<AvailObject>();
+
+	public int createLocal (AvailObject localType)
+	{
+		assert argumentTypes != null : "Must declare argument types before allocating locals";
+		assert localType.isInstanceOfSubtypeOf(TypeDescriptor.type());
+		localTypes.add(localType);
+		return localTypes.size();
+	}
+
+	private List<AvailObject> outerTypes = new ArrayList<AvailObject>();
+
+	public int createOuter (AvailObject outerType)
+	{
+		outerTypes.add(outerType);
+		return outerTypes.size();
+	}
+
+	private int primitiveNumber = 0;
+
+	public void primitiveNumber (int primNumber)
+	{
+		assert this.primitiveNumber == 0 : "Don't set the primitive twice";
+		this.primitiveNumber = primNumber;
+	}
+
+	L1StackTracker stackTracker = new L1StackTracker ()
+	{
+		@Override AvailObject literalAt (int literalIndex)
+		{
+			return literals.get(literalIndex - 1);
+		}
+	};
+
+
+
+	private void writeOperand (int operand)
+	{
+		if (operand < 10)
+		{
+			stream.write(operand);
+		}
+		else if (operand < 58)
+		{
+			stream.write((operand + 150) >>> 4);
+			stream.write((operand + 150) & 15);
+		}
+		else if (operand < 314)
+		{
+			stream.write(13);
+			stream.write((operand - 58) >>> 4);
+			stream.write((operand - 59) & 15);
+		}
+		else if (operand < 65536)
+		{
+			stream.write(14);
+			stream.write(operand >>> 12);
+			stream.write((operand >>> 8) & 15);
+			stream.write((operand >>> 4) & 15);
+			stream.write(operand & 15);
+		}
+		else
+		{
+			stream.write(15);
+			stream.write(operand >>> 28);
+			stream.write((operand >>> 24) & 15);
+			stream.write((operand >>> 20) & 15);
+			stream.write((operand >>> 16) & 15);
+			stream.write((operand >>> 12) & 15);
+			stream.write((operand >>> 8) & 15);
+			stream.write((operand >>> 4) & 15);
+			stream.write(operand & 15);
+		}
+	}
+
+
+	public void write (L1Instruction instruction)
+	{
+		stackTracker.track(instruction);
+		byte opcode = (byte)instruction.operation().ordinal();
+		if (opcode <= 15)
+		{
+			stream.write(opcode);
+		}
+		else
+		{
+			stream.write(L1Operation.L1_doExtension.ordinal());
+			stream.write(opcode - 16);
+		}
+		int [] operands = instruction.operands();
+		for (int i = 0; i < operands.length; i++)
+		{
+			writeOperand(operands[i]);
+		}
+	}
+
+
+	private AvailObject nybbles ()
+	{
+		AvailObject nybbles = AvailObject.newIndexedDescriptor(
+			(stream.size() + 7) / 8,
+			NybbleTupleDescriptor.isMutableSize(true, stream.size()));
+		nybbles.hashOrZero(0);
+		byte [] byteArray = stream.toByteArray();
+		for (int i = 0; i < byteArray.length; i++)
+		{
+			nybbles.rawNybbleAtPut(i + 1, byteArray[i]);
+		}
+		nybbles.makeImmutable();
+		return nybbles;
+	}
+
+
+	public AvailObject compiledCode ()
+	{
+		int numBaseLiterals = literals.size();
+		int numOuters = outerTypes.size();
+		int numArgs = argumentTypes.size();
+		int numBaseLocals = localTypes.size();
+		AvailObject argTypes = AvailObject.newIndexedDescriptor (
+			numArgs,
+			ObjectTupleDescriptor.mutableDescriptor());
+		argTypes.hashOrZero(0);
+		for (int i = 1; i <= numArgs; ++ i)
+			argTypes.tupleAtPut(i, argumentTypes.get(i - 1));
+		AvailObject closureType = ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType (
+			argTypes,
+			returnType);
+		AvailObject code = AvailObject.newIndexedDescriptor(
+			numBaseLiterals + numOuters + numArgs + numBaseLocals,
+			CompiledCodeDescriptor.mutableDescriptor());
+		code.nybbles(nybbles());
+		code.argsLocalsStackOutersPrimitive(
+			numArgs,
+			numBaseLocals,
+			stackTracker.maxDepth(),
+			outerTypes.size(),
+			primitiveNumber);
+		code.closureType(closureType);
+		code.startingChunkIndex(L2ChunkDescriptor.indexOfUnoptimizedChunk());
+		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
+		int destLiteralIndex = 0;
+		for (int i = 0; i < numBaseLiterals; ++i)
+		{
+			code.literalAtPut(++destLiteralIndex, literals.get(i));
+		}
+		for (int i = 0; i < numOuters; ++i)
+		{
+			code.literalAtPut(++destLiteralIndex, outerTypes.get(i));
+		}
+		for (int i = 0; i < numArgs; ++i)
+		{
+			code.literalAtPut(++destLiteralIndex, argumentTypes.get(i));
+		}
+		for (int i = 0; i < numBaseLocals; ++i)
+		{
+			code.literalAtPut(++destLiteralIndex, localTypes.get(i));
+		}
+		assert destLiteralIndex == numBaseLiterals + numOuters + numArgs + numBaseLocals;
+		code.makeImmutable();
+		return code;
+	}
+}

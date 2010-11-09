@@ -1,0 +1,144 @@
+/**
+ * 1-integer.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "1-integer"
+Extends
+Uses
+	"0-bootstrapRaw"
+Names
+	"range from_inclusive_to_inclusive_",
+	"[_.._]",		"[_.._)",		"(_.._]",		"(_.._)",
+	"_lower inclusive",			"_lower bound",
+	"_upper inclusive",			"_upper bound",
+	"INF",			"_is finite",		"_is infinite",
+	"natural number",	"whole number",
+	"byte"
+Body
+
+
+
+/* This module defines pre-arithmetic integer operations.  Start with definitions
+   of range type operations, starting with some helpers... */
+
+Method "_basicType" is [x : all |
+	Primitive 30;
+	Failed;
+] :  type;
+
+Method "range from_inclusive_to_inclusive_" is [
+		min : extended integer,
+		inclusive1 : boolean,
+		max : extended integer,
+		inclusive2 : boolean |
+	Primitive 7;
+	Failed;
+] : integerType;
+
+
+Method "[_.._]" is [min : extended integer, max : extended integer |
+	range from min inclusive true to max inclusive true;
+] : integerType;
+
+Method "[_.._)" is [min : extended integer, max : extended integer |
+	range from min inclusive true to max inclusive false;
+] : integerType;
+
+Method "(_.._]" is [min : extended integer, max : extended integer |
+	range from min inclusive false to max inclusive true;
+] : integerType;
+
+Method "(_.._)" is [min : extended integer, max : extended integer |
+	range from min inclusive false to max inclusive false;
+] : integerType;
+
+Method "_lower bound" is [range : integerType |
+	Primitive 8;
+	Failed;
+] : extended integer;
+
+Method "_upper bound" is [range : integerType |
+	Primitive 9;
+	Failed;
+] : extended integer;
+
+Method "_lower inclusive" is [range : integerType |
+	range lower bound basicType <= range;   /* The <= is the subtype relation. */
+] : boolean;
+
+Method "_upper inclusive" is [range : integerType |
+	range upper bound basicType <= range;   /* The <= is the subtype relation. */
+] : boolean;
+
+
+
+/* Define public access to infinity ... */
+
+privateInfinity ::= extended integer upper bound;
+
+Method "INF" is [
+	privateInfinity;
+] : [privateInfinity..privateInfinity];
+
+
+Method "_is finite" is [x : extended integer |
+	false;
+] : boolean;
+
+Method "_is finite" is [x : integer |
+	true;
+] : trueType;
+
+
+Method "_is infinite" is [x : extended integer |
+	true;
+] : boolean;
+
+Method "_is infinite" is [x : integer |
+	false;
+] : falseType;
+
+
+
+/* Some convenient range types from mathematics and computer science... */
+
+Method "natural number" is [
+	[1..INF);
+] : integerType;
+
+Method "whole number" is [
+	[0..INF);
+] : integerType;
+
+Method "byte" is [
+	[0..255];
+] : integerType;
+
+

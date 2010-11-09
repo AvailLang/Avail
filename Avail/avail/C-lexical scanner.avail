@@ -1,0 +1,159 @@
+/**
+ * C-lexical scanner.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "C-lexical scanner"
+Extends
+Uses
+	"Kernel",
+	"C-tokens"
+Names
+Body
+
+/*------------------------------------------------------------------------------------------------------------------------*/
+
+"Character Source"
+	is implicit subtype of Iterator
+	with
+		[ elementType -> [] -> character ];
+
+source ::= lookup "source";
+current ::= lookup "current";
+tokens ::= lookup "tokens";
+
+"Scanner"
+	is explicit subtype of Object
+	with
+		[ source -> Character Source ]
+		[ current -> &: character ]
+		[ tokens -> &: tuple of Token ];
+
+/*------------------------------------------------------------------------------------------------------------------------*/
+
+/**
+ * Peek at the current character of the specified Scanner's input Character Source.
+ *
+ * @param scanner A Scanner.
+ * @returns The current character.
+ */
+Method "peek_" is [ scanner : Scanner |
+	*scanner->current;
+];
+
+/**
+ * Read and consume the next character of the specified Scanner's input Character Source.
+ *
+ * @param scanner A Scanner.
+ * @returns The next character.
+ */
+Method "next_" is [ scanner : Scanner |
+	c ::= peek scanner;
+	if scanner->source is at end
+	then [
+		/* Code point 26 is ^Z, an useful sentinel (forbidden to appear in C source). */
+		*scanner->current := code point 26; ]
+	else [
+		*scanner->current := next scanner->source; ];
+	c;
+];
+
+/**
+ * Append the specified Token onto the specified Scanner's tuple of accumulated tokens.
+ *
+ * @params scanner A Scanner.
+ * @params token A Token.
+ */
+Method "_append token_" is [ scanner : Scanner, token : Token |
+	tokens ::= scanner->tokens;
+	*tokens := clearing* tokens then <token>;
+];
+
+/*------------------------------------------------------------------------------------------------------------------------*/
+
+/** @returns Horizontal tab. */
+Method "\t" is [ code point 9; ];
+
+/** @returns Line feed. */
+Method "\n" is [ code point 10; ];
+
+/** @returns Vertical tab. */
+Method "\v" is [ code point 11; ];
+
+/** @returns Form feed. */
+Method "\f" is [ code point 12; ];
+
+/** @returns Carriage return. */
+Method "\r" is [ code point 13; ];
+
+/** @returns Space. */
+Method "space" is [ code point 32; ];
+
+/** @returns The set of all C whitespace characters. */
+Method "white space characters" is [ {\t, \n, \v, \f, \r, space}; ];
+
+identifierStarts ::= $"A" to $"Z" then $"a" to $"z" then "_" as set;
+identifierCharacters ::= identifierStarts union $"0" to $"9" as set;
+
+/** @returns The set of all valid initial C identifier characters. */
+Method "identifier start characters" is [ identifierStarts; ];
+
+/** @returns The set of all valid C noninitial identifier characters. */
+Method "identifier characters" is [ identifierCharacters; ];
+
+/*------------------------------------------------------------------------------------------------------------------------*/
+
+/**
+ * Scan (and discard) white space characters.
+ *
+ * @param scanner A Scanner.
+ */
+Method "_scan white space" is [ scanner : Scanner |
+	Loop [
+		Discard next scanner; ]
+	while [
+		white space characters includes peek scanner; ];
+];
+
+/**
+ * Scan an identifier.
+ *
+ * @param scanner A Scanner.
+ * @returns An identifier.
+ */
+Method "_scan identifier" is [ scanner : Scanner |
+	s : string := "";
+	Loop [
+		s := s then <next scanner>; ]
+	while [
+		identifier characters includes peek scanner; ];
+	s;
+] : string;
+
+/*------------------------------------------------------------------------------------------------------------------------*/

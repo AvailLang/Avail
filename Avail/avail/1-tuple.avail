@@ -1,0 +1,253 @@
+/**
+ * 1-tuple.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "1-tuple"
+Extends 
+Uses
+	"0-bootstrapRaw",
+	"1-block",
+	"1-container",
+	"1-integer",
+	"1-method",
+	"1-type"
+Names
+	"tuple_like_default_",
+	"tuple_of_",
+	"tuple of_",
+	"tuple like_",
+	"<>",
+	"<_>",
+	"_as listType",
+	"_as tupleType",
+	"_leading types",
+	"_default type",
+	"_sizes",
+	"_sizes lower bound",
+	"_sizes upper bound",
+	"||_||",
+	"_[_]",
+	"_[_.._]",
+	"union of types in_",
+	"union of types in_at indices_through_"
+Body
+
+
+/* Private stuff to solve bootstrap problem... */
+
+Method "privateEmptyTuple" is [
+	/* Defined here privately with weak result type (merely tuple)... */
+	Primitive 134;
+	Failed;
+] : tuple;
+
+
+Method "private tuple type for sizes_like_default_" is [
+		sizeRange : integerType,
+		typeTuple : tuple,
+		defaultType : type |
+	/* Construct a new tuple type.  Defined here privately with weak input types... */
+	Primitive 137;
+	Failed;
+] : tupleType;
+
+
+/* Empty tuple constructor... */
+
+Method "<>" is [
+	/* Defined publicly this time with stronger result type by using previous definition... */
+	Primitive 134;
+	Failed;
+] : privateEmptyTuple type;
+
+
+/* Tuple type constructor... */
+
+Method "tuple_like_default_" is [
+		sizeRange : integerType,
+		typeTuple : (private tuple type for sizes whole number like <> default (type)),
+		defaultType : type |
+	/* Construct a new tuple type.  Redefined here publicly for stronger input types... */
+	Primitive 137;
+	Failed;
+] : tupleType;
+
+Method "tuple_of_" is [sizeRange : integerType, elementType : type |
+	tuple sizeRange
+	like <>
+	default elementType;
+] : tupleType;
+
+Method "tuple of_" is [elementType : type |
+	tuple whole number
+		like <>
+		default elementType;
+] : tupleType;
+
+
+/* List type and tuple type converters */
+
+Method "_as listType" is [it : tupleType |
+	Primitive 46;
+	Failed;
+] : listType;
+
+Method "_as tupleType" is [it : listType |
+	Primitive 48;
+	Failed;
+] : tupleType;
+
+
+/* Tuple constructors... */
+
+Method "<_>" is [it : all |
+	/* Construct a tuple with one element. */
+	Primitive 133;
+	Failed;
+] : tuple
+returns [itsType : type |
+	tuple [1..1]
+		like <>
+		default itsType;
+] : tupleType;
+
+Method "<_>" is [them : list |
+	/* Convert a list to a tuple. */
+	Primitive 47;
+	Failed;
+] : tuple
+returns [themType : listType |
+	themType as tupleType;
+] : tupleType;
+
+
+/* Accessors for tupleTypes... */
+
+Method "_leading types" is [tt: tupleType |
+	Primitive 139;
+	Failed;
+] : tuple [0..INF) like <> default type;
+
+Method "_default type" is [tt : tupleType |
+	Primitive 140;
+	Failed;
+] : type;
+
+
+/* Precedence rule to prevent problems later. */
+
+Method "_private as set" is [t : tuple of string |
+	Primitive 109;
+	Failed;
+] : set;
+
+<"_lower bound", "_upper bound"> private as set can't have <<"_sizes"> private as set>;
+
+
+Method "_sizes" is [tt : tupleType |
+	Primitive 138;
+	Failed;
+] : integerType;
+
+Method "_sizes lower bound" is [tt : tupleType |
+	/* This is syntactically overloaded for a stronger return type. */
+	result : [0..INF);
+	* &result ?:= (tt sizes) lower bound;
+	result;
+] : [0..INF);
+
+Method "_sizes upper bound" is [tt : tupleType |
+	/* This is syntactically overloaded for a stronger return type. */
+	result : [0..INF];
+	* &result ?:= (tt sizes) upper bound;
+	result;
+] : [0..INF];
+
+
+
+
+/* Tuple size extraction... */
+
+Method "||_||" is [t : tuple |
+	/* Compute size of tuple. */
+	Primitive 130;
+	Failed;
+] : whole number
+returns [tT : tupleType |
+	tT sizes;
+];
+
+
+/* Another tuple type constructor... */
+
+Method "tuple like_" is [elementTypes : tuple of type |
+	size ::= ||elementTypes||;
+	tuple [size..size]
+		like elementTypes
+		default terminates;
+] : tupleType;
+
+
+/* Some tuple type operations... */
+
+Method "_[_]" is [tt : tupleType, i : extended integer |
+	/* Indices out of range are simply the type terminates. */
+	Primitive 141;
+	Failed;
+] : type;
+
+Method "_[_.._]" is [tt : tupleType, start : integer, end : integer |
+	/* Indices out of range are simply the type terminates. */
+	Primitive 142;
+	Failed;
+] : tuple of type;
+
+
+/* Union of an entire tuple of types... */
+
+Method "union of types in_" is [typesTuple : tuple of type |
+	Primitive 38;
+	Failed;
+] : type;
+
+
+/* Union of the types at some of the indices of a tupleType... */
+/* I really should give this a more distinct name than the method
+   we just defined, as one works on a tuple of types and the other
+   works on a type for tuples. */
+
+Method "union of types in_at indices_through_" is [
+		tt : tupleType,
+		start : integer,
+		end : integer |
+	Primitive 143;
+	Failed;
+] : type;
+

@@ -1,0 +1,84 @@
+/**
+ * IO-input file.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "IO-input file"
+Extends
+Uses
+	"Kernel",
+	"IO-file"
+Names
+	"Input File",
+	"next_from_"
+Body
+
+
+/* I define the simple file input operations for Avail. */
+
+"Input File" is explicit subtype of File, Iterator with
+	[elementType->[]->byte]
+	[handle->integer];
+
+
+/* Instance creation... */
+
+Method "_named_" is [fileType : Input File type, name : string |
+	fileHandle : integer := [theName : string |
+		Primitive 160;
+		Failed;
+	] : integer (name);
+	Input File new with <
+		<elementType, [Crash "don't call";] : byte>,
+		<handle, fileHandle>
+	>;
+] : Input File;
+
+
+/* Basic accessing... */
+
+Method "next_from_" is [count : [0..INF], file : Input File |
+	[handle : integer, count : [0..INF] |
+		Primitive 163;
+		Failed;
+	] : tuple of byte (file -> handle, count);
+] : tuple of byte;
+
+Method "next_" is [file : Input File |
+	next 1 from file [1];
+] : byte;
+
+
+/* Multiple inheritance override... */
+
+Method "_is at end" is [file : Input File |
+	/* Cast the message up to File (not Iterator). */
+	file :: File is at end;
+] : boolean;
+

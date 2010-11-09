@@ -1,0 +1,174 @@
+/**
+ * Proteus-Score.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Proteus-Score"
+Extends
+Uses
+	"Kernel",
+	"Proteus-Entity",
+	"Proteus-Modifier"
+Names
+	"Score"
+Body
+
+/* Define the structure and behavior of scores, a core concept of Proteus. */
+
+privateNaturalRank ::= lookup "naturalRank";
+privateDamageSustained ::= lookup "damageSustained";
+privateModifiers ::= lookup "modifiers";
+
+"Natural Rank Modifier" is explicit subtype of Intrinsic Modifier;
+"Damage Sustained Modifier" is explicit subtype of Intrinsic Modifier;
+
+"Score" is explicit subtype of Object with
+	[privateNaturalRank -> whole number]
+	[privateDamageSustained -> nonpositive integer]
+	[privateModifiers -> map from Entity to Modifier];
+
+Method "_natural rank" is [
+		score : Score |
+	score -> privateNaturalRank;
+] : whole number;
+
+Method "_with natural rank of_" is [
+		scoreClass : Score type,
+		rank : whole number |
+	scoreClass new with <
+		<privateNaturalRank, rank>,
+		<privateDamageSustained, 0>,
+		<privateModifiers, [->]>
+	>;
+];
+
+Abstract method "_with natural rank changed by at most_" for [ Score, integer ] -> Score;
+
+Method "_with natural rank changed by at most_" is [
+		score : Score,
+		rankDelta : natural number |
+	finalRank ::= score -> privateNaturalRank + rankDelta;
+	score altered with <<privateNaturalRank, finalRank>>;
+] : Score
+returns [
+		scoreType : Score type,
+		deltaType : integer type |
+	scoreType altered with <<privateNaturalRank, whole number>>;
+];
+
+Method "_with natural rank changed by at most_" is [
+		score : Score,
+		rankDelta : nonpositive integer |
+	finalRank ::= (score -> privateNaturalRank + rankDelta) max 0;
+	score altered with <<privateNaturalRank, finalRank>>;
+] : Score
+returns [
+		scoreType : Score type,
+		deltaType : integer type |
+	scoreType altered with <<privateNaturalRank, whole number>>;
+];
+
+Method "_damage sustained" is [
+		score : Score |
+	score -> privateDamageSustained;
+] : nonpositive integer;
+
+Abstract method "_with damage sustained changed by at most_" for [ Score, integer ] -> Score;
+
+Method "_with damage sustained changed by at most_" is [
+		score : Score,
+		rankDelta : natural number |
+	finalRank ::= (score -> privateDamageSustained - rankDelta) min 0;
+	score altered with <<privateDamageSustained, finalRank>>;
+] : Score
+returns [
+		scoreType : Score type,
+		deltaType : integer type |
+	scoreType altered with <<privateDamageSustained, nonpositive integer>>;
+];
+
+Method "_with damage sustained changed by at most_" is [
+		score : Score,
+		rankDelta : nonpositive integer |
+	finalRank ::= score -> privateDamageSustained + rankDelta;
+	score altered with <<privateDamageSustained, finalRank>>;
+] : Score
+returns [
+		scoreType : Score type,
+		deltaType : integer type |
+	scoreType altered with <<privateDamageSustained, nonpositive integer>>;
+];
+
+Method "_modifiers" is [
+		score : Score |
+	<
+		Natural Rank Modifier
+			having value score natural rank
+			described by [ "natural rank"; ],
+		Damage Sustained Modifier
+			having value score damage sustained
+			described by [ "damage sustained"; ]
+	>
+		then score -> privateModifiers values;
+] : tuple of Intrinsic Modifier;
+
+Method "_with modifiers_" is [
+		score : Score,
+		modifiers : tuple of Modifier |
+	updatedModifiers : map from Entity to Modifier := score -> privateModifiers;
+	modifiers do [ m : Modifier |
+		Assert not updatedModifiers [m source]?;
+		updatedModifiers := updatedModifiers [m source -> m]; ];
+	score altered with <<privateModifiers, updatedModifiers>>;
+] : Score
+returns [
+		scoreType : Score type,
+		modifiersType : (tuple of Modifier) type |
+	scoreType altered with <<privateModifiers, tuple of Modifier>>;
+];
+
+Method "_without modifiers_" is [
+		score : Score,
+		modifiers : tuple of Modifier |
+	updatedModifiers : map from Entity to Modifier := score -> privateModifiers;
+	modifiers do [ m : Modifier |
+		Assert updatedModifiers [m source]?;
+		updatedModifiers := updatedModifiers [m source -> nil]; ];
+	score altered with <<privateModifiers, updatedModifiers>>;
+] : Score
+returns [
+		scoreType : Score type,
+		modifiersType : (tuple of Modifier) type |
+	scoreType altered with <<privateModifiers, tuple of Modifier>>;
+];
+
+Method "_effective rank" is [
+		score : Score |
+	score modifiers sum [m : Intrinsic Modifier | m adjustment;];
+] : integer;
