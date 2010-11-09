@@ -41,6 +41,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import org.junit.Before;
 import org.junit.Test;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerException;
 import com.avail.compiler.Continuation2;
@@ -50,13 +51,26 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 
 
 /**
- * @author avail
+ * Broad test suite for the Avail compiler, interpreter, and library.
+ * 
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public class AvailCompilerTest
 {
+	/** The root of the library path. */
 	private static final String libraryPath = "avail/";
 
-	private String readSourceFile (final String sourcePath) throws IOException
+	/**
+	 * Read and answer the text of the specified Avail source file.
+	 * 
+	 * @param sourcePath The path of the source file, relative to the
+	 *                   {@linkplain #libraryPath library path}.
+	 * @return The text of the specified Avail source file.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
+	 */
+	private String readSourceFile (final @NotNull String sourcePath)
+		throws IOException
 	{
 		final File sourceFile = new File(libraryPath + sourcePath);
 		final char[] sourceBuffer = new char[(int) sourceFile.length()];
@@ -74,6 +88,10 @@ public class AvailCompilerTest
 		return new String(sourceBuffer, 0, offset);
 	}
 
+	/**
+	 * Test fixture: clear and then create all special objects well-known to the
+	 * Avail runtime.
+	 */
 	@Before
 	public void initializeAllWellKnownObjects ()
 	{
@@ -81,7 +99,18 @@ public class AvailCompilerTest
 		AvailObject.createAllWellKnownObjects();
 	}
 
-	private void compileTier (final String[] modulePaths) throws IOException
+	/**
+	 * Compile the specified Avail modules. The argument is expected to
+	 * encapsulate an entire tier of the Avail library.
+	 * 
+	 * @param modulePaths The paths to the target Avail source files, each
+	 *                    relative to the {@linkplain #libraryPath library
+	 *                    path}.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
+	 */
+	private void compileTier (final @NotNull String[] modulePaths)
+		throws IOException
 	{
 		AvailCompiler compiler = new AvailCompiler();
 		L2Interpreter interpreter = new L2Interpreter();
@@ -129,20 +158,29 @@ public class AvailCompilerTest
 		}
 	}
 
+	/** The Tier-0 modules. */
 	private static final String[] tier0ModulePaths =
 	{
 		"0-bootstrapMinimumTheoretical",
 		"0-bootstrapRaw"
 	};
 
+	/**
+	 * Test: Compile the Tier-0 modules.
+	 * 
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
 	@Test
 	public void tier0 () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
 		compileTier(tier0ModulePaths);
-		System.err.printf("time elapsed = %d%n", System.currentTimeMillis() - startTime);
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
+	/** The Tier-1 modules. */
 	private static final String[] tier1ModulePaths;
 
 	static
@@ -179,14 +217,22 @@ public class AvailCompilerTest
 			modulePaths.length);
 	}
 
+	/**
+	 * Test: Compile the Tier-1 modules.
+	 * 
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
 	@Test
 	public void tier1 () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
 		compileTier(tier1ModulePaths);
-		System.err.printf("time elapsed = %d%n", System.currentTimeMillis() - startTime);
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
+	/** The Tier-2 modules. */
 	private static final String[] tier2ModulePaths;
 
 	static
@@ -225,14 +271,22 @@ public class AvailCompilerTest
 			modulePaths.length);
 	}
 
+	/**
+	 * Test: Compile the Tier-2 modules.
+	 * 
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
 	@Test
 	public void tier2 () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
 		compileTier(tier2ModulePaths);
-		System.err.printf("time elapsed = %d%n", System.currentTimeMillis() - startTime);
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
+	/** The Tier-3 modules. */
 	private static final String[] tier3ModulePaths;
 
 	static
@@ -260,14 +314,22 @@ public class AvailCompilerTest
 			modulePaths.length);
 	}
 
+	/**
+	 * Test: Compile the Tier-3 modules.
+	 * 
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
 	@Test
 	public void tier3 () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
 		compileTier(tier3ModulePaths);
-		System.err.printf("time elapsed = %d%n", System.currentTimeMillis() - startTime);
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
+	/** The Tier-4 modules. */
 	private static final String[] tier4ModulePaths;
 
 	static
@@ -298,6 +360,12 @@ public class AvailCompilerTest
 			modulePaths.length);
 	}
 
+	/**
+	 * Test: Compile the Tier-4 modules.
+	 * 
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
 	@Test
 	public void tier4 () throws Exception
 	{

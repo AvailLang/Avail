@@ -32,202 +32,213 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 
-public class VoidDescriptor extends Descriptor
+/**
+ * {@code VoidDescriptor} implements the Avail {@linkplain #voidObject() void
+ * object}, the sole instance of the invisible and uninstantiable root type.
+ *
+ * @author Mark van Gulik &lt;ghoul6@gmail.com&gt;
+ */
+public class VoidDescriptor
+extends Descriptor
 {
+	/** The sole instance of the {@linkplain #voidObject() void object}. */
+    private static AvailObject soleInstance;
 
+    /**
+     * Create the sole instance of the {@linkplain #voidObject() void object}.
+     */
+	static void createWellKnownObjects ()
+    {
+    	soleInstance = AvailObject.newIndexedDescriptor(
+    		0, immutableDescriptor());
+    }
 
-	// java printing
+	/**
+	 * Discard the sole instance of the {@linkplain #voidObject() void object}.
+	 */
+	static void clearWellKnownObjects ()
+    {
+    	soleInstance = null;
+    }
 
-	void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
-	{
-		aStream.append("VoidDescriptor void");
-	}
+	/**
+	 * Answer the sole instance of the void object.
+	 * 
+	 * @return The sole instance of the void object.
+	 */
+	@ThreadSafe
+    public static @NotNull AvailObject voidObject ()
+    {
+    	return soleInstance;
+    }
 
+    /**
+     * Answer a mutable {@link VoidDescriptor}.
+     * 
+     * @return A mutable {@link VoidDescriptor}.
+     */
+	@ThreadSafe
+    public static @NotNull VoidDescriptor mutableDescriptor()
+    {
+    	return (VoidDescriptor) AllDescriptors[162];
+    }
 
+    /**
+     * Answer an immutable {@link VoidDescriptor}.
+     * 
+     * @return An immutable {@link VoidDescriptor}.
+     */
+	@ThreadSafe
+	public static @NotNull VoidDescriptor immutableDescriptor()
+    {
+    	return (VoidDescriptor) AllDescriptors[163];
+    }
 
-	// operations
-
+	@Override
+	@ThreadSafe
 	boolean ObjectEquals (
-			final AvailObject object, 
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsVoid();
 	}
 
-	boolean ObjectEqualsVoid (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	boolean ObjectEqualsVoid (final @NotNull AvailObject object)
 	{
 		//  There is only one void.
-
 		return true;
 	}
 
-	boolean ObjectEqualsVoidOrBlank (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	boolean ObjectEqualsVoidOrBlank (final @NotNull AvailObject object)
 	{
+		// There is only one void.
 		return true;
 	}
 
-	AvailObject ObjectExactType (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	@NotNull AvailObject ObjectExactType (final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return TypeDescriptor.voidType();
 	}
 
-	int ObjectHash (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	int ObjectHash (final @NotNull AvailObject object)
 	{
-		//  Answer the object's hash.  The void object should hash to zero, because the
-		//  only place it can appear in a data structure is as a filler object.  This currently
-		//  (as of July 1998) applies to sets, maps, containers, and continuations.
-
+		// The void object should hash to zero, because the only place it can
+		// appear in a data structure is as a filler object.  This currently
+		// (as of July 1998) applies to sets, maps, containers, and
+		// continuations.
 		return 0;
 	}
 
-	AvailObject ObjectType (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	@NotNull AvailObject ObjectType (final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return TypeDescriptor.voidType();
 	}
 
-
-
-	// operations-new sets
-
-	AvailObject ObjectBinAddingElementHashLevelCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
-			final byte myLevel, 
-			final boolean canDestroy)
+	@Override
+	@NotNull AvailObject ObjectBinAddingElementHashLevelCanDestroy (
+		final @NotNull AvailObject object, 
+		final @NotNull AvailObject elementObject, 
+		final int elementObjectHash, 
+		final byte myLevel, 
+		final boolean canDestroy)
 	{
-		//  The voidObject can't be an actual member of a set, so if one receives this message
-		//  it must be the rootBin of a set (empty by definition).  Answer the new element, which
-		//  will become the new rootBin, indicating a set of size one.
-
-		if (! canDestroy)
+		// The voidObject can't be an actual member of a set, so if one
+		// receives this message it must be the rootBin of a set (empty by
+		// definition).  Answer the new element, which will become the new
+		// rootBin, indicating a set of size one.
+		if (!canDestroy)
 		{
 			elementObject.makeImmutable();
 		}
 		return elementObject;
 	}
 
+	@Override
+	@ThreadSafe
 	boolean ObjectIsBinSubsetOf (
-			final AvailObject object, 
-			final AvailObject potentialSuperset)
+		final @NotNull AvailObject object, 
+		final @NotNull AvailObject potentialSuperset)
 	{
-		//  Void can't actually be a member of a set, so treat it as a
-		//  structural component indicating an empty bin within a set.
-		//  Since it's empty, it is a subset of potentialSuperset.
-
+		// Void can't actually be a member of a set, so treat it as a
+		// structural component indicating an empty bin within a set.
+		// Since it's empty, it is a subset of potentialSuperset.
 		return true;
 	}
 
-
-
-	// operations-set bins
-
-	AvailObject ObjectBinRemoveElementHashCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
-			final boolean canDestroy)
+	@Override
+	@ThreadSafe
+	@NotNull AvailObject ObjectBinRemoveElementHashCanDestroy (
+		final @NotNull AvailObject object, 
+		final @NotNull AvailObject elementObject, 
+		final int elementObjectHash, 
+		final boolean canDestroy)
 	{
-		//  Remove elementObject from the bin object, if present.  Answer the resulting bin.  The bin
-		//  may be modified if it's mutable and canDestroy.  In particular, this is voidObject acting as
-		//  a bin of size zero, so the answer must be voidObject.
-
+		// The void object is acting as a bin of size zero, so the answer must
+		// also be the void object.
 		return VoidDescriptor.voidObject();
 	}
 
+	@Override
+	@ThreadSafe
 	int ObjectPopulateTupleStartingAt (
-			final AvailObject object, 
-			final AvailObject mutableTuple, 
-			final int startingIndex)
+		final @NotNull AvailObject object, 
+		final @NotNull AvailObject mutableTuple, 
+		final int startingIndex)
 	{
-		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
-		//  the next available index in which to write.  The voidObject acts as an empty bin,
-		//  so do nothing.
-
+		// The void object acts as an empty bin, so do nothing.
 		assert mutableTuple.descriptor().isMutable();
 		return startingIndex;
 	}
 
-	int ObjectBinHash (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	int ObjectBinHash (final @NotNull AvailObject object)
 	{
-		//  A voidObject acting as a size zero bin has a bin hash which is the sum of
-		//  the elements' hashes, which in this case is zero.
-
+		// The void object acting as a size-zero bin has a bin hash which is the
+		// sum of the elements' hashes, which in this case is zero.
 		return 0;
 	}
 
-	int ObjectBinSize (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	int ObjectBinSize (final @NotNull AvailObject object)
 	{
-		//  Answer how many elements this bin contains.  I act as an empty bin.
-
+		// The void object acts as an empty bin.
 		return 0;
 	}
 
-	AvailObject ObjectBinUnionType (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	@NotNull AvailObject ObjectBinUnionType (final @NotNull AvailObject object)
 	{
-		//  Answer the union of the types of this bin's elements.  I act as a bin of size zero.
-
+		// The void object acts as an empty bin.
 		return TypeDescriptor.terminates();
 	}
 
-
-
-
-	// Startup/shutdown
-
-	static AvailObject SoleInstance;
-
-	static void createWellKnownObjects ()
-	{
-		//  Clear the SoleInstance variable as well as the default stuff.
-
-		SoleInstance = AvailObject.newIndexedDescriptor(0, immutableDescriptor());
-	}
-
-	static void clearWellKnownObjects ()
-	{
-		//  Clear the SoleInstance variable as well as the default stuff.
-
-		SoleInstance = null;
-	}
-
-
-
-	public static AvailObject voidObject ()
-	{
-		return SoleInstance;
-	};
-
-
-	/* Descriptor lookup */
-	public static VoidDescriptor mutableDescriptor()
-	{
-		return (VoidDescriptor) AllDescriptors [162];
-	};
-	public static VoidDescriptor immutableDescriptor()
-	{
-		return (VoidDescriptor) AllDescriptors [163];
-	};
-
+	@Override
+    void printObjectOnAvoidingIndent (
+    	final @NotNull AvailObject object, 
+    	final @NotNull StringBuilder aStream, 
+    	final @NotNull List<AvailObject> recursionList, 
+    	final int indent)
+    {
+    	aStream.append("VoidDescriptor void");
+    }
 }
