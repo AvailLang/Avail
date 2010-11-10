@@ -52,9 +52,9 @@ public class VoidTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
 	/**
-	 * Answer a mutable {@link VoidDescriptor}.
+	 * Answer a mutable {@link VoidTypeDescriptor}.
 	 * 
-	 * @return A mutable {@link VoidDescriptor}.
+	 * @return A mutable {@link VoidTypeDescriptor}.
 	 */
 	@ThreadSafe
 	public static @NotNull VoidTypeDescriptor mutableDescriptor ()
@@ -63,9 +63,9 @@ extends PrimitiveTypeDescriptor
 	}
 
 	/**
-	 * Answer a mutable {@link VoidDescriptor}.
+	 * Answer an immutable {@link VoidTypeDescriptor}.
 	 * 
-	 * @return A mutable {@link VoidDescriptor}.
+	 * @return An immutable {@link VoidTypeDescriptor}.
 	 */
 	@ThreadSafe
 	public static @NotNull VoidTypeDescriptor immutableDescriptor ()

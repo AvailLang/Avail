@@ -233,12 +233,13 @@ extends Descriptor
 	}
 
 	@Override
+	@ThreadSafe
     void printObjectOnAvoidingIndent (
     	final @NotNull AvailObject object, 
-    	final @NotNull StringBuilder aStream, 
+    	final @NotNull StringBuilder builder, 
     	final @NotNull List<AvailObject> recursionList, 
     	final int indent)
     {
-    	aStream.append("VoidDescriptor void");
+    	builder.append("VoidDescriptor void");
     }
 }

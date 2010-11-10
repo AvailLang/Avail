@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
+import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.descriptor.AbstractSignatureDescriptor;
@@ -4685,13 +4687,29 @@ public abstract class Descriptor
 		return 5;
 	}
 
+	/**
+	 * Recursively print the specified {@link AvailObject} to the {@link
+	 * StringBuilder} unless it is already present in the {@linkplain List
+	 * recursion list}. Printing will begin at the specified indent level,
+	 * measured in horizontal tab characters.
+	 * 
+	 * @param object An {@link AvailObject}.
+	 * @param builder A {@link StringBuilder}.
+	 * @param recursionList A {@linkplain List list} containing {@link
+	 *                      AvailObject}s already visited during the recursive
+	 *                      print.
+	 * @param indent The indent level, in horizontal tabs, at which the {@link
+	 *               AvailObject} should be printed.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@ThreadSafe
 	void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
+		final @NotNull AvailObject object, 
+		final @NotNull StringBuilder builder, 
+		final @NotNull List<AvailObject> recursionList, 
+		final int indent)
 	{
-		aStream.append('a');
+		builder.append('a');
 		String className = getClass().getSimpleName();
 		String shortenedName = className.substring(0, className.length() - 10);
 		switch (shortenedName.codePointAt(0))
@@ -4701,60 +4719,63 @@ public abstract class Descriptor
 			case 'I':
 			case 'O':
 			case 'U':
-				aStream.append('n');
+				builder.append('n');
 				break;
 			default:
 				// Do nothing.
 		}
-		aStream.append(' ');
-		aStream.append(shortenedName);
-		IntegerSlots integerSlotAnnotation = getClass().getAnnotation(IntegerSlots.class);
+		builder.append(' ');
+		builder.append(shortenedName);
+		IntegerSlots integerSlotAnnotation =
+			getClass().getAnnotation(IntegerSlots.class);
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
 		{
-			aStream.append('\n');
+			builder.append('\n');
 			for (int tab = 0; tab < indent; tab++)
 			{
-				aStream.append('\t');
+				builder.append('\t');
 			}
 			int n = Math.min(i, integerSlotAnnotation.value().length) - 1;
 			String slotName = integerSlotAnnotation.value()[n];
 			if (slotName.charAt(slotName.length() - 1) == '#')
 			{
-				aStream.append(slotName, 0, slotName.length() - 1);
-				aStream.append('[');
-				aStream.append(i - integerSlotAnnotation.value().length + 1);
-				aStream.append(']');
+				builder.append(slotName, 0, slotName.length() - 1);
+				builder.append('[');
+				builder.append(i - integerSlotAnnotation.value().length + 1);
+				builder.append(']');
 			}
 			else
 			{
-				aStream.append(slotName);
+				builder.append(slotName);
 			}
-			aStream.append(" = ");
-			aStream.append(object.integerSlotAtByteIndex(i << 2));
+			builder.append(" = ");
+			builder.append(object.integerSlotAtByteIndex(i << 2));
 		}
-		ObjectSlots objectSlotAnnotation = getClass().getAnnotation(ObjectSlots.class);
+		ObjectSlots objectSlotAnnotation =
+			getClass().getAnnotation(ObjectSlots.class);
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{
-			aStream.append('\n');
+			builder.append('\n');
 			for (int tab = 0; tab < indent; tab++)
 			{
-				aStream.append('\t');
+				builder.append('\t');
 			}
 			int n = Math.min(i, objectSlotAnnotation.value().length) - 1;
 			String slotName = objectSlotAnnotation.value()[n];
 			if (slotName.charAt(slotName.length() - 1) == '#')
 			{
-				aStream.append(slotName, 0, slotName.length() - 1);
-				aStream.append('[');
-				aStream.append(i - objectSlotAnnotation.value().length + 1);
-				aStream.append(']');
+				builder.append(slotName, 0, slotName.length() - 1);
+				builder.append('[');
+				builder.append(i - objectSlotAnnotation.value().length + 1);
+				builder.append(']');
 			}
 			else
 			{
-				aStream.append(slotName);
+				builder.append(slotName);
 			}
-			aStream.append(" = ");
-			(object.objectSlotAtByteIndex(-(i << 2))).printOnAvoidingIndent(aStream, recursionList, indent + 1);
+			builder.append(" = ");
+			(object.objectSlotAtByteIndex(-(i << 2))).printOnAvoidingIndent(
+				builder, recursionList, indent + 1);
 		}
 	}
 
