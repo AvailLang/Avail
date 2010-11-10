@@ -145,11 +145,11 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	/* Descriptor lookup */
 	public static TerminatesMetaDescriptor mutableDescriptor()
 	{
-		return (TerminatesMetaDescriptor) AllDescriptors [148];
+		return (TerminatesMetaDescriptor) allDescriptors [148];
 	};
 	public static TerminatesMetaDescriptor immutableDescriptor()
 	{
-		return (TerminatesMetaDescriptor) AllDescriptors [149];
+		return (TerminatesMetaDescriptor) allDescriptors [149];
 	};
 
 }

@@ -223,11 +223,11 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static ObjectMetaDescriptor mutableDescriptor()
 	{
-		return (ObjectMetaDescriptor) AllDescriptors [130];
+		return (ObjectMetaDescriptor) allDescriptors [130];
 	};
 	public static ObjectMetaDescriptor immutableDescriptor()
 	{
-		return (ObjectMetaDescriptor) AllDescriptors [131];
+		return (ObjectMetaDescriptor) allDescriptors [131];
 	};
 
 }

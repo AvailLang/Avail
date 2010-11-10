@@ -449,7 +449,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	public static ByteTupleDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = (flag ? 0 : 1);
-		return (ByteTupleDescriptor) AllDescriptors [16 + delta + ((size & 3) * 2)];
+		return (ByteTupleDescriptor) allDescriptors [16 + delta + ((size & 3) * 2)];
 	};
 
 	//  Descriptor initialization

@@ -310,11 +310,11 @@ public class SetTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static SetTypeDescriptor mutableDescriptor()
 	{
-		return (SetTypeDescriptor) AllDescriptors [144];
+		return (SetTypeDescriptor) allDescriptors [144];
 	};
 	public static SetTypeDescriptor immutableDescriptor()
 	{
-		return (SetTypeDescriptor) AllDescriptors [145];
+		return (SetTypeDescriptor) allDescriptors [145];
 	};
 
 }

@@ -556,11 +556,11 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static IntegerRangeTypeDescriptor mutableDescriptor()
 	{
-		return (IntegerRangeTypeDescriptor) AllDescriptors [80];
+		return (IntegerRangeTypeDescriptor) allDescriptors [80];
 	};
 	public static IntegerRangeTypeDescriptor immutableDescriptor()
 	{
-		return (IntegerRangeTypeDescriptor) AllDescriptors [81];
+		return (IntegerRangeTypeDescriptor) allDescriptors [81];
 	};
 
 }

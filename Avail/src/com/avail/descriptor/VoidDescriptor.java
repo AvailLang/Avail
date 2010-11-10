@@ -85,9 +85,9 @@ extends Descriptor
      * @return A mutable {@link VoidDescriptor}.
      */
 	@ThreadSafe
-    public static @NotNull VoidDescriptor mutableDescriptor()
+    public static @NotNull VoidDescriptor mutableDescriptor ()
     {
-    	return (VoidDescriptor) AllDescriptors[162];
+    	return (VoidDescriptor) allDescriptors[162];
     }
 
     /**
@@ -96,9 +96,9 @@ extends Descriptor
      * @return An immutable {@link VoidDescriptor}.
      */
 	@ThreadSafe
-	public static @NotNull VoidDescriptor immutableDescriptor()
+	public static @NotNull VoidDescriptor immutableDescriptor ()
     {
-    	return (VoidDescriptor) AllDescriptors[163];
+    	return (VoidDescriptor) allDescriptors[163];
     }
 
 	@Override

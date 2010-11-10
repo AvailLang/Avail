@@ -378,11 +378,11 @@ public class ProcessDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ProcessDescriptor mutableDescriptor()
 	{
-		return (ProcessDescriptor) AllDescriptors [140];
+		return (ProcessDescriptor) allDescriptors [140];
 	};
 	public static ProcessDescriptor immutableDescriptor()
 	{
-		return (ProcessDescriptor) AllDescriptors [141];
+		return (ProcessDescriptor) allDescriptors [141];
 	};
 
 }

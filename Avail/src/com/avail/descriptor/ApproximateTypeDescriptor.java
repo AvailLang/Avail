@@ -840,11 +840,11 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static ApproximateTypeDescriptor mutableDescriptor()
 	{
-		return (ApproximateTypeDescriptor) AllDescriptors [2];
+		return (ApproximateTypeDescriptor) allDescriptors [2];
 	};
 	public static ApproximateTypeDescriptor immutableDescriptor()
 	{
-		return (ApproximateTypeDescriptor) AllDescriptors [3];
+		return (ApproximateTypeDescriptor) allDescriptors [3];
 	};
 
 }

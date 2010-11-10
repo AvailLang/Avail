@@ -211,11 +211,11 @@ public class DoubleDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static DoubleDescriptor mutableDescriptor()
 	{
-		return (DoubleDescriptor) AllDescriptors [44];
+		return (DoubleDescriptor) allDescriptors [44];
 	};
 	public static DoubleDescriptor immutableDescriptor()
 	{
-		return (DoubleDescriptor) AllDescriptors [45];
+		return (DoubleDescriptor) allDescriptors [45];
 	};
 
 }

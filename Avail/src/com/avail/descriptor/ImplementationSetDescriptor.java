@@ -923,11 +923,11 @@ public class ImplementationSetDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ImplementationSetDescriptor mutableDescriptor()
 	{
-		return (ImplementationSetDescriptor) AllDescriptors [72];
+		return (ImplementationSetDescriptor) allDescriptors [72];
 	};
 	public static ImplementationSetDescriptor immutableDescriptor()
 	{
-		return (ImplementationSetDescriptor) AllDescriptors [73];
+		return (ImplementationSetDescriptor) allDescriptors [73];
 	};
 
 }

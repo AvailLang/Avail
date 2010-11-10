@@ -397,11 +397,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	/* Descriptor lookup */
 	public static ObjectTupleDescriptor mutableDescriptor()
 	{
-		return (ObjectTupleDescriptor) AllDescriptors [134];
+		return (ObjectTupleDescriptor) allDescriptors [134];
 	};
 	public static ObjectTupleDescriptor immutableDescriptor()
 	{
-		return (ObjectTupleDescriptor) AllDescriptors [135];
+		return (ObjectTupleDescriptor) allDescriptors [135];
 	};
 
 }

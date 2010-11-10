@@ -363,11 +363,11 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static PrimitiveTypeDescriptor mutableDescriptor()
 	{
-		return (PrimitiveTypeDescriptor) AllDescriptors [138];
+		return (PrimitiveTypeDescriptor) allDescriptors [138];
 	};
 	public static PrimitiveTypeDescriptor immutableDescriptor()
 	{
-		return (PrimitiveTypeDescriptor) AllDescriptors [139];
+		return (PrimitiveTypeDescriptor) allDescriptors [139];
 	};
 
 }

@@ -336,11 +336,11 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static ObjectTypeDescriptor mutableDescriptor()
 	{
-		return (ObjectTypeDescriptor) AllDescriptors [136];
+		return (ObjectTypeDescriptor) allDescriptors [136];
 	};
 	public static ObjectTypeDescriptor immutableDescriptor()
 	{
-		return (ObjectTypeDescriptor) AllDescriptors [137];
+		return (ObjectTypeDescriptor) allDescriptors [137];
 	};
 
 }

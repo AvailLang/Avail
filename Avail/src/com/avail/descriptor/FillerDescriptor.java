@@ -41,11 +41,11 @@ public class FillerDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static FillerDescriptor mutableDescriptor()
 	{
-		return (FillerDescriptor) AllDescriptors [50];
+		return (FillerDescriptor) allDescriptors [50];
 	};
 	public static FillerDescriptor immutableDescriptor()
 	{
-		return (FillerDescriptor) AllDescriptors [51];
+		return (FillerDescriptor) allDescriptors [51];
 	};
 
 }

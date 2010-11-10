@@ -685,11 +685,11 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static ClosureTypeDescriptor mutableDescriptor()
 	{
-		return (ClosureTypeDescriptor) AllDescriptors [28];
+		return (ClosureTypeDescriptor) allDescriptors [28];
 	};
 	public static ClosureTypeDescriptor immutableDescriptor()
 	{
-		return (ClosureTypeDescriptor) AllDescriptors [29];
+		return (ClosureTypeDescriptor) allDescriptors [29];
 	};
 
 }

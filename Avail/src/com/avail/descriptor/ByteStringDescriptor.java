@@ -458,7 +458,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	static ByteStringDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = (flag ? 0 : 1);
-		return (ByteStringDescriptor) AllDescriptors [8 + delta + ((size & 3) * 2)];
+		return (ByteStringDescriptor) allDescriptors [8 + delta + ((size & 3) * 2)];
 	};
 
 

@@ -167,11 +167,11 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	/* Descriptor lookup */
 	public static ForwardSignatureDescriptor mutableDescriptor()
 	{
-		return (ForwardSignatureDescriptor) AllDescriptors [54];
+		return (ForwardSignatureDescriptor) allDescriptors [54];
 	};
 	public static ForwardSignatureDescriptor immutableDescriptor()
 	{
-		return (ForwardSignatureDescriptor) AllDescriptors [55];
+		return (ForwardSignatureDescriptor) allDescriptors [55];
 	};
 
 }

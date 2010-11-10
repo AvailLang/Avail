@@ -415,11 +415,11 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	/* Descriptor lookup */
 	public static InfinityDescriptor mutableDescriptor()
 	{
-		return (InfinityDescriptor) AllDescriptors [76];
+		return (InfinityDescriptor) allDescriptors [76];
 	};
 	public static InfinityDescriptor immutableDescriptor()
 	{
-		return (InfinityDescriptor) AllDescriptors [77];
+		return (InfinityDescriptor) allDescriptors [77];
 	};
 
 }

@@ -356,11 +356,11 @@ public class MapTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static MapTypeDescriptor mutableDescriptor()
 	{
-		return (MapTypeDescriptor) AllDescriptors [106];
+		return (MapTypeDescriptor) allDescriptors [106];
 	};
 	public static MapTypeDescriptor immutableDescriptor()
 	{
-		return (MapTypeDescriptor) AllDescriptors [107];
+		return (MapTypeDescriptor) allDescriptors [107];
 	};
 
 }

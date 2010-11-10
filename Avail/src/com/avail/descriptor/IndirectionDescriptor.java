@@ -5676,11 +5676,11 @@ public class IndirectionDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static IndirectionDescriptor mutableDescriptor()
 	{
-		return (IndirectionDescriptor) AllDescriptors [74];
+		return (IndirectionDescriptor) allDescriptors [74];
 	};
 	public static IndirectionDescriptor immutableDescriptor()
 	{
-		return (IndirectionDescriptor) AllDescriptors [75];
+		return (IndirectionDescriptor) allDescriptors [75];
 	};
 
 }

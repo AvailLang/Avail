@@ -454,11 +454,11 @@ public class SetDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static SetDescriptor mutableDescriptor()
 	{
-		return (SetDescriptor) AllDescriptors [142];
+		return (SetDescriptor) allDescriptors [142];
 	};
 	public static SetDescriptor immutableDescriptor()
 	{
-		return (SetDescriptor) AllDescriptors [143];
+		return (SetDescriptor) allDescriptors [143];
 	};
 
 }

@@ -1369,10 +1369,10 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	/* Descriptor lookup */
 	public static IntegerDescriptor mutableDescriptor()
 	{
-		return (IntegerDescriptor) AllDescriptors [78];
+		return (IntegerDescriptor) allDescriptors [78];
 	};
 	public static IntegerDescriptor immutableDescriptor()
 	{
-		return (IntegerDescriptor) AllDescriptors [79];
+		return (IntegerDescriptor) allDescriptors [79];
 	};
 }

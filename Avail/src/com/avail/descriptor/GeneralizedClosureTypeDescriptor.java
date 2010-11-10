@@ -268,11 +268,11 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static GeneralizedClosureTypeDescriptor mutableDescriptor()
 	{
-		return (GeneralizedClosureTypeDescriptor) AllDescriptors [56];
+		return (GeneralizedClosureTypeDescriptor) allDescriptors [56];
 	};
 	public static GeneralizedClosureTypeDescriptor immutableDescriptor()
 	{
-		return (GeneralizedClosureTypeDescriptor) AllDescriptors [57];
+		return (GeneralizedClosureTypeDescriptor) allDescriptors [57];
 	};
 
 }

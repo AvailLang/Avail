@@ -183,11 +183,11 @@ public class FloatDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static FloatDescriptor mutableDescriptor()
 	{
-		return (FloatDescriptor) AllDescriptors [52];
+		return (FloatDescriptor) allDescriptors [52];
 	};
 	public static FloatDescriptor immutableDescriptor()
 	{
-		return (FloatDescriptor) AllDescriptors [53];
+		return (FloatDescriptor) allDescriptors [53];
 	};
 
 }

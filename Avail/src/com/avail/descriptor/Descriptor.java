@@ -117,7 +117,7 @@ public abstract class Descriptor
 	{
 		//  Answer a read barrier descriptor that remembers which descriptor the current one is.
 
-		return AllDescriptors[_myId + (numActualDescriptors>>1)];
+		return allDescriptors[_myId + (numActualDescriptors>>1)];
 	}
 
 	short id ()
@@ -5584,7 +5584,7 @@ public abstract class Descriptor
 
 	static final int numActualDescriptors = 166;
 
-	static final Descriptor [] AllDescriptors = {
+	static final Descriptor [] allDescriptors = {
 		new AbstractSignatureDescriptor().initDescriptor(0, true, 3, 0, false, false),
 		new AbstractSignatureDescriptor().initDescriptor(1, false, 3, 0, false, false),
 		new ApproximateTypeDescriptor().initDescriptor(2, true, 1, 0, false, false),

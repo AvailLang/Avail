@@ -535,11 +535,11 @@ public class CompiledCodeDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static CompiledCodeDescriptor mutableDescriptor()
 	{
-		return (CompiledCodeDescriptor) AllDescriptors [30];
+		return (CompiledCodeDescriptor) allDescriptors [30];
 	};
 	public static CompiledCodeDescriptor immutableDescriptor()
 	{
-		return (CompiledCodeDescriptor) AllDescriptors [31];
+		return (CompiledCodeDescriptor) allDescriptors [31];
 	};
 
 }

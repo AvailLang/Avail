@@ -338,11 +338,11 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	/* Descriptor lookup */
 	public static ExpandedMessageBundleTreeDescriptor mutableDescriptor()
 	{
-		return (ExpandedMessageBundleTreeDescriptor) AllDescriptors [46];
+		return (ExpandedMessageBundleTreeDescriptor) allDescriptors [46];
 	};
 	public static ExpandedMessageBundleTreeDescriptor immutableDescriptor()
 	{
-		return (ExpandedMessageBundleTreeDescriptor) AllDescriptors [47];
+		return (ExpandedMessageBundleTreeDescriptor) allDescriptors [47];
 	};
 
 }

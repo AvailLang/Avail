@@ -295,11 +295,11 @@ public class MessageBundleDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static MessageBundleDescriptor mutableDescriptor()
 	{
-		return (MessageBundleDescriptor) AllDescriptors [108];
+		return (MessageBundleDescriptor) allDescriptors [108];
 	};
 	public static MessageBundleDescriptor immutableDescriptor()
 	{
-		return (MessageBundleDescriptor) AllDescriptors [109];
+		return (MessageBundleDescriptor) allDescriptors [109];
 	};
 
 }

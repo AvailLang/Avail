@@ -239,11 +239,11 @@ public class ListTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static ListTypeDescriptor mutableDescriptor()
 	{
-		return (ListTypeDescriptor) AllDescriptors [102];
+		return (ListTypeDescriptor) allDescriptors [102];
 	};
 	public static ListTypeDescriptor immutableDescriptor()
 	{
-		return (ListTypeDescriptor) AllDescriptors [103];
+		return (ListTypeDescriptor) allDescriptors [103];
 	};
 
 }

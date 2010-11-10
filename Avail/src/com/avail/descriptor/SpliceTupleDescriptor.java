@@ -687,11 +687,11 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	/* Descriptor lookup */
 	public static SpliceTupleDescriptor mutableDescriptor()
 	{
-		return (SpliceTupleDescriptor) AllDescriptors [146];
+		return (SpliceTupleDescriptor) allDescriptors [146];
 	};
 	public static SpliceTupleDescriptor immutableDescriptor()
 	{
-		return (SpliceTupleDescriptor) AllDescriptors [147];
+		return (SpliceTupleDescriptor) allDescriptors [147];
 	};
 
 }

@@ -174,11 +174,11 @@ public class ListDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ListDescriptor mutableDescriptor()
 	{
-		return (ListDescriptor) AllDescriptors [100];
+		return (ListDescriptor) allDescriptors [100];
 	};
 	public static ListDescriptor immutableDescriptor()
 	{
-		return (ListDescriptor) AllDescriptors [101];
+		return (ListDescriptor) allDescriptors [101];
 	};
 
 }

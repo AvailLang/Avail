@@ -466,7 +466,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	static TwoByteStringDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = (flag ? 0 : 1);
-		return (TwoByteStringDescriptor) AllDescriptors [156 + delta + ((size & 1) * 2)];
+		return (TwoByteStringDescriptor) allDescriptors [156 + delta + ((size & 1) * 2)];
 	};
 
 

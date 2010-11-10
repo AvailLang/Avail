@@ -655,11 +655,11 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static TupleTypeDescriptor mutableDescriptor()
 	{
-		return (TupleTypeDescriptor) AllDescriptors [154];
+		return (TupleTypeDescriptor) allDescriptors [154];
 	};
 	public static TupleTypeDescriptor immutableDescriptor()
 	{
-		return (TupleTypeDescriptor) AllDescriptors [155];
+		return (TupleTypeDescriptor) allDescriptors [155];
 	};
 
 }

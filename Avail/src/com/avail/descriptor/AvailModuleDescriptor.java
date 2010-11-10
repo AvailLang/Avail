@@ -555,11 +555,11 @@ public class AvailModuleDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static AvailModuleDescriptor mutableDescriptor()
 	{
-		return (AvailModuleDescriptor) AllDescriptors [4];
+		return (AvailModuleDescriptor) allDescriptors [4];
 	};
 	public static AvailModuleDescriptor immutableDescriptor()
 	{
-		return (AvailModuleDescriptor) AllDescriptors [5];
+		return (AvailModuleDescriptor) allDescriptors [5];
 	};
 
 }

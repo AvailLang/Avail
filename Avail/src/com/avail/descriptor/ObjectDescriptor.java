@@ -182,11 +182,11 @@ public class ObjectDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ObjectDescriptor mutableDescriptor()
 	{
-		return (ObjectDescriptor) AllDescriptors [128];
+		return (ObjectDescriptor) allDescriptors [128];
 	};
 	public static ObjectDescriptor immutableDescriptor()
 	{
-		return (ObjectDescriptor) AllDescriptors [129];
+		return (ObjectDescriptor) allDescriptors [129];
 	};
 
 }

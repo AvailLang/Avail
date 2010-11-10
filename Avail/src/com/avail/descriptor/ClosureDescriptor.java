@@ -336,11 +336,11 @@ public class ClosureDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ClosureDescriptor mutableDescriptor()
 	{
-		return (ClosureDescriptor) AllDescriptors [26];
+		return (ClosureDescriptor) allDescriptors [26];
 	};
 	public static ClosureDescriptor immutableDescriptor()
 	{
-		return (ClosureDescriptor) AllDescriptors [27];
+		return (ClosureDescriptor) allDescriptors [27];
 	};
 
 }

@@ -107,11 +107,11 @@ public class TrueDescriptor extends BooleanDescriptor
 	/* Descriptor lookup */
 	public static TrueDescriptor mutableDescriptor()
 	{
-		return (TrueDescriptor) AllDescriptors [152];
+		return (TrueDescriptor) allDescriptors [152];
 	};
 	public static TrueDescriptor immutableDescriptor()
 	{
-		return (TrueDescriptor) AllDescriptors [153];
+		return (TrueDescriptor) allDescriptors [153];
 	};
 
 }

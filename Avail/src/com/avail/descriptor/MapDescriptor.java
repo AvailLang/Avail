@@ -738,11 +738,11 @@ public class MapDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static MapDescriptor mutableDescriptor()
 	{
-		return (MapDescriptor) AllDescriptors [104];
+		return (MapDescriptor) allDescriptors [104];
 	};
 	public static MapDescriptor immutableDescriptor()
 	{
-		return (MapDescriptor) AllDescriptors [105];
+		return (MapDescriptor) allDescriptors [105];
 	};
 
 }

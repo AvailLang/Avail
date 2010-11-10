@@ -283,11 +283,11 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static CyclicTypeDescriptor mutableDescriptor()
 	{
-		return (CyclicTypeDescriptor) AllDescriptors [42];
+		return (CyclicTypeDescriptor) allDescriptors [42];
 	};
 	public static CyclicTypeDescriptor immutableDescriptor()
 	{
-		return (CyclicTypeDescriptor) AllDescriptors [43];
+		return (CyclicTypeDescriptor) allDescriptors [43];
 	};
 
 }

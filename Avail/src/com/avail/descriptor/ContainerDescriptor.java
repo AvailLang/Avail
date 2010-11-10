@@ -266,11 +266,11 @@ public class ContainerDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ContainerDescriptor mutableDescriptor()
 	{
-		return (ContainerDescriptor) AllDescriptors [34];
+		return (ContainerDescriptor) allDescriptors [34];
 	};
 	public static ContainerDescriptor immutableDescriptor()
 	{
-		return (ContainerDescriptor) AllDescriptors [35];
+		return (ContainerDescriptor) allDescriptors [35];
 	};
 
 }

@@ -725,11 +725,11 @@ public class L2ChunkDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static L2ChunkDescriptor mutableDescriptor()
 	{
-		return (L2ChunkDescriptor) AllDescriptors [82];
+		return (L2ChunkDescriptor) allDescriptors [82];
 	};
 	public static L2ChunkDescriptor immutableDescriptor()
 	{
-		return (L2ChunkDescriptor) AllDescriptors [83];
+		return (L2ChunkDescriptor) allDescriptors [83];
 	};
 
 }

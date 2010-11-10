@@ -453,11 +453,11 @@ public class ContinuationDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static ContinuationDescriptor mutableDescriptor()
 	{
-		return (ContinuationDescriptor) AllDescriptors [38];
+		return (ContinuationDescriptor) allDescriptors [38];
 	};
 	public static ContinuationDescriptor immutableDescriptor()
 	{
-		return (ContinuationDescriptor) AllDescriptors [39];
+		return (ContinuationDescriptor) allDescriptors [39];
 	};
 
 }

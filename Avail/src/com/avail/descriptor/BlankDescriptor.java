@@ -136,11 +136,11 @@ public class BlankDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static BlankDescriptor mutableDescriptor()
 	{
-		return (BlankDescriptor) AllDescriptors [6];
+		return (BlankDescriptor) allDescriptors [6];
 	};
 	public static BlankDescriptor immutableDescriptor()
 	{
-		return (BlankDescriptor) AllDescriptors [7];
+		return (BlankDescriptor) allDescriptors [7];
 	};
 
 }

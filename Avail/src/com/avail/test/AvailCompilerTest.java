@@ -205,8 +205,8 @@ public class AvailCompilerTest
 			"1-test"
 		};
 
-		tier1ModulePaths = new String[
-		                              tier0ModulePaths.length + modulePaths.length];
+		final int size = tier0ModulePaths.length + modulePaths.length;
+		tier1ModulePaths = new String[size];
 		System.arraycopy(
 			tier0ModulePaths, 0, tier1ModulePaths, 0, tier0ModulePaths.length);
 		System.arraycopy(
@@ -259,8 +259,8 @@ public class AvailCompilerTest
 			"2-test"
 		};
 
-		tier2ModulePaths = new String[
-		                              tier1ModulePaths.length + modulePaths.length];
+		final int size = tier1ModulePaths.length + modulePaths.length;
+		tier2ModulePaths = new String[size];
 		System.arraycopy(
 			tier1ModulePaths, 0, tier2ModulePaths, 0, tier1ModulePaths.length);
 		System.arraycopy(
@@ -302,8 +302,8 @@ public class AvailCompilerTest
 			"3-test"
 		};
 
-		tier3ModulePaths = new String[
-		                              tier2ModulePaths.length + modulePaths.length];
+		final int size = tier2ModulePaths.length + modulePaths.length;
+		tier3ModulePaths = new String[size];
 		System.arraycopy(
 			tier2ModulePaths, 0, tier3ModulePaths, 0, tier2ModulePaths.length);
 		System.arraycopy(
@@ -348,8 +348,8 @@ public class AvailCompilerTest
 			"Kernel"
 		};
 
-		tier4ModulePaths = new String[
-		                              tier3ModulePaths.length + modulePaths.length];
+		final int size = tier3ModulePaths.length + modulePaths.length;
+		tier4ModulePaths = new String[size];
 		System.arraycopy(
 			tier3ModulePaths, 0, tier4ModulePaths, 0, tier3ModulePaths.length);
 		System.arraycopy(
@@ -418,10 +418,14 @@ public class AvailCompilerTest
 			// "test everything"
 		};
 
-		experimentalModulePaths = new String[
-		                                     tier4ModulePaths.length + modulePaths.length];
+		final int size = tier4ModulePaths.length + modulePaths.length;
+		experimentalModulePaths = new String[size];
 		System.arraycopy(
-			tier4ModulePaths, 0, experimentalModulePaths, 0, tier4ModulePaths.length);
+			tier4ModulePaths,
+			0,
+			experimentalModulePaths,
+			0,
+			tier4ModulePaths.length);
 		System.arraycopy(
 			modulePaths,
 			0,

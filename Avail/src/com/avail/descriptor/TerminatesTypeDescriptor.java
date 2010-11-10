@@ -257,11 +257,11 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	/* Descriptor lookup */
 	public static TerminatesTypeDescriptor mutableDescriptor()
 	{
-		return (TerminatesTypeDescriptor) AllDescriptors [150];
+		return (TerminatesTypeDescriptor) allDescriptors [150];
 	};
 	public static TerminatesTypeDescriptor immutableDescriptor()
 	{
-		return (TerminatesTypeDescriptor) AllDescriptors [151];
+		return (TerminatesTypeDescriptor) allDescriptors [151];
 	};
 
 }

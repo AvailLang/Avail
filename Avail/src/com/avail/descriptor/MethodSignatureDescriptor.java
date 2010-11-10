@@ -202,11 +202,11 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	/* Descriptor lookup */
 	public static MethodSignatureDescriptor mutableDescriptor()
 	{
-		return (MethodSignatureDescriptor) AllDescriptors [110];
+		return (MethodSignatureDescriptor) allDescriptors [110];
 	};
 	public static MethodSignatureDescriptor immutableDescriptor()
 	{
-		return (MethodSignatureDescriptor) AllDescriptors [111];
+		return (MethodSignatureDescriptor) allDescriptors [111];
 	};
 
 }

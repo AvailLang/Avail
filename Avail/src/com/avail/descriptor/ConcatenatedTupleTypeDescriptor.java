@@ -590,11 +590,11 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static ConcatenatedTupleTypeDescriptor mutableDescriptor()
 	{
-		return (ConcatenatedTupleTypeDescriptor) AllDescriptors [32];
+		return (ConcatenatedTupleTypeDescriptor) allDescriptors [32];
 	};
 	public static ConcatenatedTupleTypeDescriptor immutableDescriptor()
 	{
-		return (ConcatenatedTupleTypeDescriptor) AllDescriptors [33];
+		return (ConcatenatedTupleTypeDescriptor) allDescriptors [33];
 	};
 
 }

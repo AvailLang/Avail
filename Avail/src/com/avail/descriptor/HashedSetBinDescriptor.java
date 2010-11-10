@@ -440,7 +440,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	static HashedSetBinDescriptor isMutableLevel (boolean flag, byte level)
 	{
 		assert(0<= level && level <= numberOfLevels()); 
-		return (HashedSetBinDescriptor) AllDescriptors [58 + (level * 2) + (flag ? 0 : 1)];
+		return (HashedSetBinDescriptor) allDescriptors [58 + (level * 2) + (flag ? 0 : 1)];
 	};
 
 }

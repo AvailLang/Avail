@@ -245,11 +245,11 @@ public class CharacterDescriptor extends Descriptor
 	/* Descriptor lookup */
 	public static CharacterDescriptor mutableDescriptor()
 	{
-		return (CharacterDescriptor) AllDescriptors [24];
+		return (CharacterDescriptor) allDescriptors [24];
 	};
 	public static CharacterDescriptor immutableDescriptor()
 	{
-		return (CharacterDescriptor) AllDescriptors [25];
+		return (CharacterDescriptor) allDescriptors [25];
 	};
 
 }

@@ -32,59 +32,74 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AvailObject;
 
+/**
+ * {@code VoidType} implements the type of the {@linkplain
+ * VoidDescriptor#voidObject() void object}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 @IntegerSlots("hash")
 @ObjectSlots({
 	"name", 
 	"parent", 
 	"myType"
 })
-public class VoidTypeDescriptor extends PrimitiveTypeDescriptor
+public class VoidTypeDescriptor
+extends PrimitiveTypeDescriptor
 {
-
-
-	// operations-types
-
-	boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
-			final AvailObject aType)
+	/**
+	 * Answer a mutable {@link VoidDescriptor}.
+	 * 
+	 * @return A mutable {@link VoidDescriptor}.
+	 */
+	@ThreadSafe
+	public static @NotNull VoidTypeDescriptor mutableDescriptor ()
 	{
-		//  Check if object (the type void) is a subtype of aType (may also be void).
+		return (VoidTypeDescriptor) allDescriptors[164];
+	}
 
+	/**
+	 * Answer a mutable {@link VoidDescriptor}.
+	 * 
+	 * @return A mutable {@link VoidDescriptor}.
+	 */
+	@ThreadSafe
+	public static @NotNull VoidTypeDescriptor immutableDescriptor ()
+	{
+		return (VoidTypeDescriptor) allDescriptors[165];
+	}
+
+	@Override
+	@ThreadSafe
+	boolean ObjectIsSubtypeOf (
+		final @NotNull AvailObject object, 
+		final @NotNull AvailObject aType)
+	{
+		//  Check if object (the type void) is a subtype of aType (may also be
+		// void).
 		return aType.isSupertypeOfVoid();
 	}
 
+	@Override
+	@ThreadSafe
 	boolean ObjectIsSupertypeOfPrimitiveType (
-			final AvailObject object, 
-			final AvailObject aPrimitiveType)
+		final @NotNull AvailObject object, 
+		final @NotNull AvailObject aPrimitiveType)
 	{
-		//  Check if object (the type void) is a supertype of aPrimitiveType (a primitive type).
-		//  Always true.
-
+		//  Check if object (the type void) is a supertype of aPrimitiveType (a
+		// primitive type). Always true.
 		return true;
 	}
 
-	boolean ObjectIsSupertypeOfVoid (
-			final AvailObject object)
+	@Override
+	@ThreadSafe
+	boolean ObjectIsSupertypeOfVoid (final @NotNull AvailObject object)
 	{
 		//  Only void is a supertype of void.
-
 		return true;
-	}
-
-
-
-
-
-	/* Descriptor lookup */
-	public static VoidTypeDescriptor mutableDescriptor()
-	{
-		return (VoidTypeDescriptor) AllDescriptors [164];
 	};
-	public static VoidTypeDescriptor immutableDescriptor()
-	{
-		return (VoidTypeDescriptor) AllDescriptors [165];
-	};
-
 }

@@ -107,11 +107,11 @@ public class FalseDescriptor extends BooleanDescriptor
 	/* Descriptor lookup */
 	public static FalseDescriptor mutableDescriptor()
 	{
-		return (FalseDescriptor) AllDescriptors [48];
+		return (FalseDescriptor) allDescriptors [48];
 	};
 	public static FalseDescriptor immutableDescriptor()
 	{
-		return (FalseDescriptor) AllDescriptors [49];
+		return (FalseDescriptor) allDescriptors [49];
 	};
 
 }

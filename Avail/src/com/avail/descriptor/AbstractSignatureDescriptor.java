@@ -198,11 +198,11 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	/* Descriptor lookup */
 	public static AbstractSignatureDescriptor mutableDescriptor()
 	{
-		return (AbstractSignatureDescriptor) AllDescriptors [0];
+		return (AbstractSignatureDescriptor) allDescriptors [0];
 	};
 	public static AbstractSignatureDescriptor immutableDescriptor()
 	{
-		return (AbstractSignatureDescriptor) AllDescriptors [1];
+		return (AbstractSignatureDescriptor) allDescriptors [1];
 	};
 
 }

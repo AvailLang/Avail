@@ -534,7 +534,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	public static NybbleTupleDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = (flag ? 0 : 1);
-		return (NybbleTupleDescriptor) AllDescriptors [112 + delta + ((size & 7) * 2)];
+		return (NybbleTupleDescriptor) allDescriptors [112 + delta + ((size & 7) * 2)];
 	}
 
 }

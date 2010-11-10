@@ -205,7 +205,7 @@ public class AvailObjectUsingArrays extends AvailObject
 	public void descriptorId (
 			final short anInteger)
 	{
-		_descriptor = Descriptor.AllDescriptors[anInteger];
+		_descriptor = Descriptor.allDescriptors[anInteger];
 		checkValidAddress();
 	}
 

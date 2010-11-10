@@ -341,7 +341,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	static LinearSetBinDescriptor isMutableLevel (boolean flag, byte level)
 	{
 		assert(0<= level && level <= numberOfLevels()); 
-		return (LinearSetBinDescriptor) AllDescriptors [84 + (level * 2) + (flag ? 0 : 1)];
+		return (LinearSetBinDescriptor) allDescriptors [84 + (level * 2) + (flag ? 0 : 1)];
 	};
 
 }
