@@ -32,97 +32,93 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlankDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MapTypeDescriptor;
-import com.avail.descriptor.ObjectDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.CanAllocateObjects;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots({
-	"internalHash", 
-	"mapSize", 
+	"internalHash",
+	"mapSize",
 	"numBlanks"
 })
 @ObjectSlots("dataAtIndex#")
 public class MapDescriptor extends Descriptor
 {
-
-
 	// GENERATED accessors
 
+	@Override
 	AvailObject ObjectDataAtIndex (
-			final AvailObject object, 
-			final int index)
+		final AvailObject object,
+		final int index)
 	{
 		//  GENERATED getter method (indexed).
 
 		return object.objectSlotAtByteIndex(((index * -4) + 0));
 	}
 
+	@Override
 	void ObjectDataAtIndexPut (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject value)
+		final AvailObject object,
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
 
 		object.objectSlotAtByteIndexPut(((index * -4) + 0), value);
 	}
 
+	@Override
 	void ObjectInternalHash (
-			final AvailObject object, 
-			final int value)
+		final AvailObject object,
+		final int value)
 	{
 		//  GENERATED setter method.
 
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
+	@Override
 	void ObjectMapSize (
-			final AvailObject object, 
-			final int value)
+		final AvailObject object,
+		final int value)
 	{
 		//  GENERATED setter method.
 
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
+	@Override
 	void ObjectNumBlanks (
-			final AvailObject object, 
-			final int value)
+		final AvailObject object,
+		final int value)
 	{
 		//  GENERATED setter method.
 
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
+	@Override
 	int ObjectInternalHash (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.integerSlotAtByteIndex(4);
 	}
 
+	@Override
 	int ObjectMapSize (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.integerSlotAtByteIndex(8);
 	}
 
+	@Override
 	int ObjectNumBlanks (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
@@ -133,11 +129,12 @@ public class MapDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
 		int size = object.mapSize();
 		if (size == 0)
@@ -177,16 +174,18 @@ public class MapDescriptor extends Descriptor
 
 	// operations
 
+	@Override
 	boolean ObjectEquals (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsMap(object);
 	}
 
+	@Override
 	boolean ObjectEqualsMap (
-			final AvailObject object, 
-			final AvailObject aMap)
+		final AvailObject object,
+		final AvailObject aMap)
 	{
 		if (! (object.internalHash() == aMap.internalHash()))
 		{
@@ -214,9 +213,10 @@ public class MapDescriptor extends Descriptor
 		return true;
 	}
 
+	@Override
 	boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
-			final AvailObject aTypeObject)
+		final AvailObject object,
+		final AvailObject aTypeObject)
 	{
 		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
 		//  an approximate type and do the comparison, because the approximate type
@@ -264,8 +264,9 @@ public class MapDescriptor extends Descriptor
 		return true;
 	}
 
+	@Override
 	AvailObject ObjectExactType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -286,16 +287,18 @@ public class MapDescriptor extends Descriptor
 			valueType);
 	}
 
+	@Override
 	int ObjectHash (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Take the internal hash, and twiddle it (so nested maps won't cause unwanted correlation).
 
 		return (((object.internalHash() + 0x1D79B13) ^ 0x1A9A22FE) & HashMask);
 	}
 
+	@Override
 	boolean ObjectIsHashAvailable (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -319,8 +322,9 @@ public class MapDescriptor extends Descriptor
 		return true;
 	}
 
+	@Override
 	AvailObject ObjectType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -331,15 +335,16 @@ public class MapDescriptor extends Descriptor
 
 	// operations-map
 
+	@Override
 	boolean ObjectHasKey (
-			final AvailObject object, 
-			final AvailObject keyObject)
+		final AvailObject object,
+		final AvailObject keyObject)
 	{
 		//  Answer whether the map has the given key.  Note that we don't stop searching
 		//  when we reach a blank, only when we reach void or the target object.
 
 		final int modulus = object.capacity();
-		int h = ((keyObject.hash() % modulus) + 1);
+		int h = (int)(((keyObject.hash() & 0xFFFFFFFFL) % modulus) + 1);
 		while (true) {
 			final AvailObject slotObject = object.keyAtIndex(h);
 			if (slotObject.equalsVoid())
@@ -354,14 +359,15 @@ public class MapDescriptor extends Descriptor
 		}
 	}
 
+	@Override
 	AvailObject ObjectMapAt (
-			final AvailObject object, 
-			final AvailObject keyObject)
+		final AvailObject object,
+		final AvailObject keyObject)
 	{
 		//  Answer the value of the map at the specified key.  Fail if the key is not present.
 
 		final int modulus = object.capacity();
-		int h = ((keyObject.hash() % modulus) + 1);
+		int h = (int)(((keyObject.hash() & 0xFFFFFFFFL) % modulus) + 1);
 		while (true) {
 			final AvailObject slotObject = object.keyAtIndex(h);
 			if (slotObject.equalsVoid())
@@ -377,11 +383,12 @@ public class MapDescriptor extends Descriptor
 		}
 	}
 
+	@Override
 	AvailObject ObjectMapAtPuttingCanDestroy (
-			final AvailObject object, 
-			final AvailObject keyObject, 
-			final AvailObject newValueObject, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject keyObject,
+		final AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		//  Answer a map like this one but with keyObject->newValueObject instead of any existing
 		//  mapping for keyObject.  The original map can be destroyed if canDestroy is true and it's mutable.
@@ -410,10 +417,11 @@ public class MapDescriptor extends Descriptor
 		return result;
 	}
 
+	@Override
 	AvailObject ObjectMapWithoutKeyCanDestroy (
-			final AvailObject object, 
-			final AvailObject keyObject, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject keyObject,
+		final boolean canDestroy)
 	{
 		//  Answer a map like this one but with keyObject removed from it.
 		//  The original map can be destroyed if canDestroy is true and it's mutable.
@@ -448,30 +456,34 @@ public class MapDescriptor extends Descriptor
 		return result;
 	}
 
+	@Override
 	AvailObject ObjectAsObject (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Convert the receiver into an object.
 
 		return ObjectDescriptor.objectFromMap(object);
 	}
 
+	@Override
 	int ObjectCapacity (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the total number of slots reserved for holding keys.
 
 		return ((object.objectSlotsCount() - numberOfFixedObjectSlots()) >>> 1);
 	}
 
+	@Override
 	boolean ObjectIsMap (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
+	@Override
 	AvailObject ObjectKeysAsSet (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer a set with all my keys.  Mark the keys as immutable because they'll be shared with the new set.
 
@@ -489,8 +501,9 @@ public class MapDescriptor extends Descriptor
 		return result;
 	}
 
+	@Override
 	AvailObject ObjectValuesAsTuple (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer a tuple with all my values.  Mark the values as immutable because they'll be shared with the new
 		//  tuple.
@@ -523,28 +536,31 @@ public class MapDescriptor extends Descriptor
 
 	// operations-private
 
+	@Override
 	AvailObject ObjectKeyAtIndex (
-			final AvailObject object, 
-			final int index)
+		final AvailObject object,
+		final int index)
 	{
 		//  Answer the map's indexth key.
 
 		return object.dataAtIndex(((index + index) - 1));
 	}
 
+	@Override
 	void ObjectKeyAtIndexPut (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject keyObject)
+		final AvailObject object,
+		final int index,
+		final AvailObject keyObject)
 	{
 		//  Set the map's indexth key.
 
 		object.dataAtIndexPut(((index * 2) - 1), keyObject);
 	}
 
+	@Override
 	AvailObject ObjectPrivateExcludeKey (
-			final AvailObject object, 
-			final AvailObject keyObject)
+		final AvailObject object,
+		final AvailObject keyObject)
 	{
 		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
 		//  Also, computing the key's hash value should not cause an allocation.
@@ -552,7 +568,7 @@ public class MapDescriptor extends Descriptor
 		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & _isMutable);
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
-		int probe = ((h0 % modulus) + 1);
+		int probe = (int)(((h0 & 0xFFFFFFFFL) % modulus) + 1);
 		AvailObject.lock(object);
 		while (true) {
 			final AvailObject slotValue = object.keyAtIndex(probe);
@@ -582,10 +598,11 @@ public class MapDescriptor extends Descriptor
 		}
 	}
 
+	@Override
 	AvailObject ObjectPrivateMapAtPut (
-			final AvailObject object, 
-			final AvailObject keyObject, 
-			final AvailObject valueObject)
+		final AvailObject object,
+		final AvailObject keyObject,
+		final AvailObject valueObject)
 	{
 		//  Make keyObject go to valueObject in the map.  The object must be mutable and have
 		//  room for the new element.  Also, computing the key's hash value should not cause
@@ -595,7 +612,7 @@ public class MapDescriptor extends Descriptor
 		assert (((object.mapSize() + object.numBlanks()) * 4) <= (object.capacity() * 3));
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
-		int probe = ((h0 % modulus) + 1);
+		int probe = (int)(((h0 & 0xFFFFFFFFL) % modulus) + 1);
 		AvailObject.lock(object);
 		int tempHash;
 		while (true) {
@@ -626,19 +643,21 @@ public class MapDescriptor extends Descriptor
 		}
 	}
 
+	@Override
 	AvailObject ObjectValueAtIndex (
-			final AvailObject object, 
-			final int index)
+		final AvailObject object,
+		final int index)
 	{
 		//  Answer the map's indexth value.
 
 		return object.dataAtIndex((index * 2));
 	}
 
+	@Override
 	void ObjectValueAtIndexPut (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject valueObject)
+		final AvailObject object,
+		final int index,
+		final AvailObject valueObject)
 	{
 		//  Set the map's indexth value.
 
@@ -649,9 +668,10 @@ public class MapDescriptor extends Descriptor
 
 	// private-copying
 
+	@Override
 	List<AvailObject> ObjectKeysAsArray (
-			final AvailObject object)
-	{
+		final AvailObject object)
+		{
 		//  Utility method - collect the object's keys into a Smalltalk Array.
 
 		AvailObject.lock(object);
@@ -668,7 +688,7 @@ public class MapDescriptor extends Descriptor
 		assert (result.size() == object.mapSize());
 		AvailObject.unlock(object);
 		return result;
-	}
+		}
 
 
 

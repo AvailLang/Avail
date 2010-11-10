@@ -32,6 +32,20 @@
 
 package com.avail.interpreter;
 
+import static com.avail.descriptor.AvailObject.CanAllocateObjects;
+import static com.avail.descriptor.AvailObject.error;
+import static java.lang.Math.abs;
+import static java.lang.Math.exp;
+import static java.lang.Math.floor;
+import static java.lang.Math.getExponent;
+import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.scalb;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
 import com.avail.descriptor.CharacterDescriptor;
@@ -62,18 +76,13 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.AvailInterpreter;
-import java.util.EnumSet;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
-import static java.lang.Math.*;
 
 
 public enum Primitive
 {
-
 	prim1_Addition_a_b(1, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Add two extended integers together.
@@ -89,6 +98,7 @@ public enum Primitive
 
 	prim2_Subtraction_a_b(2, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Subtract b from a.
@@ -104,6 +114,7 @@ public enum Primitive
 
 	prim3_Multiplication_a_b(3, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Multiply a and b.
@@ -119,6 +130,7 @@ public enum Primitive
 
 	prim4_Division_a_b(4, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute a divided by b.
@@ -138,6 +150,7 @@ public enum Primitive
 
 	prim5_LessThan_a_b(5, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare for a < b.  Answers an Avail boolean.
@@ -153,6 +166,7 @@ public enum Primitive
 
 	prim6_LessOrEqual_a_b(6, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare for a <= b.  Answers an Avail boolean.
@@ -168,6 +182,7 @@ public enum Primitive
 
 	prim7_CreateIntegerRange_min_minInc_max_maxInc(7, 4, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the integer range 'min <?1 instance <?2 max', where <?1 is '<=' if minInc=true, else '<', and likewise for <?2.
@@ -189,6 +204,7 @@ public enum Primitive
 
 	prim8_LowerBound_range(8, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the lower bound.  Test membership to determine if it's inclusive or exclusive.
@@ -203,6 +219,7 @@ public enum Primitive
 
 	prim9_UpperBound_range(9, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the upper bound.  Test membership to determine if it's inclusive or exclusive.
@@ -217,6 +234,7 @@ public enum Primitive
 
 	prim10_GetValue_var(10, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  There are two possiblities.  The container is mutable, in which case we want to
@@ -240,6 +258,7 @@ public enum Primitive
 
 	prim11_SetValue_var_value(11, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Assign the value to the variable.
@@ -256,6 +275,7 @@ public enum Primitive
 
 	prim12_ClearValue_var(12, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Clear the variable.
@@ -271,6 +291,7 @@ public enum Primitive
 
 	prim13_CreateContainerType_type(13, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create a container type using the given inner type.
@@ -285,6 +306,7 @@ public enum Primitive
 
 	prim14_InnerType_type(14, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract the inner type of a container type.
@@ -299,6 +321,7 @@ public enum Primitive
 
 	prim15_Swap_var1_var2(15, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Swap the contents of two containers.
@@ -317,6 +340,7 @@ public enum Primitive
 
 	prim16_CreateContainer_innerType(16, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create a container with the given inner type.
@@ -331,6 +355,7 @@ public enum Primitive
 
 	prim17_HasNoValue_var(17, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer true if the variable is unassigned (has no value).
@@ -345,6 +370,7 @@ public enum Primitive
 
 	prim18_GetClearing_var(18, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Get the value of the variable, clear the variable, then answer the previously extracted
@@ -363,6 +389,7 @@ public enum Primitive
 
 	prim20_GetPriority_processObject(20, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Get the priority of the given process.
@@ -377,6 +404,7 @@ public enum Primitive
 
 	prim21_SetPriority_processObject_newPriority(21, 2, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Set the priority of the given process.
@@ -393,6 +421,7 @@ public enum Primitive
 
 	prim22_Suspend_processObject(22, 1, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Suspend the given process.  Ignore if the process is already suspended.
@@ -407,6 +436,7 @@ public enum Primitive
 
 	prim23_Resume_processObject(23, 1, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Resume the given process.  Ignore if the process is already running.
@@ -421,6 +451,7 @@ public enum Primitive
 
 	prim24_Terminate_processObject(24, 1, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Terminate the given process.  Ignore if the process is already terminated.
@@ -435,6 +466,7 @@ public enum Primitive
 
 	prim25_CurrentProcess(25, 0, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the currently running process.
@@ -448,6 +480,7 @@ public enum Primitive
 
 	prim26_LookupProcessVariable_processObject_key(26, 2, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Lookup the given name (key) in the variables of the given process.
@@ -463,6 +496,7 @@ public enum Primitive
 
 	prim27_SetProcessVariable_processObject_key_value(27, 3, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Associate the given value with the given name (key) in the variables of the given process.
@@ -483,6 +517,7 @@ public enum Primitive
 
 	prim28_SemaphoreWait_semaphore(28, 1, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Wait for the given semaphore.
@@ -497,6 +532,7 @@ public enum Primitive
 
 	prim29_SemaphoreSignal_semaphore(29, 1, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Signal the given semaphore.
@@ -511,6 +547,7 @@ public enum Primitive
 
 	prim30_Type_value(30, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the type of the given object.
@@ -525,6 +562,7 @@ public enum Primitive
 
 	prim31_TypeUnion_type1_type2(31, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  This eventually needs to be rewritten as an invocation of typeUnion:canDestroy:.  For now make result immutable.
@@ -540,6 +578,7 @@ public enum Primitive
 
 	prim32_TypeIntersection_type1_type2(32, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  This eventually needs to be rewritten as an invocation of typeIntersection:canDestroy:.  For now make result immutable.
@@ -555,6 +594,7 @@ public enum Primitive
 
 	prim33_IsSubtypeOf_type1_type2(33, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer whether type1 is a subtype of type2 (or equal).
@@ -570,6 +610,7 @@ public enum Primitive
 
 	prim34_CreateClosureType_argTypes_returnType(34, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer whether type1 is a subtype of type2 (or equal).
@@ -590,6 +631,7 @@ public enum Primitive
 
 	prim35_ClosureTypeNumArgs_closureType(35, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the number af arguments that this closureType takes.
@@ -604,6 +646,7 @@ public enum Primitive
 
 	prim36_ArgTypeAt_closureType_index(36, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the type of the argument at the given index within the given closureType.
@@ -619,6 +662,7 @@ public enum Primitive
 
 	prim37_ReturnType_closureType(37, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the return type of the given closureType.
@@ -633,6 +677,7 @@ public enum Primitive
 
 	prim38_UnionOfTupleOfTypes_tupleOfTypes(38, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the union of the types in the given tuple of types.
@@ -652,6 +697,7 @@ public enum Primitive
 
 	prim39_CreateGeneralizedClosureType_returnType(39, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a generalized closure type with the given return type.
@@ -666,6 +712,7 @@ public enum Primitive
 
 	prim40_InvokeWithTuple_block_argTuple(40, 2, Flag.Invokes)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Block evaluation, given a tuple of args.  Check the types dynamically to
@@ -674,44 +721,33 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject block = args.get(0);
 			final AvailObject argTuple = args.get(1);
-			//  Be careful - we reuse the args ArgsList, so we must avoid
-			//  using the local reference "block", because this is just aliased
-			//  to args.args[1], and we must store the first argument to the
-			//  block in that slot for invoke(...) to use.  Also make sure to
-			//  store argsTuple in a fresh AvailObject for the same reason.
-			AvailObject blockCopy = block;
-			AvailObject tupleCopy = argTuple;
-			AvailObject blockType = blockCopy.type();
-			AvailObject anArg;
-			int numArgs = tupleCopy.tupleSize();
+			AvailObject blockType = block.type();
+			int numArgs = argTuple.tupleSize();
 			if (blockType.numArgs() != numArgs)
 			{
 				return Result.FAILURE;
 			}
-			for (int i = numArgs; i > 0; -- i)
+			List<AvailObject> callArgs = new ArrayList<AvailObject>(numArgs);
+			for (int i = 1; i <= numArgs; i++)
 			{
-				anArg = tupleCopy.tupleAt(i);
+				final AvailObject anArg = argTuple.tupleAt(i);
 				if (! anArg.isInstanceOfSubtypeOf(blockType.argTypeAt(i)))
 				{
-					//  We may have overwritten some of the arguments, so just write the
-					//  two arguments to this primitive (#40) into args.args[] prior to failing.
-					args.set(0, blockCopy);
-					args.set(1, tupleCopy);
 					return Result.FAILURE;
 				}
-				//  Transfer the argument into args.args[].  Note the -1 to deal with
-				//  the zero-based array subscript.
-				args.set(i - 1, anArg);
+				//  Transfer the argument into callArgs.
+				callArgs.add(anArg);
 			}
-			return interpreter.invokeClosureArguments (
-				blockCopy,
-				args);
+			return interpreter.invokeClosureArguments(
+				block,
+				callArgs);
 		}
 	},
 
 
 	prim41_InvokeZeroArgs_block(41, 1, Flag.Invokes)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Block evaluation with no arguments.  Don't be confused by the
@@ -720,16 +756,17 @@ public enum Primitive
 
 			assert args.size() == 1;
 			final AvailObject block = args.get(0);
-			assert(block.type().numArgs() == 0);
+			assert block.type().numArgs() == 0;
 			return interpreter.invokeClosureArguments (
 				block,
-				args);
+				Arrays.<AvailObject>asList());
 		}
 	},
 
 
 	prim42_InvokeOneArg_block_arg1(42, 2, Flag.Invokes)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Block evaluation with one argument.
@@ -737,25 +774,23 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject block = args.get(0);
 			final AvailObject arg1 = args.get(1);
-			//  Be careful - we reuse the args ArgsList, so we must avoid
-			//  using the local reference "block", because this is just aliased
-			//  to args.args[0], and we must store the argument to the block
-			//  in that slot for invoke(...) to use.
-			AvailObject blockCopy = block;
-			AvailObject blockType = blockCopy.type();
-			assert(blockType.numArgs() == 1);
-			assert(arg1.isInstanceOfSubtypeOf(blockType.argTypeAt(1)));
-			args.set(0, arg1);
+			AvailObject blockType = block.type();
+			assert blockType.numArgs() == 1;
+			if (! arg1.isInstanceOfSubtypeOf(blockType.argTypeAt(1)))
+			{
+				return Result.FAILURE;
+			}
 			args.set(1, VoidDescriptor.voidObject());   // in case we ever add destruction code
 			return interpreter.invokeClosureArguments (
-				blockCopy,
-				args);
+				block,
+				Arrays.<AvailObject>asList(arg1));
 		}
 	},
 
 
 	prim43_IfThenElse_aBoolean_trueBlock_falseBlock(43, 3, Flag.Invokes)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Invoke either the trueBlock or the falseBlock, depending on aBoolean.
@@ -764,8 +799,8 @@ public enum Primitive
 			final AvailObject aBoolean = args.get(0);
 			final AvailObject trueBlock = args.get(1);
 			final AvailObject falseBlock = args.get(2);
-			assert(trueBlock.type().numArgs() == 0);
-			assert(falseBlock.type().numArgs() == 0);
+			assert trueBlock.type().numArgs() == 0;
+			assert falseBlock.type().numArgs() == 0;
 			if (aBoolean.extractBoolean())
 			{
 				return interpreter.invokeClosureArguments (
@@ -781,6 +816,7 @@ public enum Primitive
 
 	prim44_IfThen_aBoolean_trueBlock(44, 2, Flag.Invokes)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Invoke the trueBlock if aBoolean is true, otherwise just answer void.
@@ -803,6 +839,7 @@ public enum Primitive
 
 	prim45_ShortCircuitHelper_ignoredBool_block(45, 2, Flag.Invokes)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Run the block, ignoring the leading boolean argument.  This is used for short-circuit evaluation.
@@ -820,6 +857,7 @@ public enum Primitive
 
 	prim46_TupleTypeToListType_tupleType(46, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert this tupleType into its associated listType.
@@ -834,6 +872,7 @@ public enum Primitive
 
 	prim47_ListToTuple_list(47, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the tuple extracted from the list.
@@ -853,6 +892,7 @@ public enum Primitive
 
 	prim48_ListTypeToTupleType_listType(48, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert this listType into its associated tupleType.
@@ -867,6 +907,7 @@ public enum Primitive
 
 	prim49_CreateContinuation_callerHolder_closure_pc_stackp_stack(49, 5, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create a continuation.  Don't allow anything about level two to be mentioned.
@@ -896,6 +937,7 @@ public enum Primitive
 
 	prim50_ContinuationTypeToClosureType_continuationType(50, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the closure type within the given continuation type.
@@ -910,6 +952,7 @@ public enum Primitive
 
 	prim51_ClosureTypeToContinuationType_closureType(51, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a continuation type that uses the given closure type.
@@ -924,6 +967,7 @@ public enum Primitive
 
 	prim52_ContinuationCaller_con(52, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the caller of a continuation.  Fail if there is no caller.
@@ -943,6 +987,7 @@ public enum Primitive
 
 	prim53_ContinuationClosure_con(53, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the closure of a continuation.
@@ -957,6 +1002,7 @@ public enum Primitive
 
 	prim54_ContinuationPC_con(54, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the pc of a continuation.
@@ -971,6 +1017,7 @@ public enum Primitive
 
 	prim55_ContinuationStackPointer_con(55, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a continuation's stack pointer.
@@ -985,6 +1032,7 @@ public enum Primitive
 
 	prim56_RestartContinuationWithArguments_con_arguments(56, 2, Flag.SwitchesContinuation)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Restart the given continuation, but passing in the given tuple of arguments.  Make sure it's
@@ -1032,6 +1080,7 @@ public enum Primitive
 
 	prim57_ExitContinuationWithResult_con_result(57, 2, Flag.SwitchesContinuation)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Exit the given continuation (returning result to its caller).
@@ -1059,6 +1108,7 @@ public enum Primitive
 
 	prim58_RestartContinuation_con(58, 1, Flag.SwitchesContinuation)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Restart the given continuation.  Make sure it's a label-like continuation rather than a call-like,
@@ -1087,6 +1137,7 @@ public enum Primitive
 
 	prim59_ContinuationStackData_con(59, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a tuple containing the continuation's stack data.
@@ -1113,6 +1164,7 @@ public enum Primitive
 
 	prim60_Equality_a_b(60, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare for equality.  Answer is an Avail boolean.
@@ -1128,6 +1180,7 @@ public enum Primitive
 
 	prim61_MapToObject_map(61, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a map into an object.
@@ -1142,6 +1195,7 @@ public enum Primitive
 
 	prim62_ObjectToMap_object(62, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert an object into a map.
@@ -1156,6 +1210,7 @@ public enum Primitive
 
 	prim63_MapToObjectType_map(63, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a map into an object type.
@@ -1170,6 +1225,7 @@ public enum Primitive
 
 	prim64_ObjectTypeToMap_objectType(64, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert an object type into a map.
@@ -1184,6 +1240,7 @@ public enum Primitive
 
 	prim65_ObjectMetaInstance_objectMeta(65, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract an objectType from its type, an objectMeta.
@@ -1198,6 +1255,7 @@ public enum Primitive
 
 	prim66_ObjectMetaMetaInstance_objectMetaMeta(66, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract an objectMeta from its type, an objectMetaMeta.
@@ -1212,6 +1270,7 @@ public enum Primitive
 
 	prim67_NameOfPrimitiveType_primType(67, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the name of a primitive type.
@@ -1226,6 +1285,7 @@ public enum Primitive
 
 	prim68_RecordNewTypeName_userType_name(68, 2, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Record a name for this user-defined type.  This can be useful for debugging.
@@ -1245,6 +1305,7 @@ public enum Primitive
 
 	prim70_CreateConstantBlock_numArgs_constantResult(70, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Construct a block taking numArgs arguments (each of type all) and returning constantResult.
@@ -1260,6 +1321,7 @@ public enum Primitive
 
 	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsList_argTypes_message_firstArg_resultType(71, 4, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Construct a block that takes arguments whose types are specified in argTypes, and returns the
@@ -1284,6 +1346,7 @@ public enum Primitive
 
 	prim72_CompiledCodeOfClosure_aClosure(72, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the compiledCode within this closure.
@@ -1298,6 +1361,7 @@ public enum Primitive
 
 	prim73_OuterVariables_aClosure(73, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the tuple of outer variables captured by this closure.
@@ -1328,6 +1392,7 @@ public enum Primitive
 
 	prim74_CreateClosure_compiledCode_outers(74, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a closure built from the compiledCode and the outer variables.
@@ -1343,6 +1408,7 @@ public enum Primitive
 
 	prim80_MapSize_map(80, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the size of the map.
@@ -1357,6 +1423,7 @@ public enum Primitive
 
 	prim81_MapHasKey_map_key(81, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Check if the key is present in the map.
@@ -1372,6 +1439,7 @@ public enum Primitive
 
 	prim82_MapAtKey_map_key(82, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Look up the key in the map.
@@ -1387,6 +1455,7 @@ public enum Primitive
 
 	prim83_MapReplacingKey_map_key_value(83, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a new map, but with key -> value in it.
@@ -1406,6 +1475,7 @@ public enum Primitive
 
 	prim84_MapWithoutKey_map_key(84, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a new map, but without the given key.
@@ -1421,6 +1491,7 @@ public enum Primitive
 
 	prim85_CreateEmptyMap(85, 0, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer an empty map.
@@ -1434,6 +1505,7 @@ public enum Primitive
 
 	prim86_MapKeysAsSet_map(86, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the keys of this map as a set.
@@ -1448,6 +1520,7 @@ public enum Primitive
 
 	prim87_CreateMapType_Sizes_keyType_valueType(87, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a map type with the given constraints.
@@ -1467,6 +1540,7 @@ public enum Primitive
 
 	prim88_MapTypeSizes_mapType(88, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the size range of a map type.
@@ -1481,6 +1555,7 @@ public enum Primitive
 
 	prim89_MapTypeKeyType_mapType(89, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the key type of a map type.
@@ -1495,6 +1570,7 @@ public enum Primitive
 
 	prim90_MapTypeValueType_mapType(90, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the value type of a map type.
@@ -1509,6 +1585,7 @@ public enum Primitive
 
 	prim91_MapValuesAsTuple_map(91, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the values of this map as a tuple, arbitrarily ordered.
@@ -1523,6 +1600,7 @@ public enum Primitive
 
 	prim100_SetSize_set(100, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the size of the set.
@@ -1537,6 +1615,7 @@ public enum Primitive
 
 	prim101_SetHasElement_set_element(101, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Check if the object is an element of the set.
@@ -1552,6 +1631,7 @@ public enum Primitive
 
 	prim102_SetUnion_set1_set2(102, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the union of two sets.
@@ -1567,6 +1647,7 @@ public enum Primitive
 
 	prim103_SetIntersection_set1_set2(103, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the intersection of two sets.
@@ -1582,6 +1663,7 @@ public enum Primitive
 
 	prim104_SetDifference_set1_set2(104, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the difference between two sets (set1 - set2).
@@ -1597,6 +1679,7 @@ public enum Primitive
 
 	prim105_SetWith_set_newElement(105, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a new set but with newElement in it.
@@ -1612,6 +1695,7 @@ public enum Primitive
 
 	prim106_SetWithout_set_excludedElement(106, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a new set but without excludeElement in it.
@@ -1627,6 +1711,7 @@ public enum Primitive
 
 	prim107_SetIsSubset_set1_set2(107, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Check if set1 is a subset of set2.
@@ -1642,6 +1727,7 @@ public enum Primitive
 
 	prim108_CreateEmptySet(108, 0, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the empty set.
@@ -1655,6 +1741,7 @@ public enum Primitive
 
 	prim109_TupleToSet_tuple(109, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a tuple into a set.  Clear from args to avoid having to make elements immutable.
@@ -1669,6 +1756,7 @@ public enum Primitive
 
 	prim110_SetToTuple_set(110, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a set into an arbitrarily ordered tuple.  The conversion is unstable (two calls may
@@ -1684,6 +1772,7 @@ public enum Primitive
 
 	prim111_CreateSetType_sizeRange_contentType(111, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create a set type.
@@ -1699,6 +1788,7 @@ public enum Primitive
 
 	prim112_SetTypeSizes_setType(112, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract a set type's range of sizes.
@@ -1713,6 +1803,7 @@ public enum Primitive
 
 	prim113_SetTypeElementType_setType(113, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract a set type's content type.
@@ -1727,6 +1818,7 @@ public enum Primitive
 
 	prim120_CreateCyclicType_name(120, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create a new cyclic type with the given name.
@@ -1741,6 +1833,7 @@ public enum Primitive
 
 	prim121_CyclicTypeName_cyclicType(121, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the name of a cyclicType.
@@ -1755,6 +1848,7 @@ public enum Primitive
 
 	prim130_TupleSize_tuple(130, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the size of the tuple.
@@ -1769,6 +1863,7 @@ public enum Primitive
 
 	prim131_TupleAt_tuple_index(131, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Look up an element in the tuple.
@@ -1784,6 +1879,7 @@ public enum Primitive
 
 	prim132_TupleReplaceAt_tuple_index_value(132, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a tuple like the given one, but with an element changed as indicated.
@@ -1803,6 +1899,7 @@ public enum Primitive
 
 	prim133_CreateTupleSizeOne_soleElement(133, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Build a tuple with one element.
@@ -1820,6 +1917,7 @@ public enum Primitive
 
 	prim134_CreateEmptyTuple(134, 0, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Build a tuple with no elements.
@@ -1833,6 +1931,7 @@ public enum Primitive
 
 	prim135_ExtractSubtuple_tuple_start_end(135, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract a subtuple with the given range of elements.
@@ -1852,6 +1951,7 @@ public enum Primitive
 
 	prim136_ConcatenateTuples_tuples(136, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Concatenate a tuple of tuples together into a single tuple.
@@ -1866,6 +1966,7 @@ public enum Primitive
 
 	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(137, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Construct a tuple type with the given parameters.  Canonize the data if necessary.
@@ -1885,6 +1986,7 @@ public enum Primitive
 
 	prim138_TupleTypeSizes_tupleType(138, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the allowed tuple sizes for this tupleType.
@@ -1899,6 +2001,7 @@ public enum Primitive
 
 	prim139_TupleTypeLeadingTypes_tupleType(139, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the tuple of leading types that constrain this tupleType.
@@ -1913,6 +2016,7 @@ public enum Primitive
 
 	prim140_TupleTypeDefaultType_tupleType(140, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the default type for elements past the leading types.
@@ -1927,6 +2031,7 @@ public enum Primitive
 
 	prim141_TupleTypeAt_tupleType_index(141, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the type for the given element of instances of the given tuple type.
@@ -1943,6 +2048,7 @@ public enum Primitive
 
 	prim142_TupleTypeSequenceOfTypes_tupleType_startIndex_endIndex(142, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a tuple of types representing the types of the given range of indices
@@ -1974,6 +2080,7 @@ public enum Primitive
 
 	prim143_TupleTypeAtThrough_tupleType_startIndex_endIndex(143, 3, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the type that is the union of the types within the given range of indices
@@ -1991,6 +2098,7 @@ public enum Primitive
 
 	prim144_TupleTypeConcatenate_tupleType1_tupleType2(144, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the type that is the type of all possible concatenations of instances of
@@ -2008,6 +2116,7 @@ public enum Primitive
 
 	prim160_FileOpenRead_nameString(160, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Open a file for reading.  Answer the OS handle as an integer.
@@ -2022,13 +2131,14 @@ public enum Primitive
 						add: stream;
 						size].
 				^IntegerDescriptor objectFromInt: handle
-			*/
+			 */
 		}
 	},
 
 
 	prim161_FileOpenWrite_nameString(161, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Open a file for writing.  Answer the OS handle as an integer.
@@ -2043,13 +2153,14 @@ public enum Primitive
 						add: stream;
 						size].
 				^IntegerDescriptor objectFromInt: handle
-			*/
+			 */
 		}
 	},
 
 
 	prim162_FileClose_handleInt(162, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Close a file.
@@ -2059,13 +2170,14 @@ public enum Primitive
 				(openFiles at: handleInt extractInt) close.
 				openFiles at: handleInt extractInt put: nil.
 				^VoidDescriptor voidObject
-			*/
+			 */
 		}
 	},
 
 
 	prim163_FileRead_handleInt_size(163, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Attempt to read size bytes from the stream with handle handleInt.  If fewer bytes are
@@ -2082,13 +2194,14 @@ public enum Primitive
 					ifFalse: [
 						size isPositive assert: 'Negative infinity not allowed here'.
 						^ByteTupleDescriptor mutableObjectFromByteArray: stream upToEnd].
-			*/
+			 */
 		}
 	},
 
 
 	prim164_FileWrite_handleInt_bytes(164, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Attempt to write bytes to the stream with handle handleInt.  Answer the tuple
@@ -2102,13 +2215,14 @@ public enum Primitive
 				1 to: bytes tupleSize do: [:i |
 					file nextPut: (bytes tupleAt: i) extractByte].
 				^TupleDescriptor empty
-			*/
+			 */
 		}
 	},
 
 
 	prim165_FileSize_handleInt(165, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the current size of the stream (usually the size of a file, but sockets
@@ -2118,13 +2232,14 @@ public enum Primitive
 			/* From Smalltalk:
 				^IntegerDescriptor
 					objectFromInt: (openFiles at: handleInt extractInt) size
-			*/
+			 */
 		}
 	},
 
 
 	prim166_FilePosition_handleInt(166, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the current position of the stream (usually the position in a file, but sockets
@@ -2134,13 +2249,14 @@ public enum Primitive
 			/* From Smalltalk:
 				^IntegerDescriptor
 					objectFromInt: (openFiles at: handleInt extractInt) position
-			*/
+			 */
 		}
 	},
 
 
 	prim167_FileSetPosition_handleInt_newPosition(167, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Set the current position of the stream (fail for sockets).
@@ -2149,13 +2265,14 @@ public enum Primitive
 			/* From Smalltalk:
 				(openFiles at: handleInt extractInt) position: newPosition extractInt.
 				^VoidDescriptor voidObject
-			*/
+			 */
 		}
 	},
 
 
 	prim180_CompiledCodeNumArgs_cc(180, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the number of arguments expected by the compiledCode.
@@ -2170,6 +2287,7 @@ public enum Primitive
 
 	prim181_CompiledCodeNumLocals_cc(181, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the number of locals created by the compiledCode.
@@ -2184,6 +2302,7 @@ public enum Primitive
 
 	prim182_CompiledCodeNumOuters_cc(182, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the number of outers in closures derived from the compiledCode.
@@ -2198,6 +2317,7 @@ public enum Primitive
 
 	prim183_CompiledCodeNumStackSlots_cc(183, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the number of stack slots (not counting args and locals) created for the compiledCode.
@@ -2212,6 +2332,7 @@ public enum Primitive
 
 	prim184_CompiledCodeNybbles_cc(184, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the nybblecodes of the compiledCode.
@@ -2226,6 +2347,7 @@ public enum Primitive
 
 	prim185_CompiledCodeClosureType_cc(185, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the type of closure this compiledCode will be closed into.
@@ -2240,6 +2362,7 @@ public enum Primitive
 
 	prim186_CompiledCodePrimitiveNumber_cc(186, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the primitive number of this compiledCode.
@@ -2254,6 +2377,7 @@ public enum Primitive
 
 	prim187_CompiledCodeLiterals_cc(187, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a tuple with the literals from this compiledCode.
@@ -2287,6 +2411,7 @@ public enum Primitive
 
 	prim188_CreateCompiledCode_numArgs_locals_outers_stack_nybs_closureType_prim_literals(188, 8, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a compiledCode with the given data.
@@ -2321,6 +2446,7 @@ public enum Primitive
 
 	prim200_CatchException_bodyBlock_handlerBlock(200, 2, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  The Avail failure code invokes the bodyBlock.  The handlerBlock
@@ -2336,6 +2462,7 @@ public enum Primitive
 
 	prim201_RaiseException_exceptionValue(201, 1, Flag.SwitchesContinuation)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Raise an exception.  Scan the stack of continuations until one
@@ -2356,6 +2483,7 @@ public enum Primitive
 
 	prim207_CompleteMessages_bundleTree(207, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a collection of all visible messages inside the current tree
@@ -2373,6 +2501,7 @@ public enum Primitive
 
 	prim208_IncompleteMessages_bundleTree(208, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a collection of all visible messages inside the current tree
@@ -2389,6 +2518,7 @@ public enum Primitive
 
 	prim209_CompleteMessagesStartingWith_leadingPart(209, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a collection of all visible methods that start with the given
@@ -2405,6 +2535,7 @@ public enum Primitive
 
 	prim210_IncompleteMessagesStartingWith_leadingPart(210, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a collection of all visible methods that start with the given
@@ -2421,6 +2552,7 @@ public enum Primitive
 
 	prim211_BundleMessage_bundle(211, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a message bundle's message (a cyclicType).
@@ -2435,6 +2567,7 @@ public enum Primitive
 
 	prim212_BundleMessageParts_bundle(212, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a message bundle's messageParts (a tuple of strings).
@@ -2449,6 +2582,7 @@ public enum Primitive
 
 	prim213_BundleSignatures_bundle(213, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a set of all currently defined signatures for the message represented
@@ -2464,6 +2598,7 @@ public enum Primitive
 
 	prim214_BundleHasRestrictions_bundle(214, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer whether precedence restrictions have been defined (yet) for this bundle.
@@ -2478,6 +2613,7 @@ public enum Primitive
 
 	prim215_BundleRestrictions_bundle(215, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the current precedence restrictions for this bundle.
@@ -2492,6 +2628,7 @@ public enum Primitive
 
 	prim216_SignatureBodyType_sig(216, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer this signature's body's type (a closureType).
@@ -2506,6 +2643,7 @@ public enum Primitive
 
 	prim217_SignatureBodyBlock_methSig(217, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer this methodSignature's bodyBlock (a closure).
@@ -2520,6 +2658,7 @@ public enum Primitive
 
 	prim218_SignatureRequiresBlock_sig(218, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer this signature's requiresBlock (a closure).
@@ -2534,6 +2673,7 @@ public enum Primitive
 
 	prim219_SignatureReturnsBlock_sig(219, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer this signature's returnsBlock (a closure).
@@ -2548,6 +2688,7 @@ public enum Primitive
 
 	prim220_ImplementationSetFromName_name(220, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the implementationSet (see ImplementationSetDescriptor) associated with
@@ -2564,6 +2705,7 @@ public enum Primitive
 
 	prim221_ImplementationSetName_name(221, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the cyclicType associated with the given implementationSet (see
@@ -2580,6 +2722,7 @@ public enum Primitive
 
 	prim240_SpecialObject_index(240, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Access special object with the given index.
@@ -2605,6 +2748,7 @@ public enum Primitive
 
 	prim245_LookupName_name(245, 1, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Lookup a name in the current module.
@@ -2619,6 +2763,7 @@ public enum Primitive
 
 	prim250_IsPrimitiveDefined_index(250, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer whether the given primitive number is defined.
@@ -2633,6 +2778,7 @@ public enum Primitive
 
 	prim251_AbstractMethodDeclaration_string_blockSignature_requiresBlock_returnsBlock(251, 4, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Declare method as abstract.  This identifies responsibility for subclasses
@@ -2656,6 +2802,7 @@ public enum Primitive
 
 	prim252_ForwardMethodDeclaration_string_blockSignature(252, 2, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Declare method without body (for recursion / mutual recursion).
@@ -2672,6 +2819,7 @@ public enum Primitive
 
 	prim253_SimpleMethodDeclaration_string_block(253, 2, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Method definition (without type constraint or result type deduction).
@@ -2688,6 +2836,7 @@ public enum Primitive
 
 	prim254_MethodDeclaration_string_block_requiresBlock_returnsBlock(254, 4, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Method definition (with type constraint and result type calculation).
@@ -2710,6 +2859,7 @@ public enum Primitive
 
 	prim255_PrecedenceDeclaration_stringSet_exclusionsTuple(255, 2, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Message precedence declaration with tuple of submessage exclusion sets.
@@ -2748,6 +2898,7 @@ public enum Primitive
 
 	prim256_EmergencyExit_value(256, 1, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Emergency exit primitive.
@@ -2777,13 +2928,14 @@ public enum Primitive
 				reply = #proceed ifTrue: [
 					result := VoidDescriptor voidObject].
 				^result
-			*/
+			 */
 		}
 	},
 
 
 	prim257_BreakPoint(257, 0, Flag.Unknown)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Pause the VM.
@@ -2795,13 +2947,14 @@ public enum Primitive
 					put: VoidDescriptor voidObject.
 				self prepareToExecuteContinuation: self currentContinuation debug.
 				^#continuationChanged
-			*/
+			 */
 		}
 	},
 
 
 	prim260_CreateLibrarySpec(260, 0, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create an opaque library object into which we can load declarations.  We may also
@@ -2817,13 +2970,14 @@ public enum Primitive
 				openLibraries add: lib.
 				handle := openLibraries size.
 				^IntegerDescriptor objectFromSmalltalkInteger: handle
-			*/
+			 */
 		}
 	},
 
 
 	prim261_OpenLibrary_handle_filename(261, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Open a previously constructed library.  Its handle (into openLibraries) is passed.
@@ -2838,13 +2992,14 @@ public enum Primitive
 					owner: nil.
 				opaqueLib at: 2 put: externalLib.
 				^VoidDescriptor voidObject
-			*/
+			 */
 		}
 	},
 
 
 	prim262_ParseDeclarations_libraryHandle_declaration(262, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Declare a function for the given library.  Don't look for the entry point yet, that's actually
@@ -2868,13 +3023,14 @@ public enum Primitive
 					includeDirectories: #()
 					requestor: nil.
 				^VoidDescriptor voidObject
-			*/
+			 */
 		}
 	},
 
 
 	prim263_ExtractEntryPoint_handle_functionName(263, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Create an entry point handle to deal with subsequent invocations of the
@@ -2904,13 +3060,14 @@ public enum Primitive
 					with: opaqueLibrary.
 				entryPoints add: opaqueEntryPoint.
 				^IntegerDescriptor objectFromSmalltalkInteger: entryPoints size
-			*/
+			 */
 		}
 	},
 
 
 	prim264_EntryPointClosureType_entryPointHandle(264, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer the closure type associated with the given entry point.
@@ -2920,13 +3077,14 @@ public enum Primitive
 				| privateEntryPoint |
 				privateEntryPoint := entryPoints at: entryPointHandle extractInt.
 				^privateEntryPoint at: 2
-			*/
+			 */
 		}
 	},
 
 
 	prim265_InvokeEntryPoint_arguments(265, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Invoke the entry point associated with the given handle, using the specified arguments.
@@ -2969,13 +3127,14 @@ public enum Primitive
 							resultType defaultDatumClass])
 					resultType: resultType.	"plus varargs when supported"
 				^self convertExternalResult: result ofType: externalType resultType
-			*/
+			 */
 		}
 	},
 
 
 	prim266_IntegralType_from(266, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Read an integer of the specified type from the memory location specified as an integer.
@@ -2986,13 +3145,14 @@ public enum Primitive
 				byteCount := (intType upperBound highBit + 7) // 8.
 				int := byteCount halt.
 				^IntegerDescriptor objectFromSmalltalkInteger: int
-			*/
+			 */
 		}
 	},
 
 
 	prim267_IntegralType_to_write(267, 3, Flag.CanInline, Flag.HasSideEffect)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Write an integer of the specified type to the memory location specified as an integer.
@@ -3006,13 +3166,14 @@ public enum Primitive
 				byteCount yourself.
 				int yourself.
 				^VoidDescriptor voidObject
-			*/
+			 */
 		}
 	},
 
 
 	prim268_BigEndian(268, 0, Flag.CanInline)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Answer a boolean indicating if the current platform is big-endian.
@@ -3027,6 +3188,7 @@ public enum Primitive
 
 	prim280_FloatAddition_a_b(280, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Add two floats.
@@ -3045,6 +3207,7 @@ public enum Primitive
 
 	prim281_FloatSubtraction_a_b(281, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Subtract b from a.
@@ -3063,6 +3226,7 @@ public enum Primitive
 
 	prim282_FloatMultiplication_a_b(282, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Multiply a and b.
@@ -3081,6 +3245,7 @@ public enum Primitive
 
 	prim283_FloatDivision_a_b(283, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Divide a by b.
@@ -3103,6 +3268,7 @@ public enum Primitive
 
 	prim284_FloatLessThan_a_b(284, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare a < b.  Answers an Avail boolean.
@@ -3118,6 +3284,7 @@ public enum Primitive
 
 	prim285_FloatLessOrEqual_a_b(285, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare a <= b.  Answers an Avail boolean.
@@ -3133,6 +3300,7 @@ public enum Primitive
 
 	prim286_FloatLn_a(286, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute the natural logarithm of a.
@@ -3148,6 +3316,7 @@ public enum Primitive
 
 	prim287_FloatExp_a(287, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute e^a, the natural exponential of a.
@@ -3163,6 +3332,7 @@ public enum Primitive
 
 	prim288_FloatModulus_a_b(288, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Divide a by b, but answer the remainder.
@@ -3184,6 +3354,7 @@ public enum Primitive
 
 	prim289_FloatTruncatedAsInteger_a(289, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a float to an integer, rounding towards zero.
@@ -3227,6 +3398,7 @@ public enum Primitive
 
 	prim290_FloatFromInteger_a(290, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert an integer to a float, failing if out of range.
@@ -3267,6 +3439,7 @@ public enum Primitive
 
 	prim291_FloatTimesTwoPower_a_b(291, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute a*(2**b) without intermediate overflow or any precision loss.
@@ -3287,6 +3460,7 @@ public enum Primitive
 
 	prim310_DoubleAddition_a_b(310, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Add two doubles.
@@ -3305,6 +3479,7 @@ public enum Primitive
 
 	prim311_DoubleSubtraction_a_b(311, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Subtract b from a.
@@ -3323,6 +3498,7 @@ public enum Primitive
 
 	prim312_DoubleMultiplication_a_b(312, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Multiply a and b.
@@ -3341,6 +3517,7 @@ public enum Primitive
 
 	prim313_DoubleDivision_a_b(313, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Divide a by b.
@@ -3363,6 +3540,7 @@ public enum Primitive
 
 	prim314_DoubleLessThan_a_b(314, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare a < b.  Answers an Avail boolean.
@@ -3378,6 +3556,7 @@ public enum Primitive
 
 	prim315_DoubleLessOrEqual_a_b(315, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compare a <= b.  Answers an Avail boolean.
@@ -3393,6 +3572,7 @@ public enum Primitive
 
 	prim316_DoubleLn_a(316, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute the natural logarithm of a.
@@ -3408,6 +3588,7 @@ public enum Primitive
 
 	prim317_DoubleExp_a(317, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute e^a, the natural exponential of a.
@@ -3423,6 +3604,7 @@ public enum Primitive
 
 	prim318_DoubleModulus_a_b(318, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Divide a by b, but answer the remainder.
@@ -3444,6 +3626,7 @@ public enum Primitive
 
 	prim319_DoubleTruncatedAsInteger_a(319, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a double to an integer, rounding towards zero.
@@ -3487,6 +3670,7 @@ public enum Primitive
 
 	prim320_DoubleFromInteger_a(320, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a double to an integer, rounding towards zero.
@@ -3537,6 +3721,7 @@ public enum Primitive
 
 	prim321_DoubleTimesTwoPower_a_b(321, 2, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Compute a*(2**b) without intermediate overflow or any precision loss.
@@ -3557,6 +3742,7 @@ public enum Primitive
 
 	prim330_CharacterCodePoint_character(330, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Extract the code point (integer) from a character.
@@ -3571,6 +3757,7 @@ public enum Primitive
 
 	prim331_CharacterFromCodePoint_codePoint(331, 1, Flag.CanFold)
 	{
+		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			//  Convert a code point (integer) into a character.

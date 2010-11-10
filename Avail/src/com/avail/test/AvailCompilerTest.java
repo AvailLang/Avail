@@ -70,7 +70,7 @@ public class AvailCompilerTest
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private String readSourceFile (final @NotNull String sourcePath)
-		throws IOException
+	throws IOException
 	{
 		final File sourceFile = new File(libraryPath + sourcePath);
 		final char[] sourceBuffer = new char[(int) sourceFile.length()];
@@ -110,7 +110,7 @@ public class AvailCompilerTest
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void compileTier (final @NotNull String[] modulePaths)
-		throws IOException
+	throws IOException
 	{
 		AvailCompiler compiler = new AvailCompiler();
 		L2Interpreter interpreter = new L2Interpreter();
@@ -206,7 +206,7 @@ public class AvailCompilerTest
 		};
 
 		tier1ModulePaths = new String[
-             tier0ModulePaths.length + modulePaths.length];
+		                              tier0ModulePaths.length + modulePaths.length];
 		System.arraycopy(
 			tier0ModulePaths, 0, tier1ModulePaths, 0, tier0ModulePaths.length);
 		System.arraycopy(
@@ -260,7 +260,7 @@ public class AvailCompilerTest
 		};
 
 		tier2ModulePaths = new String[
-			tier1ModulePaths.length + modulePaths.length];
+		                              tier1ModulePaths.length + modulePaths.length];
 		System.arraycopy(
 			tier1ModulePaths, 0, tier2ModulePaths, 0, tier1ModulePaths.length);
 		System.arraycopy(
@@ -303,7 +303,7 @@ public class AvailCompilerTest
 		};
 
 		tier3ModulePaths = new String[
-			tier2ModulePaths.length + modulePaths.length];
+		                              tier2ModulePaths.length + modulePaths.length];
 		System.arraycopy(
 			tier2ModulePaths, 0, tier3ModulePaths, 0, tier2ModulePaths.length);
 		System.arraycopy(
@@ -349,7 +349,7 @@ public class AvailCompilerTest
 		};
 
 		tier4ModulePaths = new String[
-			tier3ModulePaths.length + modulePaths.length];
+		                              tier3ModulePaths.length + modulePaths.length];
 		System.arraycopy(
 			tier3ModulePaths, 0, tier4ModulePaths, 0, tier3ModulePaths.length);
 		System.arraycopy(
@@ -371,6 +371,76 @@ public class AvailCompilerTest
 	{
 		long startTime = System.currentTimeMillis();
 		compileTier(tier4ModulePaths);
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+	}
+
+	/** The experimental modules. */
+	private static final String[] experimentalModulePaths;
+
+	static
+	{
+		final String[] modulePaths =
+		{
+			"Process-process",
+			"Backtrack-main",
+			"Process-semaphore",
+			"Backtrack-test",
+			"Compiler-nybblecode encoding",
+			"Compiler-nybblecode generation",
+			"Compiler-variables",
+			"IO-file",
+			"IO-output file",
+			"Compiler-tokens",
+			"Compiler-nybblecodes",
+			"Reflection-methods",
+			"Reflection-method validation",
+			"Reflection-modules",
+			"Reflection-main",
+			"Compiler-parse nodes",
+			"Compiler-instruction generator",
+			"Compiler-parse tree",
+			"IO-objects",
+			"Compiler-lexical scanner",
+			"IO-object dumping",
+			"Compiler-parser",
+			"Compiler-main",
+			"Compiler-test parser",
+			"Curry-main",
+			"Curry-test",
+			"IO-input file",
+			// "IO-test files",
+			"IO-object loading",
+			"IO-main",
+			// "IO-test dumping",
+			// "IO-test",
+			"Kernel Tests",
+			// "test everything"
+		};
+
+		experimentalModulePaths = new String[
+		                                     tier4ModulePaths.length + modulePaths.length];
+		System.arraycopy(
+			tier4ModulePaths, 0, experimentalModulePaths, 0, tier4ModulePaths.length);
+		System.arraycopy(
+			modulePaths,
+			0,
+			experimentalModulePaths,
+			tier4ModulePaths.length,
+			modulePaths.length);
+	}
+
+	/**
+	 * Test: Compile the experimental modules.
+	 * 
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void experimental () throws Exception
+	{
+		long startTime = System.currentTimeMillis();
+		compileTier(experimentalModulePaths);
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}

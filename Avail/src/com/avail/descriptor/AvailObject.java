@@ -32,21 +32,16 @@
 
 package com.avail.descriptor;
 
+import java.util.ArrayList;
+import java.util.List;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class AvailObject
 {
-
-
 	// gc helpers
 
 	public AvailObject saveOrForward ()
@@ -64,7 +59,7 @@ public abstract class AvailObject
 	// GENERATED methods
 
 	public boolean acceptsArgTypesFromClosureType (
-			final AvailObject closureType)
+		final AvailObject closureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -72,8 +67,8 @@ public abstract class AvailObject
 	}
 
 	public boolean acceptsArgumentsFromContinuationStackp (
-			final AvailObject continuation, 
-			final int stackp)
+		final AvailObject continuation,
+		final int stackp)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -84,8 +79,8 @@ public abstract class AvailObject
 	}
 
 	public boolean acceptsArgumentTypesFromContinuationStackp (
-			final AvailObject continuation, 
-			final int stackp)
+		final AvailObject continuation,
+		final int stackp)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -96,7 +91,7 @@ public abstract class AvailObject
 	}
 
 	public boolean acceptsArrayOfArgTypes (
-			final List<AvailObject> argTypes)
+		final List<AvailObject> argTypes)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -104,7 +99,7 @@ public abstract class AvailObject
 	}
 
 	public boolean acceptsArrayOfArgValues (
-			final List<AvailObject> argValues)
+		final List<AvailObject> argValues)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -112,7 +107,7 @@ public abstract class AvailObject
 	}
 
 	public boolean acceptsTupleOfArgTypes (
-			final AvailObject argTypes)
+		final AvailObject argTypes)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -120,7 +115,7 @@ public abstract class AvailObject
 	}
 
 	public boolean acceptsTupleOfArguments (
-			final AvailObject arguments)
+		final AvailObject arguments)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -128,7 +123,7 @@ public abstract class AvailObject
 	}
 
 	public void addDependentChunkId (
-			final int aChunkIndex)
+		final int aChunkIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -136,7 +131,7 @@ public abstract class AvailObject
 	}
 
 	public void addImplementation (
-			final AvailObject implementation)
+		final AvailObject implementation)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -144,7 +139,7 @@ public abstract class AvailObject
 	}
 
 	public void addRestrictions (
-			final AvailObject restrictions)
+		final AvailObject restrictions)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -152,8 +147,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject addToInfinityCanDestroy (
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -164,8 +159,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject addToIntegerCanDestroy (
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -176,11 +171,11 @@ public abstract class AvailObject
 	}
 
 	public void argsLocalsStackOutersPrimitive (
-			final int args, 
-			final int locals, 
-			final int stack, 
-			final int outers, 
-			final int primitive)
+		final int args,
+		final int locals,
+		final int stack,
+		final int outers,
+		final int primitive)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -194,7 +189,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject argTypeAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -202,8 +197,8 @@ public abstract class AvailObject
 	}
 
 	public void argTypeAtPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -242,8 +237,8 @@ public abstract class AvailObject
 	}
 
 	public void atAddMessageRestrictions (
-			final AvailObject methodName, 
-			final AvailObject illegalArgMsgs)
+		final AvailObject methodName,
+		final AvailObject illegalArgMsgs)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -254,8 +249,8 @@ public abstract class AvailObject
 	}
 
 	public void atAddMethodImplementation (
-			final AvailObject methodName, 
-			final AvailObject implementation)
+		final AvailObject methodName,
+		final AvailObject implementation)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -266,8 +261,8 @@ public abstract class AvailObject
 	}
 
 	public void atMessageAddBundle (
-			final AvailObject message, 
-			final AvailObject bundle)
+		final AvailObject message,
+		final AvailObject bundle)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -278,8 +273,8 @@ public abstract class AvailObject
 	}
 
 	public void atNameAdd (
-			final AvailObject stringName, 
-			final AvailObject trueName)
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -290,8 +285,8 @@ public abstract class AvailObject
 	}
 
 	public void atNewNamePut (
-			final AvailObject stringName, 
-			final AvailObject trueName)
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -302,8 +297,8 @@ public abstract class AvailObject
 	}
 
 	public void atPrivateNameAdd (
-			final AvailObject stringName, 
-			final AvailObject trueName)
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -328,10 +323,10 @@ public abstract class AvailObject
 	}
 
 	public AvailObject binAddingElementHashLevelCanDestroy (
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
-			final byte myLevel, 
-			final boolean canDestroy)
+		final AvailObject elementObject,
+		final int elementObjectHash,
+		final byte myLevel,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -344,7 +339,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject binElementAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -352,8 +347,8 @@ public abstract class AvailObject
 	}
 
 	public void binElementAtPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -364,8 +359,8 @@ public abstract class AvailObject
 	}
 
 	public boolean binHasElementHash (
-			final AvailObject elementObject, 
-			final int elementObjectHash)
+		final AvailObject elementObject,
+		final int elementObjectHash)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -383,7 +378,7 @@ public abstract class AvailObject
 	}
 
 	public void binHash (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -391,9 +386,9 @@ public abstract class AvailObject
 	}
 
 	public AvailObject binRemoveElementHashCanDestroy (
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
-			final boolean canDestroy)
+		final AvailObject elementObject,
+		final int elementObjectHash,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -412,7 +407,7 @@ public abstract class AvailObject
 	}
 
 	public void binSize (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -427,7 +422,7 @@ public abstract class AvailObject
 	}
 
 	public void binUnionType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -449,7 +444,7 @@ public abstract class AvailObject
 	}
 
 	public void bitVector (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -464,7 +459,7 @@ public abstract class AvailObject
 	}
 
 	public void bodyBlock (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -472,9 +467,9 @@ public abstract class AvailObject
 	}
 
 	public void bodyBlockRequiresBlockReturnsBlock (
-			final AvailObject bb, 
-			final AvailObject rqb, 
-			final AvailObject rtb)
+		final AvailObject bb,
+		final AvailObject rqb,
+		final AvailObject rtb)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -493,7 +488,7 @@ public abstract class AvailObject
 	}
 
 	public void bodySignature (
-			final AvailObject signature)
+		final AvailObject signature)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -501,9 +496,9 @@ public abstract class AvailObject
 	}
 
 	public void bodySignatureRequiresBlockReturnsBlock (
-			final AvailObject bs, 
-			final AvailObject rqb, 
-			final AvailObject rtb)
+		final AvailObject bs,
+		final AvailObject rqb,
+		final AvailObject rtb)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -522,7 +517,7 @@ public abstract class AvailObject
 	}
 
 	public void breakpointBlock (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -530,7 +525,7 @@ public abstract class AvailObject
 	}
 
 	public void buildFilteredBundleTreeFrom (
-			final AvailObject bundleTree)
+		final AvailObject bundleTree)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -538,8 +533,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject bundleAtMessageParts (
-			final AvailObject message, 
-			final AvailObject parts)
+		final AvailObject message,
+		final AvailObject parts)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -557,7 +552,7 @@ public abstract class AvailObject
 	}
 
 	public void caller (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -607,7 +602,7 @@ public abstract class AvailObject
 	}
 
 	public void closure (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -622,7 +617,7 @@ public abstract class AvailObject
 	}
 
 	public void closureType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -637,7 +632,7 @@ public abstract class AvailObject
 	}
 
 	public void code (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -652,7 +647,7 @@ public abstract class AvailObject
 	}
 
 	public void codePoint (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -660,10 +655,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject anotherObject,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -676,10 +671,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithAnyTupleStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTuple, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aTuple,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -692,10 +687,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithByteStringStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteString, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aByteString,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -708,10 +703,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithByteTupleStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteTuple, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aByteTuple,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -724,10 +719,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithNybbleTupleStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aNybbleTuple, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aNybbleTuple,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -740,10 +735,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithObjectTupleStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anObjectTuple, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject anObjectTuple,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -756,10 +751,10 @@ public abstract class AvailObject
 	}
 
 	public boolean compareFromToWithTwoByteStringStartingAt (
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTwoByteString, 
-			final int startIndex2)
+		final int startIndex1,
+		final int endIndex1,
+		final AvailObject aTwoByteString,
+		final int startIndex2)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -779,7 +774,7 @@ public abstract class AvailObject
 	}
 
 	public void complete (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -787,8 +782,8 @@ public abstract class AvailObject
 	}
 
 	public int computeHashFromTo (
-			final int start, 
-			final int end)
+		final int start,
+		final int end)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -799,8 +794,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject computeReturnTypeFromArgumentTypesInterpreter (
-			final List<AvailObject> argTypes, 
-			final AvailInterpreter anAvailInterpreter)
+		final List<AvailObject> argTypes,
+		final AvailInterpreter anAvailInterpreter)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -811,7 +806,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject concatenateTuplesCanDestroy (
-			final boolean canDestroy)
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -826,7 +821,7 @@ public abstract class AvailObject
 	}
 
 	public void constantBindings (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -834,7 +829,7 @@ public abstract class AvailObject
 	}
 
 	public boolean containsBlock (
-			final AvailObject aClosure)
+		final AvailObject aClosure)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -849,7 +844,7 @@ public abstract class AvailObject
 	}
 
 	public void contentType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -864,7 +859,7 @@ public abstract class AvailObject
 	}
 
 	public void contingentImpSets (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -879,7 +874,7 @@ public abstract class AvailObject
 	}
 
 	public void continuation (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -915,8 +910,8 @@ public abstract class AvailObject
 	}
 
 	public void copyToRestrictedTo (
-			final AvailObject filteredBundleTree, 
-			final AvailObject visibleNames)
+		final AvailObject filteredBundleTree,
+		final AvailObject visibleNames)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -927,9 +922,9 @@ public abstract class AvailObject
 	}
 
 	public AvailObject copyTupleFromToCanDestroy (
-			final int start, 
-			final int end, 
-			final boolean canDestroy)
+		final int start,
+		final int end,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -941,7 +936,7 @@ public abstract class AvailObject
 	}
 
 	public boolean couldEverBeInvokedWith (
-			final ArrayList<AvailObject> argTypes)
+		final ArrayList<AvailObject> argTypes)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -949,8 +944,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject createTestingTreeWithPositiveMatchesRemainingPossibilities (
-			final AvailObject positiveTuple, 
-			final AvailObject possibilities)
+		final AvailObject positiveTuple,
+		final AvailObject possibilities)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -961,7 +956,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject dataAtIndex (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -969,8 +964,8 @@ public abstract class AvailObject
 	}
 
 	public void dataAtIndexPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -988,7 +983,7 @@ public abstract class AvailObject
 	}
 
 	public void defaultType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1003,7 +998,7 @@ public abstract class AvailObject
 	}
 
 	public void dependentChunks (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1018,7 +1013,7 @@ public abstract class AvailObject
 	}
 
 	public void depth (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1033,8 +1028,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject divideCanDestroy (
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1045,8 +1040,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject divideIntoInfinityCanDestroy (
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1057,8 +1052,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject divideIntoIntegerCanDestroy (
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1069,7 +1064,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject elementAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1077,8 +1072,8 @@ public abstract class AvailObject
 	}
 
 	public void elementAtPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1089,7 +1084,7 @@ public abstract class AvailObject
 	}
 
 	public int endOfZone (
-			final int zone)
+		final int zone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1097,7 +1092,7 @@ public abstract class AvailObject
 	}
 
 	public int endSubtupleIndexInZone (
-			final int zone)
+		final int zone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1119,7 +1114,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equals (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1127,7 +1122,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsAnyTuple (
-			final AvailObject anotherTuple)
+		final AvailObject anotherTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1142,7 +1137,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsByteString (
-			final AvailObject aByteString)
+		final AvailObject aByteString)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1150,7 +1145,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsByteTuple (
-			final AvailObject aByteTuple)
+		final AvailObject aByteTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1158,7 +1153,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsCharacterWithCodePoint (
-			final int otherCodePoint)
+		final int otherCodePoint)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1166,7 +1161,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsClosure (
-			final AvailObject aClosure)
+		final AvailObject aClosure)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1174,7 +1169,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsClosureType (
-			final AvailObject aClosureType)
+		final AvailObject aClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1182,7 +1177,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsCompiledCode (
-			final AvailObject aCompiledCode)
+		final AvailObject aCompiledCode)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1190,7 +1185,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsContainer (
-			final AvailObject aContainer)
+		final AvailObject aContainer)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1198,7 +1193,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsContainerType (
-			final AvailObject aContainerType)
+		final AvailObject aContainerType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1206,7 +1201,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsContinuation (
-			final AvailObject aContinuation)
+		final AvailObject aContinuation)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1214,7 +1209,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsContinuationType (
-			final AvailObject aType)
+		final AvailObject aType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1222,7 +1217,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsDouble (
-			final AvailObject aDoubleObject)
+		final AvailObject aDoubleObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1237,7 +1232,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsFloat (
-			final AvailObject aFloatObject)
+		final AvailObject aFloatObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1245,7 +1240,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsGeneralizedClosureType (
-			final AvailObject aType)
+		final AvailObject aType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1253,7 +1248,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsInfinity (
-			final AvailObject anInfinity)
+		final AvailObject anInfinity)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1261,7 +1256,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsInteger (
-			final AvailObject anAvailInteger)
+		final AvailObject anAvailInteger)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1269,7 +1264,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsIntegerRangeType (
-			final AvailObject anIntegerRangeType)
+		final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1277,7 +1272,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsList (
-			final AvailObject aList)
+		final AvailObject aList)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1285,7 +1280,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsListType (
-			final AvailObject aListType)
+		final AvailObject aListType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1293,7 +1288,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsMap (
-			final AvailObject aMap)
+		final AvailObject aMap)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1301,7 +1296,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsMapType (
-			final AvailObject aMapType)
+		final AvailObject aMapType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1309,7 +1304,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsNybbleTuple (
-			final AvailObject aNybbleTuple)
+		final AvailObject aNybbleTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1317,7 +1312,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsObject (
-			final AvailObject anObject)
+		final AvailObject anObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1325,7 +1320,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsObjectTuple (
-			final AvailObject anObjectTuple)
+		final AvailObject anObjectTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1333,7 +1328,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsPrimitiveType (
-			final AvailObject aPrimitiveType)
+		final AvailObject aPrimitiveType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1341,7 +1336,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsSet (
-			final AvailObject aSet)
+		final AvailObject aSet)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1349,7 +1344,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsSetType (
-			final AvailObject aSetType)
+		final AvailObject aSetType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1364,7 +1359,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsTupleType (
-			final AvailObject aTupleType)
+		final AvailObject aTupleType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1372,7 +1367,7 @@ public abstract class AvailObject
 	}
 
 	public boolean equalsTwoByteString (
-			final AvailObject aTwoByteString)
+		final AvailObject aTwoByteString)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1415,7 +1410,7 @@ public abstract class AvailObject
 	}
 
 	public void executionMode (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1430,7 +1425,7 @@ public abstract class AvailObject
 	}
 
 	public void executionState (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1487,7 +1482,7 @@ public abstract class AvailObject
 	}
 
 	public byte extractNybbleFromTupleAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1502,7 +1497,7 @@ public abstract class AvailObject
 	}
 
 	public void fieldMap (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1517,7 +1512,7 @@ public abstract class AvailObject
 	}
 
 	public void fieldTypeMap (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1525,12 +1520,12 @@ public abstract class AvailObject
 	}
 
 	public List<AvailObject> filterByTypes (
-			final List<AvailObject> argTypes)
-	{
+		final List<AvailObject> argTypes)
+		{
 		//  GENERATED for descriptor dispatch
 
 		return descriptor().ObjectFilterByTypes(this, argTypes);
-	}
+		}
 
 	public AvailObject filteredBundleTree ()
 	{
@@ -1540,7 +1535,7 @@ public abstract class AvailObject
 	}
 
 	public void filteredBundleTree (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1555,7 +1550,7 @@ public abstract class AvailObject
 	}
 
 	public void firstTupleType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1563,10 +1558,10 @@ public abstract class AvailObject
 	}
 
 	public AvailObject forZoneSetSubtupleStartSubtupleIndexEndOfZone (
-			final int zone, 
-			final AvailObject newSubtuple, 
-			final int startSubtupleIndex, 
-			final int endOfZone)
+		final int zone,
+		final AvailObject newSubtuple,
+		final int startSubtupleIndex,
+		final int endOfZone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1593,7 +1588,7 @@ public abstract class AvailObject
 	}
 
 	public boolean greaterThanInteger (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1601,7 +1596,7 @@ public abstract class AvailObject
 	}
 
 	public boolean greaterThanSignedInfinity (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1609,7 +1604,7 @@ public abstract class AvailObject
 	}
 
 	public boolean hasElement (
-			final AvailObject elementObject)
+		final AvailObject elementObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1617,8 +1612,8 @@ public abstract class AvailObject
 	}
 
 	public int hashFromTo (
-			final int startIndex, 
-			final int endIndex)
+		final int startIndex,
+		final int endIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1643,7 +1638,7 @@ public abstract class AvailObject
 	}
 
 	public void hashOrZero (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1651,7 +1646,7 @@ public abstract class AvailObject
 	}
 
 	public boolean hasKey (
-			final AvailObject keyObject)
+		final AvailObject keyObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1659,7 +1654,7 @@ public abstract class AvailObject
 	}
 
 	public boolean hasObjectInstance (
-			final AvailObject potentialInstance)
+		final AvailObject potentialInstance)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1681,7 +1676,7 @@ public abstract class AvailObject
 	}
 
 	public void hiLevelTwoChunkLowOffset (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1696,7 +1691,7 @@ public abstract class AvailObject
 	}
 
 	public void hiNumLocalsLowNumArgs (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1711,7 +1706,7 @@ public abstract class AvailObject
 	}
 
 	public void hiPrimitiveLowNumArgsAndLocalsAndStack (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1726,7 +1721,7 @@ public abstract class AvailObject
 	}
 
 	public void hiStartingChunkIndexLowNumOuters (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1734,12 +1729,12 @@ public abstract class AvailObject
 	}
 
 	public ArrayList<AvailObject> implementationsAtOrBelow (
-			final ArrayList<AvailObject> argTypes)
-	{
+		final ArrayList<AvailObject> argTypes)
+		{
 		//  GENERATED for descriptor dispatch
 
 		return descriptor().ObjectImplementationsAtOrBelow(this, argTypes);
-	}
+		}
 
 	public AvailObject implementationsTuple ()
 	{
@@ -1749,7 +1744,7 @@ public abstract class AvailObject
 	}
 
 	public void implementationsTuple (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1757,8 +1752,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject includeBundleAtMessageParts (
-			final AvailObject message, 
-			final AvailObject parts)
+		final AvailObject message,
+		final AvailObject parts)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1769,7 +1764,7 @@ public abstract class AvailObject
 	}
 
 	public boolean includes (
-			final AvailObject imp)
+		final AvailObject imp)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1784,7 +1779,7 @@ public abstract class AvailObject
 	}
 
 	public void inclusiveFlags (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1799,7 +1794,7 @@ public abstract class AvailObject
 	}
 
 	public void incomplete (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1814,7 +1809,7 @@ public abstract class AvailObject
 	}
 
 	public void index (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1829,7 +1824,7 @@ public abstract class AvailObject
 	}
 
 	public void innerType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1844,7 +1839,7 @@ public abstract class AvailObject
 	}
 
 	public void instance (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1859,7 +1854,7 @@ public abstract class AvailObject
 	}
 
 	public void internalHash (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1874,7 +1869,7 @@ public abstract class AvailObject
 	}
 
 	public void interruptRequestFlag (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1889,7 +1884,7 @@ public abstract class AvailObject
 	}
 
 	public void invocationCount (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1904,7 +1899,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isBetterRepresentationThan (
-			final AvailObject anotherObject)
+		final AvailObject anotherObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1912,7 +1907,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isBetterRepresentationThanTupleType (
-			final AvailObject aTupleType)
+		final AvailObject aTupleType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1920,7 +1915,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isBinSubsetOf (
-			final AvailObject potentialSuperset)
+		final AvailObject potentialSuperset)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -1998,7 +1993,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isInstanceOfSubtypeOf (
-			final AvailObject aType)
+		final AvailObject aType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2062,7 +2057,7 @@ public abstract class AvailObject
 	}
 
 	public void isSaved (
-			final boolean aBoolean)
+		final boolean aBoolean)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2091,7 +2086,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSubsetOf (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2099,7 +2094,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSubtypeOf (
-			final AvailObject aType)
+		final AvailObject aType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2107,7 +2102,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfClosureType (
-			final AvailObject aClosureType)
+		final AvailObject aClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2115,7 +2110,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfContainerType (
-			final AvailObject aContainerType)
+		final AvailObject aContainerType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2123,7 +2118,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfContinuationType (
-			final AvailObject aContinuationType)
+		final AvailObject aContinuationType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2131,7 +2126,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfCyclicType (
-			final AvailObject aCyclicType)
+		final AvailObject aCyclicType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2139,7 +2134,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfGeneralizedClosureType (
-			final AvailObject aGeneralizedClosureType)
+		final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2147,7 +2142,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfIntegerRangeType (
-			final AvailObject anIntegerRangeType)
+		final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2155,7 +2150,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfListType (
-			final AvailObject aListType)
+		final AvailObject aListType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2163,7 +2158,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfMapType (
-			final AvailObject aMapType)
+		final AvailObject aMapType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2171,7 +2166,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfObjectMeta (
-			final AvailObject anObjectMeta)
+		final AvailObject anObjectMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2179,7 +2174,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfObjectMetaMeta (
-			final AvailObject anObjectMetaMeta)
+		final AvailObject anObjectMetaMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2187,7 +2182,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfObjectType (
-			final AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2195,7 +2190,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfPrimitiveType (
-			final AvailObject aPrimitiveType)
+		final AvailObject aPrimitiveType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2203,7 +2198,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfSetType (
-			final AvailObject aSetType)
+		final AvailObject aSetType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2218,7 +2213,7 @@ public abstract class AvailObject
 	}
 
 	public boolean isSupertypeOfTupleType (
-			final AvailObject aTupleType)
+		final AvailObject aTupleType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2261,7 +2256,7 @@ public abstract class AvailObject
 	}
 
 	public void isValid (
-			final boolean aBoolean)
+		final boolean aBoolean)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2269,8 +2264,8 @@ public abstract class AvailObject
 	}
 
 	public boolean isValidForArgumentTypesInterpreter (
-			final List<AvailObject> argTypes, 
-			final AvailInterpreter interpreter)
+		final List<AvailObject> argTypes,
+		final AvailInterpreter interpreter)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2281,7 +2276,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject keyAtIndex (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2289,8 +2284,8 @@ public abstract class AvailObject
 	}
 
 	public void keyAtIndexPut (
-			final int index, 
-			final AvailObject keyObject)
+		final int index,
+		final AvailObject keyObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2322,7 +2317,7 @@ public abstract class AvailObject
 	}
 
 	public void keyType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2330,7 +2325,7 @@ public abstract class AvailObject
 	}
 
 	public boolean lessOrEqual (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2338,7 +2333,7 @@ public abstract class AvailObject
 	}
 
 	public boolean lessThan (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2353,8 +2348,8 @@ public abstract class AvailObject
 	}
 
 	public void levelTwoChunkIndexOffset (
-			final int index, 
-			final int offset)
+		final int index,
+		final int offset)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2372,7 +2367,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject literalAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2380,8 +2375,8 @@ public abstract class AvailObject
 	}
 
 	public void literalAtPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2392,7 +2387,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject localOrArgOrStackAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2400,8 +2395,8 @@ public abstract class AvailObject
 	}
 
 	public void localOrArgOrStackAtPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2412,7 +2407,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject localTypeAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2420,7 +2415,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject lookupByTypesFromArray (
-			final List<AvailObject> argumentTypeArray)
+		final List<AvailObject> argumentTypeArray)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2428,8 +2423,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject lookupByTypesFromContinuationStackp (
-			final AvailObject continuation, 
-			final int stackp)
+		final AvailObject continuation,
+		final int stackp)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2440,7 +2435,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject lookupByTypesFromTuple (
-			final AvailObject argumentTypeTuple)
+		final AvailObject argumentTypeTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2448,7 +2443,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject lookupByValuesFromArray (
-			final List<AvailObject> argumentArray)
+		final List<AvailObject> argumentArray)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2456,8 +2451,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject lookupByValuesFromContinuationStackp (
-			final AvailObject continuation, 
-			final int stackp)
+		final AvailObject continuation,
+		final int stackp)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2468,7 +2463,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject lookupByValuesFromTuple (
-			final AvailObject argumentTuple)
+		final AvailObject argumentTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2483,7 +2478,7 @@ public abstract class AvailObject
 	}
 
 	public void lowerBound (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2498,8 +2493,8 @@ public abstract class AvailObject
 	}
 
 	public void lowerInclusiveUpperInclusive (
-			final boolean lowInc, 
-			final boolean highInc)
+		final boolean lowInc,
+		final boolean highInc)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2524,7 +2519,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject mapAt (
-			final AvailObject keyObject)
+		final AvailObject keyObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2532,9 +2527,9 @@ public abstract class AvailObject
 	}
 
 	public AvailObject mapAtPuttingCanDestroy (
-			final AvailObject keyObject, 
-			final AvailObject newValueObject, 
-			final boolean canDestroy)
+		final AvailObject keyObject,
+		final AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2553,7 +2548,7 @@ public abstract class AvailObject
 	}
 
 	public void mapSize (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2561,8 +2556,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject mapWithoutKeyCanDestroy (
-			final AvailObject keyObject, 
-			final boolean canDestroy)
+		final AvailObject keyObject,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2587,7 +2582,7 @@ public abstract class AvailObject
 	}
 
 	public void message (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2602,7 +2597,7 @@ public abstract class AvailObject
 	}
 
 	public void messageParts (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2617,7 +2612,7 @@ public abstract class AvailObject
 	}
 
 	public void methods (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2625,8 +2620,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject minusCanDestroy (
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2644,8 +2639,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject multiplyByInfinityCanDestroy (
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2656,8 +2651,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject multiplyByIntegerCanDestroy (
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2675,7 +2670,7 @@ public abstract class AvailObject
 	}
 
 	public void myObjectMeta (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2690,7 +2685,7 @@ public abstract class AvailObject
 	}
 
 	public void myObjectType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2705,7 +2700,7 @@ public abstract class AvailObject
 	}
 
 	public void myRestrictions (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2720,7 +2715,7 @@ public abstract class AvailObject
 	}
 
 	public void myType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2735,7 +2730,7 @@ public abstract class AvailObject
 	}
 
 	public void name (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2750,7 +2745,7 @@ public abstract class AvailObject
 	}
 
 	public void names (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2758,7 +2753,7 @@ public abstract class AvailObject
 	}
 
 	public boolean nameVisible (
-			final AvailObject trueName)
+		final AvailObject trueName)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2766,7 +2761,7 @@ public abstract class AvailObject
 	}
 
 	public void necessaryImplementationSetChanged (
-			final AvailObject anImplementationSet)
+		final AvailObject anImplementationSet)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2781,7 +2776,7 @@ public abstract class AvailObject
 	}
 
 	public void newNames (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2796,7 +2791,7 @@ public abstract class AvailObject
 	}
 
 	public void next (
-			final AvailObject nextChunk)
+		final AvailObject nextChunk)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2811,7 +2806,7 @@ public abstract class AvailObject
 	}
 
 	public void nextIndex (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2847,7 +2842,7 @@ public abstract class AvailObject
 	}
 
 	public void numBlanks (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2862,7 +2857,7 @@ public abstract class AvailObject
 	}
 
 	public void numFloats (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2877,7 +2872,7 @@ public abstract class AvailObject
 	}
 
 	public void numIntegers (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2913,7 +2908,7 @@ public abstract class AvailObject
 	}
 
 	public void numObjects (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2942,7 +2937,7 @@ public abstract class AvailObject
 	}
 
 	public void nybbles (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2950,7 +2945,7 @@ public abstract class AvailObject
 	}
 
 	public boolean optionallyNilOuterVar (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2958,7 +2953,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject outerTypeAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2966,8 +2961,8 @@ public abstract class AvailObject
 	}
 
 	public void outerTypesLocalTypes (
-			final AvailObject tupleOfOuterTypes, 
-			final AvailObject tupleOfLocalContainerTypes)
+		final AvailObject tupleOfOuterTypes,
+		final AvailObject tupleOfLocalContainerTypes)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2978,7 +2973,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject outerVarAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -2986,8 +2981,8 @@ public abstract class AvailObject
 	}
 
 	public void outerVarAtPut (
-			final int index, 
-			final AvailObject value)
+		final int index,
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3005,7 +3000,7 @@ public abstract class AvailObject
 	}
 
 	public void pad (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3020,7 +3015,7 @@ public abstract class AvailObject
 	}
 
 	public void parent (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3035,7 +3030,7 @@ public abstract class AvailObject
 	}
 
 	public void pc (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3043,8 +3038,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject plusCanDestroy (
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3055,8 +3050,8 @@ public abstract class AvailObject
 	}
 
 	public int populateTupleStartingAt (
-			final AvailObject mutableTuple, 
-			final int startingIndex)
+		final AvailObject mutableTuple,
+		final int startingIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3081,7 +3076,7 @@ public abstract class AvailObject
 	}
 
 	public void previous (
-			final AvailObject previousChunk)
+		final AvailObject previousChunk)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3096,7 +3091,7 @@ public abstract class AvailObject
 	}
 
 	public void previousIndex (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3118,7 +3113,7 @@ public abstract class AvailObject
 	}
 
 	public void priority (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3126,7 +3121,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject privateAddElement (
-			final AvailObject element)
+		final AvailObject element)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3134,7 +3129,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject privateExcludeElement (
-			final AvailObject element)
+		final AvailObject element)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3142,8 +3137,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject privateExcludeElementKnownIndex (
-			final AvailObject element, 
-			final int knownIndex)
+		final AvailObject element,
+		final int knownIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3154,7 +3149,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject privateExcludeKey (
-			final AvailObject keyObject)
+		final AvailObject keyObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3162,8 +3157,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject privateMapAtPut (
-			final AvailObject keyObject, 
-			final AvailObject valueObject)
+		final AvailObject keyObject,
+		final AvailObject valueObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3181,7 +3176,7 @@ public abstract class AvailObject
 	}
 
 	public void privateNames (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3196,7 +3191,7 @@ public abstract class AvailObject
 	}
 
 	public void privateTestingTree (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3211,7 +3206,7 @@ public abstract class AvailObject
 	}
 
 	public void processGlobals (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3219,7 +3214,7 @@ public abstract class AvailObject
 	}
 
 	public short rawByteAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3227,8 +3222,8 @@ public abstract class AvailObject
 	}
 
 	public void rawByteAtPut (
-			final int index, 
-			final short anInteger)
+		final int index,
+		final short anInteger)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3239,7 +3234,7 @@ public abstract class AvailObject
 	}
 
 	public short rawByteForCharacterAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3247,8 +3242,8 @@ public abstract class AvailObject
 	}
 
 	public void rawByteForCharacterAtPut (
-			final int index, 
-			final short anInteger)
+		final int index,
+		final short anInteger)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3259,7 +3254,7 @@ public abstract class AvailObject
 	}
 
 	public byte rawNybbleAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3267,8 +3262,8 @@ public abstract class AvailObject
 	}
 
 	public void rawNybbleAtPut (
-			final int index, 
-			final byte aNybble)
+		final int index,
+		final byte aNybble)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3286,7 +3281,7 @@ public abstract class AvailObject
 	}
 
 	public void rawQuad1 (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3301,7 +3296,7 @@ public abstract class AvailObject
 	}
 
 	public void rawQuad2 (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3309,7 +3304,7 @@ public abstract class AvailObject
 	}
 
 	public int rawQuadAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3317,8 +3312,8 @@ public abstract class AvailObject
 	}
 
 	public void rawQuadAtPut (
-			final int index, 
-			final int value)
+		final int index,
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3329,7 +3324,7 @@ public abstract class AvailObject
 	}
 
 	public short rawShortForCharacterAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3337,8 +3332,8 @@ public abstract class AvailObject
 	}
 
 	public void rawShortForCharacterAtPut (
-			final int index, 
-			final short anInteger)
+		final int index,
+		final short anInteger)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3349,7 +3344,7 @@ public abstract class AvailObject
 	}
 
 	public int rawSignedIntegerAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3357,8 +3352,8 @@ public abstract class AvailObject
 	}
 
 	public void rawSignedIntegerAtPut (
-			final int index, 
-			final int value)
+		final int index,
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3369,7 +3364,7 @@ public abstract class AvailObject
 	}
 
 	public long rawUnsignedIntegerAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3377,8 +3372,8 @@ public abstract class AvailObject
 	}
 
 	public void rawUnsignedIntegerAtPut (
-			final int index, 
-			final int value)
+		final int index,
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3403,7 +3398,7 @@ public abstract class AvailObject
 	}
 
 	public void removeDependentChunkId (
-			final int aChunkIndex)
+		final int aChunkIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3411,7 +3406,7 @@ public abstract class AvailObject
 	}
 
 	public void removeFrom (
-			final AvailInterpreter anInterpreter)
+		final AvailInterpreter anInterpreter)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3426,7 +3421,7 @@ public abstract class AvailObject
 	}
 
 	public void removeImplementation (
-			final AvailObject implementation)
+		final AvailObject implementation)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3434,8 +3429,8 @@ public abstract class AvailObject
 	}
 
 	public boolean removeMessageParts (
-			final AvailObject message, 
-			final AvailObject parts)
+		final AvailObject message,
+		final AvailObject parts)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3453,7 +3448,7 @@ public abstract class AvailObject
 	}
 
 	public void removeRestrictions (
-			final AvailObject obsoleteRestrictions)
+		final AvailObject obsoleteRestrictions)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3468,7 +3463,7 @@ public abstract class AvailObject
 	}
 
 	public void requiresBlock (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3476,8 +3471,8 @@ public abstract class AvailObject
 	}
 
 	public void resolvedForwardWithName (
-			final AvailObject forwardImplementation, 
-			final AvailObject methodName)
+		final AvailObject forwardImplementation,
+		final AvailObject methodName)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3495,7 +3490,7 @@ public abstract class AvailObject
 	}
 
 	public void restrictions (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3510,7 +3505,7 @@ public abstract class AvailObject
 	}
 
 	public void returnsBlock (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3525,7 +3520,7 @@ public abstract class AvailObject
 	}
 
 	public void returnType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3540,7 +3535,7 @@ public abstract class AvailObject
 	}
 
 	public void rootBin (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3548,7 +3543,7 @@ public abstract class AvailObject
 	}
 
 	public void scanSubobjects (
-			final AvailSubobjectVisitor visitor)
+		final AvailSubobjectVisitor visitor)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3563,7 +3558,7 @@ public abstract class AvailObject
 	}
 
 	public void secondTupleType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3571,8 +3566,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject setIntersectionCanDestroy (
-			final AvailObject otherSet, 
-			final boolean canDestroy)
+		final AvailObject otherSet,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3583,8 +3578,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject setMinusCanDestroy (
-			final AvailObject otherSet, 
-			final boolean canDestroy)
+		final AvailObject otherSet,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3602,7 +3597,7 @@ public abstract class AvailObject
 	}
 
 	public void setSize (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3610,8 +3605,8 @@ public abstract class AvailObject
 	}
 
 	public void setSubtupleForZoneTo (
-			final int zoneIndex, 
-			final AvailObject newTuple)
+		final int zoneIndex,
+		final AvailObject newTuple)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3622,8 +3617,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject setUnionCanDestroy (
-			final AvailObject otherSet, 
-			final boolean canDestroy)
+		final AvailObject otherSet,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3634,7 +3629,7 @@ public abstract class AvailObject
 	}
 
 	public void setValue (
-			final AvailObject newValue)
+		final AvailObject newValue)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3642,8 +3637,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject setWithElementCanDestroy (
-			final AvailObject newElementObject, 
-			final boolean canDestroy)
+		final AvailObject newElementObject,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3654,8 +3649,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject setWithoutElementCanDestroy (
-			final AvailObject elementObjectToExclude, 
-			final boolean canDestroy)
+		final AvailObject elementObjectToExclude,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3673,7 +3668,7 @@ public abstract class AvailObject
 	}
 
 	public void signature (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3681,7 +3676,7 @@ public abstract class AvailObject
 	}
 
 	public void size (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3689,7 +3684,7 @@ public abstract class AvailObject
 	}
 
 	public int sizeOfZone (
-			final int zone)
+		final int zone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3704,7 +3699,7 @@ public abstract class AvailObject
 	}
 
 	public void sizeRange (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3712,7 +3707,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject stackAt (
-			final int slotIndex)
+		final int slotIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3720,8 +3715,8 @@ public abstract class AvailObject
 	}
 
 	public void stackAtPut (
-			final int slotIndex, 
-			final AvailObject anObject)
+		final int slotIndex,
+		final AvailObject anObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3739,7 +3734,7 @@ public abstract class AvailObject
 	}
 
 	public void stackp (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3754,7 +3749,7 @@ public abstract class AvailObject
 	}
 
 	public void startingChunkIndex (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3762,7 +3757,7 @@ public abstract class AvailObject
 	}
 
 	public int startOfZone (
-			final int zone)
+		final int zone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3770,7 +3765,7 @@ public abstract class AvailObject
 	}
 
 	public int startSubtupleIndexInZone (
-			final int zone)
+		final int zone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3785,8 +3780,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject subtractFromInfinityCanDestroy (
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3797,8 +3792,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject subtractFromIntegerCanDestroy (
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3809,7 +3804,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject subtupleForZone (
-			final int zone)
+		final int zone)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3824,7 +3819,7 @@ public abstract class AvailObject
 	}
 
 	public void target (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3839,8 +3834,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject timesCanDestroy (
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3851,8 +3846,8 @@ public abstract class AvailObject
 	}
 
 	public int translateToZone (
-			final int tupleIndex, 
-			final int zoneIndex)
+		final int tupleIndex,
+		final int zoneIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3877,7 +3872,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject trueNamesForStringName (
-			final AvailObject stringName)
+		final AvailObject stringName)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3885,7 +3880,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject truncateTo (
-			final int newTupleSize)
+		final int newTupleSize)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3900,7 +3895,7 @@ public abstract class AvailObject
 	}
 
 	public void tuple (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3908,7 +3903,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject tupleAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3916,8 +3911,8 @@ public abstract class AvailObject
 	}
 
 	public void tupleAtPut (
-			final int index, 
-			final AvailObject aNybbleObject)
+		final int index,
+		final AvailObject aNybbleObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3928,9 +3923,9 @@ public abstract class AvailObject
 	}
 
 	public AvailObject tupleAtPuttingCanDestroy (
-			final int index, 
-			final AvailObject newValueObject, 
-			final boolean canDestroy)
+		final int index,
+		final AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3942,7 +3937,7 @@ public abstract class AvailObject
 	}
 
 	public int tupleIntAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3964,7 +3959,7 @@ public abstract class AvailObject
 	}
 
 	public void tupleType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3979,7 +3974,7 @@ public abstract class AvailObject
 	}
 
 	public void type (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3987,7 +3982,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeAtIndex (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -3995,7 +3990,7 @@ public abstract class AvailObject
 	}
 
 	public boolean typeEquals (
-			final AvailObject aType)
+		final AvailObject aType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4003,7 +3998,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersection (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4011,7 +4006,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfClosureType (
-			final AvailObject aClosureType)
+		final AvailObject aClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4019,8 +4014,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfClosureTypeCanDestroy (
-			final AvailObject aClosureType, 
-			final boolean canDestroy)
+		final AvailObject aClosureType,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4031,7 +4026,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfContainerType (
-			final AvailObject aContainerType)
+		final AvailObject aContainerType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4039,7 +4034,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfContinuationType (
-			final AvailObject aContinuationType)
+		final AvailObject aContinuationType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4047,7 +4042,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfCyclicType (
-			final AvailObject aCyclicType)
+		final AvailObject aCyclicType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4055,7 +4050,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfGeneralizedClosureType (
-			final AvailObject aGeneralizedClosureType)
+		final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4063,8 +4058,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfGeneralizedClosureTypeCanDestroy (
-			final AvailObject aGeneralizedClosureType, 
-			final boolean canDestroy)
+		final AvailObject aGeneralizedClosureType,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4075,7 +4070,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfIntegerRangeType (
-			final AvailObject anIntegerRangeType)
+		final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4083,7 +4078,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfListType (
-			final AvailObject aListType)
+		final AvailObject aListType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4091,7 +4086,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfMapType (
-			final AvailObject aMapType)
+		final AvailObject aMapType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4099,7 +4094,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfMeta (
-			final AvailObject someMeta)
+		final AvailObject someMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4107,7 +4102,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfObjectMeta (
-			final AvailObject anObjectMeta)
+		final AvailObject anObjectMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4115,7 +4110,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfObjectMetaMeta (
-			final AvailObject anObjectMetaMeta)
+		final AvailObject anObjectMetaMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4123,7 +4118,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfObjectType (
-			final AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4131,7 +4126,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfSetType (
-			final AvailObject aSetType)
+		final AvailObject aSetType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4139,7 +4134,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeIntersectionOfTupleType (
-			final AvailObject aTupleType)
+		final AvailObject aTupleType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4154,7 +4149,7 @@ public abstract class AvailObject
 	}
 
 	public void typeTuple (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4162,7 +4157,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnion (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4170,7 +4165,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfClosureType (
-			final AvailObject aClosureType)
+		final AvailObject aClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4178,8 +4173,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfClosureTypeCanDestroy (
-			final AvailObject aClosureType, 
-			final boolean canDestroy)
+		final AvailObject aClosureType,
+		final boolean canDestroy)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4190,7 +4185,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfContainerType (
-			final AvailObject aContainerType)
+		final AvailObject aContainerType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4198,7 +4193,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfContinuationType (
-			final AvailObject aContinuationType)
+		final AvailObject aContinuationType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4206,7 +4201,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfCyclicType (
-			final AvailObject aCyclicType)
+		final AvailObject aCyclicType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4214,7 +4209,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfGeneralizedClosureType (
-			final AvailObject aGeneralizedClosureType)
+		final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4222,7 +4217,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfIntegerRangeType (
-			final AvailObject anIntegerRangeType)
+		final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4230,7 +4225,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfListType (
-			final AvailObject aListType)
+		final AvailObject aListType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4238,7 +4233,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfMapType (
-			final AvailObject aMapType)
+		final AvailObject aMapType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4246,7 +4241,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfObjectMeta (
-			final AvailObject anObjectMeta)
+		final AvailObject anObjectMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4254,7 +4249,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfObjectMetaMeta (
-			final AvailObject anObjectMetaMeta)
+		final AvailObject anObjectMetaMeta)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4262,7 +4257,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfObjectType (
-			final AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4270,7 +4265,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfSetType (
-			final AvailObject aSetType)
+		final AvailObject aSetType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4278,7 +4273,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject typeUnionOfTupleType (
-			final AvailObject aTupleType)
+		final AvailObject aTupleType)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4293,7 +4288,7 @@ public abstract class AvailObject
 	}
 
 	public void unclassified (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4301,8 +4296,8 @@ public abstract class AvailObject
 	}
 
 	public AvailObject unionOfTypesAtThrough (
-			final int startIndex, 
-			final int endIndex)
+		final int startIndex,
+		final int endIndex)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4313,7 +4308,7 @@ public abstract class AvailObject
 	}
 
 	public int untranslatedDataAt (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4321,8 +4316,8 @@ public abstract class AvailObject
 	}
 
 	public void untranslatedDataAtPut (
-			final int index, 
-			final int value)
+		final int index,
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4340,7 +4335,7 @@ public abstract class AvailObject
 	}
 
 	public void upperBound (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4355,9 +4350,9 @@ public abstract class AvailObject
 	}
 
 	public AvailObject validateArgumentTypesInterpreterIfFail (
-			final List<AvailObject> argTypes, 
-			final AvailInterpreter anAvailInterpreter, 
-			final Continuation1<Generator<String>> failBlock)
+		final List<AvailObject> argTypes,
+		final AvailInterpreter anAvailInterpreter,
+		final Continuation1<Generator<String>> failBlock)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4376,7 +4371,7 @@ public abstract class AvailObject
 	}
 
 	public void validity (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4391,7 +4386,7 @@ public abstract class AvailObject
 	}
 
 	public void value (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4399,7 +4394,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject valueAtIndex (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4407,8 +4402,8 @@ public abstract class AvailObject
 	}
 
 	public void valueAtIndexPut (
-			final int index, 
-			final AvailObject valueObject)
+		final int index,
+		final AvailObject valueObject)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4433,7 +4428,7 @@ public abstract class AvailObject
 	}
 
 	public void valueType (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4448,7 +4443,7 @@ public abstract class AvailObject
 	}
 
 	public void variableBindings (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4463,7 +4458,7 @@ public abstract class AvailObject
 	}
 
 	public void vectors (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4485,7 +4480,7 @@ public abstract class AvailObject
 	}
 
 	public void visibleNames (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4500,7 +4495,7 @@ public abstract class AvailObject
 	}
 
 	public void whichOne (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4515,7 +4510,7 @@ public abstract class AvailObject
 	}
 
 	public void wordcodes (
-			final AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4523,7 +4518,7 @@ public abstract class AvailObject
 	}
 
 	public int zoneForIndex (
-			final int index)
+		final int index)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4531,8 +4526,8 @@ public abstract class AvailObject
 	}
 
 	public void zzzDONOTUSETupleChunkRawZoneAtPut (
-			final int index, 
-			final int value)
+		final int index,
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
@@ -4547,14 +4542,15 @@ public abstract class AvailObject
 	// java printing
 
 	public void printOnAvoidingIndent (
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
 		error("Subclass responsibility: printOn:avoiding:indent: in Avail.AvailObject");
 		return;
 	}
 
+	@Override
 	public String toString ()
 	{
 		StringBuilder stringBuilder = new StringBuilder(100);
@@ -4576,7 +4572,7 @@ public abstract class AvailObject
 	// message redirection - translate
 
 	public boolean greaterThan (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  Translate >= into an inverted lessThan:.  This manual method simplifies renaming rules
 		//  greatly, and avoids the need for an Object:greaterThan: in the Descriptors.
@@ -4586,7 +4582,7 @@ public abstract class AvailObject
 	}
 
 	public boolean greaterOrEqual (
-			final AvailObject another)
+		final AvailObject another)
 	{
 		//  Translate >= into an inverted lessOrEqual:.  This manual method simplifies renaming rules
 		//  greatly, and avoids the need for an Object:greaterOrEqual: in the Descriptors.
@@ -4614,7 +4610,7 @@ public abstract class AvailObject
 	}
 
 	public void assertObjectUnreachableIfMutableExcept (
-			final AvailObject exceptMe)
+		final AvailObject exceptMe)
 	{
 		//  Set up the object to report nice obvious errors if anyone ever accesses it again.
 
@@ -4640,7 +4636,7 @@ public abstract class AvailObject
 	}
 
 	public void becomeIndirectionTo (
-			final AvailObject anotherObject)
+		final AvailObject anotherObject)
 	{
 		//  Turn me into an indirection to anotherObject.  WARNING: This alters my slots and descriptor.
 
@@ -4649,7 +4645,7 @@ public abstract class AvailObject
 	}
 
 	public short byteSlotAtByteIndex (
-			final int index)
+		final int index)
 	{
 		//  Extract the byte at the given byte-index.
 
@@ -4658,8 +4654,8 @@ public abstract class AvailObject
 	}
 
 	public void byteSlotAtByteIndexPut (
-			final int index, 
-			final short aByte)
+		final int index,
+		final short aByte)
 	{
 		//  Store the byte at the given byte-index.
 
@@ -4676,7 +4672,7 @@ public abstract class AvailObject
 	}
 
 	public void checkValidAddressWithByteIndex (
-			final int byteIndex)
+		final int byteIndex)
 	{
 		//  Check if my address is valid.  Fail if it's outside all the current pages.
 
@@ -4685,7 +4681,7 @@ public abstract class AvailObject
 	}
 
 	public void checkWriteAtByteIndex (
-			final int index)
+		final int index)
 	{
 		descriptor().checkWriteAtByteIndex(index);
 	}
@@ -4697,7 +4693,7 @@ public abstract class AvailObject
 	}
 
 	public void descriptor (
-			final Descriptor aDescriptor)
+		final Descriptor aDescriptor)
 	{
 		error("Subclass responsibility: descriptor: in Avail.AvailObject");
 		return;
@@ -4710,14 +4706,14 @@ public abstract class AvailObject
 	}
 
 	public void descriptorId (
-			final short anInteger)
+		final short anInteger)
 	{
 		error("Subclass responsibility: descriptorId: in Avail.AvailObject");
 		return;
 	}
 
 	public int integerSlotAtByteIndex (
-			final int index)
+		final int index)
 	{
 		//  Extract the (unsigned 32-bit) integer at the given byte-index.
 
@@ -4726,8 +4722,8 @@ public abstract class AvailObject
 	}
 
 	public void integerSlotAtByteIndexPut (
-			final int index, 
-			final int anInteger)
+		final int index,
+		final int anInteger)
 	{
 		//  Store the (unsigned 32-bit) integer in the four bytes starting at the given byte-index.
 
@@ -4748,7 +4744,7 @@ public abstract class AvailObject
 	}
 
 	public AvailObject objectSlotAtByteIndex (
-			final int index)
+		final int index)
 	{
 		//  Extract the object at the given byte-index.  It must be an object.
 
@@ -4757,8 +4753,8 @@ public abstract class AvailObject
 	}
 
 	public void objectSlotAtByteIndexPut (
-			final int index, 
-			final AvailObject anAvailObject)
+		final int index,
+		final AvailObject anAvailObject)
 	{
 		//  Store the object at the given byte-index.
 
@@ -4773,7 +4769,7 @@ public abstract class AvailObject
 	}
 
 	public boolean sameAddressAs (
-			final AvailObject anotherObject)
+		final AvailObject anotherObject)
 	{
 		//  Answer whether the objects occupy the same memory addresses.
 
@@ -4791,7 +4787,7 @@ public abstract class AvailObject
 	}
 
 	public short shortSlotAtByteIndex (
-			final int index)
+		final int index)
 	{
 		//  Extract the 16-bit signed integer at the given byte-index.
 
@@ -4800,8 +4796,8 @@ public abstract class AvailObject
 	}
 
 	public void shortSlotAtByteIndexPut (
-			final int index, 
-			final short aShort)
+		final int index,
+		final short aShort)
 	{
 		//  Store the byte at the given byte-index.
 
@@ -4810,7 +4806,7 @@ public abstract class AvailObject
 	}
 
 	public void truncateWithFillerForNewIntegerSlotsCount (
-			final int newSlotsCount)
+		final int newSlotsCount)
 	{
 		//  Slice the current object into two objects, the left one (at the same starting
 		//  address as the input), and the right one (a Filler object that nobody should
@@ -4823,7 +4819,7 @@ public abstract class AvailObject
 	}
 
 	public void truncateWithFillerForNewObjectSlotsCount (
-			final int newSlotsCount)
+		final int newSlotsCount)
 	{
 		//  Slice the current object into two parts, one of which is a Filler object and
 		//  is never refered to directly (so doesn't need any slots for becoming an
@@ -4861,13 +4857,14 @@ public abstract class AvailObject
 	}
 
 	public void hash (
-			final int value)
+		final int value)
 	{
 		//  GENERATED for descriptor dispatch
 
 		descriptor().ObjectHash(this, value);
 	}
 
+	@Override
 	public int hashCode ()
 	{
 		//  Implemented so Java can use AvailObjects in Sets and Maps.
@@ -4922,9 +4919,9 @@ public abstract class AvailObject
 	};
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
-			int variableObjectSlots,
-			int variableIntegerSlots,
-			Descriptor descriptor)
+		int variableObjectSlots,
+		int variableIntegerSlots,
+		Descriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newObjectIndexedIntegerIndexedDescriptor(
 			variableObjectSlots,
@@ -4978,5 +4975,4 @@ public abstract class AvailObject
 	{
 		return CanDestroyObjects;
 	}
-
 }

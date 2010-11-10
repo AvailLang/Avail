@@ -32,17 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
+import static java.lang.Math.max;
+import static java.lang.Math.scalb;
 import java.math.BigInteger;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
-import static java.lang.Math.*;
 
 @IntegerSlots("rawSignedIntegerAt#")
 public class IntegerDescriptor extends ExtendedNumberDescriptor
@@ -51,19 +45,21 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// GENERATED accessors
 
+	@Override
 	int ObjectRawSignedIntegerAt (
-			final AvailObject object, 
-			final int index)
+		final AvailObject object,
+		final int index)
 	{
 		//  GENERATED getter method (indexed).
 
 		return object.integerSlotAtByteIndex(((index * 4) + 0));
 	}
 
+	@Override
 	void ObjectRawSignedIntegerAtPut (
-			final AvailObject object, 
-			final int index, 
-			final int value)
+		final AvailObject object,
+		final int index,
+		final int value)
 	{
 		//  GENERATED setter method (indexed).
 
@@ -74,11 +70,12 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
 		int integerCount = object.integerSlotsCount();
 		if (integerCount == 1)
@@ -111,16 +108,18 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// operations
 
+	@Override
 	boolean ObjectEquals (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsInteger(object);
 	}
 
+	@Override
 	boolean ObjectEqualsInteger (
-			final AvailObject object, 
-			final AvailObject anAvailInteger)
+		final AvailObject object,
+		final AvailObject anAvailInteger)
 	{
 		//  Compare two integers for equality.
 
@@ -138,9 +137,10 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return true;
 	}
 
+	@Override
 	boolean ObjectGreaterThanInteger (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Answer true if and only if object is strictly greater than another.
 
@@ -205,16 +205,18 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectGreaterThanSignedInfinity (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return (! another.isPositive());
 	}
 
+	@Override
 	boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
-			final AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
 		//  an approximate type and do the comparison, because the approximate type
@@ -257,16 +259,18 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return true;
 	}
 
+	@Override
 	boolean ObjectLessThan (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.greaterThanInteger(object);
 	}
 
+	@Override
 	boolean ObjectTypeEquals (
-			final AvailObject object, 
-			final AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
 		//  Since my implementation of ObjectCanComputeHashOfType: answers
@@ -296,16 +300,18 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return true;
 	}
 
+	@Override
 	boolean ObjectCanComputeHashOfType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer whether object supports the #hashOfType protocol.
 
 		return true;
 	}
 
+	@Override
 	AvailObject ObjectExactType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -313,8 +319,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
+	@Override
 	int ObjectHash (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the object's hash value.
 
@@ -325,8 +332,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return IntegerDescriptor.computeHashOfIntegerObject(object);
 	}
 
+	@Override
 	int ObjectHashOfType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer my type's hash value (without creating any objects).
 
@@ -338,14 +346,16 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			true);
 	}
 
+	@Override
 	boolean ObjectIsFinite (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
+	@Override
 	AvailObject ObjectType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -356,48 +366,53 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// operations-numbers
 
+	@Override
 	AvailObject ObjectDivideCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  Double-dispatch it.
 
 		return aNumber.divideIntoIntegerCanDestroy(object, canDestroy);
 	}
 
+	@Override
 	AvailObject ObjectMinusCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  Double-dispatch it.
 
 		return aNumber.subtractFromIntegerCanDestroy(object, canDestroy);
 	}
 
+	@Override
 	AvailObject ObjectPlusCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  Double-dispatch it.
 
 		return aNumber.addToIntegerCanDestroy(object, canDestroy);
 	}
 
+	@Override
 	AvailObject ObjectTimesCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		//  Double-dispatch it.
 
 		return aNumber.multiplyByIntegerCanDestroy(object, canDestroy);
 	}
 
+	@Override
 	short ObjectExtractByte (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		assert (object.integerSlotsCount() == 1);
 		final int value = object.rawSignedIntegerAt(1);
@@ -405,8 +420,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return ((short)(value));
 	}
 
+	@Override
 	int ObjectExtractInt (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Extract a Smalltalk Integer from object.  The value must be in [-2^31..2^31).
 
@@ -414,8 +430,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return object.rawSignedIntegerAt(1);
 	}
 
+	@Override
 	byte ObjectExtractNybble (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		assert (object.integerSlotsCount() == 1);
 		final int value = object.rawSignedIntegerAt(1);
@@ -423,8 +440,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return ((byte)(value));
 	}
 
+	@Override
 	boolean ObjectIsByte (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		if ((object.integerSlotsCount() > 1))
 		{
@@ -434,8 +452,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return ((value >= 0) && (value <= 255));
 	}
 
+	@Override
 	boolean ObjectIsNybble (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		if ((object.integerSlotsCount() > 1))
 		{
@@ -449,9 +468,10 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// private-accessing
 
+	@Override
 	long ObjectRawUnsignedIntegerAt (
-			final AvailObject object, 
-			final int index)
+		final AvailObject object,
+		final int index)
 	{
 		//  Manually constructed accessor method.  Access the quad-byte using the native byte-ordering,
 		//  but using little endian between quad-bytes (i.e., least significant quad comes first).
@@ -459,10 +479,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return (object.integerSlotAtByteIndex((index * 4)) & 0xFFFFFFFFL);
 	}
 
+	@Override
 	void ObjectRawUnsignedIntegerAtPut (
-			final AvailObject object, 
-			final int index, 
-			final int value)
+		final AvailObject object,
+		final int index,
+		final int value)
 	{
 		//  Manually constructed accessor method.  Overwrite the quad-byte using the native byte-ordering,
 		//  but using little endian between quad-bytes (i.e., least significant quad comes first).
@@ -470,8 +491,9 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		object.integerSlotAtByteIndexPut((index * 4), value);
 	}
 
+	@Override
 	void ObjectTrimExcessLongs (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Remove any redundant longs from my end.  Since I'm stored in little endian order, just
 		//  shorten the object.
@@ -480,16 +502,16 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		int size = object.integerSlotsCount();
 		if ((size > 1))
 		{
-			if (((object.rawUnsignedIntegerAt(size) >>> 31) == 0))
+			if (object.rawSignedIntegerAt(size) >= 0)
 			{
-				while (((size > 1) && ((object.rawUnsignedIntegerAt(size) == 0) && ((object.rawUnsignedIntegerAt((size - 1)) >>> 31) == 0)))) {
+				while (size > 1 && object.rawSignedIntegerAt(size) == 0 && object.rawSignedIntegerAt(size - 1) >= 0) {
 					--size;
 					object.truncateWithFillerForNewIntegerSlotsCount(size);
 				}
 			}
 			else
 			{
-				while (((size > 1) && ((object.rawUnsignedIntegerAt(size) == 0xFFFFFFFFL) && ((object.rawUnsignedIntegerAt((size - 1)) >>> 31) != 0)))) {
+				while (size > 1 && object.rawSignedIntegerAt(size) == -1 && object.rawSignedIntegerAt(size - 1) < 0) {
 					--size;
 					object.truncateWithFillerForNewIntegerSlotsCount(size);
 				}
@@ -501,18 +523,20 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// private-arithmetic
 
+	@Override
 	AvailObject ObjectAddToInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		return anInfinity;
 	}
 
+	@Override
 	AvailObject ObjectAddToIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  Add the two Avail integers to produce another, destroying one if both allowed and useful.
 
@@ -526,100 +550,92 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		AvailObject output = null;
 		if (canDestroy)
 		{
-			if (_isMutable)
+			// Choose the most spacious one to destroy, but reject it if it's immutable.
+			// Never choose the smaller one, even if it's the only one that's mutable.
+			// If they're equal sized and mutable it doesn't matter which we choose.
+			if (objectSize == anIntegerSize)
 			{
-				if (anInteger.descriptor().isMutable())
-				{
-					//  They're both mutable - choose the one with the most room.
-					output = (objectSize > anIntegerSize) ? object : anInteger;
-				}
-				else
-				{
-					output = object;
-				}
+				output = _isMutable ? object : (anInteger.descriptor().isMutable() ? anInteger : null);
 			}
-			else if (anInteger.descriptor().isMutable())
+			else if (objectSize > anIntegerSize)
 			{
-				output = anInteger;
+				output = _isMutable ? object : null;
 			}
-		};
+			else
+			{
+				output = anInteger.descriptor().isMutable() ? anInteger : null;
+			}
+		}
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			// See if the (signed) sum will fit in 32 bits, the most common case by far.
 			long sum = ((long)object.rawSignedIntegerAt(1)) + ((long)anInteger.rawSignedIntegerAt(1));
-			if (sum >= -0x80000000L && sum <= 0x7FFFFFFFL)
+			if (sum == (int)sum)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
 				if (output == null)
 				{
 					output = AvailObject.newIndexedDescriptor(1, IntegerDescriptor.mutableDescriptor());
 				}
-				assert(output.integerSlotsCount() == 1);
+				assert output.integerSlotsCount() == 1;
 				output.rawSignedIntegerAtPut(1, (int)sum);
 				return output;
-			};
-		};
+			}
+			// Doesn't fit in 32 bits; use two 32-bit words.
+			output = AvailObject.newIndexedDescriptor(2, IntegerDescriptor.mutableDescriptor());
+			output.rawSignedIntegerAtPut(1, (int)sum);
+			output.rawSignedIntegerAtPut(2, (int)(sum>>32));
+			return output;
+		}
 		//  Set estimatedSize to the max of the input sizes.  There will only rarely be an overflow
 		//  and at most by one cell.  Underflows should also be pretty rare, and they're handled
 		//  by output.trimExcessLongs().
-		int estimatedSize = max(objectSize, anIntegerSize);
 		if (output == null)
 		{
 			output = AvailObject.newIndexedDescriptor(
-				estimatedSize + 1,
+				max(objectSize, anIntegerSize),
 				IntegerDescriptor.mutableDescriptor());
 		}
 		int outputSize = output.integerSlotsCount();
-		long extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
-		long extendedAnInteger = anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+		long extendedObject = (object.rawSignedIntegerAt(objectSize) >> 31) & 0xFFFFFFFFL;
+		long extendedAnInteger = (anInteger.rawSignedIntegerAt(anIntegerSize) >> 31) & 0xFFFFFFFFL;
 		long partial = 0;
-		long previousQuad = 0;
-		AvailObject.lock(output);
-
-		//  Note below how we test for overflow right after the expected 'final' round.  Since
-		//  overflow is impossible when adding a positive to a negative, we can ignore that
-		//  case.  So the only remaining cases have a sign bit in the previous partial sum that
-		//  disagrees with the carry.  Remember, it's only overflow *into* the carry bit that's
-		//  a problem, as it can't ever overflow into the next quad up.  The next quad up may
-		//  still need to be present (as a 0 or -1) in order to compensate for the magnitude of
-		//  the result having drifted into the previous sign bit.
-		for (int i = 1; i <= estimatedSize + 1; ++i)
+		int lastInt = 0;
+		// The object is always big enough to store the max of the number of quads from each
+		// input, so after the loop we can check partial and the upper bit of the result to see
+		// if another quad needs to be appended.
+		for (int i = 1; i <= outputSize; i++)
 		{
 			partial += i > objectSize ? extendedObject : object.rawUnsignedIntegerAt(i);
 			partial += i > anIntegerSize ? extendedAnInteger : anInteger.rawUnsignedIntegerAt(i);
-			if (i == estimatedSize + 1 && (partial & 0x80000000L) == (previousQuad & 0x80000000L))
+			lastInt = (int)partial;
+			output.rawSignedIntegerAtPut(i, lastInt);
+			partial >>>= 32;
+		}
+		partial += extendedObject + extendedAnInteger;
+		if (lastInt >> 31 != (int)partial)
+		{
+			// Top bit of last word no longer agrees with sign of result.  Extend it.
+			AvailObject newOutput = AvailObject.newIndexedDescriptor(
+				outputSize + 1,
+				IntegerDescriptor.mutableDescriptor());
+			for (int i = 1; i <= outputSize; i++)
 			{
-				//  No need to add an overflow word, unless there's a space reserved for it.
-				if (i == outputSize) output.rawSignedIntegerAtPut(i, (int)partial);
-				break;
+				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i));
 			}
-			if (i > outputSize)
-			{
-				AvailObject newOutput = AvailObject.newIndexedDescriptor(
-					max(max(i, objectSize), anIntegerSize),
-					IntegerDescriptor.mutableDescriptor());
-				for (int k = 1; k <= outputSize; ++k)
-				{
-					newOutput.rawSignedIntegerAtPut(k, output.rawSignedIntegerAt(k));
-				}
-				AvailObject.unlock(output);
-				AvailObject.lock(newOutput);
-				output = newOutput;
-				outputSize = output.integerSlotsCount();
-			}
-			previousQuad = partial & 0xFFFFFFFFL;
-			output.rawSignedIntegerAtPut(i, (int)previousQuad);
-			partial >>= 32;
-		};
+			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int)partial);
+			// No need to truncate it in this case.
+			return newOutput;
+		}
 		output.trimExcessLongs();
-		AvailObject.unlock(output);
 		return output;
 	}
 
+	@Override
 	AvailObject ObjectDivideIntoInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		if (object.equals(IntegerDescriptor.zero()))
 		{
@@ -629,10 +645,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return ((object.greaterThan(IntegerDescriptor.zero()) ^ anInfinity.isPositive()) ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity());
 	}
 
+	@Override
 	AvailObject ObjectDivideIntoIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  Divide anInteger / object.  Round the result towards zero.
 
@@ -650,14 +667,14 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		if (object.lessThan(IntegerDescriptor.zero()))
 		{
 			return object.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy)
-				.divideIntoIntegerCanDestroy(anInteger, canDestroy)
-				.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy);
+			.divideIntoIntegerCanDestroy(anInteger, canDestroy)
+			.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy);
 		}
 		if (anInteger.lessThan(IntegerDescriptor.zero()))
 		{
 			return object.divideIntoIntegerCanDestroy(
-					anInteger.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy),
-					canDestroy)
+				anInteger.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy),
+				canDestroy)
 				.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy);
 		}
 		//  Both integers are now positive, and the divisor is not zero.  That simplifies things
@@ -788,10 +805,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return fullQuotient;
 	}
 
+	@Override
 	AvailObject ObjectMultiplyByInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		if (object.equals(IntegerDescriptor.zero()))
 		{
@@ -801,10 +819,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return ((object.greaterThan(IntegerDescriptor.zero()) ^ anInfinity.isPositive()) ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity());
 	}
 
+	@Override
 	AvailObject ObjectMultiplyByIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  Assume there are no floats (for now).  Also assume no overflow.
 
@@ -817,7 +836,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		{
 			// See if the (signed) product will fit in 32 bits, the most common case by far.
 			long prod = ((long)object.rawSignedIntegerAt(1)) * ((long)anInteger.rawSignedIntegerAt(1));
-			if (prod >= -0x80000000L && prod <= 0x7FFFFFFFL)
+			if (prod == (int)prod)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
 				if (canDestroy)
@@ -830,22 +849,27 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 					{
 						output = anInteger;
 					}
-				};
+				}
 				if (output == null)
 				{
 					output = AvailObject.newIndexedDescriptor(1, IntegerDescriptor.mutableDescriptor());
 				}
-				assert(output.integerSlotsCount() == 1);
+				assert output.integerSlotsCount() == 1;
 				output.rawSignedIntegerAtPut(1, (int)prod);
 				return output;
-			};
-		};
+			}
+			// Doesn't fit.  Worst case: -2^31 * -2^31 = 2^62, which fits in 64 bits even with a sign.
+			output = AvailObject.newIndexedDescriptor(2, IntegerDescriptor.mutableDescriptor());
+			output.rawSignedIntegerAtPut(1, (int)prod);
+			output.rawSignedIntegerAtPut(2, (int)(prod>>32));
+			return output;
+		}
 		int targetSize = objectSize + anIntegerSize;      // This is a safe upper bound.  See below.
 		output = AvailObject.newIndexedDescriptor(
 			targetSize,
 			IntegerDescriptor.mutableDescriptor());
-		long extendedObject = (object.rawSignedIntegerAt(objectSize)) >> 31;
-		long extendedAnInteger = (anInteger.rawSignedIntegerAt(anIntegerSize)) >> 31;
+		long extendedObject = ((object.rawSignedIntegerAt(objectSize)) >> 31);
+		long extendedAnInteger = ((anInteger.rawSignedIntegerAt(anIntegerSize)) >> 31);
 
 		//  We can't recycle storage quite as easily here as we did for addition and
 		//  subtraction, because the intermediate sum would be clobbering one of the
@@ -891,18 +915,20 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return output;
 	}
 
+	@Override
 	AvailObject ObjectSubtractFromInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInfinity,
+		final boolean canDestroy)
 	{
 		return anInfinity;
 	}
 
+	@Override
 	AvailObject ObjectSubtractFromIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
-			final boolean canDestroy)
+		final AvailObject object,
+		final AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		//  Subtract object from anInteger to produce another, destroying one of them if allowed and useful.
 
@@ -916,93 +942,84 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		AvailObject output = null;
 		if (canDestroy)
 		{
-			if (_isMutable)
+			// Choose the most spacious one to destroy, but reject it if it's immutable.
+			// Never choose the smaller one, even if it's the only one that's mutable.
+			// If they're equal sized and mutable it doesn't matter which we choose.
+			if (objectSize == anIntegerSize)
 			{
-				if (anInteger.descriptor().isMutable())
-				{
-					//  They're both mutable - choose the one with the most room.
-					output = (objectSize > anIntegerSize) ? object : anInteger;
-				}
-				else
-				{
-					output = object;
-				}
+				output = _isMutable ? object : (anInteger.descriptor().isMutable() ? anInteger : null);
 			}
-			else if (anInteger.descriptor().isMutable())
+			else if (objectSize > anIntegerSize)
 			{
-				output = anInteger;
+				output = _isMutable ? object : null;
 			}
-		};
+			else
+			{
+				output = anInteger.descriptor().isMutable() ? anInteger : null;
+			}
+		}
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
-			// See if the (signed) sum will fit in 32 bits, the most common case by far.
+			// See if the (signed) difference will fit in 32 bits, the most common case by far.
 			long diff = (long)anInteger.rawSignedIntegerAt(1) - (long)object.rawSignedIntegerAt(1);
-			if (diff >= -0x80000000L && diff <= 0x7FFFFFFFL)
+			if (diff == (int)diff)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
 				if (output == null)
 				{
 					output = AvailObject.newIndexedDescriptor(1, IntegerDescriptor.mutableDescriptor());
 				}
-				assert(output.integerSlotsCount() == 1);
+				assert output.integerSlotsCount() == 1;
 				output.rawSignedIntegerAtPut(1, (int)diff);
 				return output;
-			};
-		};
+			}
+			// Doesn't fit in 32 bits; use two 32-bit words.
+			output = AvailObject.newIndexedDescriptor(2, IntegerDescriptor.mutableDescriptor());
+			output.rawSignedIntegerAtPut(1, (int)diff);
+			output.rawSignedIntegerAtPut(2, (int)(diff>>32));
+			return output;
+		}
 		//  Set estimatedSize to the max of the input sizes.  There will only rarely be an overflow
 		//  and at most by one cell.  Underflows should also be pretty rare, and they're handled
 		//  by output.trimExcessLongs().
-		int estimatedSize = max(objectSize, anIntegerSize);
 		if (output == null)
 		{
 			output = AvailObject.newIndexedDescriptor(
-				estimatedSize + 1,
+				max(objectSize, anIntegerSize),
 				IntegerDescriptor.mutableDescriptor());
 		}
 		int outputSize = output.integerSlotsCount();
-		long extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
-		long extendedAnInteger = anInteger.rawSignedIntegerAt(objectSize) >> 31;
-		long partial = 1;   // because we're adding A and ~B below, and -B=~B+1
-		long previousQuad = 0;
-		AvailObject.lock(output);
-
-		//  Note below how we test for overflow right after the expected 'final' round.  Since
-		//  overflow is impossible when adding a positive to a negative, we can ignore that
-		//  case.  So the only remaining cases have a sign bit in the previous partial difference that
-		//  disagrees with the carry.  Remember, it's only overflow *into* the carry bit that's
-		//  a problem, as it can't ever overflow into the next quad up.  The next quad up may
-		//  still need to be present (as a 0 or -1) in order to compensate for the magnitude of
-		//  the result having drifted into the previous sign bit.
-		for (int i = 1; i <= estimatedSize + 1; ++i)
+		long extendedObject = (object.rawSignedIntegerAt(objectSize) >> 31) & 0xFFFFFFFFL;
+		long extendedAnInteger = (anInteger.rawSignedIntegerAt(anIntegerSize) >> 31) & 0xFFFFFFFFL;
+		long partial = 1;
+		int lastInt = 0;
+		// The object is always big enough to store the max of the number of quads from each
+		// input, so after the loop we can check partial and the upper bit of the result to see
+		// if another quad needs to be appended.
+		for (int i = 1; i <= outputSize; i++)
 		{
 			partial += i > anIntegerSize ? extendedAnInteger : anInteger.rawUnsignedIntegerAt(i);
-			partial += ~ (i > objectSize ? extendedObject : object.rawUnsignedIntegerAt(i));
-			if (i == estimatedSize + 1 && (partial & 0x80000000L) == (previousQuad & 0x80000000L))
+			partial += (i > objectSize ? extendedObject : object.rawUnsignedIntegerAt(i)) ^ 0xFFFFFFFFL;
+			lastInt = (int)partial;
+			output.rawSignedIntegerAtPut(i, lastInt);
+			partial >>>= 32;
+		}
+		partial += extendedAnInteger + (extendedObject ^ 0xFFFFFFFFL);
+		if (lastInt >> 31 != (int)partial)
+		{
+			// Top bit of last word no longer agrees with sign of result.  Extend it.
+			AvailObject newOutput = AvailObject.newIndexedDescriptor(
+				outputSize + 1,
+				IntegerDescriptor.mutableDescriptor());
+			for (int i = 1; i <= outputSize; i++)
 			{
-				//  No need to add an overflow word, unless there's a space reserved for it.
-				if (i == outputSize) output.rawSignedIntegerAtPut(i, (int)partial);
-				break;
+				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i));
 			}
-			if (i > outputSize)
-			{
-				AvailObject newOutput = AvailObject.newIndexedDescriptor(
-					max(max(i, objectSize), anIntegerSize),
-					IntegerDescriptor.mutableDescriptor());
-				for (int k = 1; k <= outputSize; ++k)
-				{
-					newOutput.rawSignedIntegerAtPut(k, output.rawSignedIntegerAt(k));
-				}
-				AvailObject.unlock(output);
-				AvailObject.lock(newOutput);
-				output = newOutput;
-				outputSize = output.integerSlotsCount();
-			}
-			previousQuad = partial & 0xFFFFFFFFL;
-			output.rawSignedIntegerAtPut(i, (int)previousQuad);
-			partial >>= 32;    // Keep just the carry
-		};
+			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int)partial);
+			// No need to truncate it in this case.
+			return newOutput;
+		}
 		output.trimExcessLongs();
-		AvailObject.unlock(output);
 		return output;
 	}
 
@@ -1358,5 +1375,4 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		return (IntegerDescriptor) AllDescriptors [79];
 	};
-
 }

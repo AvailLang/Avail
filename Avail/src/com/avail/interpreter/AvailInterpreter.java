@@ -32,6 +32,13 @@
 
 package com.avail.interpreter;
 
+import static com.avail.descriptor.AvailObject.error;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.compiler.scanner.AvailScanner;
@@ -58,18 +65,10 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.interpreter.Primitive.*;
 
 public abstract class AvailInterpreter
 {
@@ -91,7 +90,7 @@ public abstract class AvailInterpreter
 	// translate-accessing
 
 	public void addModule (
-			final AvailObject aModule)
+		final AvailObject aModule)
 	{
 
 		_modules = _modules.mapAtPuttingCanDestroy(
@@ -101,7 +100,7 @@ public abstract class AvailInterpreter
 	}
 
 	public int argCountForPrimitive (
-			final short n)
+		final short n)
 	{
 		//  Answer how many arguments this primitive expects (not counting the array of arguments
 		//  used for reference maintenance).
@@ -110,8 +109,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void atAddForwardStubFor (
-			final AvailObject methodName, 
-			final AvailObject bodySignature)
+		final AvailObject methodName,
+		final AvailObject bodySignature)
 	{
 		//  This is a forward declaration of a method.  Insert an appropriately stubbed implementation
 		//  in the method dictionary, and add it to the list of methods needing to be declared later in
@@ -171,8 +170,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void atAddMethodBody (
-			final AvailObject methodName, 
-			final AvailObject method)
+		final AvailObject methodName,
+		final AvailObject method)
 	{
 		//  Add the method implementation.  The precedence rules can not change after the first
 		//  implementation is encountered, so set them to 'no restrictions' if they're not set already.
@@ -188,10 +187,10 @@ public abstract class AvailInterpreter
 	}
 
 	public void atAddMethodBodyRequiresBlockReturnsBlock (
-			final AvailObject methodName, 
-			final AvailObject bodyBlock, 
-			final AvailObject requiresBlock, 
-			final AvailObject returnsBlock)
+		final AvailObject methodName,
+		final AvailObject bodyBlock,
+		final AvailObject requiresBlock,
+		final AvailObject returnsBlock)
 	{
 		//  Add the method implementation.  The precedence rules can change at any time.
 		//  The requiresBlock is run at compile time to ensure the method is being used in an
@@ -276,10 +275,10 @@ public abstract class AvailInterpreter
 	}
 
 	public void atDeclareAbstractSignatureRequiresBlockReturnsBlock (
-			final AvailObject methodName, 
-			final AvailObject bodySignature, 
-			final AvailObject requiresBlock, 
-			final AvailObject returnsBlock)
+		final AvailObject methodName,
+		final AvailObject bodySignature,
+		final AvailObject requiresBlock,
+		final AvailObject returnsBlock)
 	{
 		//  Add the abstract method signature.  A class is considered abstract if there are any
 		//  abstract methods that haven't been overridden with implementations for it.  The
@@ -364,8 +363,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void atDisallowArgumentMessages (
-			final AvailObject methodName, 
-			final AvailObject illegalArgMsgs)
+		final AvailObject methodName,
+		final AvailObject illegalArgMsgs)
 	{
 		//  The modularity scheme should prevent all intermodular method conflicts.  Precedence is
 		//  specified as an array of message sets that are not allowed to be messages generating the
@@ -389,8 +388,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void atRemoveRestrictions (
-			final AvailObject messageName, 
-			final AvailObject messageRestrictions)
+		final AvailObject messageName,
+		final AvailObject messageRestrictions)
 	{
 		//  Only for rolling back the compilation of a module.
 
@@ -407,7 +406,7 @@ public abstract class AvailInterpreter
 	}
 
 	public void bootstrapDefiningMethod (
-			final String defineMethodName)
+		final String defineMethodName)
 	{
 		//  Define the special defining method.
 
@@ -436,7 +435,7 @@ public abstract class AvailInterpreter
 	}
 
 	public void bootstrapSpecialObject (
-			final String specialObjectName)
+		final String specialObjectName)
 	{
 		//  Define the special object method.
 
@@ -481,7 +480,7 @@ public abstract class AvailInterpreter
 	}
 
 	public AvailObject completeBundlesStartingWith (
-			final AvailObject firstPiece)
+		final AvailObject firstPiece)
 	{
 		//  Answer the map whose sole token-component is firstPiece.  The map is
 		//  from message (cyclicType) to messageBundle.  Filter selectors based
@@ -496,7 +495,7 @@ public abstract class AvailInterpreter
 	}
 
 	public int countUnderscoresIn (
-			final AvailObject anAvailString)
+		final AvailObject anAvailString)
 	{
 		//  Answer how many underscore characters are in the given Avail string.
 
@@ -512,7 +511,7 @@ public abstract class AvailInterpreter
 	}
 
 	public boolean hasMethodsAt (
-			final AvailObject selector)
+		final AvailObject selector)
 	{
 		//  Answer whether there are any methods associated with the given selector (a cyclicType).
 
@@ -520,14 +519,14 @@ public abstract class AvailInterpreter
 	}
 
 	public boolean includesModuleNamed (
-			final AvailObject moduleName)
+		final AvailObject moduleName)
 	{
 		assert moduleName.isTuple();
 		return _modules.hasKey(moduleName);
 	}
 
 	public AvailObject incompleteBundlesStartingWith (
-			final AvailObject firstPiece)
+		final AvailObject firstPiece)
 	{
 		//  Answer the map whose first (but not only) token-component is firstPiece.
 		//  The map is from the second piece to bundle tree.  Filter selectors based
@@ -595,7 +594,7 @@ public abstract class AvailInterpreter
 	}
 
 	public boolean isCharacterUnderscoreOrSpaceOrOperator (
-			final char aCharacter)
+		final char aCharacter)
 	{
 		//  Answer whether the given character is an operator character or space or underscore.
 
@@ -611,7 +610,7 @@ public abstract class AvailInterpreter
 	}
 
 	public AvailObject lookupName (
-			final AvailObject stringName)
+		final AvailObject stringName)
 	{
 		//  Look up the given string (tuple) in the current module's namespace.  Answer the true name
 		//  associated with the string.  A local true name always hides other true names.
@@ -644,7 +643,7 @@ public abstract class AvailInterpreter
 	}
 
 	public AvailObject methodsAt (
-			final AvailObject selector)
+		final AvailObject selector)
 	{
 		//  Extract the ImplementationSet associated with the given selector (a cyclicType).
 
@@ -657,20 +656,20 @@ public abstract class AvailInterpreter
 	}
 
 	public void module (
-			final AvailObject aModule)
+		final AvailObject aModule)
 	{
 		_module = aModule;
 	}
 
 	public AvailObject moduleAt (
-			final AvailObject moduleName)
+		final AvailObject moduleName)
 	{
 		assert moduleName.isTuple();
 		return _modules.mapAt(moduleName);
 	}
 
 	public AvailObject nameForType (
-			final AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		//  Answer an Avail string that is the name of the given type.  If this type
 		//  has not been given a name (via primitive 68), answer nil.
@@ -684,8 +683,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void removeMethodNamedImplementation (
-			final AvailObject methodName, 
-			final AvailObject implementation)
+		final AvailObject methodName,
+		final AvailObject implementation)
 	{
 		if (implementation.isForward())
 		{
@@ -701,7 +700,7 @@ public abstract class AvailInterpreter
 	}
 
 	public void removeModuleNamed (
-			final AvailObject moduleName)
+		final AvailObject moduleName)
 	{
 		assert moduleName.isTuple();
 		if (! _modules.hasKey(moduleName))
@@ -714,8 +713,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void resolvedForwardWithName (
-			final AvailObject aForward, 
-			final AvailObject methodName)
+		final AvailObject aForward,
+		final AvailObject methodName)
 	{
 		//  The given forward is in the process of being resolved.  A real implementation is about to be
 		//  added to the method tables, so remove the forward now.
@@ -754,7 +753,7 @@ public abstract class AvailInterpreter
 	}
 
 	public AvailObject splitMethodName (
-			final AvailObject methodName)
+		final AvailObject methodName)
 	{
 		//  Break a selector down into the substrings that will be expected as tokens.
 		//  Each underscore also becomes an entry.  Spaces are dropped, except as a
@@ -810,7 +809,7 @@ public abstract class AvailInterpreter
 	}
 
 	public boolean supportsPrimitive (
-			final short n)
+		final short n)
 	{
 		//  Answer whether the given primitive number is supported.
 
@@ -818,8 +817,8 @@ public abstract class AvailInterpreter
 	}
 
 	public void validateRequiresClausesOfMessageSendArgumentTypes (
-			final AvailObject msg, 
-			final List<AvailObject> argTypes)
+		final AvailObject msg,
+		final List<AvailObject> argTypes)
 	{
 		//  Attempt to run the requires clauses applicable to this message send.  Execute the failBlock if
 		//  a requires clause returns false.
@@ -843,9 +842,9 @@ public abstract class AvailInterpreter
 	}
 
 	public AvailObject validateTypesOfMessageSendArgumentTypesIfFail (
-			final AvailObject msg, 
-			final List<AvailObject> argTypes, 
-			final Continuation1<Generator<String>> failBlock)
+		final AvailObject msg,
+		final List<AvailObject> argTypes,
+		final Continuation1<Generator<String>> failBlock)
 	{
 		//  Answers the return type.  Fails if no applicable implementation (or more than one).
 
@@ -926,8 +925,8 @@ public abstract class AvailInterpreter
 	}
 
 	public Result attemptPrimitive (
-			short primitiveNumber,
-			List<AvailObject> args)
+		short primitiveNumber,
+		List<AvailObject> args)
 	{
 		//  Invoke an Avail primitive.  The primitive number and arguments are passed.
 		//  If the primitive fails, return primitiveFailed immediately.  If the primitive causes
@@ -940,32 +939,31 @@ public abstract class AvailInterpreter
 	}
 
 	public abstract Result invokeClosureArguments (
-			AvailObject aClosure,
-			List<AvailObject> args);
+		AvailObject aClosure,
+		List<AvailObject> args);
 
 	public abstract void prepareToExecuteContinuation (
-			AvailObject continuation);
+		AvailObject continuation);
 
 	public abstract Result searchForExceptionHandler (
-			AvailObject exceptionValue,
-			List<AvailObject> args);
+		AvailObject exceptionValue,
+		List<AvailObject> args);
 
 	public abstract void invokeWithoutPrimitiveClosureArguments (
-			AvailObject aClosure,
-			List<AvailObject> args);
+		AvailObject aClosure,
+		List<AvailObject> args);
 
 	public abstract AvailObject runClosureArguments (
-			AvailObject aClosure,
-			List<AvailObject> arguments);
+		AvailObject aClosure,
+		List<AvailObject> arguments);
 
 	@Deprecated
 	Result callBackSmalltalkPrimitive (
-			short primitiveNumber,
-			List<AvailObject> args)
+		short primitiveNumber,
+		List<AvailObject> args)
 	{
 		//TODO: Phase this out without ever implementing it.
 		error("Can't call back to Smalltalk -- not supported.");
 		return Result.FAILURE;
 	}
-
 }
