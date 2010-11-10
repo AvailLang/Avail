@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
@@ -4537,31 +4538,47 @@ public abstract class AvailObject
 			value);
 	}
 
-
-
-	// java printing
-
+	/**
+	 * Recursively print the {@linkplain AvailObject receiver} to the {@link
+	 * StringBuilder} unless it is already present in the {@linkplain List
+	 * recursion list}. Printing will begin at the specified indent level,
+	 * measured in horizontal tab characters.
+	 * 
+	 * <p>This operation exists primarily to provide useful representations of
+	 * {@code AvailObject}s for Java-side debugging.</p>
+	 * 
+	 * @param builder A {@link StringBuilder}.
+	 * @param recursionList A {@linkplain List list} containing {@link
+	 *                      AvailObject}s already visited during the recursive
+	 *                      print.
+	 * @param indent The indent level, in horizontal tabs, at which the {@link
+	 *               AvailObject} should be printed.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
 	public void printOnAvoidingIndent (
-		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		error("Subclass responsibility: printOn:avoiding:indent: in Avail.AvailObject");
+		error(
+			"Subclass responsibility: printOnAvoidingIndent() in "
+			+ getClass().getCanonicalName());
 		return;
 	}
 
 	@Override
 	public String toString ()
 	{
-		StringBuilder stringBuilder = new StringBuilder(100);
-		List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
+		final StringBuilder stringBuilder = new StringBuilder(100);
+		final List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
 		try
 		{
 			printOnAvoidingIndent(stringBuilder, recursionList, 1);
 		}
-		catch (Throwable e)
+		catch (final Throwable e)
 		{
-			stringBuilder.insert(0, "EXCEPTION while printing: " + e.toString() + "\n");
+			stringBuilder.insert(
+				0, "EXCEPTION while printing: " + e.toString() + "\n");
 		}
 		assert recursionList.size() == 0;
 		return stringBuilder.toString();

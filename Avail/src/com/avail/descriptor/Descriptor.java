@@ -4693,6 +4693,9 @@ public abstract class Descriptor
 	 * recursion list}. Printing will begin at the specified indent level,
 	 * measured in horizontal tab characters.
 	 * 
+	 * <p>This operation exists primarily to provide useful representations of
+	 * {@code AvailObject}s for Java-side debugging.</p>
+	 * 
 	 * @param object An {@link AvailObject}.
 	 * @param builder A {@link StringBuilder}.
 	 * @param recursionList A {@linkplain List list} containing {@link

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.IndirectionDescriptor;
@@ -58,24 +59,21 @@ public class AvailObjectUsingArrays extends AvailObject
 		return VoidDescriptor.voidObject();
 	}
 
-
-
-	// java printing
-
+	@Override
 	public void printOnAvoidingIndent (
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
+		final @NotNull StringBuilder builder, 
+		final @NotNull List<AvailObject> recursionList, 
+		final int indent)
 	{
 		if (isDestroyed())
 		{
-			aStream.append("*** A DESTROYED OBJECT ***");
+			builder.append("*** A DESTROYED OBJECT ***");
 			return;
 		}
 
 		if (indent > descriptor().maximumIndent())
 		{
-			aStream.append("*** DEPTH ***");
+			builder.append("*** DEPTH ***");
 			return;
 		}
 
@@ -83,13 +81,14 @@ public class AvailObjectUsingArrays extends AvailObject
 		{
 			if (candidate == this)
 			{
-				aStream.append("**RECURSION**");
+				builder.append("**RECURSION**");
 				return;
 			}
 		}
 
 		recursionList.add(this);
-		descriptor().printObjectOnAvoidingIndent(this, aStream, recursionList, indent);
+		descriptor().printObjectOnAvoidingIndent(
+			this, builder, recursionList, indent);
 		recursionList.remove(recursionList.size() - 1);
 	}
 
