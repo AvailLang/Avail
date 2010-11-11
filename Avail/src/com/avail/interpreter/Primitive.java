@@ -2528,6 +2528,7 @@ public enum Primitive
 		}
 	},
 
+	// TODO: Implement a file sync primitive.
 
 	prim180_CompiledCodeNumArgs_cc(180, 1, Flag.CanFold)
 	{
