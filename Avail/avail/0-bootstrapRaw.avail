@@ -37,123 +37,123 @@ Uses
 Names
 	"all",
 	"boolean",
-	"character",	"closure",		"closureType",	"compiledCode",
-	"container",		"containerType",	"continuation",	"continuationType",
+	"character", "closure", "closureType","compiledCode",
+	"container", "containerType", "continuation", "continuationType",
 	"cyclicType",
 	"double",
 	"extended integer",
-	"falseType",	"float",
+	"falseType", "float",
 	"generalizedClosureType",
-	"integer",		"integerType",
-	"list",			"listType",
-	"mapType",		"meta",
-	"objectMeta",	"objectMetaMeta",	"objectType",
-	"primType",		"process",
-	"set",			"setType",			"string",
-	"terminates",	"terminatesType",	"trueType",		"tuple",
-	"tupleType",	"type",
+	"integer", "integerType",
+	"list", "listType",
+	"mapType", "meta",
+	"objectMeta", "objectMetaMeta", "objectType",
+	"primType", "process",
+	"set", "setType", "string",
+	"terminates", "terminatesType", "trueType", "tuple",
+	"tupleType", "type",
 	"void",
 
-	"true",		"false",
+	"true", "false",
 
-	"Failed",		"Crash_",			"Print_",		"Discard_",
-	"Halt",		"_can't have_",		"_=_",		"_<=_"
+	"Failed", "Crash_", "Print_", "Discard_",
+	"Halt", "_can't have_", "_=_", "_<=_"
 
 Body
 
 /* Define the private module variables.  These are here simply to allow the
    types to be strengthened by the 0-ary method definitions below them. */
 
-privateAll					::= Special Object 1;
-privateBoolean				::= Special Object 2;
-privateCharacter				::= Special Object 3;
-privateClosure				::= Special Object 4;
-privateClosureType			::= Special Object 5;
-privateCompiledCode			::= Special Object 6;
-privateContainer				::= Special Object 7;
-privateContainerType			::= Special Object 8;
-privateContinuation			::= Special Object 9;
-privateContinuationType		::= Special Object 10;
-privateCyclicType			::= Special Object 11;
-privateDouble				::= Special Object 12;
-privateExtendedInteger		::= Special Object 13;
-privateFalseType				::= Special Object 14;
-privateFloat				::= Special Object 15;
-privateGeneralizedClosureType	::= Special Object 16;
-privateInteger				::= Special Object 17;
-privateIntegerType			::= Special Object 18;
-privateList					::= Special Object 19;
-privateListType				::= Special Object 20;
-privateMapType				::= Special Object 21;
-privateMeta				::= Special Object 22;
-privateObjectMeta			::= Special Object 23;
-privateObjectMetaMeta			::= Special Object 24;
-privateObjectType			::= Special Object 25;
-privatePrimType				::= Special Object 26;
-privateProcess				::= Special Object 27;
-privateSet					::= Special Object 28;
-privateSetType				::= Special Object 29;
-privateString				::= Special Object 30;
-privateTerminates			::= Special Object 31;
-privateTerminatesType			::= Special Object 32;
-privateTrueType				::= Special Object 33;
-privateTuple				::= Special Object 34;
-privateTupleType				::= Special Object 35;
-privateType				::= Special Object 36;
-privateVoid					::= Special Object 37;
+privateAll                    ::= Special Object 1;
+privateBoolean                ::= Special Object 2;
+privateCharacter              ::= Special Object 3;
+privateClosure                ::= Special Object 4;
+privateClosureType            ::= Special Object 5;
+privateCompiledCode           ::= Special Object 6;
+privateContainer              ::= Special Object 7;
+privateContainerType          ::= Special Object 8;
+privateContinuation           ::= Special Object 9;
+privateContinuationType       ::= Special Object 10;
+privateCyclicType             ::= Special Object 11;
+privateDouble                 ::= Special Object 12;
+privateExtendedInteger        ::= Special Object 13;
+privateFalseType              ::= Special Object 14;
+privateFloat                  ::= Special Object 15;
+privateGeneralizedClosureType ::= Special Object 16;
+privateInteger                ::= Special Object 17;
+privateIntegerType            ::= Special Object 18;
+privateList                   ::= Special Object 19;
+privateListType               ::= Special Object 20;
+privateMapType                ::= Special Object 21;
+privateMeta                   ::= Special Object 22;
+privateObjectMeta             ::= Special Object 23;
+privateObjectMetaMeta         ::= Special Object 24;
+privateObjectType             ::= Special Object 25;
+privatePrimType               ::= Special Object 26;
+privateProcess                ::= Special Object 27;
+privateSet                    ::= Special Object 28;
+privateSetType                ::= Special Object 29;
+privateString                 ::= Special Object 30;
+privateTerminates             ::= Special Object 31;
+privateTerminatesType         ::= Special Object 32;
+privateTrueType               ::= Special Object 33;
+privateTuple                  ::= Special Object 34;
+privateTupleType              ::= Special Object 35;
+privateType                   ::= Special Object 36;
+privateVoid                   ::= Special Object 37;
 
 
-privateTrue					::= Special Object 50;
-privateFalse				::= Special Object 51;
+privateTrue                   ::= Special Object 50;
+privateFalse                  ::= Special Object 51;
 
 
 /* First define all the primitive types... */
-Method "all"					is [privateAll;] : privateType;
-Method "boolean"				is [privateBoolean;] : privatePrimType;
-Method "character"			is [privateCharacter;] : privatePrimType;
-Method "closure"				is [privateClosure;] : privatePrimType;
-Method "compiledCode"			is [privateCompiledCode;] : privatePrimType;
-Method "container"			is [privateContainer;] : privatePrimType;
-Method "continuation"			is [privateContinuation;] : privatePrimType;
-Method "double"				is [privateDouble;] : privatePrimType;
-Method "extended integer"		is [privateExtendedInteger;] : privateIntegerType;
-Method "falseType"			is [privateFalseType;] : privatePrimType;
-Method "float"				is [privateFloat;] : privatePrimType;
-Method "integer"				is [privateInteger;] : privateIntegerType;
-Method "list"				is [privateList;] : privateListType;
-Method "process"				is [privateProcess;] : privatePrimType;
-Method "set"				is [privateSet;] : privateSetType;
-Method "string"				is [privateString;] : privateTupleType;
-Method "terminates"			is [privateTerminates;] : privateTerminatesType;
-Method "trueType"			is [privateTrueType;] : privatePrimType;
-Method "tuple"				is [privateTuple;] : privateTupleType;
-Method "void"				is [privateVoid;] : privatePrimType;
+Method "all"                    is [privateAll;] : privateType;
+Method "boolean"                is [privateBoolean;] : privatePrimType;
+Method "character"              is [privateCharacter;] : privatePrimType;
+Method "closure"                is [privateClosure;] : privatePrimType;
+Method "compiledCode"           is [privateCompiledCode;] : privatePrimType;
+Method "container"              is [privateContainer;] : privatePrimType;
+Method "continuation"           is [privateContinuation;] : privatePrimType;
+Method "double"                 is [privateDouble;] : privatePrimType;
+Method "extended integer"       is [privateExtendedInteger;] : privateIntegerType;
+Method "falseType"              is [privateFalseType;] : privatePrimType;
+Method "float"                  is [privateFloat;] : privatePrimType;
+Method "integer"                is [privateInteger;] : privateIntegerType;
+Method "list"                   is [privateList;] : privateListType;
+Method "process"                is [privateProcess;] : privatePrimType;
+Method "set"                    is [privateSet;] : privateSetType;
+Method "string"                 is [privateString;] : privateTupleType;
+Method "terminates"             is [privateTerminates;] : privateTerminatesType;
+Method "trueType"               is [privateTrueType;] : privatePrimType;
+Method "tuple"                  is [privateTuple;] : privateTupleType;
+Method "void"                   is [privateVoid;] : privatePrimType;
 
 /* And the metatypes... */
-Method "integerType"			is [privateIntegerType;] : privateMeta;
-Method "tupleType"			is [privateTupleType;] : privateMeta;
-Method "setType"				is [privateSetType;] : privateMeta;
-Method "mapType"			is [privateMapType;] : privateMeta;
-Method "closureType"			is [privateClosureType;] : privateMeta;
-Method "containerType"		is [privateContainerType;] : privateMeta;
-Method "continuationType"		is [privateContinuationType;] : privateMeta;
-Method "generalizedClosureType"	is [privateGeneralizedClosureType;] : privateMeta;
-Method "listType"				is [privateListType;] : privateMeta;
-Method "objectType"			is [privateObjectType;] : privateObjectMeta;
-Method "primType"			is [privatePrimType;] : privateMeta;
-Method "terminatesType"		is [privateTerminatesType;] : privateMeta;
-Method "type"				is [privateType;] : privateMeta;
+Method "integerType"            is [privateIntegerType;] : privateMeta;
+Method "tupleType"              is [privateTupleType;] : privateMeta;
+Method "setType"                is [privateSetType;] : privateMeta;
+Method "mapType"                is [privateMapType;] : privateMeta;
+Method "closureType"            is [privateClosureType;] : privateMeta;
+Method "containerType"          is [privateContainerType;] : privateMeta;
+Method "continuationType"       is [privateContinuationType;] : privateMeta;
+Method "generalizedClosureType" is [privateGeneralizedClosureType;] : privateMeta;
+Method "listType"               is [privateListType;] : privateMeta;
+Method "objectType"             is [privateObjectType;] : privateObjectMeta;
+Method "primType"               is [privatePrimType;] : privateMeta;
+Method "terminatesType"         is [privateTerminatesType;] : privateMeta;
+Method "type"                   is [privateType;] : privateMeta;
 
 /* And the metametatypes... */
-Method "cyclicType"			is [privateCyclicType;] : privateCyclicType;
-Method "meta"				is [privateMeta;] : privateMeta;
-Method "objectMeta"			is [privateObjectMeta;] : privateObjectMetaMeta;
-Method "objectMetaMeta"		is [privateObjectMetaMeta;] : privateMeta;
+Method "cyclicType"             is [privateCyclicType;] : privateCyclicType;
+Method "meta"                   is [privateMeta;] : privateMeta;
+Method "objectMeta"             is [privateObjectMeta;] : privateObjectMetaMeta;
+Method "objectMetaMeta"         is [privateObjectMetaMeta;] : privateMeta;
 
 
 /* Now the intrinsic constants... */
-Method "true"			is [privateTrue;] : privateTrueType;
-Method "false"			is [privateFalse;] : privateFalseType;
+Method "true"                   is [privateTrue;] : privateTrueType;
+Method "false"                  is [privateFalse;] : privateFalseType;
 
 
 /* Totally raw bootstrap - deal with system failures. */
