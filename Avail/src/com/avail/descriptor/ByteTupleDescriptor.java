@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteTupleDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
@@ -206,6 +207,12 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
+	@Override
+	boolean ObjectIsByteTuple (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+	
 	boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)

@@ -640,12 +640,27 @@ public abstract class TupleDescriptor extends Descriptor
 		return true;
 	}
 	
+	@Override
+	boolean ObjectIsByteTuple (AvailObject object)
+	{
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		{
+			if (!object.tupleAt(i).isByte())
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	@Override boolean ObjectIsString (final @NotNull AvailObject object)
+	@Override
+	boolean ObjectIsString (final @NotNull AvailObject object)
 	{
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			if (!object.tupleAt(i).isCharacter())
 			{

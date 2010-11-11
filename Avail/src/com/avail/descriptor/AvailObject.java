@@ -1936,6 +1936,18 @@ public abstract class AvailObject
 
 		return descriptor().ObjectIsByte(this);
 	}
+	
+	/**
+	 * Is the {@link AvailObject receiver} an Avail byte tuple?
+	 * 
+	 * @return {@code true} if the receiver is an Avail byte tuple, {@code
+	 *         false} otherwise.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public boolean isByteTuple ()
+	{
+		return descriptor().ObjectIsByteTuple(this);
+	}
 
 	public boolean isCharacter ()
 	{

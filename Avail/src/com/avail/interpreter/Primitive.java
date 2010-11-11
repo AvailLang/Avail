@@ -2207,7 +2207,7 @@ public enum Primitive
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim162_FileOpenReadWrite_nameString(
-		161, 1, Flag.CanInline, Flag.HasSideEffect)
+		162, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2247,7 +2247,7 @@ public enum Primitive
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim163_FileClose_handleInt(162, 1, Flag.CanInline, Flag.HasSideEffect)
+	prim163_FileClose_handle(163, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2278,14 +2278,14 @@ public enum Primitive
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim164_FileRead_handleInt_size(163, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim164_FileRead_handle_size(164, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull AvailInterpreter interpreter)
 		{
-			assert args.size() == 1;
+			assert args.size() == 2;
 			
 			final AvailObject handle = args.get(0);
 			final AvailObject size = args.get(1);
@@ -2295,6 +2295,11 @@ public enum Primitive
 			}
 			
 			final RandomAccessFile file = interpreter.getFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
 			final byte[] buffer;
 			final int bytesRead;
 			try
@@ -2323,29 +2328,62 @@ public enum Primitive
 		}
 	},
 
-
-	prim165_FileWrite_handleInt_bytes(164, 2, Flag.CanInline, Flag.HasSideEffect)
+	/**
+	 * <strong>Primitive 165:</strong> Write the specified {@linkplain
+	 * TupleDescriptor tuple} to the file associated with the {@linkplain
+	 * CyclicTypeDescriptor handle}. Answer a {@linkplain ByteTupleDescriptor
+	 * tuple} containing the bytes that could not be written.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim165_FileWrite_handle_bytes(
+		165, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Attempt to write bytes to the stream with handle handleInt.  Answer the tuple
-			//  of bytes that could not be written (usually an empty tuple).  For now, we always
-			//  answer the empty tuple.
+			assert args.size() == 2;
 
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				| file |
-				file := openFiles at: handleInt extractInt.
-				1 to: bytes tupleSize do: [:i |
-					file nextPut: (bytes tupleAt: i) extractByte].
-				^TupleDescriptor empty
-			 */
+			final AvailObject handle = args.get(0);
+			final AvailObject bytes = args.get(1);
+			if (!handle.isCyclicType() || !bytes.isByteTuple())
+			{
+				return Result.FAILURE;
+			}
+			
+			final RandomAccessFile file = interpreter.getFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			final byte[] buffer = new byte[bytes.tupleSize()];
+			for (int i = 1, end = bytes.tupleSize(); i <= end; i++)
+			{
+				buffer[i - 1] = (byte) bytes.tupleAt(i).extractByte();
+			}
+			
+			final int bytesWritten;
+			try
+			{
+				file.write(buffer);
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+
+			// Always return an empty tuple since RandomAccessFile writes its
+			// buffer transactionally.
+			interpreter.primitiveResult(TupleDescriptor.empty());
+			return Result.SUCCESS;
 		}
 	},
 
 
-	prim166_FileSize_handleInt(165, 1, Flag.CanInline)
+	prim166_FileSize_handleInt(166, 1, Flag.CanInline)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
@@ -2362,7 +2400,7 @@ public enum Primitive
 	},
 
 
-	prim167_FilePosition_handleInt(166, 1, Flag.CanInline)
+	prim167_FilePosition_handleInt(167, 1, Flag.CanInline)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
@@ -2379,7 +2417,7 @@ public enum Primitive
 	},
 
 
-	prim168_FileSetPosition_handleInt_newPosition(167, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim168_FileSetPosition_handleInt_newPosition(168, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)

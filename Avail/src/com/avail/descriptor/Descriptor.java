@@ -5153,7 +5153,18 @@ public abstract class Descriptor
 		return false;
 	}
 
-
+	/**
+	 * Is the specified {@link AvailObject} an Avail byte tuple?
+	 * 
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a byte tuple, {@code false}
+	 *         otherwise.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	boolean ObjectIsByteTuple (final @NotNull AvailObject object)
+	{
+		return false;
+	}
 
 	// operations-characters
 

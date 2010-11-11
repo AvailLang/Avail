@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.descriptor.AvailObject;
@@ -4581,6 +4582,16 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectIsByte(destination);
 	}
+	
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	boolean ObjectIsByteTuple (final @NotNull AvailObject object)
+	{
+		final AvailObject destination = object.traversed();
+		return destination.descriptor().ObjectIsByteTuple(destination);
+	}
 
 	boolean ObjectIsCharacter (
 			final AvailObject object)
@@ -4751,6 +4762,16 @@ public class IndirectionDescriptor extends Descriptor
 
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectIsSplice(destination);
+	}
+
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	boolean ObjectIsString (final @NotNull AvailObject object)
+	{
+		final AvailObject destination = object.traversed();
+		return destination.descriptor().ObjectIsString(destination);
 	}
 
 	boolean ObjectIsSupertypeOfTerminates (
