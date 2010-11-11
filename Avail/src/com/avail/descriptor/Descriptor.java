@@ -3231,17 +3231,6 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectZzzDONOTUSETupleChunkRawZoneAtPut (
-			final AvailObject object, 
-			final int index, 
-			final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		error("Subclass responsibility: Object:zzzDONOTUSETupleChunkRawZoneAt:put: in Avail.Descriptor", object);
-		return;
-	}
-
 	String ObjectAsNativeString (
 			final AvailObject object)
 	{
@@ -5174,6 +5163,18 @@ public abstract class Descriptor
 		return false;
 	}
 
+	/**
+	 * Is the specified {@link AvailObject} an Avail string?
+	 * 
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is an Avail string, {@code false}
+	 *         otherwise.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	boolean ObjectIsString (final @NotNull AvailObject object)
+	{
+		return false;
+	}
 
 
 	// operations-closure

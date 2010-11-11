@@ -84,7 +84,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 			return;
 		}
 		_chunk = L2ChunkDescriptor.chunkFromId (continuation.levelTwoChunkIndex());
-		if (((_process.executionMode() & ExecutionMode.singleStep) != 0) || !_chunk.isValid())
+		if (((process.executionMode() & ExecutionMode.singleStep) != 0) || !_chunk.isValid())
 		{
 			//  Either we're single-stepping or the chunk was invalidated, but the continuation still refers to it.
 			//  The garbage collector will reclaim the chunk only when all such continuations have let the chunk
@@ -197,7 +197,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 			if (result == Result.SUCCESS)
 			{
 				AvailObject cont = pointerAt(callerRegister());
-				cont.stackAtPut(cont.stackp(), _primitiveResult);
+				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return result;
 			}
 			if (result == Result.CONTINUATION_CHANGED)
@@ -218,7 +218,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		//  Prepare the L2Interpreter to deal with executing the given closure, using the
 		//  given parameters.
 
-		if ((_process.executionMode() & ExecutionMode.singleStep) != 0)
+		if ((process.executionMode() & ExecutionMode.singleStep) != 0)
 		{
 			//  When single-stepping, never start up a chunk other than the unoptimized one.
 			_chunk = L2ChunkDescriptor.chunkFromId(L2ChunkDescriptor.indexOfUnoptimizedChunk());
@@ -255,21 +255,21 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 	{
 		// Note: we can only resume the continuation safely if it was just entering a closure, or
 		// just returning from one, or if it took an offramp for which there is an onramp.
-		_process = aProcess;
+		process = aProcess;
 		AvailObject continuationTemp = aProcess.continuation();
 
-		_interruptRequestFlag = InterruptRequestFlag.noInterrupt;
+		interruptRequestFlag = InterruptRequestFlag.noInterrupt;
 		_exitNow = false;
 		prepareToExecuteContinuation (continuationTemp);
 
-		if ((_process.executionMode() & ExecutionMode.singleStep) != 0)
+		if ((process.executionMode() & ExecutionMode.singleStep) != 0)
 		{
 			// We're single-stepping, so force the use of level one emulation.  Note that only the first step
 			// of a run is allowed to execute the first nybblecode after a prepareToExecuteContinuation().
 			assert _chunk.index() == L2ChunkDescriptor.indexOfUnoptimizedChunk();
 			offset(L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-			_process.continuation().levelTwoChunkIndexOffset(_chunk.index(), offset());
-			_interruptRequestFlag = InterruptRequestFlag.outOfGas;
+			process.continuation().levelTwoChunkIndexOffset(_chunk.index(), offset());
+			interruptRequestFlag = InterruptRequestFlag.outOfGas;
 		}
 
 		// The caches are set up. Start dispatching nybblecodes.
@@ -315,7 +315,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		outermostContinuation.levelTwoChunkIndexOffset(
 			L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-		_process.continuation(outermostContinuation);
+		process.continuation(outermostContinuation);
 		prepareToExecuteContinuation(outermostContinuation);
 
 		AvailObject result;
@@ -323,15 +323,15 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		{
 			result = jumpContinuation();
 		}
-		while (!_process.continuation().equalsVoid());
+		while (!process.continuation().equalsVoid());
 
 		return result;
 	}
 
 	private AvailObject jumpContinuation ()
 	{
-		_process.continuation(currentContinuation());
-		return run(_process);
+		process.continuation(currentContinuation());
+		return run(process);
 	}
 
 	int nextWord ()
@@ -926,14 +926,14 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 	public void L2_doJumpIfInterrupt_()
 	{
 		int ifIndex = nextWord();
-		if (_interruptRequestFlag != InterruptRequestFlag.noInterrupt)
+		if (interruptRequestFlag != InterruptRequestFlag.noInterrupt)
 			offset(ifIndex);
 	}
 
 	public void L2_doJumpIfNotInterrupt_()
 	{
 		int ifNotIndex = nextWord();
-		if (_interruptRequestFlag == InterruptRequestFlag.noInterrupt)
+		if (interruptRequestFlag == InterruptRequestFlag.noInterrupt)
 			offset(ifNotIndex);
 	}
 
@@ -946,8 +946,8 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		//  process later.  The continuation to use can be found in _pointers[continuationIndex].
 
 		int continuationIndex = nextWord();
-		_process.continuation(_pointers[continuationIndex]);
-		_process.interruptRequestFlag(_interruptRequestFlag);
+		process.continuation(_pointers[continuationIndex]);
+		process.interruptRequestFlag(interruptRequestFlag);
 		_exitValue = VoidDescriptor.voidObject();
 		_exitNow = true;
 	}
@@ -1057,7 +1057,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 				assert(_chunk.index() == cont.levelTwoChunkIndex());
 				cont.readBarrierFault();
 				assert(cont.descriptor().isMutable());
-				cont.stackAtPut(cont.stackp(), _primitiveResult);
+				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return;
 			}
 		}
@@ -1121,7 +1121,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 				assert(_chunk.index() == cont.levelTwoChunkIndex());
 				cont.readBarrierFault();
 				assert(cont.descriptor().isMutable());
-				cont.stackAtPut(cont.stackp(), _primitiveResult);
+				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return;
 			}
 		}
@@ -1217,8 +1217,8 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		final AvailObject valueObject = pointerAt(valueIndex);
 		if (caller.equalsVoid())
 		{
-			_process.executionState(ExecutionState.terminated);
-			_process.continuation(VoidDescriptor.voidObject());
+			process.executionState(ExecutionState.terminated);
+			process.continuation(VoidDescriptor.voidObject());
 			_exitValue = valueObject;
 			_exitNow = true;
 		}
@@ -1282,7 +1282,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		Result res = attemptPrimitive((short)primNumber, _argsBuffer);
 		if (res == Result.SUCCESS)
 		{
-			_pointers [resultRegister] = _primitiveResult;
+			_pointers [resultRegister] = primitiveResult;
 		}
 		else if (res == Result.CONTINUATION_CHANGED)
 		{
@@ -1355,7 +1355,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 			if (primResult == Result.SUCCESS)
 			{
 				AvailObject callerCont = _pointers[callerRegister()];
-				callerCont.stackAtPut(callerCont.stackp(), _primitiveResult);
+				callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
 				return;
 			}
 		}
@@ -1393,8 +1393,8 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		AvailObject caller = cont.caller();
 		if (caller.equalsVoid())
 		{
-			_process.executionState(ExecutionState.terminated);
-			_process.continuation(VoidDescriptor.voidObject());
+			process.executionState(ExecutionState.terminated);
+			process.continuation(VoidDescriptor.voidObject());
 			_exitNow = true;
 			_exitValue = value;
 			return;
@@ -1820,7 +1820,7 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 			if (primResult == Result.SUCCESS)
 			{
 				AvailObject callerCont = _pointers[callerRegister()];
-				callerCont.stackAtPut(callerCont.stackp(), _primitiveResult);
+				callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
 				return;
 			}
 		}

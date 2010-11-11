@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.SpliceTupleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
@@ -49,28 +50,19 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 {
 
 
-	// java printing
-
+	@Override
 	void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
-			final int indent)
+		final @NotNull AvailObject object, 
+		final @NotNull StringBuilder aStream, 
+		final @NotNull List<AvailObject> recursionList, 
+		final int indent)
 	{
-		if ((object.tupleSize() == 0))
+		if (object.tupleSize() == 0)
 		{
 			aStream.append("<>");
 			return;
 		}
-		boolean allChars = true;
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
-		{
-			if (! object.tupleAt(i).isCharacter())
-			{
-				allChars = false;
-			}
-		}
-		if (allChars)
+		if (object.isString())
 		{
 			if (isMutable())
 			{
@@ -79,8 +71,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 			aStream.append("SpliceTuple: \"");
 			for (int i = 1, _end2 = object.tupleSize(); i <= _end2; i++)
 			{
-				final char c = ((char)(object.tupleAt(i).codePoint()));
-				if (((c == '\"') || ((c == '\'') || (c == '\\'))))
+				final char c = (char) object.tupleAt(i).codePoint();
+				if (c == '\"' || c == '\'' || c == '\\')
 				{
 					aStream.append('\\');
 					aStream.append(c);

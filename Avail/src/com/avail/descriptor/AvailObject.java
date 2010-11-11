@@ -2093,6 +2093,18 @@ public abstract class AvailObject
 
 		return descriptor().ObjectIsSubsetOf(this, another);
 	}
+	
+	/**
+	 * Is the {@link AvailObject receiver} an Avail string?
+	 * 
+	 * @return {@code true} if the receiver is an Avail string, {@code false}
+	 *         otherwise.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public boolean isString ()
+	{
+		return descriptor().ObjectIsString(this);
+	}
 
 	public boolean isSubtypeOf (
 		final AvailObject aType)
@@ -4524,18 +4536,6 @@ public abstract class AvailObject
 		//  GENERATED for descriptor dispatch
 
 		return descriptor().ObjectZoneForIndex(this, index);
-	}
-
-	public void zzzDONOTUSETupleChunkRawZoneAtPut (
-		final int index,
-		final int value)
-	{
-		//  GENERATED for descriptor dispatch
-
-		descriptor().ObjectZzzDONOTUSETupleChunkRawZoneAtPut(
-			this,
-			index,
-			value);
 	}
 
 	/**

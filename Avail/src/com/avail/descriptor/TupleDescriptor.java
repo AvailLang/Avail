@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.ApproximateTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
@@ -636,6 +637,22 @@ public abstract class TupleDescriptor extends Descriptor
 	boolean ObjectIsTuple (
 			final AvailObject object)
 	{
+		return true;
+	}
+	
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override boolean ObjectIsString (final @NotNull AvailObject object)
+	{
+		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		{
+			if (!object.tupleAt(i).isCharacter())
+			{
+				return false;
+			}
+		}
+		
 		return true;
 	}
 

@@ -33,12 +33,13 @@
 package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.io.File;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.compiler.scanner.AvailScanner;
@@ -72,19 +73,27 @@ import com.avail.interpreter.levelOne.L1Operation;
 
 public abstract class AvailInterpreter
 {
-	AvailObject _methods = MapDescriptor.empty();
-	AvailObject _methodNamesForParsing = UnexpandedMessageBundleTreeDescriptor.newDepth(1);
-	AvailObject _pendingForwards = SetDescriptor.empty();
-	AvailObject _modules = MapDescriptor.empty();
-	AvailObject _module;
-	List<AvailObject> _specialObjects;
-	Map<Integer,File> _openFiles = new HashMap<Integer,File>();
-	AvailObject _isJumping = BooleanDescriptor.objectFromBoolean(true);
-	AvailObject _typeNames = MapDescriptor.empty();
-	AvailObject _openLibraries;
-	protected volatile int _interruptRequestFlag;
-	protected AvailObject _process;
-	protected AvailObject _primitiveResult;
+	private AvailObject methods = MapDescriptor.empty();
+	private AvailObject methodNamesForParsing =
+		UnexpandedMessageBundleTreeDescriptor.newDepth(1);
+	private AvailObject pendingForwards = SetDescriptor.empty();
+	private AvailObject modules = MapDescriptor.empty();
+	private AvailObject module;
+	private List<AvailObject> specialObjects;
+	
+	/**
+	 * A mapping from a {@linkplain CyclicTypeDescriptor key} to a {@link
+	 * RandomAccessFile}.
+	 */
+	private Map<AvailObject, RandomAccessFile> openFiles =
+		new HashMap<AvailObject, RandomAccessFile>();
+	
+	private AvailObject isJumping = BooleanDescriptor.objectFromBoolean(true);
+	private AvailObject typeNames = MapDescriptor.empty();
+	private AvailObject openLibraries;
+	protected volatile int interruptRequestFlag;
+	protected AvailObject process;
+	protected AvailObject primitiveResult;
 
 
 	// translate-accessing
@@ -93,7 +102,7 @@ public abstract class AvailInterpreter
 		final AvailObject aModule)
 	{
 
-		_modules = _modules.mapAtPuttingCanDestroy(
+		modules = modules.mapAtPuttingCanDestroy(
 			aModule.name(),
 			aModule,
 			true);
@@ -122,16 +131,16 @@ public abstract class AvailInterpreter
 		final AvailObject newImp = AvailObject.newIndexedDescriptor(0, ForwardSignatureDescriptor.mutableDescriptor());
 		newImp.bodySignature(bodySignature);
 		newImp.makeImmutable();
-		_module.atAddMethodImplementation(methodName, newImp);
+		module.atAddMethodImplementation(methodName, newImp);
 		AvailObject imps;
-		if (_methods.hasKey(methodName))
+		if (methods.hasKey(methodName))
 		{
-			imps = _methods.mapAt(methodName);
+			imps = methods.mapAt(methodName);
 		}
 		else
 		{
 			imps = ImplementationSetDescriptor.newImplementationSetWithName(methodName);
-			_methods = _methods.mapAtPuttingCanDestroy(
+			methods = methods.mapAtPuttingCanDestroy(
 				methodName,
 				imps,
 				true);
@@ -163,10 +172,10 @@ public abstract class AvailInterpreter
 			}
 		}
 		imps.addImplementation(newImp);
-		_pendingForwards = _pendingForwards.setWithElementCanDestroy(newImp, true);
+		pendingForwards = pendingForwards.setWithElementCanDestroy(newImp, true);
 		final AvailObject parts = splitMethodName(methodName);
-		_methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
-		_module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
+		methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
+		module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
 	}
 
 	public void atAddMethodBody (
@@ -214,16 +223,16 @@ public abstract class AvailInterpreter
 			requiresBlock,
 			returnsBlock);
 		newImp.makeImmutable();
-		_module.atAddMethodImplementation(methodName, newImp);
+		module.atAddMethodImplementation(methodName, newImp);
 		AvailObject imps;
-		if (_methods.hasKey(methodName))
+		if (methods.hasKey(methodName))
 		{
-			imps = _methods.mapAt(methodName);
+			imps = methods.mapAt(methodName);
 		}
 		else
 		{
 			imps = ImplementationSetDescriptor.newImplementationSetWithName(methodName);
-			_methods = _methods.mapAtPuttingCanDestroy(
+			methods = methods.mapAtPuttingCanDestroy(
 				methodName,
 				imps,
 				true);
@@ -270,8 +279,8 @@ public abstract class AvailInterpreter
 		}
 		imps.addImplementation(newImp);
 		final AvailObject parts = splitMethodName(methodName);
-		_methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
-		_module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
+		methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
+		module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
 	}
 
 	public void atDeclareAbstractSignatureRequiresBlockReturnsBlock (
@@ -303,16 +312,16 @@ public abstract class AvailInterpreter
 			requiresBlock,
 			returnsBlock);
 		newImp.makeImmutable();
-		_module.atAddMethodImplementation(methodName, newImp);
+		module.atAddMethodImplementation(methodName, newImp);
 		AvailObject imps;
-		if (_methods.hasKey(methodName))
+		if (methods.hasKey(methodName))
 		{
-			imps = _methods.mapAt(methodName);
+			imps = methods.mapAt(methodName);
 		}
 		else
 		{
 			imps = ImplementationSetDescriptor.newImplementationSetWithName(methodName);
-			_methods = _methods.mapAtPuttingCanDestroy(
+			methods = methods.mapAtPuttingCanDestroy(
 				methodName,
 				imps,
 				true);
@@ -358,8 +367,8 @@ public abstract class AvailInterpreter
 		}
 		imps.addImplementation(newImp);
 		final AvailObject parts = splitMethodName(methodName);
-		_methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
-		_module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
+		methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
+		module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
 	}
 
 	public void atDisallowArgumentMessages (
@@ -379,12 +388,12 @@ public abstract class AvailInterpreter
 		assert (numArgs == illegalArgMsgs.tupleSize()) : "Wrong number of entries in restriction tuple.";
 		final AvailObject parts = splitMethodName(methodName);
 		//  Fix the global precedence...
-		AvailObject bundle = _methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
+		AvailObject bundle = methodNamesForParsing.includeBundleAtMessageParts(methodName, parts);
 		bundle.addRestrictions(illegalArgMsgs);
 		//  Fix the module-scoped precedence, if different...
-		bundle = _module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
+		bundle = module.filteredBundleTree().includeBundleAtMessageParts(methodName, parts);
 		bundle.addRestrictions(illegalArgMsgs);
-		_module.atAddMessageRestrictions(methodName, illegalArgMsgs);
+		module.atAddMessageRestrictions(methodName, illegalArgMsgs);
 	}
 
 	public void atRemoveRestrictions (
@@ -394,13 +403,13 @@ public abstract class AvailInterpreter
 		//  Only for rolling back the compilation of a module.
 
 		final AvailObject parts = splitMethodName(messageName);
-		final AvailObject bundle = _methodNamesForParsing.bundleAtMessageParts(messageName, parts);
+		final AvailObject bundle = methodNamesForParsing.bundleAtMessageParts(messageName, parts);
 		bundle.removeRestrictions(messageRestrictions);
 		if (! bundle.hasRestrictions())
 		{
-			if (! _methods.hasKey(messageName))
+			if (! methods.hasKey(messageName))
 			{
-				_methodNamesForParsing.removeMessageParts(messageName, splitMethodName(messageName));
+				methodNamesForParsing.removeMessageParts(messageName, splitMethodName(messageName));
 			}
 		}
 	}
@@ -410,7 +419,7 @@ public abstract class AvailInterpreter
 	{
 		//  Define the special defining method.
 
-		assert _module != null;
+		assert module != null;
 		AvailObject newClosure;
 		L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
@@ -429,8 +438,8 @@ public abstract class AvailInterpreter
 		newClosure.makeImmutable();
 		final AvailObject nameTuple = ByteStringDescriptor.mutableObjectFromNativeString(defineMethodName);
 		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(nameTuple);
-		_module.atNameAdd(nameTuple, realName);
-		_module.atNewNamePut(nameTuple, realName);
+		module.atNameAdd(nameTuple, realName);
+		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
 	}
 
@@ -439,7 +448,7 @@ public abstract class AvailInterpreter
 	{
 		//  Define the special object method.
 
-		assert _module != null;
+		assert module != null;
 		final AvailObject naturalNumbers = IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
 			IntegerDescriptor.one(),
 			true,
@@ -463,8 +472,8 @@ public abstract class AvailInterpreter
 		newClosure.makeImmutable();
 		final AvailObject nameTuple = ByteStringDescriptor.mutableObjectFromNativeString(specialObjectName);
 		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(nameTuple);
-		_module.atNameAdd(nameTuple, realName);
-		_module.atNewNamePut(nameTuple, realName);
+		module.atNameAdd(nameTuple, realName);
+		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
 	}
 
@@ -472,7 +481,7 @@ public abstract class AvailInterpreter
 	{
 		//  Make sure all forward declarations have been resolved.
 
-		if (_pendingForwards.setSize() == 0)
+		if (pendingForwards.setSize() == 0)
 		{
 			return;
 		};
@@ -486,7 +495,7 @@ public abstract class AvailInterpreter
 		//  from message (cyclicType) to messageBundle.  Filter selectors based
 		//  on the visibility of names in the current module.
 
-		final AvailObject all = _module.filteredBundleTree().incomplete();
+		final AvailObject all = module.filteredBundleTree().incomplete();
 		if (! all.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
@@ -510,19 +519,63 @@ public abstract class AvailInterpreter
 		return count;
 	}
 
+	/**
+	 * Answer the open {@linkplain RandomAccessFile file} associated with the
+	 * specified {@linkplain CyclicTypeDescriptor cycle}.
+	 * 
+	 * @param cycle A {@linkplain CyclicTypeDescriptor cycle}.
+	 * @return The open {@linkplain RandomAccessFile file} associated with the
+	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
+	 *         such association exists.
+	 */
+	public RandomAccessFile getFile (final @NotNull AvailObject cycle)
+	{
+		assert cycle.isCyclicType();
+		return openFiles.get(cycle);
+	}
+	
+	/**
+	 * Associate the specified {@linkplain CyclicTypeDescriptor cycle} with the
+	 * open {@linkplain RandomAccessFile file}.
+	 * 
+	 * @param cycle A {@linkplain CyclicTypeDescriptor cycle}.
+	 * @param file An open {@linkplain RandomAccessFile file}.
+	 */
+	public void putFile (
+		final @NotNull AvailObject cycle,
+		final @NotNull RandomAccessFile file)
+	{
+		assert cycle.isCyclicType();
+		openFiles.put(cycle, file);
+	}
+	
+	/**
+	 * Remove the association between the specified {@linkplain
+	 * CyclicTypeDescriptor cycle} and its open {@linkplain RandomAccessFile
+	 * file}, presumably because the file is about to be closed.
+	 * 
+	 * @param cycle A {@linkplain CyclicTypeDescriptor cycle}.
+	 */
+	public void forgetFile (final @NotNull AvailObject cycle)
+	{
+		assert cycle.isCyclicType();
+		assert openFiles.containsKey(cycle);
+		openFiles.remove(cycle);
+	}
+	
 	public boolean hasMethodsAt (
 		final AvailObject selector)
 	{
 		//  Answer whether there are any methods associated with the given selector (a cyclicType).
 
-		return _methods.hasKey(selector);
+		return methods.hasKey(selector);
 	}
 
 	public boolean includesModuleNamed (
 		final AvailObject moduleName)
 	{
 		assert moduleName.isTuple();
-		return _modules.hasKey(moduleName);
+		return modules.hasKey(moduleName);
 	}
 
 	public AvailObject incompleteBundlesStartingWith (
@@ -532,7 +585,7 @@ public abstract class AvailInterpreter
 		//  The map is from the second piece to bundle tree.  Filter selectors based
 		//  on the visibility of names in the current module.
 
-		final AvailObject all = _module.filteredBundleTree().incomplete();
+		final AvailObject all = module.filteredBundleTree().incomplete();
 		if (! all.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
@@ -544,53 +597,53 @@ public abstract class AvailInterpreter
 	{
 		//  Set up the Array of special objects.
 
-		_specialObjects = Arrays.<AvailObject>asList(new AvailObject[100]);
-		_specialObjects.set(0, TypeDescriptor.all());
-		_specialObjects.set(1, TypeDescriptor.booleanType());
-		_specialObjects.set(2, TypeDescriptor.character());
-		_specialObjects.set(3, TypeDescriptor.closure());
-		_specialObjects.set(4, TypeDescriptor.closureType());
-		_specialObjects.set(5, TypeDescriptor.compiledCode());
-		_specialObjects.set(6, TypeDescriptor.container());
-		_specialObjects.set(7, TypeDescriptor.containerType());
-		_specialObjects.set(8, TypeDescriptor.continuation());
-		_specialObjects.set(9, TypeDescriptor.continuationType());
-		_specialObjects.set(10, TypeDescriptor.cyclicType());
-		_specialObjects.set(11, TypeDescriptor.doubleObject());
-		_specialObjects.set(12, IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable());
-		_specialObjects.set(13, TypeDescriptor.falseType());
-		_specialObjects.set(14, TypeDescriptor.floatObject());
-		_specialObjects.set(15, TypeDescriptor.generalizedClosureType());
-		_specialObjects.set(16, IntegerRangeTypeDescriptor.integers().makeImmutable());
-		_specialObjects.set(17, TypeDescriptor.integerType());
-		_specialObjects.set(18, ListTypeDescriptor.listTypeForTupleType(TupleTypeDescriptor.mostGeneralTupleType()).makeImmutable());
-		_specialObjects.set(19, TypeDescriptor.listType());
-		_specialObjects.set(20, TypeDescriptor.mapType());
-		_specialObjects.set(21, TypeDescriptor.meta());
-		_specialObjects.set(22, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().makeImmutable());
-		_specialObjects.set(23, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().type().makeImmutable());
-		_specialObjects.set(24, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().makeImmutable());
-		_specialObjects.set(25, TypeDescriptor.primType());
-		_specialObjects.set(26, TypeDescriptor.process());
-		_specialObjects.set(27, SetTypeDescriptor.setTypeForSizesContentType(IntegerRangeTypeDescriptor.wholeNumbers(), TypeDescriptor.all()).makeImmutable());
-		_specialObjects.set(28, TypeDescriptor.setType());
-		_specialObjects.set(29, TupleTypeDescriptor.stringTupleType());
-		_specialObjects.set(30, TypeDescriptor.terminates());
-		_specialObjects.set(31, TypeDescriptor.terminatesType());
-		_specialObjects.set(32, TypeDescriptor.trueType());
-		_specialObjects.set(33, TupleTypeDescriptor.mostGeneralTupleType().makeImmutable());
-		_specialObjects.set(34, TypeDescriptor.tupleType());
-		_specialObjects.set(35, TypeDescriptor.type());
-		_specialObjects.set(36, TypeDescriptor.voidType());
-		_specialObjects.set(39, TypeDescriptor.messageBundle());
-		_specialObjects.set(40, TypeDescriptor.signature());
-		_specialObjects.set(41, TypeDescriptor.abstractSignature());
-		_specialObjects.set(42, TypeDescriptor.forwardSignature());
-		_specialObjects.set(43, TypeDescriptor.methodSignature());
-		_specialObjects.set(44, TypeDescriptor.messageBundleTree());
-		_specialObjects.set(45, TypeDescriptor.implementationSet());
-		_specialObjects.set(49, BooleanDescriptor.objectFromBoolean(true));
-		_specialObjects.set(50, BooleanDescriptor.objectFromBoolean(false));
+		specialObjects = Arrays.<AvailObject>asList(new AvailObject[100]);
+		specialObjects.set(0, TypeDescriptor.all());
+		specialObjects.set(1, TypeDescriptor.booleanType());
+		specialObjects.set(2, TypeDescriptor.character());
+		specialObjects.set(3, TypeDescriptor.closure());
+		specialObjects.set(4, TypeDescriptor.closureType());
+		specialObjects.set(5, TypeDescriptor.compiledCode());
+		specialObjects.set(6, TypeDescriptor.container());
+		specialObjects.set(7, TypeDescriptor.containerType());
+		specialObjects.set(8, TypeDescriptor.continuation());
+		specialObjects.set(9, TypeDescriptor.continuationType());
+		specialObjects.set(10, TypeDescriptor.cyclicType());
+		specialObjects.set(11, TypeDescriptor.doubleObject());
+		specialObjects.set(12, IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable());
+		specialObjects.set(13, TypeDescriptor.falseType());
+		specialObjects.set(14, TypeDescriptor.floatObject());
+		specialObjects.set(15, TypeDescriptor.generalizedClosureType());
+		specialObjects.set(16, IntegerRangeTypeDescriptor.integers().makeImmutable());
+		specialObjects.set(17, TypeDescriptor.integerType());
+		specialObjects.set(18, ListTypeDescriptor.listTypeForTupleType(TupleTypeDescriptor.mostGeneralTupleType()).makeImmutable());
+		specialObjects.set(19, TypeDescriptor.listType());
+		specialObjects.set(20, TypeDescriptor.mapType());
+		specialObjects.set(21, TypeDescriptor.meta());
+		specialObjects.set(22, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().makeImmutable());
+		specialObjects.set(23, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().type().makeImmutable());
+		specialObjects.set(24, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().makeImmutable());
+		specialObjects.set(25, TypeDescriptor.primType());
+		specialObjects.set(26, TypeDescriptor.process());
+		specialObjects.set(27, SetTypeDescriptor.setTypeForSizesContentType(IntegerRangeTypeDescriptor.wholeNumbers(), TypeDescriptor.all()).makeImmutable());
+		specialObjects.set(28, TypeDescriptor.setType());
+		specialObjects.set(29, TupleTypeDescriptor.stringTupleType());
+		specialObjects.set(30, TypeDescriptor.terminates());
+		specialObjects.set(31, TypeDescriptor.terminatesType());
+		specialObjects.set(32, TypeDescriptor.trueType());
+		specialObjects.set(33, TupleTypeDescriptor.mostGeneralTupleType().makeImmutable());
+		specialObjects.set(34, TypeDescriptor.tupleType());
+		specialObjects.set(35, TypeDescriptor.type());
+		specialObjects.set(36, TypeDescriptor.voidType());
+		specialObjects.set(39, TypeDescriptor.messageBundle());
+		specialObjects.set(40, TypeDescriptor.signature());
+		specialObjects.set(41, TypeDescriptor.abstractSignature());
+		specialObjects.set(42, TypeDescriptor.forwardSignature());
+		specialObjects.set(43, TypeDescriptor.methodSignature());
+		specialObjects.set(44, TypeDescriptor.messageBundleTree());
+		specialObjects.set(45, TypeDescriptor.implementationSet());
+		specialObjects.set(49, BooleanDescriptor.objectFromBoolean(true));
+		specialObjects.set(50, BooleanDescriptor.objectFromBoolean(false));
 	}
 
 	public boolean isCharacterUnderscoreOrSpaceOrOperator (
@@ -618,13 +671,13 @@ public abstract class AvailInterpreter
 
 		assert stringName.isTuple();
 		//  Check if it's already defined somewhere...
-		final AvailObject who = _module.trueNamesForStringName(stringName);
+		final AvailObject who = module.trueNamesForStringName(stringName);
 		AvailObject trueName;
 		if ((who.setSize() == 0))
 		{
 			trueName = CyclicTypeDescriptor.newCyclicTypeWithName(stringName);
 			trueName.makeImmutable();
-			_module.atPrivateNameAdd(stringName, trueName);
+			module.atPrivateNameAdd(stringName, trueName);
 			return trueName;
 		}
 		if ((who.setSize() == 1))
@@ -639,7 +692,7 @@ public abstract class AvailInterpreter
 	{
 		//  Answer the global mapping from name (CyclicType) to ImplementationSet.
 
-		return _methods;
+		return methods;
 	}
 
 	public AvailObject methodsAt (
@@ -647,25 +700,25 @@ public abstract class AvailInterpreter
 	{
 		//  Extract the ImplementationSet associated with the given selector (a cyclicType).
 
-		return _methods.mapAt(selector);
+		return methods.mapAt(selector);
 	}
 
 	public AvailObject module ()
 	{
-		return _module;
+		return module;
 	}
 
 	public void module (
 		final AvailObject aModule)
 	{
-		_module = aModule;
+		module = aModule;
 	}
 
 	public AvailObject moduleAt (
 		final AvailObject moduleName)
 	{
 		assert moduleName.isTuple();
-		return _modules.mapAt(moduleName);
+		return modules.mapAt(moduleName);
 	}
 
 	public AvailObject nameForType (
@@ -674,12 +727,12 @@ public abstract class AvailInterpreter
 		//  Answer an Avail string that is the name of the given type.  If this type
 		//  has not been given a name (via primitive 68), answer nil.
 
-		return (_typeNames.hasKey(anObjectType) ? _typeNames.mapAt(anObjectType) : null);
+		return (typeNames.hasKey(anObjectType) ? typeNames.mapAt(anObjectType) : null);
 	}
 
 	public AvailObject process ()
 	{
-		return _process;
+		return process;
 	}
 
 	public void removeMethodNamedImplementation (
@@ -688,14 +741,14 @@ public abstract class AvailInterpreter
 	{
 		if (implementation.isForward())
 		{
-			_pendingForwards = _pendingForwards.setWithoutElementCanDestroy(implementation, true);
+			pendingForwards = pendingForwards.setWithoutElementCanDestroy(implementation, true);
 		}
-		final AvailObject impSet = _methods.mapAt(methodName);
+		final AvailObject impSet = methods.mapAt(methodName);
 		impSet.removeImplementation(implementation);
 		if ((impSet.implementationsTuple().tupleSize() == 0))
 		{
-			_methods = _methods.mapWithoutKeyCanDestroy(methodName, true);
-			_methodNamesForParsing.removeMessageParts(methodName, splitMethodName(methodName));
+			methods = methods.mapWithoutKeyCanDestroy(methodName, true);
+			methodNamesForParsing.removeMessageParts(methodName, splitMethodName(methodName));
 		}
 	}
 
@@ -703,13 +756,13 @@ public abstract class AvailInterpreter
 		final AvailObject moduleName)
 	{
 		assert moduleName.isTuple();
-		if (! _modules.hasKey(moduleName))
+		if (! modules.hasKey(moduleName))
 		{
 			return;
 		}
-		final AvailObject mod = _modules.mapAt(moduleName);
+		final AvailObject mod = modules.mapAt(moduleName);
 		mod.removeFrom(this);
-		_modules = _modules.mapWithoutKeyCanDestroy(moduleName, true);
+		modules = modules.mapWithoutKeyCanDestroy(moduleName, true);
 	}
 
 	public void resolvedForwardWithName (
@@ -725,7 +778,7 @@ public abstract class AvailInterpreter
 			return;
 		}
 		final AvailObject impSet = methodsAt(methodName);
-		if (! _pendingForwards.hasElement(aForward))
+		if (! pendingForwards.hasElement(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
@@ -735,21 +788,21 @@ public abstract class AvailInterpreter
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
-		_pendingForwards = _pendingForwards.setWithoutElementCanDestroy(aForward, true);
+		pendingForwards = pendingForwards.setWithoutElementCanDestroy(aForward, true);
 		impSet.removeImplementation(aForward);
-		_module.resolvedForwardWithName(aForward, methodName);
+		module.resolvedForwardWithName(aForward, methodName);
 	}
 
 	public AvailObject rootBundleTree ()
 	{
 		//  Answer the root (unfiltered) bundle tree.
 
-		return _methodNamesForParsing;
+		return methodNamesForParsing;
 	}
 
 	public List<AvailObject> specialObjects ()
 	{
-		return _specialObjects;
+		return specialObjects;
 	}
 
 	public AvailObject splitMethodName (
@@ -894,34 +947,34 @@ public abstract class AvailInterpreter
 
 	{
 		initializeSpecialObjects();
-		_process = AvailObject.newIndexedDescriptor(0, ProcessDescriptor.mutableDescriptor());
-		_process.priority(50);
-		_process.continuation(VoidDescriptor.voidObject());
-		_process.executionMode(ExecutionMode.noDebug);
-		_process.executionState(ExecutionState.running);
-		_process.interruptRequestFlag(InterruptRequestFlag.noInterrupt);
-		_process.breakpointBlock(VoidDescriptor.voidObject());
-		_process.processGlobals(MapDescriptor.empty());
+		process = AvailObject.newIndexedDescriptor(0, ProcessDescriptor.mutableDescriptor());
+		process.priority(50);
+		process.continuation(VoidDescriptor.voidObject());
+		process.executionMode(ExecutionMode.noDebug);
+		process.executionState(ExecutionState.running);
+		process.interruptRequestFlag(InterruptRequestFlag.noInterrupt);
+		process.breakpointBlock(VoidDescriptor.voidObject());
+		process.processGlobals(MapDescriptor.empty());
 	}
 
 	AvailObject typeNames ()
 	{
-		return _typeNames;
+		return typeNames;
 	}
 
 	void typeNames (AvailObject aMap)
 	{
-		_typeNames = aMap;
+		typeNames = aMap;
 	}
 
 	public void primitiveResult (AvailObject result)
 	{
-		_primitiveResult = result;
+		primitiveResult = result;
 	}
 
 	public AvailObject primitiveResult()
 	{
-		return _primitiveResult;
+		return primitiveResult;
 	}
 
 	public Result attemptPrimitive (

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.CharacterDescriptor;
@@ -179,6 +180,15 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	boolean ObjectIsString (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+	
 	boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)

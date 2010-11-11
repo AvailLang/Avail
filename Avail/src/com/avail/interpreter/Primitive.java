@@ -42,6 +42,8 @@ import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.scalb;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -2113,25 +2115,41 @@ public enum Primitive
 		}
 	},
 
-
+	/**
+	 * <strong>Primitive 160:</strong> Open a {@linkplain RandomAccessFile file}
+	 * for reading. Answer a {@linkplain CyclicTypeDescriptor cycle} that
+	 * uniquely identifies the file.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
 	prim160_FileOpenRead_nameString(160, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
-			//  Open a file for reading.  Answer the OS handle as an integer.
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				| stream handle |
-				stream := nameString asNativeString asFilename readStream.
-				stream binary.
-				handle := openFiles indexOf: 0 ifAbsent: [
-					openFiles
-						add: stream;
-						size].
-				^IntegerDescriptor objectFromInt: handle
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			AvailObject handle =
+				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
+			try
+			{
+				final RandomAccessFile file = new RandomAccessFile(
+					filename.asNativeString(), "r");
+				interpreter.putFile(handle, file);
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(handle);
+			return Result.SUCCESS;
 		}
 	},
 
@@ -2175,7 +2193,7 @@ public enum Primitive
 	},
 
 
-	prim163_FileRead_handleInt_size(163, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim164_FileRead_handleInt_size(163, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
@@ -2199,7 +2217,7 @@ public enum Primitive
 	},
 
 
-	prim164_FileWrite_handleInt_bytes(164, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim165_FileWrite_handleInt_bytes(164, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
@@ -2220,7 +2238,7 @@ public enum Primitive
 	},
 
 
-	prim165_FileSize_handleInt(165, 1, Flag.CanInline)
+	prim166_FileSize_handleInt(165, 1, Flag.CanInline)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
@@ -2237,7 +2255,7 @@ public enum Primitive
 	},
 
 
-	prim166_FilePosition_handleInt(166, 1, Flag.CanInline)
+	prim167_FilePosition_handleInt(166, 1, Flag.CanInline)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
@@ -2254,7 +2272,7 @@ public enum Primitive
 	},
 
 
-	prim167_FileSetPosition_handleInt_newPosition(167, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim168_FileSetPosition_handleInt_newPosition(167, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)

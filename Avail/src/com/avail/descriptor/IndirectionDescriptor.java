@@ -3853,20 +3853,6 @@ public class IndirectionDescriptor extends Descriptor
 		return destination.descriptor().ObjectZoneForIndex(destination, index);
 	}
 
-	void ObjectZzzDONOTUSETupleChunkRawZoneAtPut (
-			final AvailObject object, 
-			final int index, 
-			final int value)
-	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectZzzDONOTUSETupleChunkRawZoneAtPut(
-			destination,
-			index,
-			value);
-	}
-
 	String ObjectAsNativeString (
 			final AvailObject object)
 	{
