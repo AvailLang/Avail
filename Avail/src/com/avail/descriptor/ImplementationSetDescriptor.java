@@ -422,7 +422,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		final AvailObject falseTree = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(positiveTuple, newPossible.asTuple());
 		//  Combine the subtrees together, preceded by a test-and-branch.
 		final int newSize = ((2 + trueTree.tupleSize()) + falseTree.tupleSize());
-		result = ByteTupleDescriptor.isMutableSize(true, newSize).privateMutableObjectOfSize(newSize);
+		result = ByteTupleDescriptor.isMutableSize(true, newSize).mutableObjectOfSize(newSize);
 		result.hashOrZero(0);
 		result = result.tupleAtPuttingCanDestroy(
 			1,
@@ -885,7 +885,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		//  Compute the tree.
 		final int indicesSize = object.implementationsTuple().tupleSize();
-		AvailObject indices = ByteTupleDescriptor.isMutableSize(true, indicesSize).privateMutableObjectOfSize(indicesSize);
+		AvailObject indices = ByteTupleDescriptor.isMutableSize(true, indicesSize).mutableObjectOfSize(indicesSize);
 		for (int i = 1; i <= indicesSize; i++)
 		{
 			indices = indices.tupleAtPuttingCanDestroy(

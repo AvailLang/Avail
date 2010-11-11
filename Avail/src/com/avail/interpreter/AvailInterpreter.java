@@ -523,30 +523,30 @@ public abstract class AvailInterpreter
 	 * Answer the open {@linkplain RandomAccessFile file} associated with the
 	 * specified {@linkplain CyclicTypeDescriptor cycle}.
 	 * 
-	 * @param cycle A {@linkplain CyclicTypeDescriptor cycle}.
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
 	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
 	 *         such association exists.
 	 */
-	public RandomAccessFile getFile (final @NotNull AvailObject cycle)
+	public RandomAccessFile getFile (final @NotNull AvailObject handle)
 	{
-		assert cycle.isCyclicType();
-		return openFiles.get(cycle);
+		assert handle.isCyclicType();
+		return openFiles.get(handle);
 	}
 	
 	/**
 	 * Associate the specified {@linkplain CyclicTypeDescriptor cycle} with the
 	 * open {@linkplain RandomAccessFile file}.
 	 * 
-	 * @param cycle A {@linkplain CyclicTypeDescriptor cycle}.
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
 	public void putFile (
-		final @NotNull AvailObject cycle,
+		final @NotNull AvailObject handle,
 		final @NotNull RandomAccessFile file)
 	{
-		assert cycle.isCyclicType();
-		openFiles.put(cycle, file);
+		assert handle.isCyclicType();
+		openFiles.put(handle, file);
 	}
 	
 	/**
@@ -554,13 +554,13 @@ public abstract class AvailInterpreter
 	 * CyclicTypeDescriptor cycle} and its open {@linkplain RandomAccessFile
 	 * file}, presumably because the file is about to be closed.
 	 * 
-	 * @param cycle A {@linkplain CyclicTypeDescriptor cycle}.
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 */
-	public void forgetFile (final @NotNull AvailObject cycle)
+	public void forgetFile (final @NotNull AvailObject handle)
 	{
-		assert cycle.isCyclicType();
-		assert openFiles.containsKey(cycle);
-		openFiles.remove(cycle);
+		assert handle.isCyclicType();
+		assert openFiles.containsKey(handle);
+		openFiles.remove(handle);
 	}
 	
 	public boolean hasMethodsAt (

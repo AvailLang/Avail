@@ -5417,7 +5417,7 @@ public abstract class Descriptor
 		return false;
 	}
 
-	AvailObject privateMutableObjectOfSize (
+	AvailObject mutableObjectOfSize (
 			final int size)
 	{
 		//  This method is really only appropriate for ByteTupleDescriptors and NybbleTupleDescriptors,

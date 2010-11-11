@@ -426,7 +426,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		return (((object.integerSlotsCount() - _numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
 	}
 
-	AvailObject privateMutableObjectOfSize (
+	public AvailObject mutableObjectOfSize (
 			final int size)
 	{
 		//  Build a new object instance with room for size elements.

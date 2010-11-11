@@ -422,7 +422,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	AvailObject privateMutableObjectFromNativeTwoByteString (
 			final String aNativeTwoByteString)
 	{
-		AvailObject result = privateMutableObjectOfSize(aNativeTwoByteString.length());
+		AvailObject result = mutableObjectOfSize(aNativeTwoByteString.length());
 		for (int index = 1; index <= aNativeTwoByteString.length(); index++)
 		{
 			char c = aNativeTwoByteString.charAt(index - 1);
@@ -431,7 +431,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
-	AvailObject privateMutableObjectOfSize (
+	AvailObject mutableObjectOfSize (
 			final int size)
 	{
 		//  Build a new object instance with room for size elements.

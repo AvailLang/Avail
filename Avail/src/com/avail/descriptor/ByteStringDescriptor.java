@@ -428,7 +428,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return (((object.integerSlotsCount() - _numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
 	}
 
-	AvailObject privateMutableObjectOfSize (
+	AvailObject mutableObjectOfSize (
 			final int size)
 	{
 		//  Build a new object instance with room for size elements.
@@ -450,7 +450,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	AvailObject privateMutableObjectFromNativeByteString (
 			final String aNativeByteString)
 	{
-		AvailObject result = privateMutableObjectOfSize(aNativeByteString.length());
+		AvailObject result = mutableObjectOfSize(aNativeByteString.length());
 		for (int index = 1; index <= aNativeByteString.length(); index++)
 		{
 			char c = aNativeByteString.charAt(index - 1);

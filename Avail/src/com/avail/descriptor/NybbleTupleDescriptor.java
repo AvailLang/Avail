@@ -490,7 +490,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// private-initialization
 
-	AvailObject privateMutableObjectOfSize (
+	AvailObject mutableObjectOfSize (
 			final int size)
 	{
 		//  Build a new object instance with room for size elements.

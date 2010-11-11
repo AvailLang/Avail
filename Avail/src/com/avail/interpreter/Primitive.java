@@ -42,14 +42,17 @@ import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.scalb;
+import java.awt.MultipleGradientPaint.CycleMethod;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
+import com.avail.descriptor.ByteTupleDescriptor;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.ClosureDescriptor;
 import com.avail.descriptor.ClosureTypeDescriptor;
@@ -2117,7 +2120,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 160:</strong> Open a {@linkplain RandomAccessFile file}
-	 * for reading. Answer a {@linkplain CyclicTypeDescriptor cycle} that
+	 * for reading. Answer a {@linkplain CyclicTypeDescriptor handle} that
 	 * uniquely identifies the file.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -2125,7 +2128,9 @@ public enum Primitive
 	prim160_FileOpenRead_nameString(160, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
 			
@@ -2135,7 +2140,7 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			AvailObject handle =
+			final AvailObject handle =
 				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
 			try
 			{
@@ -2154,65 +2159,167 @@ public enum Primitive
 	},
 
 
+	/**
+	 * <strong>Primitive 161:</strong> Open a {@linkplain RandomAccessFile file}
+	 * for writing. Answer a {@linkplain CyclicTypeDescriptor handle} that
+	 * uniquely identifies the file.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
 	prim161_FileOpenWrite_nameString(161, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Open a file for writing.  Answer the OS handle as an integer.
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				| stream handle |
-				stream := nameString asNativeString asFilename writeStream.
-				stream binary.
-				handle := openFiles indexOf: 0 ifAbsent: [
-					openFiles
-						add: stream;
-						size].
-				^IntegerDescriptor objectFromInt: handle
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final AvailObject handle =
+				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
+			try
+			{
+				final RandomAccessFile file = new RandomAccessFile(
+					filename.asNativeString(), "w");
+				interpreter.putFile(handle, file);
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(handle);
+			return Result.SUCCESS;
 		}
 	},
 
-
-	prim162_FileClose_handleInt(162, 1, Flag.CanInline, Flag.HasSideEffect)
+	/**
+	 * <strong>Primitive 162:</strong> Open a {@linkplain RandomAccessFile file}
+	 * for reading and writing. Answer a {@linkplain CyclicTypeDescriptor
+	 * handle} that uniquely identifies the file.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim162_FileOpenReadWrite_nameString(
+		161, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Close a file.
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				(openFiles at: handleInt extractInt) close.
-				openFiles at: handleInt extractInt put: nil.
-				^VoidDescriptor voidObject
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final AvailObject handle =
+				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
+			try
+			{
+				final RandomAccessFile file = new RandomAccessFile(
+					filename.asNativeString(), "rw");
+				interpreter.putFile(handle, file);
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(handle);
+			return Result.SUCCESS;
 		}
 	},
 
+	/**
+	 * <strong>Primitive 163:</strong> Close the {@linkplain RandomAccessFile
+	 * file} associated with the specified {@linkplain CyclicTypeDescriptor
+	 * handle}.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim163_FileClose_handleInt(162, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject handle = args.get(0);
+			if (!handle.isCyclicType() || interpreter.getFile(handle) == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.forgetFile(handle);
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
+		}
+	},
 
+	/**
+	 * <strong>Primitive 164:</strong> Read the requested number of bytes from
+	 * the file associated with the specified {@linkplain CyclicTypeDescriptor
+	 * handle} and answer them as a {@linkplain ByteTupleDescriptor tuple}. If
+	 * fewer bytes are available, then simply return a shorter tuple. If the
+	 * request amount is infinite, then answer a tuple containing all remaining
+	 * bytes.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
 	prim164_FileRead_handleInt_size(163, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Attempt to read size bytes from the stream with handle handleInt.  If fewer bytes are
-			//  available, just answer a shorter tuple.  If size is INF, answer all available remaining bytes.
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				| stream byteArray |
-				stream := openFiles at: handleInt extractInt.
-				size isFinite
-					ifTrue: [
-						byteArray := stream nextAvailable: size extractInt.
-						^ByteTupleDescriptor mutableObjectFromByteArray: byteArray]
-					ifFalse: [
-						size isPositive assert: 'Negative infinity not allowed here'.
-						^ByteTupleDescriptor mutableObjectFromByteArray: stream upToEnd].
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject handle = args.get(0);
+			final AvailObject size = args.get(1);
+			if (!handle.isCyclicType() || !size.isExtendedInteger())
+			{
+				return Result.FAILURE;
+			}
+			
+			final RandomAccessFile file = interpreter.getFile(handle);
+			final byte[] buffer;
+			final int bytesRead;
+			try
+			{
+				buffer = size.isFinite()
+					? new byte[size.extractInt()]
+					: new byte[(int) Math.min(
+						Integer.MAX_VALUE,
+						file.length() - file.getFilePointer())];
+				bytesRead = file.read(buffer);
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			final AvailObject tuple = ByteTupleDescriptor.isMutableSize(
+				true, bytesRead).mutableObjectOfSize(bytesRead);
+			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
+			{
+				tuple.rawByteAtPut(i, buffer[i - 1]);
+			}
+			
+			interpreter.primitiveResult(tuple);
+			return Result.SUCCESS;
 		}
 	},
 
