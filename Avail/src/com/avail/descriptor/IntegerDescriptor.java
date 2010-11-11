@@ -37,6 +37,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.scalb;
 import java.math.BigInteger;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
 @IntegerSlots("rawSignedIntegerAt#")
 public class IntegerDescriptor extends ExtendedNumberDescriptor
@@ -424,10 +425,28 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	int ObjectExtractInt (
 		final AvailObject object)
 	{
-		//  Extract a Smalltalk Integer from object.  The value must be in [-2^31..2^31).
-
 		assert (object.integerSlotsCount() == 1) : "Integer value out of bounds";
 		return object.rawSignedIntegerAt(1);
+	}
+	
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	long ObjectExtractLong (final @NotNull AvailObject object)
+	{
+		assert
+			(object.integerSlotsCount() >= 1 && object.integerSlotsCount() <= 2)
+			: "Integer value out of bounds";
+		
+		if (object.integerSlotsCount() == 1)
+		{
+			return object.rawSignedIntegerAt(1);
+		}
+		
+		long value = object.rawSignedIntegerAt(1);
+		value |= object.rawSignedIntegerAt(2) << 32L;
+		return value;
 	}
 
 	@Override
@@ -1029,7 +1048,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	// Startup/shutdown
 	static void createWellKnownObjects ()
 	{
-		ImmutableByteObjects = new AvailObject [256];
+		immutableByteObjects = new AvailObject [256];
 		for (int i = 0; i <= 255; i++)
 		{
 			AvailObject object = AvailObject.newIndexedDescriptor(
@@ -1037,7 +1056,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 				IntegerDescriptor.mutableDescriptor());
 			object.rawSignedIntegerAtPut(1, i);
 			object.makeImmutable();
-			ImmutableByteObjects[i] = object;
+			immutableByteObjects[i] = object;
 		}
 	}
 
@@ -1045,7 +1064,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		//  IntegerDescriptor initializeClassInstanceVariables
 
-		ImmutableByteObjects = null;
+		immutableByteObjects = null;
 		HashesOfBytes = new int [256];
 		for (int i = 0; i <= 255; i++)
 		{
@@ -1056,34 +1075,76 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 
 	/* Value conversion... */
+	
+	/**
+	 * Convert the specified Java {@code long} into an Avail {@linkplain
+	 * IntegerDescriptor integer}.
+	 * 
+	 * @param anInteger A Java {@code long}.
+	 * @return An {@link AvailObject}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public static @NotNull AvailObject objectFromLong (final long anInteger)
+	{
+		if (anInteger >= 0 && anInteger <= 255)
+		{
+			return immutableByteObjects[(int) anInteger];
+		}
+		if (anInteger >= Integer.MIN_VALUE && anInteger <= Integer.MAX_VALUE)
+		{
+			AvailObject result = AvailObject.newIndexedDescriptor(
+				1, IntegerDescriptor.mutableDescriptor());
+			result.rawSignedIntegerAtPut(1, (int) anInteger);
+			return result;
+		}
+		AvailObject result = AvailObject.newIndexedDescriptor(
+			2, IntegerDescriptor.mutableDescriptor());
+		result.rawSignedIntegerAtPut(1, (int) anInteger);
+		result.rawSignedIntegerAtPut(2, (int) (anInteger >> 32L));
+		return result;
+	}
 
+	/**
+	 * Convert the specified Java {@code int} into an Avail {@linkplain
+	 * IntegerDescriptor integer}.
+	 * 
+	 * @param anInteger A Java {@code int}.
+	 * @return An {@link AvailObject}.
+	 */
 	public static AvailObject objectFromInt (int anInteger)
 	{
 		if (anInteger >= 0 && anInteger <= 255)
 		{
-			return ImmutableByteObjects[anInteger];
+			return immutableByteObjects[anInteger];
 		}
 		AvailObject result = AvailObject.newIndexedDescriptor(1, IntegerDescriptor.mutableDescriptor());
 		result.rawSignedIntegerAtPut(1, anInteger);
 		return result;
 	}
 
+	/**
+	 * Convert the specified byte-valued Java {@code short} into an Avail
+	 * {@linkplain IntegerDescriptor integer}.
+	 * 
+	 * @param anInteger A Java {@code int}.
+	 * @return An {@link AvailObject}.
+	 */
 	public static AvailObject objectFromByte (short anInteger)
 	{
-		//  Note that here we can safely return by reference.
-		return ImmutableByteObjects[anInteger];
+		assert anInteger >= 0 && anInteger <= 255;
+		return immutableByteObjects[anInteger];
 	}
 
 	public static AvailObject zero ()
 	{
 		//  Note that here we can safely return by reference.
-		return ImmutableByteObjects[0];
+		return immutableByteObjects[0];
 	}
 
 	public static AvailObject one ()
 	{
 		//  Note that here we can safely return by reference.
-		return ImmutableByteObjects[1];
+		return immutableByteObjects[1];
 	}
 
 	static int hashOfByte (short anInteger)
@@ -1363,7 +1424,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		0x00FE787B, 0x003A91BD, 0x0092723C, 0x00334130, 0x004CD1B0, 0x002BC5CC, 0x00430142, 0x006AE455,
 		0x002606AB, 0x0039F9D0, 0x002685F9, 0x008917C9, 0x00433F9C, 0x00AFB3A3, 0x003314C9, 0x005EBBBE
 	};
-	static AvailObject [] ImmutableByteObjects = null;
+	static AvailObject [] immutableByteObjects = null;
 
 
 	/* Descriptor lookup */

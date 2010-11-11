@@ -2185,8 +2185,9 @@ public enum Primitive
 				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
 			try
 			{
+				// TODO: Figure out how to make this write-only ...
 				final RandomAccessFile file = new RandomAccessFile(
-					filename.asNativeString(), "w");
+					filename.asNativeString(), "rw");
 				interpreter.putFile(handle, file);
 			}
 			catch (final IOException e)
@@ -2270,11 +2271,11 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 164:</strong> Read the requested number of bytes from
-	 * the file associated with the specified {@linkplain CyclicTypeDescriptor
-	 * handle} and answer them as a {@linkplain ByteTupleDescriptor tuple}. If
-	 * fewer bytes are available, then simply return a shorter tuple. If the
-	 * request amount is infinite, then answer a tuple containing all remaining
-	 * bytes.
+	 * the {@link RandomAccessFile file} associated with the specified
+	 * {@linkplain CyclicTypeDescriptor handle} and answer them as a {@linkplain
+	 * ByteTupleDescriptor tuple}. If fewer bytes are available, then simply
+	 * return a shorter tuple. If the request amount is infinite, then answer a
+	 * tuple containing all remaining bytes.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2316,11 +2317,19 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final AvailObject tuple = ByteTupleDescriptor.isMutableSize(
-				true, bytesRead).mutableObjectOfSize(bytesRead);
-			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
+			final AvailObject tuple;
+			if (bytesRead > 0)
 			{
-				tuple.rawByteAtPut(i, buffer[i - 1]);
+				tuple = ByteTupleDescriptor.isMutableSize(
+					true, bytesRead).mutableObjectOfSize(bytesRead);
+				for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
+				{
+					tuple.rawByteAtPut(i, buffer[i - 1]);
+				}
+			}
+			else
+			{
+				tuple = TupleDescriptor.empty();
 			}
 			
 			interpreter.primitiveResult(tuple);
@@ -2330,9 +2339,10 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 165:</strong> Write the specified {@linkplain
-	 * TupleDescriptor tuple} to the file associated with the {@linkplain
-	 * CyclicTypeDescriptor handle}. Answer a {@linkplain ByteTupleDescriptor
-	 * tuple} containing the bytes that could not be written.
+	 * TupleDescriptor tuple} to the {@linkplain RandomAccessFile file}
+	 * associated with the {@linkplain CyclicTypeDescriptor handle}. Answer a
+	 * {@linkplain ByteTupleDescriptor tuple} containing the bytes that could
+	 * not be written.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2381,54 +2391,140 @@ public enum Primitive
 			return Result.SUCCESS;
 		}
 	},
-
-
-	prim166_FileSize_handleInt(166, 1, Flag.CanInline)
+	
+	/**
+	 * <strong>Primitive 166:</strong> Answer the size of the {@linkplain
+	 * RandomAccessFile file} associated with the specified {@linkplain
+	 * CyclicTypeDescriptor handle}. Supports file sizes greater than 2GB.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim166_FileSize_handle(166, 1, Flag.CanInline)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Answer the current size of the stream (usually the size of a file, but sockets
-			//  might answer INF).  Currently restricted to 2GB (signed 32).
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				^IntegerDescriptor
-					objectFromInt: (openFiles at: handleInt extractInt) size
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject handle = args.get(0);
+			if (!handle.isCyclicType())
+			{
+				return Result.FAILURE;
+			}
+			
+			final RandomAccessFile file = interpreter.getFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			final long fileSize;
+			try
+			{
+				fileSize = file.length();
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromLong(fileSize));
+			return Result.SUCCESS;
 		}
 	},
 
-
-	prim167_FilePosition_handleInt(167, 1, Flag.CanInline)
+	/**
+	 * <strong>Primitive 167:</strong> Answer the current position of the file
+	 * pointer within the {@linkplain RandomAccessFile file} associated with the
+	 * specified {@linkplain CyclicTypeDescriptor handle}. Supports file sizes
+	 * and positions greater than 2GB.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim167_FilePosition_handle(167, 1, Flag.CanInline)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Answer the current position of the stream (usually the position in a file, but sockets
-			//  might answer INF).  Currently restricted to 2GB (signed 32).
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				^IntegerDescriptor
-					objectFromInt: (openFiles at: handleInt extractInt) position
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject handle = args.get(0);
+			if (!handle.isCyclicType())
+			{
+				return Result.FAILURE;
+			}
+			
+			final RandomAccessFile file = interpreter.getFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			final long filePosition;
+			try
+			{
+				filePosition = file.getFilePointer();
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromLong(filePosition));
+			return Result.SUCCESS;
 		}
 	},
 
-
-	prim168_FileSetPosition_handleInt_newPosition(168, 2, Flag.CanInline, Flag.HasSideEffect)
+	/**
+	 * <strong>Primitive 168:</strong> Set the current position of the file
+	 * pointer within the {@linkplain RandomAccessFile file} associated with the
+	 * specified {@linkplain CyclicTypeDescriptor handle}. Supports file sizes
+	 * and positions greater than 2GB.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim168_FileSetPosition_handle_newPosition(
+		168, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Set the current position of the stream (fail for sockets).
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				(openFiles at: handleInt extractInt) position: newPosition extractInt.
-				^VoidDescriptor voidObject
-			 */
+			assert args.size() == 2;
+			
+			final AvailObject handle = args.get(0);
+			final AvailObject filePosition = args.get(1);
+			if (!handle.isCyclicType()
+				|| !filePosition.isExtendedInteger()
+				|| !filePosition.isFinite())
+			{
+				return Result.FAILURE;
+			}
+			
+			final RandomAccessFile file = interpreter.getFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			try
+			{
+				file.seek(filePosition.extractLong());
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
 		}
 	},
 

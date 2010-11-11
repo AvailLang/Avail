@@ -45,16 +45,16 @@ Body
 
 "Input File" is explicit subtype of File, Iterator with
 	[elementType->[]->byte]
-	[handle->integer];
+	[handle->cyclicType];
 
 
 /* Instance creation... */
 
 Method "_named_" is [fileType : Input File type, name : string |
-	fileHandle : integer := [theName : string |
+	fileHandle : cyclicType := [theName : string |
 		Primitive 160;
 		Failed;
-	] : integer (name);
+	] : cyclicType (name);
 	Input File new with <
 		<elementType, [Crash "don't call";] : byte>,
 		<handle, fileHandle>
@@ -65,8 +65,8 @@ Method "_named_" is [fileType : Input File type, name : string |
 /* Basic accessing... */
 
 Method "next_from_" is [count : [0..INF], file : Input File |
-	[handle : integer, count : [0..INF] |
-		Primitive 163;
+	[handle : cyclicType, count : [0..INF] |
+		Primitive 164;
 		Failed;
 	] : tuple of byte (file -> handle, count);
 ] : tuple of byte;

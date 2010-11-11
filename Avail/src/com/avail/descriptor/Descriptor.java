@@ -3626,6 +3626,22 @@ public abstract class Descriptor
 		error("Subclass responsibility: ObjectExtractInt: in Avail.Descriptor", object);
 		return 0;
 	}
+	
+	/**
+	 * Extract a 64-bit signed Java {@code long} from the specified Avail
+	 * {@linkplain IntegerDescriptor integer}.
+	 * 
+	 * @param object An {@link AvailObject}.
+	 * @return A 64-bit signed Java {@code long}
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	long ObjectExtractLong (final @NotNull AvailObject object)
+	{
+		error(
+			"Subclass responsiblity: ObjectExtractLong() in "
+			+ getClass().getCanonicalName());
+		return 0L;
+	}
 
 	byte ObjectExtractNybble (
 			final AvailObject object)

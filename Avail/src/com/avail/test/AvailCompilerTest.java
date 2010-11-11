@@ -409,13 +409,13 @@ public class AvailCompilerTest
 			"Curry-main",
 			"Curry-test",
 			"IO-input file",
-			// "IO-test files",
+			"IO-test files",
 			"IO-object loading",
 			"IO-main",
-			// "IO-test dumping",
-			// "IO-test",
+			"IO-test dumping",
+			"IO-test",
 			"Kernel Tests",
-			// "test everything"
+			"test everything"
 		};
 
 		final int size = tier4ModulePaths.length + modulePaths.length;

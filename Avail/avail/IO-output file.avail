@@ -51,10 +51,10 @@ Body
 /* Instance creation... */
 
 Method "_named_" is [fileType : Output File type, name : string |
-	fileHandle : integer := [theName : string |
+	fileHandle : cyclicType := [theName : string |
 		Primitive 161;
 		Failed;
-	] : integer (name);
+	] : cyclicType (name);
 	Output File new with <
 		<handle, fileHandle>
 	>;
@@ -64,8 +64,8 @@ Method "_named_" is [fileType : Output File type, name : string |
 /* Basic accessing... */
 
 Method "Write_to_" is [bytes : tuple of byte, file : Output File |
-	residue ::= ([handle : integer, bytes2 : tuple of byte |
-		Primitive 164;
+	residue ::= ([handle : cyclicType, bytes2 : tuple of byte |
+		Primitive 165;
 		Failed;
 	] : tuple of byte) (file -> handle, bytes);
 	if ||residue|| > 0 then [Crash "File write didn't finish all bytes.";];

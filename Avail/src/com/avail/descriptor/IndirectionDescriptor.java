@@ -4339,6 +4339,16 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectExtractInt(destination);
 	}
+	
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	long ObjectExtractLong (final @NotNull AvailObject object)
+	{
+		final AvailObject destination = object.traversed();
+		return destination.descriptor().ObjectExtractLong(destination);
+	}
 
 	byte ObjectExtractNybble (
 			final AvailObject object)

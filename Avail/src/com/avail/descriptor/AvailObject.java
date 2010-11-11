@@ -1474,6 +1474,18 @@ public abstract class AvailObject
 
 		return descriptor().ObjectExtractInt(this);
 	}
+	
+	/**
+	 * Extract a 64-bit signed Java {@code long} from the {@linkplain
+	 * AvailObject receiver}.
+	 * 
+	 * @return A 64-bit signed Java {@code long}
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public long extractLong ()
+	{
+		return descriptor().ObjectExtractLong(this);
+	}
 
 	public byte extractNybble ()
 	{
