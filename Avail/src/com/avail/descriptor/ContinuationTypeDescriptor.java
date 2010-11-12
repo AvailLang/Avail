@@ -108,7 +108,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.continuationType();
+		return Types.continuationType.object();
 	}
 
 	int ObjectHash (
@@ -135,7 +135,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.continuationType();
+		return Types.continuationType.object();
 	}
 
 
@@ -212,7 +212,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		if (! (closType1.numArgs() == closType2.numArgs()))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		final AvailObject intersection = AvailObject.newIndexedDescriptor(closType1.numArgs(), ClosureTypeDescriptor.mutableDescriptor());
 		AvailObject.lock(intersection);
@@ -257,7 +257,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		if (! (closType1.numArgs() == closType2.numArgs()))
 		{
-			return TypeDescriptor.continuation();
+			return Types.continuation.object();
 		}
 		final AvailObject closureUnion = AvailObject.newIndexedDescriptor(closType1.numArgs(), ClosureTypeDescriptor.mutableDescriptor());
 		AvailObject.lock(closureUnion);

@@ -37,7 +37,7 @@ import com.avail.descriptor.ContainerDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2RawInstruction;
@@ -555,7 +555,8 @@ public class L2ChunkDescriptor extends Descriptor
 		assert (head.index() == 0);
 		assert (head.nextIndex() == 0);
 		assert (head.previousIndex() == 0);
-		final AvailObject allChunks = ContainerDescriptor.newContainerWithInnerType(TypeDescriptor.all());
+		final AvailObject allChunks = ContainerDescriptor.newContainerWithInnerType(
+			Types.all.object());
 		allChunks.setValue(TupleDescriptor.empty());
 		HeadOfRing = head;
 		AllChunks = allChunks;

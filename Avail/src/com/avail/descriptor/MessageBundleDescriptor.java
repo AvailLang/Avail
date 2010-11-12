@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 
@@ -257,7 +257,7 @@ public class MessageBundleDescriptor extends Descriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return TypeDescriptor.messageBundle();
+		return Types.messageBundle.object();
 	}
 
 	int ObjectHash (
@@ -273,7 +273,7 @@ public class MessageBundleDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.messageBundle();
+		return Types.messageBundle.object();
 	}
 
 

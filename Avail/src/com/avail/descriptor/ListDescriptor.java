@@ -35,7 +35,8 @@ package com.avail.descriptor;
 import com.avail.descriptor.ApproximateTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.util.List;
 
 @ObjectSlots("tuple")
@@ -111,7 +112,7 @@ public class ListDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(TypeDescriptor.voidType()))
+		if (aType.equals(Types.voidType.object()))
 		{
 			return true;
 		}

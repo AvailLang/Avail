@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.instruction;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.L2Translator;
 import com.avail.interpreter.levelTwo.instruction.L2GetTypeInstruction;
@@ -114,7 +114,7 @@ public class L2GetTypeInstruction extends L2Instruction
 		}
 		else
 		{
-			anL2Translator.registerTypeAtPut(_dest, TypeDescriptor.type());
+			anL2Translator.registerTypeAtPut(_dest, Types.type.object());
 		}
 		if (anL2Translator.registerHasConstantAt(_source))
 		{

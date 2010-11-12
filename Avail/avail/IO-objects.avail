@@ -34,7 +34,8 @@ Module "IO-objects"
 Extends
 Uses
 	"Kernel",
-	"Reflection-methods"
+	"Reflection-methods",
+	"Reflection-parse nodes"
 Names
 	"_exploded",
 	"_imploded"
@@ -46,18 +47,42 @@ Body
 
 /* Helper tables... */
 
-primitiveTypes : tuple of primType;
+primitiveTypes : tuple of type;
 primitiveTypes := <
-	void,
 	boolean,
-	falseType,
 	trueType,
+	falseType,
+	character,
 	closure,
 	compiledCode,
+	container,
 	continuation,
 	double,
-	float>;
-primitiveTypeIndices : map from primType to natural number;
+	float,
+	implementationSet,
+	messageBundle,
+	messageBundleTree,
+	parseNode,
+	assignmentNode,
+	blockNode,
+	listNode,
+	literalNode,
+	referenceNode,
+	sendNode,
+	superCastNode,
+	variableDeclarationNode,
+	syntheticConstantNode,
+	initializingDeclarationNode,
+	constantDeclarationNode,
+	labelNode,
+	syntheticDeclarationNode,
+	variableUseNode,
+	process,
+	signature,
+	abstractSignature,
+	forwardSignature,
+	methodSignature>;
+primitiveTypeIndices : map from type to natural number;
 primitiveTypeIndices := [->];
 1 to ||primitiveTypes|| do [i : natural number |
 	*&primitiveTypeIndices[primitiveTypes[i]] := i;
@@ -157,10 +182,10 @@ encoder [c : closure |
 decoder [t : tuple [2..INF) like <[11..11], compiledCode> default all |
 	closure from t[2] outer variables t[3..||t||];];
 
-encoder [pt : primType |
-	<12, primitiveTypeIndices[pt]>;
-] : tuple [1..INF) like <[12..15]> default all
-decoder [t : tuple [1..INF) like <[12..15]> default all |
+encoder [t : type |
+	<12, primitiveTypeIndices[t]>;
+] : tuple [1..INF) like <[12..16]> default all
+decoder [t : tuple [1..INF) like <[12..16]> default all |
 	cast t[2] into [n : natural number | primitiveTypes[n];];
 ];
 

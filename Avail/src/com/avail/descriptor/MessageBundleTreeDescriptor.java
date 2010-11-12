@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public abstract class MessageBundleTreeDescriptor extends Descriptor
 {
@@ -53,7 +53,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return TypeDescriptor.messageBundleTree();
+		return Types.messageBundleTree.object();
 	}
 
 	int ObjectHash (
@@ -72,7 +72,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.messageBundleTree();
+		return Types.messageBundleTree.object();
 	}
 
 

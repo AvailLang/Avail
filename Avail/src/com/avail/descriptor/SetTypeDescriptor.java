@@ -138,7 +138,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.setType();
+		return Types.setType.object();
 	}
 
 	int ObjectHash (
@@ -174,7 +174,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.setType();
+		return Types.setType.object();
 	}
 
 
@@ -271,9 +271,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 			AvailObject sizeRange,
 			AvailObject contentType)
 	{
-		if (sizeRange.equals(TypeDescriptor.terminates()))
+		if (sizeRange.equals(Types.terminates.object()))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		assert(sizeRange.lowerBound().isFinite());
 		assert(IntegerDescriptor.objectFromByte((byte)0).lessOrEqual(sizeRange.lowerBound()));
@@ -282,20 +282,20 @@ public class SetTypeDescriptor extends TypeDescriptor
 		if (sizeRange.upperBound().equals(IntegerDescriptor.objectFromByte((byte)0)))
 		{
 			result.sizeRange(sizeRange);
-			result.contentType(TypeDescriptor.terminates());
+			result.contentType(Types.terminates.object());
 		}
-		else if (contentType.equals(TypeDescriptor.terminates()))
+		else if (contentType.equals(Types.terminates.object()))
 		{
 			if (sizeRange.lowerBound().equals(IntegerDescriptor.objectFromByte((byte)0)))
 			{
 				//  sizeRange includes at least 0 and 1, but the content type is terminates, so no contents exist.
 				result.sizeRange(IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.objectFromByte((byte)0)));
-				result.contentType(TypeDescriptor.terminates());
+				result.contentType(Types.terminates.object());
 			}
 			else
 			{
 				//  sizeRange does not include 0, and terminates is not the content type, so the whole type is inconsistent.  Answer terminates
-				return TypeDescriptor.terminates();
+				return Types.terminates.object();
 			}
 		}
 		else

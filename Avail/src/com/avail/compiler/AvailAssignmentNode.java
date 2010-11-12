@@ -36,7 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
 import com.avail.compiler.AvailVariableUseNode;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
@@ -62,7 +62,7 @@ public class AvailAssignmentNode extends AvailParseNode
 
 	public AvailObject type ()
 	{
-		return TypeDescriptor.voidType();
+		return Types.voidType.object();
 	}
 
 	public AvailVariableUseNode variable ()

@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.InfinityDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 
 @IntegerSlots("hash")
 @ObjectSlots({
@@ -91,7 +90,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectSizeRange (
@@ -100,7 +99,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
 		//  terminates, answer the degenerate integerType called terminates.
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectValueType (
@@ -109,7 +108,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 
@@ -124,7 +123,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  terminates if the index is out of bounds, which is always because I'm the degenerate
 		//  tupleType called terminates.
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectUnionOfTypesAtThrough (
@@ -136,7 +135,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer terminates if the index is out of bounds, which is always because I'm the degenerate
 		//  tupleType called terminates.
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectDefaultType (
@@ -144,7 +143,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	{
 		//  To support the tupleType protcol, I must answer terminates now.
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeTuple (

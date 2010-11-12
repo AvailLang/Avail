@@ -40,7 +40,8 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +72,7 @@ public class AvailListNode extends AvailParseNode
 		final AvailObject tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.objectFromInt(types.size())),
 			TupleDescriptor.mutableObjectFromArray(types),
-			TypeDescriptor.terminates());
+			Types.terminates.object());
 		_listType = ListTypeDescriptor.listTypeForTupleType(tupleType);
 		//  The problem isn't really here, but this Avail compiler is only a bootstrapper.
 		_listType.makeImmutable();

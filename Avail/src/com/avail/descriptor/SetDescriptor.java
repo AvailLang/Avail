@@ -38,7 +38,7 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
@@ -131,11 +131,11 @@ public class SetDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(TypeDescriptor.voidType()))
+		if (aTypeObject.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(TypeDescriptor.all()))
+		if (aTypeObject.equals(Types.all.object()))
 		{
 			return true;
 		}

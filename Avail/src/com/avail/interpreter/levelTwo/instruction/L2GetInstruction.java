@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.instruction;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.L2Translator;
 import com.avail.interpreter.levelTwo.instruction.L2GetInstruction;
@@ -107,9 +107,9 @@ public class L2GetInstruction extends L2Instruction
 		if (anL2Translator.registerHasTypeAt(_sourceVar))
 		{
 			AvailObject varType = anL2Translator.registerTypeAt(_sourceVar);
-			varType = varType.typeIntersection(TypeDescriptor.container());
+			varType = varType.typeIntersection(Types.container.object());
 			anL2Translator.registerTypeAtPut(_sourceVar, varType);
-			if ((varType.isSubtypeOf(TypeDescriptor.container()) && (! varType.equals(TypeDescriptor.container()))))
+			if ((varType.isSubtypeOf(Types.container.object()) && (! varType.equals(Types.container.object()))))
 			{
 				anL2Translator.registerTypeAtPut(_dest, varType.innerType());
 			}

@@ -36,7 +36,8 @@ import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.util.Formatter;
 import java.util.List;
 
@@ -253,7 +254,7 @@ extends Descriptor
 	@ThreadSafe
 	@NotNull AvailObject ObjectExactType (final @NotNull AvailObject object)
 	{
-		return TypeDescriptor.character();
+		return Types.character.object();
 	}
 
 	@Override
@@ -279,7 +280,7 @@ extends Descriptor
 	@ThreadSafe
 	AvailObject ObjectType (final @NotNull AvailObject object)
 	{
-		return TypeDescriptor.character();
+		return Types.character.object();
 	}
 
 	/**

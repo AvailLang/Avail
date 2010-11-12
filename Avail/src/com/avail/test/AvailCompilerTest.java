@@ -147,12 +147,13 @@ public class AvailCompilerTest
 			{
 				final char[] sourceBuffer = source.value.toCharArray();
 				final StringBuilder builder = new StringBuilder();
-				builder.append(sourceBuffer, 0, e.position());
-				builder.append(e.errorText());
+				System.err.append(new String(sourceBuffer, 0, e.position()));
+				System.err.append(e.errorText());
 				builder.append(
-					sourceBuffer,
-					e.position(),
-					sourceBuffer.length - e.position());
+					new String(
+						sourceBuffer,
+						e.position(),
+						sourceBuffer.length - e.position()));
 				System.err.printf("%s%n", builder);
 			}
 		}
@@ -396,6 +397,7 @@ public class AvailCompilerTest
 			"Reflection-methods",
 			"Reflection-method validation",
 			"Reflection-modules",
+			"Reflection-parse nodes",
 			"Reflection-main",
 			"Compiler-parse nodes",
 			"Compiler-instruction generator",

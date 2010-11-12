@@ -115,7 +115,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.generalizedClosureType();
+		return Types.generalizedClosureType.object();
 	}
 
 	int ObjectHash (
@@ -131,7 +131,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.generalizedClosureType();
+		return Types.generalizedClosureType.object();
 	}
 
 

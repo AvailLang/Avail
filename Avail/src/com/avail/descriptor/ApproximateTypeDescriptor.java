@@ -710,7 +710,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		{
 			return object.instance().tupleAt(index).type();
 		}
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectUnionOfTypesAtThrough (
@@ -730,15 +730,15 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		}
 		if ((endIndex <= 0))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		final AvailObject tupleObject = object.instance();
 		final int upperIndex = tupleObject.tupleSize();
 		if ((startIndex > upperIndex))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
-		AvailObject unionType = TypeDescriptor.terminates();
+		AvailObject unionType = Types.terminates.object();
 		for (int i = max (startIndex, 1), _end1 = min (endIndex, upperIndex); i <= _end1; i++)
 		{
 			unionType = unionType.typeUnion(tupleObject.tupleAt(i).type());
@@ -756,7 +756,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		}
 		if ((object.instance().tupleSize() == 0))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		return object.instance().tupleAt(object.instance().tupleSize()).type();
 	}

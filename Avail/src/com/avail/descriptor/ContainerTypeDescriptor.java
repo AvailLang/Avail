@@ -106,7 +106,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.containerType();
+		return Types.containerType.object();
 	}
 
 	int ObjectHash (
@@ -133,7 +133,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.containerType();
+		return Types.containerType.object();
 	}
 
 
@@ -186,7 +186,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeUnion (
@@ -216,7 +216,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return TypeDescriptor.container();
+		return Types.container.object();
 	}
 
 

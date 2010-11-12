@@ -160,7 +160,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.integerType();
+		return Types.integerType.object();
 	}
 
 	int ObjectHash (
@@ -185,7 +185,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.integerType();
+		return Types.integerType.object();
 	}
 
 
@@ -537,12 +537,12 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		}
 		if (high.lessThan(low))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		if (high.equals(low) && ((! highInc) || (! lowInc)))
 		{
 			//  Unusual cases such as [INF..INF) give preference to exclusion over inclusion.
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		AvailObject result = AvailObject.newIndexedDescriptor(0, IntegerRangeTypeDescriptor.mutableDescriptor());
 		result.lowerBound(low);

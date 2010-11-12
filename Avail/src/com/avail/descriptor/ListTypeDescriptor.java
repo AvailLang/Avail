@@ -107,7 +107,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.listType();
+		return Types.listType.object();
 	}
 
 	int ObjectHash (
@@ -134,7 +134,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.listType();
+		return Types.listType.object();
 	}
 
 

@@ -34,7 +34,7 @@ package com.avail.compiler;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarationNode
 {
@@ -49,7 +49,7 @@ public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarat
 		//  Set the constant variable.
 
 
-		assert anAvailObject.isInstanceOfSubtypeOf(TypeDescriptor.container());
+		assert anAvailObject.isInstanceOfSubtypeOf(Types.container.object());
 		_availVariable = anAvailObject;
 	}
 

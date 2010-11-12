@@ -161,7 +161,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return TypeDescriptor.abstractSignature();
+		return TypeDescriptor.Types.abstractSignature.object();
 	}
 
 	int ObjectHash (
@@ -178,7 +178,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.abstractSignature();
+		return TypeDescriptor.Types.abstractSignature.object();
 	}
 
 

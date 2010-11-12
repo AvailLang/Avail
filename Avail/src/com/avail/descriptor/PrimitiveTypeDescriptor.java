@@ -169,7 +169,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  This primitive type is a supertype of aClosureType if and only if this
 		//  primitive type is a supertype of 'closure'.
 
-		return TypeDescriptor.closure().isSubtypeOf(object);
+		return Types.closure.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfContainerType (
@@ -178,7 +178,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	{
 		//  A primitive type is a supertype of a container type if it is a supertype of container.
 
-		return TypeDescriptor.container().isSubtypeOf(object);
+		return Types.container.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfContinuationType (
@@ -187,7 +187,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	{
 		//  A primitive type is a supertype of a continuation type if it is a supertype of continuation.
 
-		return TypeDescriptor.continuation().isSubtypeOf(object);
+		return Types.continuation.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfCyclicType (
@@ -196,7 +196,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	{
 		//  Only the primitive type 'cyclicType' and its ancestors are ancestors of a cyclic type.
 
-		return TypeDescriptor.cyclicType().isSubtypeOf(object);
+		return Types.cyclicType.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfGeneralizedClosureType (
@@ -206,7 +206,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  This primitive type is a supertype of aGeneralizedClosureType if and only if this
 		//  primitive type is a supertype of all, the parent of '[...]->void'.
 
-		return TypeDescriptor.all().isSubtypeOf(object);
+		return Types.all.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfIntegerRangeType (
@@ -215,7 +215,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	{
 		//  Parent of the top integer range type is all, so continue searching there.
 
-		return TypeDescriptor.all().isSubtypeOf(object);
+		return Types.all.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfListType (
@@ -226,7 +226,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  'all' is not in the hierarchy.  Thus object, a primitive type, is a supertype of aListType iff
 		//  object is a supertype of (i.e., equal to) void.
 
-		return TypeDescriptor.voidType().isSubtypeOf(object);
+		return Types.voidType.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfMapType (
@@ -236,7 +236,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  This primitive type is a supertype of aMapType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return TypeDescriptor.all().isSubtypeOf(object);
+		return Types.all.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfObjectMeta (
@@ -246,7 +246,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  Check if I'm a supertype of the given lazy object meta.  Only type and its
 		//  ancestors are supertypes of an object meta.
 
-		return TypeDescriptor.type().isSubtypeOf(object);
+		return Types.type.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfObjectMetaMeta (
@@ -256,7 +256,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  Check if I'm a supertype of the given object meta meta.  Only meta and its
 		//  ancestors are supertypes of an object meta meta.
 
-		return TypeDescriptor.meta().isSubtypeOf(object);
+		return Types.meta.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfObjectType (
@@ -266,7 +266,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  Check if I'm a supertype of the given eager object type.  Only all and its
 		//  ancestors are supertypes of an object type.
 
-		return TypeDescriptor.all().isSubtypeOf(object);
+		return Types.all.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfPrimitiveType (
@@ -289,7 +289,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  This primitive type is a supertype of aSetType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return TypeDescriptor.all().isSubtypeOf(object);
+		return Types.all.object().isSubtypeOf(object);
 	}
 
 	boolean ObjectIsSupertypeOfTupleType (
@@ -299,7 +299,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		//  This primitive type is a supertype of aTupleType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return TypeDescriptor.all().isSubtypeOf(object);
+		return Types.all.object().isSubtypeOf(object);
 	}
 
 	AvailObject ObjectTypeIntersection (
@@ -316,11 +316,11 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		{
 			return another;
 		}
-		if ((object.isSubtypeOf(TypeDescriptor.type()) && another.isSubtypeOf(TypeDescriptor.type())))
+		if ((object.isSubtypeOf(Types.type.object()) && another.isSubtypeOf(Types.type.object())))
 		{
-			return TypeDescriptor.terminatesType();
+			return Types.terminatesType.object();
 		}
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeUnion (

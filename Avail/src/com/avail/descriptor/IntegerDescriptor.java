@@ -38,6 +38,7 @@ import static java.lang.Math.scalb;
 import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 @IntegerSlots("rawSignedIntegerAt#")
 public class IntegerDescriptor extends ExtendedNumberDescriptor
@@ -223,11 +224,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(TypeDescriptor.voidType()))
+		if (aType.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aType.equals(TypeDescriptor.all()))
+		if (aType.equals(Types.all.object()))
 		{
 			return true;
 		}

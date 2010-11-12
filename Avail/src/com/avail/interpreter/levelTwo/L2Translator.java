@@ -35,7 +35,7 @@ package com.avail.interpreter.levelTwo;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
@@ -357,7 +357,7 @@ public class L2Translator implements L1OperationDispatcher
 			AvailObject type;
 			type = registerHasTypeAt(arg)
 				? registerTypeAt(arg)
-				: TypeDescriptor.voidType();
+				: Types.voidType.object();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
@@ -376,7 +376,7 @@ public class L2Translator implements L1OperationDispatcher
 			AvailObject type;
 			type = registerHasConstantAt(argTypeRegister)
 				? registerConstantAt(argTypeRegister)
-				: TypeDescriptor.voidType();
+				: Types.voidType.object();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);

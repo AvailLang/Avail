@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.levelOne.AvailDecompiler;
 import com.avail.interpreter.levelOne.L1Instruction;
@@ -265,7 +266,7 @@ public class ClosureDescriptor extends Descriptor
 		L1InstructionWriter writer = new L1InstructionWriter();
 
 		AvailObject [] argTypes = new AvailObject [numArgs];
-		fill(argTypes, TypeDescriptor.all());
+		fill(argTypes, Types.all.object());
 		writer.argumentTypes(argTypes);
 		writer.returnType(constantResult.type());
 
@@ -290,7 +291,7 @@ public class ClosureDescriptor extends Descriptor
 		AvailObject [] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
 		{
-			assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(TypeDescriptor.type());
+			assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(Types.type.object());
 			argTypesArray[i - 1] = argTypes.tupleAt(i);
 		}
 

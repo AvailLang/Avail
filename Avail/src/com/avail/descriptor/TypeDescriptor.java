@@ -35,8 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
-import java.util.HashMap;
-import java.util.Map;
+
 import static com.avail.descriptor.AvailObject.*;
 
 public abstract class TypeDescriptor extends Descriptor
@@ -49,11 +48,15 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  A type can only be equal to another type, and only if each type is a subtype of the other.
-		//  This is rewritten in descriptor subclasses for efficiency and reversing the direction of the
-		//  recursion between subtype checking and equality checking.
+		/* A type can only be equal to another type, and only if each type is a
+		 * subtype of the other.  This is rewritten in descriptor subclasses for
+		 * efficiency and reversing the direction of the recursion between
+		 * subtype checking and equality checking.
+		 */
 
-		return (another.isType() && (object.isSubtypeOf(another) && another.isSubtypeOf(object)));
+		return another.isType()
+			&& object.isSubtypeOf(another)
+			&& another.isSubtypeOf(object);
 	}
 
 
@@ -64,7 +67,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
+		/* Check if object (a type) is a subtype of aType (should also be a
+		 * type).
+		 */
 
 		error("Subclass responsibility: Object:isSubtypeOf: in Avail.TypeDescriptor", object);
 		return false;
@@ -83,7 +88,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  By default, nothing is a supertype of a container type unless it states otherwise.
+		/* By default, nothing is a supertype of a container type unless it
+		 * states otherwise.
+		 */
 
 		return false;
 	}
@@ -146,7 +153,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  Check if I'm a supertype of the given object meta.  Redefined for subclasses.
+		/* Check if I'm a supertype of the given object meta.  Redefined for
+		 * subclasses.
+		 */
 
 		return false;
 	}
@@ -155,7 +164,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  Check if I'm a supertype of the given object meta meta.  Redefined for subclasses.
+		/* Check if I'm a supertype of the given object meta meta.  Redefined
+		 * for subclasses.
+		 */
 
 		return false;
 	}
@@ -164,7 +175,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aLazyObjectType)
 	{
-		//  By default, nothing is a supertype of an eager object type unless it states otherwise.
+		/* By default, nothing is a supertype of an eager object type unless it
+		 * states otherwise.
+		 */
 
 		return false;
 	}
@@ -173,9 +186,12 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
-		//  Check if object (some specialized type) is a supertype of aPrimitiveType (some primitive
-		//  type).  The only primitive type this specialized type could be a supertype of is :terminates,
-		//  but :terminates doesn't dispatch this message.  Overidden in PrimitiveTypeDescriptor.
+		/* Check if object (some specialized type) is a supertype of
+		 * aPrimitiveType (some primitive type).  The only primitive type this
+		 * specialized type could be a supertype of is terminates, but
+		 * terminates doesn't dispatch this message.  Overridden in
+		 * PrimitiveTypeDescriptor.
+		 */
 
 		return false;
 	}
@@ -202,7 +218,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
 		error("Subclass responsibility: Object:typeIntersection: in Avail.TypeDescriptor", object);
 		return VoidDescriptor.voidObject();
@@ -212,34 +230,42 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
 		return object.typeIntersectionOfMeta(aCyclicType);
 	}
@@ -248,54 +274,65 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-		//  Since metas intersect at terminatesType rather than terminates, we must
-		//  be very careful to overide this properly.
+		/* Answer the most general type that is still at least as specific as
+		 * these.  Since metatypes intersect at terminatesType rather than
+		 * terminates, we must be very careful to override this properly.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
 		return object.typeIntersectionOfMeta(anObjectMeta);
 	}
@@ -304,7 +341,9 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
 		return object.typeIntersectionOfMeta(anObjectMetaMeta);
 	}
@@ -313,34 +352,41 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
+		/* Answer the most general type that is still at least as specific as
+		 * these.
+		 */
 
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  Answer the most specific type that still includes both of these.
+		/* Answer the most specific type that still includes both of these.
+		 */
 
 		error("Subclass responsibility: Object:typeUnion: in Avail.TypeDescriptor", object);
 		return VoidDescriptor.voidObject();
@@ -350,131 +396,156 @@ public abstract class TypeDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.closure());
+		return object.typeUnion(Types.closure.object());
 	}
 
 	AvailObject ObjectTypeUnionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.container());
+		return object.typeUnion(Types.container.object());
 	}
 
 	AvailObject ObjectTypeUnionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.continuation());
+		return object.typeUnion(Types.continuation.object());
 	}
 
 	AvailObject ObjectTypeUnionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.cyclicType());
+		return object.typeUnion(Types.cyclicType.object());
 	}
 
 	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		//  all is the supertype of [...]->void
-		return object.typeUnion(TypeDescriptor.all());
+		/* Answer the most specific type that is still at least as general as
+		 * these.  "all" is the nearest supertype of [...]->void.
+		 */
+		
+		return object.typeUnion(Types.all.object());
 	}
 
 	AvailObject ObjectTypeUnionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.all());
+		return object.typeUnion(Types.all.object());
 	}
 
 	AvailObject ObjectTypeUnionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		//  Note: list is not under the type all.
-		return TypeDescriptor.voidType();
+		/* Answer the most specific type that is still at least as general as
+		 * these.  Note: list is not under the type all.
+		 */
+		
+		return Types.voidType.object();
 	}
 
 	AvailObject ObjectTypeUnionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.all());
+		return object.typeUnion(Types.all.object());
 	}
 
 	AvailObject ObjectTypeUnionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		//  Because type 'objectType' is an objectMeta, not a primitive type.
-		return object.typeUnion(TypeDescriptor.type());
+		/* Answer the most specific type that is still at least as general as
+		 * these.  Because type 'objectType' is an objectMeta, not a primitive
+		 * type.
+		 */
+		
+		return object.typeUnion(Types.type.object());
 	}
 
 	AvailObject ObjectTypeUnionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		//  Because type 'objectMeta' is an objectMetaMeta, not a primitive type.
-		return object.typeUnion(TypeDescriptor.meta());
+		/* Answer the most specific type that is still at least as general as
+		 * these.  Because type 'objectMeta' is an objectMetaMeta, not a
+		 * primitive type.
+		 */
+		
+		return object.typeUnion(Types.meta.object());
 	}
 
 	AvailObject ObjectTypeUnionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anEagerObjectType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		//  Because type 'object' is also an objectType.
-		return object.typeUnion(TypeDescriptor.all());
+		/* Answer the most specific type that is still at least as general as
+		 * these.  Because type 'object' is also an objectType.
+		 */
+		
+		return object.typeUnion(Types.all.object());
 	}
 
 	AvailObject ObjectTypeUnionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		/* Answer the most specific type that is still at least as general as
+		 * these.
+		 */
 
-		return object.typeUnion(TypeDescriptor.all());
+		return object.typeUnion(Types.all.object());
 	}
 
 	AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		//  just above extended integer, the most general integer range
-		return object.typeUnion(TypeDescriptor.all());
+		/* Answer the most specific type that is still at least as general as
+		 * these.  This is just above extended integer, the most general integer
+		 * range.
+		 */
+		
+		return object.typeUnion(Types.all.object());
 	}
 
 	boolean ObjectIsSupertypeOfTerminates (
 			final AvailObject object)
 	{
-		//  All types are supertypes of :terminates.  This method only exists so that nontypes
-		//  will cause a doesNotUnderstand: message to occur.  Otherwise true would be
-		//  embedded in TerminatesTypeDescriptor>>Object:isSubtypeOf:
+		/* All types are supertypes of terminates.  This method only exists so
+		 * that nontypes will cause a doesNotUnderstand: message to occur.
+		 * Otherwise true would be embedded in
+		 * TerminatesTypeDescriptor>>Object:isSubtypeOf:.
+		 */
 
 		return true;
 	}
@@ -482,7 +553,8 @@ public abstract class TypeDescriptor extends Descriptor
 	boolean ObjectIsSupertypeOfVoid (
 			final AvailObject object)
 	{
-		//  Only :void is a supertype of :void.  Overridden in VoidTypeDescriptor.
+		/* Only void is a supertype of void.  Overridden in VoidTypeDescriptor.
+		 */
 
 		return false;
 	}
@@ -498,7 +570,86 @@ public abstract class TypeDescriptor extends Descriptor
 
 	// Startup/shutdown
 
-	static Map<String, AvailObject> SpecialTypes;
+	public enum Types
+	{
+		voidType(null, "type", VoidTypeDescriptor.mutableDescriptor()),
+			all(voidType, "type"),
+				booleanType(all, "primType"),
+					trueType(booleanType, "primType"),
+					falseType(booleanType, "primType"),
+				character(all, "primType"),
+				closure(all, "primType"),
+				compiledCode(all, "primType"),
+				container(all, "containerType"),
+				continuation(all, "primType"),
+				doubleObject(all, "primType"),
+				floatObject(all, "primType"),
+				implementationSet(all, "primType"),
+				messageBundle(all, "primType"),
+				messageBundleTree(all, "primType"),
+				parseNode(all, "primType"),
+					assignmentNode(parseNode, "primType"),
+					blockNode(parseNode, "primType"),
+					listNode(parseNode, "primType"),
+					literalNode(parseNode, "primType"),
+					referenceNode(parseNode, "primType"),
+					sendNode(parseNode, "primType"),
+					superCastNode(parseNode, "primType"),
+					variableDeclarationNode(parseNode, "primType"),
+						syntheticConstantNode(variableDeclarationNode, "primType"),
+						initializingDeclarationNode(variableDeclarationNode, "primType"),
+							constantDeclarationNode(initializingDeclarationNode, "primType"),
+						labelNode(variableDeclarationNode, "primType"),
+						syntheticDeclarationNode(variableDeclarationNode, "primType"),
+					variableUseNode(parseNode, "primType"),
+				process(all, "primType"),
+				signature(all, "primType"),
+					abstractSignature(signature, "primType"),
+					forwardSignature(signature, "primType"),
+					methodSignature(signature, "primType"),
+				type(all, "meta"),
+					integerType(type, "meta"),
+					listType(type, "meta"),
+					mapType(type, "meta"),
+					meta(type, "meta"),
+						cyclicType(meta, "cyclicType"),
+						objectMetaMeta(meta, "meta"),
+					containerType(type, "meta"),
+					continuationType(type, "meta"),
+					primType(type, "meta"),
+						generalizedClosureType(primType, "meta"),
+							closureType(generalizedClosureType, "meta"),
+					setType(type, "meta"),
+					tupleType(type, "meta"),
+			terminatesType(null, "terminatesType", TerminatesMetaDescriptor.mutableDescriptor()),
+			terminates(null, "terminatesType", TerminatesTypeDescriptor.mutableDescriptor());
+				
+		private final Types parent;
+		private final String myTypeName;
+		private final Descriptor descriptor;
+		private AvailObject object;
+
+		// Constructors
+		Types (Types parent, String myTypeName, Descriptor descriptor)
+		{
+			this.parent = parent;
+			this.myTypeName = myTypeName;
+			this.descriptor = descriptor;
+		}
+
+		Types (Types parent, String myTypeName)
+		{
+			this(
+				parent,
+				myTypeName,
+				PrimitiveTypeDescriptor.mutableDescriptor());
+		}
+		
+		public AvailObject object ()
+		{
+			return object;
+		}
+	};
 
 	static void createWellKnownObjects ()
 	{
@@ -506,278 +657,49 @@ public abstract class TypeDescriptor extends Descriptor
 
 		AvailObject voidObject = VoidDescriptor.voidObject();
 		assert voidObject != null;
-		class TypeSpec
+
+		// Build all the objects with void fields.
+		for (Types spec : Types.values())
 		{
-			String name;
-			String parent;
-			String myType;
-			Descriptor descriptor;
-			TypeSpec(String name, String parent, String myType, Descriptor descriptor)
+			spec.object = AvailObject.newIndexedDescriptor(0, spec.descriptor);
+			assert spec.object.descriptorId() != 0;
+			spec.object.name(voidObject);
+			spec.object.parent(voidObject);
+			spec.object.myType(voidObject);
+			spec.object.hash(spec.name().hashCode());
+		}
+		// Connect and name the objects.
+		for (Types spec : Types.values())
+		{
+			spec.object.name(
+				ByteStringDescriptor.mutableObjectFromNativeByteString(
+					spec.name()));
+			spec.object.parent(
+				spec.parent == null
+					? voidObject
+					: spec.parent.object);
+			spec.object.myType(
+				Types.valueOf(spec.myTypeName).object);
+			spec.object.makeImmutable();
+		}
+		// Sanity check them for metacovariance: a<=b -> a.type<=b.type
+		for (Types spec : Types.values())
+		{
+			if (spec.parent != null)
 			{
-				this.name = name;
-				this.parent = parent;
-				this.myType = myType;
-				this.descriptor = descriptor;
+				assert spec.object.isSubtypeOf(spec.parent.object);
+				assert spec.object.type().isSubtypeOf(
+					spec.parent.object.type());
 			}
 		}
-		TypeSpec [] specs = {
-			new TypeSpec("voidType", "*", "primType", VoidTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(    "all", "voidType", "type", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "booleanType", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "trueType", "booleanType", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "falseType", "booleanType", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "character", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "closure", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "compiledCode", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "container", "all", "containerType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "continuation", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "doubleObject", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "floatObject", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "implementationSet", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "messageBundle", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "messageBundleTree", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "process", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "signature", "all", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "abstractSignature", "signature", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "forwardSignature", "signature", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "methodSignature", "signature", "primType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(        "type", "all", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "generalizedClosureType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(                "closureType", "generalizedClosureType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "containerType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "continuationType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "integerType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "listType", "type", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "mapType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "meta", "type", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(                "cyclicType", "meta", "cyclicType", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(                "objectMetaMeta", "meta", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "primType", "type", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "setType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "tupleType", "primType", "meta", PrimitiveTypeDescriptor.mutableDescriptor()),
-			new TypeSpec(            "terminatesType", "*", "terminatesType", TerminatesMetaDescriptor.mutableDescriptor()),
-			new TypeSpec("terminates", "*", "terminatesType", TerminatesTypeDescriptor.mutableDescriptor())
-		};
-		Map<String,AvailObject> typeMap = new HashMap<String,AvailObject>(100);
-		for (TypeSpec spec : specs)
-		{
-			AvailObject type = AvailObject.newIndexedDescriptor(
-				0,
-				spec.descriptor);
-			assert type.descriptorId() != 0;
-			typeMap.put(spec.name, type);
-			// Maintain memory integrity while we connect stuff
-			type.name(voidObject);
-			type.parent(voidObject);
-			type.myType(voidObject);
-			// Now we can create the name string safely.
-			type.name(ByteStringDescriptor.mutableObjectFromNativeByteString(spec.name));
-		}
-		// Now link them together.
-		for (TypeSpec spec : specs)
-		{
-			int hash = spec.name.hashCode();
-			AvailObject type = typeMap.get(spec.name);
-			type.hash(hash);
-			type.parent(
-				spec.parent.equals("*")
-					? voidObject
-					: typeMap.get(spec.parent));
-			type.myType(typeMap.get(spec.myType));
-		}
-		for (AvailObject type : typeMap.values())
-		{
-			type.makeImmutable();
-		}
-		SpecialTypes = typeMap;
 	}
 
 	static void clearWellKnownObjects ()
 	{
-		SpecialTypes = null;
-	}
-
-
-
-	/* Accessing special types... */
-	public static final AvailObject abstractSignature ()
-	{
-		return SpecialTypes.get("abstractSignature");
-	}
-
-	public static final AvailObject all ()
-	{
-		return SpecialTypes.get("all");
-	}
-
-	public static final AvailObject booleanType ()
-	{
-		return SpecialTypes.get("booleanType");
-	}
-
-	public static final AvailObject character ()
-	{
-		return SpecialTypes.get("character");
-	}
-
-	public static final AvailObject closure ()
-	{
-		return SpecialTypes.get("closure");
-	}
-
-	public static final AvailObject closureType ()
-	{
-		return SpecialTypes.get("closureType");
-	}
-
-	public static final AvailObject compiledCode ()
-	{
-		return SpecialTypes.get("compiledCode");
-	}
-
-	public static final AvailObject container ()
-	{
-		return SpecialTypes.get("container");
-	}
-
-	public static final AvailObject containerType ()
-	{
-		return SpecialTypes.get("containerType");
-	}
-
-	public static final AvailObject continuation ()
-	{
-		return SpecialTypes.get("continuation");
-	}
-
-	public static final AvailObject continuationType ()
-	{
-		return SpecialTypes.get("continuationType");
-	}
-
-	public static final AvailObject cyclicType ()
-	{
-		return SpecialTypes.get("cyclicType");
-	}
-
-	public static final AvailObject doubleObject ()
-	{
-		return SpecialTypes.get("doubleObject");
-	}
-
-	public static final AvailObject falseType ()
-	{
-		return SpecialTypes.get("falseType");
-	}
-
-	public static final AvailObject floatObject ()
-	{
-		return SpecialTypes.get("floatObject");
-	}
-
-	public static final AvailObject forwardSignature ()
-	{
-		return SpecialTypes.get("forwardSignature");
-	}
-
-	public static final AvailObject generalizedClosureType ()
-	{
-		return SpecialTypes.get("generalizedClosureType");
-	}
-
-	public static final AvailObject implementationSet ()
-	{
-		return SpecialTypes.get("implementationSet");
-	}
-
-	public static final AvailObject integerType ()
-	{
-		return SpecialTypes.get("integerType");
-	}
-
-	public static final AvailObject listType ()
-	{
-		return SpecialTypes.get("listType");
-	}
-
-	public static final AvailObject mapType ()
-	{
-		return SpecialTypes.get("mapType");
-	}
-
-	public static final AvailObject messageBundle ()
-	{
-		return SpecialTypes.get("messageBundle");
-	}
-
-	public static final AvailObject messageBundleTree ()
-	{
-		return SpecialTypes.get("messageBundleTree");
-	}
-
-	public static final AvailObject meta ()
-	{
-		return SpecialTypes.get("meta");
-	}
-
-	public static final AvailObject methodSignature ()
-	{
-		return SpecialTypes.get("methodSignature");
-	}
-
-	public static final AvailObject objectMetaMeta ()
-	{
-		return SpecialTypes.get("objectMetaMeta");
-	}
-
-	public static final AvailObject primType ()
-	{
-		return SpecialTypes.get("primType");
-	}
-
-	public static final AvailObject process ()
-	{
-		return SpecialTypes.get("process");
-	}
-
-	public static final AvailObject setType ()
-	{
-		return SpecialTypes.get("setType");
-	}
-
-	public static final AvailObject signature ()
-	{
-		return SpecialTypes.get("signature");
-	}
-
-	public static final AvailObject terminates ()
-	{
-		return SpecialTypes.get("terminates");
-	}
-
-	public static final AvailObject terminatesType ()
-	{
-		return SpecialTypes.get("terminatesType");
-	}
-
-	public static final AvailObject trueType ()
-	{
-		return SpecialTypes.get("trueType");
-	}
-
-	public static final AvailObject tupleType ()
-	{
-		return SpecialTypes.get("tupleType");
-	}
-
-	public static final AvailObject type ()
-	{
-		return SpecialTypes.get("type");
-	}
-
-	public static final AvailObject voidType ()
-	{
-		return SpecialTypes.get("voidType");
+		for (Types spec : Types.values())
+		{
+			spec.object = null;
+		}
 	}
 
 }

@@ -144,7 +144,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.tupleType();
+		return Types.tupleType.object();
 	}
 
 	int ObjectHash (
@@ -174,7 +174,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.tupleType();
+		return Types.tupleType.object();
 	}
 
 
@@ -190,7 +190,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 		if ((index <= 0))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		final AvailObject firstUpper = object.firstTupleType().sizeRange().upperBound();
 		final AvailObject secondUpper = object.secondTupleType().sizeRange().upperBound();
@@ -200,7 +200,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			final AvailObject indexObject = IntegerDescriptor.objectFromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
-				return TypeDescriptor.terminates();
+				return Types.terminates.object();
 			}
 		}
 		final AvailObject firstLower = object.firstTupleType().sizeRange().lowerBound();
@@ -243,7 +243,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		}
 		if ((endIndex <= 0))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		final AvailObject firstUpper = object.firstTupleType().sizeRange().upperBound();
 		final AvailObject secondUpper = object.secondTupleType().sizeRange().upperBound();
@@ -252,7 +252,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		{
 			if ((startIndex > totalUpper.extractInt()))
 			{
-				return TypeDescriptor.terminates();
+				return Types.terminates.object();
 			}
 		}
 		AvailObject unionType = object.firstTupleType().unionOfTypesAtThrough(startIndex, endIndex);
@@ -478,9 +478,9 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
 			final AvailObject intersectionObject = object.typeAtIndex(i).typeIntersection(aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(TypeDescriptor.terminates()))
+			if (intersectionObject.equals(Types.terminates.object()))
 			{
-				return TypeDescriptor.terminates();
+				return Types.terminates.object();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,

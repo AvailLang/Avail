@@ -38,7 +38,7 @@ import com.avail.descriptor.ByteTupleDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
@@ -221,11 +221,11 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(TypeDescriptor.voidType()))
+		if (aType.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aType.equals(TypeDescriptor.all()))
+		if (aType.equals(Types.all.object()))
 		{
 			return true;
 		}

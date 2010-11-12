@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.util.List;
 
 @IntegerSlots("rawQuad1")
@@ -99,7 +100,7 @@ public class FloatDescriptor extends Descriptor
 	AvailObject ObjectExactType (
 			final AvailObject object)
 	{
-		return TypeDescriptor.floatObject();
+		return Types.floatObject.object();
 	}
 
 	int ObjectHash (
@@ -114,7 +115,7 @@ public class FloatDescriptor extends Descriptor
 	AvailObject ObjectType (
 			final AvailObject object)
 	{
-		return TypeDescriptor.floatObject();
+		return Types.floatObject.object();
 	}
 
 

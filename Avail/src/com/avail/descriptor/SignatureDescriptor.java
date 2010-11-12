@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import java.util.List;
@@ -151,8 +151,8 @@ public abstract class SignatureDescriptor extends Descriptor
 		final AvailObject ret = object.returnsBlock().type();
 		assert (req.numArgs() == sig.numArgs()) : "Wrong number of arguments in requires block";
 		assert (ret.numArgs() == sig.numArgs()) : "Wrong number of arguments in returns block.";
-		assert req.returnType().isSubtypeOf(TypeDescriptor.booleanType()) : "Wrong return type in requires block";
-		assert ret.returnType().isSubtypeOf(TypeDescriptor.type()) : "Wrong return type in returns block";
+		assert req.returnType().isSubtypeOf(Types.booleanType.object()) : "Wrong return type in requires block";
+		assert ret.returnType().isSubtypeOf(Types.type.object()) : "Wrong return type in returns block";
 		for (int i = 1, _end1 = sig.numArgs(); i <= _end1; i++)
 		{
 			final AvailObject bodyType = sig.argTypeAt(i);

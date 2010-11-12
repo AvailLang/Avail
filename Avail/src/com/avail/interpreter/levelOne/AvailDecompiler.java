@@ -50,7 +50,7 @@ import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.AvailDecompiler;
 import java.lang.Integer;
 import java.util.ArrayList;
@@ -361,7 +361,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		sendNode.message(cyclicType);
 		sendNode.bundle(null);
 		sendNode.arguments(callArgs);
-		sendNode.returnType(TypeDescriptor.voidType());
+		sendNode.returnType(Types.voidType.object());
 		pushExpression(sendNode);
 	}
 
@@ -393,7 +393,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		sendNode.message(cyclicType);
 		sendNode.bundle(null);
 		sendNode.arguments(callArgs);
-		sendNode.returnType(TypeDescriptor.voidType());
+		sendNode.returnType(Types.voidType.object());
 		pushExpression(sendNode);
 	}
 

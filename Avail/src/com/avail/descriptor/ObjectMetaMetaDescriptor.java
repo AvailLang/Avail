@@ -68,7 +68,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	{
 		//  Answer this object type's type's type's type.
 
-		return TypeDescriptor.objectMetaMeta();
+		return Types.objectMetaMeta.object();
 	}
 
 	int ObjectHash (
@@ -95,7 +95,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	{
 		//  Answer this object type's type's type's type.
 
-		return TypeDescriptor.objectMetaMeta();
+		return Types.objectMetaMeta.object();
 	}
 
 
@@ -166,7 +166,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		//  being equal or one being a subtype of the other have already been dealt
 		//  with (in Object:typeIntersection:), so don't test for them here.
 
-		return TypeDescriptor.terminatesType();
+		return Types.terminatesType.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (

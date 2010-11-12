@@ -34,7 +34,8 @@ package com.avail.compiler;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import static com.avail.descriptor.AvailObject.*;
 
 public class AvailLabelNode extends AvailVariableDeclarationNode
@@ -45,14 +46,14 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 
 	public AvailObject declaredType ()
 	{
-		assert _declaredType.isInstanceOfSubtypeOf(TypeDescriptor.continuationType());
+		assert _declaredType.isInstanceOfSubtypeOf(Types.continuationType.object());
 		return _declaredType;
 	}
 
 	public void declaredType (
 			final AvailObject aContinuationType)
 	{
-		assert aContinuationType.isInstanceOfSubtypeOf(TypeDescriptor.continuationType());
+		assert aContinuationType.isInstanceOfSubtypeOf(Types.continuationType.object());
 		_declaredType = aContinuationType;
 	}
 

@@ -233,7 +233,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.closureType();
+		return Types.closureType.object();
 	}
 
 	int ObjectHash (
@@ -265,7 +265,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.closureType();
+		return Types.closureType.object();
 	}
 
 
@@ -446,7 +446,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (object.argTypeAt(i).typeIntersection(argTypes.get((i - 1))).equals(TypeDescriptor.terminates()))
+			if (object.argTypeAt(i).typeIntersection(argTypes.get((i - 1))).equals(Types.terminates.object()))
 			{
 				return false;
 			}
@@ -543,7 +543,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		if (! (object.numArgs() == aClosureType.numArgs()))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		if (! (canDestroy && _isMutable))
 		{

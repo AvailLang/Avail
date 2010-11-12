@@ -42,7 +42,6 @@ import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.scalb;
-import java.awt.MultipleGradientPaint.CycleMethod;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -79,7 +78,7 @@ import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 
 
@@ -625,9 +624,9 @@ public enum Primitive
 			final AvailObject returnType = args.get(1);
 			for (int i = 1, _end1 = argTypes.tupleSize(); i <= _end1; i++)
 			{
-				assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(TypeDescriptor.type());
+				assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(Types.type.object());
 			}
-			assert returnType.isInstanceOfSubtypeOf(TypeDescriptor.type());
+			assert returnType.isInstanceOfSubtypeOf(Types.type.object());
 			interpreter.primitiveResult(ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(argTypes, returnType));
 			return Result.SUCCESS;
 		}
@@ -689,7 +688,7 @@ public enum Primitive
 
 			assert args.size() == 1;
 			final AvailObject tupleOfTypes = args.get(0);
-			AvailObject unionObject = TypeDescriptor.terminates();
+			AvailObject unionObject = Types.terminates.object();
 			for (int i = 1, _end2 = tupleOfTypes.tupleSize(); i <= _end2; i++)
 			{
 				unionObject = unionObject.typeUnion(tupleOfTypes.tupleAt(i));
@@ -2324,7 +2323,7 @@ public enum Primitive
 					true, bytesRead).mutableObjectOfSize(bytesRead);
 				for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
 				{
-					tuple.rawByteAtPut(i, buffer[i - 1]);
+					tuple.rawByteAtPut(i, (short)(buffer[i - 1] & 0xFF));
 				}
 			}
 			else
@@ -2991,11 +2990,11 @@ public enum Primitive
 			final AvailObject index = args.get(0);
 			final int i = index.extractInt();
 			final List<AvailObject> list = interpreter.specialObjects();
-			if (((i < 1) || (i > list.size())))
+			if (((i < 0) || (i > list.size())))
 			{
 				return Result.FAILURE;
 			}
-			final AvailObject result = list.get((i - 1));
+			final AvailObject result = list.get(i);
 			if (result == null)
 			{
 				return Result.FAILURE;

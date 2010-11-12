@@ -44,7 +44,7 @@ import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SpliceTupleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
@@ -221,11 +221,11 @@ public abstract class TupleDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(TypeDescriptor.voidType()))
+		if (aTypeObject.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(TypeDescriptor.all()))
+		if (aTypeObject.equals(Types.all.object()))
 		{
 			return true;
 		}
@@ -276,7 +276,7 @@ public abstract class TupleDescriptor extends Descriptor
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerDescriptor.objectFromInt(object.tupleSize()).type(),
 			tupleOfTypes,
-			TypeDescriptor.terminates());
+			Types.terminates.object());
 	}
 
 	int ObjectHash (

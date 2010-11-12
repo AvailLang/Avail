@@ -66,7 +66,7 @@ import com.avail.descriptor.ContainerDescriptor;
 import com.avail.descriptor.CyclicTypeDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.ArrayList;
@@ -105,7 +105,7 @@ public class AvailCompiler
 		statements = new ArrayList<AvailParseNode>(1);
 		statements.add(expressionNode);
 		block.statements(statements);
-		block.resultType(TypeDescriptor.voidType());
+		block.resultType(Types.voidType.object());
 		block = ((AvailBlockNode)(block.validatedWithInterpreter(_interpreter)));
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = block.generateOn(codeGenerator);
@@ -498,16 +498,16 @@ public class AvailCompiler
 				{
 					public void value()
 					{
-						parseAndEvaluateExpressionYieldingInstanceOfThen(TypeDescriptor.type(), new Continuation1<AvailObject> ()
+						parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
 						{
 							public void value(final AvailObject type)
 							{
 								AvailCompilerScopeStack oldScope;
-								if (type.equals(TypeDescriptor.voidType()))
+								if (type.equals(Types.voidType.object()))
 								{
 									expected("a type for the argument other than void");
 								}
-								else if (type.equals(TypeDescriptor.terminates()))
+								else if (type.equals(Types.terminates.object()))
 								{
 									expected("a type for the argument other than terminates");
 								}
@@ -575,7 +575,7 @@ public class AvailCompiler
 														final AvailParseNode lastStatement = statements.get((statements.size() - 1));
 														if ((lastStatement.isDeclaration() || lastStatement.isAssignment()))
 														{
-															lastStatementType.value = TypeDescriptor.voidType();
+															lastStatementType.value = Types.voidType.object();
 														}
 														else
 														{
@@ -584,7 +584,7 @@ public class AvailCompiler
 													}
 													else
 													{
-														lastStatementType.value = TypeDescriptor.voidType();
+														lastStatementType.value = Types.voidType.object();
 													}
 													final AvailCompilerScopeStack scopeInBlock = _scopeStack;
 													_scopeStack = scopeOutsideBlock;
@@ -596,7 +596,7 @@ public class AvailCompiler
 														{
 															public void value()
 															{
-																parseAndEvaluateExpressionYieldingInstanceOfThen(TypeDescriptor.type(), new Continuation1<AvailObject> ()
+																parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
 																{
 																	public void value(final AvailObject returnType)
 																	{
@@ -754,11 +754,11 @@ public class AvailCompiler
 										});
 								}
 							});
-						parseAndEvaluateExpressionYieldingInstanceOfThen(TypeDescriptor.type(), new Continuation1<AvailObject> ()
+						parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
 						{
 							public void value(final AvailObject type)
 							{
-								if ((type.equals(TypeDescriptor.voidType()) || type.equals(TypeDescriptor.terminates())))
+								if ((type.equals(Types.voidType.object()) || type.equals(Types.terminates.object())))
 								{
 									expected("a type for the variable other than void or terminates");
 								}
@@ -1134,7 +1134,7 @@ public class AvailCompiler
 							{
 								public void value()
 								{
-									parseAndEvaluateExpressionYieldingInstanceOfThen(TypeDescriptor.continuationType(), new Continuation1<AvailObject> ()
+									parseAndEvaluateExpressionYieldingInstanceOfThen(Types.continuationType.object(), new Continuation1<AvailObject> ()
 									{
 										public void value(final AvailObject contType)
 										{
@@ -1243,7 +1243,7 @@ public class AvailCompiler
 		//  Parse an expression that isn't a list.  Backtracking will find all valid interpretations.
 
 		continuation.value(node);
-		if (node.type().equals(TypeDescriptor.voidType()))
+		if (node.type().equals(Types.voidType.object()))
 		{
 			return;
 		}
@@ -1355,7 +1355,7 @@ public class AvailCompiler
 				{
 					public void value()
 					{
-						parseAndEvaluateExpressionYieldingInstanceOfThen(TypeDescriptor.type(), new Continuation1<AvailObject> ()
+						parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
 						{
 							public void value(final AvailObject type)
 							{
@@ -1525,7 +1525,7 @@ public class AvailCompiler
 							{
 								public void value()
 								{
-									if (((! outermost) || expr.type().equals(TypeDescriptor.voidType())))
+									if (((! outermost) || expr.type().equals(Types.voidType.object())))
 									{
 										whenFoundStatement.value(expr);
 									}
@@ -1570,12 +1570,12 @@ public class AvailCompiler
 				final AvailParseNode lastStatement = statements.get((statements.size() - 1));
 				if (! (lastStatement.isAssignment() || (lastStatement.isDeclaration() || lastStatement.isLabel())))
 				{
-					if (lastStatement.type().equals(TypeDescriptor.terminates()))
+					if (lastStatement.type().equals(Types.terminates.object()))
 					{
 						problem = true;
 						expected("previous statement to be the last statement because it always terminates");
 					}
-					if (! lastStatement.type().equals(TypeDescriptor.voidType()))
+					if (! lastStatement.type().equals(Types.voidType.object()))
 					{
 						problem = true;
 						expected(new Generator<String> ()
@@ -1860,7 +1860,10 @@ public class AvailCompiler
 					position(savePosition);
 				}
 			});
-		position(where.value);
+		if (ok.value)
+		{
+			position(where.value);
+		}
 		return ok.value;
 	}
 

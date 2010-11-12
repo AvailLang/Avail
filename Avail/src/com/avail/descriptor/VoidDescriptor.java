@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 
@@ -130,7 +130,7 @@ extends Descriptor
 	@ThreadSafe
 	@NotNull AvailObject ObjectExactType (final @NotNull AvailObject object)
 	{
-		return TypeDescriptor.voidType();
+		return Types.voidType.object();
 	}
 
 	@Override
@@ -148,7 +148,7 @@ extends Descriptor
 	@ThreadSafe
 	@NotNull AvailObject ObjectType (final @NotNull AvailObject object)
 	{
-		return TypeDescriptor.voidType();
+		return Types.voidType.object();
 	}
 
 	@Override
@@ -229,7 +229,7 @@ extends Descriptor
 	@NotNull AvailObject ObjectBinUnionType (final @NotNull AvailObject object)
 	{
 		// The void object acts as an empty bin.
-		return TypeDescriptor.terminates();
+		return Types.terminates.object();
 	}
 
 	@Override

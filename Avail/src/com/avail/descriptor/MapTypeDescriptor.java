@@ -157,7 +157,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.mapType();
+		return Types.mapType.object();
 	}
 
 	int ObjectHash (
@@ -206,7 +206,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.mapType();
+		return Types.mapType.object();
 	}
 
 
@@ -323,9 +323,9 @@ public class MapTypeDescriptor extends TypeDescriptor
 			AvailObject keyType,
 			AvailObject valueType)
 	{
-		if (sizes.equals(TypeDescriptor.terminates()))
+		if (sizes.equals(Types.terminates.object()))
 		{
-			return TypeDescriptor.terminates();
+			return Types.terminates.object();
 		}
 		assert(sizes.lowerBound().isFinite());
 		assert(IntegerDescriptor.zero().lessOrEqual(sizes.lowerBound()));
@@ -334,14 +334,14 @@ public class MapTypeDescriptor extends TypeDescriptor
 		if (sizes.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			result.sizeRange(sizes);
-			result.keyType(TypeDescriptor.terminates());
-			result.valueType(TypeDescriptor.terminates());
+			result.keyType(Types.terminates.object());
+			result.valueType(Types.terminates.object());
 		}
-		else if (keyType.equals(TypeDescriptor.terminates()) || valueType.equals(TypeDescriptor.terminates()))
+		else if (keyType.equals(Types.terminates.object()) || valueType.equals(Types.terminates.object()))
 		{
 			result.sizeRange(IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.zero()));
-			result.keyType(TypeDescriptor.terminates());
-			result.valueType(TypeDescriptor.terminates());
+			result.keyType(Types.terminates.object());
+			result.valueType(Types.terminates.object());
 		}
 		else
 		{

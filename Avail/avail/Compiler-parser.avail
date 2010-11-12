@@ -672,10 +672,10 @@ Method "_parse leading argument send after_then_" is [
 			complete complete
 			incomplete incomplete
 			arguments so far <leadingArgument>
-			then [sendNode : Send Node |
+			then [theSendNode : Send Node |
 				/* Post-filter the message. */
-				if keep(sendNode) then [
-					p parse optional leading argument send after sendNode
+				if keep(theSendNode) then [
+					p parse optional leading argument send after theSendNode
 					then c;
 				];
 			];

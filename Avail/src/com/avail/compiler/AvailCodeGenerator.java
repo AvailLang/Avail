@@ -60,7 +60,8 @@ import com.avail.descriptor.ClosureTypeDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContainerTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -146,7 +147,7 @@ public class AvailCodeGenerator
 			AvailObject argDeclType = argDecl.declaredType();
 			if (i <= _numArgs)
 			{
-				assert argDeclType.isInstanceOfSubtypeOf(TypeDescriptor.type());
+				assert argDeclType.isInstanceOfSubtypeOf(Types.type.object());
 				argsArray.set(i - 1, argDeclType);
 			}
 			else
@@ -451,7 +452,7 @@ public class AvailCodeGenerator
 		//  Emit code which will verify at runtime that the top of stack is a subinstance of aType.
 		//  It should leave the item on the stack.
 
-		if (aType.equals(TypeDescriptor.voidType()))
+		if (aType.equals(Types.voidType.object()))
 		{
 			return;
 		}

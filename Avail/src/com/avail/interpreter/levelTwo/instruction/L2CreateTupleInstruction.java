@@ -36,7 +36,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.L2Translator;
 import com.avail.interpreter.levelTwo.instruction.L2CreateTupleInstruction;
@@ -121,13 +121,13 @@ public class L2CreateTupleInstruction extends L2Instruction
 			}
 			else
 			{
-				types.add(TypeDescriptor.all());
+				types.add(Types.all.object());
 			}
 		}
 		final AvailObject tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			sizeRange,
 			TupleDescriptor.mutableObjectFromArray(types),
-			TypeDescriptor.terminates());
+			Types.terminates.object());
 		tupleType.makeImmutable();
 		anL2Translator.registerTypeAtPut(_dest, tupleType);
 		if (_sourceVector.allRegistersAreConstantsIn(anL2Translator))

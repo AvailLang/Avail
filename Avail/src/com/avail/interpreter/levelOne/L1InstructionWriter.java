@@ -44,7 +44,7 @@ import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.descriptor.NybbleTupleDescriptor;
 import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1StackTracker;
@@ -90,7 +90,7 @@ public class L1InstructionWriter
 	public int createLocal (AvailObject localType)
 	{
 		assert argumentTypes != null : "Must declare argument types before allocating locals";
-		assert localType.isInstanceOfSubtypeOf(TypeDescriptor.type());
+		assert localType.isInstanceOfSubtypeOf(Types.type.object());
 		localTypes.add(localType);
 		return localTypes.size();
 	}

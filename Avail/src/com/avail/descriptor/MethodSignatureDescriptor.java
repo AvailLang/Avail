@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import java.util.List;
@@ -165,7 +165,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return TypeDescriptor.methodSignature();
+		return Types.methodSignature.object();
 	}
 
 	int ObjectHash (
@@ -182,7 +182,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.methodSignature();
+		return Types.methodSignature.object();
 	}
 
 

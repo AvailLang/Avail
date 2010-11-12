@@ -37,7 +37,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.ObjectDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 @ObjectSlots("fieldMap")
 public class ObjectDescriptor extends Descriptor
@@ -93,11 +93,11 @@ public class ObjectDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(TypeDescriptor.voidType()))
+		if (aTypeObject.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(TypeDescriptor.all()))
+		if (aTypeObject.equals(Types.all.object()))
 		{
 			return true;
 		}

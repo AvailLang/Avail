@@ -63,7 +63,7 @@ import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.Primitive.Result;
@@ -429,9 +429,9 @@ public abstract class AvailInterpreter
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doReturn));
-		writer.argumentTypes(TupleTypeDescriptor.stringTupleType(), TypeDescriptor.closure());
+		writer.argumentTypes(TupleTypeDescriptor.stringTupleType(), Types.closure.object());
 		writer.primitiveNumber(253);
-		writer.returnType(TypeDescriptor.voidType());
+		writer.returnType(Types.voidType.object());
 		newClosure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
@@ -465,7 +465,7 @@ public abstract class AvailInterpreter
 				L1Operation.L1_doReturn));
 		writer.argumentTypes(naturalNumbers);
 		writer.primitiveNumber(240);
-		writer.returnType(TypeDescriptor.all());
+		writer.returnType(Types.all.object());
 		newClosure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
@@ -597,53 +597,78 @@ public abstract class AvailInterpreter
 	{
 		//  Set up the Array of special objects.
 
+		// Basic types
 		specialObjects = Arrays.<AvailObject>asList(new AvailObject[100]);
-		specialObjects.set(0, TypeDescriptor.all());
-		specialObjects.set(1, TypeDescriptor.booleanType());
-		specialObjects.set(2, TypeDescriptor.character());
-		specialObjects.set(3, TypeDescriptor.closure());
-		specialObjects.set(4, TypeDescriptor.closureType());
-		specialObjects.set(5, TypeDescriptor.compiledCode());
-		specialObjects.set(6, TypeDescriptor.container());
-		specialObjects.set(7, TypeDescriptor.containerType());
-		specialObjects.set(8, TypeDescriptor.continuation());
-		specialObjects.set(9, TypeDescriptor.continuationType());
-		specialObjects.set(10, TypeDescriptor.cyclicType());
-		specialObjects.set(11, TypeDescriptor.doubleObject());
-		specialObjects.set(12, IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable());
-		specialObjects.set(13, TypeDescriptor.falseType());
-		specialObjects.set(14, TypeDescriptor.floatObject());
-		specialObjects.set(15, TypeDescriptor.generalizedClosureType());
-		specialObjects.set(16, IntegerRangeTypeDescriptor.integers().makeImmutable());
-		specialObjects.set(17, TypeDescriptor.integerType());
-		specialObjects.set(18, ListTypeDescriptor.listTypeForTupleType(TupleTypeDescriptor.mostGeneralTupleType()).makeImmutable());
-		specialObjects.set(19, TypeDescriptor.listType());
-		specialObjects.set(20, TypeDescriptor.mapType());
-		specialObjects.set(21, TypeDescriptor.meta());
-		specialObjects.set(22, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().makeImmutable());
-		specialObjects.set(23, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().type().makeImmutable());
-		specialObjects.set(24, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().makeImmutable());
-		specialObjects.set(25, TypeDescriptor.primType());
-		specialObjects.set(26, TypeDescriptor.process());
-		specialObjects.set(27, SetTypeDescriptor.setTypeForSizesContentType(IntegerRangeTypeDescriptor.wholeNumbers(), TypeDescriptor.all()).makeImmutable());
-		specialObjects.set(28, TypeDescriptor.setType());
-		specialObjects.set(29, TupleTypeDescriptor.stringTupleType());
-		specialObjects.set(30, TypeDescriptor.terminates());
-		specialObjects.set(31, TypeDescriptor.terminatesType());
-		specialObjects.set(32, TypeDescriptor.trueType());
-		specialObjects.set(33, TupleTypeDescriptor.mostGeneralTupleType().makeImmutable());
-		specialObjects.set(34, TypeDescriptor.tupleType());
-		specialObjects.set(35, TypeDescriptor.type());
-		specialObjects.set(36, TypeDescriptor.voidType());
-		specialObjects.set(39, TypeDescriptor.messageBundle());
-		specialObjects.set(40, TypeDescriptor.signature());
-		specialObjects.set(41, TypeDescriptor.abstractSignature());
-		specialObjects.set(42, TypeDescriptor.forwardSignature());
-		specialObjects.set(43, TypeDescriptor.methodSignature());
-		specialObjects.set(44, TypeDescriptor.messageBundleTree());
-		specialObjects.set(45, TypeDescriptor.implementationSet());
-		specialObjects.set(49, BooleanDescriptor.objectFromBoolean(true));
-		specialObjects.set(50, BooleanDescriptor.objectFromBoolean(false));
+		specialObjects.set(1, Types.all.object());
+		specialObjects.set(2, Types.booleanType.object());
+		specialObjects.set(3, Types.character.object());
+		specialObjects.set(4, Types.closure.object());
+		specialObjects.set(5, Types.closureType.object());
+		specialObjects.set(6, Types.compiledCode.object());
+		specialObjects.set(7, Types.container.object());
+		specialObjects.set(8, Types.containerType.object());
+		specialObjects.set(9, Types.continuation.object());
+		specialObjects.set(10, Types.continuationType.object());
+		specialObjects.set(11, Types.cyclicType.object());
+		specialObjects.set(12, Types.doubleObject.object());
+		specialObjects.set(13, IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable());
+		specialObjects.set(14, Types.falseType.object());
+		specialObjects.set(15, Types.floatObject.object());
+		specialObjects.set(16, Types.generalizedClosureType.object());
+		specialObjects.set(17, IntegerRangeTypeDescriptor.integers().makeImmutable());
+		specialObjects.set(18, Types.integerType.object());
+		specialObjects.set(19, ListTypeDescriptor.listTypeForTupleType(
+					TupleTypeDescriptor.mostGeneralTupleType()).makeImmutable());
+		specialObjects.set(20, Types.listType.object());
+		specialObjects.set(21, Types.mapType.object());
+		specialObjects.set(22, Types.meta.object());
+		specialObjects.set(23, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().makeImmutable());
+		specialObjects.set(24, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().type().type().makeImmutable());
+		specialObjects.set(25, ObjectTypeDescriptor.objectTypeFromMap(MapDescriptor.empty()).type().makeImmutable());
+		specialObjects.set(26, Types.primType.object());
+		specialObjects.set(27, Types.process.object());
+		specialObjects.set(28, SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					Types.all.object()).makeImmutable());
+		specialObjects.set(29, Types.setType.object());
+		specialObjects.set(30, TupleTypeDescriptor.stringTupleType());
+		specialObjects.set(31, Types.terminates.object());
+		specialObjects.set(32, Types.terminatesType.object());
+		specialObjects.set(33, Types.trueType.object());
+		specialObjects.set(34, TupleTypeDescriptor.mostGeneralTupleType().makeImmutable());
+		specialObjects.set(35, Types.tupleType.object());
+		specialObjects.set(36, Types.type.object());
+		specialObjects.set(37, Types.voidType.object());
+
+		// Code reflection
+		specialObjects.set(40, Types.messageBundle.object());
+		specialObjects.set(41, Types.signature.object());
+		specialObjects.set(42, Types.abstractSignature.object());
+		specialObjects.set(43, Types.forwardSignature.object());
+		specialObjects.set(44, Types.methodSignature.object());
+		specialObjects.set(45, Types.messageBundleTree.object());
+		specialObjects.set(46, Types.implementationSet.object());
+
+		// Parse nodes types
+		specialObjects.set(50, Types.assignmentNode.object());
+		specialObjects.set(51, Types.blockNode.object());
+		specialObjects.set(52, Types.constantDeclarationNode.object());
+		specialObjects.set(53, Types.initializingDeclarationNode.object());
+		specialObjects.set(54, Types.labelNode.object());
+		specialObjects.set(55, Types.listNode.object());
+		specialObjects.set(56, Types.literalNode.object());
+		specialObjects.set(57, Types.parseNode.object());
+		specialObjects.set(58, Types.referenceNode.object());
+		specialObjects.set(59, Types.sendNode.object());
+		specialObjects.set(60, Types.superCastNode.object());
+		specialObjects.set(61, Types.syntheticConstantNode.object());
+		specialObjects.set(62, Types.syntheticDeclarationNode.object());
+		specialObjects.set(63, Types.variableDeclarationNode.object());
+		specialObjects.set(64, Types.variableUseNode.object());
+
+		// Booleans
+		specialObjects.set(70, BooleanDescriptor.objectFromBoolean(true));
+		specialObjects.set(71, BooleanDescriptor.objectFromBoolean(false));
 	}
 
 	public boolean isCharacterUnderscoreOrSpaceOrOperator (

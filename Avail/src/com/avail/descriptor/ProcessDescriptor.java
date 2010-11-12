@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ProcessDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.util.Random;
 import static com.avail.descriptor.AvailObject.*;
 
@@ -254,7 +255,7 @@ public class ProcessDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.process();
+		return Types.process.object();
 	}
 
 	int ObjectHash (
@@ -288,7 +289,7 @@ public class ProcessDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.process();
+		return Types.process.object();
 	}
 
 

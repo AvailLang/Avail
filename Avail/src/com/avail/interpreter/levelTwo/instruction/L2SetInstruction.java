@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.instruction;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.L2Translator;
 import com.avail.interpreter.levelTwo.instruction.L2SetInstruction;
@@ -111,11 +111,11 @@ public class L2SetInstruction extends L2Instruction
 		if (anL2Translator.registerHasTypeAt(_variable))
 		{
 			varType = anL2Translator.registerTypeAt(_variable);
-			varType = varType.typeIntersection(TypeDescriptor.container());
+			varType = varType.typeIntersection(Types.container.object());
 		}
 		else
 		{
-			varType = TypeDescriptor.container();
+			varType = Types.container.object();
 		}
 		anL2Translator.registerTypeAtPut(_variable, varType);
 	}

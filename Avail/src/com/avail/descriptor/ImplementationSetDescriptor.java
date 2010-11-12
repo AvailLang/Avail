@@ -42,7 +42,7 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import java.util.ArrayList;
@@ -187,7 +187,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return TypeDescriptor.implementationSet();
+		return Types.implementationSet.object();
 	}
 
 	int ObjectHash (
@@ -220,7 +220,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.implementationSet();
+		return Types.implementationSet.object();
 	}
 
 
@@ -399,7 +399,7 @@ public class ImplementationSetDescriptor extends Descriptor
 				final AvailObject sig2 = imps.tupleAt(bestIndex).bodySignature();
 				for (int argIndex = 1, _end10 = sig1.numArgs(); argIndex <= _end10; argIndex++)
 				{
-					if (sig1.argTypeAt(argIndex).typeIntersection(sig2.argTypeAt(argIndex)).equals(TypeDescriptor.terminates()))
+					if (sig1.argTypeAt(argIndex).typeIntersection(sig2.argTypeAt(argIndex)).equals(Types.terminates.object()))
 					{
 						newPossible = newPossible.setWithoutElementCanDestroy(boxedIndex, true);
 					}
@@ -750,7 +750,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
 			final int finalIndex = index;
-			if (argTypes.get((finalIndex - 1)).equals(TypeDescriptor.terminates()))
+			if (argTypes.get((finalIndex - 1)).equals(Types.terminates.object()))
 			{
 				failBlock.value(new Generator<String> ()
 				{

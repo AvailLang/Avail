@@ -38,7 +38,7 @@ import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TwoByteStringDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
@@ -206,11 +206,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		//  will just send this message recursively.  Note that because object is a string,
 		//  it is already known that each element is a character.
 
-		if (aType.equals(TypeDescriptor.voidType()))
+		if (aType.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aType.equals(TypeDescriptor.all()))
+		if (aType.equals(Types.all.object()))
 		{
 			return true;
 		}
@@ -231,7 +231,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		final int limit = min (object.tupleSize(), (typeTuple.tupleSize() + 1));
 		for (int i = 1; i <= limit; i++)
 		{
-			if (! TypeDescriptor.character().isSubtypeOf(aType.typeAtIndex(i)))
+			if (! Types.character.object().isSubtypeOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}

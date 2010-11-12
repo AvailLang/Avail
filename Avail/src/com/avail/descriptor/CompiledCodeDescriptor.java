@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots({
@@ -276,7 +277,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.compiledCode();
+		return Types.compiledCode.object();
 	}
 
 	AvailObject ObjectType (
@@ -284,7 +285,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.compiledCode();
+		return Types.compiledCode.object();
 	}
 
 

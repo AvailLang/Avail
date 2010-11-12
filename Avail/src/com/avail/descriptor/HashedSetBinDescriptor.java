@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.HashedSetBinDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import static java.lang.Integer.*;
 
@@ -305,7 +305,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			//  Calculate the union type before allocating the new bin, so we don't have to
 			//  worry about a partially initialized object during a type computation which may
 			//  require memory allocation.
-			AvailObject newUnionType = TypeDescriptor.terminates();
+			AvailObject newUnionType = Types.terminates.object();
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
 				if (! (index == physicalIndex))
@@ -341,7 +341,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		}
 		else
 		{
-			AvailObject newUnionType = TypeDescriptor.terminates();
+			AvailObject newUnionType = Types.terminates.object();
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
 				if ((index == physicalIndex))

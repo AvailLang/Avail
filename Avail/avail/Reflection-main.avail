@@ -35,7 +35,9 @@ Extends
 	"Kernel",
 	"Reflection-modules",
 	"Reflection-methods",
-	"Reflection-method validation"
+	"Reflection-method validation",
+	"Reflection-parse nodes"
+	
 Uses
 Names
 Body

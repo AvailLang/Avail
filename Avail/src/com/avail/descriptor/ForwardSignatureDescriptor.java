@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.AvailInterpreter;
 import java.util.List;
 
@@ -116,7 +116,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return TypeDescriptor.forwardSignature();
+		return Types.forwardSignature.object();
 	}
 
 	int ObjectHash (
@@ -133,7 +133,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.forwardSignature();
+		return Types.forwardSignature.object();
 	}
 
 

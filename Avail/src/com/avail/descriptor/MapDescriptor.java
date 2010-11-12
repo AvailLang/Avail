@@ -37,6 +37,8 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.avail.descriptor.TypeDescriptor.Types;
+
 @IntegerSlots({
 	"internalHash",
 	"mapSize",
@@ -222,11 +224,11 @@ public class MapDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(TypeDescriptor.voidType()))
+		if (aTypeObject.equals(Types.voidType.object()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(TypeDescriptor.all()))
+		if (aTypeObject.equals(Types.all.object()))
 		{
 			return true;
 		}
@@ -270,8 +272,8 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		AvailObject keyType = TypeDescriptor.terminates();
-		AvailObject valueType = TypeDescriptor.terminates();
+		AvailObject keyType = Types.terminates.object();
+		AvailObject valueType = Types.terminates.object();
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject keyObject = object.keyAtIndex(i);

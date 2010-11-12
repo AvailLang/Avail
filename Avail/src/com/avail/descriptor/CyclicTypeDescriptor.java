@@ -209,7 +209,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return TypeDescriptor.terminatesType();
+		return Types.terminatesType.object();
 	}
 
 	AvailObject ObjectTypeIntersectionOfMeta (
@@ -222,7 +222,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		//  being equal or one being a subtype of the other have already been dealt
 		//  with (in Object:typeIntersection:), so don't test for them here.
 
-		return TypeDescriptor.terminatesType();
+		return Types.terminatesType.object();
 	}
 
 	AvailObject ObjectTypeUnion (
@@ -252,7 +252,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return TypeDescriptor.cyclicType();
+		return Types.cyclicType.object();
 	}
 
 	boolean ObjectIsCyclicType (

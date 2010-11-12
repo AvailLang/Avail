@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+
 import java.lang.Double;
 import java.util.List;
 
@@ -120,7 +121,7 @@ public class DoubleDescriptor extends Descriptor
 	AvailObject ObjectExactType (
 			final AvailObject object)
 	{
-		return TypeDescriptor.doubleObject();
+		return Types.doubleObject.object();
 	}
 
 	int ObjectHash (
@@ -135,7 +136,7 @@ public class DoubleDescriptor extends Descriptor
 	AvailObject ObjectType (
 			final AvailObject object)
 	{
-		return TypeDescriptor.doubleObject();
+		return Types.doubleObject.object();
 	}
 
 

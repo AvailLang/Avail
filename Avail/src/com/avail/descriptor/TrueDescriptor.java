@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class TrueDescriptor extends BooleanDescriptor
 {
@@ -61,7 +61,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.trueType();
+		return Types.trueType.object();
 	}
 
 	int ObjectHash (
@@ -78,7 +78,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	{
 		//  Answer the object's type.
 
-		return TypeDescriptor.trueType();
+		return Types.trueType.object();
 	}
 
 
