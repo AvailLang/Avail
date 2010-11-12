@@ -37,29 +37,26 @@ Uses
 	"IO-file"
 Names
 	"Output File",
-	"Write_to_"
+	"Write_to_",
+	"Synchronize_with underlying device"
 Body
 
 
 /* I define the simple file output operations for Avail. */
 
-/* handle ::= lookup "handle"; */
-
 "Output File" is explicit subtype of File;
-
 
 /* Instance creation... */
 
 Method "_named_" is [fileType : Output File type, name : string |
-	fileHandle : cyclicType := [theName : string |
+	fileHandle : cyclicType := [theName : string, append : boolean |
 		Primitive 161;
 		Failed;
-	] : cyclicType (name);
+	] : cyclicType (name, false);
 	Output File new with <
 		<handle, fileHandle>
 	>;
 ] : Output File;
-
 
 /* Basic accessing... */
 
@@ -73,6 +70,15 @@ Method "Write_to_" is [bytes : tuple of byte, file : Output File |
 
 Method "Write_to_" is [theByte : byte, file : Output File |
 	Write <theByte> to file;
+] : void;
+
+/* Buffer synchronization... */
+
+Method "Synchronize_with underlying device" is [file : Output File |
+	[handle : cyclicType |
+		Primitive 169;
+		Failed;
+	] : void (file -> handle);
 ] : void;
 
 

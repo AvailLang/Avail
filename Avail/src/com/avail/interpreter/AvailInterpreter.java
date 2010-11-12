@@ -82,10 +82,17 @@ public abstract class AvailInterpreter
 	private List<AvailObject> specialObjects;
 	
 	/**
-	 * A mapping from a {@linkplain CyclicTypeDescriptor key} to a {@link
-	 * RandomAccessFile}.
+	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
+	 * RandomAccessFile}s open for reading.
 	 */
-	private Map<AvailObject, RandomAccessFile> openFiles =
+	private Map<AvailObject, RandomAccessFile> openReadableFiles =
+		new HashMap<AvailObject, RandomAccessFile>();
+	
+	/**
+	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
+	 * RandomAccessFile}s open for writing.
+	 */
+	private Map<AvailObject, RandomAccessFile> openWritableFiles =
 		new HashMap<AvailObject, RandomAccessFile>();
 	
 	private AvailObject isJumping = BooleanDescriptor.objectFromBoolean(true);
@@ -520,47 +527,117 @@ public abstract class AvailInterpreter
 	}
 
 	/**
-	 * Answer the open {@linkplain RandomAccessFile file} associated with the
-	 * specified {@linkplain CyclicTypeDescriptor cycle}.
+	 * Answer the open readable {@linkplain RandomAccessFile file} associated
+	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
 	 * 
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
 	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
 	 *         such association exists.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public RandomAccessFile getFile (final @NotNull AvailObject handle)
+	public RandomAccessFile getReadableFile (final @NotNull AvailObject handle)
 	{
 		assert handle.isCyclicType();
-		return openFiles.get(handle);
+		return openReadableFiles.get(handle);
 	}
 	
 	/**
-	 * Associate the specified {@linkplain CyclicTypeDescriptor cycle} with the
-	 * open {@linkplain RandomAccessFile file}.
+	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
+	 * open readable {@linkplain RandomAccessFile file}.
 	 * 
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @param file An open {@linkplain RandomAccessFile file}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public void putFile (
+	public void putReadableFile (
 		final @NotNull AvailObject handle,
 		final @NotNull RandomAccessFile file)
 	{
 		assert handle.isCyclicType();
-		openFiles.put(handle, file);
+		openReadableFiles.put(handle, file);
 	}
 	
 	/**
 	 * Remove the association between the specified {@linkplain
-	 * CyclicTypeDescriptor cycle} and its open {@linkplain RandomAccessFile
-	 * file}, presumably because the file is about to be closed.
+	 * CyclicTypeDescriptor handle} and its open readable {@linkplain
+	 * RandomAccessFile file}.
 	 * 
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public void forgetFile (final @NotNull AvailObject handle)
+	public void forgetReadableFile (final @NotNull AvailObject handle)
 	{
 		assert handle.isCyclicType();
-		assert openFiles.containsKey(handle);
-		openFiles.remove(handle);
+		openReadableFiles.remove(handle);
+	}
+	
+	/**
+	 * Answer the open writable {@linkplain RandomAccessFile file} associated
+	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
+	 * 
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @return The open {@linkplain RandomAccessFile file} associated with the
+	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
+	 *         such association exists.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public RandomAccessFile getWritableFile (final @NotNull AvailObject handle)
+	{
+		assert handle.isCyclicType();
+		return openWritableFiles.get(handle);
+	}
+	
+	/**
+	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
+	 * open writable {@linkplain RandomAccessFile file}.
+	 * 
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param file An open {@linkplain RandomAccessFile file}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public void putWritableFile (
+		final @NotNull AvailObject handle,
+		final @NotNull RandomAccessFile file)
+	{
+		assert handle.isCyclicType();
+		openWritableFiles.put(handle, file);
+	}
+	
+	/**
+	 * Remove the association between the specified {@linkplain
+	 * CyclicTypeDescriptor handle} and its open writable {@linkplain
+	 * RandomAccessFile file}.
+	 * 
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public void forgetWritableFile (final @NotNull AvailObject handle)
+	{
+		assert handle.isCyclicType();
+		openWritableFiles.remove(handle);
+	}
+	
+	/**
+	 * Answer the open {@linkplain RandomAccessFile file} associated with the
+	 * specified {@linkplain CyclicTypeDescriptor handle}.
+	 * 
+	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @return The open {@linkplain RandomAccessFile file} associated with the
+	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
+	 *         such association exists.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public RandomAccessFile getOpenFile (final @NotNull AvailObject handle)
+	{
+		assert handle.isCyclicType();
+		final RandomAccessFile file = openReadableFiles.get(handle);
+		if (file != null)
+		{
+			return file;
+		}
+		
+		return openWritableFiles.get(handle);
 	}
 	
 	public boolean hasMethodsAt (

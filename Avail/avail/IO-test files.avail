@@ -46,12 +46,15 @@ Assert testBytes type <= tuple of byte;
 
 [
 	f ::= Output File named "testfile";
+	Assert "testfile" is writable;
 	Write testBytes to f;
+	Synchronize f with underlying device;
 	Close f;
 ]();
 
-
 [
+	Assert "testfile" exists;
+	Assert "testfile" is readable;
 	f ::= Input File named "testfile";
 	t : tuple of byte := <>;
 	f do [b : byte |
@@ -59,5 +62,10 @@ Assert testBytes type <= tuple of byte;
 	];
 	Close f;
 	Assert t = testBytes;
+]();
+
+[
+	Rename "testfile" to "renamedfile";
+	Unlink "renamedfile" from filesystem;
 ]();
 

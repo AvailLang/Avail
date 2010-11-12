@@ -42,6 +42,7 @@ import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.scalb;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -2145,7 +2146,7 @@ public enum Primitive
 			{
 				final RandomAccessFile file = new RandomAccessFile(
 					filename.asNativeString(), "r");
-				interpreter.putFile(handle, file);
+				interpreter.putReadableFile(handle, file);
 			}
 			catch (final IOException e)
 			{
@@ -2165,17 +2166,18 @@ public enum Primitive
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim161_FileOpenWrite_nameString(161, 1, Flag.CanInline, Flag.HasSideEffect)
+	prim161_FileOpenWrite_nameString(161, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull AvailInterpreter interpreter)
 		{
-			assert args.size() == 1;
+			assert args.size() == 2;
 			
 			final AvailObject filename = args.get(0);
-			if (!filename.isString())
+			final AvailObject append = args.get(1);
+			if (!filename.isString() || !append.isBoolean())
 			{
 				return Result.FAILURE;
 			}
@@ -2184,10 +2186,17 @@ public enum Primitive
 				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
 			try
 			{
-				// TODO: Figure out how to make this write-only ...
 				final RandomAccessFile file = new RandomAccessFile(
 					filename.asNativeString(), "rw");
-				interpreter.putFile(handle, file);
+				if (append.extractBoolean())
+				{
+					file.seek(file.length());
+				}
+				else
+				{
+					file.setLength(0);
+				}
+				interpreter.putWritableFile(handle, file);
 			}
 			catch (final IOException e)
 			{
@@ -2228,7 +2237,8 @@ public enum Primitive
 			{
 				final RandomAccessFile file = new RandomAccessFile(
 					filename.asNativeString(), "rw");
-				interpreter.putFile(handle, file);
+				interpreter.putReadableFile(handle, file);
+				interpreter.putWritableFile(handle, file);
 			}
 			catch (final IOException e)
 			{
@@ -2243,7 +2253,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 163:</strong> Close the {@linkplain RandomAccessFile
 	 * file} associated with the specified {@linkplain CyclicTypeDescriptor
-	 * handle}.
+	 * handle}. Forget the association between the handle and the file.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2257,12 +2267,30 @@ public enum Primitive
 			assert args.size() == 1;
 			
 			final AvailObject handle = args.get(0);
-			if (!handle.isCyclicType() || interpreter.getFile(handle) == null)
+			if (!handle.isCyclicType())
 			{
 				return Result.FAILURE;
 			}
 			
-			interpreter.forgetFile(handle);
+			final RandomAccessFile file = interpreter.getOpenFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			try
+			{
+				file.close();
+			}
+			catch (final IOException e)
+			{
+				// There isn't much to do about a failed close, especially since
+				// we've already forgotten about the handle. There's no reason
+				// to fail the primitive.
+			}
+			
+			interpreter.forgetReadableFile(handle);
+			interpreter.forgetWritableFile(handle);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
@@ -2294,7 +2322,7 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getFile(handle);
+			final RandomAccessFile file = interpreter.getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2323,7 +2351,7 @@ public enum Primitive
 					true, bytesRead).mutableObjectOfSize(bytesRead);
 				for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
 				{
-					tuple.rawByteAtPut(i, (short)(buffer[i - 1] & 0xFF));
+					tuple.rawByteAtPut(i, (short) (buffer[i - 1] & 0xff));
 				}
 			}
 			else
@@ -2362,7 +2390,7 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getFile(handle);
+			final RandomAccessFile file = interpreter.getWritableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2394,7 +2422,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 166:</strong> Answer the size of the {@linkplain
 	 * RandomAccessFile file} associated with the specified {@linkplain
-	 * CyclicTypeDescriptor handle}. Supports file sizes greater than 2GB.
+	 * CyclicTypeDescriptor handle}. Supports 64-bit file sizes.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2413,7 +2441,7 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getFile(handle);
+			final RandomAccessFile file = interpreter.getOpenFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2437,9 +2465,9 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 167:</strong> Answer the current position of the file
-	 * pointer within the {@linkplain RandomAccessFile file} associated with the
-	 * specified {@linkplain CyclicTypeDescriptor handle}. Supports file sizes
-	 * and positions greater than 2GB.
+	 * pointer within the readable {@linkplain RandomAccessFile file} associated
+	 * with the specified {@linkplain CyclicTypeDescriptor handle}. Supports
+	 * 64-bit file sizes and positions.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2458,7 +2486,7 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getFile(handle);
+			final RandomAccessFile file = interpreter.getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2482,9 +2510,9 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 168:</strong> Set the current position of the file
-	 * pointer within the {@linkplain RandomAccessFile file} associated with the
-	 * specified {@linkplain CyclicTypeDescriptor handle}. Supports file sizes
-	 * and positions greater than 2GB.
+	 * pointer within the readable {@linkplain RandomAccessFile file} associated
+	 * with the specified {@linkplain CyclicTypeDescriptor handle}. Supports
+	 * 64-bit file sizes and positions.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2507,7 +2535,7 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getFile(handle);
+			final RandomAccessFile file = interpreter.getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2526,9 +2554,276 @@ public enum Primitive
 			return Result.SUCCESS;
 		}
 	},
+	
+	/**
+	 * <strong>Primitive 168:</strong> Force all system buffers associated with
+	 * the writable {@linkplain RandomAccessFile file} to synchronize with the
+	 * underlying device.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim169_FileSync_handle(169, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject handle = args.get(0);
+			if (!handle.isCyclicType())
+			{
+				return Result.FAILURE;
+			}
+			
+			final RandomAccessFile file = interpreter.getWritableFile(handle);
+			if (file == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			try
+			{
+				file.getFD().sync();
+			}
+			catch (final IOException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
+		}
+	},
+	
+	/**
+	 * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
+	 * the specified filename?
+	 */
+	prim170_FileExists_nameString(170, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final File file = new File(filename.asNativeString());
+			final boolean exists;
+			try
+			{
+				exists = file.exists();
+			}
+			catch (final SecurityException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFromBoolean(exists));
+			return Result.SUCCESS;
+		}
+	},
+	
+	/**
+	 * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
+	 * specified filename readable by the OS process?
+	 */
+	prim171_FileCanRead_nameString(171, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final File file = new File(filename.asNativeString());
+			final boolean readable;
+			try
+			{
+				readable = file.canRead();
+			}
+			catch (final SecurityException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFromBoolean(readable));
+			return Result.SUCCESS;
+		}
+	},
 
-	// TODO: Implement a file sync primitive.
+	/**
+	 * <strong>Primitive 172:</strong> Is the {@linkplain File file} with the
+	 * specified filename writable by the OS process?
+	 */
+	prim172_FileCanWrite_nameString(172, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final File file = new File(filename.asNativeString());
+			final boolean writable;
+			try
+			{
+				writable = file.canWrite();
+			}
+			catch (final SecurityException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFromBoolean(writable));
+			return Result.SUCCESS;
+		}
+	},
 
+	/**
+	 * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
+	 * specified filename executable by the OS process?
+	 */
+	prim173_FileCanExecute_nameString(
+		173, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final File file = new File(filename.asNativeString());
+			final boolean executable;
+			try
+			{
+				executable = file.canExecute();
+			}
+			catch (final SecurityException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFromBoolean(executable));
+			return Result.SUCCESS;
+		}
+	},
+
+	/**
+	 * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
+	 * the specified source filename.
+	 */
+	prim174_FileRename_sourceString_destinationString(
+		174, 2, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 2;
+			
+			final AvailObject source = args.get(0);
+			final AvailObject destination = args.get(1);
+			if (!source.isString() || !destination.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final File file = new File(source.asNativeString());
+			final boolean renamed;
+			try
+			{
+				renamed = file.renameTo(new File(destination.asNativeString()));
+			}
+			catch (final SecurityException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			if (!renamed)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
+		}
+	},
+	
+	/**
+	 * <strong>Primitive 175:</strong> Unlink the {@linkplain File file} with
+	 * the specified filename from the filesystem.
+	 */
+	prim175_FileUnlink_nameString(175, 1, Flag.CanInline, Flag.HasSideEffect)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+		    final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject filename = args.get(0);
+			if (!filename.isString())
+			{
+				return Result.FAILURE;
+			}
+			
+			final File file = new File(filename.asNativeString());
+			final boolean deleted;
+			try
+			{
+				deleted = file.delete();
+			}
+			catch (final SecurityException e)
+			{
+				return Result.FAILURE;
+			}
+			
+			if (!deleted)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
+		}
+	},
+	
 	prim180_CompiledCodeNumArgs_cc(180, 1, Flag.CanFold)
 	{
 		@Override

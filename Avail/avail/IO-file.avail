@@ -37,6 +37,12 @@ Uses
 Names
 	"File",
 	"_named_",
+	"_exists",
+	"_is readable",
+	"_is writable",
+	"_is executable",
+	"Rename_to_",
+	"Unlink_from filesystem",
 	"_position",
 	"_size",
 	"_go to_",
@@ -62,6 +68,51 @@ returns [ftT : File type type, strT : string type |
 	ftT instance;
 ];
 
+/* Filename inquiries... */
+
+Method "_exists" is [filename : string |
+	[filename : string |
+		Primitive 170;
+		Failed;
+	] : boolean (filename);
+] : boolean;
+
+Method "_is readable" is [filename : string |
+	[filename : string |
+		Primitive 171;
+		Failed;
+	] : boolean (filename);
+] : boolean;
+
+Method "_is writable" is [filename : string |
+	[filename : string |
+		Primitive 172;
+		Failed;
+	] : boolean (filename);
+] : boolean;
+
+Method "_is executable" is [filename : string |
+	[filename : string |
+		Primitive 173;
+		Failed;
+	] : boolean (filename);
+] : boolean;
+
+/* Filename operations... */
+
+Method "Rename_to_" is [source : string, destination : string |
+	[source : string, destination : string |
+		Primitive 174;
+		Failed;
+	] : void (source, destination);
+] : void;
+
+Method "Unlink_from filesystem" is [filename : string |
+	[filename : string |
+		Primitive 175;
+		Failed;
+	] : void (filename);
+] : void;
 
 /* Basic accessing... */
 

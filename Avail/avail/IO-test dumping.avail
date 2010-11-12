@@ -43,8 +43,6 @@ Body
 	Close out;
 ]();
 
-
-
 [
 	in ::= Input File named "testDump";
 	x ::= Load from in;
@@ -52,3 +50,6 @@ Body
 	Close in;
 ]();
 
+[
+	Unlink "testDump" from filesystem;
+]();
