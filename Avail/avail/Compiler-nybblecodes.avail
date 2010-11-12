@@ -52,7 +52,6 @@ Names
 	"Push Variable Instruction",
 		"Push Local Instruction",
 		"Push Outer Instruction",
-	"Return Instruction",
 	"Set Literal Instruction",
 	"Set Variable Instruction",
 		"Set Local Instruction",
@@ -73,7 +72,6 @@ Names
 	"new Push Literal Instruction literal index_",
 	"new Push Local Instruction local index_",
 	"new Push Outer Instruction outer index_",
-	"new Return Instruction",
 	"new Set Literal Instruction literal index_",
 	"new Set Local Instruction local index_",
 	"new Set Outer Instruction outer index_",
@@ -128,7 +126,6 @@ label ::= lookup "label";
 			[index -> natural number];
 		"Push Outer Instruction" is explicit subtype of Push Variable Instruction with
 			[index -> natural number];
-	"Return Instruction" is explicit subtype of Instruction;
 	"Set Literal Instruction" is explicit subtype of Instruction with
 			[index -> natural number];
 	"Set Variable Instruction" is explicit subtype of Instruction;
@@ -237,10 +234,6 @@ Method "new Push Outer Instruction outer index_" is [
 	>;
 ];
 
-Method "new Return Instruction" is [
-	Return Instruction new with <>;
-];
-
 Method "new Set Literal Instruction literal index_" is [litIndex : natural number |
 	Set Literal Instruction new with <
 		<index, litIndex>
@@ -328,10 +321,6 @@ Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Push Local In
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Push Outer Instruction |
 	cg push outer instr->index is last *instr->isLast;
-];
-
-Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Return Instruction |
-	cg return;
 ];
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Set Literal Instruction |

@@ -103,7 +103,6 @@ Method "_emit value on_" is [node : Block Node, gen : Instruction Generator |
 		/* No statements, so push void. */
 		subGen push literal 0;  /* Nobody will find out it's not void. */
 	];
-	subGen return;
 	code ::= subGen result;
 	if ||outers|| = 0 then [
 		/* Build the closure statically, and push it as a literal. */
@@ -234,7 +233,6 @@ Method "generate zero argument block from_" is [node : Parse Node |
 		outers <>
 		result type (node result type);
 	node emit value on gen;
-	gen return;
 	code ::= gen result;
 	block ::= closure from code outer variables <>;
 	cast block into [b : []->void | b;];

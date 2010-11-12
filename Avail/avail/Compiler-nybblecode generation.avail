@@ -51,7 +51,6 @@ Names
 	"_push literal_",
 	"_push local_is last_",
 	"_push outer_is last_",
-	"_return",
 	"_set literal_",
 	"_set local_",
 	"_set outer_",
@@ -207,10 +206,6 @@ Method "_push outer_is last_" is [
 Method "_push literal_" is [cg : Nybblecode Generator, litIndex : natural number |
 	cg emit pushLiteralNybbles;
 	cg put integer litIndex;
-];
-
-Method "_return" is [cg : Nybblecode Generator |
-	cg emit returnNybbles;
 ];
 
 Method "_set literal_" is [cg : Nybblecode Generator, litIndex : natural number |

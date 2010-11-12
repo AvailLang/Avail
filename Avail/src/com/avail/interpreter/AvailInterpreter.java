@@ -421,8 +421,15 @@ public abstract class AvailInterpreter
 		}
 	}
 
+	/**
+	 * Create the two-argument defining method. The first parameter of the
+	 * method is the name, the second parameter is the {@linkplain
+	 * ClosureDescriptor block}. 
+	 * 
+	 * @param defineMethodName The name of the defining method.
+	 */
 	public void bootstrapDefiningMethod (
-		final String defineMethodName)
+		final @NotNull String defineMethodName)
 	{
 		//  Define the special defining method.
 
@@ -433,43 +440,50 @@ public abstract class AvailInterpreter
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(VoidDescriptor.voidObject())));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doReturn));
-		writer.argumentTypes(TupleTypeDescriptor.stringTupleType(), Types.closure.object());
+		writer.argumentTypes(
+			TupleTypeDescriptor.stringTupleType(), Types.closure.object());
 		writer.primitiveNumber(253);
 		writer.returnType(Types.voidType.object());
 		newClosure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
-		final AvailObject nameTuple = ByteStringDescriptor.mutableObjectFromNativeString(defineMethodName);
-		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(nameTuple);
+		final AvailObject nameTuple =
+			ByteStringDescriptor.mutableObjectFromNativeString(
+				defineMethodName);
+		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(
+			nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
 	}
 
+	/**
+	 * Create the one-argument {@linkplain #specialObjects() special object}
+	 * method. The parameter is the {@linkplain IntegerDescriptor ordinal} of
+	 * the special object.
+	 * 
+	 * @param specialObjectName The name of the {@linkplain #specialObjects()
+	 *                          special object} method.
+	 */
 	public void bootstrapSpecialObject (
-		final String specialObjectName)
+		final @NotNull String specialObjectName)
 	{
 		//  Define the special object method.
 
 		assert module != null;
-		final AvailObject naturalNumbers = IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
-			IntegerDescriptor.one(),
-			true,
-			InfinityDescriptor.positiveInfinity(),
-			false);
+		final AvailObject naturalNumbers =
+			IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
+				IntegerDescriptor.one(),
+				true,
+				InfinityDescriptor.positiveInfinity(),
+				false);
 		AvailObject newClosure;
 		L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(VoidDescriptor.voidObject())));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doReturn));
 		writer.argumentTypes(naturalNumbers);
 		writer.primitiveNumber(240);
 		writer.returnType(Types.all.object());
@@ -477,8 +491,11 @@ public abstract class AvailInterpreter
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
-		final AvailObject nameTuple = ByteStringDescriptor.mutableObjectFromNativeString(specialObjectName);
-		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(nameTuple);
+		final AvailObject nameTuple =
+			ByteStringDescriptor.mutableObjectFromNativeString(
+				specialObjectName);
+		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(
+			nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);

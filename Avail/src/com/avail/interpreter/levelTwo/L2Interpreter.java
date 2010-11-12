@@ -380,27 +380,36 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 		pointerAtPut(destIndex, newContinuation);
 	}
 
-	public void L2_doInterpretOneInstruction()
+	/**
+	 * Execute a single nybblecode of the current continuation, found in
+	 * {@link #callerRegister() callerRegister}.
+	 */
+	public void L2_doInterpretOneInstruction ()
 	{
-		//  Execute a single nybblecode of the current continuation, found in callerRegister.  Note that the Java
-		//  code generator treats this wordcode as a special case, in order to place the dispatched nybblecodes
-		//  in a switch statement of the central run() method.  This is to allow easy escape in #doReturn, among
-		//  other reasons.  Browse my senders for more details.
-
-		final AvailObject cont = pointerAt(callerRegister());
-		final AvailObject clos = cont.closure();
-		final AvailObject cod = clos.code();
-		final AvailObject nybs = cod.nybbles();
-		int pc = cont.pc();
-		final byte nybble = nybs.extractNybbleFromTupleAt(pc);
-		++pc;
-		//  postincrement the program counter
-		cont.pc(pc);
+		final AvailObject continutation = pointerAt(callerRegister());
+		final AvailObject closure = continutation.closure();
+		final AvailObject code = closure.code();
+		final AvailObject nybbles = code.nybbles();
+		int pc = continutation.pc();
+		
+		// Before we extract the nybblecode, may sure that the PC hasn't passed
+		// the end of the instruction sequence. If we have, then execute an
+		// L1_doReturn.
+		if (pc > nybbles.tupleSize())
+		{
+			L2L1_doReturn();
+			return;
+		}
+		
+		final byte nybble = nybbles.extractNybbleFromTupleAt(pc++);
+		continutation.pc(pc);
 		switch (nybble)
 		{
 			case 0: L2L1_doCall(); break;
 			case 1: L2L1_doVerifyType(); break;
-			case 2: L2L1_doReturn(); break;
+			case 2:
+				error("Illegal nybblecode (return is synthetic only)");
+				break;
 			case 3: L2L1_doPushLiteral(); break;
 			case 4: L2L1_doPushLastLocal(); break;
 			case 5: L2L1_doPushLocal(); break;

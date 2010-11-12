@@ -271,7 +271,6 @@ public class ClosureDescriptor extends Descriptor
 		writer.returnType(constantResult.type());
 
 		writer.write(new L1Instruction(L1Operation.L1_doPushLiteral, writer.addLiteral(constantResult)));
-		writer.write(new L1Instruction(L1Operation.L1_doReturn));
 
 		AvailObject code = writer.compiledCode();
 		AvailObject closure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
@@ -306,7 +305,6 @@ public class ClosureDescriptor extends Descriptor
 		writer.write(new L1Instruction(L1Operation.L1Ext_doMakeList, numArgs));
 		writer.write(new L1Instruction(L1Operation.L1_doCall, writer.addLiteral(implementationSet)));
 		writer.write(new L1Instruction(L1Operation.L1_doVerifyType, writer.addLiteral(resultType)));
-		writer.write(new L1Instruction(L1Operation.L1_doReturn));
 
 		AvailObject code = writer.compiledCode();
 

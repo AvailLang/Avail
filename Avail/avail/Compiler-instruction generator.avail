@@ -54,7 +54,6 @@ Names
 	"_push literal_",
 	"_push local_",
 	"_push outer_",
-	"_return",
 	"_set literal_",
 	"_set local_",
 	"_set outer_",
@@ -281,11 +280,6 @@ Method "_push outer_" is [
 	gen add instruction
 		new Push Outer Instruction outer index gen outerMap[outer];
 	gen increase stack by 1;   /* push outer's value */
-];
-
-Method "_return" is [gen : Instruction Generator |
-	gen add instruction new Return Instruction;
-	*gen stackDepth := nil;   /* Flag successive instructions as unreachable */
 ];
 
 Method "_set literal_" is [

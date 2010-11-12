@@ -207,7 +207,6 @@ public class AvailBlockNode extends AvailParseNode
 				lastStatement.emitValueOn(codeGenerator);
 			}
 		}
-		codeGenerator.emitReturn();
 		return codeGenerator.endBlock();
 	}
 

@@ -48,7 +48,6 @@ import com.avail.compiler.instruction.AvailPushLabel;
 import com.avail.compiler.instruction.AvailPushLiteral;
 import com.avail.compiler.instruction.AvailPushLocalVariable;
 import com.avail.compiler.instruction.AvailPushOuterVariable;
-import com.avail.compiler.instruction.AvailReturn;
 import com.avail.compiler.instruction.AvailSetLiteralVariable;
 import com.avail.compiler.instruction.AvailSetLocalVariable;
 import com.avail.compiler.instruction.AvailSetOuterVariable;
@@ -398,18 +397,6 @@ public class AvailCodeGenerator
 		}
 		error("Consistency error - unknown variable.");
 		return;
-	}
-
-	public void emitReturn ()
-	{
-		_instructions.add(new AvailReturn());
-		if (! (_depth == 1))
-		{
-			error("Depth at return should have been 1.");
-			return;
-		}
-		//  Make it fail if any code (which must be dead) is generated after this.
-		_depth = 0;
 	}
 
 	public void emitSetLiteral (

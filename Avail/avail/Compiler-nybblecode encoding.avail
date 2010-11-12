@@ -37,7 +37,6 @@ Uses
 Names
 	"callNybbles",
 	"verifyTypeNybbles",
-	"returnNybbles",
 	"pushLiteralNybbles",
 	"pushLocalLastNybbles",
 	"pushLocalNybbles",
@@ -66,7 +65,7 @@ Body
 
 Method "callNybbles" is [<0>;];
 Method "verifyTypeNybbles" is [<1>;];
-Method "returnNybbles" is [<2>;];
+/* Used to be returnNybbles. */
 Method "pushLiteralNybbles" is [<3>;];
 Method "pushLocalLastNybbles" is [<4>;];
 Method "pushLocalNybbles" is [<5>;];

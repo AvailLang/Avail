@@ -32,27 +32,54 @@
 
 package com.avail.interpreter.levelOne;
 
+import com.avail.annotations.NotNull;
+
+/**
+ * {@code L1Instruction} combines an {@link L1Operation} with the operands.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L1Instruction
 {
-	private final L1Operation operation;
-	private final int [] operands;
+	/** The {@link L1Operation}. */
+	private final @NotNull L1Operation operation;
+	
+	/** The operands. */
+	private final @NotNull int [] operands;
 
+	/**
+	 * Answer the {@link L1Operation}.
+	 * 
+	 * @return The {@link L1Operation}.
+	 */
 	public L1Operation operation ()
 	{
 		return operation;
-	};
+	}
 
+	/**
+	 * Answer the operands.
+	 * 
+	 * @return The operands.
+	 */
 	public int [] operands ()
 	{
 		return operands;
-	};
-
-	// Constructor
-	public L1Instruction (L1Operation operation, int ... operands)
+	}
+	
+	/**
+	 * Construct an {@link L1Instruction}.
+	 * 
+	 * @param operation The {@link L1Operation}.
+	 * @param operands The operands.
+	 */
+	public L1Instruction (
+		final @NotNull L1Operation operation,
+		final int ... operands)
 	{
 		assert operation.operandTypes().length == operands.length;
 
 		this.operation = operation;
 		this.operands = operands;
-	};
+	}
 }

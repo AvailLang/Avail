@@ -233,11 +233,6 @@ public class AvailInstruction
 		return 10;
 	}
 
-	public static byte returnNybble ()
-	{
-		return 2;
-	}
-
 	public static byte setLocalNybble ()
 	{
 		return 8;

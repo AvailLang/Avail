@@ -32,7 +32,6 @@
 
 Module "Decompiler-main"
 Extends
-	"Decompiler-decompiler",
 	"Decompiler-decompiler"
 Uses
 Names
