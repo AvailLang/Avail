@@ -77,6 +77,7 @@ import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
+import com.avail.descriptor.TerminatesTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -3449,40 +3450,22 @@ public enum Primitive
 		}
 	},
 
-
+	/**
+	 * <strong>Primitive 256:</strong> Exit the program.
+	 */
 	prim256_EmergencyExit_value(256, 1, Flag.Unknown)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Emergency exit primitive.
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				| reply result |
-				result := nil.
-				reply := Dialog
-					choose: ('Pausing interpreter with:\' withCRs , value printString)
-						, '\Debug?' withCRs
-					labels: #('Smalltalk debug' 'Avail debug' 'Terminate' 'Proceed')
-					values: #(#smalltalk #avail #terminate #proceed)
-					default: #proceed.
-				reply = #terminate ifTrue: [
-					self currentContinuation: VoidDescriptor voidObject.
-					AvailCompiler compilerErrorSignal raiseWith: #terminated].
-				reply = #smalltalk ifTrue: [
-					self halt.
-					reply := #avail].
-				reply = #avail ifTrue: [
-					self currentContinuation
-						stackAt: self currentContinuation stackp
-						put: VoidDescriptor voidObject.
-					self prepareToExecuteContinuation: self currentContinuation debug.
-					result := #continuationChanged].
-				reply = #proceed ifTrue: [
-					result := VoidDescriptor voidObject].
-				^result
-			 */
+			assert args.size() == 1;
+			
+			final AvailObject errorMessageProducer = args.get(0);
+			error("The program has exited: " + errorMessageProducer);
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
 		}
 	},
 

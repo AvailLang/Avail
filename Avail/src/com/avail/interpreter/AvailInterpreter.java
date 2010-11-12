@@ -1134,7 +1134,7 @@ public abstract class AvailInterpreter
 		short primitiveNumber,
 		List<AvailObject> args)
 	{
-		//TODO: Phase this out without ever implementing it.
+		//TODO: [MvG] Phase this out without ever implementing it.
 		error("Can't call back to Smalltalk -- not supported.");
 		return Result.FAILURE;
 	}
