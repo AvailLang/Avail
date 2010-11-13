@@ -113,9 +113,8 @@ public class AvailCompilerTest
 	private void compileTier (final @NotNull String[] modulePaths)
 	throws IOException
 	{
-		AvailRuntime runtime = new AvailRuntime();
-		AvailCompiler compiler = new AvailCompiler();
-		L2Interpreter interpreter = new L2Interpreter(runtime);
+		final AvailRuntime runtime = new AvailRuntime();
+		final AvailCompiler compiler = new AvailCompiler();
 		final Mutable<String> source = new Mutable<String>();
 		try
 		{
@@ -126,7 +125,7 @@ public class AvailCompilerTest
 				source.value = readSourceFile(pathWithExtension);
 				compiler.parseModuleFromStringInterpreterProgressBlock(
 					source.value,
-					interpreter,
+					new L2Interpreter(runtime),
 					new Continuation2<Integer, Integer>()
 					{
 						@Override

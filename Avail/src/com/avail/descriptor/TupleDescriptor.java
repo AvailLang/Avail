@@ -46,7 +46,9 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 import static java.util.Collections.*;
@@ -761,8 +763,53 @@ public abstract class TupleDescriptor extends Descriptor
 		return result;
 	}
 
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	@NotNull Iterable<AvailObject> ObjectTupleIterable (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject selfSnapshot = object.copyAsMutableObjectTuple();
+		final int size = selfSnapshot.tupleSize();
+		return new Iterable<AvailObject>()
+		{
+			@Override
+			public Iterator<AvailObject> iterator ()
+			{
+				return new Iterator<AvailObject>()
+				{
+					/**
+					 * The index of the next {@linkplain AvailObject element}.
+					 */
+					int index = 1;
 
-
+					@Override
+					public boolean hasNext ()
+					{
+						return index <= size;
+					}
+					
+					@Override
+					public AvailObject next ()
+					{
+						if (index > size)
+						{
+							throw new NoSuchElementException();
+						}
+						
+						return selfSnapshot.tupleAt(index++);
+					}
+					
+					@Override
+					public void remove ()
+					{
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+		};
+	}
 
 	// Startup/shutdown
 

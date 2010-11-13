@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.ApproximateTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
@@ -40,7 +41,9 @@ import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import static com.avail.descriptor.AvailObject.*;
 
 @ObjectSlots("rootBin")
@@ -396,6 +399,54 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	@NotNull Iterable<AvailObject> ObjectSetIterable (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject selfSnapshotAsTuple = object.asTuple();
+		final int size = selfSnapshotAsTuple.tupleSize();
+		return new Iterable<AvailObject>()
+		{
+			@Override
+			public Iterator<AvailObject> iterator ()
+			{
+				return new Iterator<AvailObject>()
+				{
+					/**
+					 * The index of the next {@linkplain AvailObject element}.
+					 */
+					int index = 1;
+
+					@Override
+					public boolean hasNext ()
+					{
+						return index <= size;
+					}
+					
+					@Override
+					public AvailObject next ()
+					{
+						if (index > size)
+						{
+							throw new NoSuchElementException();
+						}
+						
+						return selfSnapshotAsTuple.tupleAt(index++);
+					}
+					
+					@Override
+					public void remove ()
+					{
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+		};
+	}
+
 	AvailObject ObjectAsTuple (
 			final AvailObject object)
 	{
@@ -418,9 +469,6 @@ public class SetDescriptor extends Descriptor
 
 		return object.rootBin().binSize();
 	}
-
-
-
 
 	// Startup/shutdown
 

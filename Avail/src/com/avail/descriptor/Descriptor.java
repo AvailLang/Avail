@@ -2268,11 +2268,11 @@ public abstract class Descriptor
 	}
 
 	void ObjectRemoveFrom (
-			final AvailObject object, 
-			final AvailInterpreter anInterpreter)
+		final AvailObject object, 
+		final AvailInterpreter anInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
-
+	
 		error("Subclass responsibility: Object:removeFrom: in Avail.Descriptor", object);
 		return;
 	}
@@ -2288,22 +2288,22 @@ public abstract class Descriptor
 	}
 
 	boolean ObjectRemoveMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
-			final AvailObject parts)
+		final AvailObject object, 
+		final AvailObject message, 
+		final AvailObject parts)
 	{
 		//  GENERATED pure (abstract) method.
-
+	
 		error("Subclass responsibility: Object:removeMessage:parts: in Avail.Descriptor", object);
 		return false;
 	}
 
 	void ObjectRemoveRestrictions (
-			final AvailObject object, 
-			final AvailObject obsoleteRestrictions)
+		final AvailObject object, 
+		final AvailObject obsoleteRestrictions)
 	{
 		//  GENERATED pure (abstract) method.
-
+	
 		error("Subclass responsibility: Object:removeRestrictions: in Avail.Descriptor", object);
 		return;
 	}
@@ -2465,6 +2465,22 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
+	/**
+	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
+	 * traversal of an Avail {@linkplain SetDescriptor set}.
+	 * 
+	 * @param An Avail {@linkplain SetDescriptor set}.
+	 * @return An {@link Iterable}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@NotNull Iterable<AvailObject> ObjectSetIterable (
+		final @NotNull AvailObject object)
+	{
+		error("Subclass responsibility: ObjectSetIterable() in "
+			+ getClass().getCanonicalName());
+		return null;
+	}
+	
 	void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2691,6 +2707,22 @@ public abstract class Descriptor
 
 		error("Subclass responsibility: Object:tupleIntAt: in Avail.Descriptor", object);
 		return 0;
+	}
+	
+	/**
+	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
+	 * traversal of an Avail {@linkplain TupleDescriptor tuple}.
+	 * 
+	 * @param An Avail {@linkplain TupleDescriptor tuple}.
+	 * @return An {@link Iterable}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@NotNull Iterable<AvailObject> ObjectTupleIterable (
+		final @NotNull AvailObject object)
+	{
+		error("Subclass responsibility: ObjectSetIterable() in "
+			+ getClass().getCanonicalName());
+		return null;
 	}
 
 	void ObjectTupleType (
@@ -4373,16 +4405,16 @@ public abstract class Descriptor
 	}
 
 	void ObjectRemoveRestrictions (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
-
+	
 		error("Subclass responsibility: ObjectRemoveRestrictions: in Avail.Descriptor", object);
 		return;
 	}
 
 	AvailObject ObjectRequiresBlock (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 

@@ -36,7 +36,9 @@ import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.NotNull;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AvailModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
@@ -45,11 +47,15 @@ import com.avail.descriptor.ImplementationSetDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListTypeDescriptor;
 import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.Primitive;
 
 /**
@@ -62,6 +68,14 @@ import com.avail.interpreter.Primitive;
  */
 public final class AvailRuntime
 {
+	/**
+	 * The {@linkplain ReentrantReadWriteLock lock} that protects the
+	 * {@linkplain AvailRuntime runtime} data structures against dangerous
+	 * concurrent access.
+	 */
+	private final @NotNull ReentrantReadWriteLock runtimeLock =
+		new ReentrantReadWriteLock();
+	
 	/**
 	 * The {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime}.
@@ -162,27 +176,19 @@ public final class AvailRuntime
 	 *         If the ordinal is out of bounds.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@ThreadSafe
 	public AvailObject specialObject (final int ordinal)
 		throws ArrayIndexOutOfBoundsException
 	{
 		return specialObjects[ordinal];
 	}
 	
-	/** The loaded Avail {@linkplain AvailModuleDescriptor modules}. */
-	private @NotNull AvailObject modules = MapDescriptor.empty();
-	
 	/**
-	 * Answer the {@linkplain AvailModuleDescriptor modules} currently loaded by
-	 * the {@linkplain AvailRuntime runtime}.
-	 * 
-	 * @return A {@linkplain MapDescriptor map} from {@linkplain
-	 *         TupleDescriptor module names} to {@linkplain
-	 *         AvailModuleDescriptor modules}.
+	 * The loaded Avail {@linkplain AvailModuleDescriptor modules}: a
+	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
+	 * names} to {@linkplain AvailModuleDescriptor modules}.
 	 */
-	public @NotNull AvailObject modules ()
-	{
-		return modules;
-	}
+	private @NotNull AvailObject modules = MapDescriptor.empty();
 	
 	/**
 	 * Add the specified {@linkplain AvailModuleDescriptor module} to the
@@ -190,9 +196,36 @@ public final class AvailRuntime
 	 * 
 	 * @param aModule A {@linkplain AvailModuleDescriptor module}.
 	 */
+	@ThreadSafe
 	public void addModule (final @NotNull AvailObject aModule)
 	{
-		modules = modules.mapAtPuttingCanDestroy(aModule.name(), aModule, true);
+		runtimeLock.writeLock().lock();
+		try
+		{
+			// Add all visible message bundles to the root message bundle tree.
+			final AvailObject visibleNames = aModule.visibleNames();
+			for (final AvailObject name : visibleNames.setIterable())
+			{
+				assert name.isCyclicType();
+				final AvailObject messageParts =
+					AvailInterpreter.splitMethodName(name);
+				final AvailObject rootBundle =
+					rootBundleTree.includeBundleAtMessageParts(
+						name, messageParts);
+				final AvailObject bundle =
+					aModule.filteredBundleTree().includeBundleAtMessageParts(
+						name, messageParts);
+				rootBundle.addRestrictions(bundle.restrictions());
+			}
+			
+			// Finally add the module to the map of loaded modules.
+			modules = modules.mapAtPuttingCanDestroy(
+				aModule.name(), aModule, true);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
 	}
 	
 	/**
@@ -205,10 +238,20 @@ public final class AvailRuntime
 	 *          {@linkplain AvailModuleDescriptor module} with the specified
 	 *          {@linkplain TupleDescriptor name}, {@code false} otherwise.
 	 */
+	@ThreadSafe
 	public boolean includesModuleNamed (final @NotNull AvailObject moduleName)
 	{
 		assert moduleName.isString();
-		return modules.hasKey(moduleName);
+		
+		runtimeLock.readLock().lock();
+		try
+		{
+			return modules.hasKey(moduleName);
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
 	}
 	
 	/**
@@ -218,11 +261,21 @@ public final class AvailRuntime
 	 * @param moduleName A {@linkplain TupleDescriptor name}.
 	 * @return A {@linkplain AvailModuleDescriptor module}.
 	 */
+	@ThreadSafe
 	public @NotNull AvailObject moduleAt (final @NotNull AvailObject moduleName)
 	{
 		assert moduleName.isString();
-		assert includesModuleNamed(moduleName);
-		return modules.mapAt(moduleName);
+		
+		runtimeLock.readLock().lock();
+		try
+		{
+			assert includesModuleNamed(moduleName);
+			return modules.mapAt(moduleName);
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
 	}
 	
 	/**
@@ -234,19 +287,6 @@ public final class AvailRuntime
 	private @NotNull AvailObject methods = MapDescriptor.empty();
 	
 	/**
-	 * Answer the {@linkplain MethodDescriptor methods} current known to the
-	 * {@linkplain AvailRuntime runtime}.
-	 * 
-	 * @return A {@linkplain MapDescriptor map} from {@linkplain
-	 *         CyclicTypeDescriptor selector} to {@linkplain
-	 *         ImplementationSetDescriptor implementation set}.
-	 */
-	public @NotNull AvailObject methods ()
-	{
-		return methods;
-	}
-	
-	/**
 	 * Are there any {@linkplain ImplementationSetDescriptor methods} bound to
 	 * the specified {@linkplain CyclicTypeDescriptor selector}?
 	 * 
@@ -255,10 +295,55 @@ public final class AvailRuntime
 	 *         methods} bound to the specified {@linkplain CyclicTypeDescriptor
 	 *         selector}, {@code false} otherwise.
 	 */
+	@ThreadSafe
 	public boolean hasMethodsAt (final @NotNull AvailObject selector)
 	{
 		assert selector.isCyclicType();
-		return methods.hasKey(selector);
+		
+		runtimeLock.readLock().lock();
+		try
+		{
+			return methods.hasKey(selector);
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+	
+	/**
+	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
+	 * bound to the specified {@linkplain CyclicTypeDescriptor method name}.
+	 * If necessary, then create a new implementation set and bind it.
+	 * 
+	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
+	 */
+	@ThreadSafe
+	public @NotNull AvailObject implementationSetFor (
+		final @NotNull AvailObject methodName)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final AvailObject implementationSet;
+			if (methods.hasKey(methodName))
+			{
+				implementationSet = methods.mapAt(methodName);
+			}
+			else
+			{
+				implementationSet = ImplementationSetDescriptor
+					.newImplementationSetWithName(methodName);
+				methods = methods.mapAtPuttingCanDestroy(
+					methodName, implementationSet, true);
+			}
+			return implementationSet;
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
 	}
 	
 	/**
@@ -268,46 +353,97 @@ public final class AvailRuntime
 	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
 	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
 	 */
+	@ThreadSafe
 	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)
 	{
 		assert selector.isCyclicType();
-		return methods.mapAt(selector);
+		
+		runtimeLock.readLock().lock();
+		try
+		{
+			return methods.mapAt(selector);			
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
 	}
-	
+
 	/**
-	 * Map the specified {@linkplain CyclicTypeDescriptor selector} to the
-	 * specified {@linkplain ImplementationSetDescriptor implementation set}.
-	 *  
-	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
-	 * @param implementationSet An {@linkplain ImplementationSetDescriptor
-	 *                          implementation set}.
-	 */
-	public void methodsAtPut (
-		final @NotNull AvailObject selector,
-		final @NotNull AvailObject implementationSet)
-	{
-		assert selector.isCyclicType();
-		methods = methods.mapAtPuttingCanDestroy(
-			selector, implementationSet, true);
-	}
-	
-	/**
-	 * Unbind all {@linkplain ImplementationSetDescriptor methods} from the
-	 * specified {@linkplain CyclicTypeDescriptor selector}.
+	 * Unbind the specified implementation from the {@linkplain
+	 * CyclicTypeDescriptor selector}. If no implementations remain in the
+	 * {@linkplain ImplementationSetDescriptor implementation set}, then
+	 * forget the selector from the method dictionary and the {@linkplain
+	 * #rootBundleTree() root message bundle tree}.
 	 * 
 	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
+	 * @param implementation An implementation.
 	 */
-	public void removeMethodsAt (final @NotNull AvailObject selector)
+	@ThreadSafe
+	public void removeMethod (
+		final @NotNull AvailObject selector,
+		final @NotNull AvailObject implementation)
 	{
 		assert selector.isCyclicType();
-		methods = methods.mapWithoutKeyCanDestroy(selector, true);
+		
+		runtimeLock.writeLock().lock();
+		try
+		{
+			assert methods.hasKey(selector);
+			final AvailObject implementationSet = methods.mapAt(selector);
+			implementationSet.removeImplementation(implementation);
+			if (implementationSet.implementationsTuple().tupleSize() == 0)
+			{
+				methods = methods.mapWithoutKeyCanDestroy(selector, true);
+				rootBundleTree.removeMessageParts(
+					selector, AvailInterpreter.splitMethodName(selector));
+			}
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+	
+	/**
+	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It
+	 * contains the {@linkplain MessageBundleDescriptor message bundles}
+	 * exported by all loaded {@linkplain AvailModuleDescriptor modules}.
+	 */
+	private @NotNull AvailObject rootBundleTree =
+		UnexpandedMessageBundleTreeDescriptor.newDepth(1);
+	
+	/**
+	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
+	 * bundle tree}.
+	 * 
+	 * @return A {@linkplain MessageBundleTreeDescriptor message bundle tree}
+	 *         that contains the {@linkplain MessageBundleDescriptor message
+	 *         bundles} exported by all loaded {@linkplain AvailModuleDescriptor
+	 *         modules}.
+	 */
+	@ThreadSafe
+	public @NotNull AvailObject rootBundleTree ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			final AvailObject copy =
+				UnexpandedMessageBundleTreeDescriptor.newDepth(1);
+			rootBundleTree.copyToRestrictedTo(copy, methods.keysAsSet());
+			return copy;
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
 	}
 	
 	/**
 	 * A {@linkplain MapDescriptor map} from {@linkplain ObjectTypeDescriptor
 	 * user-defined object types} to user-assigned names.
 	 */
-	private AvailObject typeNames = MapDescriptor.empty();
+	private @NotNull AvailObject typeNames = MapDescriptor.empty();
 
 	/**
 	 * Answer the user-assigned name of the specified {@linkplain
@@ -463,6 +599,4 @@ public final class AvailRuntime
 		
 		return openWritableFiles.get(handle);
 	}
-	
-	// TODO: [TLS] Finish separating AvailInterpreter and AvailRuntime!
 }

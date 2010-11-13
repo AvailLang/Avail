@@ -511,12 +511,6 @@ public class AvailModuleDescriptor extends Descriptor
 		final AvailInterpreter anInterpreter)
 	{
 
-		final List<AvailObject> restrictionKeys = object.restrictions().keysAsArray();
-		for (int i = 1, _end1 = restrictionKeys.size(); i <= _end1; i++)
-		{
-			final AvailObject messageName = restrictionKeys.get((i - 1));
-			anInterpreter.atRemoveRestrictions(messageName, object.restrictions().mapAt(messageName));
-		}
 		final List<AvailObject> methodKeys = object.methods().keysAsArray();
 		for (int i = 1, _end2 = methodKeys.size(); i <= _end2; i++)
 		{
@@ -524,7 +518,8 @@ public class AvailModuleDescriptor extends Descriptor
 			final AvailObject methodsTuple = object.methods().mapAt(methodName).asTuple();
 			for (int k = 1, _end3 = methodsTuple.tupleSize(); k <= _end3; k++)
 			{
-				anInterpreter.removeMethodNamedImplementation(methodName, methodsTuple.tupleAt(k));
+				anInterpreter.removeMethodNamedImplementation(
+					methodName, methodsTuple.tupleAt(k));
 			}
 		}
 	}

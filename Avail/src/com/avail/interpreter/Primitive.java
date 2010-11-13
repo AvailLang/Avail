@@ -51,6 +51,8 @@ import java.util.EnumSet;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCompiler;
+import com.avail.descriptor.AvailModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
 import com.avail.descriptor.ByteTupleDescriptor;
@@ -3356,31 +3358,58 @@ public enum Primitive
 		}
 	},
 
+	/**
+	 * <strong>Primitive 245:</strong> Look up the {@linkplain
+	 * CyclicTypeDescriptor true name} bound to the specified {@linkplain
+	 * TupleDescriptor name} in the {@linkplain AvailModuleDescriptor module}
+	 * currently under {@linkplain AvailCompiler compilation}, creating the
+	 * true name if necessary.
+	 */
 	prim245_LookupName_name(245, 1, Flag.CanInline)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Lookup a name in the current module.
-
 			assert args.size() == 1;
+			
 			final AvailObject name = args.get(0);
+			if (!name.isString())
+			{
+				return Result.FAILURE;
+			}
+			
 			interpreter.primitiveResult(interpreter.lookupName(name));
 			return Result.SUCCESS;
 		}
 	},
 
-
+	/**
+	 * <strong>Primitive 250:</strong> Is there a {@linkplain Primitive
+	 * primitive} with the specified ordinal?
+	 */
 	prim250_IsPrimitiveDefined_index(250, 1, Flag.CanFold)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
-			//  Answer whether the given primitive number is defined.
-
 			assert args.size() == 1;
-			final AvailObject index = args.get(0);
-			interpreter.primitiveResult(BooleanDescriptor.objectFromBoolean(interpreter.supportsPrimitive(((short)(index.extractInt())))));
+			
+			final AvailObject ordinal = args.get(0);
+			if (!ordinal.isExtendedInteger() || !ordinal.isFinite())
+			{
+				return Result.FAILURE;
+			}
+			
+			final int index = ordinal.extractInt();
+			if (index < 0 || index > 65535)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(BooleanDescriptor.objectFromBoolean(
+				interpreter.supportsPrimitive((short) index)));
 			return Result.SUCCESS;
 		}
 	},

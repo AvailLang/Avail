@@ -3696,6 +3696,18 @@ public abstract class AvailObject
 			elementObjectToExclude,
 			canDestroy);
 	}
+	
+	/**
+	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
+	 * traversal of an Avail {@linkplain SetDescriptor set}.
+	 * 
+	 * @return An {@link Iterable}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public @NotNull Iterable<AvailObject> setIterable ()
+	{
+		return descriptor().ObjectSetIterable(this);
+	}
 
 	public AvailObject signature ()
 	{
@@ -3986,6 +3998,18 @@ public abstract class AvailObject
 		//  GENERATED for descriptor dispatch
 
 		return descriptor().ObjectTupleSize(this);
+	}
+
+	/**
+	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
+	 * traversal of an Avail {@linkplain TupleDescriptor tuple}.
+	 * 
+	 * @return An {@link Iterable}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public @NotNull Iterable<AvailObject> tupleIterable ()
+	{
+		return descriptor().ObjectTupleIterable(this);
 	}
 
 	public AvailObject tupleType ()

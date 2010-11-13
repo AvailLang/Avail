@@ -68,6 +68,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
+import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -77,18 +78,18 @@ import static com.avail.descriptor.AvailObject.*;
 
 public class AvailCompiler
 {
-	List<AvailToken> _tokens;
-	int _position;
-	L2Interpreter _interpreter;
-	AvailCompilerScopeStack _scopeStack;
-	int _greatestGuess;
-	List<Generator<String>> _greatExpectations;
-	AvailObject _module;
-	AvailCompilerFragmentCache _fragmentCache;
-	List<AvailObject> _extends;
-	List<AvailObject> _uses;
-	List<AvailObject> _names;
-	Continuation2<Integer, Integer> _progressBlock;
+	List<AvailToken> tokens;
+	int position;
+	L2Interpreter interpreter;
+	AvailCompilerScopeStack scopeStack;
+	int greatestGuess;
+	List<Generator<String>> greatExpectations;
+	AvailObject module;
+	AvailCompilerFragmentCache fragmentCache;
+	List<AvailObject> extendedModules;
+	List<AvailObject> usedModules;
+	List<AvailObject> exportedNames;
+	Continuation2<Integer, Integer> progressBlock;
 
 
 	// evaluation
@@ -106,7 +107,7 @@ public class AvailCompiler
 		statements.add(expressionNode);
 		block.statements(statements);
 		block.resultType(Types.voidType.object());
-		block = ((AvailBlockNode)(block.validatedWithInterpreter(_interpreter)));
+		block = ((AvailBlockNode)(block.validatedWithInterpreter(interpreter)));
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = block.generateOn(codeGenerator);
 		//  The block is guaranteed context-free (because imported variables/values are embedded
@@ -115,8 +116,8 @@ public class AvailCompiler
 		closure.makeImmutable();
 		ArrayList<AvailObject> args;
 		args = new ArrayList<AvailObject>();
-		final AvailObject result = _interpreter.runClosureArguments(closure, args);
-		// System.out.println(Integer.toString(_position) + " evaluated (" + expressionNode.toString() + ") = " + result.toString());
+		final AvailObject result = interpreter.runClosureArguments(closure, args);
+		// System.out.println(Integer.toString(position) + " evaluated (" + expressionNode.toString() + ") = " + result.toString());
 		return result;
 	}
 
@@ -137,7 +138,7 @@ public class AvailCompiler
 		if (declarationExpression.isConstant())
 		{
 			AvailObject val = evaluate(((AvailInitializingDeclarationNode)(declarationExpression)).initializingExpression());
-			_module.constantBindings(_module.constantBindings().mapAtPuttingCanDestroy(
+			module.constantBindings(module.constantBindings().mapAtPuttingCanDestroy(
 				name,
 				val.makeImmutable(),
 				true));
@@ -150,7 +151,7 @@ public class AvailCompiler
 				AvailObject val = evaluate(((AvailInitializingDeclarationNode)(declarationExpression)).initializingExpression());
 				var.setValue(val);
 			}
-			_module.variableBindings(_module.variableBindings().mapAtPuttingCanDestroy(
+			module.variableBindings(module.variableBindings().mapAtPuttingCanDestroy(
 				name,
 				var.makeImmutable(),
 				true));
@@ -169,12 +170,12 @@ public class AvailCompiler
 		//  This is sent directly from the AvailBrowser during a make.
 
 		final Mutable<Boolean> ok = new Mutable<Boolean>();
-		_progressBlock = aBlock;
-		_interpreter = theInterpreter;
-		_greatestGuess = -1;
-		_greatExpectations = null;
-		_tokens = new AvailScanner().scanString(string);
-		_position = 0;
+		progressBlock = aBlock;
+		interpreter = theInterpreter;
+		greatestGuess = -1;
+		greatExpectations = null;
+		tokens = new AvailScanner().scanString(string);
+		position = 0;
 		clearScopeStack();
 		ok.value = false;
 		startModuleTransaction();
@@ -215,14 +216,14 @@ public class AvailCompiler
 		//  expected but not found at that position.  This seems to work very well in practice.
 
 		int tokenPosSave = position();
-		position(_greatestGuess);
+		position(greatestGuess);
 		int charPos = peekToken().start();
 		position(tokenPosSave);
 		StringBuilder text = new StringBuilder(100);
 		text.append("<-- Expected...\n");
-		assert _greatExpectations.size() > 0 : "Bug - empty expectation list";
-		Set<String> alreadySeen = new HashSet<String>(_greatExpectations.size());
-		for (Generator<String> generator : _greatExpectations)
+		assert greatExpectations.size() > 0 : "Bug - empty expectation list";
+		Set<String> alreadySeen = new HashSet<String>(greatExpectations.size());
+		for (Generator<String> generator : greatExpectations)
 		{
 			String str = generator.value();
 			if (! alreadySeen.contains(str))
@@ -291,7 +292,7 @@ public class AvailCompiler
 		final Mutable<ArrayList<AvailParseNode>> maxExprs = new Mutable<ArrayList<AvailParseNode>>();
 		final Mutable<Integer> maxPos = new Mutable<Integer>();
 		final int oldPosition = position();
-		final AvailCompilerScopeStack oldStack = _scopeStack;
+		final AvailCompilerScopeStack oldStack = scopeStack;
 		clearScopeStack();
 		maxExprs.value = new ArrayList<AvailParseNode>();
 		maxPos.value = -1;
@@ -327,7 +328,7 @@ public class AvailCompiler
 		AvailObject value;
 		if ((maxExprs.value.size() == 1))
 		{
-			_scopeStack = oldStack;
+			scopeStack = oldStack;
 			if (maxExprs.value.get(0).type().isSubtypeOf(someType))
 			{
 				value = evaluate(maxExprs.value.get(0));
@@ -356,7 +357,7 @@ public class AvailCompiler
 			assert (maxExprs.value.size() > 1) : "What happened?";
 			expected("unambiguous longest parse of compile-time expression");
 		}
-		_scopeStack = oldStack;
+		scopeStack = oldStack;
 		position(oldPosition);
 	}
 
@@ -517,10 +518,10 @@ public class AvailCompiler
 									decl.name(localName);
 									decl.declaredType(type);
 									decl.isArgument(true);
-									oldScope = _scopeStack;
+									oldScope = scopeStack;
 									pushDeclaration(decl);
 									continuation.value(decl);
-									_scopeStack = oldScope;
+									scopeStack = oldScope;
 								}
 							}
 						});
@@ -541,7 +542,7 @@ public class AvailCompiler
 
 		if (peekTokenIsTypeString(AvailToken.TokenType.operator, "["))
 		{
-			final AvailCompilerScopeStack scopeOutsideBlock = _scopeStack;
+			final AvailCompilerScopeStack scopeOutsideBlock = scopeStack;
 			nextToken();
 			parseBlockArgumentsThen(new Continuation1<List<AvailVariableDeclarationNode>> ()
 			{
@@ -586,8 +587,8 @@ public class AvailCompiler
 													{
 														lastStatementType.value = Types.voidType.object();
 													}
-													final AvailCompilerScopeStack scopeInBlock = _scopeStack;
-													_scopeStack = scopeOutsideBlock;
+													final AvailCompilerScopeStack scopeInBlock = scopeStack;
+													scopeStack = scopeOutsideBlock;
 													parseTokenTypeStringErrorContinue(
 														AvailToken.TokenType.operator,
 														":",
@@ -682,7 +683,7 @@ public class AvailCompiler
 															expected("block with label to have return type void (otherwise exiting would need to provide a value)");
 														}
 													}
-													_scopeStack = scopeInBlock;
+													scopeStack = scopeInBlock;
 												}
 											});
 									}
@@ -692,7 +693,7 @@ public class AvailCompiler
 					});
 				}
 			});
-			_scopeStack = scopeOutsideBlock;
+			scopeStack = scopeOutsideBlock;
 			//  open square bracket.
 			backupToken();
 		}
@@ -707,7 +708,7 @@ public class AvailCompiler
 		//  or a constant declaration (var ::= expr).
 
 		final int where = position();
-		final AvailCompilerScopeStack oldScope = _scopeStack;
+		final AvailCompilerScopeStack oldScope = scopeStack;
 		final AvailToken localName = peekToken();
 		if ((localName.type() == AvailToken.TokenType.keyword))
 		{
@@ -747,7 +748,7 @@ public class AvailCompiler
 														constantDeclaration.isArgument(false);
 														pushDeclaration(constantDeclaration);
 														continuation.value(constantDeclaration);
-														_scopeStack = oldScope;
+														scopeStack = oldScope;
 													}
 												});
 											}
@@ -791,7 +792,7 @@ public class AvailCompiler
 																		initializingDeclaration.isArgument(false);
 																		pushDeclaration(initializingDeclaration);
 																		continuation.value(initializingDeclaration);
-																		_scopeStack = oldScope;
+																		scopeStack = oldScope;
 																	}
 																	else
 																	{
@@ -810,7 +811,7 @@ public class AvailCompiler
 									simpleDeclaration.isArgument(false);
 									pushDeclaration(simpleDeclaration);
 									continuation.value(simpleDeclaration);
-									_scopeStack = oldScope;
+									scopeStack = oldScope;
 								}
 							}
 						});
@@ -900,21 +901,21 @@ public class AvailCompiler
 		//  the variable declarations up to that point were identical.
 
 		final int start = position();
-		final AvailCompilerScopeStack originalScope = _scopeStack;
-		if (! _fragmentCache.hasComputedTokenPositionScopeStack(start, originalScope))
+		final AvailCompilerScopeStack originalScope = scopeStack;
+		if (! fragmentCache.hasComputedTokenPositionScopeStack(start, originalScope))
 		{
-			_fragmentCache.startComputingTokenPositionScopeStack(start, originalScope);
+			fragmentCache.startComputingTokenPositionScopeStack(start, originalScope);
 			final Continuation1<AvailParseNode> justRecord = new Continuation1<AvailParseNode> ()
 			{
 				public void value(final AvailParseNode expr)
 				{
-					_fragmentCache.atTokenPositionScopeStackAddSolution(
+					fragmentCache.atTokenPositionScopeStackAddSolution(
 						start,
 						originalScope,
 						newCachedSolutionEndPositionScopeStack(
 							expr,
 							position(),
-							_scopeStack));
+							scopeStack));
 				}
 			};
 			parseExpressionListItemThen(new Continuation1<AvailParseNode> ()
@@ -928,7 +929,7 @@ public class AvailCompiler
 					parseExpressionListItemsBeyondThen(itemList, justRecord);
 				}
 			});
-			if (! ((position() == start) && (_scopeStack == originalScope)))
+			if (! ((position() == start) && (scopeStack == originalScope)))
 			{
 				error("token stream position and scopeStack were not restored correctly");
 				return;
@@ -941,15 +942,15 @@ public class AvailCompiler
 		//  effect of eliminating each 'local' misparsing exactly once.  I'm not sure
 		//  what happens to the order of the algorithm, but it might go from
 		//  exponential to small polynomial.
-		final List<AvailCompilerCachedSolution> solutions = _fragmentCache.atTokenPositionScopeStack(start, originalScope);
+		final List<AvailCompilerCachedSolution> solutions = fragmentCache.atTokenPositionScopeStack(start, originalScope);
 		for (int solutionIndex = 1, _end1 = solutions.size(); solutionIndex <= _end1; solutionIndex++)
 		{
 			final AvailCompilerCachedSolution solution = solutions.get((solutionIndex - 1));
 			position(solution.endPosition());
-			_scopeStack = solution.scopeStack();
+			scopeStack = solution.scopeStack();
 			originalContinuation.value(solution.parseNode());
 		}
-		_scopeStack = originalScope;
+		scopeStack = originalScope;
 		position(start);
 	}
 
@@ -977,10 +978,11 @@ public class AvailCompiler
 				final AvailObject message = complete.keyAtIndex(mapIndex);
 				if (! message.equalsVoidOrBlank())
 				{
-					if (_interpreter.runtime().hasMethodsAt(message))
+					if (interpreter.runtime().hasMethodsAt(message))
 					{
 						final Mutable<Boolean> valid = new Mutable<Boolean>();
-						final AvailObject impSet = _interpreter.runtime().methodsAt(message);
+						final AvailObject impSet =
+							interpreter.runtime().methodsAt(message);
 						final AvailObject bundle = complete.valueAtIndex(mapIndex);
 						valid.value = true;
 						List<AvailObject> typesSoFar;
@@ -989,7 +991,7 @@ public class AvailCompiler
 						{
 							typesSoFar.add(argsSoFar.get((argIndex - 1)).type());
 						}
-						final AvailObject returnType = _interpreter.validateTypesOfMessageSendArgumentTypesIfFail(
+						final AvailObject returnType = interpreter.validateTypesOfMessageSendArgumentTypesIfFail(
 							message,
 							typesSoFar,
 							new Continuation1<Generator<String>> ()
@@ -1141,10 +1143,10 @@ public class AvailCompiler
 											final AvailLabelNode label = new AvailLabelNode();
 											label.name(token);
 											label.declaredType(contType);
-											final AvailCompilerScopeStack oldScope = _scopeStack;
+											final AvailCompilerScopeStack oldScope = scopeStack;
 											pushDeclaration(label);
 											continuation.value(label);
-											_scopeStack = oldScope;
+											scopeStack = oldScope;
 										}
 									});
 								}
@@ -1165,8 +1167,8 @@ public class AvailCompiler
 	{
 		//  Parse a send node whose leading argument has already been parsed.
 
-		final AvailObject complete = _interpreter.completeBundlesStartingWith(TupleDescriptor.underscoreTuple());
-		final AvailObject incomplete = _interpreter.incompleteBundlesStartingWith(TupleDescriptor.underscoreTuple());
+		final AvailObject complete = interpreter.completeBundlesStartingWith(TupleDescriptor.underscoreTuple());
+		final AvailObject incomplete = interpreter.incompleteBundlesStartingWith(TupleDescriptor.underscoreTuple());
 		if (! ((complete.mapSize() == 0) && (incomplete.mapSize() == 0)))
 		{
 			ArrayList<AvailParseNode> argsSoFar;
@@ -1219,8 +1221,8 @@ public class AvailCompiler
 		if (((peekToken.type() == AvailToken.TokenType.keyword) || (peekToken.type() == AvailToken.TokenType.operator)))
 		{
 			final AvailObject start = ByteStringDescriptor.mutableObjectFromNativeString(nextToken().string());
-			final AvailObject complete = _interpreter.completeBundlesStartingWith(start);
-			final AvailObject incomplete = _interpreter.incompleteBundlesStartingWith(start);
+			final AvailObject complete = interpreter.completeBundlesStartingWith(start);
+			final AvailObject incomplete = interpreter.incompleteBundlesStartingWith(start);
 			ArrayList<AvailParseNode> argsSoFar;
 			argsSoFar = new ArrayList<AvailParseNode>(3);
 			if (! ((complete.mapSize() == 0) && (incomplete.mapSize() == 0)))
@@ -1287,9 +1289,9 @@ public class AvailCompiler
 					{
 						nextToken();
 						num.value = ((short)(((AvailLiteralToken)(token)).literal().extractInt()));
-						if (_interpreter.supportsPrimitive(num.value))
+						if (interpreter.supportsPrimitive(num.value))
 						{
-							if ((_interpreter.argCountForPrimitive(num.value) == argCount))
+							if ((interpreter.argCountForPrimitive(num.value) == argCount))
 							{
 								parseTokenTypeStringContinue(
 									AvailToken.TokenType.endOfStatement,
@@ -1304,7 +1306,7 @@ public class AvailCompiler
 							}
 							else
 							{
-								final int expectedArgCount = _interpreter.argCountForPrimitive(num.value);
+								final int expectedArgCount = interpreter.argCountForPrimitive(num.value);
 								expected("primitive #" + Short.toString(num.value) + " to be passed " + Integer.toString(expectedArgCount) + " arguments, not " + Integer.toString(argCount));
 							}
 						}
@@ -1401,7 +1403,7 @@ public class AvailCompiler
 	{
 		//  Look for a variable, reference, or literal.
 
-		final int originalPosition = _position;
+		final int originalPosition = position;
 		parseVariableUseWithExplanationThen("", continuation);
 		if ((peekToken().type() == AvailToken.TokenType.literal))
 		{
@@ -1441,7 +1443,7 @@ public class AvailCompiler
 			backupToken();
 		}
 		expected("simple expression");
-		assert (_position == originalPosition);
+		assert (position == originalPosition);
 	}
 
 	void parseStatementAsOutermostCanBeLabelThen (
@@ -1557,7 +1559,7 @@ public class AvailCompiler
 		final Mutable<AvailCompilerScopeStack> postScope = new Mutable<AvailCompilerScopeStack>();
 		final Mutable<AvailParseNode> theStatement = new Mutable<AvailParseNode>();
 		final int where = position();
-		final AvailCompilerScopeStack oldScope = _scopeStack;
+		final AvailCompilerScopeStack oldScope = scopeStack;
 		ArrayList<AvailParseNode> statements;
 		statements = new ArrayList<AvailParseNode>(10);
 		while (true)
@@ -1598,7 +1600,7 @@ public class AvailCompiler
 						public void value(final AvailParseNode stmt)
 						{
 							postPosition.value = position();
-							postScope.value = _scopeStack;
+							postScope.value = scopeStack;
 							theStatement.value = stmt;
 							ok.value = true;
 						}
@@ -1609,13 +1611,13 @@ public class AvailCompiler
 				break;
 			}
 			position(postPosition.value);
-			_scopeStack = postScope.value;
+			scopeStack = postScope.value;
 			statements.add(theStatement.value);
 		}
 		continuation.value(statements);
 		expected("more statements");
 		position(where);
-		_scopeStack = oldScope;
+		scopeStack = oldScope;
 	}
 
 	AvailObject parseStringLiteral ()
@@ -1702,9 +1704,9 @@ public class AvailCompiler
 		}
 		//  Not in a block scope.  See if it's a module variable or module constant...
 		final AvailObject varName = ByteStringDescriptor.mutableObjectFromNativeString(token.string());
-		if (_module.variableBindings().hasKey(varName))
+		if (module.variableBindings().hasKey(varName))
 		{
-			final AvailObject variableObject = _module.variableBindings().mapAt(varName);
+			final AvailObject variableObject = module.variableBindings().mapAt(varName);
 			final AvailVariableSyntheticDeclarationNode moduleVarDecl = new AvailVariableSyntheticDeclarationNode();
 			moduleVarDecl.name(token);
 			moduleVarDecl.declaredType(variableObject.type().innerType());
@@ -1717,9 +1719,9 @@ public class AvailCompiler
 			backupToken();
 			return;
 		}
-		if (_module.constantBindings().hasKey(varName))
+		if (module.constantBindings().hasKey(varName))
 		{
-			final AvailObject valueObject = _module.constantBindings().mapAt(varName);
+			final AvailObject valueObject = module.constantBindings().mapAt(varName);
 			final AvailConstantSyntheticDeclarationNode moduleConstDecl = new AvailConstantSyntheticDeclarationNode();
 			moduleConstDecl.name(token);
 			moduleConstDecl.declaredType(valueObject.type());
@@ -1754,9 +1756,9 @@ public class AvailCompiler
 
 		final Mutable<Integer> where = new Mutable<Integer>();
 		final Mutable<Boolean> ok = new Mutable<Boolean>();
-		_extends = new ArrayList<AvailObject>();
-		_uses = new ArrayList<AvailObject>();
-		_names = new ArrayList<AvailObject>();
+		extendedModules = new ArrayList<AvailObject>();
+		usedModules = new ArrayList<AvailObject>();
+		exportedNames = new ArrayList<AvailObject>();
 		ok.value = false;
 		parseTokenTypeStringErrorContinue(
 			AvailToken.TokenType.keyword,
@@ -1767,7 +1769,7 @@ public class AvailCompiler
 				public void value()
 				{
 					final int savePosition = position();
-					_module.name(parseStringLiteral());
+					module.name(parseStringLiteral());
 					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
 					{
 						final List<AvailObject> pragmaStrings = parseStrings();
@@ -1785,11 +1787,11 @@ public class AvailCompiler
 							}
 							if (pragmaKey.equals("bootstrapDefiningMethod"))
 							{
-								_interpreter.bootstrapDefiningMethod(pragmaValue);
+								interpreter.bootstrapDefiningMethod(pragmaValue);
 							}
 							if (pragmaKey.equals("bootstrapSpecialObject"))
 							{
-								_interpreter.bootstrapSpecialObject(pragmaValue);
+								interpreter.bootstrapSpecialObject(pragmaValue);
 							}
 						}
 					}
@@ -1805,7 +1807,7 @@ public class AvailCompiler
 								{
 									public void value(final List<AvailObject> extendsStrings)
 									{
-										_extends = extendsStrings;
+										extendedModules = extendsStrings;
 										parseTokenTypeStringErrorContinue(
 											AvailToken.TokenType.keyword,
 											"Uses",
@@ -1818,7 +1820,7 @@ public class AvailCompiler
 													{
 														public void value(final List<AvailObject> usesStrings)
 														{
-															_uses = usesStrings;
+															usedModules = usesStrings;
 															parseTokenTypeStringErrorContinue(
 																AvailToken.TokenType.keyword,
 																"Names",
@@ -1831,7 +1833,7 @@ public class AvailCompiler
 																		{
 																			public void value(final List<AvailObject> namesStrings)
 																			{
-																				_names = namesStrings;
+																				exportedNames = namesStrings;
 																				parseTokenTypeStringErrorContinue(
 																					AvailToken.TokenType.keyword,
 																					"Body",
@@ -1874,9 +1876,9 @@ public class AvailCompiler
 
 		final Mutable<AvailParseNode> interpretation = new Mutable<AvailParseNode>();
 		final Mutable<Integer> endOfStatement = new Mutable<Integer>();
-		_interpreter.checkUnresolvedForwards();
-		_greatestGuess = 0;
-		_greatExpectations = new ArrayList<Generator<String>>();
+		interpreter.checkUnresolvedForwards();
+		greatestGuess = 0;
+		greatExpectations = new ArrayList<Generator<String>>();
 		if (! parseHeader())
 		{
 			reportError();
@@ -1885,12 +1887,12 @@ public class AvailCompiler
 		int oldStart = (peekToken() == null ? 1 : (peekToken().start() + 1));
 		if (! atEnd())
 		{
-			_progressBlock.value(1, peekToken().start());
+			progressBlock.value(1, peekToken().start());
 		}
-		for (int extendsIndex = 1, _end1 = _extends.size(); extendsIndex <= _end1; extendsIndex++)
+		for (int extendsIndex = 1, _end1 = extendedModules.size(); extendsIndex <= _end1; extendsIndex++)
 		{
-			AvailObject modName = _extends.get((extendsIndex - 1));
-			AvailObject mod = _interpreter.runtime().moduleAt(modName);
+			AvailObject modName = extendedModules.get((extendsIndex - 1));
+			AvailObject mod = interpreter.runtime().moduleAt(modName);
 			AvailObject modNamesTuple = mod.names().keysAsSet().asTuple();
 			for (int modNamesIndex = 1, _end2 = modNamesTuple.tupleSize(); modNamesIndex <= _end2; modNamesIndex++)
 			{
@@ -1899,14 +1901,14 @@ public class AvailCompiler
 				for (int trueNamesIndex = 1, _end3 = trueNamesTuple.tupleSize(); trueNamesIndex <= _end3; trueNamesIndex++)
 				{
 					AvailObject trueName = trueNamesTuple.tupleAt(trueNamesIndex);
-					_module.atNameAdd(strName, trueName);
+					module.atNameAdd(strName, trueName);
 				}
 			}
 		}
-		for (int index = 1, _end4 = _uses.size(); index <= _end4; index++)
+		for (int index = 1, _end4 = usedModules.size(); index <= _end4; index++)
 		{
-			AvailObject modName = _uses.get((index - 1));
-			AvailObject mod = _interpreter.runtime().moduleAt(modName);
+			AvailObject modName = usedModules.get((index - 1));
+			AvailObject mod = interpreter.runtime().moduleAt(modName);
 			AvailObject modNamesTuple = mod.names().keysAsSet().asTuple();
 			for (int modNamesIndex = 1, _end5 = modNamesTuple.tupleSize(); modNamesIndex <= _end5; modNamesIndex++)
 			{
@@ -1915,22 +1917,23 @@ public class AvailCompiler
 				for (int trueNamesIndex = 1, _end6 = trueNamesTuple.tupleSize(); trueNamesIndex <= _end6; trueNamesIndex++)
 				{
 					AvailObject trueName = trueNamesTuple.tupleAt(trueNamesIndex);
-					_module.atPrivateNameAdd(strName, trueName);
+					module.atPrivateNameAdd(strName, trueName);
 				}
 			}
 		}
-		for (int index = 1, _end7 = _names.size(); index <= _end7; index++)
+		for (int index = 1, _end7 = exportedNames.size(); index <= _end7; index++)
 		{
-			final AvailObject stringObject = _names.get((index - 1));
+			final AvailObject stringObject = exportedNames.get((index - 1));
 			final AvailObject trueNameObject = CyclicTypeDescriptor.newCyclicTypeWithName(stringObject);
-			_module.atNameAdd(stringObject, trueNameObject);
-			_module.atNewNamePut(stringObject, trueNameObject);
+			module.atNameAdd(stringObject, trueNameObject);
+			module.atNewNamePut(stringObject, trueNameObject);
 		}
-		_module.buildFilteredBundleTreeFrom(_interpreter.rootBundleTree());
-		_fragmentCache = new AvailCompilerFragmentCache();
+		module.buildFilteredBundleTreeFrom(
+			interpreter.runtime().rootBundleTree());
+		fragmentCache = new AvailCompilerFragmentCache();
 		while (! ((peekToken().type() == AvailToken.TokenType.end))) {
-			_greatestGuess = 0;
-			_greatExpectations = new ArrayList<Generator<String>>();
+			greatestGuess = 0;
+			greatExpectations = new ArrayList<Generator<String>>();
 			interpretation.value = null;
 			endOfStatement.value = -1;
 			parseStatementAsOutermostCanBeLabelThen(
@@ -1960,11 +1963,11 @@ public class AvailCompiler
 			if (! atEnd())
 			{
 				backupToken();
-				_progressBlock.value(oldStart, (nextToken().start() + 2));
+				progressBlock.value(oldStart, (nextToken().start() + 2));
 				oldStart = (peekToken().start() + 1);
 			}
 		}
-		_interpreter.checkUnresolvedForwards();
+		interpreter.checkUnresolvedForwards();
 		return true;
 	}
 
@@ -1997,41 +2000,41 @@ public class AvailCompiler
 
 	boolean atEnd ()
 	{
-		return (_position == _tokens.size());
+		return (position == tokens.size());
 	}
 
 	void backupToken ()
 	{
-		if ((_position == 0))
+		if ((position == 0))
 		{
 			error("Can't backup any more");
 			return;
 		}
-		--_position;
+		--position;
 	}
 
 	void expected (
 			final Generator<String> stringBlock)
 	{
-		// System.out.println(Integer.toString(_position) + " expected " + stringBlock.value());
-		if ((position() == _greatestGuess))
+		// System.out.println(Integer.toString(position) + " expected " + stringBlock.value());
+		if ((position() == greatestGuess))
 		{
-			_greatExpectations.add(stringBlock);
+			greatExpectations.add(stringBlock);
 		}
-		if ((position() > _greatestGuess))
+		if ((position() > greatestGuess))
 		{
-			_greatestGuess = position();
-			_greatExpectations = new ArrayList<Generator<String>>(2);
-			_greatExpectations.add(stringBlock);
+			greatestGuess = position();
+			greatExpectations = new ArrayList<Generator<String>>(2);
+			greatExpectations.add(stringBlock);
 		}
 	}
 
 	AvailToken nextToken ()
 	{
 		assert (! atEnd());
-		// System.out.println(Integer.toString(_position) + " next = " + _tokens.get(_position));
-		++_position;
-		return _tokens.get((_position - 1));
+		// System.out.println(Integer.toString(position) + " next = " + tokens.get(position));
+		++position;
+		return tokens.get((position - 1));
 	}
 
 	boolean parseTokenIsTypeString (
@@ -2053,7 +2056,7 @@ public class AvailCompiler
 			final Continuation0 continuationNoArgs)
 	{
 		final int where = position();
-		final AvailCompilerScopeStack oldScope = _scopeStack;
+		final AvailCompilerScopeStack oldScope = scopeStack;
 		final AvailToken token = peekToken();
 		if (((token.type() == tokenType) && token.string().equals(string)))
 		{
@@ -2072,7 +2075,7 @@ public class AvailCompiler
 			});
 		}
 		assert (where == position());
-		assert (oldScope == _scopeStack);
+		assert (oldScope == scopeStack);
 	}
 
 	void parseTokenTypeStringErrorContinue (
@@ -2095,7 +2098,7 @@ public class AvailCompiler
 			final Continuation0 continuationNoArgs)
 	{
 		final int where = position();
-		final AvailCompilerScopeStack oldScope = _scopeStack;
+		final AvailCompilerScopeStack oldScope = scopeStack;
 		final AvailToken token = peekToken();
 		if (((token.type() == tokenType) && token.string().equals(string)))
 		{
@@ -2107,7 +2110,7 @@ public class AvailCompiler
 		{
 			expected(errorGenerator);
 		}
-		if (! ((where == position()) && (oldScope == _scopeStack)))
+		if (! ((where == position()) && (oldScope == scopeStack)))
 		{
 			error("token stream position and scopeStack were not preserved");
 			return;
@@ -2117,8 +2120,8 @@ public class AvailCompiler
 	AvailToken peekToken ()
 	{
 		assert (! atEnd());
-		// System.out.println(Integer.toString(_position) + " peek = " + _tokens.get(_position));
-		return _tokens.get(((_position + 1) - 1));
+		// System.out.println(Integer.toString(position) + " peek = " + tokens.get(position));
+		return tokens.get(((position + 1) - 1));
 	}
 
 	boolean peekTokenIsTypeString (
@@ -2131,20 +2134,20 @@ public class AvailCompiler
 
 	int position ()
 	{
-		return _position;
+		return position;
 	}
 
 	void position (
 			final int anInteger)
 	{
-		_position = anInteger;
+		position = anInteger;
 	}
 
 	void privateClearFrags ()
 	{
 		//  Clear the fragment cache.  Only the range minFrag to maxFrag could be notNil.
 
-		_fragmentCache.clear();
+		fragmentCache.clear();
 	}
 
 	void tryIfUnambiguousThen (
@@ -2162,7 +2165,7 @@ public class AvailCompiler
 		final Mutable<Integer> where = new Mutable<Integer>();
 		final Mutable<AvailCompilerScopeStack> whatScope = new Mutable<AvailCompilerScopeStack>();
 		final int oldPosition = position();
-		final AvailCompilerScopeStack oldScope = _scopeStack;
+		final AvailCompilerScopeStack oldScope = scopeStack;
 		count.value = 0;
 		tryBlock.value(new Continuation1<AvailParseNode> ()
 		{
@@ -2172,7 +2175,7 @@ public class AvailCompiler
 				{
 					solution.value = aSolution;
 					where.value = position();
-					whatScope.value = _scopeStack;
+					whatScope.value = scopeStack;
 				}
 				else
 				{
@@ -2185,10 +2188,10 @@ public class AvailCompiler
 		if ((count.value > 1))
 		{
 			position(where.value);
-			_scopeStack = whatScope.value;
+			scopeStack = whatScope.value;
 			ambiguousInterpretationsAnd(solution.value, anotherSolution.value);
 			position(oldPosition);
-			_scopeStack = oldScope;
+			scopeStack = oldScope;
 			return;
 		}
 		if ((count.value == 0))
@@ -2201,9 +2204,9 @@ public class AvailCompiler
 		//
 		//  We need to reset the stream and stack after attempting this.
 		position(where.value);
-		_scopeStack = whatScope.value;
+		scopeStack = whatScope.value;
 		continuation.value(solution.value);
-		_scopeStack = oldScope;
+		scopeStack = oldScope;
 		position(oldPosition);
 	}
 
@@ -2228,7 +2231,7 @@ public class AvailCompiler
 	AvailVariableDeclarationNode lookupDeclaration (
 			final String name)
 	{
-		AvailCompilerScopeStack scope = _scopeStack;
+		AvailCompilerScopeStack scope = scopeStack;
 		while (! (scope.name() == null)) {
 			if (scope.name().equals(name))
 			{
@@ -2241,16 +2244,16 @@ public class AvailCompiler
 
 	void popDeclaration ()
 	{
-		_scopeStack = _scopeStack.next();
+		scopeStack = scopeStack.next();
 	}
 
 	void pushDeclaration (
 			final AvailVariableDeclarationNode declaration)
 	{
-		_scopeStack = new AvailCompilerScopeStack(
+		scopeStack = new AvailCompilerScopeStack(
 			declaration.name().string(),
 			declaration,
-			_scopeStack);
+			scopeStack);
 	}
 
 
@@ -2259,7 +2262,7 @@ public class AvailCompiler
 
 	void clearScopeStack ()
 	{
-		_scopeStack = new AvailCompilerScopeStack(
+		scopeStack = new AvailCompilerScopeStack(
 			null,
 			null,
 			null);
@@ -2277,43 +2280,49 @@ public class AvailCompiler
 
 	// transactions
 
-	void commitModuleTransaction ()
+	/**
+	 * Start definition of a {@linkplain AvailModuleDescriptor module}. The
+	 * entire definition can be rolled back because the {@linkplain
+	 * AvailInterpreter interpreter}'s context module will contain all methods
+	 * and precedence rules defined between the transaction start and the
+	 * rollback (or commit). Committing simply clears this information.
+	 */
+	private void startModuleTransaction ()
 	{
-		//  Commit the module that was defined since the most recent
-		//  startModuleTransaction.  Simply clear the module instance
-		//  variable.
-
-		assert _module != null;
-		_interpreter.runtime().addModule(_module);
-		_module.cleanUpAfterCompile();
-		_module = null;
-		_interpreter.module(null);
+		assert module == null;
+		module = AvailModuleDescriptor.newModule();
+		interpreter.setModule(module);
 	}
 
+	/**
+	 * Rollback the {@linkplain AvailModuleDescriptor module} that was defined
+	 * since the most recent {@link #startModuleTransaction()
+	 * startModuleTransaction}.
+	 */
 	void rollbackModuleTransaction ()
 	{
-		//  Rollback the module that was defined since the most recent
-		//  startModuleTransaction.  This is done by asking the current
-		//  module to remove itself.
-
-		assert _module != null;
-		_module.removeFrom(_interpreter);
-		_module = null;
-		_interpreter.module(null);
+		assert module != null;
+		module.removeFrom(interpreter);
+		module = null;
+		interpreter.setModule(null);
 	}
 
-	void startModuleTransaction ()
+	/**
+	 * Commit the {@linkplain AvailModuleDescriptor module} that was defined
+	 * since the most recent {@link #startModuleTransaction()
+	 * startModuleTransaction}. Simply clear the "{@linkplain #module module}"
+	 * instance variable.
+	 */
+	private void commitModuleTransaction ()
 	{
-		//  Start definition of a module.  The entire definition can be rolled back
-		//  because the interpreter's instance variable 'module' will contain all
-		//  methods and precedence rules defined between the transaction
-		//  start and the rollback (or commit).  Committing simply clears this
-		//  information.
-
-		assert _module == null;
-		_module = AvailModuleDescriptor.newModule();
-		_interpreter.module(_module);
+		assert module != null;
+		interpreter.runtime().addModule(module);
+		module.cleanUpAfterCompile();
+		module = null;
+		interpreter.setModule(null);
 	}
+
+
 
 
 

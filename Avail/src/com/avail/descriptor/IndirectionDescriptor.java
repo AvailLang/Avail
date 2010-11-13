@@ -2813,11 +2813,11 @@ public class IndirectionDescriptor extends Descriptor
 	}
 
 	void ObjectRemoveFrom (
-			final AvailObject object, 
-			final AvailInterpreter anInterpreter)
+		final AvailObject object, 
+		final AvailInterpreter anInterpreter)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
+	
 		final AvailObject destination = object.traversed();
 		destination.descriptor().ObjectRemoveFrom(destination, anInterpreter);
 	}
@@ -2833,12 +2833,12 @@ public class IndirectionDescriptor extends Descriptor
 	}
 
 	boolean ObjectRemoveMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
-			final AvailObject parts)
+		final AvailObject object, 
+		final AvailObject message, 
+		final AvailObject parts)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
+	
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectRemoveMessageParts(
 			destination,
@@ -2847,11 +2847,11 @@ public class IndirectionDescriptor extends Descriptor
 	}
 
 	void ObjectRemoveRestrictions (
-			final AvailObject object, 
-			final AvailObject obsoleteRestrictions)
+		final AvailObject object, 
+		final AvailObject obsoleteRestrictions)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
+	
 		final AvailObject destination = object.traversed();
 		destination.descriptor().ObjectRemoveRestrictions(destination, obsoleteRestrictions);
 	}
@@ -3032,6 +3032,17 @@ public class IndirectionDescriptor extends Descriptor
 			destination,
 			elementObjectToExclude,
 			canDestroy);
+	}
+
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	@NotNull Iterable<AvailObject> ObjectSetIterable (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject destination = object.traversed();
+		return destination.descriptor().ObjectSetIterable(destination);
 	}
 
 	void ObjectSignature (
@@ -3282,6 +3293,17 @@ public class IndirectionDescriptor extends Descriptor
 
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectTupleIntAt(destination, index);
+	}
+	
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	@NotNull Iterable<AvailObject> ObjectTupleIterable (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject destination = object.traversed();
+		return destination.descriptor().ObjectTupleIterable(destination);
 	}
 
 	void ObjectTupleType (
@@ -5307,10 +5329,10 @@ public class IndirectionDescriptor extends Descriptor
 	}
 
 	void ObjectRemoveRestrictions (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
+	
 		final AvailObject destination = object.traversed();
 		destination.descriptor().ObjectRemoveRestrictions(destination);
 	}
