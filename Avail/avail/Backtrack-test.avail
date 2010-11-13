@@ -68,7 +68,7 @@ Assert z = <
 
 /* Now let's solve the eight queens problem... */
 
-queens ::= [n : natural number |
+Method "_queens" is [n : natural number |
 	t : tuple of natural number := 1 to n;
 	1 to n do [i : natural number |
 		t := t [i -> each 1 to n];
@@ -80,5 +80,5 @@ queens ::= [n : natural number |
 	t;
 ];
 
-Assert capture first 1 of [queens(5);] = <<1,3,5,2,4>>;
+Assert capture first 1 of [5 queens;] = <<1,3,5,2,4>>;
 
