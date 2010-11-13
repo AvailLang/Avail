@@ -38,6 +38,10 @@ Uses
 Names
 Body
 
+
+Initialize backtracking;
+
+
 x ::= capture all [maybe;];
 
 Assert x = <true,false>;

@@ -36,6 +36,7 @@ Uses
 	"3-main",
 	"Process-process"
 Names
+	"Initialize backtracking",
 	"maybe",
 	"fail",
 	"capture all_",
@@ -48,7 +49,7 @@ Body
 
 topRetry ::= lookup "topRetry";
 
-[
+Method "Initialize backtracking" is [
 	firstTime : boolean := true;
 	[
 		$here : $[]->void;
@@ -59,7 +60,10 @@ topRetry ::= lookup "topRetry";
 			Crash "Attempted to backtrack past last retry point.";
 		];
 	]:void();
-]:void();
+]:void;
+
+
+Initialize backtracking;
 
 
 /* The maybe method answers true, but encountering a fail statement later can
