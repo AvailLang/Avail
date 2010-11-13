@@ -36,6 +36,7 @@ Uses
 	"2-main"
 Names
 	"Object",
+	"_name",
 	"_as objectType",
 	"_as object",
 	"_new with_",
@@ -125,6 +126,12 @@ Method "Give type_the name_" is [t : objectType, name : string |
 	Failed;
 ] : void;
 
+/* Get the type name.*/
+
+Method "_name" is [t : objectType |
+	Primitive 69;
+	Failed;
+] : string;
 
 /* New type name... */
 

@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
@@ -1288,26 +1289,60 @@ public enum Primitive
 		}
 	},
 
-
+	/**
+	 * <strong>Primitive 68:</strong> Assign a name to a {@linkplain
+	 * ObjectTypeDescriptor user-defined object type}. This can be useful for
+	 * debugging.
+	 */
 	prim68_RecordNewTypeName_userType_name(68, 2, Flag.CanInline)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Record a name for this user-defined type.  This can be useful for debugging.
-
 			assert args.size() == 2;
+			
 			final AvailObject userType = args.get(0);
 			final AvailObject name = args.get(1);
+			
 			userType.makeImmutable();
 			name.makeImmutable();
-			interpreter.typeNames(
-				interpreter.typeNames().mapAtPuttingCanDestroy(userType, name, true));
+			interpreter.runtime().setNameForType(userType, name);
+			
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
 	},
 
+	/**
+	 * <strong>Primitive 69:</strong> Answer the user-assigned name of the
+	 * specified {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 * 
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim69_TypeName_userType(69, 1, Flag.CanInline)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+			
+			final AvailObject userType = args.get(0);
+			
+			final AvailObject name =
+				interpreter.runtime().nameForType(userType);
+			if (name == null)
+			{
+				return Result.FAILURE;
+			}
+			
+			interpreter.primitiveResult(name);
+			return Result.SUCCESS;
+		}
+	},
 
 	prim70_CreateConstantBlock_numArgs_constantResult(70, 2, Flag.CanFold)
 	{
@@ -1342,7 +1377,7 @@ public enum Primitive
 			final AvailObject resultType = args.get(3);
 			interpreter.primitiveResult(ClosureDescriptor.newStubCollectingArgsWithTypesIntoAListAndSendingImplementationSetFirstArgumentResultType(
 				argTypes,
-				interpreter.methodsAt(message),
+				interpreter.runtime().methodsAt(message),
 				firstArg,
 				resultType));
 			return Result.SUCCESS;
@@ -2147,7 +2182,7 @@ public enum Primitive
 			{
 				final RandomAccessFile file = new RandomAccessFile(
 					filename.asNativeString(), "r");
-				interpreter.putReadableFile(handle, file);
+				interpreter.runtime().putReadableFile(handle, file);
 			}
 			catch (final IOException e)
 			{
@@ -2197,7 +2232,7 @@ public enum Primitive
 				{
 					file.setLength(0);
 				}
-				interpreter.putWritableFile(handle, file);
+				interpreter.runtime().putWritableFile(handle, file);
 			}
 			catch (final IOException e)
 			{
@@ -2238,8 +2273,8 @@ public enum Primitive
 			{
 				final RandomAccessFile file = new RandomAccessFile(
 					filename.asNativeString(), "rw");
-				interpreter.putReadableFile(handle, file);
-				interpreter.putWritableFile(handle, file);
+				interpreter.runtime().putReadableFile(handle, file);
+				interpreter.runtime().putWritableFile(handle, file);
 			}
 			catch (final IOException e)
 			{
@@ -2273,7 +2308,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getOpenFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2290,8 +2326,8 @@ public enum Primitive
 				// to fail the primitive.
 			}
 			
-			interpreter.forgetReadableFile(handle);
-			interpreter.forgetWritableFile(handle);
+			interpreter.runtime().forgetReadableFile(handle);
+			interpreter.runtime().forgetWritableFile(handle);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
@@ -2323,7 +2359,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getReadableFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2391,7 +2428,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getWritableFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2442,7 +2480,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getOpenFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2487,7 +2526,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getReadableFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2536,7 +2576,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getReadableFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -2578,7 +2619,8 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 			
-			final RandomAccessFile file = interpreter.getWritableFile(handle);
+			final RandomAccessFile file =
+				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
@@ -3145,7 +3187,10 @@ public enum Primitive
 
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			interpreter.primitiveResult(interpreter.methodsAt(bundle.message()).implementationsTuple().asSet().makeImmutable());
+			interpreter.primitiveResult(
+				interpreter.runtime().methodsAt(
+					bundle.message()).implementationsTuple().asSet()
+						.makeImmutable());
 			return Result.SUCCESS;
 		}
 	},
@@ -3252,7 +3297,8 @@ public enum Primitive
 
 			assert args.size() == 1;
 			final AvailObject aCyclicType = args.get(0);
-			interpreter.primitiveResult(interpreter.methodsAt(aCyclicType).makeImmutable());
+			interpreter.primitiveResult(
+				interpreter.runtime().methodsAt(aCyclicType).makeImmutable());
 			return Result.SUCCESS;
 		}
 	},
@@ -3274,32 +3320,41 @@ public enum Primitive
 		}
 	},
 
-
+	/**
+	 * <strong>Primitive 240:</strong> Retrieve the {@linkplain
+	 * AvailRuntime#specialObject(int) special object} with the specified
+	 * ordinal.
+	 */
 	prim240_SpecialObject_index(240, 1, Flag.CanFold)
 	{
 		@Override
-		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
 		{
-			//  Access special object with the given index.
-
 			assert args.size() == 1;
-			final AvailObject index = args.get(0);
-			final int i = index.extractInt();
-			final List<AvailObject> list = interpreter.specialObjects();
-			if (((i < 0) || (i > list.size())))
+			final AvailObject ordinal = args.get(0);
+			final int i = ordinal.extractInt();
+			
+			final AvailObject result;
+			try
+			{
+				result = interpreter.runtime().specialObject(i);
+			}
+			catch (final ArrayIndexOutOfBoundsException e)
 			{
 				return Result.FAILURE;
 			}
-			final AvailObject result = list.get(i);
+			
 			if (result == null)
 			{
 				return Result.FAILURE;
 			}
+			
 			interpreter.primitiveResult(result);
 			return Result.SUCCESS;
 		}
 	},
-
 
 	prim245_LookupName_name(245, 1, Flag.CanInline)
 	{

@@ -41,6 +41,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import org.junit.Before;
 import org.junit.Test;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerException;
@@ -112,8 +113,9 @@ public class AvailCompilerTest
 	private void compileTier (final @NotNull String[] modulePaths)
 	throws IOException
 	{
+		AvailRuntime runtime = new AvailRuntime();
 		AvailCompiler compiler = new AvailCompiler();
-		L2Interpreter interpreter = new L2Interpreter();
+		L2Interpreter interpreter = new L2Interpreter(runtime);
 		final Mutable<String> source = new Mutable<String>();
 		try
 		{

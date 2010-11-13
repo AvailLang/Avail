@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.AvailRuntime;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.SetDescriptor;
@@ -506,8 +507,8 @@ public class AvailModuleDescriptor extends Descriptor
 	// removing
 
 	void ObjectRemoveFrom (
-			final AvailObject object, 
-			final AvailInterpreter anInterpreter)
+		final AvailObject object, 
+		final AvailInterpreter anInterpreter)
 	{
 
 		final List<AvailObject> restrictionKeys = object.restrictions().keysAsArray();

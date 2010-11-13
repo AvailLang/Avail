@@ -977,10 +977,10 @@ public class AvailCompiler
 				final AvailObject message = complete.keyAtIndex(mapIndex);
 				if (! message.equalsVoidOrBlank())
 				{
-					if (_interpreter.hasMethodsAt(message))
+					if (_interpreter.runtime().hasMethodsAt(message))
 					{
 						final Mutable<Boolean> valid = new Mutable<Boolean>();
-						final AvailObject impSet = _interpreter.methodsAt(message);
+						final AvailObject impSet = _interpreter.runtime().methodsAt(message);
 						final AvailObject bundle = complete.valueAtIndex(mapIndex);
 						valid.value = true;
 						List<AvailObject> typesSoFar;
@@ -1890,7 +1890,7 @@ public class AvailCompiler
 		for (int extendsIndex = 1, _end1 = _extends.size(); extendsIndex <= _end1; extendsIndex++)
 		{
 			AvailObject modName = _extends.get((extendsIndex - 1));
-			AvailObject mod = _interpreter.moduleAt(modName);
+			AvailObject mod = _interpreter.runtime().moduleAt(modName);
 			AvailObject modNamesTuple = mod.names().keysAsSet().asTuple();
 			for (int modNamesIndex = 1, _end2 = modNamesTuple.tupleSize(); modNamesIndex <= _end2; modNamesIndex++)
 			{
@@ -1906,7 +1906,7 @@ public class AvailCompiler
 		for (int index = 1, _end4 = _uses.size(); index <= _end4; index++)
 		{
 			AvailObject modName = _uses.get((index - 1));
-			AvailObject mod = _interpreter.moduleAt(modName);
+			AvailObject mod = _interpreter.runtime().moduleAt(modName);
 			AvailObject modNamesTuple = mod.names().keysAsSet().asTuple();
 			for (int modNamesIndex = 1, _end5 = modNamesTuple.tupleSize(); modNamesIndex <= _end5; modNamesIndex++)
 			{
@@ -2284,7 +2284,7 @@ public class AvailCompiler
 		//  variable.
 
 		assert _module != null;
-		_interpreter.addModule(_module);
+		_interpreter.runtime().addModule(_module);
 		_module.cleanUpAfterCompile();
 		_module = null;
 		_interpreter.module(null);

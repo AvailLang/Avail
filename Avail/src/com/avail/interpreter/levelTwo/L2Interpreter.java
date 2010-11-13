@@ -34,6 +34,8 @@ package com.avail.interpreter.levelTwo;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ClosureDescriptor;
 import com.avail.descriptor.ContainerDescriptor;
@@ -47,7 +49,9 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.interpreter.Primitive.*;
 import static java.lang.Math.*;
 
-final public class L2Interpreter extends AvailInterpreter implements L2OperationDispatcher
+final public class L2Interpreter
+extends AvailInterpreter
+implements L2OperationDispatcher
 {
 	AvailObject _chunk;
 	AvailObject _chunkWords;
@@ -60,6 +64,17 @@ final public class L2Interpreter extends AvailInterpreter implements L2Operation
 	boolean _exitNow = false;
 	AvailObject _exitValue;
 
+	/**
+	 * Construct a new {@link L2Interpreter}.
+	 *
+	 * @param runtime An {@link AvailRuntime}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public L2Interpreter (final @NotNull AvailRuntime runtime)
+	{
+		super(runtime);
+	}
+	
 	int offset()
 	{
 		return _offset;
