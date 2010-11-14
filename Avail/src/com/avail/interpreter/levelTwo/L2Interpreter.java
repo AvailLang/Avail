@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo;
 
+import static com.avail.descriptor.AvailObject.error;
+import static java.lang.Math.max;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -45,9 +47,7 @@ import com.avail.descriptor.ListDescriptor;
 import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.interpreter.Primitive.*;
-import static java.lang.Math.*;
+import com.avail.interpreter.Primitive.Result;
 
 final public class L2Interpreter
 extends AvailInterpreter
@@ -74,7 +74,7 @@ implements L2OperationDispatcher
 	{
 		super(runtime);
 	}
-	
+
 	int offset()
 	{
 		return _offset;
@@ -145,8 +145,8 @@ implements L2OperationDispatcher
 
 
 	AvailObject privateTranslateCodeOptimization (
-			AvailObject theCode,
-			int effort)
+		AvailObject theCode,
+		int effort)
 	{
 		// Translate the code into a chunk using the specified effort.  An effort of zero
 		// means produce an initial translation that decrements a counter on each
@@ -157,8 +157,8 @@ implements L2OperationDispatcher
 
 	@Override
 	public Result searchForExceptionHandler (
-			final AvailObject exceptionValue,
-			final List<AvailObject> args)
+		final AvailObject exceptionValue,
+		final List<AvailObject> args)
 	{
 		//  Raise an exception.  Scan the stack of continuations until one
 		//  is found for a closure whose code is the primitive 200.  Get that
@@ -174,8 +174,8 @@ implements L2OperationDispatcher
 		while (! cont.equalsVoid())
 		{
 			if ((cont.closure().code().primitiveNumber() == 200) &&
-				exceptionValue.isInstanceOfSubtypeOf(
-					cont.localOrArgOrStackAt(2).type().argTypeAt(1)))
+					exceptionValue.isInstanceOfSubtypeOf(
+						cont.localOrArgOrStackAt(2).type().argTypeAt(1)))
 			{
 				handler = cont.localOrArgOrStackAt(2);
 				assert ! handler.equalsVoid();
@@ -184,18 +184,15 @@ implements L2OperationDispatcher
 					handler,
 					args);
 			}
-			else
-			{
-				cont = cont.caller();
-			}
+			cont = cont.caller();
 		}
 		return Result.FAILURE;
 	}
 
 	@Override
 	public Result invokeClosureArguments (
-			AvailObject aClosure,
-			List<AvailObject> args)
+		AvailObject aClosure,
+		List<AvailObject> args)
 	{
 		//  Prepare the L2Interpreter to deal with executing the given closure.  If it's a primitive,
 		//  attempt it first.  If it succeeds and simply returns a value, write that value into the
@@ -227,8 +224,8 @@ implements L2OperationDispatcher
 
 	@Override
 	public void invokeWithoutPrimitiveClosureArguments (
-			AvailObject aClosure,
-			List<AvailObject> args)
+		AvailObject aClosure,
+		List<AvailObject> args)
 	{
 		//  Prepare the L2Interpreter to deal with executing the given closure, using the
 		//  given parameters.
@@ -307,13 +304,14 @@ implements L2OperationDispatcher
 		return _exitValue;
 	}
 
+	@Override
 	public AvailObject runClosureArguments (
-			AvailObject aClosure,
-			List<AvailObject> arguments)
+		AvailObject aClosure,
+		List<AvailObject> arguments)
 	{
 		AvailObject theCode = aClosure.code();
 		assert theCode.primitiveNumber() == 0
-			: "The outermost context can't be a primitive.";
+		: "The outermost context can't be a primitive.";
 		if (theCode.numArgs() != arguments.size())
 		{
 			error("Closure should take " + theCode.numArgs() + " arguments");
@@ -321,7 +319,7 @@ implements L2OperationDispatcher
 
 		// Safety precaution.
 		aClosure.makeImmutable();
-		AvailObject outermostContinuation = 
+		AvailObject outermostContinuation =
 			ContinuationDescriptor.mutableDescriptor().newObjectToInvokeCallerLevelTwoChunkIndexArgs(
 				aClosure,
 				VoidDescriptor.voidObject(),
@@ -406,7 +404,7 @@ implements L2OperationDispatcher
 		final AvailObject code = closure.code();
 		final AvailObject nybbles = code.nybbles();
 		int pc = continutation.pc();
-		
+
 		// Before we extract the nybblecode, may sure that the PC hasn't passed
 		// the end of the instruction sequence. If we have, then execute an
 		// L1_doReturn.
@@ -415,7 +413,7 @@ implements L2OperationDispatcher
 			L2L1_doReturn();
 			return;
 		}
-		
+
 		final byte nybble = nybbles.extractNybbleFromTupleAt(pc++);
 		continutation.pc(pc);
 		switch (nybble)
@@ -1877,7 +1875,7 @@ implements L2OperationDispatcher
 		return;
 	}
 	public int argumentRegister (
-			final int localNumber)
+		final int localNumber)
 	{
 		//  Answer the register holding the argument with the given index (e.g., the first argument is in register 3).
 
@@ -1929,7 +1927,7 @@ implements L2OperationDispatcher
 	}
 
 	public AvailObject pointerAt (
-			final int index)
+		final int index)
 	{
 		//  The index is one-based in both Smalltalk and Java, to avoid index manipulation.
 		//  In Java entry [0] is unused.  An #equivalentJava: clause is used to avoid automatic
@@ -1939,8 +1937,8 @@ implements L2OperationDispatcher
 	}
 
 	public void pointerAtPut (
-			final int index, 
-			final AvailObject anAvailObject)
+		final int index,
+		final AvailObject anAvailObject)
 	{
 		//  The index is one-based in both Smalltalk and Java, to avoid index manipulation.
 		//  In Java entry [0] is unused.  An #equivalentJava: clause is used to avoid automatic

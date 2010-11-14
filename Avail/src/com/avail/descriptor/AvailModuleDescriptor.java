@@ -32,26 +32,20 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.AvailInterpreter;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.interpreter.AvailInterpreter;
 
 @ObjectSlots({
-	"name", 
-	"newNames", 
-	"names", 
-	"privateNames", 
-	"visibleNames", 
-	"methods", 
-	"restrictions", 
-	"variableBindings", 
-	"constantBindings", 
+	"name",
+	"newNames",
+	"names",
+	"privateNames",
+	"visibleNames",
+	"methods",
+	"restrictions",
+	"variableBindings",
+	"constantBindings",
 	"filteredBundleTree"
 })
 public class AvailModuleDescriptor extends Descriptor
@@ -60,10 +54,11 @@ public class AvailModuleDescriptor extends Descriptor
 
 	// accessing
 
+	@Override
 	void ObjectAtAddMessageRestrictions (
-			final AvailObject object, 
-			final AvailObject methodName, 
-			final AvailObject illegalArgMsgs)
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject illegalArgMsgs)
 	{
 		assert (! object.restrictions().hasKey(methodName)) : "Don't declare multiple restrictions on same message separately in module.";
 		object.restrictions(object.restrictions().mapAtPuttingCanDestroy(
@@ -72,10 +67,11 @@ public class AvailModuleDescriptor extends Descriptor
 			true));
 	}
 
+	@Override
 	void ObjectAtAddMethodImplementation (
-			final AvailObject object, 
-			final AvailObject methodName, 
-			final AvailObject implementation)
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject implementation)
 	{
 		AvailObject set;
 		if (object.methods().hasKey(methodName))
@@ -93,10 +89,11 @@ public class AvailModuleDescriptor extends Descriptor
 			true));
 	}
 
+	@Override
 	void ObjectAtNameAdd (
-			final AvailObject object, 
-			final AvailObject stringName, 
-			final AvailObject trueName)
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  Add the trueName to the current public scope.
 
@@ -117,10 +114,11 @@ public class AvailModuleDescriptor extends Descriptor
 		object.visibleNames(object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
 
+	@Override
 	void ObjectAtNewNamePut (
-			final AvailObject object, 
-			final AvailObject stringName, 
-			final AvailObject trueName)
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  Set up this true name, which is local to the module.
 
@@ -136,10 +134,11 @@ public class AvailModuleDescriptor extends Descriptor
 		object.visibleNames(object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
 
+	@Override
 	void ObjectAtPrivateNameAdd (
-			final AvailObject object, 
-			final AvailObject stringName, 
-			final AvailObject trueName)
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  Add the trueName to the current private scope.
 
@@ -160,19 +159,21 @@ public class AvailModuleDescriptor extends Descriptor
 		object.visibleNames(object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
 
+	@Override
 	boolean ObjectNameVisible (
-			final AvailObject object, 
-			final AvailObject trueName)
+		final AvailObject object,
+		final AvailObject trueName)
 	{
 		//  Check if the given trueName is visible in this module.
 
 		return object.visibleNames().hasElement(trueName);
 	}
 
+	@Override
 	void ObjectResolvedForwardWithName (
-			final AvailObject object, 
-			final AvailObject forwardImplementation, 
-			final AvailObject methodName)
+		final AvailObject object,
+		final AvailObject forwardImplementation,
+		final AvailObject methodName)
 	{
 		//  The interpreter is in the process of resolving this forward declaration.  Record the
 		//  fact that this implementation no longer needs to be cleaned up if the rest of the
@@ -190,9 +191,10 @@ public class AvailModuleDescriptor extends Descriptor
 			true));
 	}
 
+	@Override
 	AvailObject ObjectTrueNamesForStringName (
-			final AvailObject object, 
-			final AvailObject stringName)
+		final AvailObject object,
+		final AvailObject stringName)
 	{
 		//  Check what true names are visible in this module under the given string name.
 
@@ -226,170 +228,190 @@ public class AvailModuleDescriptor extends Descriptor
 
 	// GENERATED accessors
 
+	@Override
 	void ObjectConstantBindings (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-36, value);
 	}
 
+	@Override
 	void ObjectFilteredBundleTree (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-40, value);
 	}
 
+	@Override
 	void ObjectMethods (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-24, value);
 	}
 
+	@Override
 	void ObjectName (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
+	@Override
 	void ObjectNames (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
+	@Override
 	void ObjectNewNames (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
+	@Override
 	void ObjectPrivateNames (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-16, value);
 	}
 
+	@Override
 	void ObjectRestrictions (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-28, value);
 	}
 
+	@Override
 	void ObjectVariableBindings (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-32, value);
 	}
 
+	@Override
 	void ObjectVisibleNames (
-			final AvailObject object, 
-			final AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		//  GENERATED setter method.
 
 		object.objectSlotAtByteIndexPut(-20, value);
 	}
 
+	@Override
 	AvailObject ObjectConstantBindings (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-36);
 	}
 
+	@Override
 	AvailObject ObjectFilteredBundleTree (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-40);
 	}
 
+	@Override
 	AvailObject ObjectMethods (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-24);
 	}
 
+	@Override
 	AvailObject ObjectName (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-4);
 	}
 
+	@Override
 	AvailObject ObjectNames (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-12);
 	}
 
+	@Override
 	AvailObject ObjectNewNames (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-8);
 	}
 
+	@Override
 	AvailObject ObjectPrivateNames (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-16);
 	}
 
+	@Override
 	AvailObject ObjectRestrictions (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-28);
 	}
 
+	@Override
 	AvailObject ObjectVariableBindings (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
 		return object.objectSlotAtByteIndex(-32);
 	}
 
+	@Override
 	AvailObject ObjectVisibleNames (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  GENERATED getter method.
 
@@ -400,8 +422,9 @@ public class AvailModuleDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+		final int index)
 	{
 		//  GENERATED special mutable slots method.
 
@@ -448,9 +471,10 @@ public class AvailModuleDescriptor extends Descriptor
 
 	// initialization
 
+	@Override
 	void ObjectBuildFilteredBundleTreeFrom (
-			final AvailObject object, 
-			final AvailObject bundleTree)
+		final AvailObject object,
+		final AvailObject bundleTree)
 	{
 		//  Construct a bundle tree that has been prefiltered to contain just method bundles
 		//  that are visible to the current module.
@@ -459,16 +483,18 @@ public class AvailModuleDescriptor extends Descriptor
 		bundleTree.copyToRestrictedTo(object.filteredBundleTree(), object.visibleNames());
 	}
 
+	@Override
 	void ObjectCleanUpAfterCompile (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		object.variableBindings(VoidDescriptor.voidObject());
 		object.constantBindings(VoidDescriptor.voidObject());
 		object.filteredBundleTree(VoidDescriptor.voidObject());
 	}
 
+	@Override
 	void ObjectClearModule (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		object.newNames(MapDescriptor.empty());
 		object.names(MapDescriptor.empty());
@@ -485,17 +511,19 @@ public class AvailModuleDescriptor extends Descriptor
 
 	// operations
 
+	@Override
 	boolean ObjectEquals (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Compare by address (identity).
 
 		return another.traversed().sameAddressAs(object);
 	}
 
+	@Override
 	int ObjectHash (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
 
@@ -506,8 +534,9 @@ public class AvailModuleDescriptor extends Descriptor
 
 	// removing
 
+	@Override
 	void ObjectRemoveFrom (
-		final AvailObject object, 
+		final AvailObject object,
 		final AvailInterpreter anInterpreter)
 	{
 

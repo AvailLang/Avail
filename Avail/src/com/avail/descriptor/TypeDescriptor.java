@@ -32,11 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
-
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.error;
 
 public abstract class TypeDescriptor extends Descriptor
 {
@@ -44,9 +40,10 @@ public abstract class TypeDescriptor extends Descriptor
 
 	// operations
 
+	@Override
 	boolean ObjectEquals (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		/* A type can only be equal to another type, and only if each type is a
 		 * subtype of the other.  This is rewritten in descriptor subclasses for
@@ -55,17 +52,18 @@ public abstract class TypeDescriptor extends Descriptor
 		 */
 
 		return another.isType()
-			&& object.isSubtypeOf(another)
-			&& another.isSubtypeOf(object);
+		&& object.isSubtypeOf(another)
+		&& another.isSubtypeOf(object);
 	}
 
 
 
 	// operations-types
 
+	@Override
 	boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
-			final AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		/* Check if object (a type) is a subtype of aType (should also be a
 		 * type).
@@ -75,18 +73,20 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfClosureType (
-			final AvailObject object, 
-			final AvailObject aClosureType)
+		final AvailObject object,
+		final AvailObject aClosureType)
 	{
 		//  Redefined for subclasses.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfContainerType (
-			final AvailObject object, 
-			final AvailObject aContainerType)
+		final AvailObject object,
+		final AvailObject aContainerType)
 	{
 		/* By default, nothing is a supertype of a container type unless it
 		 * states otherwise.
@@ -95,63 +95,70 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfContinuationType (
-			final AvailObject object, 
-			final AvailObject aContinuationType)
+		final AvailObject object,
+		final AvailObject aContinuationType)
 	{
 		//  GENERATED pure (abstract) method.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfCyclicType (
-			final AvailObject object, 
-			final AvailObject aCyclicType)
+		final AvailObject object,
+		final AvailObject aCyclicType)
 	{
 		//  Redefined for subclasses.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfGeneralizedClosureType (
-			final AvailObject object, 
-			final AvailObject aGeneralizedClosureType)
+		final AvailObject object,
+		final AvailObject aGeneralizedClosureType)
 	{
 		//  Redefined for subclasses.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfIntegerRangeType (
-			final AvailObject object, 
-			final AvailObject anIntegerRangeType)
+		final AvailObject object,
+		final AvailObject anIntegerRangeType)
 	{
 		//  By default, nothing is a supertype of an integer range type unless it states otherwise.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfListType (
-			final AvailObject object, 
-			final AvailObject aListType)
+		final AvailObject object,
+		final AvailObject aListType)
 	{
 		//  List types are covariant by their content type.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfMapType (
-			final AvailObject object, 
-			final AvailObject aMapType)
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		//  Redefined for subclasses.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfObjectMeta (
-			final AvailObject object, 
-			final AvailObject anObjectMeta)
+		final AvailObject object,
+		final AvailObject anObjectMeta)
 	{
 		/* Check if I'm a supertype of the given object meta.  Redefined for
 		 * subclasses.
@@ -160,9 +167,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfObjectMetaMeta (
-			final AvailObject object, 
-			final AvailObject anObjectMeta)
+		final AvailObject object,
+		final AvailObject anObjectMeta)
 	{
 		/* Check if I'm a supertype of the given object meta meta.  Redefined
 		 * for subclasses.
@@ -171,9 +179,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfObjectType (
-			final AvailObject object, 
-			final AvailObject aLazyObjectType)
+		final AvailObject object,
+		final AvailObject aLazyObjectType)
 	{
 		/* By default, nothing is a supertype of an eager object type unless it
 		 * states otherwise.
@@ -182,9 +191,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfPrimitiveType (
-			final AvailObject object, 
-			final AvailObject aPrimitiveType)
+		final AvailObject object,
+		final AvailObject aPrimitiveType)
 	{
 		/* Check if object (some specialized type) is a supertype of
 		 * aPrimitiveType (some primitive type).  The only primitive type this
@@ -196,27 +206,30 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfSetType (
-			final AvailObject object, 
-			final AvailObject aSetType)
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		//  Redefined for subclasses.
 
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfTupleType (
-			final AvailObject object, 
-			final AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		//  Redefined for subclasses.
 
 		return false;
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -226,9 +239,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfClosureType (
-			final AvailObject object, 
-			final AvailObject aClosureType)
+		final AvailObject object,
+		final AvailObject aClosureType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -237,9 +251,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfContainerType (
-			final AvailObject object, 
-			final AvailObject aContainerType)
+		final AvailObject object,
+		final AvailObject aContainerType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -248,9 +263,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfContinuationType (
-			final AvailObject object, 
-			final AvailObject aContinuationType)
+		final AvailObject object,
+		final AvailObject aContinuationType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -259,9 +275,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfCyclicType (
-			final AvailObject object, 
-			final AvailObject aCyclicType)
+		final AvailObject object,
+		final AvailObject aCyclicType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -270,9 +287,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeIntersectionOfMeta(aCyclicType);
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
-			final AvailObject object, 
-			final AvailObject aGeneralizedClosureType)
+		final AvailObject object,
+		final AvailObject aGeneralizedClosureType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -281,9 +299,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
-			final AvailObject object, 
-			final AvailObject anIntegerRangeType)
+		final AvailObject object,
+		final AvailObject anIntegerRangeType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -292,9 +311,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfListType (
-			final AvailObject object, 
-			final AvailObject aListType)
+		final AvailObject object,
+		final AvailObject aListType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -303,9 +323,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfMapType (
-			final AvailObject object, 
-			final AvailObject aMapType)
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -314,9 +335,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfMeta (
-			final AvailObject object, 
-			final AvailObject someMeta)
+		final AvailObject object,
+		final AvailObject someMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.  Since metatypes intersect at terminatesType rather than
@@ -326,9 +348,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfObjectMeta (
-			final AvailObject object, 
-			final AvailObject anObjectMeta)
+		final AvailObject object,
+		final AvailObject anObjectMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -337,9 +360,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeIntersectionOfMeta(anObjectMeta);
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
-			final AvailObject object, 
-			final AvailObject anObjectMetaMeta)
+		final AvailObject object,
+		final AvailObject anObjectMetaMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -348,9 +372,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeIntersectionOfMeta(anObjectMetaMeta);
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfObjectType (
-			final AvailObject object, 
-			final AvailObject anObjectType)
+		final AvailObject object,
+		final AvailObject anObjectType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -359,9 +384,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfSetType (
-			final AvailObject object, 
-			final AvailObject aSetType)
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -370,9 +396,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeIntersectionOfTupleType (
-			final AvailObject object, 
-			final AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -381,9 +408,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return Types.terminates.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeUnion (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		/* Answer the most specific type that still includes both of these.
 		 */
@@ -392,9 +420,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfClosureType (
-			final AvailObject object, 
-			final AvailObject aClosureType)
+		final AvailObject object,
+		final AvailObject aClosureType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -403,9 +432,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.closure.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfContainerType (
-			final AvailObject object, 
-			final AvailObject aContainerType)
+		final AvailObject object,
+		final AvailObject aContainerType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -414,9 +444,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.container.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfContinuationType (
-			final AvailObject object, 
-			final AvailObject aContinuationType)
+		final AvailObject object,
+		final AvailObject aContinuationType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -425,9 +456,10 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.continuation.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfCyclicType (
-			final AvailObject object, 
-			final AvailObject aCyclicType)
+		final AvailObject object,
+		final AvailObject aCyclicType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -436,20 +468,22 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.cyclicType.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
-			final AvailObject object, 
-			final AvailObject aGeneralizedClosureType)
+		final AvailObject object,
+		final AvailObject aGeneralizedClosureType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  "all" is the nearest supertype of [...]->void.
 		 */
-		
+
 		return object.typeUnion(Types.all.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfIntegerRangeType (
-			final AvailObject object, 
-			final AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -458,20 +492,22 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.all.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfListType (
-			final AvailObject object, 
-			final AvailObject aListType)
+		final AvailObject object,
+		final AvailObject aListType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Note: list is not under the type all.
 		 */
-		
+
 		return Types.voidType.object();
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfMapType (
-			final AvailObject object, 
-			final AvailObject aMapType)
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -480,44 +516,48 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.all.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfObjectMeta (
-			final AvailObject object, 
-			final AvailObject anObjectMeta)
+		final AvailObject object,
+		final AvailObject anObjectMeta)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Because type 'objectType' is an objectMeta, not a primitive
 		 * type.
 		 */
-		
+
 		return object.typeUnion(Types.type.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfObjectMetaMeta (
-			final AvailObject object, 
-			final AvailObject anObjectMetaMeta)
+		final AvailObject object,
+		final AvailObject anObjectMetaMeta)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Because type 'objectMeta' is an objectMetaMeta, not a
 		 * primitive type.
 		 */
-		
+
 		return object.typeUnion(Types.meta.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfObjectType (
-			final AvailObject object, 
-			final AvailObject anEagerObjectType)
+		final AvailObject object,
+		final AvailObject anEagerObjectType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Because type 'object' is also an objectType.
 		 */
-		
+
 		return object.typeUnion(Types.all.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfSetType (
-			final AvailObject object, 
-			final AvailObject aSetType)
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -526,20 +566,22 @@ public abstract class TypeDescriptor extends Descriptor
 		return object.typeUnion(Types.all.object());
 	}
 
+	@Override
 	AvailObject ObjectTypeUnionOfTupleType (
-			final AvailObject object, 
-			final AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  This is just above extended integer, the most general integer
 		 * range.
 		 */
-		
+
 		return object.typeUnion(Types.all.object());
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfTerminates (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		/* All types are supertypes of terminates.  This method only exists so
 		 * that nontypes will cause a doesNotUnderstand: message to occur.
@@ -550,8 +592,9 @@ public abstract class TypeDescriptor extends Descriptor
 		return true;
 	}
 
+	@Override
 	boolean ObjectIsSupertypeOfVoid (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		/* Only void is a supertype of void.  Overridden in VoidTypeDescriptor.
 		 */
@@ -559,8 +602,9 @@ public abstract class TypeDescriptor extends Descriptor
 		return false;
 	}
 
+	@Override
 	boolean ObjectIsType (
-			final AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -573,61 +617,61 @@ public abstract class TypeDescriptor extends Descriptor
 	public enum Types
 	{
 		voidType(null, "type", VoidTypeDescriptor.mutableDescriptor()),
-			all(voidType, "type"),
-				booleanType(all, "primType"),
-					trueType(booleanType, "primType"),
-					falseType(booleanType, "primType"),
-				character(all, "primType"),
-				closure(all, "primType"),
-				compiledCode(all, "primType"),
-				container(all, "containerType"),
-				continuation(all, "primType"),
-				doubleObject(all, "primType"),
-				floatObject(all, "primType"),
-				implementationSet(all, "primType"),
-				messageBundle(all, "primType"),
-				messageBundleTree(all, "primType"),
-				parseNode(all, "primType"),
-					assignmentNode(parseNode, "primType"),
-					blockNode(parseNode, "primType"),
-					listNode(parseNode, "primType"),
-					literalNode(parseNode, "primType"),
-					referenceNode(parseNode, "primType"),
-					sendNode(parseNode, "primType"),
-					superCastNode(parseNode, "primType"),
-					variableDeclarationNode(parseNode, "primType"),
-						syntheticConstantNode(variableDeclarationNode, "primType"),
-						initializingDeclarationNode(variableDeclarationNode, "primType"),
-							constantDeclarationNode(initializingDeclarationNode, "primType"),
-						labelNode(variableDeclarationNode, "primType"),
-						syntheticDeclarationNode(variableDeclarationNode, "primType"),
-					variableUseNode(parseNode, "primType"),
-				process(all, "primType"),
-				signature(all, "primType"),
-					abstractSignature(signature, "primType"),
-					forwardSignature(signature, "primType"),
-					methodSignature(signature, "primType"),
-				type(all, "meta"),
-					integerType(type, "meta"),
-					listType(type, "meta"),
-					mapType(type, "meta"),
-					meta(type, "meta"),
-						cyclicType(meta, "cyclicType"),
-						objectMetaMeta(meta, "meta"),
-					containerType(type, "meta"),
-					continuationType(type, "meta"),
-					primType(type, "meta"),
-						generalizedClosureType(primType, "meta"),
-							closureType(generalizedClosureType, "meta"),
-					setType(type, "meta"),
-					tupleType(type, "meta"),
-			terminatesType(null, "terminatesType", TerminatesMetaDescriptor.mutableDescriptor()),
-			terminates(null, "terminatesType", TerminatesTypeDescriptor.mutableDescriptor());
-				
-		private final Types parent;
-		private final String myTypeName;
-		private final Descriptor descriptor;
-		private AvailObject object;
+		all(voidType, "type"),
+		booleanType(all, "primType"),
+		trueType(booleanType, "primType"),
+		falseType(booleanType, "primType"),
+		character(all, "primType"),
+		closure(all, "primType"),
+		compiledCode(all, "primType"),
+		container(all, "containerType"),
+		continuation(all, "primType"),
+		doubleObject(all, "primType"),
+		floatObject(all, "primType"),
+		implementationSet(all, "primType"),
+		messageBundle(all, "primType"),
+		messageBundleTree(all, "primType"),
+		parseNode(all, "primType"),
+		assignmentNode(parseNode, "primType"),
+		blockNode(parseNode, "primType"),
+		listNode(parseNode, "primType"),
+		literalNode(parseNode, "primType"),
+		referenceNode(parseNode, "primType"),
+		sendNode(parseNode, "primType"),
+		superCastNode(parseNode, "primType"),
+		variableDeclarationNode(parseNode, "primType"),
+		syntheticConstantNode(variableDeclarationNode, "primType"),
+		initializingDeclarationNode(variableDeclarationNode, "primType"),
+		constantDeclarationNode(initializingDeclarationNode, "primType"),
+		labelNode(variableDeclarationNode, "primType"),
+		syntheticDeclarationNode(variableDeclarationNode, "primType"),
+		variableUseNode(parseNode, "primType"),
+		process(all, "primType"),
+		signature(all, "primType"),
+		abstractSignature(signature, "primType"),
+		forwardSignature(signature, "primType"),
+		methodSignature(signature, "primType"),
+		type(all, "meta"),
+		integerType(type, "meta"),
+		listType(type, "meta"),
+		mapType(type, "meta"),
+		meta(type, "meta"),
+		cyclicType(meta, "cyclicType"),
+		objectMetaMeta(meta, "meta"),
+		containerType(type, "meta"),
+		continuationType(type, "meta"),
+		primType(type, "meta"),
+		generalizedClosureType(primType, "meta"),
+		closureType(generalizedClosureType, "meta"),
+		setType(type, "meta"),
+		tupleType(type, "meta"),
+		terminatesType(null, "terminatesType", TerminatesMetaDescriptor.mutableDescriptor()),
+		terminates(null, "terminatesType", TerminatesTypeDescriptor.mutableDescriptor());
+
+		protected final Types parent;
+		protected final String myTypeName;
+		protected final Descriptor descriptor;
+		protected AvailObject object;
 
 		// Constructors
 		Types (Types parent, String myTypeName, Descriptor descriptor)
@@ -644,7 +688,7 @@ public abstract class TypeDescriptor extends Descriptor
 				myTypeName,
 				PrimitiveTypeDescriptor.mutableDescriptor());
 		}
-		
+
 		public AvailObject object ()
 		{
 			return object;
@@ -676,8 +720,8 @@ public abstract class TypeDescriptor extends Descriptor
 					spec.name()));
 			spec.object.parent(
 				spec.parent == null
-					? voidObject
-					: spec.parent.object);
+				? voidObject
+						: spec.parent.object);
 			spec.object.myType(
 				Types.valueOf(spec.myTypeName).object);
 			spec.object.makeImmutable();

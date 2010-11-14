@@ -49,7 +49,6 @@ import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.ClosureDescriptor;
 import com.avail.descriptor.CyclicTypeDescriptor;
 import com.avail.descriptor.ForwardSignatureDescriptor;
-import com.avail.descriptor.ImplementationSetDescriptor;
 import com.avail.descriptor.InfinityDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
@@ -71,7 +70,7 @@ public abstract class AvailInterpreter
 {
 	/** An {@link AvailRuntime}. */
 	private final @NotNull AvailRuntime runtime;
-	
+
 	/**
 	 * Answer the {@link AvailRuntime} that the {@linkplain AvailInterpreter
 	 * receiver} uses to locate and store Avail runtime elements.
@@ -83,13 +82,13 @@ public abstract class AvailInterpreter
 	{
 		return runtime;
 	}
-	
+
 	/**
 	 * The {@linkplain AvailModuleDescriptor module} currently under {@linkplain
 	 * AvailCompiler compilation}.
 	 */
 	private AvailObject module;
-	
+
 	/**
 	 * Set the {@linkplain AvailModuleDescriptor module} context of the
 	 * {@linkplain AvailInterpreter interpreter}. This feature is used by the
@@ -105,7 +104,7 @@ public abstract class AvailInterpreter
 
 	/** The unresolved forward method declarations. */
 	private @NotNull AvailObject pendingForwards = SetDescriptor.empty();
-	
+
 	protected volatile int interruptRequestFlag;
 	protected AvailObject process;
 	protected AvailObject primitiveResult;
@@ -234,14 +233,14 @@ public abstract class AvailInterpreter
 		assert bodyBlock.isClosure();
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
-		
+
 		final int numArgs = countUnderscoresIn(methodName.name());
 		assert (bodyBlock.code().numArgs() == numArgs)
-			: "Wrong number of arguments in method definition";
+		: "Wrong number of arguments in method definition";
 		assert (requiresBlock.code().numArgs() == numArgs)
-			: "Wrong number of arguments in method type verifier";
+		: "Wrong number of arguments in method type verifier";
 		assert (returnsBlock.code().numArgs() == numArgs)
-			: "Wrong number of arguments in method result type generator";
+		: "Wrong number of arguments in method result type generator";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodyBlock.makeImmutable();
@@ -337,12 +336,12 @@ public abstract class AvailInterpreter
 
 		final int numArgs = countUnderscoresIn(methodName.name());
 		assert (bodySignature.numArgs() == numArgs)
-			: "Wrong number of arguments in abstract method signature";
+		: "Wrong number of arguments in abstract method signature";
 		assert (requiresBlock.code().numArgs() == numArgs)
-			: "Wrong number of arguments in abstract method type verifier";
+		: "Wrong number of arguments in abstract method type verifier";
 		assert (returnsBlock.code().numArgs() == numArgs)
-			: "Wrong number of arguments in abstract method result type "
-				+ "specializer";
+		: "Wrong number of arguments in abstract method result type "
+			+ "specializer";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
@@ -429,7 +428,7 @@ public abstract class AvailInterpreter
 		//  So we can safely hold this data in the VM
 		final int numArgs = countUnderscoresIn(methodName.name());
 		assert (numArgs == illegalArgMsgs.tupleSize())
-			: "Wrong number of entries in restriction tuple.";
+		: "Wrong number of entries in restriction tuple.";
 		final AvailObject parts = splitMethodName(methodName);
 		//  Fix precedence.
 		AvailObject bundle =
@@ -442,7 +441,7 @@ public abstract class AvailInterpreter
 	/**
 	 * Create the two-argument defining method. The first parameter of the
 	 * method is the name, the second parameter is the {@linkplain
-	 * ClosureDescriptor block}. 
+	 * ClosureDescriptor block}.
 	 * 
 	 * @param defineMethodName The name of the defining method.
 	 */
@@ -462,7 +461,7 @@ public abstract class AvailInterpreter
 			TupleTypeDescriptor.stringTupleType(), Types.closure.object());
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration_string_block
-				.primitiveNumber);
+			.primitiveNumber);
 		writer.returnType(Types.voidType.object());
 		newClosure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
 			writer.compiledCode(),
@@ -656,7 +655,7 @@ public abstract class AvailInterpreter
 		final @NotNull AvailObject methodName)
 	{
 		assert methodName.isCyclicType();
-		
+
 		if (!runtime.hasMethodsAt(methodName))
 		{
 			error("Inconsistent forward declaration handling code");
@@ -691,15 +690,15 @@ public abstract class AvailInterpreter
 		final @NotNull AvailObject implementation)
 	{
 		assert methodName.isCyclicType();
-		
+
 		if (implementation.isForward())
 		{
 			pendingForwards = pendingForwards.setWithoutElementCanDestroy(implementation, true);
 		}
-		
+
 		runtime.removeMethod(methodName, implementation);
 	}
-	
+
 	/**
 	 * Break a {@linkplain CyclicTypeDescriptor selector} down into the
 	 * substrings that will be expected as tokens. Each underscore also becomes
@@ -727,8 +726,8 @@ public abstract class AvailInterpreter
 			if (ch == ' ')
 			{
 				if (out.size() == 0
-					|| isCharacterUnderscoreOrSpaceOrOperator(
-						(char) in.tupleAt(inPos - 1).codePoint()))
+						|| isCharacterUnderscoreOrSpaceOrOperator(
+							(char) in.tupleAt(inPos - 1).codePoint()))
 				{
 					error(
 						"Illegally canonized method name"
@@ -738,8 +737,8 @@ public abstract class AvailInterpreter
 				//  Skip the space.
 				inPos++;
 				if (inPos > in.tupleSize()
-					|| isCharacterUnderscoreOrSpaceOrOperator(
-						(char) in.tupleAt(inPos).codePoint()))
+						|| isCharacterUnderscoreOrSpaceOrOperator(
+							(char) in.tupleAt(inPos).codePoint()))
 				{
 					error(
 						"Illegally canonized method name"
@@ -759,8 +758,8 @@ public abstract class AvailInterpreter
 			{
 				final int start = inPos;
 				while (inPos <= in.tupleSize()
-					&& !isCharacterUnderscoreOrSpaceOrOperator(
-						(char) in.tupleAt(inPos).codePoint()))
+						&& !isCharacterUnderscoreOrSpaceOrOperator(
+							(char) in.tupleAt(inPos).codePoint()))
 				{
 					inPos++;
 				}

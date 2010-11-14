@@ -80,7 +80,6 @@ import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.TerminatesTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -1304,14 +1303,14 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 2;
-			
+
 			final AvailObject userType = args.get(0);
 			final AvailObject name = args.get(1);
-			
+
 			userType.makeImmutable();
 			name.makeImmutable();
 			interpreter.runtime().setNameForType(userType, name);
-			
+
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
@@ -1331,16 +1330,16 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject userType = args.get(0);
-			
+
 			final AvailObject name =
 				interpreter.runtime().nameForType(userType);
 			if (name == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(name);
 			return Result.SUCCESS;
 		}
@@ -2171,13 +2170,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final AvailObject handle =
 				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
 			try
@@ -2190,7 +2189,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(handle);
 			return Result.SUCCESS;
 		}
@@ -2212,14 +2211,14 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 2;
-			
+
 			final AvailObject filename = args.get(0);
 			final AvailObject append = args.get(1);
 			if (!filename.isString() || !append.isBoolean())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final AvailObject handle =
 				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
 			try
@@ -2240,7 +2239,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(handle);
 			return Result.SUCCESS;
 		}
@@ -2253,8 +2252,7 @@ public enum Primitive
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim162_FileOpenReadWrite_nameString(
-		162, 1, Flag.CanInline, Flag.HasSideEffect)
+	prim162_FileOpenReadWrite_nameString (162, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2262,13 +2260,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final AvailObject handle =
 				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
 			try
@@ -2282,7 +2280,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(handle);
 			return Result.SUCCESS;
 		}
@@ -2303,20 +2301,20 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			try
 			{
 				file.close();
@@ -2327,7 +2325,7 @@ public enum Primitive
 				// we've already forgotten about the handle. There's no reason
 				// to fail the primitive.
 			}
-			
+
 			interpreter.runtime().forgetReadableFile(handle);
 			interpreter.runtime().forgetWritableFile(handle);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
@@ -2353,37 +2351,37 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 2;
-			
+
 			final AvailObject handle = args.get(0);
 			final AvailObject size = args.get(1);
 			if (!handle.isCyclicType() || !size.isExtendedInteger())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final byte[] buffer;
 			final int bytesRead;
 			try
 			{
 				buffer = size.isFinite()
-					? new byte[size.extractInt()]
-					: new byte[(int) Math.min(
-						Integer.MAX_VALUE,
-						file.length() - file.getFilePointer())];
+				? new byte[size.extractInt()]
+				           : new byte[(int) Math.min(
+				        	   Integer.MAX_VALUE,
+				        	   file.length() - file.getFilePointer())];
 				bytesRead = file.read(buffer);
 			}
 			catch (final IOException e)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final AvailObject tuple;
 			if (bytesRead > 0)
 			{
@@ -2398,7 +2396,7 @@ public enum Primitive
 			{
 				tuple = TupleDescriptor.empty();
 			}
-			
+
 			interpreter.primitiveResult(tuple);
 			return Result.SUCCESS;
 		}
@@ -2407,14 +2405,13 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 165:</strong> Write the specified {@linkplain
 	 * TupleDescriptor tuple} to the {@linkplain RandomAccessFile file}
-	 * associated with the {@linkplain CyclicTypeDescriptor handle}. Answer a
-	 * {@linkplain ByteTupleDescriptor tuple} containing the bytes that could
-	 * not be written.
+	 * associated with the {@linkplain CyclicTypeDescriptor handle}. Answer
+	 * a {@linkplain ByteTupleDescriptor tuple} containing the bytes that
+	 * could not be written.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim165_FileWrite_handle_bytes(
-		165, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim165_FileWrite_handle_bytes(165, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2429,21 +2426,20 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final byte[] buffer = new byte[bytes.tupleSize()];
 			for (int i = 1, end = bytes.tupleSize(); i <= end; i++)
 			{
 				buffer[i - 1] = (byte) bytes.tupleAt(i).extractByte();
 			}
-			
-			final int bytesWritten;
+
 			try
 			{
 				file.write(buffer);
@@ -2453,17 +2449,18 @@ public enum Primitive
 				return Result.FAILURE;
 			}
 
-			// Always return an empty tuple since RandomAccessFile writes its
-			// buffer transactionally.
+			// Always return an empty tuple since RandomAccessFile writes
+			// its buffer transactionally.
 			interpreter.primitiveResult(TupleDescriptor.empty());
 			return Result.SUCCESS;
 		}
 	},
-	
+
 	/**
-	 * <strong>Primitive 166:</strong> Answer the size of the {@linkplain
-	 * RandomAccessFile file} associated with the specified {@linkplain
-	 * CyclicTypeDescriptor handle}. Supports 64-bit file sizes.
+	 * <strong>Primitive 166:</strong> Answer the size of the
+	 * {@linkplain RandomAccessFile file} associated with the specified
+	 * {@linkplain CyclicTypeDescriptor handle}. Supports 64-bit file
+	 * sizes.
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2475,20 +2472,20 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final long fileSize;
 			try
 			{
@@ -2498,7 +2495,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(
 				IntegerDescriptor.objectFromLong(fileSize));
 			return Result.SUCCESS;
@@ -2521,20 +2518,20 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final long filePosition;
 			try
 			{
@@ -2544,7 +2541,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(
 				IntegerDescriptor.objectFromLong(filePosition));
 			return Result.SUCCESS;
@@ -2559,8 +2556,7 @@ public enum Primitive
 	 * 
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim168_FileSetPosition_handle_newPosition(
-		168, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim168_FileSetPosition_handle_newPosition(168, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2568,7 +2564,7 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 2;
-			
+
 			final AvailObject handle = args.get(0);
 			final AvailObject filePosition = args.get(1);
 			if (!handle.isCyclicType()
@@ -2577,14 +2573,14 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			try
 			{
 				file.seek(filePosition.extractLong());
@@ -2593,12 +2589,12 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
 	},
-	
+
 	/**
 	 * <strong>Primitive 168:</strong> Force all system buffers associated with
 	 * the writable {@linkplain RandomAccessFile file} to synchronize with the
@@ -2614,20 +2610,20 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final RandomAccessFile file =
 				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			try
 			{
 				file.getFD().sync();
@@ -2636,12 +2632,12 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
 	},
-	
+
 	/**
 	 * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
 	 * the specified filename?
@@ -2654,13 +2650,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final File file = new File(filename.asNativeString());
 			final boolean exists;
 			try
@@ -2671,13 +2667,13 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFromBoolean(exists));
 			return Result.SUCCESS;
 		}
 	},
-	
+
 	/**
 	 * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
 	 * specified filename readable by the OS process?
@@ -2690,13 +2686,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final File file = new File(filename.asNativeString());
 			final boolean readable;
 			try
@@ -2707,7 +2703,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFromBoolean(readable));
 			return Result.SUCCESS;
@@ -2726,13 +2722,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final File file = new File(filename.asNativeString());
 			final boolean writable;
 			try
@@ -2743,7 +2739,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFromBoolean(writable));
 			return Result.SUCCESS;
@@ -2754,8 +2750,7 @@ public enum Primitive
 	 * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
 	 * specified filename executable by the OS process?
 	 */
-	prim173_FileCanExecute_nameString(
-		173, 1, Flag.CanInline, Flag.HasSideEffect)
+	prim173_FileCanExecute_nameString(173, 1, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2763,13 +2758,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final File file = new File(filename.asNativeString());
 			final boolean executable;
 			try
@@ -2780,7 +2775,7 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFromBoolean(executable));
 			return Result.SUCCESS;
@@ -2791,8 +2786,7 @@ public enum Primitive
 	 * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
 	 * the specified source filename.
 	 */
-	prim174_FileRename_sourceString_destinationString(
-		174, 2, Flag.CanInline, Flag.HasSideEffect)
+	prim174_FileRename_sourceString_destinationString(174, 2, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2800,14 +2794,14 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 2;
-			
+
 			final AvailObject source = args.get(0);
 			final AvailObject destination = args.get(1);
 			if (!source.isString() || !destination.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final File file = new File(source.asNativeString());
 			final boolean renamed;
 			try
@@ -2818,17 +2812,17 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			if (!renamed)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
 	},
-	
+
 	/**
 	 * <strong>Primitive 175:</strong> Unlink the {@linkplain File file} with
 	 * the specified filename from the filesystem.
@@ -2838,16 +2832,16 @@ public enum Primitive
 		@Override
 		public Result attempt (
 			final @NotNull List<AvailObject> args,
-		    final @NotNull AvailInterpreter interpreter)
+			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final File file = new File(filename.asNativeString());
 			final boolean deleted;
 			try
@@ -2858,17 +2852,17 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			if (!deleted)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return Result.SUCCESS;
 		}
 	},
-	
+
 	prim180_CompiledCodeNumArgs_cc(180, 1, Flag.CanFold)
 	{
 		@Override
@@ -3192,7 +3186,7 @@ public enum Primitive
 			interpreter.primitiveResult(
 				interpreter.runtime().methodsAt(
 					bundle.message()).implementationsTuple().asSet()
-						.makeImmutable());
+					.makeImmutable());
 			return Result.SUCCESS;
 		}
 	},
@@ -3337,7 +3331,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject ordinal = args.get(0);
 			final int i = ordinal.extractInt();
-			
+
 			final AvailObject result;
 			try
 			{
@@ -3347,12 +3341,12 @@ public enum Primitive
 			{
 				return Result.FAILURE;
 			}
-			
+
 			if (result == null)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(result);
 			return Result.SUCCESS;
 		}
@@ -3373,13 +3367,13 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject name = args.get(0);
 			if (!name.isString())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(interpreter.lookupName(name));
 			return Result.SUCCESS;
 		}
@@ -3395,19 +3389,19 @@ public enum Primitive
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject ordinal = args.get(0);
 			if (!ordinal.isExtendedInteger() || !ordinal.isFinite())
 			{
 				return Result.FAILURE;
 			}
-			
+
 			final int index = ordinal.extractInt();
 			if (index < 0 || index > 65535)
 			{
 				return Result.FAILURE;
 			}
-			
+
 			interpreter.primitiveResult(BooleanDescriptor.objectFromBoolean(
 				interpreter.supportsPrimitive((short) index)));
 			return Result.SUCCESS;
@@ -3545,7 +3539,7 @@ public enum Primitive
 			final @NotNull AvailInterpreter interpreter)
 		{
 			assert args.size() == 1;
-			
+
 			final AvailObject errorMessageProducer = args.get(0);
 			error("The program has exited: " + errorMessageProducer);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
