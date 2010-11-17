@@ -105,12 +105,12 @@ import static com.avail.descriptor.AvailObject.*;
 
 public abstract class Descriptor
 {
-	short _myId;
-	boolean _isMutable;
-	int _numberOfFixedObjectSlots;
-	int _numberOfFixedIntegerSlots;
-	boolean _hasVariableObjectSlots;
-	boolean _hasVariableIntegerSlots;
+	short myId;
+	boolean isMutable;
+	int numberOfFixedObjectSlots;
+	int numberOfFixedIntegerSlots;
+	boolean hasVariableObjectSlots;
+	boolean hasVariableIntegerSlots;
 
 
 	// accessing
@@ -119,14 +119,14 @@ public abstract class Descriptor
 	{
 		//  Answer a read barrier descriptor that remembers which descriptor the current one is.
 
-		return allDescriptors[_myId + (numActualDescriptors>>1)];
+		return allDescriptors[myId + (numActualDescriptors>>1)];
 	}
 
 	short id ()
 	{
 		//  Answer my unique id, assigning one if necessary.
 
-		return _myId;
+		return myId;
 	}
 
 	void id (
@@ -135,18 +135,18 @@ public abstract class Descriptor
 		//  Set my unique id.
 
 		/* Let Smalltalk deal with its own AllDescriptors array.  Java doesn't care */
-		_myId = anInteger;
+		myId = anInteger;
 	}
 
 	public boolean isMutable ()
 	{
-		return _isMutable;
+		return isMutable;
 	}
 
 	void isMutable (
 			final boolean aBoolean)
 	{
-		_isMutable = aBoolean;
+		isMutable = aBoolean;
 	}
 
 
@@ -5164,7 +5164,7 @@ public abstract class Descriptor
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to scan
 		//  my children and make them immutable as well (recursively down to immutable descendants).
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.descriptorId((short)(object.descriptorId() | 1));
 			object.makeSubobjectsImmutable();
@@ -5603,28 +5603,28 @@ public abstract class Descriptor
 	{
 		//  Answer whether I have a variable number of integer slots.
 
-		return _hasVariableIntegerSlots;
+		return hasVariableIntegerSlots;
 	}
 
 	boolean hasVariableObjectSlots ()
 	{
 		//  Answer whether I have a variable number of object slots.
 
-		return _hasVariableObjectSlots;
+		return hasVariableObjectSlots;
 	}
 
 	int numberOfFixedIntegerSlots ()
 	{
 		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
 
-		return _numberOfFixedIntegerSlots;
+		return numberOfFixedIntegerSlots;
 	}
 
 	int numberOfFixedObjectSlots ()
 	{
 		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
 
-		return _numberOfFixedObjectSlots;
+		return numberOfFixedObjectSlots;
 	}
 
 	void numberOfFixedObjectSlotsNumberOfFixedIntegerSlotsHasVariableObjectSlotsHasVariableIntegerSlots (
@@ -5634,10 +5634,10 @@ public abstract class Descriptor
 			final boolean variableIntegerSlots)
 	{
 		assert theNumberOfFixedObjectSlots >= 1;
-		_numberOfFixedObjectSlots = theNumberOfFixedObjectSlots;
-		_numberOfFixedIntegerSlots = theNumberOfFixedIntegerSlots;
-		_hasVariableObjectSlots = variableObjectSlots;
-		_hasVariableIntegerSlots = variableIntegerSlots;
+		numberOfFixedObjectSlots = theNumberOfFixedObjectSlots;
+		numberOfFixedIntegerSlots = theNumberOfFixedIntegerSlots;
+		hasVariableObjectSlots = variableObjectSlots;
+		hasVariableIntegerSlots = variableIntegerSlots;
 	}
 
 
@@ -5669,172 +5669,172 @@ public abstract class Descriptor
 	static final int numActualDescriptors = 166;
 
 	static final Descriptor [] allDescriptors = {
-		new AbstractSignatureDescriptor().initDescriptor(0, true, 3, 0, false, false),
-		new AbstractSignatureDescriptor().initDescriptor(1, false, 3, 0, false, false),
-		new ApproximateTypeDescriptor().initDescriptor(2, true, 1, 0, false, false),
-		new ApproximateTypeDescriptor().initDescriptor(3, false, 1, 0, false, false),
-		new AvailModuleDescriptor().initDescriptor(4, true, 10, 0, false, false),
-		new AvailModuleDescriptor().initDescriptor(5, false, 10, 0, false, false),
-		new BlankDescriptor().initDescriptor(6, true, 0, 0, false, false),
-		new BlankDescriptor().initDescriptor(7, false, 0, 0, false, false),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(8, true, 0, 1, false, true, 0),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(9, false, 0, 1, false, true, 0),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(10, true, 0, 1, false, true, 3),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(11, false, 0, 1, false, true, 3),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(12, true, 0, 1, false, true, 2),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(13, false, 0, 1, false, true, 2),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(14, true, 0, 1, false, true, 1),
-		new ByteStringDescriptor().initDescriptorWithUnusedBytes(15, false, 0, 1, false, true, 1),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(16, true, 0, 1, false, true, 0),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(17, false, 0, 1, false, true, 0),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(18, true, 0, 1, false, true, 3),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(19, false, 0, 1, false, true, 3),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(20, true, 0, 1, false, true, 2),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(21, false, 0, 1, false, true, 2),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(22, true, 0, 1, false, true, 1),
-		new ByteTupleDescriptor().initDescriptorWithUnusedBytes(23, false, 0, 1, false, true, 1),
-		new CharacterDescriptor().initDescriptor(24, true, 0, 1, false, false),
-		new CharacterDescriptor().initDescriptor(25, false, 0, 1, false, false),
-		new ClosureDescriptor().initDescriptor(26, true, 1, 0, true, false),
-		new ClosureDescriptor().initDescriptor(27, false, 1, 0, true, false),
-		new ClosureTypeDescriptor().initDescriptor(28, true, 1, 1, true, false),
-		new ClosureTypeDescriptor().initDescriptor(29, false, 1, 1, true, false),
-		new CompiledCodeDescriptor().initDescriptor(30, true, 2, 5, true, false),
-		new CompiledCodeDescriptor().initDescriptor(31, false, 2, 5, true, false),
-		new ConcatenatedTupleTypeDescriptor().initDescriptor(32, true, 2, 0, false, false),
-		new ConcatenatedTupleTypeDescriptor().initDescriptor(33, false, 2, 0, false, false),
-		new ContainerDescriptor().initDescriptor(34, true, 2, 1, false, false),
-		new ContainerDescriptor().initDescriptor(35, false, 2, 1, false, false),
-		new ContainerTypeDescriptor().initDescriptor(36, true, 1, 0, false, false),
-		new ContainerTypeDescriptor().initDescriptor(37, false, 1, 0, false, false),
-		new ContinuationDescriptor().initDescriptor(38, true, 2, 3, true, false),
-		new ContinuationDescriptor().initDescriptor(39, false, 2, 3, true, false),
-		new ContinuationTypeDescriptor().initDescriptor(40, true, 1, 0, false, false),
-		new ContinuationTypeDescriptor().initDescriptor(41, false, 1, 0, false, false),
-		new CyclicTypeDescriptor().initDescriptor(42, true, 1, 1, false, false),
-		new CyclicTypeDescriptor().initDescriptor(43, false, 1, 1, false, false),
-		new DoubleDescriptor().initDescriptor(44, true, 0, 2, false, false),
-		new DoubleDescriptor().initDescriptor(45, false, 0, 2, false, false),
-		new ExpandedMessageBundleTreeDescriptor().initDescriptor(46, true, 2, 1, false, false),
-		new ExpandedMessageBundleTreeDescriptor().initDescriptor(47, false, 2, 1, false, false),
-		new FalseDescriptor().initDescriptor(48, true, 0, 0, false, false),
-		new FalseDescriptor().initDescriptor(49, false, 0, 0, false, false),
-		new FillerDescriptor().initDescriptor(50, true, 0, 0, false, false),
-		new FillerDescriptor().initDescriptor(51, false, 0, 0, false, false),
-		new FloatDescriptor().initDescriptor(52, true, 0, 1, false, false),
-		new FloatDescriptor().initDescriptor(53, false, 0, 1, false, false),
-		new ForwardSignatureDescriptor().initDescriptor(54, true, 1, 0, false, false),
-		new ForwardSignatureDescriptor().initDescriptor(55, false, 1, 0, false, false),
-		new GeneralizedClosureTypeDescriptor().initDescriptor(56, true, 1, 0, false, false),
-		new GeneralizedClosureTypeDescriptor().initDescriptor(57, false, 1, 0, false, false),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(58, true, 1, 3, true, false, 0),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(59, false, 1, 3, true, false, 0),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(60, true, 1, 3, true, false, 1),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(61, false, 1, 3, true, false, 1),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(62, true, 1, 3, true, false, 2),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(63, false, 1, 3, true, false, 2),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(64, true, 1, 3, true, false, 3),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(65, false, 1, 3, true, false, 3),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(66, true, 1, 3, true, false, 4),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(67, false, 1, 3, true, false, 4),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(68, true, 1, 3, true, false, 5),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(69, false, 1, 3, true, false, 5),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(70, true, 1, 3, true, false, 6),
-		new HashedSetBinDescriptor().initDescriptorWithLevel(71, false, 1, 3, true, false, 6),
-		new ImplementationSetDescriptor().initDescriptor(72, true, 4, 0, false, false),
-		new ImplementationSetDescriptor().initDescriptor(73, false, 4, 0, false, false),
-		new IndirectionDescriptor().initDescriptor(74, true, 1, 0, false, false),
-		new IndirectionDescriptor().initDescriptor(75, false, 1, 0, false, false),
-		new InfinityDescriptor().initDescriptor(76, true, 0, 1, false, false),
-		new InfinityDescriptor().initDescriptor(77, false, 0, 1, false, false),
-		new IntegerDescriptor().initDescriptor(78, true, 0, 0, false, true),
-		new IntegerDescriptor().initDescriptor(79, false, 0, 0, false, true),
-		new IntegerRangeTypeDescriptor().initDescriptor(80, true, 2, 1, false, false),
-		new IntegerRangeTypeDescriptor().initDescriptor(81, false, 2, 1, false, false),
-		new L2ChunkDescriptor().initDescriptor(82, true, 3, 7, true, false),
-		new L2ChunkDescriptor().initDescriptor(83, false, 3, 7, true, false),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(84, true, 0, 1, true, false, 0),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(85, false, 0, 1, true, false, 0),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(86, true, 0, 1, true, false, 1),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(87, false, 0, 1, true, false, 1),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(88, true, 0, 1, true, false, 2),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(89, false, 0, 1, true, false, 2),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(90, true, 0, 1, true, false, 3),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(91, false, 0, 1, true, false, 3),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(92, true, 0, 1, true, false, 4),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(93, false, 0, 1, true, false, 4),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(94, true, 0, 1, true, false, 5),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(95, false, 0, 1, true, false, 5),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(96, true, 0, 1, true, false, 6),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(97, false, 0, 1, true, false, 6),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(98, true, 0, 1, true, false, 7),
-		new LinearSetBinDescriptor().initDescriptorWithLevel(99, false, 0, 1, true, false, 7),
-		new ListDescriptor().initDescriptor(100, true, 1, 0, false, false),
-		new ListDescriptor().initDescriptor(101, false, 1, 0, false, false),
-		new ListTypeDescriptor().initDescriptor(102, true, 1, 0, false, false),
-		new ListTypeDescriptor().initDescriptor(103, false, 1, 0, false, false),
-		new MapDescriptor().initDescriptor(104, true, 0, 3, true, false),
-		new MapDescriptor().initDescriptor(105, false, 0, 3, true, false),
-		new MapTypeDescriptor().initDescriptor(106, true, 3, 0, false, false),
-		new MapTypeDescriptor().initDescriptor(107, false, 3, 0, false, false),
-		new MessageBundleDescriptor().initDescriptor(108, true, 3, 0, false, false),
-		new MessageBundleDescriptor().initDescriptor(109, false, 3, 0, false, false),
-		new MethodSignatureDescriptor().initDescriptor(110, true, 3, 0, false, false),
-		new MethodSignatureDescriptor().initDescriptor(111, false, 3, 0, false, false),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(112, true, 0, 1, false, true, 0),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(113, false, 0, 1, false, true, 0),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(114, true, 0, 1, false, true, 7),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(115, false, 0, 1, false, true, 7),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(116, true, 0, 1, false, true, 6),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(117, false, 0, 1, false, true, 6),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(118, true, 0, 1, false, true, 5),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(119, false, 0, 1, false, true, 5),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(120, true, 0, 1, false, true, 4),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(121, false, 0, 1, false, true, 4),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(122, true, 0, 1, false, true, 3),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(123, false, 0, 1, false, true, 3),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(124, true, 0, 1, false, true, 2),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(125, false, 0, 1, false, true, 2),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(126, true, 0, 1, false, true, 1),
-		new NybbleTupleDescriptor().initDescriptorWithUnusedNybbles(127, false, 0, 1, false, true, 1),
-		new ObjectDescriptor().initDescriptor(128, true, 1, 0, false, false),
-		new ObjectDescriptor().initDescriptor(129, false, 1, 0, false, false),
-		new ObjectMetaDescriptor().initDescriptor(130, true, 1, 0, false, false),
-		new ObjectMetaDescriptor().initDescriptor(131, false, 1, 0, false, false),
-		new ObjectMetaMetaDescriptor().initDescriptor(132, true, 1, 0, false, false),
-		new ObjectMetaMetaDescriptor().initDescriptor(133, false, 1, 0, false, false),
-		new ObjectTupleDescriptor().initDescriptor(134, true, 0, 1, true, false),
-		new ObjectTupleDescriptor().initDescriptor(135, false, 0, 1, true, false),
-		new ObjectTypeDescriptor().initDescriptor(136, true, 1, 0, false, false),
-		new ObjectTypeDescriptor().initDescriptor(137, false, 1, 0, false, false),
-		new PrimitiveTypeDescriptor().initDescriptor(138, true, 3, 1, false, false),
-		new PrimitiveTypeDescriptor().initDescriptor(139, false, 3, 1, false, false),
-		new ProcessDescriptor().initDescriptor(140, true, 3, 5, false, false),
-		new ProcessDescriptor().initDescriptor(141, false, 3, 5, false, false),
-		new SetDescriptor().initDescriptor(142, true, 1, 0, false, false),
-		new SetDescriptor().initDescriptor(143, false, 1, 0, false, false),
-		new SetTypeDescriptor().initDescriptor(144, true, 2, 0, false, false),
-		new SetTypeDescriptor().initDescriptor(145, false, 2, 0, false, false),
-		new SpliceTupleDescriptor().initDescriptor(146, true, 0, 1, true, true),
-		new SpliceTupleDescriptor().initDescriptor(147, false, 0, 1, true, true),
-		new TerminatesMetaDescriptor().initDescriptor(148, true, 3, 1, false, false),
-		new TerminatesMetaDescriptor().initDescriptor(149, false, 3, 1, false, false),
-		new TerminatesTypeDescriptor().initDescriptor(150, true, 3, 1, false, false),
-		new TerminatesTypeDescriptor().initDescriptor(151, false, 3, 1, false, false),
-		new TrueDescriptor().initDescriptor(152, true, 0, 0, false, false),
-		new TrueDescriptor().initDescriptor(153, false, 0, 0, false, false),
-		new TupleTypeDescriptor().initDescriptor(154, true, 3, 0, false, false),
-		new TupleTypeDescriptor().initDescriptor(155, false, 3, 0, false, false),
-		new TwoByteStringDescriptor().initDescriptor(156, true, 0, 1, false, true),
-		new TwoByteStringDescriptor().initDescriptor(157, false, 0, 1, false, true),
-		new TwoByteStringDescriptor().initDescriptor(158, true, 0, 1, false, true),
-		new TwoByteStringDescriptor().initDescriptor(159, false, 0, 1, false, true),
-		new UnexpandedMessageBundleTreeDescriptor().initDescriptor(160, true, 2, 1, false, false),
-		new UnexpandedMessageBundleTreeDescriptor().initDescriptor(161, false, 2, 1, false, false),
-		new VoidDescriptor().initDescriptor(162, true, 0, 0, false, false),
-		new VoidDescriptor().initDescriptor(163, false, 0, 0, false, false),
-		new VoidTypeDescriptor().initDescriptor(164, true, 3, 1, false, false),
-		new VoidTypeDescriptor().initDescriptor(165, false, 3, 1, false, false)
+		new AbstractSignatureDescriptor(0, true, 3, 0, false, false),
+		new AbstractSignatureDescriptor(1, false, 3, 0, false, false),
+		new ApproximateTypeDescriptor(2, true, 1, 0, false, false),
+		new ApproximateTypeDescriptor(3, false, 1, 0, false, false),
+		new AvailModuleDescriptor(4, true, 10, 0, false, false),
+		new AvailModuleDescriptor(5, false, 10, 0, false, false),
+		new BlankDescriptor(6, true, 0, 0, false, false),
+		new BlankDescriptor(7, false, 0, 0, false, false),
+		new ByteStringDescriptor(8, true, 0, 1, false, true, 0),
+		new ByteStringDescriptor(9, false, 0, 1, false, true, 0),
+		new ByteStringDescriptor(10, true, 0, 1, false, true, 3),
+		new ByteStringDescriptor(11, false, 0, 1, false, true, 3),
+		new ByteStringDescriptor(12, true, 0, 1, false, true, 2),
+		new ByteStringDescriptor(13, false, 0, 1, false, true, 2),
+		new ByteStringDescriptor(14, true, 0, 1, false, true, 1),
+		new ByteStringDescriptor(15, false, 0, 1, false, true, 1),
+		new ByteTupleDescriptor(16, true, 0, 1, false, true, 0),
+		new ByteTupleDescriptor(17, false, 0, 1, false, true, 0),
+		new ByteTupleDescriptor(18, true, 0, 1, false, true, 3),
+		new ByteTupleDescriptor(19, false, 0, 1, false, true, 3),
+		new ByteTupleDescriptor(20, true, 0, 1, false, true, 2),
+		new ByteTupleDescriptor(21, false, 0, 1, false, true, 2),
+		new ByteTupleDescriptor(22, true, 0, 1, false, true, 1),
+		new ByteTupleDescriptor(23, false, 0, 1, false, true, 1),
+		new CharacterDescriptor(24, true, 0, 1, false, false),
+		new CharacterDescriptor(25, false, 0, 1, false, false),
+		new ClosureDescriptor(26, true, 1, 0, true, false),
+		new ClosureDescriptor(27, false, 1, 0, true, false),
+		new ClosureTypeDescriptor(28, true, 1, 1, true, false),
+		new ClosureTypeDescriptor(29, false, 1, 1, true, false),
+		new CompiledCodeDescriptor(30, true, 2, 5, true, false),
+		new CompiledCodeDescriptor(31, false, 2, 5, true, false),
+		new ConcatenatedTupleTypeDescriptor(32, true, 2, 0, false, false),
+		new ConcatenatedTupleTypeDescriptor(33, false, 2, 0, false, false),
+		new ContainerDescriptor(34, true, 2, 1, false, false),
+		new ContainerDescriptor(35, false, 2, 1, false, false),
+		new ContainerTypeDescriptor(36, true, 1, 0, false, false),
+		new ContainerTypeDescriptor(37, false, 1, 0, false, false),
+		new ContinuationDescriptor(38, true, 2, 3, true, false),
+		new ContinuationDescriptor(39, false, 2, 3, true, false),
+		new ContinuationTypeDescriptor(40, true, 1, 0, false, false),
+		new ContinuationTypeDescriptor(41, false, 1, 0, false, false),
+		new CyclicTypeDescriptor(42, true, 1, 1, false, false),
+		new CyclicTypeDescriptor(43, false, 1, 1, false, false),
+		new DoubleDescriptor(44, true, 0, 2, false, false),
+		new DoubleDescriptor(45, false, 0, 2, false, false),
+		new ExpandedMessageBundleTreeDescriptor(46, true, 2, 1, false, false),
+		new ExpandedMessageBundleTreeDescriptor(47, false, 2, 1, false, false),
+		new FalseDescriptor(48, true, 0, 0, false, false),
+		new FalseDescriptor(49, false, 0, 0, false, false),
+		new FillerDescriptor(50, true, 0, 0, false, false),
+		new FillerDescriptor(51, false, 0, 0, false, false),
+		new FloatDescriptor(52, true, 0, 1, false, false),
+		new FloatDescriptor(53, false, 0, 1, false, false),
+		new ForwardSignatureDescriptor(54, true, 1, 0, false, false),
+		new ForwardSignatureDescriptor(55, false, 1, 0, false, false),
+		new GeneralizedClosureTypeDescriptor(56, true, 1, 0, false, false),
+		new GeneralizedClosureTypeDescriptor(57, false, 1, 0, false, false),
+		new HashedSetBinDescriptor(58, true, 1, 3, true, false, 0),
+		new HashedSetBinDescriptor(59, false, 1, 3, true, false, 0),
+		new HashedSetBinDescriptor(60, true, 1, 3, true, false, 1),
+		new HashedSetBinDescriptor(61, false, 1, 3, true, false, 1),
+		new HashedSetBinDescriptor(62, true, 1, 3, true, false, 2),
+		new HashedSetBinDescriptor(63, false, 1, 3, true, false, 2),
+		new HashedSetBinDescriptor(64, true, 1, 3, true, false, 3),
+		new HashedSetBinDescriptor(65, false, 1, 3, true, false, 3),
+		new HashedSetBinDescriptor(66, true, 1, 3, true, false, 4),
+		new HashedSetBinDescriptor(67, false, 1, 3, true, false, 4),
+		new HashedSetBinDescriptor(68, true, 1, 3, true, false, 5),
+		new HashedSetBinDescriptor(69, false, 1, 3, true, false, 5),
+		new HashedSetBinDescriptor(70, true, 1, 3, true, false, 6),
+		new HashedSetBinDescriptor(71, false, 1, 3, true, false, 6),
+		new ImplementationSetDescriptor(72, true, 4, 0, false, false),
+		new ImplementationSetDescriptor(73, false, 4, 0, false, false),
+		new IndirectionDescriptor(74, true, 1, 0, false, false),
+		new IndirectionDescriptor(75, false, 1, 0, false, false),
+		new InfinityDescriptor(76, true, 0, 1, false, false),
+		new InfinityDescriptor(77, false, 0, 1, false, false),
+		new IntegerDescriptor(78, true, 0, 0, false, true),
+		new IntegerDescriptor(79, false, 0, 0, false, true),
+		new IntegerRangeTypeDescriptor(80, true, 2, 1, false, false),
+		new IntegerRangeTypeDescriptor(81, false, 2, 1, false, false),
+		new L2ChunkDescriptor(82, true, 3, 7, true, false),
+		new L2ChunkDescriptor(83, false, 3, 7, true, false),
+		new LinearSetBinDescriptor(84, true, 0, 1, true, false, 0),
+		new LinearSetBinDescriptor(85, false, 0, 1, true, false, 0),
+		new LinearSetBinDescriptor(86, true, 0, 1, true, false, 1),
+		new LinearSetBinDescriptor(87, false, 0, 1, true, false, 1),
+		new LinearSetBinDescriptor(88, true, 0, 1, true, false, 2),
+		new LinearSetBinDescriptor(89, false, 0, 1, true, false, 2),
+		new LinearSetBinDescriptor(90, true, 0, 1, true, false, 3),
+		new LinearSetBinDescriptor(91, false, 0, 1, true, false, 3),
+		new LinearSetBinDescriptor(92, true, 0, 1, true, false, 4),
+		new LinearSetBinDescriptor(93, false, 0, 1, true, false, 4),
+		new LinearSetBinDescriptor(94, true, 0, 1, true, false, 5),
+		new LinearSetBinDescriptor(95, false, 0, 1, true, false, 5),
+		new LinearSetBinDescriptor(96, true, 0, 1, true, false, 6),
+		new LinearSetBinDescriptor(97, false, 0, 1, true, false, 6),
+		new LinearSetBinDescriptor(98, true, 0, 1, true, false, 7),
+		new LinearSetBinDescriptor(99, false, 0, 1, true, false, 7),
+		new ListDescriptor(100, true, 1, 0, false, false),
+		new ListDescriptor(101, false, 1, 0, false, false),
+		new ListTypeDescriptor(102, true, 1, 0, false, false),
+		new ListTypeDescriptor(103, false, 1, 0, false, false),
+		new MapDescriptor(104, true, 0, 3, true, false),
+		new MapDescriptor(105, false, 0, 3, true, false),
+		new MapTypeDescriptor(106, true, 3, 0, false, false),
+		new MapTypeDescriptor(107, false, 3, 0, false, false),
+		new MessageBundleDescriptor(108, true, 3, 0, false, false),
+		new MessageBundleDescriptor(109, false, 3, 0, false, false),
+		new MethodSignatureDescriptor(110, true, 3, 0, false, false),
+		new MethodSignatureDescriptor(111, false, 3, 0, false, false),
+		new NybbleTupleDescriptor(112, true, 0, 1, false, true, 0),
+		new NybbleTupleDescriptor(113, false, 0, 1, false, true, 0),
+		new NybbleTupleDescriptor(114, true, 0, 1, false, true, 7),
+		new NybbleTupleDescriptor(115, false, 0, 1, false, true, 7),
+		new NybbleTupleDescriptor(116, true, 0, 1, false, true, 6),
+		new NybbleTupleDescriptor(117, false, 0, 1, false, true, 6),
+		new NybbleTupleDescriptor(118, true, 0, 1, false, true, 5),
+		new NybbleTupleDescriptor(119, false, 0, 1, false, true, 5),
+		new NybbleTupleDescriptor(120, true, 0, 1, false, true, 4),
+		new NybbleTupleDescriptor(121, false, 0, 1, false, true, 4),
+		new NybbleTupleDescriptor(122, true, 0, 1, false, true, 3),
+		new NybbleTupleDescriptor(123, false, 0, 1, false, true, 3),
+		new NybbleTupleDescriptor(124, true, 0, 1, false, true, 2),
+		new NybbleTupleDescriptor(125, false, 0, 1, false, true, 2),
+		new NybbleTupleDescriptor(126, true, 0, 1, false, true, 1),
+		new NybbleTupleDescriptor(127, false, 0, 1, false, true, 1),
+		new ObjectDescriptor(128, true, 1, 0, false, false),
+		new ObjectDescriptor(129, false, 1, 0, false, false),
+		new ObjectMetaDescriptor(130, true, 1, 0, false, false),
+		new ObjectMetaDescriptor(131, false, 1, 0, false, false),
+		new ObjectMetaMetaDescriptor(132, true, 1, 0, false, false),
+		new ObjectMetaMetaDescriptor(133, false, 1, 0, false, false),
+		new ObjectTupleDescriptor(134, true, 0, 1, true, false),
+		new ObjectTupleDescriptor(135, false, 0, 1, true, false),
+		new ObjectTypeDescriptor(136, true, 1, 0, false, false),
+		new ObjectTypeDescriptor(137, false, 1, 0, false, false),
+		new PrimitiveTypeDescriptor(138, true, 3, 1, false, false),
+		new PrimitiveTypeDescriptor(139, false, 3, 1, false, false),
+		new ProcessDescriptor(140, true, 3, 5, false, false),
+		new ProcessDescriptor(141, false, 3, 5, false, false),
+		new SetDescriptor(142, true, 1, 0, false, false),
+		new SetDescriptor(143, false, 1, 0, false, false),
+		new SetTypeDescriptor(144, true, 2, 0, false, false),
+		new SetTypeDescriptor(145, false, 2, 0, false, false),
+		new SpliceTupleDescriptor(146, true, 0, 1, true, true),
+		new SpliceTupleDescriptor(147, false, 0, 1, true, true),
+		new TerminatesMetaDescriptor(148, true, 3, 1, false, false),
+		new TerminatesMetaDescriptor(149, false, 3, 1, false, false),
+		new TerminatesTypeDescriptor(150, true, 3, 1, false, false),
+		new TerminatesTypeDescriptor(151, false, 3, 1, false, false),
+		new TrueDescriptor(152, true, 0, 0, false, false),
+		new TrueDescriptor(153, false, 0, 0, false, false),
+		new TupleTypeDescriptor(154, true, 3, 0, false, false),
+		new TupleTypeDescriptor(155, false, 3, 0, false, false),
+		new TwoByteStringDescriptor(156, true, 0, 1, false, true, 0),
+		new TwoByteStringDescriptor(157, false, 0, 1, false, true, 0),
+		new TwoByteStringDescriptor(158, true, 0, 1, false, true, 1),
+		new TwoByteStringDescriptor(159, false, 0, 1, false, true, 1),
+		new UnexpandedMessageBundleTreeDescriptor(160, true, 2, 1, false, false),
+		new UnexpandedMessageBundleTreeDescriptor(161, false, 2, 1, false, false),
+		new VoidDescriptor(162, true, 0, 0, false, false),
+		new VoidDescriptor(163, false, 0, 0, false, false),
+		new VoidTypeDescriptor(164, true, 3, 1, false, false),
+		new VoidTypeDescriptor(165, false, 3, 1, false, false)
 	};
 
 	enum LinkNames
@@ -5911,29 +5911,35 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	//  Explicit default constructor to avoid mild warnings about member initialization
-	Descriptor ()
+	/**
+	 * Construct a new {@link Descriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable Does the {@linkplain Descriptor descriptor} represent a
+	 *            mutable object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected Descriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
 	{
-		_myId = -1;
-		_isMutable = false;
-	};
-
-	//  Descriptor initialization
-	Descriptor initDescriptor(
-			int theId,
-			boolean mut,
-			int numFixedObjectSlots,
-			int numFixedIntegerSlots,
-			boolean hasVariableObjectSlots,
-			boolean hasVariableIntegerSlots)
-	{
-		_myId = (short)theId;
-		_isMutable = mut;
-		_numberOfFixedObjectSlots = numFixedObjectSlots;
-		_numberOfFixedIntegerSlots = numFixedIntegerSlots;
-		_hasVariableObjectSlots = hasVariableObjectSlots;
-		_hasVariableIntegerSlots = hasVariableIntegerSlots;
-		return this;
-	};
-
+		this.myId = (short) myId;
+		this.isMutable = isMutable;
+		this.numberOfFixedObjectSlots = numberOfFixedObjectSlots;
+		this.numberOfFixedIntegerSlots = numberOfFixedIntegerSlots;
+		this.hasVariableObjectSlots = hasVariableObjectSlots;
+		this.hasVariableIntegerSlots = hasVariableIntegerSlots;
+	}
 }

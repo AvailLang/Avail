@@ -399,7 +399,7 @@ public class MapDescriptor extends Descriptor
 		newValueObject.hash();
 		//  Forces hash value to be available so GC can't happen during internalHash update.
 		final int neededCapacity = (((((object.mapSize() + 1) + object.numBlanks()) * 4) / 3) + 1);
-		if ((canDestroy && (_isMutable && (object.hasKey(keyObject) || (object.capacity() >= neededCapacity)))))
+		if ((canDestroy && (isMutable && (object.hasKey(keyObject) || (object.capacity() >= neededCapacity)))))
 		{
 			return object.privateMapAtPut(keyObject, newValueObject);
 		}
@@ -437,7 +437,7 @@ public class MapDescriptor extends Descriptor
 			//  Existing reference will be kept around.
 			return object;
 		}
-		if ((canDestroy && _isMutable))
+		if ((canDestroy && isMutable))
 		{
 			return object.privateExcludeKey(keyObject);
 		}
@@ -567,7 +567,7 @@ public class MapDescriptor extends Descriptor
 		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
 		//  Also, computing the key's hash value should not cause an allocation.
 
-		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & _isMutable);
+		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & isMutable);
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)(((h0 & 0xFFFFFFFFL) % modulus) + 1);
@@ -610,7 +610,7 @@ public class MapDescriptor extends Descriptor
 		//  room for the new element.  Also, computing the key's hash value should not cause
 		//  an allocation.
 
-		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & _isMutable);
+		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & isMutable);
 		assert (((object.mapSize() + object.numBlanks()) * 4) <= (object.capacity() * 3));
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
@@ -735,16 +735,47 @@ public class MapDescriptor extends Descriptor
 		return EmptyMap;
 	};
 
-
-
-	/* Descriptor lookup */
+	/**
+	 * Construct a new {@link MapDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected MapDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
+	
 	public static MapDescriptor mutableDescriptor()
 	{
 		return (MapDescriptor) allDescriptors [104];
-	};
+	}
+	
 	public static MapDescriptor immutableDescriptor()
 	{
 		return (MapDescriptor) allDescriptors [105];
-	};
-
+	}
 }

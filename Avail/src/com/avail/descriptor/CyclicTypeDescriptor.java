@@ -279,15 +279,48 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	static Random hashGenerator = new Random();
 
-
+	/**
+	 * Construct a new {@link CyclicTypeDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected CyclicTypeDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
+	
 	/* Descriptor lookup */
 	public static CyclicTypeDescriptor mutableDescriptor()
 	{
 		return (CyclicTypeDescriptor) allDescriptors [42];
-	};
+	}
+	
 	public static CyclicTypeDescriptor immutableDescriptor()
 	{
 		return (CyclicTypeDescriptor) allDescriptors [43];
-	};
-
+	}
 }

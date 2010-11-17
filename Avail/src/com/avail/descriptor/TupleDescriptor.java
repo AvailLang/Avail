@@ -502,7 +502,7 @@ public abstract class TupleDescriptor extends Descriptor
 		assert (zone == (zones + 1)) : "Wrong number of zones";
 		assert (majorIndex == newSize) : "Wrong resulting tuple size";
 		result.hashOrZero(result.computeHashFromTo(1, majorIndex));
-		if ((canDestroy && _isMutable))
+		if ((canDestroy && isMutable))
 		{
 			object.assertObjectUnreachableIfMutable();
 		}
@@ -525,13 +525,13 @@ public abstract class TupleDescriptor extends Descriptor
 		assert (0 <= end && end <= object.tupleSize());
 		if (((start - 1) == end))
 		{
-			if ((_isMutable && canDestroy))
+			if ((isMutable && canDestroy))
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
 			return TupleDescriptor.empty();
 		}
-		if ((_isMutable && (canDestroy && ((start == 1) || ((end - start) < 20)))))
+		if ((isMutable && (canDestroy && ((start == 1) || ((end - start) < 20)))))
 		{
 			if (! (start == 1))
 			{
@@ -932,4 +932,37 @@ public abstract class TupleDescriptor extends Descriptor
 	static final int Multiplier = 1664525;
 	static final int PreToggle = 0xE570A6;
 
+	/**
+	 * Construct a new {@link TupleDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected TupleDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 }

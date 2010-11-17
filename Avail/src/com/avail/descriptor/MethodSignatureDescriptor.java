@@ -195,18 +195,47 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		return true;
 	}
 
-
-
-
-
-	/* Descriptor lookup */
+	/**
+	 * Construct a new {@link MethodSignatureDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected MethodSignatureDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
+	
 	public static MethodSignatureDescriptor mutableDescriptor()
 	{
 		return (MethodSignatureDescriptor) allDescriptors [110];
-	};
+	}
+	
 	public static MethodSignatureDescriptor immutableDescriptor()
 	{
 		return (MethodSignatureDescriptor) allDescriptors [111];
-	};
-
+	}
 }

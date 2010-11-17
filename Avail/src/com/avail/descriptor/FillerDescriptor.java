@@ -32,20 +32,65 @@
 
 package com.avail.descriptor;
 
-public class FillerDescriptor extends Descriptor
+/**
+ * {@code FillerDescriptor} represents an unreachable {@link AvailObject} of
+ * arbitrary size. It exists solely to occupy dead space during an object
+ * traversal <em>(not implemented in Java as of 2010.11.17)</em>.
+ */
+public class FillerDescriptor
+extends Descriptor
 {
-
-
-
-
-	/* Descriptor lookup */
+	/**
+	 * Construct a new {@link FillerDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected FillerDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
+	
+	/**
+	 * Answer a mutable {@link FillerDescriptor}.
+	 * 
+	 * @return A mutable {@link FillerDescriptor}.
+	 */
 	public static FillerDescriptor mutableDescriptor()
 	{
 		return (FillerDescriptor) allDescriptors [50];
-	};
+	}
+	
+	/**
+	 * Answer an immutable {@link FillerDescriptor}.
+	 * 
+	 * @return An immutable {@link FillerDescriptor}.
+	 */
 	public static FillerDescriptor immutableDescriptor()
 	{
 		return (FillerDescriptor) allDescriptors [51];
-	};
-
+	}
 }

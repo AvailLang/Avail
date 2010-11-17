@@ -342,7 +342,7 @@ public class SetDescriptor extends Descriptor
 			newElementObject,
 			elementHash,
 			((byte)(0)),
-			(canDestroy & _isMutable));
+			(canDestroy & isMutable));
 		if ((newRootBin.binSize() == oldSize))
 		{
 			if (! canDestroy)
@@ -352,7 +352,7 @@ public class SetDescriptor extends Descriptor
 			return object;
 		}
 		AvailObject result;
-		if ((canDestroy & _isMutable))
+		if ((canDestroy & isMutable))
 		{
 			result = object;
 		}
@@ -377,7 +377,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject newRootBin = root.binRemoveElementHashCanDestroy(
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
-			(canDestroy & _isMutable));
+			(canDestroy & isMutable));
 		if ((newRootBin.binSize() == oldSize))
 		{
 			if (! canDestroy)
@@ -387,7 +387,7 @@ public class SetDescriptor extends Descriptor
 			return object;
 		}
 		AvailObject result;
-		if ((canDestroy & _isMutable))
+		if ((canDestroy & isMutable))
 		{
 			result = object;
 		}
@@ -498,15 +498,47 @@ public class SetDescriptor extends Descriptor
 		return EmptySet;
 	};
 
+	/**
+	 * Construct a new {@link ObjectMetaMetaDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected SetDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-	/* Descriptor lookup */
 	public static SetDescriptor mutableDescriptor()
 	{
 		return (SetDescriptor) allDescriptors [142];
-	};
+	}
+	
 	public static SetDescriptor immutableDescriptor()
 	{
 		return (SetDescriptor) allDescriptors [143];
-	};
-
+	}
 }

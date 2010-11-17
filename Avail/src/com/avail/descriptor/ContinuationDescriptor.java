@@ -367,7 +367,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  If immutable, copy the object as mutable, otherwise answer the original mutable.
 
-		return (_isMutable ? object : object.copyAsMutableContinuation());
+		return (isMutable ? object : object.copyAsMutableContinuation());
 	}
 
 	int ObjectLevelTwoChunkIndex (
@@ -391,7 +391,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Answer the number of slots allocated for locals, arguments, and stack entries.
 
-		return (object.objectSlotsCount() - _numberOfFixedObjectSlots);
+		return (object.objectSlotsCount() - numberOfFixedObjectSlots);
 	}
 
 
@@ -428,11 +428,11 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Answer a fresh mutable copy of the given continuation object.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final AvailObject result = AvailObject.newIndexedDescriptor((object.objectSlotsCount() - _numberOfFixedObjectSlots), ContinuationDescriptor.mutableDescriptor());
+		final AvailObject result = AvailObject.newIndexedDescriptor((object.objectSlotsCount() - numberOfFixedObjectSlots), ContinuationDescriptor.mutableDescriptor());
 		assert (result.objectSlotsCount() == object.objectSlotsCount());
 		result.caller(object.caller());
 		result.closure(object.closure());
@@ -446,18 +446,48 @@ public class ContinuationDescriptor extends Descriptor
 		return result;
 	}
 
-
-
-
+	/**
+	 * Construct a new {@link ContinuationDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected ContinuationDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
 	/* Descriptor lookup */
 	public static ContinuationDescriptor mutableDescriptor()
 	{
 		return (ContinuationDescriptor) allDescriptors [38];
-	};
+	}
+	
 	public static ContinuationDescriptor immutableDescriptor()
 	{
 		return (ContinuationDescriptor) allDescriptors [39];
-	};
-
+	}
 }

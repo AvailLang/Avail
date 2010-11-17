@@ -227,7 +227,7 @@ public class ContainerDescriptor extends Descriptor
 		//  is used when a variable is being read 'for the last time', but it's unknown
 		//  whether the variable has already been shared.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.assertObjectUnreachableIfMutableExcept(object.value());
 		}
@@ -260,17 +260,49 @@ public class ContainerDescriptor extends Descriptor
 		return result;
 	};
 
-	static Random hashGenerator = new Random();
+	private static Random hashGenerator = new Random();
 
+	/**
+	 * Construct a new {@link ContainerDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected ContainerDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-	/* Descriptor lookup */
 	public static ContainerDescriptor mutableDescriptor()
 	{
 		return (ContainerDescriptor) allDescriptors [34];
-	};
+	}
+	
 	public static ContainerDescriptor immutableDescriptor()
 	{
 		return (ContainerDescriptor) allDescriptors [35];
-	};
-
+	}
 }

@@ -277,7 +277,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the number of arguments object's instances expect.
 
-		return ((short)((object.objectSlotsCount() - _numberOfFixedObjectSlots)));
+		return ((short)((object.objectSlotsCount() - numberOfFixedObjectSlots)));
 	}
 
 
@@ -291,7 +291,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  Make my subobjects immutable because they will be shared between the
 		//  existing and new objects.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.makeSubobjectsImmutable();
 		}
@@ -545,7 +545,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			return Types.terminates.object();
 		}
-		if (! (canDestroy && _isMutable))
+		if (! (canDestroy && isMutable))
 		{
 			return object.copyMutable().typeIntersectionOfClosureTypeCanDestroy(aClosureType, true);
 		}
@@ -581,7 +581,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  of a closure type and a generalized closure type is always a closure type, so simply
 		//  intersect the return types, and use the argument types verbatim.
 
-		if (! (canDestroy && _isMutable))
+		if (! (canDestroy && isMutable))
 		{
 			return object.copyMutable().typeIntersectionOfGeneralizedClosureTypeCanDestroy(aGeneralizedClosureType, true);
 		}
@@ -631,7 +631,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aClosureType.returnType()));
 		}
-		if (! (canDestroy && _isMutable))
+		if (! (canDestroy && isMutable))
 		{
 			return object.copyMutable().typeUnionOfClosureTypeCanDestroy(aClosureType, true);
 		}
@@ -681,15 +681,47 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return type;
 	};
 
-
-	/* Descriptor lookup */
+	/**
+	 * Construct a new {@link ClosureTypeDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected ClosureTypeDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
+	
 	public static ClosureTypeDescriptor mutableDescriptor()
 	{
 		return (ClosureTypeDescriptor) allDescriptors [28];
-	};
+	}
+	
 	public static ClosureTypeDescriptor immutableDescriptor()
 	{
 		return (ClosureTypeDescriptor) allDescriptors [29];
-	};
-
+	}
 }

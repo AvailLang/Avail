@@ -178,15 +178,47 @@ public class ObjectDescriptor extends Descriptor
 		return ((fieldMapHash + 0x1099BE88) ^ 0x38547ADE) & HashMask;
 	};
 
+	/**
+	 * Construct a new {@link ObjectDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected ObjectDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-	/* Descriptor lookup */
 	public static ObjectDescriptor mutableDescriptor()
 	{
 		return (ObjectDescriptor) allDescriptors [128];
-	};
+	}
+	
 	public static ObjectDescriptor immutableDescriptor()
 	{
 		return (ObjectDescriptor) allDescriptors [129];
-	};
-
+	}
 }

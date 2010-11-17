@@ -103,15 +103,47 @@ public class TrueDescriptor extends BooleanDescriptor
 		return b ? TrueBooleanObject : FalseBooleanObject;
 	};
 
+	/**
+	 * Construct a new {@link TrueDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected TrueDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-	/* Descriptor lookup */
 	public static TrueDescriptor mutableDescriptor()
 	{
 		return (TrueDescriptor) allDescriptors [152];
-	};
+	}
+	
 	public static TrueDescriptor immutableDescriptor()
 	{
 		return (TrueDescriptor) allDescriptors [153];
-	};
-
+	}
 }

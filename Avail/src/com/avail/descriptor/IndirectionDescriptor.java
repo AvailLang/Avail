@@ -5685,7 +5685,7 @@ public class IndirectionDescriptor extends Descriptor
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to make my
 		//  target immutable as well (recursively down to immutable descendants).
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.descriptor(IndirectionDescriptor.immutableDescriptor());
 			object.target().makeImmutable();
@@ -5708,18 +5708,47 @@ public class IndirectionDescriptor extends Descriptor
 		return finalObject;
 	}
 
+	/**
+	 * Construct a new {@link IndirectionDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected IndirectionDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-
-
-
-	/* Descriptor lookup */
 	public static IndirectionDescriptor mutableDescriptor()
 	{
 		return (IndirectionDescriptor) allDescriptors [74];
-	};
+	}
+	
 	public static IndirectionDescriptor immutableDescriptor()
 	{
 		return (IndirectionDescriptor) allDescriptors [75];
-	};
-
+	}
 }

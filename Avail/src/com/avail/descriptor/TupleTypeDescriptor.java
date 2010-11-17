@@ -651,15 +651,47 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return ((sizesHash *13) + (defaultTypeHash * 11) + (typeTupleHash * 7)) & HashMask;
 	};
 
+	/**
+	 * Construct a new {@link TupleTypeDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected TupleTypeDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-	/* Descriptor lookup */
 	public static TupleTypeDescriptor mutableDescriptor()
 	{
 		return (TupleTypeDescriptor) allDescriptors [154];
-	};
+	}
+	
 	public static TupleTypeDescriptor immutableDescriptor()
 	{
 		return (TupleTypeDescriptor) allDescriptors [155];
-	};
-
+	}
 }

@@ -91,7 +91,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	{
 		//  Make the object immutable so it can be shared safely.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.descriptor(LinearSetBinDescriptor.isMutableLevel(false, _level));
 			object.makeSubobjectsImmutable();
@@ -117,7 +117,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		assert (myLevel == _level);
 		if (object.binHasElementHash(elementObject, elementObjectHash))
 		{
-			if (! (canDestroy && _isMutable))
+			if (! (canDestroy && isMutable))
 			{
 				object.makeImmutable();
 			}
@@ -180,7 +180,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		result = AvailObject.newIndexedDescriptor((oldSize + 1), LinearSetBinDescriptor.isMutableLevel(true, myLevel));
 		result.binHash(((object.binHash() + elementObjectHash) & HashMask));
 		result.binElementAtPut((oldSize + 1), elementObject);
-		if ((canDestroy && _isMutable))
+		if ((canDestroy && isMutable))
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
@@ -188,7 +188,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 				object.binElementAtPut(i, VoidDescriptor.voidObject());
 			}
 		}
-		else if (_isMutable)
+		else if (isMutable)
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
@@ -344,4 +344,40 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return (LinearSetBinDescriptor) allDescriptors [84 + (level * 2) + (flag ? 0 : 1)];
 	};
 
+	/**
+	 * Construct a new {@link LinearSetBinDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 * @param level The depth of the bin in the hash tree.
+	 */
+	protected LinearSetBinDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots,
+		final int level)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots,
+			level);
+	}
 }

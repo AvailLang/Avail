@@ -236,7 +236,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Make the object immutable so it can be shared safely.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.descriptor(ByteStringDescriptor.isMutableSize(false, object.tupleSize()));
 			object.makeSubobjectsImmutable();
@@ -254,7 +254,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer the byte that encodes the character at the given index.
 
-		return object.byteSlotAtByteIndex((((_numberOfFixedIntegerSlots * 4) + index) + 3));
+		return object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + index) + 3));
 	}
 
 	void ObjectRawByteForCharacterAtPut (
@@ -266,7 +266,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		//
 		//  [index between: 1 and: object tupleSize] assert.
 
-		object.byteSlotAtByteIndexPut((((_numberOfFixedIntegerSlots * 4) + index) + 3), anInteger);
+		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots * 4) + index) + 3), anInteger);
 	}
 
 	AvailObject ObjectTupleAt (
@@ -280,7 +280,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 			error("index out of bounds", object);
 			return VoidDescriptor.voidObject();
 		}
-		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(object.byteSlotAtByteIndex((((_numberOfFixedIntegerSlots * 4) + index) + 3)));
+		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + index) + 3)));
 	}
 
 	void ObjectTupleAtPut (
@@ -310,7 +310,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 			final int codePoint = newValueObject.codePoint();
 			if (((codePoint >= 0) && (codePoint <= 255)))
 			{
-				if ((canDestroy & _isMutable))
+				if ((canDestroy & isMutable))
 				{
 					object.rawByteForCharacterAtPut(index, ((byte)(codePoint)));
 					object.hashOrZero(0);
@@ -425,7 +425,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (((object.integerSlotsCount() - _numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
+		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
 	}
 
 	AvailObject mutableObjectOfSize (
@@ -433,7 +433,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Build a new object instance with room for size elements.
 
-		if (! _isMutable)
+		if (! isMutable)
 		{
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
@@ -471,28 +471,42 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return (ByteStringDescriptor) allDescriptors [8 + delta + ((size & 3) * 2)];
 	};
 
-
-	//  Descriptor initialization
-	Descriptor initDescriptorWithUnusedBytes(
-			int theId,
-			boolean mut,
-			int numFixedObjectSlots,
-			int numFixedIntegerSlots,
-			boolean hasVariableObjectSlots,
-			boolean hasVariableIntegerSlots,
-			int unusedBytes)
+	/**
+	 * Construct a new {@link ByteStringDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 * @param unusedBytes The number of unused bytes of the last word.
+	 */
+	protected ByteStringDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots,
+		final int unusedBytes)
 	{
-		initDescriptor(
-			theId,
-			mut,
-			numFixedObjectSlots,
-			numFixedIntegerSlots,
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 		_unusedBytesOfLastWord = unusedBytes;
-		return this;
-	};
-
+	}
 
 	// Object creation
 	public static AvailObject mutableObjectFromNativeByteString(String aNativeByteString)

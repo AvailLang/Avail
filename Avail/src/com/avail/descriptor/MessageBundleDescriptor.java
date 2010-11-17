@@ -232,7 +232,7 @@ public class MessageBundleDescriptor extends Descriptor
 		//  The existing implementations are also printed in parentheses to help distinguish
 		//  polymorphism from occurrences of non-polymorphic homonyms.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			aStream.append("(mut)");
 		}
@@ -291,15 +291,47 @@ public class MessageBundleDescriptor extends Descriptor
 		return result;
 	};
 
-
-	/* Descriptor lookup */
+	/**
+	 * Construct a new {@link MessageBundleDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected MessageBundleDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
+	
 	public static MessageBundleDescriptor mutableDescriptor()
 	{
 		return (MessageBundleDescriptor) allDescriptors [108];
-	};
+	}
+	
 	public static MessageBundleDescriptor immutableDescriptor()
 	{
 		return (MessageBundleDescriptor) allDescriptors [109];
-	};
-
+	}
 }

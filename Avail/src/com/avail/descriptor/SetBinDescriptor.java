@@ -57,29 +57,40 @@ public abstract class SetBinDescriptor extends Descriptor
 		_level = anInteger;
 	}
 
-
-
-
-
-	//  Descriptor initialization
-	Descriptor initDescriptorWithLevel(
-			int theId,
-			boolean mut,
-			int numFixedObjectSlots,
-			int numFixedIntegerSlots,
-			boolean hasVariableObjectSlots,
-			boolean hasVariableIntegerSlots,
-			int theLevel)
+	/**
+	 * Construct a new {@link SetBinDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 * @param level The depth of the bin in the hash tree.
+	 */
+	protected SetBinDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots,
+		final int level)
 	{
-		initDescriptor(
-			theId,
-			mut,
-			numFixedObjectSlots,
-			numFixedIntegerSlots,
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
-		_level = (byte) theLevel;
-		return this;
-	};
-
+		_level = (byte) level;
+	}
 }

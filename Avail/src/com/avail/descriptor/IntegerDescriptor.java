@@ -518,7 +518,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  Remove any redundant longs from my end.  Since I'm stored in little endian order, just
 		//  shorten the object.
 
-		assert _isMutable;
+		assert isMutable;
 		int size = object.integerSlotsCount();
 		if ((size > 1))
 		{
@@ -575,11 +575,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			// If they're equal sized and mutable it doesn't matter which we choose.
 			if (objectSize == anIntegerSize)
 			{
-				output = _isMutable ? object : (anInteger.descriptor().isMutable() ? anInteger : null);
+				output = isMutable ? object : (anInteger.descriptor().isMutable() ? anInteger : null);
 			}
 			else if (objectSize > anIntegerSize)
 			{
-				output = _isMutable ? object : null;
+				output = isMutable ? object : null;
 			}
 			else
 			{
@@ -861,7 +861,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
 				if (canDestroy)
 				{
-					if (_isMutable)
+					if (isMutable)
 					{
 						output = object;
 					}
@@ -967,11 +967,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			// If they're equal sized and mutable it doesn't matter which we choose.
 			if (objectSize == anIntegerSize)
 			{
-				output = _isMutable ? object : (anInteger.descriptor().isMutable() ? anInteger : null);
+				output = isMutable ? object : (anInteger.descriptor().isMutable() ? anInteger : null);
 			}
 			else if (objectSize > anIntegerSize)
 			{
-				output = _isMutable ? object : null;
+				output = isMutable ? object : null;
 			}
 			else
 			{
@@ -1427,14 +1427,47 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	};
 	static AvailObject [] immutableByteObjects = null;
 
+	/**
+	 * Construct a new {@link IntegerDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected IntegerDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-	/* Descriptor lookup */
 	public static IntegerDescriptor mutableDescriptor()
 	{
 		return (IntegerDescriptor) allDescriptors [78];
-	};
+	}
+	
 	public static IntegerDescriptor immutableDescriptor()
 	{
 		return (IntegerDescriptor) allDescriptors [79];
-	};
+	}
 }

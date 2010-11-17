@@ -200,7 +200,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 		assert (1 <= start && start <= (end + 1));
 		assert (0 <= end && end <= object.tupleSize());
-		if ((_isMutable && canDestroy))
+		if ((isMutable && canDestroy))
 		{
 			if (((start - 1) == end))
 			{
@@ -271,7 +271,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 				1,
 				2,
 				SpliceTupleDescriptor.mutableDescriptor());
-			if ((_isMutable && (! canDestroy)))
+			if ((isMutable && (! canDestroy)))
 			{
 				object.makeImmutable();
 			}
@@ -299,7 +299,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  I can simply compute the delta for the number of slots.  I must pad the unused space
 		//  on the right with a dummy descriptor and slotsSize for the garbage collector.
 
-		assert _isMutable;
+		assert isMutable;
 		final int delta = (object.tupleSize() - newTupleSize);
 		if ((delta == 0))
 		{
@@ -323,7 +323,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
 		assert ((index >= 1) && (index <= object.tupleSize()));
-		if (! (canDestroy & _isMutable))
+		if (! (canDestroy & isMutable))
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 				index,
@@ -390,18 +390,47 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return (TupleDescriptor.multiplierTimes(hash) & HashMask);
 	}
 
+	/**
+	 * Construct a new {@link ObjectTupleDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 */
+	protected ObjectTupleDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+	}
 
-
-
-
-	/* Descriptor lookup */
 	public static ObjectTupleDescriptor mutableDescriptor()
 	{
 		return (ObjectTupleDescriptor) allDescriptors [134];
-	};
+	}
+	
 	public static ObjectTupleDescriptor immutableDescriptor()
 	{
 		return (ObjectTupleDescriptor) allDescriptors [135];
-	};
-
+	}
 }

@@ -50,7 +50,7 @@ import static java.lang.Math.*;
 })
 public class NybbleTupleDescriptor extends TupleDescriptor
 {
-	int _unusedNybblesOfLastWord;
+	int unusedNybblesOfLastWord;
 
 
 	// GENERATED accessors
@@ -283,7 +283,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Set the nybble at the given index.  Use big Endian.
 
-		int byteIndex = _numberOfFixedIntegerSlots * 4 + (index + 7) / 2;
+		int byteIndex = numberOfFixedIntegerSlots * 4 + (index + 7) / 2;
 		int leftShift = (index & 1) * 4;
 		short theByte = object.byteSlotAtByteIndex(byteIndex);
 		theByte = (short)((theByte & ~(15 << leftShift)) + (aNybble << leftShift));
@@ -295,7 +295,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Make the object immutable so it can be shared safely.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.descriptor(NybbleTupleDescriptor.isMutableSize(false, object.tupleSize()));
 			object.makeSubobjectsImmutable();
@@ -346,7 +346,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the nybble at the given index in the nybble tuple object.
 
-		int byteIndex = _numberOfFixedIntegerSlots * 4 + (index + 7) / 2;
+		int byteIndex = numberOfFixedIntegerSlots * 4 + (index + 7) / 2;
 		int rightShift = (index & 1) * 4;
 		return (byte)((object.byteSlotAtByteIndex(byteIndex) >> rightShift) & 15);
 	}
@@ -394,7 +394,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		if (! (canDestroy & _isMutable))
+		if (! (canDestroy & isMutable))
 		{
 			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
 				index,
@@ -422,7 +422,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots()) * 8) - _unusedNybblesOfLastWord);
+		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots()) * 8) - unusedNybblesOfLastWord);
 	}
 
 
@@ -442,7 +442,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Set unusedNybblesOfLastWord in this descriptor instance.
 
-		_unusedNybblesOfLastWord = anInteger;
+		unusedNybblesOfLastWord = anInteger;
 	}
 
 
@@ -495,39 +495,14 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Build a new object instance with room for size elements.
 
-		if (! _isMutable)
+		if (! isMutable)
 		{
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (((size + _unusedNybblesOfLastWord) & 7) == 0);
+		assert (((size + unusedNybblesOfLastWord) & 7) == 0);
 		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 7) / 8), this);
 		return result;
-	}
-
-
-
-
-
-	//  Descriptor initialization
-	Descriptor initDescriptorWithUnusedNybbles(
-			int theId,
-			boolean mut,
-			int numFixedObjectSlots,
-			int numFixedIntegerSlots,
-			boolean hasVariableObjectSlots,
-			boolean hasVariableIntegerSlots,
-			int unusedFinalNybbles)
-	{
-		initDescriptor(
-			theId,
-			mut,
-			numFixedObjectSlots,
-			numFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
-		_unusedNybblesOfLastWord = unusedFinalNybbles;
-		return this;
 	}
 
 	/* Descriptor lookup */
@@ -536,5 +511,42 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		int delta = (flag ? 0 : 1);
 		return (NybbleTupleDescriptor) allDescriptors [112 + delta + ((size & 7) * 2)];
 	}
-
+	
+	/**
+	 * Construct a new {@link NybbleTupleDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 * @param unusedNybblesOfLastWord
+	 *        The number of unused nybbles of the last word.
+	 */
+	protected NybbleTupleDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots,
+		final int unusedNybblesOfLastWord)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots);
+		this.unusedNybblesOfLastWord = unusedNybblesOfLastWord;
+	}
 }

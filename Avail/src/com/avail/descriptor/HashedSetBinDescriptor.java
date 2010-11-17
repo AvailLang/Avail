@@ -149,7 +149,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	{
 		//  Make the object immutable so it can be shared safely.
 
-		if (_isMutable)
+		if (isMutable)
 		{
 			object.descriptor(HashedSetBinDescriptor.isMutableLevel(false, _level));
 			object.makeSubobjectsImmutable();
@@ -200,13 +200,13 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final int hashDelta = (entry.binHash() - previousHash);
 			unionType = object.binUnionType().typeUnion(elementObject.type());
 			final int newSize = (object.binSize() + delta);
-			if ((canDestroy & _isMutable))
+			if ((canDestroy & isMutable))
 			{
 				objectToModify = object;
 			}
 			else
 			{
-				if (((! canDestroy) & _isMutable))
+				if (((! canDestroy) & isMutable))
 				{
 					object.makeSubobjectsImmutable();
 				}
@@ -223,7 +223,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			objectToModify.binElementAtPut(physicalIndex, entry);
 			return objectToModify;
 		}
-		if (((! canDestroy) & _isMutable))
+		if (((! canDestroy) & isMutable))
 		{
 			object.makeSubobjectsImmutable();
 		}
@@ -400,7 +400,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	{
 		//  Check if object, a bin, holds a subset of aSet's elements.
 
-		for (int physicalIndex = 1, _end1 = (object.objectSlotsCount() - _numberOfFixedObjectSlots); physicalIndex <= _end1; physicalIndex++)
+		for (int physicalIndex = 1, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots); physicalIndex <= _end1; physicalIndex++)
 		{
 			if (! object.binElementAt(physicalIndex).isBinSubsetOf(potentialSuperset))
 			{
@@ -420,7 +420,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 		assert mutableTuple.descriptor().isMutable();
 		int writeIndex = startingIndex;
-		for (int readIndex = 1, _end1 = (object.objectSlotsCount() - _numberOfFixedObjectSlots); readIndex <= _end1; readIndex++)
+		for (int readIndex = 1, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots); readIndex <= _end1; readIndex++)
 		{
 			writeIndex = object.binElementAt(readIndex).populateTupleStartingAt(mutableTuple, writeIndex);
 		}
@@ -443,4 +443,40 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return (HashedSetBinDescriptor) allDescriptors [58 + (level * 2) + (flag ? 0 : 1)];
 	};
 
+	/**
+	 * Construct a new {@link HashedSetBinDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param numberOfFixedObjectSlots
+	 *        The number of fixed {@linkplain AvailObject object} slots.
+	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
+	 * @param hasVariableObjectSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable object slots?
+	 * @param hasVariableIntegerSlots
+	 *        Does an {@linkplain AvailObject object} using this {@linkplain
+	 *        Descriptor} have any variable integer slots?
+	 * @param level The depth of the bin in the hash tree.
+	 */
+	protected HashedSetBinDescriptor (
+		final int myId,
+		final boolean isMutable,
+		final int numberOfFixedObjectSlots,
+		final int numberOfFixedIntegerSlots,
+		final boolean hasVariableObjectSlots,
+		final boolean hasVariableIntegerSlots,
+		final int level)
+	{
+		super(
+			myId,
+			isMutable,
+			numberOfFixedObjectSlots,
+			numberOfFixedIntegerSlots,
+			hasVariableObjectSlots,
+			hasVariableIntegerSlots,
+			level);
+	}
 }
