@@ -1,0 +1,88 @@
+/**
+ * Compiler/NybblecodeEncoding.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "NybblecodeEncoding"
+Extends
+Uses
+	"Kernel"
+Names
+	"callNybbles",
+	"verifyTypeNybbles",
+	"pushLiteralNybbles",
+	"pushLocalLastNybbles",
+	"pushLocalNybbles",
+	"pushOuterLastNybbles",
+	"closeNybbles",
+	"setLocalNybbles",
+	"getLocalClearingNybbles",
+	"pushOuterNybbles",
+	"popNybbles",
+	"getOuterClearingNybbles",
+	"setOuterNybbles",
+	"getLocalNybbles",
+	"getOuterNybbles",
+	"makeListNybbles",
+	"pushLabelNybbles",
+	"getLiteralNybbles",
+	"setLiteralNybbles",
+	"superCallNybbles",
+	"getTypeNybbles"
+Body
+
+
+/* Named nybblecodes... These values and layouts are known by the virtual machine,
+   so don't change them unless you know what you're doing.  These are listed in
+   numerical order, which (roughly) corresponds to their static frequency. */
+
+Method "callNybbles" is [<0>;];
+Method "verifyTypeNybbles" is [<1>;];
+/* Used to be returnNybbles. */
+Method "pushLiteralNybbles" is [<3>;];
+Method "pushLocalLastNybbles" is [<4>;];
+Method "pushLocalNybbles" is [<5>;];
+Method "pushOuterLastNybbles" is [<6>;];
+Method "closeNybbles" is [<7>;];
+Method "setLocalNybbles" is [<8>;];
+Method "getLocalClearingNybbles" is [<9>;];
+Method "pushOuterNybbles" is [<10>;];
+Method "popNybbles" is [<11>;];
+Method "getOuterClearingNybbles" is [<12>;];
+Method "setOuterNybbles" is [<13>;];
+Method "getLocalNybbles" is [<14>;];
+Method "getOuterNybbles" is [<15,0>;];
+Method "makeListNybbles" is [<15,1>;];
+Method "pushLabelNybbles" is [<15,2>;];
+Method "getLiteralNybbles" is [<15,3>;];
+Method "setLiteralNybbles" is [<15,4>;];
+Method "superCallNybbles" is [<15,5>;];
+Method "getTypeNybbles" is [<15,6>;];
+

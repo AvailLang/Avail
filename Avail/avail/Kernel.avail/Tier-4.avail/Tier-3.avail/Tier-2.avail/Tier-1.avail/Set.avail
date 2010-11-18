@@ -1,0 +1,171 @@
+/**
+ * .../Tier-1/Set.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Set"
+Extends
+Uses
+	"Tier-0",
+	"Container",
+	"Integer",
+	"Method",
+	"Tuple",
+	"Type"
+Names
+	"set_of_",
+	"set of_",
+	"_content type",
+	"_sizes",
+	"_sizes lower bound",
+	"_sizes upper bound",
+	"||_||",
+	"_as tuple",
+	"_as set",
+	"{}",
+	"{_}"
+Body
+
+
+/* Set type construction / accessing */
+
+Method "set_of_" is [sizes : integerType, contentType : type |
+	Primitive 111;
+	Failed;
+] : setType;
+
+Method "set of_" is [elementType : type |
+	set whole number of elementType;
+] : setType;
+
+Method "_content type" is [st : setType |
+	Primitive 113;
+	Failed;
+] : type;
+
+Method "_sizes" is [st : setType |
+	Primitive 112;
+	Failed;
+] : integerType;
+
+
+/* Set manipulation primitives... */
+
+Method "||_||" is [s : set |
+	Primitive 100;
+	Failed;
+] : integer
+returns [st : setType |
+	st sizes;
+] : integerType;
+
+
+/* Helper arithmetic... */
+
+Method "_private plus_" is [a : extended integer, b : extended integer |
+	Primitive 1;
+	Failed;
+] : extended integer;
+
+
+/* Conversion operations... */
+
+Method "_as tuple" is [s : set |
+	/* Convert the set to a tuple, with arbitrary (and unstable) ordering. */
+	Primitive 110;
+	Failed;
+] : tuple
+returns [st : setType |
+	tuple whole number
+		like <>
+		default st content type;
+];
+
+Method "_as set" is [t : tuple |
+	Primitive 109;
+	Failed;
+] : set
+returns [tt : tupleType |
+	sizes ::= tt sizes;
+	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
+	maxSize ::= sizes upper bound;
+	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
+	set [minSize..maxSize private plus 1) of mergedType;
+] : setType;
+
+<"_lower bound", "_upper bound"> as set can't have <<"_sizes"> as set>;
+
+Method "_sizes lower bound" is [st : setType |
+	/* This is syntactically overloaded for a stronger return type. */
+	result : [0..INF);
+	* &result ?:= (st sizes) lower bound;
+	result;
+] : [0..INF);
+
+Method "_sizes upper bound" is [st : setType |
+	/* This is syntactically overloaded for a stronger return type. */
+	result : [0..INF];
+	* &result ?:= (st sizes) upper bound;
+	result;
+] : [0..INF];
+
+
+
+/* Set constructors... */
+
+Method "{}" is [
+	/* Answer the empty set. */
+	Primitive 108;
+	Failed;
+] : set [0..0] of terminates;
+
+Method "{_}" is [it : all |
+	/* Construct a set with one element. */
+	<it> as set;
+] : set
+returns [t : type |
+	set [1..1] of t;
+] : setType;
+
+Method "{_}" is [them : list |
+	/* Convert a list to a set. */
+	<them> as set;
+] : set
+returns [lt : listType |
+	tt ::= lt as tupleType;
+	sizes ::= tt sizes;
+	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
+	maxSize ::= sizes upper bound;
+	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
+	set [minSize..maxSize private plus 1) of mergedType;
+] : setType;
+
+
+

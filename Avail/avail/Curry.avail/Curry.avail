@@ -1,0 +1,226 @@
+/**
+ * Curry/Curry.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Curry"
+Extends
+Uses
+	"Kernel"
+Names
+	"_call with one list(_)",
+	"_taking arguments tupled",
+	"_curry_",
+	"_curried"
+Body
+
+
+/* Partial function application... */
+
+Method "_curry_" is [block : closure, arg : all |
+	/* Perform a partial application of the given block.  That is, apply one
+	   argument to the block, producing a block that requires one less
+	   argument.  This is a common feature in functional languages, so it
+	   makes a good test of the sturdiness of Avail's type system.  */
+	block2 ::= cast block into [blk : [...]->void | blk;];
+	bt ::= block type;
+	stub block taking 2 to ||bt|| collect [i : natural number | bt[i];]
+		and applying name of list block invoker
+		to [args : list | block2 apply <arg> then <args>;]
+		and argument list returning (bt result);
+] : closure
+requires [cT : closure type, aT : type |
+	/* Requires block to take one or more arguments, and for first argument
+	   type to agree with the passed argument.  */
+	cast cT into [cT2 : closureType |
+		||cT2|| >= 1 & [aT <= cT2[1];];
+	] otherwise [
+		false;
+	];
+]
+returns [cT : closure type, aT : type |
+	cast cT into [cT2 : closureType |
+		block type taking 2 to ||cT2|| collect [i : natural number | cT2[i];]
+			and returning (cT2 result);
+	];
+];
+
+
+/* Partial function application... */
+
+Method "_taking arguments tupled" is [block : closure |
+	/* Convert the block taking N arguments into a block taking one argument
+	   which is a tuple.  We can't just use "[t : tuple | block apply t;];", because
+	   the dynamic type must be correct, too.  */
+	block2 ::= cast block into [b : [...]->void | b;];
+	result ::= stub block taking
+			<tuple like 1 to ||block type|| collect [i : natural number | block type [i];]>
+		and applying name of list block invoker
+		to [args : list |
+			cast <args>[1] into [argTuple : tuple |
+				block2 apply argTuple;
+			];
+		] and argument list returning block type result;
+	cast result into [x : [terminates]->void | x;];
+] : [terminates]->void
+returns [ct : closure type |
+	cast ct into [ct2 : closureType |
+		block type taking
+			<tuple like 1 to ||ct2|| collect [i : natural number | ct2[i];]>
+		and returning (ct2 result);
+	] otherwise [
+		[terminates]->void;
+	];
+];
+
+
+Forward "curried type for argument types_and result_" for [tuple of type, type]->type;
+
+Method "curried type for argument types_and result_" is [
+		argTypes : tuple of type,
+		result : type |
+	cast ||argTypes|| into [n : natural number |
+		recursiveResult ::=
+			curried type for argument types argTypes[2..n]
+			and result result;
+		[argTypes[1]] -> recursiveResult;
+	] otherwise [
+		result;
+	];
+] : type;
+
+
+Forward "_curry of tupled block" for [[terminates]->void] -> [terminates]->void;
+
+Method "_curry of tupled block" is [blk : [terminates]->void |
+	/* Given a block that takes a tuple of arguments, convert it to a block
+	   that takes one argument A1, and answers a block that takes one
+	   argument A2,... a block that takes one argument A(n) and answers
+	   the result of calling the original block with the tuple <A1,A2...A(n)>.  */
+
+	result ::= cast blk type [1] into [tt : tupleType |
+		size ::= tt sizes lower bound;
+		cast size into [s : [2..INF) |
+			stub block taking <tt[1]>
+				and applying name of list block invoker
+				to [firstAsList : list |
+					inner ::= stub block taking <tuple like tt[2..s]>
+						and applying name of list block invoker
+						to [otherArgs : list |
+							cast <otherArgs>[1] into [others : tuple |
+								blk apply <<firstAsList> then others>;
+							];
+						]
+						and argument list returning blk type result;
+					cast inner into [in : [terminates]->all |
+						in curry of tupled block;
+					];
+				] and argument list returning
+					curried type for argument types tt[2..s]
+					and result blk type result;
+		] otherwise [
+			/* Deal with terminal case of one item in the arg tuple.  This
+			   is converted to a block expecting one arg, which is then
+			   bundled into a singleton tuple and passed to blk. */
+			stub block taking <tt[1]>
+			and applying name of list block invoker
+			to [args : list | blk apply <<args>>;]
+			and argument list returning blk type result;
+		];
+	];
+	cast result into [res : [terminates]->void | res;];
+] : [terminates]->void
+returns [blkType : closureType |
+	cast blkType[1] into [argType : tupleType |
+		if argType = terminates then [
+			/* Exact type is unknown, but this is a helper method, so we leave
+			   it up to the caller (in this module) to ensure a more specific type is
+			   calculated. */
+			[terminates]->void;
+		] else [
+			curried type for argument types argType[1..argType sizes lower bound]
+			and result blkType result;
+		];
+	];
+]
+requires [blkType : closureType |
+	||blkType|| = 1
+		& [
+			blkType[1] = terminates
+			| [
+				cast blkType[1] into [argType : tupleType |
+					argType sizes lower bound = argType sizes upper bound;
+				] otherwise [
+					/* Allow 'untyped' form to be used, in which it is known to
+					   be a closure of one argument, but the argument is typed
+					   as something other than a tupleType.  This should still be
+					   safe, as we're defining a private second-order method
+					   here, which *defines* the type system. */
+					true;
+				];
+			];
+		];
+];
+
+
+Method "_curried" is [blk : closure |
+	/* Convert the block taking N arguments into a block taking one argument
+	   that returns a block taking one argument that returns... (N levels)... a block
+	   that returns the result of applying all these arguments at once to the
+	   original block... */
+	blkTupled ::= blk taking arguments tupled;
+	blkTupled curry of tupled block;
+] : [terminates]->void
+requires [ct : closure type |
+	/* Require static knowledge of the block's type, to statically prevent the
+	   use of a 0-argument block. */
+	cast ct into [ct2 : closureType |
+		||ct2|| >= 1;
+	] otherwise [
+		/* Static type of block was inadequate for currying. */
+		false;
+	];
+]
+returns [ct : closure type |
+	cast ct into [ct2 : closureType |
+		blkType : type := ct2 result;
+		count : integer := ||ct2||;
+		Loop [
+			cast count into [n : natural number |
+				blkType := [ct2[n]]->blkType;
+			] : void;
+			count := count - 1;
+		] until [
+			count = 0;
+		];
+		blkType;
+	];
+];
+

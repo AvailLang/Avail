@@ -1,0 +1,97 @@
+/**
+ * .../Tier-1/Type.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Type"
+Extends
+Uses
+	"Tier-0",
+	"Block",
+	"Method"
+Names
+	"_type",
+	"type union of_and_",
+	"type intersection of_and_"
+Body
+
+
+/* Answer the type of the object. */
+
+Forward "_type" for [all]->type;
+
+Method "_type" is [a : all |
+	Primitive 30;
+	Failed;
+] : type
+returns [aT : type |
+	/* This clause ensures metacovariant typing is always available.  Thus, if
+	   T1 and T2 are types with T1<=T2, then T1 type <= T2 type as well.  */
+	aT type;
+];
+
+Method "_type" is [c : closure |
+	Primitive 30;
+	Failed;
+] : closure type
+returns [cT : closure type |
+	/* Even with metacovariance, we have to specialize to express the fact
+	   that every closure has an instance of closureType as its type. */
+	closureType;
+];
+
+
+/* Compute the nearest common ancestor of two types. */
+
+Forward "type union of_and_" for [type,type]->type;
+
+Method "type union of_and_" is [a : type, b : type |
+	Primitive 31;
+	Failed;
+] : type
+returns [aT : meta, bT : meta |
+	/* Only holds if we ensure metacovariance is universal.  */
+	type union of aT and bT;
+];
+
+
+/* Compute the nearest common descendant of two types. */
+
+Forward "type intersection of_and_" for [type,type]->type;
+
+Method "type intersection of_and_" is [a : type, b : type |
+	Primitive 32;
+	Failed;
+] : type
+returns [aT : type, bT : type |
+	/* Only holds if we ensure metacovariance is universal.  */
+	type intersection of aT and bT;
+];
+

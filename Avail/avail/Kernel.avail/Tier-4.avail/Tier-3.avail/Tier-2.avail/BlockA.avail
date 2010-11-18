@@ -1,0 +1,142 @@
+/**
+ * .../Tier-2/BlockA.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "BlockA"
+Extends
+Uses
+	"Tier-1"
+Names
+	"_apply_",
+	"_()",
+	"_(_)",
+	"cast_into_otherwise_",
+	"cast_into_"
+Body
+
+
+/* Dynamically typed block evaluation... */
+
+Method "_apply_" is [block : [...]->void, args : tuple |
+	/* This application function only checks its arguments at runtime.
+	   If more information is known at a call site, however, try to use the
+	   block's declared return result type as the result of the application.
+	   If the arguments are known to conflict with the block's argument
+	   types at some call site (i.e., it'll always fail), report a compile error.  */
+	Primitive 40;
+	Crash "Bad argument list or something during function application.";
+] : void
+requires [gct : generalizedClosureType, at : tupleType |
+	/* The closure type is allowed to be too weak, so that this operation will
+	   be useful as a kind of downcast mechanism.  If the closure type is not
+	   consistent with the argument types (i.e., it is known statically that the
+	   call will never work), then report the problem at compile time.  */
+	ct : closureType;
+	if gct <= closure then [
+		/* The closure type is known.  Strengthen it and check for definite inconsistency. */
+		*&ct ?:= gct;
+		nargs ::= ||ct||;
+		if not nargs type <= at sizes then [
+			Crash "Number of arguments will always be wrong at this function application site";
+		];
+		/* We can't really check the argument types yet, so let some stuff slip
+		   through that really shouldn't.  */
+	];
+	true;
+] : boolean
+returns [gct : generalizedClosureType, at : type |
+	gct result;
+];
+
+
+/* Type downcasting operation... */
+
+Method "cast_into_otherwise_" is [value : all, blk1 : [terminates]->void, blk2 : []-> void |
+	/* Attempt to call the first block, but if the dynamic type isn't right, call
+	   the second one. */
+	if value type <= blk1 type[1] then [
+		blk1 apply <value>;
+	] else blk2;
+] : void
+returns [valType : type, blk1Type : closureType, blk2Type : closureType |
+	type union of blk1Type result and blk2Type result;
+]
+requires [valType : type, blk1Type : closureType, blk2Type : closureType |
+	if valType <= blk1Type[1] then [
+		Crash "Warning - unnecessary cast expression";
+	];
+	true;
+];
+
+
+Method "cast_into_" is [value : all, blk : [terminates]->void |
+	/* Same as cast_into_otherwise_, but fail if type isn't right. */
+	if value type <= blk type[1] then [
+		blk apply <value>;
+	] else [
+		Crash <"Bad dynamic cast of a ", value type, " into a ", blk type[1]>;
+	];
+] : void
+returns [valType : type, blkType : closureType |
+	blkType result;
+]
+requires [valType : type, blkType : closureType |
+	if valType <= blkType[1] then [
+		Crash "Warning - unnecessary cast expression";
+	];
+	true;
+];
+
+
+/* Statically checked block evaluation... */
+
+Method "_()" is [block : []->void |
+	/* This application function takes a block with no arguments.  The static
+	   linkage lets a call site know what the block's type's return type is. */
+	Primitive 41;
+	Failed;
+	/* block apply <>; */
+] : void
+returns [bt : closureType | bt result;];
+
+
+Method "_(_)" is [block : [terminates]->void, arg : all |
+	/* This application function takes a block with one argument.  The static
+	   linkage lets a call site know what the block's type's return type is.  Also,
+	   the argument type is validated against the block's argument type. */
+	Primitive 42;
+	Failed;
+	/* block apply <arg>; */
+] : void
+requires [bt : closureType, at : type | at <= bt[1];]
+returns [bt : closureType, at : type | bt result;];
+
+

@@ -1,0 +1,99 @@
+/**
+ * .../Tier-4/TupleIterator.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "TupleIterator"
+Extends
+Uses
+	"Tier-3",
+	"Collection",
+	"Iterator"
+Names
+	"Tuple Iterator",
+	"_as Iterator"
+Body
+
+
+
+/* Define a concrete Iterator type based on iteration over a tuple... */
+/* Note - Tuple Iterators in Avail are one-based. */
+
+
+position ::= lookup "position";
+tupleField ::= lookup "tuple";
+
+
+"Tuple Iterator" is explicit subtype of Iterator with
+	[position -> & : natural number]
+	[tupleField -> tuple];
+
+Rule [iter : Tuple Iterator |
+	1 <= *iter -> position <= ||iter -> tupleField||;
+];
+
+
+Method "_as Iterator" is [t : tuple |
+	pos : natural number := 1;
+	things : type := terminates;
+	t do [each : all | things := type union of things and each type;];
+	/* The following code is experimental, and should be replaced by
+	   something with a more opaque encapsulation... */
+	thingsThunk ::= stub block taking <>
+		and applying name of list block invoker
+		to [lst : list | Halt;]
+		and argument list returning things;
+	thingsThunk2 ::= cast thingsThunk into [c : []->all | c;];
+	Tuple Iterator new with <
+		<tupleField, t>,
+		<position, &pos>,
+		<elementType, thingsThunk2>
+	>;
+] : Tuple Iterator
+returns [tt : tupleType |
+	elemType ::= type union of (union of types in tt leading types)
+		and tt default type;
+	Tuple Iterator altered with <<elementType , []->elemType>>;
+];
+
+
+Method "_is at end" is [iter : Tuple Iterator |
+	*iter -> position > ||iter -> tupleField||;
+];
+
+Method "next_" is [iter : Tuple Iterator |
+	result ::= iter -> tupleField [*iter -> position];
+	iter -> position ++;
+	result;
+]
+returns [iterType : Tuple Iterator type |
+	iterType -> elementType result;
+];
+

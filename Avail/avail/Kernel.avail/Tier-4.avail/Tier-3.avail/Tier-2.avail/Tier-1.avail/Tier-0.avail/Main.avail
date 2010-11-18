@@ -1,0 +1,232 @@
+/**
+ * .../Tier-0/Main.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Main"
+Extends
+	"Pragmas"
+Uses
+Names
+	"all",
+	"boolean",
+	"character", "closure", "closureType","compiledCode",
+	"container", "containerType", "continuation", "continuationType",
+	"cyclicType",
+	"double",
+	"extended integer",
+	"falseType", "float",
+	"generalizedClosureType",
+	"integer", "integerType",
+	"list", "listType",
+	"mapType", "meta",
+	"objectMeta", "objectMetaMeta", "objectType",
+	"primType", "process",
+	"set", "setType", "string",
+	"terminates", "terminatesType", "trueType", "tuple",
+	"tupleType", "type",
+	"void",
+
+	"true", "false",
+
+	"Failed", "Crash_", "Print_", "Discard_",
+	"Halt", "_can't have_", "_=_", "_<=_"
+
+Body
+
+/* Define the private module variables.  These are here simply to allow the
+   types to be strengthened by the 0-ary method definitions below them. */
+
+
+
+privateAll                         ::= Special Object 1;
+privateBoolean                     ::= Special Object 2;
+privateCharacter                   ::= Special Object 3;
+privateClosure                     ::= Special Object 4;
+privateClosureType                 ::= Special Object 5;
+privateCompiledCode                ::= Special Object 6;
+privateContainer                   ::= Special Object 7;
+privateContainerType               ::= Special Object 8;
+privateContinuation                ::= Special Object 9;
+privateContinuationType            ::= Special Object 10;
+privateCyclicType                  ::= Special Object 11;
+privateDouble                      ::= Special Object 12;
+privateExtendedInteger             ::= Special Object 13;
+privateFalseType                   ::= Special Object 14;
+privateFloat                       ::= Special Object 15;
+privateGeneralizedClosureType      ::= Special Object 16;
+privateInteger                     ::= Special Object 17;
+privateIntegerType                 ::= Special Object 18;
+privateList                        ::= Special Object 19;
+privateListType                    ::= Special Object 20;
+privateMapType                     ::= Special Object 21;
+privateMeta                        ::= Special Object 22;
+privateObjectMeta                  ::= Special Object 23;
+privateObjectMetaMeta              ::= Special Object 24;
+privateObjectType                  ::= Special Object 25;
+privatePrimType                    ::= Special Object 26;
+privateProcess                     ::= Special Object 27;
+privateSet                         ::= Special Object 28;
+privateSetType                     ::= Special Object 29;
+privateString                      ::= Special Object 30;
+privateTerminates                  ::= Special Object 31;
+privateTerminatesType              ::= Special Object 32;
+privateTrueType                    ::= Special Object 33;
+privateTuple                       ::= Special Object 34;
+privateTupleType                   ::= Special Object 35;
+privateType                        ::= Special Object 36;
+privateVoid                        ::= Special Object 37;
+
+
+privateTrue                        ::= Special Object 70;
+privateFalse                       ::= Special Object 71;
+
+
+/* First define all the primitive types... */
+Method "all"                    is [privateAll;] : privateType;
+Method "boolean"                is [privateBoolean;] : privatePrimType;
+Method "character"              is [privateCharacter;] : privatePrimType;
+Method "closure"                is [privateClosure;] : privatePrimType;
+Method "compiledCode"           is [privateCompiledCode;] : privatePrimType;
+Method "container"              is [privateContainer;] : privateContainerType;
+Method "continuation"           is [privateContinuation;] : privatePrimType;
+Method "double"                 is [privateDouble;] : privatePrimType;
+Method "extended integer"       is [privateExtendedInteger;] : privateIntegerType;
+Method "falseType"              is [privateFalseType;] : privatePrimType;
+Method "float"                  is [privateFloat;] : privatePrimType;
+Method "integer"                is [privateInteger;] : privateIntegerType;
+Method "list"                   is [privateList;] : privateListType;
+Method "process"                is [privateProcess;] : privatePrimType;
+Method "set"                    is [privateSet;] : privateSetType;
+Method "string"                 is [privateString;] : privateTupleType;
+Method "terminates"             is [privateTerminates;] : privateTerminatesType;
+Method "trueType"               is [privateTrueType;] : privatePrimType;
+Method "tuple"                  is [privateTuple;] : privateTupleType;
+Method "void"                   is [privateVoid;] : privateType;
+
+/* And the meta-types... */
+Method "integerType"            is [privateIntegerType;] : privateMeta;
+Method "tupleType"              is [privateTupleType;] : privateMeta;
+Method "setType"                is [privateSetType;] : privateMeta;
+Method "mapType"                is [privateMapType;] : privateMeta;
+Method "closureType"            is [privateClosureType;] : privateMeta;
+Method "containerType"          is [privateContainerType;] : privateMeta;
+Method "continuationType"       is [privateContinuationType;] : privateMeta;
+Method "generalizedClosureType" is [privateGeneralizedClosureType;] : privateMeta;
+Method "listType"               is [privateListType;] : privateMeta;
+Method "objectType"             is [privateObjectType;] : privateObjectMeta;
+Method "primType"               is [privatePrimType;] : privateMeta;
+Method "terminatesType"         is [privateTerminatesType;] : privateMeta;
+Method "type"                   is [privateType;] : privateMeta;
+
+/* And the meta-meta-types... */
+Method "cyclicType"             is [privateCyclicType;] : privateCyclicType;
+Method "meta"                   is [privateMeta;] : privateMeta;
+Method "objectMeta"             is [privateObjectMeta;] : privateObjectMetaMeta;
+Method "objectMetaMeta"         is [privateObjectMetaMeta;] : privateMeta;
+
+
+/* Now the intrinsic constants... */
+Method "true"                   is [privateTrue;] : privateTrueType;
+Method "false"                  is [privateFalse;] : privateFalseType;
+
+
+/* Totally raw bootstrap - deal with system failures. */
+
+Method "Crash_" is [finalClue : all |
+	Primitive 256;
+	/* Special case - primitive 256 does not require failure code.  If it did, we
+	   could never build the primitive methods, because there is no direct
+	   language support other than primitives for bootstrapping the ability to
+	   terminate (by looping, killing a process, raising an exception, or resuming
+	   a continuation - these are all effectively implemented via primitives).  */
+] : terminates;
+
+
+/* Primitive failure reporting. */
+
+Method "Failed" is [
+	Crash "An Avail primitive has failed";
+] : terminates;
+
+
+
+/* Add support for defining precedence rules.  For example,
+	"{op1,op2...} can't have <{op3,op4...},{op5,op6,...},...>"
+   means that op1 and op2 aren't weakly binding enough to allow op3 or op4
+   as the top-level operation for the first argument, nor either op5 or op6 for
+   the second argument, etc.  To state, for example, that addition is to be
+   parsed left-recursive, we say:  {"_+_"} can't have <{} , {"_+_"}>.   */
+
+Method "_can't have_" is [names : set, except : tuple |
+	Primitive 255;
+	Failed;
+] : void;
+
+
+
+
+Method "Print_" is [something : all |
+	Primitive 256;
+	Failed;
+] : void;
+
+
+/* Explicitly disregard a return result */
+
+Method "Discard_" is [somethingToIgnore : all |
+] : void;
+
+Method "Discard_" is [someThingsToIgnore : list |
+] : void;
+
+
+/* Pause the VM for debugging. */
+
+Method "Halt" is [
+	Primitive 257;
+	Failed;
+] : void;
+
+
+/* General purpose primitive... */
+
+Method "_=_" is [a : all, b : all |
+	Primitive 60;
+	Failed;
+] : boolean;
+
+
+/* The subtype relation... */
+Method "_<=_" is [a : type, b : type |
+	Primitive 33;
+	Failed;
+] : boolean;
+

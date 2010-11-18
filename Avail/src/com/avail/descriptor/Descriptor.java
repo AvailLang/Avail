@@ -100,6 +100,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
@@ -111,7 +112,6 @@ public abstract class Descriptor
 	int numberOfFixedIntegerSlots;
 	boolean hasVariableObjectSlots;
 	boolean hasVariableIntegerSlots;
-
 
 	// accessing
 
@@ -2465,22 +2465,6 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
-	 * traversal of an Avail {@linkplain SetDescriptor set}.
-	 * 
-	 * @param object An Avail {@linkplain SetDescriptor set}.
-	 * @return An {@link Iterable}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	@NotNull Iterable<AvailObject> ObjectSetIterable (
-		final @NotNull AvailObject object)
-	{
-		error("Subclass responsibility: ObjectSetIterable() in "
-			+ getClass().getCanonicalName());
-		return null;
-	}
-	
 	void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2709,22 +2693,6 @@ public abstract class Descriptor
 		return 0;
 	}
 	
-	/**
-	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
-	 * traversal of an Avail {@linkplain TupleDescriptor tuple}.
-	 * 
-	 * @param object An Avail {@linkplain TupleDescriptor tuple}.
-	 * @return An {@link Iterable}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	@NotNull Iterable<AvailObject> ObjectTupleIterable (
-		final @NotNull AvailObject object)
-	{
-		error("Subclass responsibility: ObjectSetIterable() in "
-			+ getClass().getCanonicalName());
-		return null;
-	}
-
 	void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -5580,7 +5548,24 @@ public abstract class Descriptor
 		}
 	}
 
-
+	/**
+	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
+	 * elements of the {@linkplain AvailObject object} with a Java
+	 * <em>foreach</em> construct.
+	 * 
+	 * @param object An {@link AvailObject}.
+	 * @return An {@linkplain Iterator iterator}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@NotNull Iterator<AvailObject> ObjectIterator (
+		final @NotNull AvailObject object)
+	{
+		error(
+			"Subclass responsibility: ObjectIterator() in "
+			+ getClass().getCanonicalName(),
+			object);
+		return null;
+	}
 
 	// slots
 

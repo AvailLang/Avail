@@ -1,0 +1,646 @@
+/**
+ * .../Tier-2/Integer.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Integer"
+Extends
+Uses
+	"Tier-1",
+	"BlockA",
+	"Container"
+Names
+	"_<_",		"_>_",		"_<=_",		"_>=_",
+	"_<_<_",		"_<_<=_",		"_<=_<_",		"_<=_<=_",
+	"_>_>_",		"_>_>=_",		"_>=_>_",		"_>=_>=_",
+
+	"_+_" ,		"_-_",			"-_",			"_*_" ,
+	"_/_",			"_mod_",		"_is odd",		"_is even",
+	"_max_",		"_min_",		"_^_",			"|_|",
+
+	"_++",		"_--",
+
+	"nonpositive integer",
+	"negative integer",
+	"integer range_plus_",
+	"integer range_times_",
+	"_negated"
+Body
+
+
+/* This module defines integer arithmetic operations.  Forward declare the
+   basic arithmetic operations so the integer range code will have access to
+   them.  The range manipulation code won't have to actually *run* these
+   methods until link time after a definition point for the method, so apparent
+   circularities are easily avoided by the forward declaration mechanism. */
+
+Forward "_+_" for [extended integer, extended integer]->extended integer;
+Forward "_-_" for [extended integer, extended integer]->extended integer;
+Forward "-_" for [extended integer]->extended integer;
+Forward "_*_" for [extended integer, extended integer]->extended integer;
+Forward "_/_" for [extended integer, extended integer]->extended integer;
+Forward "_mod_" for [integer, [1..INF]]->integer;
+Forward "_^_" for [extended integer, whole number]->extended integer;
+Forward "_max_" for [extended integer, extended integer]->extended integer;
+Forward "_min_" for [extended integer, extended integer]->extended integer;
+
+
+
+/* Integer division error handler */
+
+divisionByZeroHandler : [] -> extended integer := [
+	Crash "Division by zero";
+] : terminates;
+
+
+
+/* Integer comparison operations... */
+
+Method "_<_" is [a : extended integer, b : extended integer |
+	Primitive 5;
+	Failed;
+] : boolean;
+
+Method "_>_" is [a : extended integer, b : extended integer |
+	b < a;
+] : boolean;
+
+Method "_<=_" is [a : extended integer, b : extended integer |
+	Primitive 6;
+	Failed;
+] : boolean;
+
+Method "_>=_" is [a : extended integer, b : extended integer |
+	b <= a;
+] : boolean;
+
+
+/* Define the tertiary comparators.  Very handy, syntactically. */
+
+Method "_<_<_" is [a : extended integer, b : extended integer, c : extended integer |
+	a < b & [b < c;];
+] : boolean;
+
+Method "_<_<=_" is [a : extended integer, b : extended integer, c : extended integer |
+	a < b & [b <= c;];
+] : boolean;
+
+Method "_<=_<_" is [a : extended integer, b : extended integer, c : extended integer |
+	a <= b & [b < c;];
+] : boolean;
+
+Method "_<=_<=_" is [a : extended integer, b : extended integer, c : extended integer |
+	a <= b & [b <= c;];
+] : boolean;
+
+Method "_>_>_" is [a : extended integer, b : extended integer, c : extended integer |
+	a > b & [b > c;];
+] : boolean;
+
+Method "_>_>=_" is [a : extended integer, b : extended integer, c : extended integer |
+	a > b & [b >= c;];
+] : boolean;
+
+Method "_>=_>_" is [a : extended integer, b : extended integer, c : extended integer |
+	a >= b & [b > c;];
+] : boolean;
+
+Method "_>=_>=_" is [a : extended integer, b : extended integer, c : extended integer |
+	a >= b & [b >= c;];
+] : boolean;
+
+
+/* Private helper for defining precedence rules... */
+
+Method "_U_" is [s1 : set, s2 : set |
+	Primitive 102;
+	Failed;
+] : set;
+
+{"_U_"} can't have <{},{"_U_"}>;
+
+
+/* Integer primitives, including precedence rules... */
+
+sum			::= {"_+_" , "_-_"};
+product		::= {"_*_" , "_/_", "_mod_"};
+negation		::= {"-_"};
+power		::= {"_^_"};
+
+sum		can't have	<{},							sum>;
+product	can't have	<sum,						sum U product>;
+negation	can't have	<							sum U product>;
+power	can't have	<sum U product U negation U power,	sum U product>;
+
+{"_min_"} can't have <{},{"_min_"}>;		/* group min expressions on the left. */
+{"_max_"} can't have <{},{"_max_"}>;	/* group max expressions on the left. */
+
+{"|_|"} can't have <{"|_|"}>;	/* disallow dangerous and redundant ||x|| for abs(abs(x)). */
+
+/* Helper methods to allow + and - to be used in the returns clauses... */
+
+Method "_private+_" is [a : extended integer, b : extended integer |
+	Primitive 1;
+	Failed;
+] : extended integer;
+
+Method "_private-_" is [a : extended integer, b : extended integer |
+	Primitive 2;
+	Failed;
+] : extended integer;
+
+Method "_private*_" is [a : extended integer, b : extended integer |
+	Primitive 3;
+	Failed;
+] : extended integer;
+
+Method "integer range_plus_" is [a : integerType, b : integerType |
+	/* If one of these types is forced to be either INF or -INF, and
+	    if the other type is forced to be the opposite infinity, then return
+	    terminates, which is in fact the most specific integerType.  The
+	    logic is that some call site using this calculation to propagate
+	    the types is unaware that an operation will always fail, so we
+	    feed that information back as a kindness. */
+	if {a,b} = {[-INF..-INF],[INF..INF]} then [
+		terminates;
+	] else [
+		/* The range calculation below is ok with respect to infinite bounds,
+		   because a bound can only be exclusive if it is infinite. */
+		range from (a lower bound private+ b lower bound) private- 1
+			inclusive (a lower inclusive & a lower bound is infinite)
+				| (b lower inclusive & b lower bound is infinite)
+			to (a upper bound private+ b upper bound) private+ 1
+			inclusive (a upper inclusive & a upper bound is infinite)
+				| (b upper inclusive & b upper bound is infinite);
+	];
+] : integerType;
+
+Method "integer range_times_" is [aT : integerType, bT : integerType |
+	/* Deal with call sites that use this to compute the resulting range from
+	    multiplying [INF..INF] or [-INF..-INF] by [0..0].  Since this will always
+	    fail at runtime (i.e., when actual integers are supplied), be nice and
+	    tell the call site that the result has type terminates. */
+
+	if {aT,bT} = {0 type, INF type} | {aT,bT} = {0 type, -INF type} then [
+		terminates;
+	] else [
+
+		/* Relies on fact that finite boundaries are always canonized at range
+		   creation time into inclusive form.  We consider negative b's, positive
+		   b's, and zero b separately to simplify the cases.  If we tried to merge
+		   zero with one of the other cases, the code might attempt to multiply
+		   zero by an infinity (even if it's an exclusive boundary), which would
+		   be an exception.  */
+
+		negAs : integerType := type intersection of aT and [0 private- INF .. 0 private- 1];
+		negBs : integerType := type intersection of bT and [0 private- INF .. 0 private- 1];
+		posAs : integerType := type intersection of aT and [1..INF];
+		posBs : integerType := type intersection of bT and [1..INF];
+		range : integerType := terminates;
+		if posAs not = terminates then [
+			if posBs not = terminates then [
+				range := type union of range and
+					range from posAs lower bound private* posBs lower bound
+					inclusive posAs lower inclusive & posBs lower inclusive
+					to posAs upper bound private* posBs upper bound
+					inclusive posAs upper inclusive & posBs upper inclusive;
+			];
+			if negBs not = terminates then [
+				range := type union of range and
+					range from posAs upper bound private* negBs lower bound
+					inclusive posAs upper inclusive & negBs lower inclusive
+					to posAs lower bound private* negBs upper bound
+					inclusive posAs lower inclusive & negBs upper inclusive;
+			];
+		];
+		if negAs not = terminates then [
+			if posBs not = terminates then [
+				range := type union of range and
+					range from negAs lower bound private* posBs upper bound
+					inclusive negAs lower inclusive & posBs upper inclusive
+					to negAs upper bound private* posBs lower bound
+					inclusive negAs upper inclusive & posBs lower inclusive;
+			];
+			if negBs not = terminates then [
+				range := type union of range and
+					range from negAs upper bound private* negBs upper bound
+					inclusive negAs upper inclusive & negBs upper inclusive
+					to negAs lower bound private* negBs lower bound
+					inclusive negAs lower inclusive & negBs lower inclusive;
+				];
+		];
+		if [0..0] <= aT | [0..0] <= bT then [
+			/* Force zero to be included in final range... */
+			range := type union of range and [0..0];
+		];
+		range;
+	];
+] : integerType;
+
+Method "_negated" is [a : integerType |
+	/* Negate an integer range. */
+	integer range a times [0 private- 1 .. 0 private- 1];
+] : integerType;
+
+Method "-_" is [a : extended integer |
+	/* Unary extended integer negation.  There are no negative integer
+	   constants in Avail.  Just use negation - it looks the same.  */
+	0 private- a;
+] : extended integer
+returns [aT : integerType |
+	aT negated;
+] : integerType;
+
+Method "_+_" is [a : extended integer, b : extended integer |
+	Primitive 1;
+	if a is infinite & b is infinite & a not = b then [
+		Crash "Can't add positive infinity to negative infinity";
+	] else [
+		Crash "Unknown problem in addition primitive";
+	];
+] : extended integer
+returns [aT : integerType, bT : integerType |
+	integer range aT plus bT;
+] : integerType;
+
+
+Method "_-_" is [a : extended integer, b : extended integer |
+	Primitive 2;
+	if a is infinite & a = b then [
+		Crash "Can't subtract positive or negative infinity from itself";
+	] else [
+		Crash "Unknown problem in subtraction primitive";
+	];
+] : extended integer
+returns [aT : integerType, bT : integerType |
+	integer range aT plus (bT negated);
+] : integerType;
+
+
+
+/* Look for obvious bugs (I was bitten once)... */
+Assert 1<2;
+Assert 1<=2;
+Assert 1<=1;
+Assert 2>1;
+Assert 2>=1;
+Assert 2>=2;
+Assert -1<1;
+Assert 1>-1;
+Assert -1=-1;
+Assert -1<=-1;
+Assert -1>=-1;
+Assert -3<=-1;
+Assert -1>=-2;
+
+
+
+
+
+
+Method "_*_" is [a : extended integer, b : extended integer |
+	Primitive 3;
+	if (a is infinite & b = 0) | (a = 0 & b is infinite) then [
+		Crash "Can't multiply zero by infinity";
+	] else [
+		Crash "Unknown problem in multiplication primitive";
+	];
+] : extended integer
+returns [aT : integerType, bT : integerType |
+	integer range aT times bT;
+] : integerType;
+
+
+/* Some sanity checks... */
+Assert [3*5;] type = []->[15..15];
+Assert [x : [-3..11]; y : [-5..3]; x * y;] type = []->[-55..33];
+Assert [x : [-11..3]; y : [-5..3]; x * y;] type = []->[-33..55];
+
+
+Method "_/_" is [a : extended integer, b : extended integer |
+	Primitive 4;
+	if b = 0 then [
+		divisionByZeroHandler();
+	] else [
+		if a is infinite & b is infinite then [
+			Crash "Can't divide infinity by infinity";
+		] else [
+			Crash "Unknown problem in division primitive";
+		];
+	];
+] : extended integer
+returns [aT : integerType, bT : integerType |
+	/* If we didn't canonize finite range boundaries into inclusive form
+	   we would be in trouble below, as 16/3 -> 5, but if 16 was exclusive
+	   we wouldn't want to exclude 5 (because 15/3 also -> 5).  */
+	soFar : integerType := terminates;
+	tryDivisor ::= [divisor : extended integer |
+		soFar := type union of soFar and
+			if aT = terminates | divisor = 0 then [
+				terminates;
+			] else [
+				if divisor is infinite then [
+					/* Either infinity over +-INF is a runtime error, and therefore not
+					   of interest here, but finites over +-INF are always 0. */
+					[0..0];
+				] else [
+					/* Finite non-zero divisor:  Just scale the numerator range. */
+					if divisor < 0 then [
+						range from aT upper bound / divisor
+							inclusive aT upper inclusive
+							to aT lower bound / divisor
+							inclusive aT lower inclusive;
+					] else [
+						range from aT lower bound / divisor
+							inclusive aT lower inclusive
+							to aT upper bound / divisor
+							inclusive aT upper inclusive;
+					];
+				];
+			];
+	] : void;
+	/* Ok, try the outer bounds of the denominator, but also the bounds as
+	   denominators approach 0 from above and from below (but excluding 0).
+	   We don't need to distinguish between including infinities and excluding
+	   infinities in the denominator, as either case approaches zero equally
+	   well.  Since all finite bounds are canonized into inclusive form, we can
+	   therefore treat these bounds as inclusive.  Eventually we should worry
+	   about truncation direction, as 0 might not be reachable by any negative
+	   actual divisions, even though this calculation may disagree.  Smalltalk
+	   (and therefore, for the moment, Avail) will round toward the infinity with
+	   the same sign as the denominator.  */
+	negativeDenominators ::= type intersection of bT and [-INF..-1];
+	tryDivisor(negativeDenominators lower bound);
+	tryDivisor(negativeDenominators upper bound);
+	positiveDenominators ::= type intersection of bT and [1..INF];
+	tryDivisor(positiveDenominators lower bound);
+	tryDivisor(positiveDenominators upper bound);
+	soFar;
+] : integerType;
+
+
+Method "_mod_" is [a : integer, b : [1..INF] |
+	/* If b is infinite, then the modulus is defined as just a. */
+	if b is finite then [a - (b*(a/b));] else [a;];
+] : integer
+returns [aT : integerType, bT : integerType |
+	/* One would think the return type would be constrained
+	   to [0..bT upper bound), which it is, but we might be able
+	   to do better than that if aT is a small enough range. We
+	   also require bT to restrict b to a single value (known at
+	   link-time) before we're willing to try harder to compute the
+	   shrunken range.  */
+	if bT lower bound = bT upper bound
+			& [aT lower bound is finite
+			& [aT upper bound is finite
+			& [aT lower bound / bT lower bound = aT upper bound / bT lower bound;];];]
+	then [
+		/* Makes use of fact that finite bounds are always canonized
+		   into inclusive form. */
+		cast aT lower bound into [aLower : integer |
+			cast aT upper bound into [aUpper : integer |
+				cast bT lower bound into [bValue : [1..INF] |
+					[aLower mod bValue..aUpper mod bValue];];];];
+	] else [
+		[0..bT upper bound);
+	];
+] : integerType;
+
+
+
+/* Convenient helper... */
+
+Method "_is odd" is [a : integer |
+	a mod 2 = 1;
+] : boolean;
+
+Method "_is even" is [a : integer |
+	a mod 2 = 0;
+] : boolean;
+
+
+
+/* Define max and min operators (infix). */
+
+Method "_max_" is [first : extended integer, second : extended integer |
+	if first < second then [second;] else [first;];
+] : extended integer
+returns [aT : integerType, bT : integerType |
+	/* If [a1..a2] and [b1..b2] are the ranges, then the max will be between
+	   max(a1,b1) and max(a2,b2).  Watch out for the inclusion / exclusion
+	   cases.  */
+	min : extended integer;
+	minInclusive : boolean;
+	if (bT lower bound > aT lower bound) then [
+		min := bT lower bound;
+		minInclusive := bT lower inclusive;
+	] else [
+		min := aT lower bound;
+		minInclusive := aT lower inclusive;
+	];
+	if aT lower bound = bT lower bound then [
+		minInclusive := aT lower inclusive & bT lower inclusive;
+	];
+	max : extended integer;
+	maxInclusive : boolean;
+	if (bT upper bound > aT upper bound) then [
+		max := bT upper bound;
+		maxInclusive := bT upper inclusive;
+	] else [
+		max := aT upper bound;
+		maxInclusive := aT upper inclusive;
+	];
+	if aT upper bound = bT upper bound then [
+		maxInclusive := aT upper inclusive | bT upper inclusive;
+	];
+	range from min
+		inclusive minInclusive
+		to max
+		inclusive maxInclusive;
+] : integerType;
+
+
+Method "_min_" is [first : extended integer, second : extended integer |
+	if first < second then [first;] else [second;];
+] : extended integer
+returns [aT : integerType, bT : integerType |
+	/* If [a1..a2] and [b1..b2] are the ranges, then the min will be between
+	   min(a1,b1) and min(a2,b2).  Watch out for the inclusion / exclusion
+	   cases.  */
+	min : extended integer;
+	minInclusive : boolean;
+	if (bT lower bound < aT lower bound) then [
+		min := bT lower bound;
+		minInclusive := bT lower inclusive;
+	] else [
+		min := aT lower bound;
+		minInclusive := aT lower inclusive;
+	];
+	if aT lower bound = bT lower bound then [
+		minInclusive := aT lower inclusive | bT lower inclusive;
+	];
+	max : extended integer;
+	maxInclusive : boolean;
+	if (bT upper bound < aT upper bound) then [
+		max := bT upper bound;
+		maxInclusive := bT upper inclusive;
+	] else [
+		max := aT upper bound;
+		maxInclusive := aT upper inclusive;
+	];
+	if aT upper bound = bT upper bound then [
+		maxInclusive := aT upper inclusive & bT upper inclusive;
+	];
+	range from min
+		inclusive minInclusive
+		to max
+		inclusive maxInclusive;
+] : integerType;
+
+
+
+/* Define exponentiation (for non-negative finite powers). */
+
+Method "_^_" is [base : extended integer, power : whole number |
+	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
+	if power = 0 then [
+		1;
+	] else [
+		temp ::= (base*base)^(power/2);
+		if power is odd then [temp * base;] else [temp;];
+	];
+] : extended integer
+returns [baseT : integerType, powerT : integerType |
+	if baseT = terminates | powerT = terminates then [
+		terminates;
+	] else [
+		/* powerT represents at least one value.  The values must all be >= 0.  */
+		if type intersection of baseT and [-INF..0) not = terminates then [
+			/* There is a possible negative base.  Use the top exponent and
+			   the second-to-top exponent to determine the range.  */
+			if powerT upper bound is finite then [
+				/* A finite upper bound on the exponent - use the top exponent
+				   and the top exponent minus one (if in range) to determine the
+				   result range.  Of those exponents, the odd one will give the min
+				   result when applied to the base's lower bound, but the even one
+				   will give the max result when applied to either the base's upper
+				   bound or lower bound (choose one with largest magnitude).  */
+				cast powerT upper bound into [top : [0..INF) |
+					second ::= (top - 1) max powerT lower bound;
+					cast (if top is even then [top;] else [second;]) into [topEven : [0..INF) |
+						cast (if top is odd then [top;] else [second;]) into [topOdd : [0..INF) |
+							range from baseT lower bound ^ topOdd
+								inclusive true
+								to ((-baseT lower bound) max baseT upper bound) ^ topEven
+								inclusive true;
+						];
+					];
+				];
+			] else [
+				/* Base may be negative, but exponent is unbounded.  Check
+				   for specially restricted base range cases.  */
+				if type intersection of baseT and [-INF..-2] not = terminates then [
+					/* We have a value < -1 possible in the base.  It has unlimited
+					   finite range when raised to an unlimited finite power.  */
+					(-INF..INF);
+				] else [
+					/* -1 is the only negative possible for the base, so the lower
+					   bound is -1, but the upper bound still depends...  */
+					if type intersection of baseT and [2..INF] not = terminates then [
+						/* Potential growth in the positive direction... */
+						[-1..INF);
+					] else [
+						/* Largest base is either 0 or 1.  Range is either [-1..0] or [-1..1]. */
+						[-1..baseT upper bound];
+					];
+				];
+			];
+		] else [
+			/* The base range is entirely non-negative. */
+			if powerT upper bound is finite then [
+				/* Finite upper bound on exponent - upper bound is the upper
+				   bound of base raised to the upper bound of exponent.  */
+				cast powerT lower bound into [lowExp : whole number |
+					cast powerT upper bound into [highExp : whole number |
+						[baseT lower bound ^ lowExp .. baseT upper bound ^ highExp];
+					];
+				];
+			] else [
+				/* Exponent may be arbitrarily large.  Check for special cases for base.  */
+				if baseT <= [0..1] then [     /* <= is subtype relation */
+					baseT;
+				] else [
+					/* Base contains at least one value >= 2.  Unlimited expansion.  */
+					cast powerT lower bound into [lowExp : whole number |
+						[baseT lower bound ^ lowExp .. INF);
+					];
+				];
+			];
+		];
+	];
+] : integerType;
+
+
+Method "|_|" is [a : extended integer |
+	/* Compute the absolute value of the argument... */
+	if a< 0 then [0-a;] else [a;];
+] : extended integer
+returns [aT : integerType |
+	type intersection of (type union of aT and (aT negated))
+		and [0..INF];
+] : integerType;
+
+
+/* Convenience methods.  Increment and decrement a la C.  Postfix ++ and -- provide
+   a convenient shorthand when used with a container of some integerType.  Note that
+   these operations are not statically bounds-checked (but they are dynamically).  */
+
+Method "_++" is [intCon : container |
+	*intCon ?:= cast clearing* intCon into [i : extended integer | i + 1;];
+]
+requires [ct : containerType |
+	ct contentType <= extended integer;
+];
+
+
+Method "_--" is [intCon : container |
+	*intCon ?:= cast clearing* intCon into [i : extended integer | i - 1;];
+]
+requires [ct : container type |
+	ct contentType <= extended integer;
+];
+
+Method "nonpositive integer" is [
+	(-INF .. 0];
+] : integerType;
+
+Method "negative integer" is [
+	(-INF .. -1];
+] : integerType;

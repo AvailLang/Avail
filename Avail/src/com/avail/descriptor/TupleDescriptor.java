@@ -767,46 +767,39 @@ public abstract class TupleDescriptor extends Descriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	@NotNull Iterable<AvailObject> ObjectTupleIterable (
+	@NotNull Iterator<AvailObject> ObjectIterator (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject selfSnapshot = object.copyAsMutableObjectTuple();
 		final int size = selfSnapshot.tupleSize();
-		return new Iterable<AvailObject>()
+		return new Iterator<AvailObject>()
 		{
-			@Override
-			public Iterator<AvailObject> iterator ()
-			{
-				return new Iterator<AvailObject>()
-				{
-					/**
-					 * The index of the next {@linkplain AvailObject element}.
-					 */
-					int index = 1;
+			/**
+			 * The index of the next {@linkplain AvailObject element}.
+			 */
+			int index = 1;
 
-					@Override
-					public boolean hasNext ()
-					{
-						return index <= size;
-					}
-					
-					@Override
-					public AvailObject next ()
-					{
-						if (index > size)
-						{
-							throw new NoSuchElementException();
-						}
-						
-						return selfSnapshot.tupleAt(index++);
-					}
-					
-					@Override
-					public void remove ()
-					{
-						throw new UnsupportedOperationException();
-					}
-				};
+			@Override
+			public boolean hasNext ()
+			{
+				return index <= size;
+			}
+			
+			@Override
+			public AvailObject next ()
+			{
+				if (index > size)
+				{
+					throw new NoSuchElementException();
+				}
+				
+				return selfSnapshot.tupleAt(index++);
+			}
+			
+			@Override
+			public void remove ()
+			{
+				throw new UnsupportedOperationException();
 			}
 		};
 	}

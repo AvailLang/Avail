@@ -1,0 +1,194 @@
+/**
+ * .../Tier-2/Continuation.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Continuation"
+Extends
+Uses
+	"Tier-1",
+	"BlockA",
+	"Integer"
+Names
+	"$_",
+	"_closureType",
+	"Restart_",
+	"Restart_with_",
+	"Exit_",
+	"Exit_with_",
+	"Loop_",
+	"Loop_until_",
+	"Loop_while_",
+	"Until_loop_",
+	"While_loop_",
+	"_to_do_"
+Body
+
+
+
+/* Continuation type primitives. */
+
+Method "$_" is [closType : closureType |
+	/* Construct a continuation type from the given closure type. */
+	Primitive 51;
+	Failed;
+] : continuationType;
+
+Method "_closureType" is [contType : continuationType |
+	/* Answer the closureType that this continuation type uses. */
+	Primitive 50;
+	Failed;
+] : closureType;
+
+
+/* Flow control primitives. */
+
+Method "Restart_" is [con : continuation |
+	/* Restart the passed continuation.  I've dropped support for labels in the
+	   middle of a sequence of statements, and only allow a leading label (as
+	   part of the block syntax rather than statement syntax).  If the continuation
+	   requires arguments, use the values captured by its invocation 'con'.  */
+	Primitive 58;
+	Failed;
+] : terminates
+requires [conType : type |
+	conType not = continuation;
+];
+
+Method "Restart_with_" is [con : continuation, args : tuple |
+	/* Restart the passed continuation, using the given arguments in place of
+	   the arguments that were passed in originally.  The continuation is restarted
+	   in the same context it was originally executed.  That is, its caller is the same
+	   continuation as what it was in the original invocation.  */
+	Primitive 56;
+	Failed;
+] : terminates
+requires [conType : type, argsType : tupleType |
+	cast conType into [conType2 : continuationType |
+		closType ::= conType2 closureType;
+		numArgs ::= ||closType||;
+		argsType sizes lower bound = numArgs
+			& argsType sizes upper bound = numArgs
+			& closType <=
+				block type taking argsType[1..numArgs]
+				and returning void;
+	];
+];
+
+Method "Exit_with_" is [con : continuation, value : all |
+	/* Exit the passed continuation.  The continuation's closure must have a
+	   return type general enough to accept the given return value.  Don't allow
+	   this form if the continuation has return type void (the passed argument
+	   would be misleading).  */
+	Primitive 57;
+	Failed;
+] : terminates
+requires [conType : type, valueType : type |
+	cast conType into [conType2 : continuationType |
+		conType2 closureType result not = void
+			& valueType <= conType2 closureType result;
+	];
+];
+
+Method "Exit_" is [con : continuation |
+	/* Exit the passed continuation.  The continuation's closure must have a
+	   return type of void to use this special form of Exit.  */
+	[c : continuation, ignored : all |
+		Primitive 57;
+		Failed;
+	] : terminates apply <con,123>;
+] : terminates
+requires [conType : type |
+	cast conType into [conType2 : continuationType |
+		conType2 closureType result = void;
+	];
+];
+
+/* Basic looping constructs */
+
+Method "Loop_" is [block : []->void |
+	$body : $[[]->void]->terminates;
+	block();
+	Restart body;
+] : terminates;
+
+Method "Loop_until_" is [block : []->void, predicate : []->boolean |
+	$body : $[[]->void, []->boolean]->void;
+	block();
+	if not predicate() then [Restart body;];
+] : void;
+
+Method "Loop_while_" is [block : []->void, predicate : []->boolean |
+	$body : $[[]->void, []->boolean]->void;
+	block();
+	if predicate() then [Restart body;];
+] : void;
+
+Method "Until_loop_" is [predicate : []->boolean, block : []->void |
+	$body : $[[]->boolean, []->void]->void;
+	if not predicate() then [
+		block();
+		Restart body;
+	];
+] : void;
+
+Method "While_loop_" is [predicate : []->boolean, block : []->void |
+	$body : $[[]->boolean, []->void]->void;
+	if predicate() then [
+		block();
+		Restart body;
+	];
+] : void;
+
+
+
+
+/* Counting... */
+
+Method "_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]->void |
+	$body : $[integer,(-INF..INF], [terminates]->void]->void;
+	if start <= end then [
+		blk apply <start>;
+		Restart body with <start + 1, end, blk>;
+	];
+] : void
+requires [startT : integerType, endT : integerType, blkT : closureType |
+	if startT lower bound > endT upper bound then [
+		/* Known statically to be zero iterations. */
+		true;
+	] else [
+		/* Make sure the block can accept all possible indices. */
+		indices ::= range from startT lower bound
+			inclusive startT lower inclusive
+			to endT upper bound + 1
+			inclusive false;
+		indices <= blkT[1];
+	];
+];

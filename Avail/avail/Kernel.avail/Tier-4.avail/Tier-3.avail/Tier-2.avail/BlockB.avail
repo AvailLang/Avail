@@ -1,0 +1,105 @@
+/**
+ * .../Tier-2/BlockB.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "BlockB"
+Extends
+Uses
+	"Tier-1",
+	"BlockA",
+	"Continuation",
+	"Integer",
+	"Tuple"
+Names
+	"stub block taking_and applying_to_and argument list returning_",
+	"_call with one list(_)",
+	"name of list block invoker"
+Body
+
+
+/* Block evaluation with a list of arguments... */
+
+Method "_(_)" is [block : [...]->void, args : list |
+	block apply <args>;
+] : void
+requires [blkType : generalizedClosureType, argsType : listType |
+	cast blkType into [blkType2 : closureType |
+		argsTupleType ::= argsType as tupleType;
+		if argsTupleType sizes lower bound not = argsTupleType sizes upper bound then [
+			Crash "# of arguments to _(_) can't be verified at call site - maybe use _apply_ ?";
+		];
+		size ::= argsTupleType sizes lower bound;
+		size = ||blkType2||
+			& [
+				1 to size all [i : natural number | argsTupleType[i] <= blkType2[i];];
+			];
+	] otherwise [
+		false;
+	];
+] : boolean
+returns [blkType : generalizedClosureType, argsType : listType |
+	blkType result;
+];
+
+
+/* Advanced stub building.  This is for when you *need* a block with
+   a particular signature, and it must invoke some code with the
+   arguments bundled in a list.  */
+
+Method "stub block taking_and applying_to_and argument list returning_" is [
+		argTypes : tuple,
+		message : cyclicType,
+		clientArg : all,
+		resultType : type |
+	Primitive 71;
+	Failed;
+] : closure;
+
+
+/* Non-typesafe function application for use by stub blocks.   Note that
+   the requires clause is absent, unlike "_(_)".  */
+
+Method "_call with one list(_)" is [block : [list]->void, args : list |
+	/* Invoke a block that takes a single argument, which is a list. */
+	Primitive 42;
+	Failed;
+] : void
+returns [blkType : closureType, argsType : listType |
+	/* If at some call site we don't know anything except that we have some
+	   block, we must be careful to say the return type is void.  Otherwise use
+	   the block's return type. */
+	blkType result;
+];
+
+privateInvoker ::= lookup "_call with one list(_)";
+
+Method "name of list block invoker" is [privateInvoker;];
+

@@ -204,7 +204,7 @@ public final class AvailRuntime
 		{
 			// Add all visible message bundles to the root message bundle tree.
 			final AvailObject visibleNames = aModule.visibleNames();
-			for (final AvailObject name : visibleNames.setIterable())
+			for (final AvailObject name : visibleNames)
 			{
 				assert name.isCyclicType();
 				final AvailObject messageParts =

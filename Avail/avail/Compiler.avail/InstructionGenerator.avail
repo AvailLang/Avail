@@ -1,0 +1,632 @@
+/**
+ * Compiler/InstructionGenerator.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "InstructionGenerator"
+Extends
+Uses
+	"Kernel",
+	"Reflection",
+	"Variables",
+	"NybblecodeGeneration",
+	"Nybblecodes"
+Names
+	"Instruction Generator",
+	"_for arguments_primitive_locals_labels_outers_result type_",
+
+	"_call_arg count_",
+	"_close code_with outers_",
+	"_get literal_",
+	"_get local_",
+	"_get outer_",
+	"_get type at depth_",
+	"_make list_",
+	"_pop",
+	"_push label",
+	"_push literal_",
+	"_push local_",
+	"_push outer_",
+	"_set literal_",
+	"_set local_",
+	"_set outer_",
+	"_super call_arg count_",
+	"_verify type_",
+
+	"_reference variable_",
+	"_use variable_",
+	"_save variable_",
+	"_assign variable_"
+Body
+
+
+/* This module defines the Instruction Generator part of the metacircular Avail compiler.
+   The parse tree invokes builder methods on me to create instruction objects. */
+
+numArgs ::= lookup "numArgs";
+primitive ::= lookup "primitive";
+localTuple ::= lookup "localTuple";
+localMap ::= lookup "localMap";
+outerTuple ::= lookup "outerTuple";
+outerMap ::= lookup "outerMap";
+blockType ::= lookup "blockType";
+instructions ::= lookup "instructions";
+labels ::= lookup "labels";
+literals ::= lookup "literals";
+stackDepth ::= lookup "stackDepth";
+maxDepth ::= lookup "maxDepth";
+
+
+"Instruction Generator" is implicit subtype of Factory with
+	[numArgs -> whole number]
+	[primitive -> [0..65535]]
+	[localTuple -> tuple of Variable]
+	[localMap -> map from Variable to natural number]
+	[outerTuple -> tuple of Variable]
+	[outerMap -> map from Variable to natural number]
+	[blockType -> closureType]
+	[instructions -> & : tuple of Instruction]
+	[labels -> tuple [0..1] of Label]
+	[literals -> & : map from all to natural number]
+	[stackDepth -> & : integer]
+	[maxDepth -> & : integer]
+	[resultType -> []->compiledCode];
+
+
+Instruction Generator has fields <
+	"numArgs", "primitive", "localTuple", "localMap", "outerTuple", "outerMap",
+	"blockType", "instructions", "labels", "literals", "stackDepth", "maxDepth",
+	"resultType">;
+
+
+/* Instance creation */
+
+Method "_for arguments_primitive_locals_labels_outers_result type_" is [
+		genType : Instruction Generator type,
+		args : tuple of Argument,
+		prim : [0..65535],
+		locs : tuple of Local,
+		labs : tuple [0..1] of Label,
+		outs : tuple of Variable,
+		res : type |
+	/* Construct an instruction generator initialized with this data. */
+	insts : tuple of Instruction := <>;
+	litMap : map from all to natural number := [->];
+	varMap : map from Variable to natural number := [->];
+	args do [v : Argument | *&varMap[v] := ||varMap|| + 1;];
+	locs do [v : Local | *&varMap[v] := ||varMap|| + 1;];
+	outMap : map from Variable to natural number := [->];
+	outs do [v : Variable | *&outMap[v] := ||outMap|| + 1;];
+	stack : integer := 0;
+	max : integer := 0;
+	argTypes ::= args collect [arg : Argument | arg myType;];
+
+	genType new with <
+		<numArgs, ||args||>,
+		<primitive, prim>,
+		<localTuple, args then locs>,
+		<localMap, varMap>,
+		<outerTuple, outs>,
+		<outerMap, outMap>,
+		<blockType, block type taking argTypes and returning res>,
+		<instructions, &insts>,
+		<labels, labs>,
+		<literals, &litMap>,
+		<stackDepth, &stack>,
+		<maxDepth, &max>,
+		<resultType, [Crash "Don't call";] : compiledCode>
+	>;
+];
+
+
+
+/* Private helpers... */
+
+Method "_add instruction_" is [gen : Instruction Generator, instr : Instruction |
+	*gen instructions := *gen instructions then <instr>;
+];
+
+Method "_index of literal_" is [gen : Instruction Generator, lit : all |
+	lits ::= gen literals;
+	if *lits [lit]? then [
+		*lits [lit];
+	] else [
+		index ::= ||*lits|| + 1;
+		*lits [lit] := index;
+		index;
+	];
+];
+
+Method "_decrease stack by_" is [gen : Instruction Generator, count : whole number |
+	st ::= gen stackDepth;
+	*st := *st - count;
+	if *st < 0 then [Crash "Stack was popped too many times";];
+];
+
+Method "_increase stack by_" is [gen : Instruction Generator, count : whole number |
+	st ::= gen stackDepth;
+	max ::= gen maxDepth;
+	*st := *st + count;
+	*max := *max max *st;
+];
+
+
+
+/* Public instruction emission... */
+
+Method "_call_arg count_" is [
+		gen : Instruction Generator,
+		msgName : cyclicType,
+		count : whole number |
+	gen add instruction
+		new Call Instruction literal index
+			gen index of literal msgName implementation set;
+	gen decrease stack by count;   /* pop arguments */
+	gen increase stack by 1;   /* push result */
+];
+
+Method "_close code_with outers_" is [
+		gen : Instruction Generator,
+		code : compiledCode,
+		count : whole number |
+	gen add instruction
+		new Close Instruction literal index
+			gen index of literal code
+		number of outers count;
+	gen decrease stack by count;   /* pop outers */
+	gen increase stack by 1;   /* push closure */
+];
+
+Method "_get literal_" is [
+		gen : Instruction Generator,
+		lit : all |
+	gen add instruction
+		new Get Literal Instruction literal index
+			gen index of literal lit;
+	gen increase stack by 1;   /* push literal's value */
+];
+
+Method "_get local_" is [
+		gen : Instruction Generator,
+		local : Local |
+	gen add instruction
+		new Get Local Instruction local index gen localMap[local];
+	gen increase stack by 1;   /* push local's value */
+];
+
+Method "_get outer_" is [
+		gen : Instruction Generator,
+		outer : Variable |
+	gen add instruction
+		new Get Outer Instruction outer index gen outerMap[outer];
+	gen increase stack by 1;   /* push outer's value */
+];
+
+Method "_get type at depth_" is [
+		gen : Instruction Generator,
+		depth : whole number |
+	gen add instruction
+		new Get Type Instruction depth depth;
+	gen decrease stack by depth + 1;   /* make sure we can reach the value */
+	gen increase stack by depth + 2;   /* compensate for above, and push the type */
+];
+
+Method "_make list_" is [
+		gen : Instruction Generator,
+		count : whole number |
+	gen add instruction
+		new Make List Instruction count count;
+	gen decrease stack by count;   /* pop values to use to build list */
+	gen increase stack by 1;   /* push the list */
+];
+
+Method "_pop" is [gen : Instruction Generator |
+	gen add instruction new Pop Instruction;
+	gen decrease stack by 1;
+];
+
+Method "_push label" is [gen : Instruction Generator |
+	gen add instruction new Push Label Instruction;
+	gen increase stack by 1;
+];
+
+Method "_push literal_" is [
+		gen : Instruction Generator,
+		lit : all |
+	gen add instruction
+		new Push Literal Instruction literal index
+			gen index of literal lit;
+	gen increase stack by 1;   /* push literal's value */
+];
+
+Method "_push local_" is [
+		gen : Instruction Generator,
+		local : Variable |
+	gen add instruction
+		new Push Local Instruction local index gen localMap[local];
+	gen increase stack by 1;   /* push local's value */
+];
+
+Method "_push outer_" is [
+		gen : Instruction Generator,
+		outer : Variable |
+	gen add instruction
+		new Push Outer Instruction outer index gen outerMap[outer];
+	gen increase stack by 1;   /* push outer's value */
+];
+
+Method "_set literal_" is [
+		gen : Instruction Generator,
+		lit : all |
+	gen add instruction
+		new Set Literal Instruction literal index
+			gen index of literal lit;
+	gen decrease stack by 1;   /* pop the value */
+];
+
+Method "_set local_" is [
+		gen : Instruction Generator,
+		local : Local |
+	gen add instruction
+		new Set Local Instruction local index gen localMap[local];
+	gen decrease stack by 1;   /* pop the value */
+];
+
+Method "_set outer_" is [
+		gen : Instruction Generator,
+		outer : Variable |
+	gen add instruction
+		new Set Outer Instruction outer index gen outerMap[outer];
+	gen decrease stack by 1;   /* pop the value */
+];
+
+Method "_super call_arg count_" is [
+		gen : Instruction Generator,
+		msgName : cyclicType,
+		count : whole number |
+	gen add instruction
+		new Call Instruction literal index
+			gen index of literal msgName implementation set;
+	gen decrease stack by count * 2;   /* pop arguments and their types */
+	gen increase stack by 1;   /* push result */
+];
+
+Method "_verify type_" is [
+		gen : Instruction Generator,
+		typeLiteral : type |
+	gen add instruction
+		new Verify Type Instruction type index
+			gen index of literal typeLiteral;
+	gen decrease stack by 1;   /* make sure value is on stack */
+	gen increase stack by 1;   /* and leave it there */
+];
+
+
+
+
+/* Instruction stream postprocessing. */
+
+Method "_variable in_" is [instr : Instruction, gen : Instruction Generator |
+	Crash "The 'variable' attribute is only applicable to some Instructions";
+] : Variable;
+
+Method "_variable in_" is [instr : Get Local Instruction, gen : Instruction Generator |
+	gen localTuple [instr index];
+] : Variable;
+
+Method "_variable in_" is [instr : Push Local Instruction, gen : Instruction Generator |
+	gen localTuple [instr index];
+] : Variable;
+
+Method "_variable in_" is [instr : Set Local Instruction, gen : Instruction Generator |
+	gen localTuple [instr index];
+] : Variable;
+
+Method "_variable in_" is [instr : Get Outer Instruction, gen : Instruction Generator |
+	gen outerTuple [instr index];
+] : Variable;
+
+Method "_variable in_" is [instr : Push Outer Instruction, gen : Instruction Generator |
+	gen outerTuple [instr index];
+] : Variable;
+
+Method "_variable in_" is [instr : Set Outer Instruction, gen : Instruction Generator |
+	gen outerTuple [instr index];
+] : Variable;
+
+
+
+Method "_fix instruction_gets_pushes_" is [
+		gen : Instruction Generator,
+		instr : Instruction,
+		gets : & : map from Variable to Get Variable Instruction,
+		pushes : & : map from Variable to Push Variable Instruction |
+	/* Do nothing by default.  Special instructions do their own fixups here. */
+];
+
+Method "_fix instruction_gets_pushes_" is [
+		gen : Instruction Generator,
+		instr : Get Variable Instruction,
+		gets : & : map from Variable to Get Variable Instruction,
+		pushes : & : map from Variable to Push Variable Instruction |
+	/* Get the value of a local or outer.  Arguments can't have this instruction
+	   applied to them, because they can not be modified or referenced (via "&_"). */
+	var ::= instr variable in gen;
+	if *gets [var]? then [
+		*(*gets [var] canClear) := false;
+	];
+	*instr canClear := true;
+	*gets [var] := instr;
+	if *pushes [var]? then [
+		*(*pushes [var] isLast) := false;
+	];
+];
+
+Method "_fix instruction_gets_pushes_" is [
+		gen : Instruction Generator,
+		instr : Push Variable Instruction,
+		gets : & : map from Variable to Get Variable Instruction,
+		pushes : & : map from Variable to Push Variable Instruction |
+	/* Push a local, argument, or outer variable. */
+	var ::= instr variable in gen;
+	if *gets [var]? then [
+		*(*gets [var] canClear) := false;
+	];
+	if *pushes [var]? then [
+		*(*pushes [var] isLast) := false;
+	];
+	*instr isLast := true;
+	*pushes [var] := instr;
+];
+
+Method "_fix instruction_gets_pushes_" is [
+		gen : Instruction Generator,
+		instr : Push Label Instruction,
+		gets : & : map from Variable to Get Variable Instruction,
+		pushes : & : map from Variable to Push Variable Instruction |
+	/* A label is being constructed here.  Since the label (a continuation) can be
+	   restarted (which constructs new locals while reusing the arguments), or
+	   exited (which has no static effect on optimizations), this instruction only
+	   has an effect on arguments and outers.  Scan all arguments and outers
+	   and ensure the most recent pushes are reset so that isLast is false. */
+	gen localTuple [1..gen numArgs] do [local : Variable |
+		if *pushes [local]? then [
+			*(*pushes [local] isLast) := false;
+		];
+	];
+	gen outerTuple do [outer : Variable |
+		if *pushes [outer]? then [
+			*(*pushes [outer] isLast) := false;
+		];
+	];
+];
+
+Method "_fix instruction_gets_pushes_" is [
+		gen : Instruction Generator,
+		instr : Set Variable Instruction,
+		gets : & : map from Variable to Get Variable Instruction,
+		pushes : & : map from Variable to Push Variable Instruction |
+	/* Set the value of a local or outer.  Arguments can't have this instruction
+	   applied to them, because they can not be modified. */
+	var ::= instr variable in gen;
+	*gets [var] := nil;    /* let the previous get (if any) keep canClear = true */
+	if *pushes [var]? then [
+		*(*pushes [var] isLast) := false;
+	];
+];
+
+
+
+Method "_compute flags" is [gen : Instruction Generator |
+	/* Make sure the stream of instructions is valid.  Also fix up flags in instructions. */
+	gets : map from Variable to Get Variable Instruction := [->];
+	pushes : map from Variable to Push Variable Instruction := [->];
+	*gen instructions do [instr : Instruction |
+		gen fix instruction instr gets &gets pushes &pushes;];
+];
+
+
+
+Method "_result" is [gen : Instruction Generator |
+	/* This is the method, redefined from Factory, that answers the object that the
+	   Factory was created to construct, in this case a compiledCode object. */
+	gen compute flags;
+	nybbleGen ::= new Nybblecode Generator;
+	*gen instructions do [instr : Instruction |
+		nybbleGen emit instruction instr;
+	];
+	numLocals ::= cast ||gen localTuple|| - gen numArgs into [x : whole number | x;];
+	maxStack ::= cast *gen maxDepth into [x : whole number | x;];
+	/* Literals are 1-relative (for now). */
+	allLiterals : tuple := 1 to ||*gen literals||;
+	*gen literals do [lit : all, ind : whole number |
+		cast ind into [ind2 : natural number |
+			*& allLiterals := allLiterals[ind2->lit];];];
+	allLocals ::= gen localTuple [gen numArgs + 1 .. ||gen localTuple||];
+	allLocalTypes ::= allLocals collect [local : Variable |
+		local variable type;];
+	allOuterTypes ::= gen outerTuple collect [outer : Variable |
+		outer variable type;];
+	compiledCode for
+		gen numArgs args
+		numLocals locals
+		||gen outerTuple|| outers
+		maxStack stack entries,
+		with nybbles nybbleGen result
+		closureType gen blockType
+		primitive gen primitive
+		literals allLiterals then allOuterTypes then allLocalTypes;
+];
+
+
+
+
+Method "_reference variable_" is [gen : Instruction Generator, var : Variable |
+	/* Emit code that pushes the variable itself (not its value). */
+	Crash "Can't take a reference to that kind of variable.";
+] : void;
+
+Method "_reference variable_" is [gen : Instruction Generator, var : Local |
+	/* Emit code that pushes the local variable itself (not its value). */
+	if gen localMap [var]? then [
+		gen push local var;
+	] else [
+		if gen outerMap [var]? then [
+			gen push outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+] : void;
+
+Method "_reference variable_" is [gen : Instruction Generator, var : Global |
+	/* Emit code that pushes the global variable itself (not its value). */
+	gen push literal var literal;
+] : void;
+
+
+
+
+Abstract method "_use variable_" for [Instruction Generator, Variable]->void;
+
+Method "_use variable_" is [gen : Instruction Generator, var : Argument |
+	if gen localMap [var]? then [
+		gen push local var;
+	] else [
+		if gen outerMap [var]? then [
+			gen push outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_use variable_" is [gen : Instruction Generator, var : Local |
+	if gen localMap [var]? then [
+		gen get local var;
+	] else [
+		if gen outerMap [var]? then [
+			gen get outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_use variable_" is [gen : Instruction Generator, var : Label |
+	if gen labels any [lab: Label | lab = var;] then [
+		gen push label;
+	] else [
+		if gen outerMap [var]? then [
+			gen push outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_use variable_" is [gen : Instruction Generator, var : Global |
+	gen get literal var literal;
+];
+
+
+
+
+Abstract method "_save variable_" for [Instruction Generator, Variable]->void;
+
+Method "_save variable_" is [gen : Instruction Generator, var : Argument |
+	if gen localMap [var]? then [
+		gen push local var;
+	] else [
+		if gen outerMap [var]? then [
+			gen push outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_save variable_" is [gen : Instruction Generator, var : Local |
+	if gen localMap [var]? then [
+		gen push local var;
+	] else [
+		if gen outerMap [var]? then [
+			gen push outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_save variable_" is [gen : Instruction Generator, var : Label |
+	if gen labels any [lab: Label | lab = var;] then [
+		gen push label;
+	] else [
+		if gen outerMap [var]? then [
+			gen push outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_save variable_" is [gen : Instruction Generator, var : Global |
+	Crash "Global variables should ignore scope rules";
+];
+
+
+
+
+Abstract method "_assign variable_" for [Instruction Generator, Variable]->void;
+
+Method "_assign variable_" is [gen : Instruction Generator, var : Argument |
+	Crash "Attempting to assign to argument";
+];
+
+Method "_assign variable_" is [gen : Instruction Generator, var : Local |
+	if gen localMap [var]? then [
+		gen set local var;
+	] else [
+		if gen outerMap [var]? then [
+			gen set outer var;
+		] else [
+			Crash <"Can't find variable", var>;
+		];
+	];
+];
+
+Method "_assign variable_" is [gen : Instruction Generator, var : Label |
+	Crash "Attempting to assign to label";
+];
+
+Method "_assign variable_" is [gen : Instruction Generator, var : Global |
+	gen set literal var literal;
+];
+

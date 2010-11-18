@@ -1,0 +1,404 @@
+/**
+ * Compiler/ParseNodes.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "ParseNodes"
+Extends
+Uses
+	"Kernel",
+	"Reflection",
+	"Variables"
+Names
+	"Parse Node",
+	"Assignment Node",
+	"Block Node",
+	"Declaration Node",
+	"Argument Declaration Node",
+	"Initializing Declaration Node",
+	"Constant Declaration Node",
+	"Label Node",
+	"List Node",
+	"Literal Node",
+	"Reference Node",
+	"Send Node",
+	"Super Cast Node",
+	"Variable Use Node",
+
+	"new Declaration Node variable_",
+	"new Argument Declaration Node variable_",
+	"new Initializing Declaration Node variable_expression_",
+	"new Constant Declaration Node variable_expression_",
+	"new Label Node variable_",
+	"new Block Node arguments_primitive_statements_return type_",
+	"new List Node expressions_",
+	"new Literal Node value_",
+	"new Variable Use Node from declaration_",
+	"new Assignment Node declaration_value_",
+	"new Reference Node declaration_",
+	"new Send Node bundle_arguments_return type_",
+	"new Super Cast Node expression_type_",
+
+	"_variable",
+	"_expression",
+	"_arguments",
+	"_primitive",
+	"_statements",
+	"_expressions",
+	"_value",
+	"_bundle",
+	"_returnType",
+	"_declaration",
+	"_myType",
+
+	"_accumulate needed outer variables in_",
+	"_result type"
+Body
+
+
+/* This module defines the parse node of the Avail parser.  */
+
+
+/* First, some field names... */
+variable ::= lookup "variable";
+expression ::= lookup "expression";
+arguments ::= lookup "arguments";
+primitive ::= lookup "primitive";
+statements ::= lookup "statements";
+expressions ::= lookup "expressions";
+value ::= lookup "value";
+bundle ::= lookup "bundle";
+returnType ::= lookup "returnType";
+declaration ::= lookup "declaration";
+myType ::= lookup "myType";
+
+
+"Parse Node" is explicit subtype of Object with
+		[->];
+	"Declaration Node" is explicit subtype of Parse Node with
+			[variable -> Variable];
+		"Argument Declaration Node" is explicit subtype of Declaration Node with
+				[variable -> Argument];  /*specialized */
+		"Initializing Declaration Node" is explicit subtype of Declaration Node with
+				[expression -> Parse Node];
+			"Constant Declaration Node" is explicit subtype of Initializing Declaration Node with
+					[->];
+		"Label Node" is explicit subtype of Declaration Node with
+				[variable -> Label];   /* specialized */
+	"Assignment Node" is explicit subtype of Parse Node with
+			[declaration -> Declaration Node]
+			[expression -> Parse Node];
+	"Block Node" is explicit subtype of Parse Node with
+			[arguments -> tuple of Argument Declaration Node]
+			[primitive -> [0..65535]]
+			[statements -> tuple of Parse Node]
+			[returnType -> type];
+	"List Node" is explicit subtype of Parse Node with
+			[expressions -> tuple of Parse Node];
+	"Literal Node" is explicit subtype of Parse Node with
+			[value -> all];
+	"Reference Node" is explicit subtype of Parse Node with
+			[declaration -> Declaration Node];
+	"Send Node" is explicit subtype of Parse Node with
+			[bundle -> messageBundle]
+			[arguments -> tuple of Parse Node]
+			[returnType -> type];
+	"Super Cast Node" is explicit subtype of Parse Node with
+			[expression -> Parse Node]
+			[myType -> type];
+	"Variable Use Node" is explicit subtype of Parse Node with
+			[declaration -> Declaration Node];
+
+
+
+Assignment Node has fields
+	<"declaration", "expression">;
+Block Node has fields
+	<"arguments", "primitive", "statements", "returnType">;
+Declaration Node has fields
+	<"variable">;
+Initializing Declaration Node has fields
+	<"expression">;
+List Node has fields
+	<"expressions">;
+Literal Node has fields
+	<"value">;
+Reference Node has fields
+	<"declaration">;
+Send Node has fields
+	<"bundle", "arguments", "returnType">;
+Super Cast Node has fields
+	<"expression", "myType">;
+Variable Use Node has fields
+	<"declaration">;
+
+
+
+/* Forward declaration... */
+
+Forward "_result type" for [Parse Node] -> type;
+
+
+/* Instance creation...*/
+
+Method "new Assignment Node declaration_value_" is [
+		decl : Declaration Node,
+		expr : Parse Node |
+	Assignment Node new with <
+		<declaration, decl>,
+		<expression, expr>
+	>;
+] : Assignment Node;
+
+
+Method "new Label Node variable_" is [var : Label |
+	Label Node new with <
+		<variable, var>
+	>;
+] : Label Node;
+
+
+Method "new Reference Node declaration_" is [decl : Declaration Node |
+	Reference Node new with <
+		<declaration, decl>
+	>;
+] : Reference Node;
+
+
+Method "new Declaration Node variable_" is [var : Variable |
+	Declaration Node new with <
+		<variable, var>
+	>;
+] : Declaration Node;
+
+
+Method "new Argument Declaration Node variable_" is [var : Argument |
+	Argument Declaration Node new with <
+		<variable, var>
+	>;
+] : Argument Declaration Node;
+
+
+Method "new Initializing Declaration Node variable_expression_" is [
+		var : Variable,
+		expr : Parse Node |
+	Initializing Declaration Node new with <
+		<variable, var>,
+		<expression, expr>
+	>;
+] : Initializing Declaration Node;
+
+
+Method "new Constant Declaration Node variable_expression_" is [
+		var : Variable,
+		expr : Parse Node |
+	Constant Declaration Node new with <
+		<variable, var>,
+		<expression, expr>
+	>;
+] : Constant Declaration Node;
+
+
+Method "new Literal Node value_" is [
+		val : all |
+	Literal Node new with <
+		<value, val>
+	>;
+] : Literal Node;
+
+
+Method "new List Node expressions_" is [
+		exprs : tuple of Parse Node |
+	List Node new with <
+		<expressions, exprs>
+	>;
+] : List Node;
+
+
+Method "new Block Node arguments_primitive_statements_return type_" is [
+		args : tuple of Argument Declaration Node,
+		prim : [0..65535],
+		stmts : tuple of Parse Node,
+		retType : type |
+	Block Node new with <
+		<arguments, args>,
+		<primitive, prim>,
+		<statements, stmts>,
+		<returnType, retType>
+	>;
+] : Block Node;
+
+
+Method "new Variable Use Node from declaration_" is [
+		decl : Declaration Node |
+	Variable Use Node new with <
+		<declaration, decl>
+	>;
+] : Variable Use Node;
+
+
+Method "new Send Node bundle_arguments_return type_" is [
+		bnd : messageBundle,
+		args : tuple of Parse Node,
+		retType : type |
+	Send Node new with <
+		<bundle, bnd>,
+		<arguments, args>,
+		<returnType, retType>
+	>;
+] : Send Node;
+
+
+Method "new Super Cast Node expression_type_" is [
+		expr : Parse Node,
+		castType : type |
+	Super Cast Node new with <
+		<expression, expr>,
+		<myType, castType>
+	>;
+] : Super Cast Node;
+
+
+
+/* Calculating which outer variables are referenced from a Parse Node... */
+
+Method "_accumulate needed outer variables in_" is [
+		node : Parse Node,
+		outers : & : set of Declaration Node |
+	/* Do nothing by default. */
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Assignment Node,
+		outers : & : set of Declaration Node |
+	node expression accumulate needed outer variables in outers;
+	*outers := *outers with node declaration;
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Block Node,
+		outers : & : set of Declaration Node |
+	node statements do [stmt : Parse Node |
+		stmt accumulate needed outer variables in outers;
+	];
+	/* Exclude locals and arguments defined by this block... */
+	*outers := *outers
+		minus (node statements as set)
+		minus (node arguments as set);
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Initializing Declaration Node,
+		outers : & : set of Declaration Node |
+	node expression accumulate needed outer variables in outers;
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : List Node,
+		outers : & : set of Declaration Node |
+	node expressions do [expr : Parse Node |
+		expr accumulate needed outer variables in outers;
+	];
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Variable Use Node,
+		outers : & : set of Declaration Node |
+	*outers := *outers with node declaration;
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Reference Node,
+		outers : & : set of Declaration Node |
+	*outers := *outers with node declaration;
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Send Node,
+		outers : & : set of Declaration Node |
+	node arguments do [expr : Parse Node |
+		expr accumulate needed outer variables in outers;
+	];
+];
+
+Method "_accumulate needed outer variables in_" is [
+		node : Super Cast Node,
+		outers : & : set of Declaration Node |
+	node expression accumulate needed outer variables in outers;
+];
+
+
+
+
+/* Calculating what type of objects a Parse Node should yield at runtime. */
+
+Abstract method "_result type" for [Parse Node] -> type;
+
+Method "_result type" is [node : Assignment Node |
+	void;
+] : type;
+
+Method "_result type" is [node : Declaration Node |
+	void;
+] : type;
+
+Method "_result type" is [node : Literal Node |
+	node value type;
+] : type;
+
+Method "_result type" is [node : Variable Use Node |
+	node declaration variable myType;
+] : type;
+
+Method "_result type" is [node : Block Node |
+	block type taking
+			(node arguments collect [arg : Argument Declaration Node |
+				arg variable myType;])
+		and returning node returnType;
+] : closureType;
+
+Method "_result type" is [node : List Node |
+	types ::= node expressions collect [item : Parse Node | item result type;];
+	(tuple like types) as listType;
+] : type;
+
+Method "_result type" is [node : Reference Node |
+	& : node declaration variable myType;
+] : type;
+
+Method "_result type" is [node : Send Node |
+	node returnType;
+] : type;
+
+Method "_result type" is [node : Super Cast Node |
+	node myType;
+] : type;
+
+

@@ -417,7 +417,6 @@ public class AvailCompilerTest
 			"IO-main",
 			"IO-test dumping",
 			"IO-test",
-			"Kernel Tests",
 			"test everything"
 		};
 

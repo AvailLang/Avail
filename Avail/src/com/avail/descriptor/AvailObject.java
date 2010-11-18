@@ -32,7 +32,9 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
@@ -42,6 +44,7 @@ import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 public abstract class AvailObject
+implements Iterable<AvailObject>
 {
 	// gc helpers
 
@@ -2311,6 +2314,20 @@ public abstract class AvailObject
 			argTypes,
 			interpreter);
 	}
+	
+	/**
+	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
+	 * elements of the {@linkplain AvailObject receiver} with a Java
+	 * <em>foreach</em> construct.
+	 * 
+	 * @return An {@linkplain Iterator iterator}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	public @NotNull Iterator<AvailObject> iterator ()
+	{
+		return descriptor().ObjectIterator(this);
+	}
 
 	public AvailObject keyAtIndex (
 		final int index)
@@ -3697,18 +3714,6 @@ public abstract class AvailObject
 			canDestroy);
 	}
 	
-	/**
-	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
-	 * traversal of an Avail {@linkplain SetDescriptor set}.
-	 * 
-	 * @return An {@link Iterable}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	public @NotNull Iterable<AvailObject> setIterable ()
-	{
-		return descriptor().ObjectSetIterable(this);
-	}
-
 	public AvailObject signature ()
 	{
 		//  GENERATED for descriptor dispatch
@@ -3998,18 +4003,6 @@ public abstract class AvailObject
 		//  GENERATED for descriptor dispatch
 
 		return descriptor().ObjectTupleSize(this);
-	}
-
-	/**
-	 * Answer an {@link Iterable} that may be used for <em>foreach</em>
-	 * traversal of an Avail {@linkplain TupleDescriptor tuple}.
-	 * 
-	 * @return An {@link Iterable}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	public @NotNull Iterable<AvailObject> tupleIterable ()
-	{
-		return descriptor().ObjectTupleIterable(this);
 	}
 
 	public AvailObject tupleType ()

@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.AvailInterpreter;
 
 @ObjectSlots({
@@ -536,19 +537,16 @@ public class AvailModuleDescriptor extends Descriptor
 
 	@Override
 	void ObjectRemoveFrom (
-		final AvailObject object,
-		final AvailInterpreter anInterpreter)
+		final @NotNull AvailObject object,
+		final @NotNull AvailInterpreter anInterpreter)
 	{
-
-		final List<AvailObject> methodKeys = object.methods().keysAsArray();
-		for (int i = 1, _end2 = methodKeys.size(); i <= _end2; i++)
+		for (final AvailObject methodName : object.methods().keysAsArray())
 		{
-			final AvailObject methodName = methodKeys.get((i - 1));
-			final AvailObject methodsTuple = object.methods().mapAt(methodName).asTuple();
-			for (int k = 1, _end3 = methodsTuple.tupleSize(); k <= _end3; k++)
+			for (final AvailObject implementation :
+				object.methods().mapAt(methodName).asTuple())
 			{
 				anInterpreter.removeMethodNamedImplementation(
-					methodName, methodsTuple.tupleAt(k));
+					methodName, implementation);
 			}
 		}
 	}

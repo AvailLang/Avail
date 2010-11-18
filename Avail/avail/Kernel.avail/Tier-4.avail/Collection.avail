@@ -1,0 +1,79 @@
+/**
+ * .../Tier-4/Collection.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Collection"
+Extends
+Uses
+	"Tier-3",
+	"Factory"
+Names
+	"Collection",
+	"Collection Factory",
+	"_add_",
+	"_add all_",
+	"elementType"
+Body
+
+
+/* Define class Collection. */
+
+privateElementType ::= lookup "elementType";
+Method "elementType" is [privateElementType;];
+
+"Collection" is explicit subtype of Object with [elementType->[]->all];
+
+Abstract method "_do_" for [Collection, [terminates]->void]->void
+requires [cType : Collection type, blkType : closureType |
+	cType -> elementType result <= blkType[1];
+];
+
+
+
+/* Define the type Collection Factory */
+
+"Collection Factory" is implicit subtype of Factory with [resultType->[]->Collection];
+
+Abstract method "_add_" for [Collection Factory, all]->void
+requires [cfType : Collection Factory type, itemType : type |
+	collectionType ::= cfType -> resultType result;
+	elemType ::= collectionType -> elementType result;
+	itemType <= elemType;
+];
+
+Method "_add all_" is [cf : Collection Factory, c : Collection |
+	c do [item : all | cf add item;];
+] : void
+requires [cfType : Collection Factory type, cType : Collection type |
+	collectionType ::= cfType -> resultType result;
+	cType -> elementType <= collectionType -> elementType result;
+];
+

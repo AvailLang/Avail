@@ -1,0 +1,168 @@
+/**
+ * IO/ObjectDumping.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "ObjectDumping"
+Extends
+Uses
+	"Kernel",
+	"File",
+	"OutputFile",
+	"Objects"
+Names
+	"Dump_on_"
+Body
+
+
+
+/* Helper method... */
+
+Method "Dump integer_to_" is [int : [0..INF), file : Output File |
+	/* Dump int in little-endian, 7 bits at a time, where setting the high bit
+	   indicates the integer is continued. */
+	i : [0..INF) := int;
+	While [
+		i >= 128;
+	] loop [
+		Write (i mod 128) + 128 to file;
+		i := i / 128;
+	];
+	cast i into [k : [0..127] |
+		Write k to file;
+	];
+] : void;
+
+
+/* Public access... */
+
+Method "Dump_on_" is [it : all, file : Output File |
+	bigMap : map from all to [1..INF) := [->];
+	bigTuple : tuple := <>;
+	explosions : tuple of tuple := <>;
+	queue : tuple := <it>;
+	refCounts : map from all to [0..INF) := [->];
+
+	While [
+		||queue|| > 0;
+	] loop [
+		item ::= queue[1];
+		queue := queue[2..||queue||];
+		exploded ::= item exploded;
+		if exploded not = <0> then [
+			if bigMap [item]? then [
+				refCounts := refCounts [item -> refCounts [item] + 1];
+			] else [
+				refCounts := refCounts [item -> 1];
+				index ::= ||bigTuple|| + 1;
+				bigMap := bigMap [item -> index];
+				bigTuple := bigTuple then <item>;
+				explosions := explosions then <exploded>;
+				queue := queue then exploded;
+			];
+		];
+	];
+
+	/* Decrement the reference counts for values of containers.  This
+	   effectively breaks all cycles, allowing a topological sort.  The loading
+	   process must do a second pass to set the values of containers, but
+	   that's easy.  */
+	bigTuple do [obj : all |
+		cast obj into [c : container |
+			if not *c = nil then [
+				cast refCounts[*c] - 1 into [newC : [0..INF) |
+					refCounts := refCounts [obj -> newC];
+				];
+			];
+		] otherwise [];
+	];
+
+	/* Decrement the count for the root object, too... */
+	refCounts := refCounts[it -> cast refCounts[it] - 1 into [x : [0..INF) | x;]];
+
+	/* Compute bins based on number of (remaining) references... */
+	byRefCount : map from [0..INF) to set := [->];
+	refCounts do [obj : all, c : [0..INF) |
+		While [
+			c >= ||byRefCount||;
+		] loop [
+			byRefCount := byRefCount [||byRefCount|| -> {}];
+		];
+		byRefCount := byRefCount [c -> byRefCount[c] with obj];
+	];
+
+	/* Perform a topological sort... */
+	sortedObjects : tuple := <>;
+	While [
+		||byRefCount [0]|| > 0;
+	] loop [
+		layer ::= byRefCount [0] as tuple;
+		byRefCount := byRefCount [0 -> {}];
+		sortedObjects := layer then sortedObjects;   /* Bottom-up order */
+		layer do [obj : all |
+			explosions [bigMap [obj]] do [part : all |
+				if bigMap [part]? then [
+					oldCount ::= refCounts [part];
+					cast oldCount - 1 into [newCount : [0..INF) |
+						refCounts := refCounts [part -> newCount];
+						byRefCount := byRefCount
+							[oldCount -> byRefCount[oldCount] without part]
+							[newCount -> byRefCount[newCount] with part];
+					];
+				];
+			];
+		];
+	];
+	Assert ||sortedObjects|| = ||bigMap||;
+
+	sortedMap : map from all to [1..INF) := [->];
+	1 to ||sortedObjects|| do [index : [1..INF) |
+		sortedMap := sortedMap [sortedObjects [index] -> index];
+	];
+
+	Dump integer ||explosions|| to file;    /* Dump the number of objects */
+
+	sortedObjects do [obj : all |
+		internalIndex ::= bigMap[obj];
+		exp ::= explosions [internalIndex];
+		Dump integer ||exp|| to file;   /* Dump the size of this explosion tuple */
+		exp do [entry : all |
+			cast entry into [k : [0..INF) |
+				/* Dump a non-negative integer... */
+				Dump integer k * 2 to file;
+			] otherwise [
+				/* Dump a reference to a dumped object (by sorted index)... */
+				Dump integer sortedMap [entry] * 2 + 1 to file;
+			];
+		];
+	];
+	Dump integer sortedMap[it] to file;    /* Dump the (sorted) index of the root object */
+];
+

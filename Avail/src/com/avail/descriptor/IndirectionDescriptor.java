@@ -40,6 +40,7 @@ import com.avail.descriptor.IndirectionDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.visitor.AvailSubobjectVisitor;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @ObjectSlots("target")
@@ -3034,17 +3035,6 @@ public class IndirectionDescriptor extends Descriptor
 			canDestroy);
 	}
 
-	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	@Override
-	@NotNull Iterable<AvailObject> ObjectSetIterable (
-		final @NotNull AvailObject object)
-	{
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetIterable(destination);
-	}
-
 	void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3295,17 +3285,6 @@ public class IndirectionDescriptor extends Descriptor
 		return destination.descriptor().ObjectTupleIntAt(destination, index);
 	}
 	
-	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	@Override
-	@NotNull Iterable<AvailObject> ObjectTupleIterable (
-		final @NotNull AvailObject object)
-	{
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTupleIterable(destination);
-	}
-
 	void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -5693,8 +5672,6 @@ public class IndirectionDescriptor extends Descriptor
 		return object;
 	}
 
-
-
 	// operations-indirections
 
 	AvailObject ObjectTraversed (
@@ -5706,6 +5683,16 @@ public class IndirectionDescriptor extends Descriptor
 		//  Shorten the path to one step to reduce amortized traversal costs to approximately inv_Ackermann(N).
 		object.target(finalObject);
 		return finalObject;
+	}
+	
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	Iterator<AvailObject> ObjectIterator (final @NotNull AvailObject object)
+	{
+		final AvailObject destination = object.traversed();
+		return destination.descriptor().ObjectIterator(destination);
 	}
 
 	/**

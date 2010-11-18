@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailAssignmentNode;
 import com.avail.compiler.AvailBlockNode;
 import com.avail.compiler.AvailCodeGenerator;
@@ -158,18 +159,26 @@ public class AvailCompiler
 		}
 	}
 
-
-
-	// parsing entry point
-
+	/**
+	 * Parse a {@linkplain AvailModuleDescriptor module} from the specified
+	 * string. Use the specified {@linkplain L2Interpreter interpreter} to
+	 * compile and evaluate the relevant portions of the module.
+	 * 
+	 * @param string The {@linkplain String text} of a {@linkplain
+	 *               AvailModuleDescriptor module}.
+	 * @param theInterpreter An {@linkplain L2Interpreter interpreter}.
+	 * @param aBlock A progress {@linkplain Continuation2 block} that accepts
+	 *               the start and end positions of a recently parsed section of
+	 *               the module text.
+	 * @throws AvailCompilerException
+	 *         If compilation fails.
+	 */
 	public void parseModuleFromStringInterpreterProgressBlock (
-			final String string, 
-			final L2Interpreter theInterpreter, 
-			final Continuation2<Integer, Integer> aBlock)
+			final @NotNull String string, 
+			final @NotNull L2Interpreter theInterpreter, 
+			final @NotNull Continuation2<Integer, Integer> aBlock)
+		throws AvailCompilerException
 	{
-		//  This is sent directly from the AvailBrowser during a make.
-
-		final Mutable<Boolean> ok = new Mutable<Boolean>();
 		progressBlock = aBlock;
 		interpreter = theInterpreter;
 		greatestGuess = -1;
@@ -177,44 +186,59 @@ public class AvailCompiler
 		tokens = new AvailScanner().scanString(string);
 		position = 0;
 		clearScopeStack();
-		ok.value = false;
 		startModuleTransaction();
 		try
 		{
-			ok.value = parseModule();
+			parseModule();
 		}
 		finally
 		{
-			if (! ok.value)
-			{
-				rollbackModuleTransaction();
-			}
+			rollbackModuleTransaction();
 		}
-		if (! ok.value)
-		{
-			error("Unhandled error during compilation of module.");
-			return;
-		}
-		if (! (peekToken().type() == AvailToken.TokenType.end))
-		{
-			error("Expected end of text, not " + peekToken().string());
-			return;
-		}
+		assert peekToken().type() == AvailToken.TokenType.end
+			: "Expected end of text, not " + peekToken().string();
 		commitModuleTransaction();
 	}
 
-
-
-	// parsing errors
-
-	void reportError ()
+	/**
+	 * Parse a {@linkplain AvailModuleDescriptor module} header from the
+	 * specified string. Populate {@link #extendedModules} and {@link
+	 * #usedModules}.
+	 * 
+	 * @param string The {@linkplain String text} of a {@linkplain
+	 *               AvailModuleDescriptor module}.
+	 * @throws AvailCompilerException
+	 *         If compilation fails.
+	 * @author Todd L Smith &lt;anarkul@gmail.com&gt;
+	 */
+	void parseModuleHeaderFromString (final @NotNull String string)
+		throws AvailCompilerException
 	{
-		//  Report an error by raising the AvailCompiler compilerErrorSignal.  The parameter to the
-		//  error is a two element Array with the error string computed greatExpectations and the text
-		//  position found in greatestGuess.  This position is the rightmost position encountered
-		//  during the parse, and the error strings in greatExpectations are the things that were
-		//  expected but not found at that position.  This seems to work very well in practice.
-
+		progressBlock = null;
+		interpreter = null;
+		greatestGuess = -1;
+		greatExpectations = null;
+		tokens = new AvailScanner().scanStringUpToNamesToken(string);
+		position = 0;
+		clearScopeStack();
+		parseHeaderForDependenciesOnly();
+		assert peekToken().type() == AvailToken.TokenType.end
+			: "Expected end of text, not " + peekToken().string();
+	}
+	
+	/**
+	 * Report an error by throwing an {@link AvailCompilerException}. The
+	 * exception encapsulates the error string and the text position.
+	 * This position is the rightmost position encountered during the parse, and
+	 * the error strings in {@link #greatExpectations} are the things that were
+	 * expected but not found at that position.  This seems to work very well in
+	 * practice.
+	 * 
+	 * @throws AvailCompilerException
+	 *         Always thrown.
+	 */
+	private void reportError () throws AvailCompilerException
+	{
 		int tokenPosSave = position();
 		position(greatestGuess);
 		int charPos = peekToken().start();
@@ -223,10 +247,10 @@ public class AvailCompiler
 		text.append("<-- Expected...\n");
 		assert greatExpectations.size() > 0 : "Bug - empty expectation list";
 		Set<String> alreadySeen = new HashSet<String>(greatExpectations.size());
-		for (Generator<String> generator : greatExpectations)
+		for (final Generator<String> generator : greatExpectations)
 		{
-			String str = generator.value();
-			if (! alreadySeen.contains(str))
+			final String str = generator.value();
+			if (!alreadySeen.contains(str))
 			{
 				alreadySeen.add(str);
 				text.append("\t");
@@ -943,9 +967,8 @@ public class AvailCompiler
 		//  what happens to the order of the algorithm, but it might go from
 		//  exponential to small polynomial.
 		final List<AvailCompilerCachedSolution> solutions = fragmentCache.atTokenPositionScopeStack(start, originalScope);
-		for (int solutionIndex = 1, _end1 = solutions.size(); solutionIndex <= _end1; solutionIndex++)
+		for (final AvailCompilerCachedSolution solution : solutions)
 		{
-			final AvailCompilerCachedSolution solution = solutions.get((solutionIndex - 1));
 			position(solution.endPosition());
 			scopeStack = solution.scopeStack();
 			originalContinuation.value(solution.parseNode());
@@ -1048,13 +1071,12 @@ public class AvailCompiler
 								builder.append("\n\t\t");
 							}
 							AvailObject.lock(incomplete);
-							final AvailObject incompleteTuple = incomplete.keysAsSet().asTuple();
-							for (int index = 1, end1 = incompleteTuple.tupleSize(); index <= end1; index++)
+							final AvailObject incompleteTuple = incomplete.keysAsSet();
+							for (final AvailObject string : incompleteTuple)
 							{
-								AvailObject string = incompleteTuple.tupleAt(index);
-								for (int i = 1, end2 = string.tupleSize(); i <= end2; i++)
+								for (final AvailObject ch : string)
 								{
-									builder.appendCodePoint(string.tupleAt(i).codePoint());
+									builder.appendCodePoint(ch.codePoint());
 								}
 								builder.append("  ");
 							}
@@ -1750,7 +1772,7 @@ public class AvailCompiler
 
 	boolean parseHeader ()
 	{
-		//  Parse a the header of the module from the token stream.  See my class's
+		//  Parse the header of the module from the token stream.  See my class's
 		//  'documentation - grammar' protocol for details.  Leave the token stream set
 		//  at the start of the body.  Answer whether the header was parsed correctly.
 
@@ -1772,12 +1794,11 @@ public class AvailCompiler
 					module.name(parseStringLiteral());
 					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
 					{
-						final List<AvailObject> pragmaStrings = parseStrings();
-						for (int i = 1, _end1 = pragmaStrings.size(); i <= _end1; i++)
+						for (final AvailObject pragmaString : parseStrings())
 						{
 							String pragmaValue;
 							String pragmaKey;
-							String[] pragmaParts = pragmaStrings.get(i - 1).asNativeString().split("=");
+							String[] pragmaParts = pragmaString.asNativeString().split("=");
 							assert pragmaParts.length == 2;
 							pragmaKey = pragmaParts[0].trim();
 							pragmaValue = pragmaParts[1].trim();
@@ -1869,69 +1890,158 @@ public class AvailCompiler
 		return ok.value;
 	}
 
-	boolean parseModule ()
+	/**
+	 * Parse the header of the module up to the <em>Names</em> token (inclusive)
+	 * from the (truncated) {@linkplain AvailToken token} stream. Populate
+	 * {@link #extendedModules} and {@link #usedModules}.
+	 * 
+	 * @throws AvailCompilerException
+	 *         If parsing fails.
+	 */
+	void parseHeaderForDependenciesOnly () throws AvailCompilerException
 	{
-		//  Parse a module from the token stream.  It's a big keyword-expression as described
-		//  in my class's documentation protocol.
+		final Mutable<Integer> where = new Mutable<Integer>();
+		final Mutable<Boolean> ok = new Mutable<Boolean>();
+		extendedModules = new ArrayList<AvailObject>();
+		usedModules = new ArrayList<AvailObject>();
+		exportedNames = new ArrayList<AvailObject>();
+		ok.value = false;
+		parseTokenTypeStringErrorContinue(
+			AvailToken.TokenType.keyword,
+			"Module",
+			"initial Module keyword",
+			new Continuation0 ()
+			{
+				public void value()
+				{
+					final int savePosition = position();
+					module.name(parseStringLiteral());
+					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
+					{
+						parseStrings();
+					}
+					parseTokenTypeStringErrorContinue(
+						AvailToken.TokenType.keyword,
+						"Extends",
+						"Extends keyword",
+						new Continuation0 ()
+						{
+							public void value()
+							{
+								parseStringsThen(new Continuation1<List<AvailObject>> ()
+								{
+									public void value(final List<AvailObject> extendsStrings)
+									{
+										extendedModules = extendsStrings;
+										parseTokenTypeStringErrorContinue(
+											AvailToken.TokenType.keyword,
+											"Uses",
+											"Uses keyword",
+											new Continuation0 ()
+											{
+												public void value()
+												{
+													parseStringsThen(new Continuation1<List<AvailObject>> ()
+													{
+														public void value(final List<AvailObject> usesStrings)
+														{
+															usedModules = usesStrings;
+															parseTokenTypeStringErrorContinue(
+																AvailToken.TokenType.keyword,
+																"Names",
+																"Names keyword",
+																new Continuation0 ()
+																{
+																	public void value()
+																	{
+																		where.value = position();
+																		ok.value = true;
+																		expected("names for export next... (you should never see this message)");
+																	}
+																});
+														}
+													});
+												}
+											});
+									}
+								});
+							}
+						});
+					position(savePosition);
+				}
+			});
+		if (ok.value)
+		{
+			position(where.value);
+		}
+	}
 
-		final Mutable<AvailParseNode> interpretation = new Mutable<AvailParseNode>();
+	/**
+	 * Parse a {@linkplain AvailModuleDescriptor module} from the {@linkplain
+	 * AvailToken token} stream.
+	 * 
+	 * @throws AvailCompilerException
+	 *         If compilation fails.
+	 */
+	void parseModule () throws AvailCompilerException
+	{
+		final Mutable<AvailParseNode> interpretation =
+			new Mutable<AvailParseNode>();
 		final Mutable<Integer> endOfStatement = new Mutable<Integer>();
 		interpreter.checkUnresolvedForwards();
 		greatestGuess = 0;
 		greatExpectations = new ArrayList<Generator<String>>();
-		if (! parseHeader())
+		if (!parseHeader())
 		{
 			reportError();
-			return false;
+			assert false;
 		}
 		int oldStart = (peekToken() == null ? 1 : (peekToken().start() + 1));
-		if (! atEnd())
+		if (!atEnd())
 		{
 			progressBlock.value(1, peekToken().start());
 		}
-		for (int extendsIndex = 1, _end1 = extendedModules.size(); extendsIndex <= _end1; extendsIndex++)
+		for (final AvailObject modName : extendedModules)
 		{
-			AvailObject modName = extendedModules.get((extendsIndex - 1));
+			assert modName.isString();
 			AvailObject mod = interpreter.runtime().moduleAt(modName);
-			AvailObject modNamesTuple = mod.names().keysAsSet().asTuple();
-			for (int modNamesIndex = 1, _end2 = modNamesTuple.tupleSize(); modNamesIndex <= _end2; modNamesIndex++)
+			AvailObject modNames = mod.names().keysAsSet();
+			for (final AvailObject strName : modNames)
 			{
-				AvailObject strName = modNamesTuple.tupleAt(modNamesIndex);
-				AvailObject trueNamesTuple = mod.names().mapAt(strName).asTuple();
-				for (int trueNamesIndex = 1, _end3 = trueNamesTuple.tupleSize(); trueNamesIndex <= _end3; trueNamesIndex++)
+				AvailObject trueNames = mod.names().mapAt(strName);
+				for (final AvailObject trueName : trueNames)
 				{
-					AvailObject trueName = trueNamesTuple.tupleAt(trueNamesIndex);
 					module.atNameAdd(strName, trueName);
 				}
 			}
 		}
-		for (int index = 1, _end4 = usedModules.size(); index <= _end4; index++)
+		for (final AvailObject modName : usedModules)
 		{
-			AvailObject modName = usedModules.get((index - 1));
+			assert modName.isString();
 			AvailObject mod = interpreter.runtime().moduleAt(modName);
-			AvailObject modNamesTuple = mod.names().keysAsSet().asTuple();
-			for (int modNamesIndex = 1, _end5 = modNamesTuple.tupleSize(); modNamesIndex <= _end5; modNamesIndex++)
+			AvailObject modNames = mod.names().keysAsSet();
+			for (final AvailObject strName : modNames)
 			{
-				AvailObject strName = modNamesTuple.tupleAt(modNamesIndex);
-				AvailObject trueNamesTuple = mod.names().mapAt(strName).asTuple();
-				for (int trueNamesIndex = 1, _end6 = trueNamesTuple.tupleSize(); trueNamesIndex <= _end6; trueNamesIndex++)
+				AvailObject trueNames = mod.names().mapAt(strName);
+				for (final AvailObject trueName : trueNames)
 				{
-					AvailObject trueName = trueNamesTuple.tupleAt(trueNamesIndex);
 					module.atPrivateNameAdd(strName, trueName);
 				}
 			}
 		}
-		for (int index = 1, _end7 = exportedNames.size(); index <= _end7; index++)
+		for (final AvailObject stringObject : exportedNames)
 		{
-			final AvailObject stringObject = exportedNames.get((index - 1));
-			final AvailObject trueNameObject = CyclicTypeDescriptor.newCyclicTypeWithName(stringObject);
+			assert stringObject.isString();
+			final AvailObject trueNameObject =
+				CyclicTypeDescriptor.newCyclicTypeWithName(stringObject);
 			module.atNameAdd(stringObject, trueNameObject);
 			module.atNewNamePut(stringObject, trueNameObject);
 		}
 		module.buildFilteredBundleTreeFrom(
 			interpreter.runtime().rootBundleTree());
 		fragmentCache = new AvailCompilerFragmentCache();
-		while (! ((peekToken().type() == AvailToken.TokenType.end))) {
+		while (!(peekToken().type() == AvailToken.TokenType.end))
+		{
 			greatestGuess = 0;
 			greatExpectations = new ArrayList<Generator<String>>();
 			interpretation.value = null;
@@ -1943,7 +2053,8 @@ public class AvailCompiler
 				{
 					public void value(final AvailParseNode stmt)
 					{
-						assert interpretation.value == null : "Statement parser was supposed to catch ambiguity";
+						assert interpretation.value == null
+							: "Statement parser was supposed to catch ambiguity";
 						interpretation.value = stmt;
 						endOfStatement.value = position();
 					}
@@ -1951,16 +2062,17 @@ public class AvailCompiler
 			if (interpretation.value == null)
 			{
 				reportError();
-				return false;
+				assert false;
 			}
-			//  Clear the section of the fragment cache associated with the (outermost) statement just parsed...
+			//  Clear the section of the fragment cache associated with the
+			// (outermost) statement just parsed...
 			privateClearFrags();
 			//  Now execute the statement so defining words have a chance to
 			//  run.  This lets the defined words be used in subsequent code.
 			//  It's even callable in later statements and type expressions.
 			position(endOfStatement.value);
 			evaluateModuleStatement(interpretation.value);
-			if (! atEnd())
+			if (!atEnd())
 			{
 				backupToken();
 				progressBlock.value(oldStart, (nextToken().start() + 2));
@@ -1968,7 +2080,6 @@ public class AvailCompiler
 			}
 		}
 		interpreter.checkUnresolvedForwards();
-		return true;
 	}
 
 

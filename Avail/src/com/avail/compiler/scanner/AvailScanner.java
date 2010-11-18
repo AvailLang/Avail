@@ -32,11 +32,13 @@
 
 package com.avail.compiler.scanner;
 
+import com.avail.annotations.NotNull;
 import com.avail.compiler.scanner.AvailEndOfStatementToken;
 import com.avail.compiler.scanner.AvailKeywordToken;
 import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.compiler.scanner.AvailOperatorToken;
 import com.avail.compiler.scanner.AvailToken;
+import com.avail.descriptor.AvailModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.DoubleDescriptor;
@@ -52,7 +54,7 @@ public class AvailScanner
 	int _position;
 	int _startOfToken;
 	List<AvailToken> _outputTokens;
-
+	boolean _encounteredNamesToken;
 
 	// private
 
@@ -78,10 +80,16 @@ public class AvailScanner
 
 	void scanAlpha ()
 	{
-		while (peekForLetterOrAlphaNumeric()) {
+		while (peekForLetterOrAlphaNumeric())
+		{
 			// no body
 		}
-		addToken(new AvailKeywordToken());
+		final AvailKeywordToken token = new AvailKeywordToken();
+		addToken(token);
+		if (token.string().equals("Names"))
+		{
+			_encounteredNamesToken = true;
+		}
 	}
 
 	void scanDigit ()
@@ -99,9 +107,9 @@ public class AvailScanner
 		int decimalExponentPart2;
 		AvailObject result;
 		long twoTo59;
+		position(_startOfToken);
 		if ((peekFor('d') || (peekFor('e') || (peekFor('.') && peekIsDigit()))))
 		{
-			position(_startOfToken);
 			mantissa = 0;
 			decimalExponent = 0;
 			twoTo59 = 0x800000000000000L;
@@ -161,7 +169,6 @@ public class AvailScanner
 		}
 		else
 		{
-			position(_startOfToken);
 			result = IntegerDescriptor.zero();
 			final AvailObject ten = IntegerDescriptor.objectFromByte(((byte)(10)));
 			while (peekIsDigit()) {
@@ -352,22 +359,24 @@ public class AvailScanner
 		assert 0 <= _position && _position <= _inputString.length();
 	}
 
-
-
-	// public scanning
-
-	public List<AvailToken> scanString (
-			final String string)
+	/**
+	 * Answer the {@linkplain List list} of {@linkplain AvailToken tokens} that
+	 * comprise a {@linkplain AvailModuleDescriptor module}.
+	 * 
+	 * @param string The text of an Avail {@linkplain AvailModuleDescriptor
+	 *               module} (or at least the prefix up to the <em>Names</em>
+	 *               token).
+	 * @return A {@linkplain List list} of {@linkplain AvailToken tokens}
+	 *         terminated by {@link AvailEndOfFileToken}.
+	 */
+	public @NotNull List<AvailToken> scanString (final @NotNull String string)
 	{
-		//  Given a textual input stream, answer the list of tokens scanned from it.
-
 		_inputString = string;
 		_position = 0;
 		_outputTokens = new ArrayList<AvailToken>(100);
-		while (true)
+		while (!atEnd())
 		{
 			_startOfToken = position();
-			if (atEnd()) break;
 			int c = next();
 			ScannerAction.values()[DispatchTable[c]].scan(this);
 		}
@@ -375,7 +384,33 @@ public class AvailScanner
 		return _outputTokens;
 	}
 
-
+	/**
+	 * Answer the {@linkplain List list} of {@linkplain AvailToken tokens} up to
+	 * the <em>Names</em> token (inclusive). Forge an {@link
+	 * AvailEndOfFileToken} and append it to the list.
+	 * 
+	 * @param string The text of an Avail {@linkplain AvailModuleDescriptor
+	 *               module} (or at least the prefix up to the <em>Names</em>
+	 *               token).
+	 * @return A {@linkplain List list} of {@linkplain AvailToken tokens}
+	 *         terminated by {@link AvailEndOfFileToken}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public @NotNull List<AvailToken> scanStringUpToNamesToken (
+		final @NotNull String string)
+	{
+		_inputString = string;
+		_position = 0;
+		_outputTokens = new ArrayList<AvailToken>(50);
+		while (!_encounteredNamesToken)
+		{
+			_startOfToken = position();
+			int c = next();
+			ScannerAction.values()[DispatchTable[c]].scan(this);
+		}
+		addToken(new AvailEndOfFileToken());
+		return _outputTokens;
+	}
 
 	enum ScannerAction
 	{

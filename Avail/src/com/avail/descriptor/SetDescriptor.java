@@ -403,48 +403,10 @@ public class SetDescriptor extends Descriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	@NotNull Iterable<AvailObject> ObjectSetIterable (
+	@NotNull Iterator<AvailObject> ObjectIterator (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject selfSnapshotAsTuple = object.asTuple();
-		final int size = selfSnapshotAsTuple.tupleSize();
-		return new Iterable<AvailObject>()
-		{
-			@Override
-			public Iterator<AvailObject> iterator ()
-			{
-				return new Iterator<AvailObject>()
-				{
-					/**
-					 * The index of the next {@linkplain AvailObject element}.
-					 */
-					int index = 1;
-
-					@Override
-					public boolean hasNext ()
-					{
-						return index <= size;
-					}
-					
-					@Override
-					public AvailObject next ()
-					{
-						if (index > size)
-						{
-							throw new NoSuchElementException();
-						}
-						
-						return selfSnapshotAsTuple.tupleAt(index++);
-					}
-					
-					@Override
-					public void remove ()
-					{
-						throw new UnsupportedOperationException();
-					}
-				};
-			}
-		};
+		return object.asTuple().iterator();
 	}
 
 	AvailObject ObjectAsTuple (
