@@ -489,7 +489,8 @@ public class AvailScanner
 	static byte[] DispatchTable = new byte [65536];
 
 	// Static initialization
-	static {
+	static
+	{
 		for (int i = 0; i < 65536; i++)
 		{
 			char c = (char) i;

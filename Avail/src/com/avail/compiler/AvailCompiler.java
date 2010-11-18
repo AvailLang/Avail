@@ -2004,6 +2004,7 @@ public class AvailCompiler
 		for (final AvailObject modName : extendedModules)
 		{
 			assert modName.isString();
+			// TODO: [TLS] Needs to be resolved differently ...
 			AvailObject mod = interpreter.runtime().moduleAt(modName);
 			AvailObject modNames = mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
@@ -2018,6 +2019,7 @@ public class AvailCompiler
 		for (final AvailObject modName : usedModules)
 		{
 			assert modName.isString();
+			// TODO: [TLS] Needs to be resolved differently ...
 			AvailObject mod = interpreter.runtime().moduleAt(modName);
 			AvailObject modNames = mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)

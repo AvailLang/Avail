@@ -33,8 +33,12 @@
 package com.avail;
 
 import java.beans.MethodDescriptor;
+import java.io.File;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.NotNull;
@@ -68,6 +72,81 @@ import com.avail.interpreter.Primitive;
  */
 public final class AvailRuntime
 {
+	/**
+	 * Parse an Avail {@linkplain AvailModuleDescriptor module} path into a
+	 * {@linkplain List list} of its component top-level {@linkplain File
+	 * directories}.
+	 * 
+	 * <p>The format of an Avail module path is described by the following
+	 * simple grammar:</p>
+	 * 
+	 * <pre>
+	 * modulePath ::= directory ++ ";" ;
+	 * directory ::= [^;]+ ;
+	 * </pre>
+	 * 
+	 * @param modulePath
+	 *        An Avail {@linkplain AvailModuleDescriptor module} path.
+	 * @return A {@linkplain List list} of the top-level {@linkplain File
+	 *         directories} comprising the specified Avail {@linkplain
+	 *         AvailModuleDescriptor module}.
+	 * @throws IllegalArgumentException
+	 *         If any component of the Avail {@linkplain AvailModuleDescriptor
+	 *         module} path is not the absolution pathname of a directory.
+	 */
+	public static @NotNull List<File> parseAvailModulePath (
+			final @NotNull String modulePath)
+		throws IllegalArgumentException
+	{
+		final ArrayList<File> directories = new ArrayList<File>();
+		for (final String component : modulePath.split(";"))
+		{
+			if (component.isEmpty())
+			{
+				final File file = new File(component);
+				if (!file.isAbsolute() || !file.isDirectory())
+				{
+					throw new IllegalArgumentException(
+						"The Avail module path must contain only semicolon (;) "
+						+ "separated absolute pathnames of directories.");
+				}
+				directories.add(file);
+			}
+		}
+		
+		return directories;
+	}
+	
+	/**
+	 * The {@linkplain #parseAvailModulePath(String) Avail module path} for this
+	 * {@linkplain AvailRuntime runtime}.
+	 */
+	private final @NotNull List<File> modulePath;
+	
+	/**
+	 * Answer the {@linkplain File components} comprising the Avail {@linkplain
+	 * AvailModuleDescriptor module} path. Each component is the absolute
+	 * pathname of a directory.
+	 * 
+	 * @return The {@linkplain File components} of the Avail {@linkplain
+	 *         AvailModuleDescriptor module} path.
+	 */
+	public @NotNull List<File> modulePath ()
+	{
+		return Collections.unmodifiableList(modulePath);
+	}
+	
+	/**
+	 * Construct a new {@link AvailRuntime}.
+	 *
+	 * @param modulePath The {@linkplain #parseAvailModulePath(String) Avail
+	 *                   module path}.
+	 */
+	public AvailRuntime (final @NotNull String modulePath)
+	{
+		this.modulePath = parseAvailModulePath(modulePath);
+	}
+	
 	/**
 	 * The {@linkplain ReentrantReadWriteLock lock} that protects the
 	 * {@linkplain AvailRuntime runtime} data structures against dangerous

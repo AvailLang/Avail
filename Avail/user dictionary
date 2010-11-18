@@ -21,3 +21,8 @@ nybblecode
 reoptimization
 inlining
 nybbles
+unicode
+subdirectory
+tokenization
+ordinals
+lexeme

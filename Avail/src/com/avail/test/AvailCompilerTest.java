@@ -113,7 +113,7 @@ public class AvailCompilerTest
 	private void compileTier (final @NotNull String[] modulePaths)
 	throws IOException
 	{
-		final AvailRuntime runtime = new AvailRuntime();
+		final AvailRuntime runtime = new AvailRuntime("");
 		final AvailCompiler compiler = new AvailCompiler();
 		final Mutable<String> source = new Mutable<String>();
 		try
