@@ -38,8 +38,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailModuleDescriptor;
 
@@ -68,13 +69,14 @@ import com.avail.descriptor.AvailModuleDescriptor;
  * path, <strong>Y</strong> is a module group recursively within module
  * group <strong>X</strong>, and <strong>Z</strong> is a local module name.
  * On the right-hand side of a rule is a file reference
- * (<em>quotedFilePath</em>) of the form "/A/B", where
- * <strong>A.avail</strong> is a directory on the Avail module path and
- * <strong>B.avail</strong> is a file or subdirectory of
- * <strong>A.avail</strong>. The rule resolves references to
- * <strong>Z</strong> within module group <strong>Y</strong> to the module
- * at <strong>/A.avail/B.avail</strong> or the module group representative
- * <strong>/A.avail/B.avail/Main.avail</strong>.</p>
+ * (<em>quotedFilePath</em>) of the form "/R/A/B", where <strong>R</strong> is
+ * a root name referring to an absolute directory <strong>P</strong> specified
+ * on the Avail module path, <strong>A.avail</strong> is a subdirectory of
+ * <strong>P</strong>, and <strong>B.avail</strong> is a file or subdirectory of
+ * <strong>A.avail</strong>. The rule resolves references to <strong>Z</strong>
+ * within module group <strong>Y</strong> to the module at
+ * <strong>P/A.avail/B.avail</strong> or the module group representative
+ * <strong>P/A.avail/B.avail/Main.avail</strong>.</p>
  * 
  * <p>Note that some operating systems may have difficulty handling certain
  * <em>moduleId</em>s if they contain arbitrary Unicode characters.</p>
@@ -90,10 +92,11 @@ public final class RenamesFileParser
 	private final @NotNull File renamesFile;
 	
 	/**
-	 * The {@linkplain File root directories} of the Avail {@linkplain
-	 * AvailModuleDescriptor module} path.
+	 * The {@linkplain File components} comprising the Avail {@linkplain
+	 * AvailModuleDescriptor module} path as a {@linkplain Map map} from
+	 * logical root names to absolute pathnames of directories.
 	 */
-	private final @NotNull Set<File> roots;
+	private final @NotNull Map<String, File> roots;
 	
 	/**
 	 * Construct a new {@link RenamesFileParser}.
@@ -102,12 +105,13 @@ public final class RenamesFileParser
 	 *        The {@linkplain File file} of {@linkplain AvailModuleDescriptor
 	 *        module} rename rules.
 	 * @param roots
-	 *        The {@linkplain File root directories} of the Avail {@linkplain
-	 *        AvailModuleDescriptor module} path.
+	 *        The {@linkplain File components} comprising the Avail {@linkplain
+	 *        AvailModuleDescriptor module} path as a {@linkplain Map map} from
+	 *        logical root names to absolute pathnames of directories.
 	 */
 	public RenamesFileParser (
 		final @NotNull File renamesFile,
-		final @NotNull Set<File> roots)
+		final @NotNull Map<String, File> roots)
 	{
 		this.renamesFile = renamesFile;
 		this.roots       = roots;
@@ -509,7 +513,126 @@ public final class RenamesFileParser
 		return new Token(TokenType.EOF, "<EOF>");
 	}
 	
-	// TODO: [TLS] Write parsing routines!
+	/**
+	 * Resolve the logical file path (<em>filePath</em>) into an absolute
+	 * {@linkplain File file reference}.
+	 * 
+	 * @param filePath A logical file path.
+	 * @return An {@linkplain File#isAbsolute() absolute} {@linkplain File
+	 *         file reference}.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} (or other failure)
+	 *         occurs.
+	 */
+	private @NotNull File resolveFilePath (final @NotNull String filePath)
+		throws IOException
+	{
+		final String[] components = filePath.split("/");
+		if (!components[0].isEmpty())
+		{
+			throw new IOException("a file path must begin with a slash (/)");
+		}
+		if (components.length < 3)
+		{
+			throw new IOException(
+				"a file path (" + filePath + ") must name more than just a "
+				+ "root name");
+		}
+		
+		File resolved = roots.get(components[1]);
+		for (int index = 2; index < components.length; index++)
+		{
+			resolved = new File(resolved, components[2] + ".avail");
+		}
+		if (resolved.isDirectory())
+		{
+			resolved = new File(resolved, "Main.avail");
+		}
+		
+		if (!resolved.isFile())
+		{
+			throw new IOException(
+				"file path (" + filePath + ") resolves to nonexistent "
+				+ "file reference (" + resolved.getAbsolutePath() + ")");
+		}
+		
+		return resolved;
+	}
+	
+	/**
+	 * A {@linkplain Map map} from logical {@linkplain AvailModuleDescriptor
+	 * module} paths to absolute {@linkplain File file references}. The goal of
+	 * the {@linkplain RenamesFileParser parser} is to populate this map with
+	 * renaming rules.
+	 */
+	private final @NotNull Map<String, File> renames =
+		new HashMap<String, File>();
+	
+	/**
+	 * Parse a rename rule (<em>renameRule</em>) and install an appropriate
+	 * transformation rule into {@link #renames}.
+	 * 
+	 * @param modulePath A {@linkplain AvailModuleDescriptor module} path.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} (or other failure)
+	 *         occurs.
+	 */
+	private void parseRenameRule (final @NotNull String modulePath)
+		throws IOException
+	{
+		final Token token = scan();
+		if (token.tokenType != TokenType.ARROW)
+		{
+			throw new IOException(
+				"expected -> but found (" + token.lexeme + ")");
+		}
+		
+		final Token filePath = scan();
+		if (filePath.tokenType != TokenType.PATH)
+		{
+			throw new IOException(
+				"expected a file path but found (" + filePath.lexeme + ")");
+		}
+		if (filePath.lexeme.isEmpty())
+		{
+			throw new IOException(
+				"module path (" + modulePath + ") must not bind an empty "
+				+ "file path");
+		}
+		
+		if (renames.containsKey(modulePath))
+		{
+			throw new IOException(
+				"duplicate rename rule for \"" + modulePath + "\" "
+				+ "is not allowed");
+		}
+		renames.put(modulePath, resolveFilePath(filePath.lexeme));
+	}
+	
+	/**
+	 * Parse a renames file (<em>renamesFile</em>).
+	 * 
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} (or other failure)
+	 *         occurs.
+	 */
+	private void parseRenamesFile () throws IOException
+	{
+		Token token;
+		while ((token = scan()).tokenType == TokenType.PATH)
+		{
+			if (token.lexeme.isEmpty())
+			{
+				throw new IOException("module path must not be empty");
+			}
+			parseRenameRule(token.lexeme);
+		}
+		if (token.tokenType != TokenType.EOF)
+		{
+			throw new IOException(
+				"expected end of file but found (" + token.lexeme + ")");
+		}
+	}
 	
 	/**
 	 * Parse the {@linkplain #renamesFile renames file} and answer an
@@ -517,14 +640,21 @@ public final class RenamesFileParser
 	 * AvailModuleDescriptor module} paths to absolute {@linkplain File file
 	 * references}.
 	 * 
+	 * @return A {@linkplain Map map} from logical {@linkplain
+	 *         AvailModuleDescriptor module} paths to {@linkplain
+	 *         File#isAbsolute() absolute} {@linkplain File file references}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} is encountered
 	 *         during bulk tokenization.
 	 */
 	public @NotNull Map<String, File> parse () throws IOException
 	{
-		final Reader reader = new BufferedReader(new FileReader(renamesFile));
-		// TODO: Fix this!
-		return null;
+		if (renames.isEmpty())
+		{
+			reader = new BufferedReader(new FileReader(renamesFile));
+			parseRenamesFile();
+		}
+		
+		return Collections.unmodifiableMap(renames);
 	}
 }

@@ -35,7 +35,6 @@ package com.avail;
 import java.beans.MethodDescriptor;
 import java.io.File;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -74,14 +73,16 @@ public final class AvailRuntime
 {
 	/**
 	 * Parse an Avail {@linkplain AvailModuleDescriptor module} path into a
-	 * {@linkplain List list} of its component top-level {@linkplain File
-	 * directories}.
+	 * {@linkplain Map map} of logical root names to absolute pathnames of
+	 * {@linkplain File directories}.
 	 * 
 	 * <p>The format of an Avail module path is described by the following
 	 * simple grammar:</p>
 	 * 
 	 * <pre>
-	 * modulePath ::= directory ++ ";" ;
+	 * modulePath ::= binding ++ ";" ;
+	 * binding ::= root "=" directory ;
+	 * root ::= [^=;]+ ; 
 	 * directory ::= [^;]+ ;
 	 * </pre>
 	 * 
@@ -94,23 +95,35 @@ public final class AvailRuntime
 	 *         If any component of the Avail {@linkplain AvailModuleDescriptor
 	 *         module} path is not the absolution pathname of a directory.
 	 */
-	public static @NotNull List<File> parseAvailModulePath (
+	public static @NotNull Map<String, File> parseAvailModulePath (
 			final @NotNull String modulePath)
 		throws IllegalArgumentException
 	{
-		final ArrayList<File> directories = new ArrayList<File>();
+		final Map<String, File> directories = new HashMap<String, File>();
 		for (final String component : modulePath.split(";"))
 		{
-			if (component.isEmpty())
+			if (!component.isEmpty())
 			{
-				final File file = new File(component);
-				if (!file.isAbsolute() || !file.isDirectory())
+				final String[] binding = component.split("=");
+				if (binding.length != 2)
+				{
+					throw new IllegalArgumentException(
+						"An Avail module path component must be a logical root "
+						+ "name, then an equals (=), then the absolute "
+						+ "pathname of a directory containing Avail modules.");
+				}
+				
+				final String rootName = binding[0];
+				final File fileName = new File(binding[1]);
+				if (!fileName.isAbsolute() || !fileName.isDirectory())
 				{
 					throw new IllegalArgumentException(
 						"The Avail module path must contain only semicolon (;) "
-						+ "separated absolute pathnames of directories.");
+						+ "separated absolute pathnames of existing "
+						+ "directories.");
 				}
-				directories.add(file);
+				
+				directories.put(rootName, fileName);
 			}
 		}
 		
@@ -121,30 +134,30 @@ public final class AvailRuntime
 	 * The {@linkplain #parseAvailModulePath(String) Avail module path} for this
 	 * {@linkplain AvailRuntime runtime}.
 	 */
-	private final @NotNull List<File> modulePath;
+	private final @NotNull Map<String, File> modulePathRoots;
 	
 	/**
 	 * Answer the {@linkplain File components} comprising the Avail {@linkplain
-	 * AvailModuleDescriptor module} path. Each component is the absolute
-	 * pathname of a directory.
+	 * AvailModuleDescriptor module} path as a {@linkplain Map map} from
+	 * logical root names to absolute pathnames of directories.
 	 * 
 	 * @return The {@linkplain File components} of the Avail {@linkplain
 	 *         AvailModuleDescriptor module} path.
 	 */
-	public @NotNull List<File> modulePath ()
+	public @NotNull Map<String, File> modulePathRoots ()
 	{
-		return Collections.unmodifiableList(modulePath);
+		return Collections.unmodifiableMap(modulePathRoots);
 	}
 	
 	/**
 	 * Construct a new {@link AvailRuntime}.
 	 *
-	 * @param modulePath The {@linkplain #parseAvailModulePath(String) Avail
+	 * @param modulePath The {@linkplain #modulePathRoots Avail
 	 *                   module path}.
 	 */
 	public AvailRuntime (final @NotNull String modulePath)
 	{
-		this.modulePath = parseAvailModulePath(modulePath);
+		this.modulePathRoots = parseAvailModulePath(modulePath);
 	}
 	
 	/**
