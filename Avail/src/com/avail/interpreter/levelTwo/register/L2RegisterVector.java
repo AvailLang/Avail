@@ -37,7 +37,19 @@ import java.util.ArrayList;
 
 public class L2RegisterVector
 {
-	ArrayList<L2ObjectRegister> _registers;
+	final ArrayList<L2ObjectRegister> _registers;
+
+	/**
+	 * 
+	 * Construct a new {@link L2RegisterVector} containing the given registers.
+	 *
+	 * @param objectRegisters the registers to put in the new vector.
+	 */
+	public L2RegisterVector (
+		final ArrayList<L2ObjectRegister> objectRegisters)
+	{
+		_registers = objectRegisters;
+	}
 
 
 	// accessing
@@ -48,13 +60,6 @@ public class L2RegisterVector
 
 		return _registers;
 	}
-
-	public void registers (
-			final ArrayList<L2ObjectRegister> objectRegisters)
-	{
-		_registers = objectRegisters;
-	}
-
 
 
 	// folding

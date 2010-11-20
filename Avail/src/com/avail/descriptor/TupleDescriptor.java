@@ -86,7 +86,7 @@ public abstract class TupleDescriptor extends Descriptor
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -1011,30 +1011,9 @@ public abstract class TupleDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected TupleDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected TupleDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 }

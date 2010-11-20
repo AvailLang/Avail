@@ -271,8 +271,7 @@ public class L2Translator implements L1OperationDispatcher
 		//  Answer a vector of register numbers, registering a new one if necessary.
 
 
-		final L2RegisterVector vector = new L2RegisterVector();
-		vector.registers(arrayOfRegisters);
+		final L2RegisterVector vector = new L2RegisterVector(arrayOfRegisters);
 		return vector;
 	}
 

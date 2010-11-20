@@ -1434,40 +1434,23 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected IntegerDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected IntegerDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static IntegerDescriptor mutableDescriptor()
+	final static IntegerDescriptor mutableDescriptor = new IntegerDescriptor(true);
+
+	public static IntegerDescriptor mutableDescriptor ()
 	{
-		return (IntegerDescriptor) allDescriptors [78];
+		return mutableDescriptor;
 	}
 
-	public static IntegerDescriptor immutableDescriptor()
+	final static IntegerDescriptor immutableDescriptor = new IntegerDescriptor(false);
+
+	public static IntegerDescriptor immutableDescriptor ()
 	{
-		return (IntegerDescriptor) allDescriptors [79];
+		return immutableDescriptor;
 	}
 }

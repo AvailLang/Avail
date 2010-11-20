@@ -453,18 +453,16 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 
 
-
-
 	/* Descriptor lookup */
 	static byte numberOfLevels ()
 	{
 		return 7;
 	};
-
+	
 	static HashedSetBinDescriptor isMutableLevel (boolean flag, byte level)
 	{
-		assert(0<= level && level <= numberOfLevels()); 
-		return (HashedSetBinDescriptor) allDescriptors [58 + (level * 2) + (flag ? 0 : 1)];
+		assert(0 <= level && level <= numberOfLevels()); 
+		return descriptors [level * 2 + (flag ? 0 : 1)];
 	};
 
 	/**
@@ -474,33 +472,32 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 * @param level The depth of the bin in the hash tree.
 	 */
 	protected HashedSetBinDescriptor (
-		final int myId,
 		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots,
 		final int level)
 	{
 		super(
-			myId,
 			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots,
 			level);
 	}
+
+	final static HashedSetBinDescriptor descriptors[] = {
+		new HashedSetBinDescriptor(true, 0),
+		new HashedSetBinDescriptor(false, 0),
+		new HashedSetBinDescriptor(true, 1),
+		new HashedSetBinDescriptor(false, 1),
+		new HashedSetBinDescriptor(true, 2),
+		new HashedSetBinDescriptor(false, 2),
+		new HashedSetBinDescriptor(true, 3),
+		new HashedSetBinDescriptor(false, 3),
+		new HashedSetBinDescriptor(true, 4),
+		new HashedSetBinDescriptor(false, 4),
+		new HashedSetBinDescriptor(true, 5),
+		new HashedSetBinDescriptor(false, 5),
+		new HashedSetBinDescriptor(true, 6),
+		new HashedSetBinDescriptor(false, 6)
+	};
+
 }

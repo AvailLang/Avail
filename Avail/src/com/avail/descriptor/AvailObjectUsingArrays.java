@@ -214,7 +214,7 @@ public class AvailObjectUsingArrays extends AvailObject
 	public void descriptorId (
 			final short anInteger)
 	{
-		_descriptor = Descriptor.allDescriptors[anInteger];
+		_descriptor = Descriptor.allDescriptors.get(anInteger);
 		checkValidAddress();
 	}
 

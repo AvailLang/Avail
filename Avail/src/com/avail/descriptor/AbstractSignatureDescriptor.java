@@ -218,40 +218,23 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected AbstractSignatureDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected AbstractSignatureDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static AbstractSignatureDescriptor mutableDescriptor()
+	final static AbstractSignatureDescriptor mutableDescriptor = new AbstractSignatureDescriptor(true);
+
+	public static AbstractSignatureDescriptor mutableDescriptor ()
 	{
-		return (AbstractSignatureDescriptor) allDescriptors [0];
+		return mutableDescriptor;
 	}
 
-	public static AbstractSignatureDescriptor immutableDescriptor()
+	final static AbstractSignatureDescriptor immutableDescriptor = new AbstractSignatureDescriptor(false);
+
+	public static AbstractSignatureDescriptor immutableDescriptor ()
 	{
-		return (AbstractSignatureDescriptor) allDescriptors [1];
+		return immutableDescriptor;
 	}
 }

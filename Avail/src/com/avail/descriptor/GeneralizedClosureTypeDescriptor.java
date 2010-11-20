@@ -290,40 +290,23 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected GeneralizedClosureTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected GeneralizedClosureTypeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static GeneralizedClosureTypeDescriptor mutableDescriptor()
+	final static GeneralizedClosureTypeDescriptor mutableDescriptor = new GeneralizedClosureTypeDescriptor(true);
+
+	public static GeneralizedClosureTypeDescriptor mutableDescriptor ()
 	{
-		return (GeneralizedClosureTypeDescriptor) allDescriptors [56];
+		return mutableDescriptor;
 	}
 
-	public static GeneralizedClosureTypeDescriptor immutableDescriptor()
+	final static GeneralizedClosureTypeDescriptor immutableDescriptor = new GeneralizedClosureTypeDescriptor(false);
+
+	public static GeneralizedClosureTypeDescriptor immutableDescriptor ()
 	{
-		return (GeneralizedClosureTypeDescriptor) allDescriptors [57];
+		return immutableDescriptor;
 	}
 }

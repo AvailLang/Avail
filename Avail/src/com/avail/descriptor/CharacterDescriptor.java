@@ -196,16 +196,21 @@ extends Descriptor
 		return hashesOfByteCharacters[codePoint];
 	}
 
+	
+	final static CharacterDescriptor mutableDescriptor = new CharacterDescriptor(true);
+
 	/**
 	 * Answer a mutable {@link CharacterDescriptor}.
 	 * 
 	 * @return A mutable {@link CharacterDescriptor}.
 	 */
 	@ThreadSafe
-	public static @NotNull CharacterDescriptor mutableDescriptor()
+	public static CharacterDescriptor mutableDescriptor ()
 	{
-		return (CharacterDescriptor) allDescriptors[24];
+		return mutableDescriptor;
 	}
+
+	final static CharacterDescriptor immutableDescriptor = new CharacterDescriptor(false);
 
 	/**
 	 * Answer an immutable {@link CharacterDescriptor}.
@@ -213,10 +218,11 @@ extends Descriptor
 	 * @return An immutable {@link CharacterDescriptor}.
 	 */
 	@ThreadSafe
-	public static @NotNull CharacterDescriptor immutableDescriptor()
+	public static CharacterDescriptor immutableDescriptor ()
 	{
-		return (CharacterDescriptor) allDescriptors[25];
+		return immutableDescriptor;
 	}
+
 
 	@Override
 	public int ObjectCodePoint (final @NotNull AvailObject object)
@@ -323,30 +329,9 @@ extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected CharacterDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected CharacterDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 }

@@ -352,10 +352,11 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return 8;
 	};
 
+	
 	static LinearSetBinDescriptor isMutableLevel (boolean flag, byte level)
 	{
-		assert(0<= level && level <= numberOfLevels()); 
-		return (LinearSetBinDescriptor) allDescriptors [84 + (level * 2) + (flag ? 0 : 1)];
+		assert(0 <= level && level <= numberOfLevels()); 
+		return descriptors [level * 2 + (flag ? 0 : 1)];
 	};
 
 	/**
@@ -365,33 +366,34 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 * @param level The depth of the bin in the hash tree.
 	 */
 	protected LinearSetBinDescriptor (
-		final int myId,
 		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots,
 		final int level)
 	{
 		super(
-			myId,
 			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots,
 			level);
 	}
+
+	final static LinearSetBinDescriptor descriptors[] = {
+		new LinearSetBinDescriptor(true, 0),
+		new LinearSetBinDescriptor(false, 0),
+		new LinearSetBinDescriptor(true, 1),
+		new LinearSetBinDescriptor(false, 1),
+		new LinearSetBinDescriptor(true, 2),
+		new LinearSetBinDescriptor(false, 2),
+		new LinearSetBinDescriptor(true, 3),
+		new LinearSetBinDescriptor(false, 3),
+		new LinearSetBinDescriptor(true, 4),
+		new LinearSetBinDescriptor(false, 4),
+		new LinearSetBinDescriptor(true, 5),
+		new LinearSetBinDescriptor(false, 5),
+		new LinearSetBinDescriptor(true, 6),
+		new LinearSetBinDescriptor(false, 6),
+		new LinearSetBinDescriptor(true, 7),
+		new LinearSetBinDescriptor(false, 7)
+	};
+
 }

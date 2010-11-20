@@ -36,117 +36,34 @@ import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
-import com.avail.descriptor.AbstractSignatureDescriptor;
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BlankDescriptor;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.ByteTupleDescriptor;
-import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.ClosureDescriptor;
-import com.avail.descriptor.ClosureTypeDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ConcatenatedTupleTypeDescriptor;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.ContainerTypeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.ContinuationTypeDescriptor;
-import com.avail.descriptor.CyclicTypeDescriptor;
-import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.DoubleDescriptor;
-import com.avail.descriptor.ExpandedMessageBundleTreeDescriptor;
-import com.avail.descriptor.FalseDescriptor;
-import com.avail.descriptor.FillerDescriptor;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.ForwardSignatureDescriptor;
-import com.avail.descriptor.GeneralizedClosureTypeDescriptor;
-import com.avail.descriptor.HashedSetBinDescriptor;
-import com.avail.descriptor.ImplementationSetDescriptor;
-import com.avail.descriptor.IndirectionDescriptor;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.LinearSetBinDescriptor;
-import com.avail.descriptor.ListDescriptor;
-import com.avail.descriptor.ListTypeDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MapTypeDescriptor;
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.MethodSignatureDescriptor;
-import com.avail.descriptor.NybbleTupleDescriptor;
-import com.avail.descriptor.ObjectDescriptor;
-import com.avail.descriptor.ObjectMetaDescriptor;
-import com.avail.descriptor.ObjectMetaMetaDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.ObjectTypeDescriptor;
-import com.avail.descriptor.PrimitiveTypeDescriptor;
-import com.avail.descriptor.ProcessDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.SpliceTupleDescriptor;
-import com.avail.descriptor.TerminatesMetaDescriptor;
-import com.avail.descriptor.TerminatesTypeDescriptor;
-import com.avail.descriptor.TrueDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TwoByteStringDescriptor;
-import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
-import com.avail.descriptor.VoidTypeDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.visitor.AvailBeImmutableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
 public abstract class Descriptor
 {
-	short myId;
-	boolean isMutable;
-	int numberOfFixedObjectSlots;
-	int numberOfFixedIntegerSlots;
-	boolean hasVariableObjectSlots;
-	boolean hasVariableIntegerSlots;
+	final short myId;
+	final boolean isMutable;
+	final int numberOfFixedObjectSlots;
+	final int numberOfFixedIntegerSlots;
+	final boolean hasVariableObjectSlots;
+	final boolean hasVariableIntegerSlots;
 
 	// accessing
 
-	Descriptor asReadBarrier ()
+	public short id ()
 	{
-		//  Answer a read barrier descriptor that remembers which descriptor the current one is.
-
-		return allDescriptors[myId + (numActualDescriptors>>1)];
-	}
-
-	short id ()
-	{
-		//  Answer my unique id, assigning one if necessary.
-
 		return myId;
-	}
-
-	void id (
-			final short anInteger)
-	{
-		//  Set my unique id.
-
-		/* Let Smalltalk deal with its own AllDescriptors array.  Java doesn't care */
-		myId = anInteger;
 	}
 
 	public boolean isMutable ()
 	{
 		return isMutable;
-	}
-
-	void isMutable (
-			final boolean aBoolean)
-	{
-		isMutable = aBoolean;
 	}
 
 
@@ -6740,137 +6657,6 @@ public abstract class Descriptor
 	// GENERATED special mutable slots
 
 	/**
-	 * @param index
-	 * @return
-	 */
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
-	{
-		//  GENERATED special mutable slots method.
-
-		return false;
-	}
-
-
-
-	// java printing
-
-	/**
-	 * @return
-	 */
-	int maximumIndent ()
-	{
-		//  Answer the deepest a recursive print can go before summarizing.
-
-		return 5;
-	}
-
-	/**
-	 * Recursively print the specified {@link AvailObject} to the {@link
-	 * StringBuilder} unless it is already present in the {@linkplain List
-	 * recursion list}. Printing will begin at the specified indent level,
-	 * measured in horizontal tab characters.
-	 * 
-	 * <p>This operation exists primarily to provide useful representations of
-	 * {@code AvailObject}s for Java-side debugging.</p>
-	 * 
-	 * @param object An {@link AvailObject}.
-	 * @param builder A {@link StringBuilder}.
-	 * @param recursionList A {@linkplain List list} containing {@link
-	 *                      AvailObject}s already visited during the recursive
-	 *                      print.
-	 * @param indent The indent level, in horizontal tabs, at which the {@link
-	 *               AvailObject} should be printed.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	/**
-	 * @param object
-	 * @param builder
-	 * @param recursionList
-	 * @param indent
-	 */
-	@ThreadSafe
-	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object, 
-		final @NotNull StringBuilder builder, 
-		final @NotNull List<AvailObject> recursionList, 
-		final int indent)
-	{
-		builder.append('a');
-		String className = getClass().getSimpleName();
-		String shortenedName = className.substring(0, className.length() - 10);
-		switch (shortenedName.codePointAt(0))
-		{
-			case 'A':
-			case 'E':
-			case 'I':
-			case 'O':
-			case 'U':
-				builder.append('n');
-				break;
-			default:
-				// Do nothing.
-		}
-		builder.append(' ');
-		builder.append(shortenedName);
-		IntegerSlots integerSlotAnnotation =
-			getClass().getAnnotation(IntegerSlots.class);
-		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
-		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
-			int n = Math.min(i, integerSlotAnnotation.value().length) - 1;
-			String slotName = integerSlotAnnotation.value()[n];
-			if (slotName.charAt(slotName.length() - 1) == '#')
-			{
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(i - integerSlotAnnotation.value().length + 1);
-				builder.append(']');
-			}
-			else
-			{
-				builder.append(slotName);
-			}
-			builder.append(" = ");
-			builder.append(object.integerSlotAtByteIndex(i << 2));
-		}
-		ObjectSlots objectSlotAnnotation =
-			getClass().getAnnotation(ObjectSlots.class);
-		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
-		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
-			int n = Math.min(i, objectSlotAnnotation.value().length) - 1;
-			String slotName = objectSlotAnnotation.value()[n];
-			if (slotName.charAt(slotName.length() - 1) == '#')
-			{
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(i - objectSlotAnnotation.value().length + 1);
-				builder.append(']');
-			}
-			else
-			{
-				builder.append(slotName);
-			}
-			builder.append(" = ");
-			(object.objectSlotAtByteIndex(-(i << 2))).printOnAvoidingIndent(
-				builder, recursionList, indent + 1);
-		}
-	}
-
-
-
-	// operations
-
-	/**
 	 * @param object
 	 * @param another
 	 * @return
@@ -7852,25 +7638,6 @@ public abstract class Descriptor
 	}
 
 	/**
-	 * @param size
-	 * @return
-	 */
-	AvailObject mutableObjectOfSize (
-			final int size)
-	{
-		//  This method is really only appropriate for ByteTupleDescriptors and NybbleTupleDescriptors,
-		//  but the type can't be strengthened enough without an unchecked cast (or a dynamic_cast with
-		//  all the rtti baggage that entails).
-
-		error("Subclass responsibility: privateMutableObjectOfSize: in Avail.Descriptor");
-		return VoidDescriptor.voidObject();
-	}
-
-
-
-	// operations-types
-
-	/**
 	 * @param object
 	 * @param aType
 	 * @return
@@ -8027,6 +7794,134 @@ public abstract class Descriptor
 		return null;
 	}
 
+	// GENERATED special mutable slots
+	
+	/**
+	 * @param index
+	 * @return
+	 */
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
+			final int index)
+	{
+		//  GENERATED special mutable slots method.
+	
+		return false;
+	}
+
+	// java printing
+	
+	/**
+	 * @return
+	 */
+	int maximumIndent ()
+	{
+		//  Answer the deepest a recursive print can go before summarizing.
+	
+		return 5;
+	}
+
+	/**
+	 * Recursively print the specified {@link AvailObject} to the {@link
+	 * StringBuilder} unless it is already present in the {@linkplain List
+	 * recursion list}. Printing will begin at the specified indent level,
+	 * measured in horizontal tab characters.
+	 * 
+	 * <p>This operation exists primarily to provide useful representations of
+	 * {@code AvailObject}s for Java-side debugging.</p>
+	 * 
+	 * @param object An {@link AvailObject}.
+	 * @param builder A {@link StringBuilder}.
+	 * @param recursionList A {@linkplain List list} containing {@link
+	 *                      AvailObject}s already visited during the recursive
+	 *                      print.
+	 * @param indent The indent level, in horizontal tabs, at which the {@link
+	 *               AvailObject} should be printed.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	/**
+	 * @param object
+	 * @param builder
+	 * @param recursionList
+	 * @param indent
+	 */
+	@ThreadSafe
+	void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object, 
+		final @NotNull StringBuilder builder, 
+		final @NotNull List<AvailObject> recursionList, 
+		final int indent)
+	{
+		builder.append('a');
+		String className = getClass().getSimpleName();
+		String shortenedName = className.substring(0, className.length() - 10);
+		switch (shortenedName.codePointAt(0))
+		{
+			case 'A':
+			case 'E':
+			case 'I':
+			case 'O':
+			case 'U':
+				builder.append('n');
+				break;
+			default:
+				// Do nothing.
+		}
+		builder.append(' ');
+		builder.append(shortenedName);
+		IntegerSlots integerSlotAnnotation =
+			getClass().getAnnotation(IntegerSlots.class);
+		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
+		{
+			builder.append('\n');
+			for (int tab = 0; tab < indent; tab++)
+			{
+				builder.append('\t');
+			}
+			int n = Math.min(i, integerSlotAnnotation.value().length) - 1;
+			String slotName = integerSlotAnnotation.value()[n];
+			if (slotName.charAt(slotName.length() - 1) == '#')
+			{
+				builder.append(slotName, 0, slotName.length() - 1);
+				builder.append('[');
+				builder.append(i - integerSlotAnnotation.value().length + 1);
+				builder.append(']');
+			}
+			else
+			{
+				builder.append(slotName);
+			}
+			builder.append(" = ");
+			builder.append(object.integerSlotAtByteIndex(i << 2));
+		}
+		ObjectSlots objectSlotAnnotation =
+			getClass().getAnnotation(ObjectSlots.class);
+		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
+		{
+			builder.append('\n');
+			for (int tab = 0; tab < indent; tab++)
+			{
+				builder.append('\t');
+			}
+			int n = Math.min(i, objectSlotAnnotation.value().length) - 1;
+			String slotName = objectSlotAnnotation.value()[n];
+			if (slotName.charAt(slotName.length() - 1) == '#')
+			{
+				builder.append(slotName, 0, slotName.length() - 1);
+				builder.append('[');
+				builder.append(i - objectSlotAnnotation.value().length + 1);
+				builder.append(']');
+			}
+			else
+			{
+				builder.append(slotName);
+			}
+			builder.append(" = ");
+			(object.objectSlotAtByteIndex(-(i << 2))).printOnAvoidingIndent(
+				builder, recursionList, indent + 1);
+		}
+	}
+
+	
 	// slots
 
 	void checkWriteAtByteIndex (
@@ -8072,21 +7967,6 @@ public abstract class Descriptor
 		return numberOfFixedObjectSlots;
 	}
 
-	void numberOfFixedObjectSlotsNumberOfFixedIntegerSlotsHasVariableObjectSlotsHasVariableIntegerSlots (
-			final int theNumberOfFixedObjectSlots, 
-			final int theNumberOfFixedIntegerSlots, 
-			final boolean variableObjectSlots, 
-			final boolean variableIntegerSlots)
-	{
-		assert theNumberOfFixedObjectSlots >= 1;
-		numberOfFixedObjectSlots = theNumberOfFixedObjectSlots;
-		numberOfFixedIntegerSlots = theNumberOfFixedIntegerSlots;
-		hasVariableObjectSlots = variableObjectSlots;
-		hasVariableIntegerSlots = variableIntegerSlots;
-	}
-
-
-
 
 	// Startup/shutdown
 	static void createWellKnownObjects ()
@@ -8107,246 +7987,15 @@ public abstract class Descriptor
 
 	}
 
+	static final List<Descriptor> allDescriptors =
+		new ArrayList<Descriptor>(200);
 
-	static final int numActualDescriptors = 166;
-
-	static final Descriptor [] allDescriptors = {
-		new AbstractSignatureDescriptor(0, true, 3, 0, false, false),
-		new AbstractSignatureDescriptor(1, false, 3, 0, false, false),
-		new ApproximateTypeDescriptor(2, true, 1, 0, false, false),
-		new ApproximateTypeDescriptor(3, false, 1, 0, false, false),
-		new ModuleDescriptor(4, true, 10, 0, false, false),
-		new ModuleDescriptor(5, false, 10, 0, false, false),
-		new BlankDescriptor(6, true, 0, 0, false, false),
-		new BlankDescriptor(7, false, 0, 0, false, false),
-		new ByteStringDescriptor(8, true, 0, 1, false, true, 0),
-		new ByteStringDescriptor(9, false, 0, 1, false, true, 0),
-		new ByteStringDescriptor(10, true, 0, 1, false, true, 3),
-		new ByteStringDescriptor(11, false, 0, 1, false, true, 3),
-		new ByteStringDescriptor(12, true, 0, 1, false, true, 2),
-		new ByteStringDescriptor(13, false, 0, 1, false, true, 2),
-		new ByteStringDescriptor(14, true, 0, 1, false, true, 1),
-		new ByteStringDescriptor(15, false, 0, 1, false, true, 1),
-		new ByteTupleDescriptor(16, true, 0, 1, false, true, 0),
-		new ByteTupleDescriptor(17, false, 0, 1, false, true, 0),
-		new ByteTupleDescriptor(18, true, 0, 1, false, true, 3),
-		new ByteTupleDescriptor(19, false, 0, 1, false, true, 3),
-		new ByteTupleDescriptor(20, true, 0, 1, false, true, 2),
-		new ByteTupleDescriptor(21, false, 0, 1, false, true, 2),
-		new ByteTupleDescriptor(22, true, 0, 1, false, true, 1),
-		new ByteTupleDescriptor(23, false, 0, 1, false, true, 1),
-		new CharacterDescriptor(24, true, 0, 1, false, false),
-		new CharacterDescriptor(25, false, 0, 1, false, false),
-		new ClosureDescriptor(26, true, 1, 0, true, false),
-		new ClosureDescriptor(27, false, 1, 0, true, false),
-		new ClosureTypeDescriptor(28, true, 1, 1, true, false),
-		new ClosureTypeDescriptor(29, false, 1, 1, true, false),
-		new CompiledCodeDescriptor(30, true, 2, 5, true, false),
-		new CompiledCodeDescriptor(31, false, 2, 5, true, false),
-		new ConcatenatedTupleTypeDescriptor(32, true, 2, 0, false, false),
-		new ConcatenatedTupleTypeDescriptor(33, false, 2, 0, false, false),
-		new ContainerDescriptor(34, true, 2, 1, false, false),
-		new ContainerDescriptor(35, false, 2, 1, false, false),
-		new ContainerTypeDescriptor(36, true, 1, 0, false, false),
-		new ContainerTypeDescriptor(37, false, 1, 0, false, false),
-		new ContinuationDescriptor(38, true, 2, 3, true, false),
-		new ContinuationDescriptor(39, false, 2, 3, true, false),
-		new ContinuationTypeDescriptor(40, true, 1, 0, false, false),
-		new ContinuationTypeDescriptor(41, false, 1, 0, false, false),
-		new CyclicTypeDescriptor(42, true, 1, 1, false, false),
-		new CyclicTypeDescriptor(43, false, 1, 1, false, false),
-		new DoubleDescriptor(44, true, 0, 2, false, false),
-		new DoubleDescriptor(45, false, 0, 2, false, false),
-		new ExpandedMessageBundleTreeDescriptor(46, true, 2, 1, false, false),
-		new ExpandedMessageBundleTreeDescriptor(47, false, 2, 1, false, false),
-		new FalseDescriptor(48, true, 0, 0, false, false),
-		new FalseDescriptor(49, false, 0, 0, false, false),
-		new FillerDescriptor(50, true, 0, 0, false, false),
-		new FillerDescriptor(51, false, 0, 0, false, false),
-		new FloatDescriptor(52, true, 0, 1, false, false),
-		new FloatDescriptor(53, false, 0, 1, false, false),
-		new ForwardSignatureDescriptor(54, true, 1, 0, false, false),
-		new ForwardSignatureDescriptor(55, false, 1, 0, false, false),
-		new GeneralizedClosureTypeDescriptor(56, true, 1, 0, false, false),
-		new GeneralizedClosureTypeDescriptor(57, false, 1, 0, false, false),
-		new HashedSetBinDescriptor(58, true, 1, 3, true, false, 0),
-		new HashedSetBinDescriptor(59, false, 1, 3, true, false, 0),
-		new HashedSetBinDescriptor(60, true, 1, 3, true, false, 1),
-		new HashedSetBinDescriptor(61, false, 1, 3, true, false, 1),
-		new HashedSetBinDescriptor(62, true, 1, 3, true, false, 2),
-		new HashedSetBinDescriptor(63, false, 1, 3, true, false, 2),
-		new HashedSetBinDescriptor(64, true, 1, 3, true, false, 3),
-		new HashedSetBinDescriptor(65, false, 1, 3, true, false, 3),
-		new HashedSetBinDescriptor(66, true, 1, 3, true, false, 4),
-		new HashedSetBinDescriptor(67, false, 1, 3, true, false, 4),
-		new HashedSetBinDescriptor(68, true, 1, 3, true, false, 5),
-		new HashedSetBinDescriptor(69, false, 1, 3, true, false, 5),
-		new HashedSetBinDescriptor(70, true, 1, 3, true, false, 6),
-		new HashedSetBinDescriptor(71, false, 1, 3, true, false, 6),
-		new ImplementationSetDescriptor(72, true, 4, 0, false, false),
-		new ImplementationSetDescriptor(73, false, 4, 0, false, false),
-		new IndirectionDescriptor(74, true, 1, 0, false, false),
-		new IndirectionDescriptor(75, false, 1, 0, false, false),
-		new InfinityDescriptor(76, true, 0, 1, false, false),
-		new InfinityDescriptor(77, false, 0, 1, false, false),
-		new IntegerDescriptor(78, true, 0, 0, false, true),
-		new IntegerDescriptor(79, false, 0, 0, false, true),
-		new IntegerRangeTypeDescriptor(80, true, 2, 1, false, false),
-		new IntegerRangeTypeDescriptor(81, false, 2, 1, false, false),
-		new L2ChunkDescriptor(82, true, 3, 7, true, false),
-		new L2ChunkDescriptor(83, false, 3, 7, true, false),
-		new LinearSetBinDescriptor(84, true, 0, 1, true, false, 0),
-		new LinearSetBinDescriptor(85, false, 0, 1, true, false, 0),
-		new LinearSetBinDescriptor(86, true, 0, 1, true, false, 1),
-		new LinearSetBinDescriptor(87, false, 0, 1, true, false, 1),
-		new LinearSetBinDescriptor(88, true, 0, 1, true, false, 2),
-		new LinearSetBinDescriptor(89, false, 0, 1, true, false, 2),
-		new LinearSetBinDescriptor(90, true, 0, 1, true, false, 3),
-		new LinearSetBinDescriptor(91, false, 0, 1, true, false, 3),
-		new LinearSetBinDescriptor(92, true, 0, 1, true, false, 4),
-		new LinearSetBinDescriptor(93, false, 0, 1, true, false, 4),
-		new LinearSetBinDescriptor(94, true, 0, 1, true, false, 5),
-		new LinearSetBinDescriptor(95, false, 0, 1, true, false, 5),
-		new LinearSetBinDescriptor(96, true, 0, 1, true, false, 6),
-		new LinearSetBinDescriptor(97, false, 0, 1, true, false, 6),
-		new LinearSetBinDescriptor(98, true, 0, 1, true, false, 7),
-		new LinearSetBinDescriptor(99, false, 0, 1, true, false, 7),
-		new ListDescriptor(100, true, 1, 0, false, false),
-		new ListDescriptor(101, false, 1, 0, false, false),
-		new ListTypeDescriptor(102, true, 1, 0, false, false),
-		new ListTypeDescriptor(103, false, 1, 0, false, false),
-		new MapDescriptor(104, true, 0, 3, true, false),
-		new MapDescriptor(105, false, 0, 3, true, false),
-		new MapTypeDescriptor(106, true, 3, 0, false, false),
-		new MapTypeDescriptor(107, false, 3, 0, false, false),
-		new MessageBundleDescriptor(108, true, 3, 0, false, false),
-		new MessageBundleDescriptor(109, false, 3, 0, false, false),
-		new MethodSignatureDescriptor(110, true, 3, 0, false, false),
-		new MethodSignatureDescriptor(111, false, 3, 0, false, false),
-		new NybbleTupleDescriptor(112, true, 0, 1, false, true, 0),
-		new NybbleTupleDescriptor(113, false, 0, 1, false, true, 0),
-		new NybbleTupleDescriptor(114, true, 0, 1, false, true, 7),
-		new NybbleTupleDescriptor(115, false, 0, 1, false, true, 7),
-		new NybbleTupleDescriptor(116, true, 0, 1, false, true, 6),
-		new NybbleTupleDescriptor(117, false, 0, 1, false, true, 6),
-		new NybbleTupleDescriptor(118, true, 0, 1, false, true, 5),
-		new NybbleTupleDescriptor(119, false, 0, 1, false, true, 5),
-		new NybbleTupleDescriptor(120, true, 0, 1, false, true, 4),
-		new NybbleTupleDescriptor(121, false, 0, 1, false, true, 4),
-		new NybbleTupleDescriptor(122, true, 0, 1, false, true, 3),
-		new NybbleTupleDescriptor(123, false, 0, 1, false, true, 3),
-		new NybbleTupleDescriptor(124, true, 0, 1, false, true, 2),
-		new NybbleTupleDescriptor(125, false, 0, 1, false, true, 2),
-		new NybbleTupleDescriptor(126, true, 0, 1, false, true, 1),
-		new NybbleTupleDescriptor(127, false, 0, 1, false, true, 1),
-		new ObjectDescriptor(128, true, 1, 0, false, false),
-		new ObjectDescriptor(129, false, 1, 0, false, false),
-		new ObjectMetaDescriptor(130, true, 1, 0, false, false),
-		new ObjectMetaDescriptor(131, false, 1, 0, false, false),
-		new ObjectMetaMetaDescriptor(132, true, 1, 0, false, false),
-		new ObjectMetaMetaDescriptor(133, false, 1, 0, false, false),
-		new ObjectTupleDescriptor(134, true, 0, 1, true, false),
-		new ObjectTupleDescriptor(135, false, 0, 1, true, false),
-		new ObjectTypeDescriptor(136, true, 1, 0, false, false),
-		new ObjectTypeDescriptor(137, false, 1, 0, false, false),
-		new PrimitiveTypeDescriptor(138, true, 3, 1, false, false),
-		new PrimitiveTypeDescriptor(139, false, 3, 1, false, false),
-		new ProcessDescriptor(140, true, 3, 5, false, false),
-		new ProcessDescriptor(141, false, 3, 5, false, false),
-		new SetDescriptor(142, true, 1, 0, false, false),
-		new SetDescriptor(143, false, 1, 0, false, false),
-		new SetTypeDescriptor(144, true, 2, 0, false, false),
-		new SetTypeDescriptor(145, false, 2, 0, false, false),
-		new SpliceTupleDescriptor(146, true, 0, 1, true, true),
-		new SpliceTupleDescriptor(147, false, 0, 1, true, true),
-		new TerminatesMetaDescriptor(148, true, 3, 1, false, false),
-		new TerminatesMetaDescriptor(149, false, 3, 1, false, false),
-		new TerminatesTypeDescriptor(150, true, 3, 1, false, false),
-		new TerminatesTypeDescriptor(151, false, 3, 1, false, false),
-		new TrueDescriptor(152, true, 0, 0, false, false),
-		new TrueDescriptor(153, false, 0, 0, false, false),
-		new TupleTypeDescriptor(154, true, 3, 0, false, false),
-		new TupleTypeDescriptor(155, false, 3, 0, false, false),
-		new TwoByteStringDescriptor(156, true, 0, 1, false, true, 0),
-		new TwoByteStringDescriptor(157, false, 0, 1, false, true, 0),
-		new TwoByteStringDescriptor(158, true, 0, 1, false, true, 1),
-		new TwoByteStringDescriptor(159, false, 0, 1, false, true, 1),
-		new UnexpandedMessageBundleTreeDescriptor(160, true, 2, 1, false, false),
-		new UnexpandedMessageBundleTreeDescriptor(161, false, 2, 1, false, false),
-		new VoidDescriptor(162, true, 0, 0, false, false),
-		new VoidDescriptor(163, false, 0, 0, false, false),
-		new VoidTypeDescriptor(164, true, 3, 1, false, false),
-		new VoidTypeDescriptor(165, false, 3, 1, false, false)
-	};
-
-	enum LinkNames
-	{
-		zeroOffsetLink(0),
-		abstractSignatureLink(1),
-		allLink(2),
-		booleanTypeLink(3),
-		closureLink(4),
-		closureTypeLink(5),
-		compiledCodeLink(6),
-		containerLink(7),
-		containerTypeLink(8),
-		continuationLink(9),
-		continuationTypeLink(10),
-		cyclicTypeLink(11),
-		doubleObjectLink(12),
-		falseTypeLink(13),
-		floatObjectLink(14),
-		forwardSignatureLink(15),
-		generalizedClosureTypeLink(16),
-		implementationSetLink(17),
-		integerTypeLink(18),
-		listTypeLink(19),
-		mapTypeLink(20),
-		messageBundleLink(21),
-		messageBundleTreeLink(22),
-		metaLink(23),
-		methodSignatureLink(24),
-		objectMetaMetaLink(25),
-		primTypeLink(26),
-		processLink(27),
-		setTypeLink(28),
-		signatureLink(29),
-		terminatesLink(30),
-		terminatesTypeLink(31),
-		trueTypeLink(32),
-		tupleTypeLink(33),
-		typeLink(34),
-		voidTypeLink(35),
-		emptyTupleLink(36),
-		underscoreTupleLink(37),
-		emptySetLink(38),
-		emptyMapLink(39),
-		positiveInfinityLink(40),
-		negativeInfinityLink(41),
-		bytesRangeLink(42),
-		nybblesRangeLink(43),
-		trueObjectLink(44),
-		falseObjectLink(45),
-		voidObjectLink(46),
-		blankObjectLink(47),
-		headOfChunkRingLink(48),
-		levelTwoChunksLink(49),
-		characterLink(50),
-		numLinks(51);
-
-		LinkNames (int ordinalCheck)
-		{
-			assert (ordinalCheck == ordinal());
-		};
-	}
-
-	static final AbstractMap<LinkNames, AvailObject> LinkObjects =
-		new EnumMap<LinkNames, AvailObject> (LinkNames.class);
-
+	
 	/* Arithmetic utilities (until a refactor) */
 	static int bitShift (int value, int leftShift)
 	{
-		// Note:  This is an arithmetic shift without an implicit modulus on the shift amount.
+		// Note:  This is a logical shift *without* Java's implicit modulus on
+		// the shift amount.
 		if (leftShift >= 32) return 0;
 		if (leftShift >= 0) return value << leftShift;
 		if (leftShift > -32) return value >>> -leftShift;
@@ -8355,33 +8004,57 @@ public abstract class Descriptor
 
 	/**
 	 * Construct a new {@link Descriptor}.
-	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable Does the {@linkplain Descriptor descriptor} represent a
 	 *            mutable object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
 	protected Descriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+		final boolean isMutable)
 	{
-		this.myId = (short) myId;
+		this.myId = (short)allDescriptors.size();
+		allDescriptors.add(this);
 		this.isMutable = isMutable;
-		this.numberOfFixedObjectSlots = numberOfFixedObjectSlots;
-		this.numberOfFixedIntegerSlots = numberOfFixedIntegerSlots;
-		this.hasVariableObjectSlots = hasVariableObjectSlots;
-		this.hasVariableIntegerSlots = hasVariableIntegerSlots;
+
+		@SuppressWarnings("unchecked")
+		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
+
+		final ObjectSlots objectSlots = cls.getAnnotation(ObjectSlots.class);
+		final String[] objectSlotsValue = (objectSlots == null)
+			? new String[0]
+			: objectSlots.value();
+		if (objectSlots == null || objectSlotsValue.length == 0)
+		{
+			this.numberOfFixedObjectSlots = 0;
+			this.hasVariableObjectSlots = false;
+		}
+		else if (objectSlotsValue[objectSlotsValue.length - 1].matches(".*#"))
+		{
+			this.numberOfFixedObjectSlots = objectSlotsValue.length - 1;
+			this.hasVariableObjectSlots = true;
+		}
+		else
+		{
+			this.numberOfFixedObjectSlots = objectSlotsValue.length;
+			this.hasVariableObjectSlots = false;
+		}
+
+		final IntegerSlots integerSlots = cls.getAnnotation(IntegerSlots.class);
+		final String[] integerSlotsValue = (integerSlots == null)
+			? new String[0]
+			: integerSlots.value();
+		if (integerSlots == null || integerSlotsValue.length == 0)
+		{
+			this.numberOfFixedIntegerSlots = 0;
+			this.hasVariableIntegerSlots = false;
+		}
+		else if (integerSlotsValue[integerSlotsValue.length - 1].matches(".*#"))
+		{
+			this.numberOfFixedIntegerSlots = integerSlotsValue.length - 1;
+			this.hasVariableIntegerSlots = true;
+		}
+		else
+		{
+			this.numberOfFixedIntegerSlots = integerSlotsValue.length;
+			this.hasVariableIntegerSlots = false;
+		}
 	}
 }

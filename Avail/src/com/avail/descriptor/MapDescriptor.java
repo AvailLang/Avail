@@ -749,40 +749,23 @@ public class MapDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected MapDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected MapDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static MapDescriptor mutableDescriptor()
+	final static MapDescriptor mutableDescriptor = new MapDescriptor(true);
+
+	public static MapDescriptor mutableDescriptor ()
 	{
-		return (MapDescriptor) allDescriptors [104];
+		return mutableDescriptor;
 	}
 
-	public static MapDescriptor immutableDescriptor()
+	final static MapDescriptor immutableDescriptor = new MapDescriptor(false);
+
+	public static MapDescriptor immutableDescriptor ()
 	{
-		return (MapDescriptor) allDescriptors [105];
+		return immutableDescriptor;
 	}
 }

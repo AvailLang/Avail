@@ -308,40 +308,23 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ContinuationTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ContinuationTypeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static ContinuationTypeDescriptor mutableDescriptor()
+	final static ContinuationTypeDescriptor mutableDescriptor = new ContinuationTypeDescriptor(true);
+
+	public static ContinuationTypeDescriptor mutableDescriptor ()
 	{
-		return (ContinuationTypeDescriptor) allDescriptors [40];
+		return mutableDescriptor;
 	}
 
-	public static ContinuationTypeDescriptor immutableDescriptor()
+	final static ContinuationTypeDescriptor immutableDescriptor = new ContinuationTypeDescriptor(false);
+
+	public static ContinuationTypeDescriptor immutableDescriptor ()
 	{
-		return (ContinuationTypeDescriptor) allDescriptors [41];
+		return immutableDescriptor;
 	}
 }

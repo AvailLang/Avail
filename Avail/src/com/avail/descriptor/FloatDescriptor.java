@@ -198,40 +198,23 @@ public class FloatDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected FloatDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected FloatDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static FloatDescriptor mutableDescriptor()
+	final static FloatDescriptor mutableDescriptor = new FloatDescriptor(true);
+
+	public static FloatDescriptor mutableDescriptor ()
 	{
-		return (FloatDescriptor) allDescriptors [52];
+		return mutableDescriptor;
 	}
 
-	public static FloatDescriptor immutableDescriptor()
+	final static FloatDescriptor immutableDescriptor = new FloatDescriptor(false);
+
+	public static FloatDescriptor immutableDescriptor ()
 	{
-		return (FloatDescriptor) allDescriptors [53];
+		return immutableDescriptor;
 	}
 }

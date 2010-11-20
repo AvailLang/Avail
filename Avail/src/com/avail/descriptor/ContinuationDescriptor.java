@@ -189,7 +189,7 @@ public class ContinuationDescriptor extends Descriptor
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -490,41 +490,24 @@ public class ContinuationDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ContinuationDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ContinuationDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
 	/* Descriptor lookup */
-	public static ContinuationDescriptor mutableDescriptor()
+	final static ContinuationDescriptor mutableDescriptor = new ContinuationDescriptor(true);
+
+	public static ContinuationDescriptor mutableDescriptor ()
 	{
-		return (ContinuationDescriptor) allDescriptors [38];
+		return mutableDescriptor;
 	}
 
-	public static ContinuationDescriptor immutableDescriptor()
+	final static ContinuationDescriptor immutableDescriptor = new ContinuationDescriptor(false);
+
+	public static ContinuationDescriptor immutableDescriptor ()
 	{
-		return (ContinuationDescriptor) allDescriptors [39];
+		return immutableDescriptor;
 	}
 }

@@ -688,40 +688,23 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected TupleTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected TupleTypeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static TupleTypeDescriptor mutableDescriptor()
+	final static TupleTypeDescriptor mutableDescriptor = new TupleTypeDescriptor(true);
+
+	public static TupleTypeDescriptor mutableDescriptor ()
 	{
-		return (TupleTypeDescriptor) allDescriptors [154];
+		return mutableDescriptor;
 	}
 
-	public static TupleTypeDescriptor immutableDescriptor()
+	final static TupleTypeDescriptor immutableDescriptor = new TupleTypeDescriptor(false);
+
+	public static TupleTypeDescriptor immutableDescriptor ()
 	{
-		return (TupleTypeDescriptor) allDescriptors [155];
+		return immutableDescriptor;
 	}
 }

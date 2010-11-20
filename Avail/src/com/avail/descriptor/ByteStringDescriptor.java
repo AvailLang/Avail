@@ -51,7 +51,7 @@ import static java.lang.Math.*;
 })
 public class ByteStringDescriptor extends TupleDescriptor
 {
-	int _unusedBytesOfLastWord;
+	final int _unusedBytesOfLastWord;
 
 
 	// GENERATED accessors
@@ -375,16 +375,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return 8;
 	}
 
-	void unusedBytesOfLastWord (
-			final int anInteger)
-	{
-		//  Set unusedBytesOfLastWord in this descriptor instance.
 
-		_unusedBytesOfLastWord = anInteger;
-	}
-
-
-
+	
 	// private-computation
 
 	@Override
@@ -446,7 +438,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
 	}
 
-	@Override
+
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{
@@ -487,7 +479,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	static ByteStringDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = flag ? 0 : 1;
-		return (ByteStringDescriptor) allDescriptors [8 + delta + ((size & 3) * 2)];
+		return descriptors[delta + ((size & 3) * 2)];
 	};
 
 	/**
@@ -497,36 +489,30 @@ public class ByteStringDescriptor extends TupleDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 * @param unusedBytes The number of unused bytes of the last word.
 	 */
 	protected ByteStringDescriptor (
-		final int myId,
 		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots,
 		final int unusedBytes)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 		_unusedBytesOfLastWord = unusedBytes;
 	}
 
+	final static ByteStringDescriptor descriptors[] = {
+		new ByteStringDescriptor(true, 0),
+		new ByteStringDescriptor(false, 0),
+		new ByteStringDescriptor(true, 3),
+		new ByteStringDescriptor(false, 3),
+		new ByteStringDescriptor(true, 2),
+		new ByteStringDescriptor(false, 2),
+		new ByteStringDescriptor(true, 1),
+		new ByteStringDescriptor(false, 1)
+	};
+
+
+	
+	
 	// Object creation
 	public static AvailObject mutableObjectFromNativeByteString(String aNativeByteString)
 	{

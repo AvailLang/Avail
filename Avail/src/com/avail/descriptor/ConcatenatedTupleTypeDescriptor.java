@@ -622,40 +622,23 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ConcatenatedTupleTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ConcatenatedTupleTypeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static ConcatenatedTupleTypeDescriptor mutableDescriptor()
+	final static ConcatenatedTupleTypeDescriptor mutableDescriptor = new ConcatenatedTupleTypeDescriptor(true);
+
+	public static ConcatenatedTupleTypeDescriptor mutableDescriptor ()
 	{
-		return (ConcatenatedTupleTypeDescriptor) allDescriptors [32];
+		return mutableDescriptor;
 	}
 
-	public static ConcatenatedTupleTypeDescriptor immutableDescriptor()
+	final static ConcatenatedTupleTypeDescriptor immutableDescriptor = new ConcatenatedTupleTypeDescriptor(false);
+
+	public static ConcatenatedTupleTypeDescriptor immutableDescriptor ()
 	{
-		return (ConcatenatedTupleTypeDescriptor) allDescriptors [33];
+		return immutableDescriptor;
 	}
 }

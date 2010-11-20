@@ -443,7 +443,7 @@ public class ModuleDescriptor extends Descriptor
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 		final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -600,41 +600,24 @@ public class ModuleDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ModuleDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ModuleDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	/* Descriptor lookup */
-	public static ModuleDescriptor mutableDescriptor()
+	final static ModuleDescriptor mutableDescriptor = new ModuleDescriptor(true);
+
+	public static ModuleDescriptor mutableDescriptor ()
 	{
-		return (ModuleDescriptor) allDescriptors [4];
-	};
-	public static ModuleDescriptor immutableDescriptor()
+		return mutableDescriptor;
+	}
+
+	final static ModuleDescriptor immutableDescriptor = new ModuleDescriptor(false);
+
+	public static ModuleDescriptor immutableDescriptor ()
 	{
-		return (ModuleDescriptor) allDescriptors [5];
-	};
+		return immutableDescriptor;
+	}
 
 }

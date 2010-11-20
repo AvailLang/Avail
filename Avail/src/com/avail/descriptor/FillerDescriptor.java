@@ -47,31 +47,10 @@ extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected FillerDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected FillerDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
 	/**
@@ -79,9 +58,11 @@ extends Descriptor
 	 * 
 	 * @return A mutable {@link FillerDescriptor}.
 	 */
-	public static FillerDescriptor mutableDescriptor()
+	final static FillerDescriptor mutableDescriptor = new FillerDescriptor(true);
+
+	public static FillerDescriptor mutableDescriptor ()
 	{
-		return (FillerDescriptor) allDescriptors [50];
+		return mutableDescriptor;
 	}
 
 	/**
@@ -89,8 +70,10 @@ extends Descriptor
 	 * 
 	 * @return An immutable {@link FillerDescriptor}.
 	 */
-	public static FillerDescriptor immutableDescriptor()
+	final static FillerDescriptor immutableDescriptor = new FillerDescriptor(false);
+
+	public static FillerDescriptor immutableDescriptor ()
 	{
-		return (FillerDescriptor) allDescriptors [51];
+		return immutableDescriptor;
 	}
 }

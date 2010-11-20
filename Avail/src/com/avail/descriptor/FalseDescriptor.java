@@ -116,40 +116,23 @@ public class FalseDescriptor extends BooleanDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected FalseDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected FalseDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static FalseDescriptor mutableDescriptor()
+	final static FalseDescriptor mutableDescriptor = new FalseDescriptor(true);
+
+	public static FalseDescriptor mutableDescriptor ()
 	{
-		return (FalseDescriptor) allDescriptors [48];
+		return mutableDescriptor;
 	}
 
-	public static FalseDescriptor immutableDescriptor()
+	final static FalseDescriptor immutableDescriptor = new FalseDescriptor(false);
+
+	public static FalseDescriptor immutableDescriptor ()
 	{
-		return (FalseDescriptor) allDescriptors [49];
+		return immutableDescriptor;
 	}
 }

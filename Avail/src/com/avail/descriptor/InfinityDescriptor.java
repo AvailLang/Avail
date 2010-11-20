@@ -449,40 +449,23 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected InfinityDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected InfinityDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static InfinityDescriptor mutableDescriptor()
+	final static InfinityDescriptor mutableDescriptor = new InfinityDescriptor(true);
+
+	public static InfinityDescriptor mutableDescriptor ()
 	{
-		return (InfinityDescriptor) allDescriptors [76];
+		return mutableDescriptor;
 	}
 
-	public static InfinityDescriptor immutableDescriptor()
+	final static InfinityDescriptor immutableDescriptor = new InfinityDescriptor(false);
+
+	public static InfinityDescriptor immutableDescriptor ()
 	{
-		return (InfinityDescriptor) allDescriptors [77];
+		return immutableDescriptor;
 	}
 }

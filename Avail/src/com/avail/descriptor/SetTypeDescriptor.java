@@ -335,40 +335,23 @@ public class SetTypeDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected SetTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected SetTypeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static SetTypeDescriptor mutableDescriptor()
+	final static SetTypeDescriptor mutableDescriptor = new SetTypeDescriptor(true);
+
+	public static SetTypeDescriptor mutableDescriptor ()
 	{
-		return (SetTypeDescriptor) allDescriptors [144];
+		return mutableDescriptor;
 	}
 
-	public static SetTypeDescriptor immutableDescriptor()
+	final static SetTypeDescriptor immutableDescriptor = new SetTypeDescriptor(false);
+
+	public static SetTypeDescriptor immutableDescriptor ()
 	{
-		return (SetTypeDescriptor) allDescriptors [145];
+		return immutableDescriptor;
 	}
 }

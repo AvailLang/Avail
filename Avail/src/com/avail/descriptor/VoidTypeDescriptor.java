@@ -51,62 +51,6 @@ import com.avail.descriptor.AvailObject;
 public class VoidTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
-	/**
-	 * Construct a new {@link VoidTypeDescriptor}.
-	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
-	 */
-	protected VoidTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
-	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
-	}
-
-	/**
-	 * Answer a mutable {@link VoidTypeDescriptor}.
-	 * 
-	 * @return A mutable {@link VoidTypeDescriptor}.
-	 */
-	@ThreadSafe
-	public static @NotNull VoidTypeDescriptor mutableDescriptor ()
-	{
-		return (VoidTypeDescriptor) allDescriptors[164];
-	}
-
-	/**
-	 * Answer an immutable {@link VoidTypeDescriptor}.
-	 * 
-	 * @return An immutable {@link VoidTypeDescriptor}.
-	 */
-	@ThreadSafe
-	public static @NotNull VoidTypeDescriptor immutableDescriptor ()
-	{
-		return (VoidTypeDescriptor) allDescriptors[165];
-	}
-
 	@Override
 	@ThreadSafe
 	public boolean ObjectIsSubtypeOf (
@@ -135,5 +79,47 @@ extends PrimitiveTypeDescriptor
 	{
 		//  Only void is a supertype of void.
 		return true;
-	};
+	}
+
+
+	/**
+	 * Construct a new {@link VoidTypeDescriptor}.
+	 *
+	 * @param myId The id of the {@linkplain Descriptor descriptor}.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 */
+	protected VoidTypeDescriptor (final boolean isMutable)
+	{
+		super(isMutable);
+	}
+
+
+	final static VoidTypeDescriptor mutableDescriptor = new VoidTypeDescriptor(true);
+
+	/**
+	 * Answer a mutable {@link VoidTypeDescriptor}.
+	 * 
+	 * @return A mutable {@link VoidTypeDescriptor}.
+	 */
+	@ThreadSafe
+	public static VoidTypeDescriptor mutableDescriptor ()
+	{
+		return mutableDescriptor;
+	}
+
+	final static VoidTypeDescriptor immutableDescriptor = new VoidTypeDescriptor(false);
+
+	/**
+	 * Answer an immutable {@link VoidTypeDescriptor}.
+	 * 
+	 * @return An immutable {@link VoidTypeDescriptor}.
+	 */
+	@ThreadSafe
+	public static VoidTypeDescriptor immutableDescriptor ()
+	{
+		return immutableDescriptor;
+	}
+
 }

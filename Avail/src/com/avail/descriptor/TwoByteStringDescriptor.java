@@ -50,7 +50,7 @@ import static java.lang.Math.*;
 })
 public class TwoByteStringDescriptor extends TupleDescriptor
 {
-	int unusedBytesOfLastWord;
+	int unusedShortsOfLastWord;
 
 
 	// GENERATED accessors
@@ -367,9 +367,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	public int ObjectTupleSize (
 			final AvailObject object)
 	{
-		//  Answer the number of elements in the object (as a Smalltalk Integer).
-
-		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots) * 2) - (unusedBytesOfLastWord / 2));
+		//  Answer the number of elements in the object.
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 2
+				- unusedShortsOfLastWord;
 	}
 
 
@@ -385,12 +385,12 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return 16;
 	}
 
-	void unusedBytesOfLastWord (
+	void unusedShortsOfLastWord (
 			final int anInteger)
 	{
-		//  Set unusedBytesOfLastWord in this descriptor instance.  Must be 0 or 2.
-
-		unusedBytesOfLastWord = anInteger;
+		//  Set unusedBytesOfLastWord in this descriptor instance.  Must be 0 or 1.
+		assert 0 <= anInteger && anInteger <= 1;
+		unusedShortsOfLastWord = anInteger;
 	}
 
 
@@ -408,7 +408,10 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = (CharacterDescriptor.computeHashOfCharacterWithCodePoint(object.rawShortForCharacterAt(index)) ^ PreToggle);
+			final int itemHash =
+				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
+					object.rawShortForCharacterAt(index))
+				^ PreToggle;
 			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
 		return TupleDescriptor.multiplierTimes(hash);
@@ -423,7 +426,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer a mutable copy of object that also only holds 16-bit characters.
 
-		final AvailObject result = AvailObject.newIndexedDescriptor(((object.tupleSize() + 1) / 2), TwoByteStringDescriptor.isMutableSize(true, object.tupleSize()));
+		final AvailObject result = AvailObject.newIndexedDescriptor(
+			(object.tupleSize() + 1) >> 1,
+			TwoByteStringDescriptor.isMutableSize(true, object.tupleSize()));
 		assert (result.integerSlotsCount() == object.integerSlotsCount());
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
@@ -449,7 +454,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
-	@Override
+
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{
@@ -460,8 +465,10 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert ((((size * 2) + unusedBytesOfLastWord) & 3) == 0);
-		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 1) / 2), this);
+		assert (((size + unusedShortsOfLastWord) * 2) & 3) == 0;
+		final AvailObject result = AvailObject.newIndexedDescriptor(
+			(size + 1) >> 1,
+			this);
 		return result;
 	}
 
@@ -469,7 +476,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	static TwoByteStringDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = flag ? 0 : 1;
-		return (TwoByteStringDescriptor) allDescriptors [156 + delta + ((size & 1) * 2)];
+		return descriptors [delta + ((size & 1) * 2)];
 	};
 
 
@@ -487,34 +494,23 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
-	 * @param unusedBytesOfLastWord
-	 *        The number of unused bytes of the last word.
+	 * @param unusedShortsOfLastWord
+	 *        The number of unused shorts of the last word.
 	 */
 	protected TwoByteStringDescriptor (
-		final int myId,
 		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots,
-		final int unusedBytesOfLastWord)
+		final int unusedShortsOfLastWord)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
-		this.unusedBytesOfLastWord = unusedBytesOfLastWord;
+		super(isMutable);
+		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
 	}
+
+
+	final static TwoByteStringDescriptor descriptors[] = {
+		new TwoByteStringDescriptor(true, 0),
+		new TwoByteStringDescriptor(false, 0),
+		new TwoByteStringDescriptor(true, 1),
+		new TwoByteStringDescriptor(false, 1)
+	};
+
 }

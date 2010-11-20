@@ -256,41 +256,24 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ContainerTypeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ContainerTypeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
 	/* Descriptor lookup */
-	public static ContainerTypeDescriptor mutableDescriptor()
+	final static ContainerTypeDescriptor mutableDescriptor = new ContainerTypeDescriptor(true);
+
+	public static ContainerTypeDescriptor mutableDescriptor ()
 	{
-		return (ContainerTypeDescriptor) allDescriptors [36];
+		return mutableDescriptor;
 	}
 
-	public static ContainerTypeDescriptor immutableDescriptor()
+	final static ContainerTypeDescriptor immutableDescriptor = new ContainerTypeDescriptor(false);
+
+	public static ContainerTypeDescriptor immutableDescriptor ()
 	{
-		return (ContainerTypeDescriptor) allDescriptors [37];
+		return immutableDescriptor;
 	}
 }

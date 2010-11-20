@@ -118,7 +118,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -353,40 +353,23 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected UnexpandedMessageBundleTreeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected UnexpandedMessageBundleTreeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static UnexpandedMessageBundleTreeDescriptor mutableDescriptor()
+	final static UnexpandedMessageBundleTreeDescriptor mutableDescriptor = new UnexpandedMessageBundleTreeDescriptor(true);
+
+	public static UnexpandedMessageBundleTreeDescriptor mutableDescriptor ()
 	{
-		return (UnexpandedMessageBundleTreeDescriptor) allDescriptors [160];
+		return mutableDescriptor;
 	}
 
-	public static UnexpandedMessageBundleTreeDescriptor immutableDescriptor()
+	final static UnexpandedMessageBundleTreeDescriptor immutableDescriptor = new UnexpandedMessageBundleTreeDescriptor(false);
+
+	public static UnexpandedMessageBundleTreeDescriptor immutableDescriptor ()
 	{
-		return (UnexpandedMessageBundleTreeDescriptor) allDescriptors [161];
+		return immutableDescriptor;
 	}
 }

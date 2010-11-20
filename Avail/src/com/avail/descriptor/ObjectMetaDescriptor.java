@@ -242,40 +242,23 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ObjectMetaDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ObjectMetaDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static ObjectMetaDescriptor mutableDescriptor()
+	final static ObjectMetaDescriptor mutableDescriptor = new ObjectMetaDescriptor(true);
+
+	public static ObjectMetaDescriptor mutableDescriptor ()
 	{
-		return (ObjectMetaDescriptor) allDescriptors [130];
+		return mutableDescriptor;
 	}
 
-	public static ObjectMetaDescriptor immutableDescriptor()
+	final static ObjectMetaDescriptor immutableDescriptor = new ObjectMetaDescriptor(false);
+
+	public static ObjectMetaDescriptor immutableDescriptor ()
 	{
-		return (ObjectMetaDescriptor) allDescriptors [131];
+		return immutableDescriptor;
 	}
 }

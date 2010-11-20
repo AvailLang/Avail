@@ -304,7 +304,7 @@ public class L2ChunkDescriptor extends Descriptor
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -787,40 +787,23 @@ public class L2ChunkDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected L2ChunkDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected L2ChunkDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static L2ChunkDescriptor mutableDescriptor()
+	final static L2ChunkDescriptor mutableDescriptor = new L2ChunkDescriptor(true);
+
+	public static L2ChunkDescriptor mutableDescriptor ()
 	{
-		return (L2ChunkDescriptor) allDescriptors [82];
+		return mutableDescriptor;
 	}
 
-	public static L2ChunkDescriptor immutableDescriptor()
+	final static L2ChunkDescriptor immutableDescriptor = new L2ChunkDescriptor(false);
+
+	public static L2ChunkDescriptor immutableDescriptor ()
 	{
-		return (L2ChunkDescriptor) allDescriptors [83];
+		return immutableDescriptor;
 	}
 }

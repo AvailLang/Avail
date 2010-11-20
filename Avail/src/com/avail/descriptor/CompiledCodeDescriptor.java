@@ -229,7 +229,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -589,40 +589,23 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected CompiledCodeDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected CompiledCodeDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static CompiledCodeDescriptor mutableDescriptor()
+	final static CompiledCodeDescriptor mutableDescriptor = new CompiledCodeDescriptor(true);
+
+	public static CompiledCodeDescriptor mutableDescriptor ()
 	{
-		return (CompiledCodeDescriptor) allDescriptors [30];
+		return mutableDescriptor;
 	}
 
-	public static CompiledCodeDescriptor immutableDescriptor()
+	final static CompiledCodeDescriptor immutableDescriptor = new CompiledCodeDescriptor(false);
+
+	public static CompiledCodeDescriptor immutableDescriptor ()
 	{
-		return (CompiledCodeDescriptor) allDescriptors [31];
+		return immutableDescriptor;
 	}
 }

@@ -118,7 +118,7 @@ public class ContainerDescriptor extends Descriptor
 	// GENERATED special mutable slots
 
 	@Override
-	boolean allowsImmutableToMutableReferenceAtByteIndex (
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
 		//  GENERATED special mutable slots method.
@@ -292,40 +292,23 @@ public class ContainerDescriptor extends Descriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected ContainerDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected ContainerDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static ContainerDescriptor mutableDescriptor()
+	final static ContainerDescriptor mutableDescriptor = new ContainerDescriptor(true);
+
+	public static ContainerDescriptor mutableDescriptor ()
 	{
-		return (ContainerDescriptor) allDescriptors [34];
+		return mutableDescriptor;
 	}
 
-	public static ContainerDescriptor immutableDescriptor()
+	final static ContainerDescriptor immutableDescriptor = new ContainerDescriptor(false);
+
+	public static ContainerDescriptor immutableDescriptor ()
 	{
-		return (ContainerDescriptor) allDescriptors [35];
+		return immutableDescriptor;
 	}
 }

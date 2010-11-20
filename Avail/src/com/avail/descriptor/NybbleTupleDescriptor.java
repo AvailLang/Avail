@@ -512,7 +512,6 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// private-initialization
 
-	@Override
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{
@@ -532,44 +531,43 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	public static NybbleTupleDescriptor isMutableSize(boolean flag, int size)
 	{
 		int delta = flag ? 0 : 1;
-		return (NybbleTupleDescriptor) allDescriptors [112 + delta + ((size & 7) * 2)];
-	}
+		return descriptors[(size & 7) * 2 + delta];
+	};
 
 	/**
-	 * Construct a new {@link NybbleTupleDescriptor}.
+	 * Construct a new {@link ByteTupleDescriptor}.
 	 *
 	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
-	 * @param unusedNybblesOfLastWord
-	 *        The number of unused nybbles of the last word.
+	 * @param unusedNybbles The number of unused nybbles of the last word.
 	 */
 	protected NybbleTupleDescriptor (
-		final int myId,
 		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots,
-		final int unusedNybblesOfLastWord)
+		final int unusedNybbles)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
-		this.unusedNybblesOfLastWord = unusedNybblesOfLastWord;
+		super(isMutable);
+		unusedNybblesOfLastWord = unusedNybbles;
 	}
+
+	final static NybbleTupleDescriptor descriptors[] = {
+		new NybbleTupleDescriptor(true, 0),
+		new NybbleTupleDescriptor(false, 0),
+		new NybbleTupleDescriptor(true, 7),
+		new NybbleTupleDescriptor(false, 7),
+		new NybbleTupleDescriptor(true, 6),
+		new NybbleTupleDescriptor(false, 6),
+		new NybbleTupleDescriptor(true, 5),
+		new NybbleTupleDescriptor(false, 5),
+		new NybbleTupleDescriptor(true, 4),
+		new NybbleTupleDescriptor(false, 4),
+		new NybbleTupleDescriptor(true, 3),
+		new NybbleTupleDescriptor(false, 3),
+		new NybbleTupleDescriptor(true, 2),
+		new NybbleTupleDescriptor(false, 2),
+		new NybbleTupleDescriptor(true, 1),
+		new NybbleTupleDescriptor(false, 1)
+	};
+
 }

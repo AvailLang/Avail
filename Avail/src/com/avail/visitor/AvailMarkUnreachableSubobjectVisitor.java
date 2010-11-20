@@ -37,7 +37,7 @@ import static com.avail.descriptor.AvailObject.*;
 
 public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 {
-	AvailObject _exceptMe;
+	final AvailObject _exceptMe;
 
 
 	// iteration
@@ -71,9 +71,6 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 		//  Indicate the object is no longer valid and should not ever be used again.
 		subobject.setToInvalidDescriptor();
 	}
-
-
-
 
 
 	public AvailMarkUnreachableSubobjectVisitor (AvailObject excludedObject)

@@ -150,40 +150,23 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
-	 * @param numberOfFixedObjectSlots
-	 *        The number of fixed {@linkplain AvailObject object} slots.
-	 * @param numberOfFixedIntegerSlots The number of fixed integer slots.
-	 * @param hasVariableObjectSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable object slots?
-	 * @param hasVariableIntegerSlots
-	 *        Does an {@linkplain AvailObject object} using this {@linkplain
-	 *        Descriptor} have any variable integer slots?
 	 */
-	protected TerminatesMetaDescriptor (
-		final int myId,
-		final boolean isMutable,
-		final int numberOfFixedObjectSlots,
-		final int numberOfFixedIntegerSlots,
-		final boolean hasVariableObjectSlots,
-		final boolean hasVariableIntegerSlots)
+	protected TerminatesMetaDescriptor (final boolean isMutable)
 	{
-		super(
-			myId,
-			isMutable,
-			numberOfFixedObjectSlots,
-			numberOfFixedIntegerSlots,
-			hasVariableObjectSlots,
-			hasVariableIntegerSlots);
+		super(isMutable);
 	}
 
-	public static TerminatesMetaDescriptor mutableDescriptor()
+	final static TerminatesMetaDescriptor mutableDescriptor = new TerminatesMetaDescriptor(true);
+
+	public static TerminatesMetaDescriptor mutableDescriptor ()
 	{
-		return (TerminatesMetaDescriptor) allDescriptors [148];
+		return mutableDescriptor;
 	}
 
-	public static TerminatesMetaDescriptor immutableDescriptor()
+	final static TerminatesMetaDescriptor immutableDescriptor = new TerminatesMetaDescriptor(false);
+
+	public static TerminatesMetaDescriptor immutableDescriptor ()
 	{
-		return (TerminatesMetaDescriptor) allDescriptors [149];
+		return immutableDescriptor;
 	}
 }

@@ -37,7 +37,7 @@ import java.lang.Cloneable;
 
 public class L2Register implements Cloneable
 {
-	L2RegisterIdentity _identity = new L2RegisterIdentity();
+	final L2RegisterIdentity _identity = new L2RegisterIdentity();
 	boolean _isLast = false;
 	boolean _knowsIsLast = false;
 
@@ -54,13 +54,6 @@ public class L2Register implements Cloneable
 	public L2RegisterIdentity identity ()
 	{
 		return _identity;
-	}
-
-	public void identity (
-			final L2RegisterIdentity anL2RegisterIdentity)
-	{
-
-		_identity = anL2RegisterIdentity;
 	}
 
 	public boolean isLastUse ()
