@@ -98,7 +98,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// operations
 
-	boolean ObjectCompareFromToWithStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -128,7 +129,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectCompareFromToWithByteStringStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -154,7 +156,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectCompareFromToWithByteTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithByteTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -180,7 +183,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectCompareFromToWithNybbleTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -210,7 +214,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectCompareFromToWithObjectTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -240,7 +245,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -249,7 +255,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return another.equalsAnyTuple(object);
 	}
 
-	boolean ObjectEqualsAnyTuple (
+	@Override
+	public boolean ObjectEqualsAnyTuple (
 			final AvailObject object, 
 			final AvailObject anotherTuple)
 	{
@@ -293,7 +300,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -320,7 +328,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// operations-splice tuples
 
-	int ObjectEndOfZone (
+	@Override
+	public int ObjectEndOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -329,7 +338,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object.integerSlotAtByteIndex((((zone * 2) + numberOfFixedIntegerSlots) * 4));
 	}
 
-	int ObjectEndSubtupleIndexInZone (
+	@Override
+	public int ObjectEndSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -338,7 +348,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return ((object.integerSlotAtByteIndex(((((zone * 2) - 1) + numberOfFixedIntegerSlots) * 4)) + object.sizeOfZone(zone)) - 1);
 	}
 
-	AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+	@Override
+	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 			final AvailObject object, 
 			final int zone, 
 			final AvailObject newSubtuple, 
@@ -355,7 +366,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object;
 	}
 
-	void ObjectSetSubtupleForZoneTo (
+	@Override
+	public void ObjectSetSubtupleForZoneTo (
 			final AvailObject object, 
 			final int zoneIndex, 
 			final AvailObject newTuple)
@@ -367,7 +379,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		object.objectSlotAtByteIndexPut(((zoneIndex + numberOfFixedObjectSlots) * -4), newTuple);
 	}
 
-	int ObjectSizeOfZone (
+	@Override
+	public int ObjectSizeOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -380,7 +393,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return (object.integerSlotAtByteIndex((((zone * 2) + numberOfFixedIntegerSlots) * 4)) - object.integerSlotAtByteIndex(((((zone * 2) - 2) + numberOfFixedIntegerSlots) * 4)));
 	}
 
-	int ObjectStartOfZone (
+	@Override
+	public int ObjectStartOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -393,7 +407,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return (object.integerSlotAtByteIndex(((((zone * 2) - 2) + numberOfFixedIntegerSlots) * 4)) + 1);
 	}
 
-	int ObjectStartSubtupleIndexInZone (
+	@Override
+	public int ObjectStartSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -402,7 +417,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object.integerSlotAtByteIndex(((((zone * 2) - 1) + numberOfFixedIntegerSlots) * 4));
 	}
 
-	AvailObject ObjectSubtupleForZone (
+	@Override
+	public AvailObject ObjectSubtupleForZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -411,7 +427,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object.objectSlotAtByteIndex(((zone + numberOfFixedObjectSlots) * -4));
 	}
 
-	int ObjectTranslateToZone (
+	@Override
+	public int ObjectTranslateToZone (
 			final AvailObject object, 
 			final int tupleIndex, 
 			final int zoneIndex)
@@ -421,7 +438,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return ((tupleIndex - object.startOfZone(zoneIndex)) + object.startSubtupleIndexInZone(zoneIndex));
 	}
 
-	int ObjectZoneForIndex (
+	@Override
+	public int ObjectZoneForIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -444,7 +462,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return high;
 	}
 
-	int ObjectNumberOfZones (
+	@Override
+	public int ObjectNumberOfZones (
 			final AvailObject object)
 	{
 		//  Answer the number of zones in the splice tuple.
@@ -456,7 +475,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// operations-tuples
 
-	AvailObject ObjectCopyTupleFromToCanDestroy (
+	@Override
+	public AvailObject ObjectCopyTupleFromToCanDestroy (
 			final AvailObject object, 
 			final int start, 
 			final int end, 
@@ -501,7 +521,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return result;
 	}
 
-	AvailObject ObjectTupleAt (
+	@Override
+	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -516,7 +537,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object.subtupleForZone(zoneIndex).tupleAt(object.translateToZone(index, zoneIndex));
 	}
 
-	void ObjectTupleAtPut (
+	@Override
+	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject anObject)
@@ -528,7 +550,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return;
 	}
 
-	AvailObject ObjectTupleAtPuttingCanDestroy (
+	@Override
+	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject newValueObject, 
@@ -555,7 +578,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object;
 	}
 
-	int ObjectTupleIntAt (
+	@Override
+	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -570,7 +594,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return object.subtupleForZone(zoneIndex).tupleIntAt(object.translateToZone(index, zoneIndex));
 	}
 
-	int ObjectTupleSize (
+	@Override
+	public int ObjectTupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
@@ -582,7 +607,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// private-accessing
 
-	int ObjectBitsPerEntry (
+	@Override
+	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -591,7 +617,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		return 33;
 	}
 
-	boolean ObjectIsSplice (
+	@Override
+	public boolean ObjectIsSplice (
 			final AvailObject object)
 	{
 		return true;
@@ -601,7 +628,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// private-computation
 
-	int ObjectComputeHashFromTo (
+	@Override
+	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -629,7 +657,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// private-copying
 
-	AvailObject ObjectCopyAsMutableSpliceTuple (
+	@Override
+	public AvailObject ObjectCopyAsMutableSpliceTuple (
 			final AvailObject object)
 	{
 		//  Answer a mutable copy of object that also only holds bytes.
@@ -660,7 +689,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	// private-verification
 
-	void ObjectVerify (
+	@Override
+	public void ObjectVerify (
 			final AvailObject object)
 	{
 		//  Make sure the object contains no empty zones.

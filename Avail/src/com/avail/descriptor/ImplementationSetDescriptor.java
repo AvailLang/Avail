@@ -61,71 +61,87 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectDependentChunks (
+	/**
+	 * Setter for field !D!ependentChunks.
+	 */
+	@Override
+	public void ObjectDependentChunks (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	void ObjectImplementationsTuple (
+	/**
+	 * Setter for field !I!mplementationsTuple.
+	 */
+	@Override
+	public void ObjectImplementationsTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectName (
+	/**
+	 * Setter for field !N!ame.
+	 */
+	@Override
+	public void ObjectName (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-16, value);
 	}
 
-	void ObjectPrivateTestingTree (
+	/**
+	 * Setter for field !P!rivateTestingTree.
+	 */
+	@Override
+	public void ObjectPrivateTestingTree (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	AvailObject ObjectDependentChunks (
+	/**
+	 * Getter for field !D!ependentChunks.
+	 */
+	@Override
+	public AvailObject ObjectDependentChunks (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
-	AvailObject ObjectImplementationsTuple (
+	/**
+	 * Getter for field !I!mplementationsTuple.
+	 */
+	@Override
+	public AvailObject ObjectImplementationsTuple (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectName (
+	/**
+	 * Getter for field !N!ame.
+	 */
+	@Override
+	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-16);
 	}
 
-	AvailObject ObjectPrivateTestingTree (
+	/**
+	 * Getter for field !P!rivateTestingTree.
+	 */
+	@Override
+	public AvailObject ObjectPrivateTestingTree (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -133,6 +149,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -157,6 +174,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -173,7 +191,8 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -182,7 +201,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -190,7 +210,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return Types.implementationSet.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.  The hash can just depend on
@@ -200,7 +221,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return (object.name().hash() + 0x61AF3FC);
 	}
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to
@@ -215,7 +237,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return object;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -227,7 +250,8 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	// operations-implementation sets
 
-	void ObjectAddDependentChunkId (
+	@Override
+	public void ObjectAddDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
 	{
@@ -237,7 +261,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.dependentChunks(object.dependentChunks().setWithElementCanDestroy(IntegerDescriptor.objectFromInt(aChunkIndex), true));
 	}
 
-	void ObjectAddImplementation (
+	@Override
+	public void ObjectAddImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
 	{
@@ -260,7 +285,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
-	AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
+	@Override
+	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object, 
 			final AvailObject positiveTuple, 
 			final AvailObject possibilities)
@@ -449,7 +475,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return result;
 	}
 
-	List<AvailObject> ObjectFilterByTypes (
+	@Override
+	public List<AvailObject> ObjectFilterByTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
 	{
@@ -470,7 +497,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return result;
 	}
 
-	ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
+	@Override
+	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
 	{
@@ -499,7 +527,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return result;
 	}
 
-	boolean ObjectIncludes (
+	@Override
+	public boolean ObjectIncludes (
 			final AvailObject object, 
 			final AvailObject imp)
 	{
@@ -516,7 +545,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return false;
 	}
 
-	AvailObject ObjectLookupByTypesFromArray (
+	@Override
+	public AvailObject ObjectLookupByTypesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentTypeArray)
 	{
@@ -546,7 +576,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-	AvailObject ObjectLookupByTypesFromContinuationStackp (
+	@Override
+	public AvailObject ObjectLookupByTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
@@ -578,7 +609,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-	AvailObject ObjectLookupByTypesFromTuple (
+	@Override
+	public AvailObject ObjectLookupByTypesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTypeTuple)
 	{
@@ -609,7 +641,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-	AvailObject ObjectLookupByValuesFromArray (
+	@Override
+	public AvailObject ObjectLookupByValuesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentArray)
 	{
@@ -639,7 +672,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-	AvailObject ObjectLookupByValuesFromContinuationStackp (
+	@Override
+	public AvailObject ObjectLookupByValuesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
@@ -671,7 +705,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-	AvailObject ObjectLookupByValuesFromTuple (
+	@Override
+	public AvailObject ObjectLookupByValuesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTuple)
 	{
@@ -703,7 +738,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-	void ObjectRemoveDependentChunkId (
+	@Override
+	public void ObjectRemoveDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
 	{
@@ -715,7 +751,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.dependentChunks(object.dependentChunks().setWithoutElementCanDestroy(IntegerDescriptor.objectFromInt(aChunkIndex), true));
 	}
 
-	void ObjectRemoveImplementation (
+	@Override
+	public void ObjectRemoveImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
 	{
@@ -738,7 +775,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
-	AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
+	@Override
+	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter, 
@@ -754,6 +792,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			{
 				failBlock.value(new Generator<String> ()
 				{
+					@Override
 					public String value()
 					{
 						return "argument #" + Integer.toString(finalIndex) + " of message \"" + object.name().name().asNativeString() + "\" to have a type other than terminates";
@@ -799,6 +838,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		{
 			failBlock.value(new Generator<String> ()
 			{
+				@Override
 				public String value()
 				{
 					final AvailObject implementationsTuple = object.implementationsTuple();
@@ -853,7 +893,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return mostSpecific.value.get(0).computeReturnTypeFromArgumentTypesInterpreter(argTypes, anAvailInterpreter);
 	}
 
-	short ObjectNumArgs (
+	@Override
+	public short ObjectNumArgs (
 			final AvailObject object)
 	{
 		//  Answer how many arguments my implementations require.
@@ -862,7 +903,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		return object.implementationsTuple().tupleAt(1).bodySignature().numArgs();
 	}
 
-	AvailObject ObjectTestingTree (
+	@Override
+	public AvailObject ObjectTestingTree (
 			final AvailObject object)
 	{
 		//  Answer the cached privateTestingTree.  If there's a voidObject in that slot,

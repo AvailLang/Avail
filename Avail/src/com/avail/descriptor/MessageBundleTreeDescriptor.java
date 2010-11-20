@@ -41,14 +41,16 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -56,7 +58,8 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 		return Types.messageBundleTree.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -67,7 +70,8 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

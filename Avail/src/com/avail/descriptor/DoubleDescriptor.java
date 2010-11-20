@@ -48,37 +48,45 @@ public class DoubleDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectRawQuad1 (
+	/**
+	 * Setter for field !R!awQuad1.
+	 */
+	@Override
+	public void ObjectRawQuad1 (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectRawQuad2 (
+	/**
+	 * Setter for field !R!awQuad2.
+	 */
+	@Override
+	public void ObjectRawQuad2 (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
-	int ObjectRawQuad1 (
+	/**
+	 * Getter for field !R!awQuad1.
+	 */
+	@Override
+	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	int ObjectRawQuad2 (
+	/**
+	 * Getter for field !R!awQuad2.
+	 */
+	@Override
+	public int ObjectRawQuad2 (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
@@ -86,6 +94,7 @@ public class DoubleDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -99,14 +108,16 @@ public class DoubleDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsDouble(object);
 	}
 
-	boolean ObjectEqualsDouble (
+	@Override
+	public boolean ObjectEqualsDouble (
 			final AvailObject object, 
 			final AvailObject aDoubleObject)
 	{
@@ -118,13 +129,15 @@ public class DoubleDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		return Types.doubleObject.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
@@ -133,7 +146,8 @@ public class DoubleDescriptor extends Descriptor
 		return ((object.rawQuad1() ^ 0x16AE2BFD) - (object.rawQuad2() ^ 0x7C453FD));
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		return Types.doubleObject.object();
@@ -143,7 +157,8 @@ public class DoubleDescriptor extends Descriptor
 
 	// operations-doubles
 
-	double ObjectExtractDouble (
+	@Override
+	public double ObjectExtractDouble (
 			final AvailObject object)
 	{
 		//  Extract a Smalltalk Double from object.

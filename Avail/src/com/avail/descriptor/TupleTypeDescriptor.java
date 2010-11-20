@@ -52,54 +52,66 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectDefaultType (
+	/**
+	 * Setter for field !D!efaultType.
+	 */
+	@Override
+	public void ObjectDefaultType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	void ObjectSizeRange (
+	/**
+	 * Setter for field !S!izeRange.
+	 */
+	@Override
+	public void ObjectSizeRange (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectTypeTuple (
+	/**
+	 * Setter for field !T!ypeTuple.
+	 */
+	@Override
+	public void ObjectTypeTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	AvailObject ObjectDefaultType (
+	/**
+	 * Getter for field !D!efaultType.
+	 */
+	@Override
+	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
-	AvailObject ObjectSizeRange (
+	/**
+	 * Getter for field !S!izeRange.
+	 */
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectTypeTuple (
+	/**
+	 * Getter for field !T!ypeTuple.
+	 */
+	@Override
+	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -107,6 +119,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -181,14 +194,16 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsTupleType(object);
 	}
 
-	boolean ObjectEqualsTupleType (
+	@Override
+	public boolean ObjectEqualsTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -209,7 +224,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return object.typeTuple().equals(aTupleType.typeTuple());
 	}
 
-	boolean ObjectIsBetterRepresentationThan (
+	@Override
+	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
 	{
@@ -219,7 +235,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return !anotherObject.isBetterRepresentationThanTupleType(object);
 	}
 
-	boolean ObjectIsBetterRepresentationThanTupleType (
+	@Override
+	public boolean ObjectIsBetterRepresentationThanTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -230,7 +247,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -238,7 +256,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return Types.tupleType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -250,7 +269,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			object.defaultType().hash());
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -273,7 +293,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -285,7 +306,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	// operations-tuple types
 
-	AvailObject ObjectTypeAtIndex (
+	@Override
+	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -309,7 +331,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return object.defaultType();
 	}
 
-	AvailObject ObjectUnionOfTypesAtThrough (
+	@Override
+	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -348,7 +371,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -357,7 +381,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfTupleType(object);
 	}
 
-	boolean ObjectIsSupertypeOfTupleType (
+	@Override
+	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -407,7 +432,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -424,7 +450,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfTupleType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -484,7 +511,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			newDefault.makeImmutable());
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -501,7 +529,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfTupleType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -541,7 +570,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			newDefault.makeImmutable());
 	}
 
-	boolean ObjectIsTupleType (
+	@Override
+	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
 		//  I am a tupleType, so answer true.

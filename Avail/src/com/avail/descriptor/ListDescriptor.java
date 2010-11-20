@@ -46,20 +46,24 @@ public class ListDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectTuple (
+	/**
+	 * Setter for field !T!uple.
+	 */
+	@Override
+	public void ObjectTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectTuple (
+	/**
+	 * Getter for field !T!uple.
+	 */
+	@Override
+	public AvailObject ObjectTuple (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -67,6 +71,7 @@ public class ListDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -85,14 +90,16 @@ public class ListDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsList(object);
 	}
 
-	boolean ObjectEqualsList (
+	@Override
+	public boolean ObjectEqualsList (
 			final AvailObject object, 
 			final AvailObject aList)
 	{
@@ -104,7 +111,8 @@ public class ListDescriptor extends Descriptor
 		return object.tuple().equals(aList.tuple());
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -123,7 +131,8 @@ public class ListDescriptor extends Descriptor
 		return object.tuple().isInstanceOfSubtypeOf(aType.tupleType());
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -131,7 +140,8 @@ public class ListDescriptor extends Descriptor
 		return ListTypeDescriptor.listTypeForTupleType(object.tuple().type());
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash.
@@ -139,7 +149,8 @@ public class ListDescriptor extends Descriptor
 		return ((object.tuple().hash() + 0x3622137) ^ 0x7896120);
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -150,7 +161,8 @@ public class ListDescriptor extends Descriptor
 		return object.tuple().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -162,7 +174,8 @@ public class ListDescriptor extends Descriptor
 
 	// operations-lists
 
-	boolean ObjectIsList (
+	@Override
+	public boolean ObjectIsList (
 			final AvailObject object)
 	{
 		return true;

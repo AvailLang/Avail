@@ -56,61 +56,74 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectClosureType (
+	/**
+	 * Setter for field !C!losureType.
+	 */
+	@Override
+	public void ObjectClosureType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectHash (
+	/**
+	 * Setter for field !H!ash.
+	 */
+	@Override
+	public void ObjectHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectHiNumLocalsLowNumArgs (
+	/**
+	 * Setter for field !H!iNumLocalsLowNumArgs.
+	 */
+	@Override
+	public void ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
-	void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	/**
+	 * Setter for field !H!iPrimitiveLowNumArgsAndLocalsAndStack.
+	 */
+	@Override
+	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
-	void ObjectHiStartingChunkIndexLowNumOuters (
+	/**
+	 * Setter for field !H!iStartingChunkIndexLowNumOuters.
+	 */
+	@Override
+	public void ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(16, value);
 	}
 
-	void ObjectInvocationCount (
+	/**
+	 * Setter for field !I!nvocationCount.
+	 */
+	@Override
+	public void ObjectInvocationCount (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(20, value);
 	}
 
-	AvailObject ObjectLiteralAt (
+	@Override
+	public AvailObject ObjectLiteralAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -119,7 +132,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return object.objectSlotAtByteIndex(((index * -4) + -8));
 	}
 
-	void ObjectLiteralAtPut (
+	@Override
+	public void ObjectLiteralAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -129,68 +143,84 @@ public class CompiledCodeDescriptor extends Descriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + -8), value);
 	}
 
-	void ObjectNybbles (
+	/**
+	 * Setter for field !N!ybbles.
+	 */
+	@Override
+	public void ObjectNybbles (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectClosureType (
+	/**
+	 * Getter for field !C!losureType.
+	 */
+	@Override
+	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	int ObjectHash (
+	/**
+	 * Getter for field !H!ash.
+	 */
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	int ObjectHiNumLocalsLowNumArgs (
+	/**
+	 * Getter for field !H!iNumLocalsLowNumArgs.
+	 */
+	@Override
+	public int ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(12);
 	}
 
-	int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	/**
+	 * Getter for field !H!iPrimitiveLowNumArgsAndLocalsAndStack.
+	 */
+	@Override
+	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
-	int ObjectHiStartingChunkIndexLowNumOuters (
+	/**
+	 * Getter for field !H!iStartingChunkIndexLowNumOuters.
+	 */
+	@Override
+	public int ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(16);
 	}
 
-	int ObjectInvocationCount (
+	/**
+	 * Getter for field !I!nvocationCount.
+	 */
+	@Override
+	public int ObjectInvocationCount (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(20);
 	}
 
-	AvailObject ObjectNybbles (
+	/**
+	 * Getter for field !N!ybbles.
+	 */
+	@Override
+	public AvailObject ObjectNybbles (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -198,6 +228,7 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -218,14 +249,16 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsCompiledCode(object);
 	}
 
-	boolean ObjectEqualsCompiledCode (
+	@Override
+	public boolean ObjectEqualsCompiledCode (
 			final AvailObject object, 
 			final AvailObject aCompiledCode)
 	{
@@ -272,7 +305,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -280,7 +314,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return Types.compiledCode.object();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -292,7 +327,8 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	// operations-closure
 
-	boolean ObjectContainsBlock (
+	@Override
+	public boolean ObjectContainsBlock (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
@@ -316,7 +352,8 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	// operations-code
 
-	void ObjectArgsLocalsStackOutersPrimitive (
+	@Override
+	public void ObjectArgsLocalsStackOutersPrimitive (
 			final AvailObject object, 
 			final int args, 
 			final int locals, 
@@ -337,7 +374,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		object.hiStartingChunkIndexLowNumOuters(outers);
 	}
 
-	AvailObject ObjectLocalTypeAt (
+	@Override
+	public AvailObject ObjectLocalTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -345,7 +383,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return object.literalAt(((object.numLiterals() - object.numLocals()) + index));
 	}
 
-	AvailObject ObjectOuterTypeAt (
+	@Override
+	public AvailObject ObjectOuterTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -353,7 +392,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return object.literalAt((((object.numLiterals() - object.numLocals()) - object.numOuters()) + index));
 	}
 
-	void ObjectOuterTypesLocalTypes (
+	@Override
+	public void ObjectOuterTypesLocalTypes (
 			final AvailObject object, 
 			final AvailObject tupleOfOuterTypes, 
 			final AvailObject tupleOfLocalContainerTypes)
@@ -377,26 +417,30 @@ public class CompiledCodeDescriptor extends Descriptor
 		}
 	}
 
-	void ObjectStartingChunkIndex (
+	@Override
+	public void ObjectStartingChunkIndex (
 			final AvailObject object, 
 			final int value)
 	{
 		object.hiStartingChunkIndexLowNumOuters(((object.hiStartingChunkIndexLowNumOuters() & 0xFFFF) + (value << 16)));
 	}
 
-	short ObjectMaxStackDepth (
+	@Override
+	public short ObjectMaxStackDepth (
 			final AvailObject object)
 	{
 		return ((short)(((object.numArgsAndLocalsAndStack() - object.numArgs()) - object.numLocals())));
 	}
 
-	short ObjectNumArgs (
+	@Override
+	public short ObjectNumArgs (
 			final AvailObject object)
 	{
 		return ((short)((object.hiNumLocalsLowNumArgs() & 0xFFFF)));
 	}
 
-	short ObjectNumArgsAndLocalsAndStack (
+	@Override
+	public short ObjectNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
 		//  Answer the number of args + locals + stack slots to reserve in my continuations.
@@ -404,7 +448,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return ((short)((object.hiPrimitiveLowNumArgsAndLocalsAndStack() & 0xFFFF)));
 	}
 
-	short ObjectNumLiterals (
+	@Override
+	public short ObjectNumLiterals (
 			final AvailObject object)
 	{
 		//  Answer how many literals I have.
@@ -412,19 +457,22 @@ public class CompiledCodeDescriptor extends Descriptor
 		return ((short)((object.objectSlotsCount() - numberOfFixedObjectSlots)));
 	}
 
-	short ObjectNumLocals (
+	@Override
+	public short ObjectNumLocals (
 			final AvailObject object)
 	{
 		return ((short)((object.hiNumLocalsLowNumArgs() >>> 16)));
 	}
 
-	short ObjectNumOuters (
+	@Override
+	public short ObjectNumOuters (
 			final AvailObject object)
 	{
 		return ((short)((object.hiStartingChunkIndexLowNumOuters() & 0xFFFF)));
 	}
 
-	short ObjectPrimitiveNumber (
+	@Override
+	public short ObjectPrimitiveNumber (
 			final AvailObject object)
 	{
 		//  Answer the primitive number I should try before falling back on
@@ -433,7 +481,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		return ((short)((object.hiPrimitiveLowNumArgsAndLocalsAndStack() >>> 16)));
 	}
 
-	int ObjectStartingChunkIndex (
+	@Override
+	public int ObjectStartingChunkIndex (
 			final AvailObject object)
 	{
 		return (object.hiStartingChunkIndexLowNumOuters() >>> 16);
@@ -443,7 +492,8 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	// operations-faulting
 
-	void ObjectPostFault (
+	@Override
+	public void ObjectPostFault (
 			final AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.

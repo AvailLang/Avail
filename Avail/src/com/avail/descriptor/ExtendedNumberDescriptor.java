@@ -38,14 +38,16 @@ public abstract class ExtendedNumberDescriptor extends Descriptor
 {
 	// operations
 
-	boolean ObjectLessOrEqual (
+	@Override
+	public boolean ObjectLessOrEqual (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return !another.lessThan(object);
 	}
 
-	boolean ObjectIsExtendedInteger (
+	@Override
+	public boolean ObjectIsExtendedInteger (
 			final AvailObject object)
 	{
 		return true;

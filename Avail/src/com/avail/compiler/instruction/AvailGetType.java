@@ -56,6 +56,7 @@ public class AvailGetType extends AvailInstruction
 
 	// nybblecodes
 
+	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{

@@ -153,7 +153,7 @@ public abstract class Descriptor
 
 	// GENERATED pure methods
 
-	boolean ObjectAcceptsArgTypesFromClosureType (
+	public boolean ObjectAcceptsArgTypesFromClosureType (
 			final AvailObject object, 
 			final AvailObject closureType)
 	{
@@ -163,7 +163,13 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectAcceptsArgumentsFromContinuationStackp (
+	/**
+	 * @param object
+	 * @param continuation
+	 * @param stackp
+	 * @return
+	 */
+	public boolean ObjectAcceptsArgumentsFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
@@ -174,7 +180,13 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
+	/**
+	 * @param object
+	 * @param continuation
+	 * @param stackp
+	 * @return
+	 */
+	public boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
@@ -185,7 +197,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectAcceptsArrayOfArgTypes (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @return
+	 */
+	public boolean ObjectAcceptsArrayOfArgTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
 	{
@@ -195,7 +212,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectAcceptsArrayOfArgValues (
+	/**
+	 * @param object
+	 * @param argValues
+	 * @return
+	 */
+	public boolean ObjectAcceptsArrayOfArgValues (
 			final AvailObject object, 
 			final List<AvailObject> argValues)
 	{
@@ -205,7 +227,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectAcceptsTupleOfArgTypes (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @return
+	 */
+	public boolean ObjectAcceptsTupleOfArgTypes (
 			final AvailObject object, 
 			final AvailObject argTypes)
 	{
@@ -215,7 +242,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectAcceptsTupleOfArguments (
+	/**
+	 * @param object
+	 * @param arguments
+	 * @return
+	 */
+	public boolean ObjectAcceptsTupleOfArguments (
 			final AvailObject object, 
 			final AvailObject arguments)
 	{
@@ -225,7 +257,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectAddDependentChunkId (
+	/**
+	 * @param object
+	 * @param aChunkIndex
+	 */
+	public void ObjectAddDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
 	{
@@ -235,7 +271,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAddImplementation (
+	/**
+	 * @param object
+	 * @param implementation
+	 */
+	public void ObjectAddImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
 	{
@@ -245,7 +285,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAddRestrictions (
+	/**
+	 * @param object
+	 * @param restrictions
+	 */
+	public void ObjectAddRestrictions (
 			final AvailObject object, 
 			final AvailObject restrictions)
 	{
@@ -255,7 +299,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectAddToInfinityCanDestroy (
+	/**
+	 * @param object
+	 * @param anInfinity
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectAddToInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -266,7 +316,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectAddToIntegerCanDestroy (
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectAddToIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -277,7 +333,15 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectArgsLocalsStackOutersPrimitive (
+	/**
+	 * @param object
+	 * @param args
+	 * @param locals
+	 * @param stack
+	 * @param outers
+	 * @param primitive
+	 */
+	public void ObjectArgsLocalsStackOutersPrimitive (
 			final AvailObject object, 
 			final int args, 
 			final int locals, 
@@ -291,7 +355,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectArgTypeAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectArgTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -301,7 +370,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectArgTypeAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectArgTypeAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -312,7 +386,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAtAddMessageRestrictions (
+	/**
+	 * @param object
+	 * @param methodName
+	 * @param illegalArgMsgs
+	 */
+	public void ObjectAtAddMessageRestrictions (
 			final AvailObject object, 
 			final AvailObject methodName, 
 			final AvailObject illegalArgMsgs)
@@ -323,7 +402,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAtAddMethodImplementation (
+	/**
+	 * @param object
+	 * @param methodName
+	 * @param implementation
+	 */
+	public void ObjectAtAddMethodImplementation (
 			final AvailObject object, 
 			final AvailObject methodName, 
 			final AvailObject implementation)
@@ -334,7 +418,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAtMessageAddBundle (
+	/**
+	 * @param object
+	 * @param message
+	 * @param bundle
+	 */
+	public void ObjectAtMessageAddBundle (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject bundle)
@@ -345,7 +434,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAtNameAdd (
+	/**
+	 * @param object
+	 * @param stringName
+	 * @param trueName
+	 */
+	public void ObjectAtNameAdd (
 			final AvailObject object, 
 			final AvailObject stringName, 
 			final AvailObject trueName)
@@ -356,7 +450,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAtNewNamePut (
+	/**
+	 * @param object
+	 * @param stringName
+	 * @param trueName
+	 */
+	public void ObjectAtNewNamePut (
 			final AvailObject object, 
 			final AvailObject stringName, 
 			final AvailObject trueName)
@@ -367,7 +466,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectAtPrivateNameAdd (
+	/**
+	 * @param object
+	 * @param stringName
+	 * @param trueName
+	 */
+	public void ObjectAtPrivateNameAdd (
 			final AvailObject object, 
 			final AvailObject stringName, 
 			final AvailObject trueName)
@@ -378,7 +482,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectBinElementAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectBinElementAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -388,7 +497,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectBinElementAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectBinElementAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -399,7 +513,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBinHash (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectBinHash (
 			final AvailObject object, 
 			final int value)
 	{
@@ -409,7 +527,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBinSize (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectBinSize (
 			final AvailObject object, 
 			final int value)
 	{
@@ -419,7 +541,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBinUnionType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectBinUnionType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -429,7 +555,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBitVector (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectBitVector (
 			final AvailObject object, 
 			final int value)
 	{
@@ -439,7 +569,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBodyBlock (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectBodyBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -449,7 +583,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBodyBlockRequiresBlockReturnsBlock (
+	/**
+	 * @param object
+	 * @param bb
+	 * @param rqb
+	 * @param rtb
+	 */
+	public void ObjectBodyBlockRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bb, 
 			final AvailObject rqb, 
@@ -461,7 +601,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBodySignature (
+	/**
+	 * @param object
+	 * @param signature
+	 */
+	public void ObjectBodySignature (
 			final AvailObject object, 
 			final AvailObject signature)
 	{
@@ -471,7 +615,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBodySignatureRequiresBlockReturnsBlock (
+	/**
+	 * @param object
+	 * @param bs
+	 * @param rqb
+	 * @param rtb
+	 */
+	public void ObjectBodySignatureRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bs, 
 			final AvailObject rqb, 
@@ -483,7 +633,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBreakpointBlock (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectBreakpointBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -493,7 +647,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectBuildFilteredBundleTreeFrom (
+	/**
+	 * @param object
+	 * @param bundleTree
+	 */
+	public void ObjectBuildFilteredBundleTreeFrom (
 			final AvailObject object, 
 			final AvailObject bundleTree)
 	{
@@ -503,7 +661,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectBundleAtMessageParts (
+	/**
+	 * @param object
+	 * @param message
+	 * @param parts
+	 * @return
+	 */
+	public AvailObject ObjectBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
@@ -514,7 +678,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectCaller (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectCaller (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -524,7 +692,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectClosure (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectClosure (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -534,7 +706,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectClosureType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectClosureType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -544,7 +720,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectCode (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectCode (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -554,7 +734,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectCodePoint (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectCodePoint (
 			final AvailObject object, 
 			final int value)
 	{
@@ -564,7 +748,15 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectCompareFromToWithStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param anotherObject
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -577,7 +769,15 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectCompareFromToWithAnyTupleStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithAnyTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -590,7 +790,15 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectCompareFromToWithByteStringStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteString
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -603,7 +811,15 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectCompareFromToWithByteTupleStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aByteTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithByteTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -616,7 +832,15 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectCompareFromToWithNybbleTupleStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aNybbleTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -629,7 +853,15 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectCompareFromToWithObjectTupleStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param anObjectTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -642,7 +874,15 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectCompareFromToWithTwoByteStringStartingAt (
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param aTwoByteString
+	 * @param startIndex2
+	 * @return
+	 */
+	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -655,7 +895,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectComplete (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectComplete (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -665,7 +909,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectComputeHashFromTo (
+	/**
+	 * @param object
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int start, 
 			final int end)
@@ -676,7 +926,13 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @param anAvailInterpreter
+	 * @return
+	 */
+	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter)
@@ -687,7 +943,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectConcatenateTuplesCanDestroy (
+	/**
+	 * @param object
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectConcatenateTuplesCanDestroy (
 			final AvailObject object, 
 			final boolean canDestroy)
 	{
@@ -697,7 +958,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectConstantBindings (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectConstantBindings (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -707,7 +972,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectContentType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectContentType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -717,7 +986,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectContingentImpSets (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectContingentImpSets (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -727,7 +1000,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectContinuation (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectContinuation (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -737,7 +1014,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectCopyToRestrictedTo (
+	/**
+	 * @param object
+	 * @param filteredBundleTree
+	 * @param visibleNames
+	 */
+	public void ObjectCopyToRestrictedTo (
 			final AvailObject object, 
 			final AvailObject filteredBundleTree, 
 			final AvailObject visibleNames)
@@ -748,7 +1030,14 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectCopyTupleFromToCanDestroy (
+	/**
+	 * @param object
+	 * @param start
+	 * @param end
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectCopyTupleFromToCanDestroy (
 			final AvailObject object, 
 			final int start, 
 			final int end, 
@@ -760,7 +1049,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectCouldEverBeInvokedWith (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @return
+	 */
+	public boolean ObjectCouldEverBeInvokedWith (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
 	{
@@ -770,7 +1064,13 @@ public abstract class Descriptor
 		return false;
 	}
 
-	AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
+	/**
+	 * @param object
+	 * @param positiveTuple
+	 * @param possibilities
+	 * @return
+	 */
+	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object, 
 			final AvailObject positiveTuple, 
 			final AvailObject possibilities)
@@ -781,7 +1081,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectDataAtIndex (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectDataAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -791,7 +1096,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectDataAtIndexPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectDataAtIndexPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -802,7 +1112,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectDefaultType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectDefaultType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -812,7 +1126,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectDependentChunks (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectDependentChunks (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -822,7 +1140,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectDepth (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectDepth (
 			final AvailObject object, 
 			final int value)
 	{
@@ -832,7 +1154,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectDivideCanDestroy (
+	/**
+	 * @param object
+	 * @param aNumber
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectDivideCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -843,7 +1171,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectDivideIntoInfinityCanDestroy (
+	/**
+	 * @param object
+	 * @param anInfinity
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectDivideIntoInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -854,7 +1188,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectDivideIntoIntegerCanDestroy (
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectDivideIntoIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -865,7 +1205,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectElementAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectElementAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -875,7 +1220,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectElementAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectElementAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -886,7 +1236,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectEndOfZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @return
+	 */
+	public int ObjectEndOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -896,7 +1251,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectEndSubtupleIndexInZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @return
+	 */
+	public int ObjectEndSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -906,7 +1266,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectExecutionMode (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectExecutionMode (
 			final AvailObject object, 
 			final int value)
 	{
@@ -916,7 +1280,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectExecutionState (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectExecutionState (
 			final AvailObject object, 
 			final int value)
 	{
@@ -926,7 +1294,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	byte ObjectExtractNybbleFromTupleAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public byte ObjectExtractNybbleFromTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -936,7 +1309,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectFieldMap (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectFieldMap (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -946,7 +1323,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectFieldTypeMap (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectFieldTypeMap (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -956,7 +1337,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	List<AvailObject> ObjectFilterByTypes (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @return
+	 */
+	public List<AvailObject> ObjectFilterByTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
 	{
@@ -966,7 +1352,11 @@ public abstract class Descriptor
 		return null;
 	}
 
-	void ObjectFilteredBundleTree (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectFilteredBundleTree (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -976,7 +1366,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectFirstTupleType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectFirstTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -986,7 +1380,15 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @param newSubtuple
+	 * @param startSubtupleIndex
+	 * @param endOfZone
+	 * @return
+	 */
+	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 			final AvailObject object, 
 			final int zone, 
 			final AvailObject newSubtuple, 
@@ -999,7 +1401,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectGreaterThanInteger (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectGreaterThanInteger (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -1009,7 +1416,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectGreaterThanSignedInfinity (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectGreaterThanSignedInfinity (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -1019,7 +1431,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectHasElement (
+	/**
+	 * @param object
+	 * @param elementObject
+	 * @return
+	 */
+	public boolean ObjectHasElement (
 			final AvailObject object, 
 			final AvailObject elementObject)
 	{
@@ -1029,7 +1446,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectHash (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectHash (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1039,7 +1460,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectHashFromTo (
+	/**
+	 * @param object
+	 * @param startIndex
+	 * @param endIndex
+	 * @return
+	 */
+	public int ObjectHashFromTo (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -1050,7 +1477,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectHashOrZero (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectHashOrZero (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1060,7 +1491,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectHasKey (
+	/**
+	 * @param object
+	 * @param keyObject
+	 * @return
+	 */
+	public boolean ObjectHasKey (
 			final AvailObject object, 
 			final AvailObject keyObject)
 	{
@@ -1070,7 +1506,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectHiLevelTwoChunkLowOffset (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1080,7 +1520,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectHiNumLocalsLowNumArgs (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1090,7 +1534,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1100,7 +1548,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectHiStartingChunkIndexLowNumOuters (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1110,7 +1562,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @return
+	 */
+	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
 	{
@@ -1120,7 +1577,11 @@ public abstract class Descriptor
 		return null;
 	}
 
-	void ObjectImplementationsTuple (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectImplementationsTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1130,7 +1591,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectIncludeBundleAtMessageParts (
+	/**
+	 * @param object
+	 * @param message
+	 * @param parts
+	 * @return
+	 */
+	public AvailObject ObjectIncludeBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
@@ -1141,7 +1608,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectIncludes (
+	/**
+	 * @param object
+	 * @param imp
+	 * @return
+	 */
+	public boolean ObjectIncludes (
 			final AvailObject object, 
 			final AvailObject imp)
 	{
@@ -1151,7 +1623,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectInclusiveFlags (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectInclusiveFlags (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1161,7 +1637,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectIncomplete (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectIncomplete (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1171,7 +1651,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectIndex (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectIndex (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1181,7 +1665,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectInnerType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectInnerType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1191,7 +1679,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectInstance (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectInstance (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1201,7 +1693,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectInternalHash (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectInternalHash (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1211,7 +1707,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectInterruptRequestFlag (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectInterruptRequestFlag (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1221,7 +1721,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectInvocationCount (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectInvocationCount (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1231,7 +1735,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectIsSaved (
+	/**
+	 * @param object
+	 * @param aBoolean
+	 */
+	public void ObjectIsSaved (
 			final AvailObject object, 
 			final boolean aBoolean)
 	{
@@ -1241,7 +1749,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectIsSubsetOf (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectIsSubsetOf (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -1251,7 +1764,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSubtypeOf (
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -1261,7 +1779,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfClosureType (
+	/**
+	 * @param object
+	 * @param aClosureType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -1271,7 +1794,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfContainerType (
+	/**
+	 * @param object
+	 * @param aContainerType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -1281,7 +1809,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfContinuationType (
+	/**
+	 * @param object
+	 * @param aContinuationType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
@@ -1291,7 +1824,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfCyclicType (
+	/**
+	 * @param object
+	 * @param aCyclicType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -1301,7 +1839,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	/**
+	 * @param object
+	 * @param aGeneralizedClosureType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -1311,7 +1854,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfIntegerRangeType (
+	/**
+	 * @param object
+	 * @param anIntegerRangeType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -1321,7 +1869,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfListType (
+	/**
+	 * @param object
+	 * @param aListType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -1331,7 +1884,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfMapType (
+	/**
+	 * @param object
+	 * @param aMapType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -1341,7 +1899,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfObjectMeta (
+	/**
+	 * @param object
+	 * @param anObjectMeta
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -1351,7 +1914,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfObjectMetaMeta (
+	/**
+	 * @param object
+	 * @param anObjectMetaMeta
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -1361,7 +1929,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfObjectType (
+	/**
+	 * @param object
+	 * @param anObjectType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -1371,7 +1944,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	/**
+	 * @param object
+	 * @param aPrimitiveType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
@@ -1381,7 +1959,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfSetType (
+	/**
+	 * @param object
+	 * @param aSetType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -1391,7 +1974,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfTupleType (
+	/**
+	 * @param object
+	 * @param aTupleType
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -1401,7 +1989,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectIsValid (
+	/**
+	 * @param object
+	 * @param aBoolean
+	 */
+	public void ObjectIsValid (
 			final AvailObject object, 
 			final boolean aBoolean)
 	{
@@ -1411,7 +2003,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectIsValidForArgumentTypesInterpreter (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @param interpreter
+	 * @return
+	 */
+	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter interpreter)
@@ -1422,7 +2020,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	AvailObject ObjectKeyAtIndex (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectKeyAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1432,7 +2035,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectKeyAtIndexPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param keyObject
+	 */
+	public void ObjectKeyAtIndexPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject keyObject)
@@ -1443,7 +2051,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectKeyType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectKeyType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1453,7 +2065,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectLessOrEqual (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectLessOrEqual (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -1463,7 +2080,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectLessThan (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectLessThan (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -1473,7 +2095,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectLevelTwoChunkIndexOffset (
+	/**
+	 * @param object
+	 * @param index
+	 * @param offset
+	 */
+	public void ObjectLevelTwoChunkIndexOffset (
 			final AvailObject object, 
 			final int index, 
 			final int offset)
@@ -1484,7 +2111,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectLiteralAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectLiteralAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1494,7 +2126,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectLiteralAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectLiteralAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -1505,7 +2142,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectLocalOrArgOrStackAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectLocalOrArgOrStackAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1515,7 +2157,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectLocalOrArgOrStackAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectLocalOrArgOrStackAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -1526,7 +2173,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectLocalTypeAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectLocalTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1536,7 +2188,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectLookupByTypesFromArray (
+	/**
+	 * @param object
+	 * @param argumentTypeArray
+	 * @return
+	 */
+	public AvailObject ObjectLookupByTypesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentTypeArray)
 	{
@@ -1546,7 +2203,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectLookupByTypesFromContinuationStackp (
+	/**
+	 * @param object
+	 * @param continuation
+	 * @param stackp
+	 * @return
+	 */
+	public AvailObject ObjectLookupByTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
@@ -1557,7 +2220,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectLookupByTypesFromTuple (
+	/**
+	 * @param object
+	 * @param argumentTypeTuple
+	 * @return
+	 */
+	public AvailObject ObjectLookupByTypesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTypeTuple)
 	{
@@ -1567,7 +2235,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectLookupByValuesFromArray (
+	/**
+	 * @param object
+	 * @param argumentArray
+	 * @return
+	 */
+	public AvailObject ObjectLookupByValuesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentArray)
 	{
@@ -1577,7 +2250,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectLookupByValuesFromContinuationStackp (
+	/**
+	 * @param object
+	 * @param continuation
+	 * @param stackp
+	 * @return
+	 */
+	public AvailObject ObjectLookupByValuesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
@@ -1588,7 +2267,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectLookupByValuesFromTuple (
+	/**
+	 * @param object
+	 * @param argumentTuple
+	 * @return
+	 */
+	public AvailObject ObjectLookupByValuesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTuple)
 	{
@@ -1598,7 +2282,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectLowerBound (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectLowerBound (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1608,7 +2296,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectLowerInclusiveUpperInclusive (
+	/**
+	 * @param object
+	 * @param lowInc
+	 * @param highInc
+	 */
+	public void ObjectLowerInclusiveUpperInclusive (
 			final AvailObject object, 
 			final boolean lowInc, 
 			final boolean highInc)
@@ -1619,7 +2312,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectMapAt (
+	/**
+	 * @param object
+	 * @param keyObject
+	 * @return
+	 */
+	public AvailObject ObjectMapAt (
 			final AvailObject object, 
 			final AvailObject keyObject)
 	{
@@ -1629,7 +2327,14 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMapAtPuttingCanDestroy (
+	/**
+	 * @param object
+	 * @param keyObject
+	 * @param newValueObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectMapAtPuttingCanDestroy (
 			final AvailObject object, 
 			final AvailObject keyObject, 
 			final AvailObject newValueObject, 
@@ -1641,7 +2346,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectMapSize (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMapSize (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1651,7 +2360,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectMapWithoutKeyCanDestroy (
+	/**
+	 * @param object
+	 * @param keyObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectMapWithoutKeyCanDestroy (
 			final AvailObject object, 
 			final AvailObject keyObject, 
 			final boolean canDestroy)
@@ -1662,7 +2377,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectMessage (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMessage (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1672,7 +2391,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectMessageParts (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMessageParts (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1682,7 +2405,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectMethods (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMethods (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1692,7 +2419,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectMinusCanDestroy (
+	/**
+	 * @param object
+	 * @param aNumber
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -1703,7 +2436,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMultiplyByInfinityCanDestroy (
+	/**
+	 * @param object
+	 * @param anInfinity
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectMultiplyByInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -1714,7 +2453,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMultiplyByIntegerCanDestroy (
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectMultiplyByIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -1725,7 +2470,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectMyObjectMeta (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMyObjectMeta (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1735,7 +2484,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectMyObjectType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMyObjectType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1745,7 +2498,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectMyRestrictions (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMyRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1755,7 +2512,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectMyType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectMyType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1765,7 +2526,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectName (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectName (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1775,7 +2540,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNames (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1785,7 +2554,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectNameVisible (
+	/**
+	 * @param object
+	 * @param trueName
+	 * @return
+	 */
+	public boolean ObjectNameVisible (
 			final AvailObject object, 
 			final AvailObject trueName)
 	{
@@ -1795,7 +2569,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectNecessaryImplementationSetChanged (
+	/**
+	 * @param object
+	 * @param anImplementationSet
+	 */
+	public void ObjectNecessaryImplementationSetChanged (
 			final AvailObject object, 
 			final AvailObject anImplementationSet)
 	{
@@ -1805,7 +2583,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNewNames (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNewNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1815,7 +2597,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNext (
+	/**
+	 * @param object
+	 * @param nextChunk
+	 */
+	public void ObjectNext (
 			final AvailObject object, 
 			final AvailObject nextChunk)
 	{
@@ -1825,7 +2611,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNextIndex (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNextIndex (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1835,7 +2625,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNumBlanks (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNumBlanks (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1845,7 +2639,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNumFloats (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNumFloats (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1855,7 +2653,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNumIntegers (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNumIntegers (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1865,7 +2667,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNumObjects (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNumObjects (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1875,7 +2681,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectNybbles (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectNybbles (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1885,7 +2695,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectOptionallyNilOuterVar (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public boolean ObjectOptionallyNilOuterVar (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1895,7 +2710,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	AvailObject ObjectOuterTypeAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectOuterTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1905,7 +2725,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectOuterTypesLocalTypes (
+	/**
+	 * @param object
+	 * @param tupleOfOuterTypes
+	 * @param tupleOfLocalContainerTypes
+	 */
+	public void ObjectOuterTypesLocalTypes (
 			final AvailObject object, 
 			final AvailObject tupleOfOuterTypes, 
 			final AvailObject tupleOfLocalContainerTypes)
@@ -1916,7 +2741,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectOuterVarAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectOuterVarAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -1926,7 +2756,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectOuterVarAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectOuterVarAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -1937,7 +2772,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectPad (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectPad (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1947,7 +2786,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectParent (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectParent (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -1957,7 +2800,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectPc (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectPc (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1967,7 +2814,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectPlusCanDestroy (
+	/**
+	 * @param object
+	 * @param aNumber
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectPlusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -1978,7 +2831,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectPrevious (
+	/**
+	 * @param object
+	 * @param previousChunk
+	 */
+	public void ObjectPrevious (
 			final AvailObject object, 
 			final AvailObject previousChunk)
 	{
@@ -1988,7 +2845,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectPreviousIndex (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectPreviousIndex (
 			final AvailObject object, 
 			final int value)
 	{
@@ -1998,7 +2859,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectPriority (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectPriority (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2008,7 +2873,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectPrivateAddElement (
+	/**
+	 * @param object
+	 * @param element
+	 * @return
+	 */
+	public AvailObject ObjectPrivateAddElement (
 			final AvailObject object, 
 			final AvailObject element)
 	{
@@ -2018,7 +2888,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectPrivateExcludeElement (
+	/**
+	 * @param object
+	 * @param element
+	 * @return
+	 */
+	public AvailObject ObjectPrivateExcludeElement (
 			final AvailObject object, 
 			final AvailObject element)
 	{
@@ -2028,7 +2903,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectPrivateExcludeElementKnownIndex (
+	/**
+	 * @param object
+	 * @param element
+	 * @param knownIndex
+	 * @return
+	 */
+	public AvailObject ObjectPrivateExcludeElementKnownIndex (
 			final AvailObject object, 
 			final AvailObject element, 
 			final int knownIndex)
@@ -2039,7 +2920,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectPrivateExcludeKey (
+	/**
+	 * @param object
+	 * @param keyObject
+	 * @return
+	 */
+	public AvailObject ObjectPrivateExcludeKey (
 			final AvailObject object, 
 			final AvailObject keyObject)
 	{
@@ -2049,7 +2935,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectPrivateMapAtPut (
+	/**
+	 * @param object
+	 * @param keyObject
+	 * @param valueObject
+	 * @return
+	 */
+	public AvailObject ObjectPrivateMapAtPut (
 			final AvailObject object, 
 			final AvailObject keyObject, 
 			final AvailObject valueObject)
@@ -2060,7 +2952,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectPrivateNames (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectPrivateNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2070,7 +2966,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectPrivateTestingTree (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectPrivateTestingTree (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2080,7 +2980,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectProcessGlobals (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectProcessGlobals (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2090,7 +2994,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	short ObjectRawByteAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public short ObjectRawByteAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2100,7 +3009,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawByteAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param anInteger
+	 */
+	public void ObjectRawByteAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
@@ -2111,7 +3025,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	short ObjectRawByteForCharacterAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public short ObjectRawByteForCharacterAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2121,7 +3040,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawByteForCharacterAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param anInteger
+	 */
+	public void ObjectRawByteForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
@@ -2132,7 +3056,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	byte ObjectRawNybbleAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public byte ObjectRawNybbleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2142,7 +3071,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawNybbleAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param aNybble
+	 */
+	public void ObjectRawNybbleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final byte aNybble)
@@ -2153,7 +3087,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRawQuad1 (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectRawQuad1 (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2163,7 +3101,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRawQuad2 (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectRawQuad2 (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2173,7 +3115,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectRawQuadAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public int ObjectRawQuadAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2183,7 +3130,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawQuadAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectRawQuadAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
@@ -2194,7 +3146,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	short ObjectRawShortForCharacterAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public short ObjectRawShortForCharacterAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2204,7 +3161,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawShortForCharacterAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param anInteger
+	 */
+	public void ObjectRawShortForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
@@ -2215,7 +3177,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectRawSignedIntegerAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public int ObjectRawSignedIntegerAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2225,7 +3192,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawSignedIntegerAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectRawSignedIntegerAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
@@ -2236,7 +3208,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	long ObjectRawUnsignedIntegerAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public long ObjectRawUnsignedIntegerAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2246,7 +3223,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectRawUnsignedIntegerAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectRawUnsignedIntegerAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
@@ -2257,7 +3239,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRemoveDependentChunkId (
+	/**
+	 * @param object
+	 * @param aChunkIndex
+	 */
+	public void ObjectRemoveDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
 	{
@@ -2267,7 +3253,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRemoveFrom (
+	/**
+	 * @param object
+	 * @param anInterpreter
+	 */
+	public void ObjectRemoveFrom (
 		final AvailObject object, 
 		final AvailInterpreter anInterpreter)
 	{
@@ -2277,7 +3267,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRemoveImplementation (
+	/**
+	 * @param object
+	 * @param implementation
+	 */
+	public void ObjectRemoveImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
 	{
@@ -2287,7 +3281,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	boolean ObjectRemoveMessageParts (
+	/**
+	 * @param object
+	 * @param message
+	 * @param parts
+	 * @return
+	 */
+	public boolean ObjectRemoveMessageParts (
 		final AvailObject object, 
 		final AvailObject message, 
 		final AvailObject parts)
@@ -2298,7 +3298,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	void ObjectRemoveRestrictions (
+	/**
+	 * @param object
+	 * @param obsoleteRestrictions
+	 */
+	public void ObjectRemoveRestrictions (
 		final AvailObject object, 
 		final AvailObject obsoleteRestrictions)
 	{
@@ -2308,7 +3312,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRequiresBlock (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectRequiresBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2318,7 +3326,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectResolvedForwardWithName (
+	/**
+	 * @param object
+	 * @param forwardImplementation
+	 * @param methodName
+	 */
+	public void ObjectResolvedForwardWithName (
 			final AvailObject object, 
 			final AvailObject forwardImplementation, 
 			final AvailObject methodName)
@@ -2329,7 +3342,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRestrictions (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2339,7 +3356,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectReturnsBlock (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectReturnsBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2349,7 +3370,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectReturnType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectReturnType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2359,7 +3384,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRootBin (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectRootBin (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2369,7 +3398,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectSecondTupleType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectSecondTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2379,7 +3412,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectSetIntersectionCanDestroy (
+	/**
+	 * @param object
+	 * @param otherSet
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSetIntersectionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
@@ -2390,7 +3429,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectSetMinusCanDestroy (
+	/**
+	 * @param object
+	 * @param otherSet
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSetMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
@@ -2401,7 +3446,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectSetSize (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectSetSize (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2411,7 +3460,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectSetSubtupleForZoneTo (
+	/**
+	 * @param object
+	 * @param zoneIndex
+	 * @param newTuple
+	 */
+	public void ObjectSetSubtupleForZoneTo (
 			final AvailObject object, 
 			final int zoneIndex, 
 			final AvailObject newTuple)
@@ -2422,7 +3476,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectSetUnionCanDestroy (
+	/**
+	 * @param object
+	 * @param otherSet
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSetUnionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
@@ -2433,7 +3493,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectSetValue (
+	/**
+	 * @param object
+	 * @param newValue
+	 */
+	public void ObjectSetValue (
 			final AvailObject object, 
 			final AvailObject newValue)
 	{
@@ -2443,7 +3507,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectSetWithElementCanDestroy (
+	/**
+	 * @param object
+	 * @param newElementObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSetWithElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject newElementObject, 
 			final boolean canDestroy)
@@ -2454,7 +3524,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectSetWithoutElementCanDestroy (
+	/**
+	 * @param object
+	 * @param elementObjectToExclude
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSetWithoutElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObjectToExclude, 
 			final boolean canDestroy)
@@ -2465,7 +3541,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectSignature (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2475,7 +3555,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectSize (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectSize (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2485,7 +3569,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectSizeOfZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @return
+	 */
+	public int ObjectSizeOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -2495,7 +3584,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectSizeRange (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectSizeRange (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2505,7 +3598,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectStackAt (
+	/**
+	 * @param object
+	 * @param slotIndex
+	 * @return
+	 */
+	public AvailObject ObjectStackAt (
 			final AvailObject object, 
 			final int slotIndex)
 	{
@@ -2515,7 +3613,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectStackAtPut (
+	/**
+	 * @param object
+	 * @param slotIndex
+	 * @param anObject
+	 */
+	public void ObjectStackAtPut (
 			final AvailObject object, 
 			final int slotIndex, 
 			final AvailObject anObject)
@@ -2526,7 +3629,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectStackp (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectStackp (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2536,7 +3643,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectStartingChunkIndex (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectStartingChunkIndex (
 			final AvailObject object, 
 			final int value)
 	{
@@ -2546,7 +3657,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectStartOfZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @return
+	 */
+	public int ObjectStartOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -2556,7 +3672,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectStartSubtupleIndexInZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @return
+	 */
+	public int ObjectStartSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -2566,7 +3687,13 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectSubtractFromInfinityCanDestroy (
+	/**
+	 * @param object
+	 * @param anInfinity
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSubtractFromInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -2577,7 +3704,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectSubtractFromIntegerCanDestroy (
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectSubtractFromIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -2588,7 +3721,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectSubtupleForZone (
+	/**
+	 * @param object
+	 * @param zone
+	 * @return
+	 */
+	public AvailObject ObjectSubtupleForZone (
 			final AvailObject object, 
 			final int zone)
 	{
@@ -2598,7 +3736,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTimesCanDestroy (
+	/**
+	 * @param object
+	 * @param aNumber
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectTimesCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -2609,7 +3753,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectTranslateToZone (
+	/**
+	 * @param object
+	 * @param tupleIndex
+	 * @param zoneIndex
+	 * @return
+	 */
+	public int ObjectTranslateToZone (
 			final AvailObject object, 
 			final int tupleIndex, 
 			final int zoneIndex)
@@ -2620,7 +3770,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectTrueNamesForStringName (
+	/**
+	 * @param object
+	 * @param stringName
+	 * @return
+	 */
+	public AvailObject ObjectTrueNamesForStringName (
 			final AvailObject object, 
 			final AvailObject stringName)
 	{
@@ -2630,7 +3785,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTruncateTo (
+	/**
+	 * @param object
+	 * @param newTupleSize
+	 * @return
+	 */
+	public AvailObject ObjectTruncateTo (
 			final AvailObject object, 
 			final int newTupleSize)
 	{
@@ -2640,7 +3800,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectTuple (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2650,7 +3814,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTupleAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2660,7 +3829,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectTupleAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param aNybbleObject
+	 */
+	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject aNybbleObject)
@@ -2671,7 +3845,14 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTupleAtPuttingCanDestroy (
+	/**
+	 * @param object
+	 * @param index
+	 * @param newValueObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject newValueObject, 
@@ -2683,7 +3864,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectTupleIntAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2693,7 +3879,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectTupleType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2703,7 +3893,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2713,7 +3907,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTypeAtIndex (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -2723,7 +3922,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersection (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -2733,7 +3937,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfClosureType (
+	/**
+	 * @param object
+	 * @param aClosureType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -2743,7 +3952,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
+	/**
+	 * @param object
+	 * @param aClosureType
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aClosureType, 
 			final boolean canDestroy)
@@ -2754,7 +3969,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfContainerType (
+	/**
+	 * @param object
+	 * @param aContainerType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -2764,7 +3984,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfContinuationType (
+	/**
+	 * @param object
+	 * @param aContinuationType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
@@ -2774,7 +3999,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfCyclicType (
+	/**
+	 * @param object
+	 * @param aCyclicType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -2784,7 +4014,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	/**
+	 * @param object
+	 * @param aGeneralizedClosureType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -2794,7 +4029,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
+	/**
+	 * @param object
+	 * @param aGeneralizedClosureType
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType, 
 			final boolean canDestroy)
@@ -2805,7 +4046,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	/**
+	 * @param object
+	 * @param anIntegerRangeType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -2815,7 +4061,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfListType (
+	/**
+	 * @param object
+	 * @param aListType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -2825,7 +4076,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfMapType (
+	/**
+	 * @param object
+	 * @param aMapType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -2835,7 +4091,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfMeta (
+	/**
+	 * @param object
+	 * @param someMeta
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
@@ -2845,7 +4106,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMeta (
+	/**
+	 * @param object
+	 * @param anObjectMeta
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -2855,7 +4121,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	/**
+	 * @param object
+	 * @param anObjectMetaMeta
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -2865,7 +4136,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectType (
+	/**
+	 * @param object
+	 * @param anObjectType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -2875,7 +4151,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfSetType (
+	/**
+	 * @param object
+	 * @param aSetType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -2885,7 +4166,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeIntersectionOfTupleType (
+	/**
+	 * @param object
+	 * @param aTupleType
+	 * @return
+	 */
+	public AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -2895,7 +4181,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectTypeTuple (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectTypeTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -2905,7 +4195,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTypeUnion (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -2915,7 +4210,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfClosureType (
+	/**
+	 * @param object
+	 * @param aClosureType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -2925,7 +4225,13 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
+	/**
+	 * @param object
+	 * @param aClosureType
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aClosureType, 
 			final boolean canDestroy)
@@ -2936,7 +4242,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfContainerType (
+	/**
+	 * @param object
+	 * @param aContainerType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -2946,7 +4257,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfContinuationType (
+	/**
+	 * @param object
+	 * @param aContinuationType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
@@ -2956,7 +4272,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfCyclicType (
+	/**
+	 * @param object
+	 * @param aCyclicType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -2966,7 +4287,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	/**
+	 * @param object
+	 * @param aGeneralizedClosureType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -2976,7 +4302,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfIntegerRangeType (
+	/**
+	 * @param object
+	 * @param anIntegerRangeType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -2986,7 +4317,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfListType (
+	/**
+	 * @param object
+	 * @param aListType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -2996,7 +4332,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfMapType (
+	/**
+	 * @param object
+	 * @param aMapType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -3006,7 +4347,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfObjectMeta (
+	/**
+	 * @param object
+	 * @param anObjectMeta
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -3016,7 +4362,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfObjectMetaMeta (
+	/**
+	 * @param object
+	 * @param anObjectMetaMeta
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -3026,7 +4377,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfObjectType (
+	/**
+	 * @param object
+	 * @param anObjectType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -3036,7 +4392,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfSetType (
+	/**
+	 * @param object
+	 * @param aSetType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -3046,7 +4407,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeUnionOfTupleType (
+	/**
+	 * @param object
+	 * @param aTupleType
+	 * @return
+	 */
+	public AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -3056,7 +4422,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectUnclassified (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectUnclassified (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3066,7 +4436,13 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectUnionOfTypesAtThrough (
+	/**
+	 * @param object
+	 * @param startIndex
+	 * @param endIndex
+	 * @return
+	 */
+	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -3077,7 +4453,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectUntranslatedDataAt (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public int ObjectUntranslatedDataAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -3087,7 +4468,12 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectUntranslatedDataAtPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param value
+	 */
+	public void ObjectUntranslatedDataAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
@@ -3098,7 +4484,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectUpperBound (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectUpperBound (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3108,7 +4498,14 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
+	/**
+	 * @param object
+	 * @param argTypes
+	 * @param anAvailInterpreter
+	 * @param failBlock
+	 * @return
+	 */
+	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter, 
@@ -3120,7 +4517,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectValidity (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectValidity (
 			final AvailObject object, 
 			final int value)
 	{
@@ -3130,7 +4531,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectValue (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectValue (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3140,7 +4545,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectValueAtIndex (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public AvailObject ObjectValueAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -3150,7 +4560,12 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectValueAtIndexPut (
+	/**
+	 * @param object
+	 * @param index
+	 * @param valueObject
+	 */
+	public void ObjectValueAtIndexPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject valueObject)
@@ -3161,7 +4576,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectValueType (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectValueType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3171,7 +4590,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectVariableBindings (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectVariableBindings (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3181,7 +4604,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectVectors (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectVectors (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3191,7 +4618,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectVisibleNames (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectVisibleNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3201,7 +4632,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectWhichOne (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectWhichOne (
 			final AvailObject object, 
 			final int value)
 	{
@@ -3211,7 +4646,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectWordcodes (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectWordcodes (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -3221,7 +4660,12 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectZoneForIndex (
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	public int ObjectZoneForIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -3231,7 +4675,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	String ObjectAsNativeString (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public String ObjectAsNativeString (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3240,7 +4688,11 @@ public abstract class Descriptor
 		return "";
 	}
 
-	AvailObject ObjectAsObject (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectAsObject (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3249,7 +4701,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectAsSet (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectAsSet (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3258,7 +4714,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectAsTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectAsTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3267,7 +4727,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectBecomeExactType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectBecomeExactType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3276,7 +4740,10 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectBecomeRealTupleType (
+	/**
+	 * @param object
+	 */
+	public void ObjectBecomeRealTupleType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3285,7 +4752,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectBitsPerEntry (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3294,7 +4765,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectBitVector (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectBitVector (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3303,7 +4778,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectBodyBlock (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectBodyBlock (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3312,7 +4791,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectBodySignature (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3321,7 +4804,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectBreakpointBlock (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectBreakpointBlock (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3330,7 +4817,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectCaller (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectCaller (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3339,7 +4830,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectCapacity (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectCapacity (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3348,7 +4843,10 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectCleanUpAfterCompile (
+	/**
+	 * @param object
+	 */
+	public void ObjectCleanUpAfterCompile (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3357,7 +4855,10 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectClearModule (
+	/**
+	 * @param object
+	 */
+	public void ObjectClearModule (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3366,7 +4867,10 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectClearValue (
+	/**
+	 * @param object
+	 */
+	public void ObjectClearValue (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3375,7 +4879,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectClosure (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectClosure (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3384,7 +4892,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectClosureType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3393,7 +4905,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectCode (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectCode (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3402,7 +4918,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectCodePoint (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectCodePoint (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3411,7 +4931,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectComplete (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectComplete (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3420,7 +4944,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectConstantBindings (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectConstantBindings (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3429,7 +4957,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectContentType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectContentType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3438,7 +4970,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectContingentImpSets (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectContingentImpSets (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3447,7 +4983,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectContinuation (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectContinuation (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3456,7 +4996,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectCopyAsMutableContinuation (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectCopyAsMutableContinuation (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3465,7 +5009,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectCopyAsMutableObjectTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectCopyAsMutableObjectTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3474,7 +5022,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectCopyAsMutableSpliceTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectCopyAsMutableSpliceTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3483,7 +5035,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectCopyMutable (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectCopyMutable (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3492,7 +5048,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectDefaultType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3501,7 +5061,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectDependentChunks (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectDependentChunks (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3510,7 +5074,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectDepth (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectDepth (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3519,7 +5087,10 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectDisplayTestingTree (
+	/**
+	 * @param object
+	 */
+	public void ObjectDisplayTestingTree (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3528,7 +5099,10 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectEnsureMetacovariant (
+	/**
+	 * @param object
+	 */
+	public void ObjectEnsureMetacovariant (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3537,7 +5111,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectEnsureMutable (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectEnsureMutable (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3546,7 +5124,10 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectEvictedByGarbageCollector (
+	/**
+	 * @param object
+	 */
+	public void ObjectEvictedByGarbageCollector (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3555,7 +5136,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	int ObjectExecutionMode (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectExecutionMode (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3564,7 +5149,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectExecutionState (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectExecutionState (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3573,7 +5162,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectExpand (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectExpand (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3582,7 +5175,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectExtractBoolean (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectExtractBoolean (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3591,7 +5188,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	short ObjectExtractByte (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectExtractByte (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3600,7 +5201,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	double ObjectExtractDouble (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public double ObjectExtractDouble (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3609,7 +5214,11 @@ public abstract class Descriptor
 		return 0.0d;
 	}
 
-	float ObjectExtractFloat (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public float ObjectExtractFloat (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3618,7 +5227,11 @@ public abstract class Descriptor
 		return 0.0f;
 	}
 
-	int ObjectExtractInt (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectExtractInt (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3635,7 +5248,11 @@ public abstract class Descriptor
 	 * @return A 64-bit signed Java {@code long}
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	long ObjectExtractLong (final @NotNull AvailObject object)
+	/**
+	 * @param object
+	 * @return
+	 */
+	public long ObjectExtractLong (final @NotNull AvailObject object)
 	{
 		error(
 			"Subclass responsiblity: ObjectExtractLong() in "
@@ -3643,7 +5260,11 @@ public abstract class Descriptor
 		return 0L;
 	}
 
-	byte ObjectExtractNybble (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public byte ObjectExtractNybble (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3652,7 +5273,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectFieldMap (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectFieldMap (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3661,7 +5286,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectFieldTypeMap (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3670,7 +5299,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectFilteredBundleTree (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectFilteredBundleTree (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3679,7 +5312,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectFirstTupleType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectFirstTupleType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3688,7 +5325,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectGetInteger (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectGetInteger (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3697,7 +5338,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectGetValue (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectGetValue (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3706,7 +5351,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectHashOrZero (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3715,7 +5364,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	boolean ObjectHasRestrictions (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectHasRestrictions (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3724,7 +5377,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	int ObjectHiLevelTwoChunkLowOffset (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3733,7 +5390,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectHiNumLocalsLowNumArgs (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3742,7 +5403,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3751,7 +5416,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectHiStartingChunkIndexLowNumOuters (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3760,7 +5429,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectImplementationsTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectImplementationsTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3769,7 +5442,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectInclusiveFlags (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectInclusiveFlags (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3778,7 +5455,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectIncomplete (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectIncomplete (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3787,7 +5468,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectIndex (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectIndex (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3796,7 +5481,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectInnerType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectInnerType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3805,7 +5494,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectInstance (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3814,7 +5507,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectInternalHash (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectInternalHash (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3823,7 +5520,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectInterruptRequestFlag (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectInterruptRequestFlag (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3832,7 +5533,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectInvocationCount (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectInvocationCount (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3841,7 +5546,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	boolean ObjectIsAbstract (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsAbstract (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3850,7 +5559,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsFinite (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsFinite (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3859,7 +5572,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsForward (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsForward (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3868,7 +5585,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsImplementation (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsImplementation (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3877,7 +5598,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsPositive (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsPositive (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3886,7 +5611,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSaved (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsSaved (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3895,7 +5624,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSplice (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsSplice (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3904,7 +5637,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfTerminates (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfTerminates (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3913,7 +5650,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfVoid (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsSupertypeOfVoid (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3922,7 +5663,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsValid (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsValid (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3931,7 +5676,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	List<AvailObject> ObjectKeysAsArray (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public List<AvailObject> ObjectKeysAsArray (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3940,7 +5689,11 @@ public abstract class Descriptor
 		return null;
 	}
 
-	AvailObject ObjectKeysAsSet (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectKeysAsSet (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3949,7 +5702,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectKeyType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3958,7 +5715,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectLevelTwoChunkIndex (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectLevelTwoChunkIndex (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3967,7 +5728,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectLevelTwoOffset (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectLevelTwoOffset (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3976,7 +5741,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectLowerBound (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3985,7 +5754,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectLowerInclusive (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectLowerInclusive (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -3994,7 +5767,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	int ObjectMapSize (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectMapSize (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4003,7 +5780,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectMaxStackDepth (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectMaxStackDepth (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4012,7 +5793,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectMessage (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMessage (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4021,7 +5806,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMessageParts (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMessageParts (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4030,7 +5819,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMethods (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMethods (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4039,7 +5832,10 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectMoveToHead (
+	/**
+	 * @param object
+	 */
+	public void ObjectMoveToHead (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4048,7 +5844,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectMyObjectMeta (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMyObjectMeta (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4057,7 +5857,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMyObjectType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMyObjectType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4066,7 +5870,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMyRestrictions (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMyRestrictions (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4075,7 +5883,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectMyType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMyType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4084,7 +5896,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectName (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectName (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4093,7 +5909,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectNames (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectNames (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4102,7 +5922,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectNewNames (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectNewNames (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4111,7 +5935,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectNext (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectNext (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4120,7 +5948,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectNextIndex (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNextIndex (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4129,7 +5961,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectNumArgs (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectNumArgs (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4138,7 +5974,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectNumArgsAndLocalsAndStack (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4147,7 +5987,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumberOfZones (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumberOfZones (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4156,7 +6000,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumBlanks (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumBlanks (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4165,7 +6013,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumFloats (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumFloats (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4174,7 +6026,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumIntegers (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumIntegers (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4183,7 +6039,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectNumLiterals (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectNumLiterals (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4192,7 +6052,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectNumLocals (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectNumLocals (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4201,7 +6065,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumLocalsOrArgsOrStack (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumLocalsOrArgsOrStack (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4210,7 +6078,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumObjects (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumObjects (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4219,7 +6091,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectNumOuters (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectNumOuters (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4228,7 +6104,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectNumOuterVars (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectNumOuterVars (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4237,7 +6117,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectNybbles (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectNybbles (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4246,7 +6130,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectPad (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectPad (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4255,7 +6143,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectParent (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectParent (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4264,7 +6156,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectPc (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectPc (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4273,7 +6169,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectPrevious (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectPrevious (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4282,7 +6182,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectPreviousIndex (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectPreviousIndex (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4291,7 +6195,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	short ObjectPrimitiveNumber (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public short ObjectPrimitiveNumber (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4300,7 +6208,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectPriority (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectPriority (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4309,7 +6221,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectPrivateNames (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectPrivateNames (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4318,7 +6234,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectPrivateTestingTree (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectPrivateTestingTree (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4327,7 +6247,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectProcessGlobals (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectProcessGlobals (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4336,7 +6260,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectRawQuad1 (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4345,7 +6273,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectRawQuad2 (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectRawQuad2 (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4354,7 +6286,10 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectReleaseVariableOrMakeContentsImmutable (
+	/**
+	 * @param object
+	 */
+	public void ObjectReleaseVariableOrMakeContentsImmutable (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4363,7 +6298,10 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRemoveFromQueue (
+	/**
+	 * @param object
+	 */
+	public void ObjectRemoveFromQueue (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4372,7 +6310,10 @@ public abstract class Descriptor
 		return;
 	}
 
-	void ObjectRemoveRestrictions (
+	/**
+	 * @param object
+	 */
+	public void ObjectRemoveRestrictions (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4381,7 +6322,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectRequiresBlock (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectRequiresBlock (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4390,7 +6335,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectRestrictions (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectRestrictions (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4399,7 +6348,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectReturnsBlock (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4408,7 +6361,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectReturnType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4417,7 +6374,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectRootBin (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectRootBin (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4426,7 +6387,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectSecondTupleType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectSecondTupleType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4435,7 +6400,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectSetSize (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectSetSize (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4444,7 +6413,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectSignature (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4453,7 +6426,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectSize (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectSize (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4462,7 +6439,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectSizeRange (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4471,7 +6452,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectStackp (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectStackp (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4480,7 +6465,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	int ObjectStartingChunkIndex (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectStartingChunkIndex (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4489,7 +6478,10 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	void ObjectStep (
+	/**
+	 * @param object
+	 */
+	public void ObjectStep (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4498,7 +6490,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTestingTree (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectTestingTree (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4507,7 +6503,10 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectTrimExcessLongs (
+	/**
+	 * @param object
+	 */
+	public void ObjectTrimExcessLongs (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4516,7 +6515,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4525,7 +6528,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectTupleSize (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectTupleSize (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4534,7 +6541,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectTupleType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4543,7 +6554,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTypeTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4552,7 +6567,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectUnclassified (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectUnclassified (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4561,7 +6580,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectUpperBound (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4570,7 +6593,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectUpperInclusive (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectUpperInclusive (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4579,7 +6606,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	int ObjectValidity (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectValidity (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4588,7 +6619,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectValue (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectValue (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4597,7 +6632,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectValuesAsTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectValuesAsTuple (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4606,7 +6645,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectValueType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4615,7 +6658,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectVariableBindings (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectVariableBindings (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4624,7 +6671,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectVectors (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectVectors (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4633,7 +6684,10 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	void ObjectVerify (
+	/**
+	 * @param object
+	 */
+	public void ObjectVerify (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4642,7 +6696,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectVisibleNames (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectVisibleNames (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4651,7 +6709,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectWhichOne (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectWhichOne (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4660,7 +6722,11 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectWordcodes (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectWordcodes (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4673,6 +6739,10 @@ public abstract class Descriptor
 
 	// GENERATED special mutable slots
 
+	/**
+	 * @param index
+	 * @return
+	 */
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -4685,6 +6755,9 @@ public abstract class Descriptor
 
 	// java printing
 
+	/**
+	 * @return
+	 */
 	int maximumIndent ()
 	{
 		//  Answer the deepest a recursive print can go before summarizing.
@@ -4709,6 +6782,12 @@ public abstract class Descriptor
 	 * @param indent The indent level, in horizontal tabs, at which the {@link
 	 *               AvailObject} should be printed.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	/**
+	 * @param object
+	 * @param builder
+	 * @param recursionList
+	 * @param indent
 	 */
 	@ThreadSafe
 	void printObjectOnAvoidingIndent (
@@ -4791,7 +6870,12 @@ public abstract class Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -4799,77 +6883,132 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectEqualsAnyTuple (
+	/**
+	 * @param object
+	 * @param aTuple
+	 * @return
+	 */
+	public boolean ObjectEqualsAnyTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsByteString (
+	/**
+	 * @param object
+	 * @param aString
+	 * @return
+	 */
+	public boolean ObjectEqualsByteString (
 			final AvailObject object, 
 			final AvailObject aString)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsByteTuple (
+	/**
+	 * @param object
+	 * @param aTuple
+	 * @return
+	 */
+	public boolean ObjectEqualsByteTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsCharacterWithCodePoint (
+	/**
+	 * @param object
+	 * @param otherCodePoint
+	 * @return
+	 */
+	public boolean ObjectEqualsCharacterWithCodePoint (
 			final AvailObject object, 
 			final int otherCodePoint)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsClosure (
+	/**
+	 * @param object
+	 * @param aClosure
+	 * @return
+	 */
+	public boolean ObjectEqualsClosure (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsClosureType (
+	/**
+	 * @param object
+	 * @param aClosureType
+	 * @return
+	 */
+	public boolean ObjectEqualsClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsCompiledCode (
+	/**
+	 * @param object
+	 * @param aCompiledCode
+	 * @return
+	 */
+	public boolean ObjectEqualsCompiledCode (
 			final AvailObject object, 
 			final AvailObject aCompiledCode)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsContainer (
+	/**
+	 * @param object
+	 * @param aContainer
+	 * @return
+	 */
+	public boolean ObjectEqualsContainer (
 			final AvailObject object, 
 			final AvailObject aContainer)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsContainerType (
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	public boolean ObjectEqualsContainerType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsContinuation (
+	/**
+	 * @param object
+	 * @param aContinuation
+	 * @return
+	 */
+	public boolean ObjectEqualsContinuation (
 			final AvailObject object, 
 			final AvailObject aContinuation)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsContinuationType (
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	public boolean ObjectEqualsContinuationType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -4878,133 +7017,228 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectEqualsDouble (
+	/**
+	 * @param object
+	 * @param aDoubleObject
+	 * @return
+	 */
+	public boolean ObjectEqualsDouble (
 			final AvailObject object, 
 			final AvailObject aDoubleObject)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsFloat (
+	/**
+	 * @param object
+	 * @param aFloatObject
+	 * @return
+	 */
+	public boolean ObjectEqualsFloat (
 			final AvailObject object, 
 			final AvailObject aFloatObject)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsGeneralizedClosureType (
+	/**
+	 * @param object
+	 * @param aGeneralizedClosureType
+	 * @return
+	 */
+	public boolean ObjectEqualsGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsInfinity (
+	/**
+	 * @param object
+	 * @param anInfinity
+	 * @return
+	 */
+	public boolean ObjectEqualsInfinity (
 			final AvailObject object, 
 			final AvailObject anInfinity)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsInteger (
+	/**
+	 * @param object
+	 * @param anAvailInteger
+	 * @return
+	 */
+	public boolean ObjectEqualsInteger (
 			final AvailObject object, 
 			final AvailObject anAvailInteger)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsIntegerRangeType (
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public boolean ObjectEqualsIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsList (
+	/**
+	 * @param object
+	 * @param aList
+	 * @return
+	 */
+	public boolean ObjectEqualsList (
 			final AvailObject object, 
 			final AvailObject aList)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsListType (
+	/**
+	 * @param object
+	 * @param aListType
+	 * @return
+	 */
+	public boolean ObjectEqualsListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsMap (
+	/**
+	 * @param object
+	 * @param aMap
+	 * @return
+	 */
+	public boolean ObjectEqualsMap (
 			final AvailObject object, 
 			final AvailObject aMap)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsMapType (
+	/**
+	 * @param object
+	 * @param aMapType
+	 * @return
+	 */
+	public boolean ObjectEqualsMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsNybbleTuple (
+	/**
+	 * @param object
+	 * @param aTuple
+	 * @return
+	 */
+	public boolean ObjectEqualsNybbleTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsObject (
+	/**
+	 * @param object
+	 * @param anObject
+	 * @return
+	 */
+	public boolean ObjectEqualsObject (
 			final AvailObject object, 
 			final AvailObject anObject)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsObjectTuple (
+	/**
+	 * @param object
+	 * @param aTuple
+	 * @return
+	 */
+	public boolean ObjectEqualsObjectTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsPrimitiveType (
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	public boolean ObjectEqualsPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsSet (
+	/**
+	 * @param object
+	 * @param aSet
+	 * @return
+	 */
+	public boolean ObjectEqualsSet (
 			final AvailObject object, 
 			final AvailObject aSet)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsSetType (
+	/**
+	 * @param object
+	 * @param aSetType
+	 * @return
+	 */
+	public boolean ObjectEqualsSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsTupleType (
+	/**
+	 * @param object
+	 * @param aTupleType
+	 * @return
+	 */
+	public boolean ObjectEqualsTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsTwoByteString (
+	/**
+	 * @param object
+	 * @param aString
+	 * @return
+	 */
+	public boolean ObjectEqualsTwoByteString (
 			final AvailObject object, 
 			final AvailObject aString)
 	{
 		return false;
 	}
 
-	boolean ObjectHasObjectInstance (
+	/**
+	 * @param object
+	 * @param potentialInstance
+	 * @return
+	 */
+	public boolean ObjectHasObjectInstance (
 			final AvailObject object, 
 			final AvailObject potentialInstance)
 	{
@@ -5013,7 +7247,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsBetterRepresentationThan (
+	/**
+	 * @param object
+	 * @param anotherObject
+	 * @return
+	 */
+	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
 	{
@@ -5023,7 +7262,12 @@ public abstract class Descriptor
 		return ((object.objectSlotsCount() + object.integerSlotsCount()) < (anotherObject.objectSlotsCount() + anotherObject.integerSlotsCount()));
 	}
 
-	boolean ObjectIsBetterRepresentationThanTupleType (
+	/**
+	 * @param object
+	 * @param aTupleType
+	 * @return
+	 */
+	public boolean ObjectIsBetterRepresentationThanTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -5037,7 +7281,12 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -5048,7 +7297,11 @@ public abstract class Descriptor
 		return object.exactType().isSubtypeOf(aType);
 	}
 
-	boolean ObjectCanComputeHashOfType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectCanComputeHashOfType (
 			final AvailObject object)
 	{
 		//  Answer whether object supports the #hashOfType protocol.
@@ -5056,13 +7309,21 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectEqualsBlank (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectEqualsBlank (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsFalse (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectEqualsFalse (
 			final AvailObject object)
 	{
 		//  Answer true if this is the Avail false object, which it isn't.
@@ -5070,7 +7331,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectEqualsTrue (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectEqualsTrue (
 			final AvailObject object)
 	{
 		//  Answer true if this is the Avail true object, which it isn't.
@@ -5078,19 +7343,31 @@ public abstract class Descriptor
 		return false;
 	}
 
-	boolean ObjectEqualsVoid (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectEqualsVoid (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectEqualsVoidOrBlank (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectEqualsVoidOrBlank (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	AvailObject ObjectExactType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -5099,7 +7376,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectHash (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
@@ -5109,13 +7390,21 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	boolean ObjectIsClosure (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsClosure (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsHashAvailable (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -5126,7 +7415,11 @@ public abstract class Descriptor
 		return true;
 	}
 
-	AvailObject ObjectMakeImmutable (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to scan
@@ -5140,7 +7433,10 @@ public abstract class Descriptor
 		return object;
 	}
 
-	void ObjectMakeSubobjectsImmutable (
+	/**
+	 * @param object
+	 */
+	public void ObjectMakeSubobjectsImmutable (
 			final AvailObject object)
 	{
 		//  Make my subobjects be immutable.  Don't change my own mutability state.
@@ -5150,7 +7446,11 @@ public abstract class Descriptor
 		object.scanSubobjects(new AvailBeImmutableSubobjectVisitor());
 	}
 
-	AvailObject ObjectType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -5163,7 +7463,11 @@ public abstract class Descriptor
 
 	// operations-booleans
 
-	boolean ObjectIsBoolean (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsBoolean (
 			final AvailObject object)
 	{
 		return false;
@@ -5177,14 +7481,22 @@ public abstract class Descriptor
 	 *         otherwise.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	boolean ObjectIsByteTuple (final @NotNull AvailObject object)
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsByteTuple (final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
 	// operations-characters
 
-	boolean ObjectIsCharacter (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsCharacter (
 			final AvailObject object)
 	{
 		return false;
@@ -5198,7 +7510,11 @@ public abstract class Descriptor
 	 *         otherwise.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	boolean ObjectIsString (final @NotNull AvailObject object)
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsString (final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5206,7 +7522,12 @@ public abstract class Descriptor
 
 	// operations-closure
 
-	boolean ObjectContainsBlock (
+	/**
+	 * @param object
+	 * @param aClosure
+	 * @return
+	 */
+	public boolean ObjectContainsBlock (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
@@ -5220,7 +7541,10 @@ public abstract class Descriptor
 
 	// operations-faulting
 
-	void ObjectPostFault (
+	/**
+	 * @param object
+	 */
+	public void ObjectPostFault (
 			final AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
@@ -5231,7 +7555,10 @@ public abstract class Descriptor
 
 	}
 
-	void ObjectReadBarrierFault (
+	/**
+	 * @param object
+	 */
+	public void ObjectReadBarrierFault (
 			final AvailObject object)
 	{
 		//  The object is in ToSpace, and its fields already refer to ToSpace objects.  Do nothing,
@@ -5246,7 +7573,11 @@ public abstract class Descriptor
 
 	// operations-indirections
 
-	void ObjectTarget (
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public void ObjectTarget (
 			final AvailObject object, 
 			final AvailObject value)
 	{
@@ -5256,7 +7587,11 @@ public abstract class Descriptor
 		return;
 	}
 
-	AvailObject ObjectTarget (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectTarget (
 			final AvailObject object)
 	{
 		//  From IndirectionObjectDescriptor.  Fail if we're not an indirection object.
@@ -5265,7 +7600,11 @@ public abstract class Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectTraversed (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectTraversed (
 			final AvailObject object)
 	{
 		//  Overidden in IndirectionDescriptor to skip over indirections.
@@ -5277,7 +7616,11 @@ public abstract class Descriptor
 
 	// operations-lists
 
-	boolean ObjectIsList (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsList (
 			final AvailObject object)
 	{
 		return false;
@@ -5287,7 +7630,11 @@ public abstract class Descriptor
 
 	// operations-maps
 
-	boolean ObjectIsMap (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsMap (
 			final AvailObject object)
 	{
 		return false;
@@ -5297,13 +7644,21 @@ public abstract class Descriptor
 
 	// operations-numbers
 
-	boolean ObjectIsByte (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsByte (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsNybble (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsNybble (
 			final AvailObject object)
 	{
 		return false;
@@ -5313,7 +7668,11 @@ public abstract class Descriptor
 
 	// operations-set
 
-	boolean ObjectIsSet (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsSet (
 			final AvailObject object)
 	{
 		return false;
@@ -5323,7 +7682,15 @@ public abstract class Descriptor
 
 	// operations-set bins
 
-	AvailObject ObjectBinAddingElementHashLevelCanDestroy (
+	/**
+	 * @param object
+	 * @param elementObject
+	 * @param elementObjectHash
+	 * @param myLevel
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
@@ -5351,7 +7718,13 @@ public abstract class Descriptor
 		return result;
 	}
 
-	boolean ObjectBinHasElementHash (
+	/**
+	 * @param object
+	 * @param elementObject
+	 * @param elementObjectHash
+	 * @return
+	 */
+	public boolean ObjectBinHasElementHash (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash)
@@ -5362,7 +7735,14 @@ public abstract class Descriptor
 		return object.equals(elementObject);
 	}
 
-	AvailObject ObjectBinRemoveElementHashCanDestroy (
+	/**
+	 * @param object
+	 * @param elementObject
+	 * @param elementObjectHash
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject ObjectBinRemoveElementHashCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
@@ -5384,7 +7764,12 @@ public abstract class Descriptor
 		return object;
 	}
 
-	boolean ObjectIsBinSubsetOf (
+	/**
+	 * @param object
+	 * @param potentialSuperset
+	 * @return
+	 */
+	public boolean ObjectIsBinSubsetOf (
 			final AvailObject object, 
 			final AvailObject potentialSuperset)
 	{
@@ -5395,7 +7780,13 @@ public abstract class Descriptor
 		return potentialSuperset.hasElement(object);
 	}
 
-	int ObjectPopulateTupleStartingAt (
+	/**
+	 * @param object
+	 * @param mutableTuple
+	 * @param startingIndex
+	 * @return
+	 */
+	public int ObjectPopulateTupleStartingAt (
 			final AvailObject object, 
 			final AvailObject mutableTuple, 
 			final int startingIndex)
@@ -5409,7 +7800,11 @@ public abstract class Descriptor
 		return (startingIndex + 1);
 	}
 
-	int ObjectBinHash (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectBinHash (
 			final AvailObject object)
 	{
 		//  An object masquerading as a size one bin has a bin hash which is the sum of
@@ -5418,7 +7813,11 @@ public abstract class Descriptor
 		return object.hash();
 	}
 
-	int ObjectBinSize (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectBinSize (
 			final AvailObject object)
 	{
 		//  Answer how many elements this bin contains.  I act as a bin of size one.
@@ -5426,7 +7825,11 @@ public abstract class Descriptor
 		return 1;
 	}
 
-	AvailObject ObjectBinUnionType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
 		//  Answer the union of the types of this bin's elements.  I act as a bin of size one.
@@ -5438,12 +7841,20 @@ public abstract class Descriptor
 
 	// operations-tuples
 
-	boolean ObjectIsTuple (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsTuple (
 			final AvailObject object)
 	{
 		return false;
 	}
 
+	/**
+	 * @param size
+	 * @return
+	 */
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{
@@ -5459,7 +7870,12 @@ public abstract class Descriptor
 
 	// operations-types
 
-	boolean ObjectTypeEquals (
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	public boolean ObjectTypeEquals (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -5472,7 +7888,11 @@ public abstract class Descriptor
 		return false;
 	}
 
-	int ObjectHashOfType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public int ObjectHashOfType (
 			final AvailObject object)
 	{
 		//  We are computing the hash value of some ApproximateType, and it has
@@ -5486,49 +7906,81 @@ public abstract class Descriptor
 		return 0;
 	}
 
-	boolean ObjectIsCyclicType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsCyclicType (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsExtendedInteger (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsExtendedInteger (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsIntegerRangeType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsIntegerRangeType (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsListType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsListType (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsMapType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsMapType (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsSetType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsSetType (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsTupleType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsType (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public boolean ObjectIsType (
 			final AvailObject object)
 	{
 		return false;
@@ -5538,7 +7990,11 @@ public abstract class Descriptor
 
 	// scanning
 
-	void ObjectScanSubobjects (
+	/**
+	 * @param object
+	 * @param visitor
+	 */
+	public void ObjectScanSubobjects (
 			final AvailObject object, 
 			final AvailSubobjectVisitor visitor)
 	{
@@ -5557,7 +8013,11 @@ public abstract class Descriptor
 	 * @return An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	@NotNull Iterator<AvailObject> ObjectIterator (
+	/**
+	 * @param object
+	 * @return
+	 */
+	public @NotNull Iterator<AvailObject> ObjectIterator (
 		final @NotNull AvailObject object)
 	{
 		error(

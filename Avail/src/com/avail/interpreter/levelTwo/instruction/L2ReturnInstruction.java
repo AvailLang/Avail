@@ -47,6 +47,7 @@ public class L2ReturnInstruction extends L2Instruction
 
 	// accessing
 
+	@Override
 	public ArrayList<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
@@ -54,6 +55,7 @@ public class L2ReturnInstruction extends L2Instruction
 		return new ArrayList<L2Register>();
 	}
 
+	@Override
 	public ArrayList<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
@@ -67,6 +69,7 @@ public class L2ReturnInstruction extends L2Instruction
 
 	// code generation
 
+	@Override
 	public void emitOn (
 			final L2CodeGenerator anL2CodeGenerator)
 	{

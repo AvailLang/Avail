@@ -43,6 +43,7 @@ public class AvailPushLabel extends AvailInstruction
 
 	// nybblecodes
 
+	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
@@ -56,6 +57,7 @@ public class AvailPushLabel extends AvailInstruction
 
 	// optimization
 
+	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData, 
 			final List<AvailVariableAccessNote> outerData, 
@@ -112,6 +114,7 @@ public class AvailPushLabel extends AvailInstruction
 
 	// testing
 
+	@Override
 	public boolean isPushLabel ()
 	{
 		return true;

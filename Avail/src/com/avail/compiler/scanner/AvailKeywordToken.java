@@ -38,6 +38,7 @@ public class AvailKeywordToken extends AvailToken
 
 	// accessing
 
+	@Override
 	public TokenType type ()
 	{
 		return TokenType.keyword;

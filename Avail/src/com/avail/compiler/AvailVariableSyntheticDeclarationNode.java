@@ -57,6 +57,7 @@ public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarat
 
 	// code generation
 
+	@Override
 	public void emitVariableAssignmentOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -65,6 +66,7 @@ public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarat
 		codeGenerator.emitSetLiteral(_availVariable);
 	}
 
+	@Override
 	public void emitVariableReferenceOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -73,6 +75,7 @@ public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarat
 		codeGenerator.emitPushLiteral(_availVariable);
 	}
 
+	@Override
 	public void emitVariableValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -85,6 +88,7 @@ public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarat
 
 	// testing
 
+	@Override
 	public boolean isSyntheticVariableDeclaration ()
 	{
 		return true;

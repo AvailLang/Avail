@@ -65,6 +65,7 @@ public class AvailLiteralNode extends AvailParseNode
 		_availType = null;
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		assert _availValue != null;
@@ -79,6 +80,7 @@ public class AvailLiteralNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -90,6 +92,7 @@ public class AvailLiteralNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -101,6 +104,7 @@ public class AvailLiteralNode extends AvailParseNode
 
 	// testing
 
+	@Override
 	public boolean isLiteralNode ()
 	{
 		return true;

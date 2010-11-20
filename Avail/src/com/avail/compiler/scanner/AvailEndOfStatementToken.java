@@ -38,6 +38,7 @@ public class AvailEndOfStatementToken extends AvailToken
 
 	// accessing
 
+	@Override
 	public TokenType type ()
 	{
 		return TokenType.endOfStatement;
@@ -47,6 +48,7 @@ public class AvailEndOfStatementToken extends AvailToken
 
 	// java printing
 
+	@Override
 	public String toString ()
 	{
 		return "{" + _string + "}";

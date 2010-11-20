@@ -50,54 +50,66 @@ public class MapTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectKeyType (
+	/**
+	 * Setter for field !K!eyType.
+	 */
+	@Override
+	public void ObjectKeyType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectSizeRange (
+	/**
+	 * Setter for field !S!izeRange.
+	 */
+	@Override
+	public void ObjectSizeRange (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectValueType (
+	/**
+	 * Setter for field !V!alueType.
+	 */
+	@Override
+	public void ObjectValueType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	AvailObject ObjectKeyType (
+	/**
+	 * Getter for field !K!eyType.
+	 */
+	@Override
+	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectSizeRange (
+	/**
+	 * Getter for field !S!izeRange.
+	 */
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectValueType (
+	/**
+	 * Getter for field !V!alueType.
+	 */
+	@Override
+	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
@@ -105,6 +117,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -132,14 +145,16 @@ public class MapTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsMapType(object);
 	}
 
-	boolean ObjectEqualsMapType (
+	@Override
+	public boolean ObjectEqualsMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -152,7 +167,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return (object.sizeRange().equals(aMapType.sizeRange()) && (object.keyType().equals(aMapType.keyType()) && object.valueType().equals(aMapType.valueType())));
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -160,7 +176,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return Types.mapType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -172,7 +189,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 			object.valueType().hash());
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -195,13 +213,15 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	boolean ObjectIsMapType (
+	@Override
+	public boolean ObjectIsMapType (
 			final AvailObject object)
 	{
 		return true;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -213,7 +233,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -222,7 +243,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfMapType(object);
 	}
 
-	boolean ObjectIsSupertypeOfMapType (
+	@Override
+	public boolean ObjectIsSupertypeOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -232,7 +254,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return (aMapType.sizeRange().isSubtypeOf(object.sizeRange()) && (aMapType.keyType().isSubtypeOf(object.keyType()) && aMapType.valueType().isSubtypeOf(object.valueType())));
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -249,7 +272,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfMapType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfMapType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -265,7 +289,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 			object.valueType().typeIntersection(aMapType.valueType()).makeImmutable());
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -286,7 +311,8 @@ public class MapTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfMapType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfMapType (
+	@Override
+	public AvailObject ObjectTypeUnionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{

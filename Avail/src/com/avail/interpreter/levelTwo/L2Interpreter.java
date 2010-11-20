@@ -357,11 +357,13 @@ implements L2OperationDispatcher
 
 	// L2InstructionStream visitor methods
 
+	@Override
 	public void L2_unknownWordcode ()
 	{
 		error("Unknown wordcode\n");
 	}
 
+	@Override
 	public void L2_doCreateSimpleContinuationIn_()
 	{
 		//  Create a simple continuation using the current calling continuation, closure, and arguments.
@@ -397,6 +399,7 @@ implements L2OperationDispatcher
 	 * Execute a single nybblecode of the current continuation, found in
 	 * {@link #callerRegister() callerRegister}.
 	 */
+	@Override
 	public void L2_doInterpretOneInstruction ()
 	{
 		final AvailObject continutation = pointerAt(callerRegister());
@@ -440,6 +443,7 @@ implements L2OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L2_doDecrementCounterAndReoptimizeOnZero()
 	{
 		//  Decrement the counter in the current code object.  If it reaches zero, reoptimize the current code.
@@ -469,6 +473,7 @@ implements L2OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L2_doTranslateCode()
 	{
 		//  The callerRegister contains the calling continuation, and the closureRegister contains the code
@@ -490,6 +495,7 @@ implements L2OperationDispatcher
 			_argsBuffer);
 	}
 
+	@Override
 	public void L2_doMoveFromObject_destObject_()
 	{
 		int fromIndex = nextWord();
@@ -497,6 +503,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, pointerAt(fromIndex));
 	}
 
+	@Override
 	public void L2_doMoveFromConstant_destObject_()
 	{
 		int fromIndex = nextWord();
@@ -504,6 +511,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, _chunk.literalAt(fromIndex));
 	}
 
+	@Override
 	public void L2_doMoveFromOuterVariable_ofClosureObject_destObject_()
 	{
 		int outerIndex = nextWord();
@@ -512,6 +520,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, pointerAt(fromIndex).outerVarAt(outerIndex));
 	}
 
+	@Override
 	public void L2_doCreateVariableTypeConstant_destObject_()
 	{
 		int typeIndex = nextWord();
@@ -519,6 +528,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, ContainerDescriptor.newContainerWithOuterType(_chunk.literalAt(typeIndex)));
 	}
 
+	@Override
 	public void L2_doGetVariable_destObject_()
 	{
 		int getIndex = nextWord();
@@ -526,6 +536,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, pointerAt(getIndex).getValue().makeImmutable());
 	}
 
+	@Override
 	public void L2_doGetVariableClearing_destObject_()
 	{
 		int getIndex = nextWord();
@@ -543,6 +554,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, value);
 	}
 
+	@Override
 	public void L2_doSetVariable_sourceObject_()
 	{
 		int setIndex = nextWord();
@@ -550,6 +562,7 @@ implements L2OperationDispatcher
 		pointerAt(setIndex).setValue(pointerAt(sourceIndex));
 	}
 
+	@Override
 	public void L2_doClearVariable_()
 	{
 		@SuppressWarnings("unused") int clearIndex = nextWord();
@@ -557,6 +570,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doClearVariablesVector_()
 	{
 		@SuppressWarnings("unused") int variablesIndex = nextWord();
@@ -564,12 +578,14 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doClearObject_()
 	{
 		int clearIndex = nextWord();
 		pointerAtPut(clearIndex, VoidDescriptor.voidObject());
 	}
 
+	@Override
 	public void L2_doAddIntegerConstant_destObject_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -578,6 +594,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doAddIntegerConstant_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -587,6 +604,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doAddObject_destObject_()
 	{
 		@SuppressWarnings("unused") int addIndex = nextWord();
@@ -595,6 +613,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doAddInteger_destInteger_ifFail_()
 	{
 		//  Note that failOffset is an absolute position in the chunk.
@@ -616,6 +635,7 @@ implements L2OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L2_doAddIntegerImmediate_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -625,6 +645,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doAddModThirtyTwoBitInteger_destInteger_()
 	{
 		@SuppressWarnings("unused") int bitIndex = nextWord();
@@ -633,6 +654,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSubtractIntegerConstant_destObject_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -641,6 +663,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSubtractIntegerConstant_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -650,6 +673,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSubtractObject_destObject_()
 	{
 		@SuppressWarnings("unused") int subtractIndex = nextWord();
@@ -658,6 +682,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSubtractInteger_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int subtractIndex = nextWord();
@@ -667,6 +692,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSubtractIntegerImmediate_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int integerImmediate = nextWord();
@@ -676,6 +702,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSubtractModThirtyTwoBitInteger_destInteger_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -684,6 +711,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMultiplyIntegerConstant_destObject_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -692,6 +720,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMultiplyIntegerConstant_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -701,6 +730,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMultiplyObject_destObject_()
 	{
 		@SuppressWarnings("unused") int multiplyIndex = nextWord();
@@ -709,6 +739,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMultiplyInteger_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int multiplyIndex = nextWord();
@@ -718,6 +749,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMultiplyIntegerImmediate_destInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -727,6 +759,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMultiplyModThirtyTwoBitInteger_destInteger_()
 	{
 		@SuppressWarnings("unused") int integerIndex = nextWord();
@@ -735,6 +768,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doDivideObject_byIntegerConstant_destQuotientObject_destRemainderInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int divideIndex = nextWord();
@@ -746,6 +780,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int divideIndex = nextWord();
@@ -757,6 +792,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doDivideInteger_byIntegerImmediate_destQuotientInteger_destRemainderInteger_ifFail_()
 	{
 		@SuppressWarnings("unused") int divideIndex = nextWord();
@@ -768,6 +804,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_()
 	{
 		@SuppressWarnings("unused") int divideIndex = nextWord();
@@ -779,6 +816,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doDivideInteger_byInteger_destQuotientInteger_destRemainderInteger_ifFail_ifZeroDivisor_()
 	{
 		@SuppressWarnings("unused") int divideIndex = nextWord();
@@ -791,12 +829,14 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_()
 	{
 		int doIndex = nextWord();
 		offset(doIndex);
 	}
 
+	@Override
 	public void L2_doJump_ifObject_equalsObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -806,6 +846,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_equalsConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -815,6 +856,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_notEqualsObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -824,6 +866,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_notEqualsConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -833,6 +876,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_lessThanObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -842,6 +886,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_lessThanConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -851,6 +896,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_lessOrEqualObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -860,6 +906,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_lessOrEqualConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -869,6 +916,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_greaterThanObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -878,6 +926,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_greaterConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -887,6 +936,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_greaterOrEqualObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -896,6 +946,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_greaterOrEqualConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -905,6 +956,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_isKindOfObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -914,6 +966,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_isKindOfConstant_()
 	{
 		int doIndex = nextWord();
@@ -927,6 +980,7 @@ implements L2OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L2_doJump_ifObject_isNotKindOfObject_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -936,6 +990,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJump_ifObject_isNotKindOfConstant_()
 	{
 		@SuppressWarnings("unused") int doIndex = nextWord();
@@ -945,6 +1000,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doJumpIfInterrupt_()
 	{
 		int ifIndex = nextWord();
@@ -952,6 +1008,7 @@ implements L2OperationDispatcher
 			offset(ifIndex);
 	}
 
+	@Override
 	public void L2_doJumpIfNotInterrupt_()
 	{
 		int ifNotIndex = nextWord();
@@ -959,6 +1016,7 @@ implements L2OperationDispatcher
 			offset(ifNotIndex);
 	}
 
+	@Override
 	public void L2_doProcessInterruptNowWithContinuationObject_()
 	{
 		//  The current process has been asked to pause for an inter-nybblecode interrupt for
@@ -974,6 +1032,7 @@ implements L2OperationDispatcher
 		_exitNow = true;
 	}
 
+	@Override
 	public void L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_()
 	{
 		int senderIndex = nextWord();
@@ -1000,6 +1059,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, cont);
 	}
 
+	@Override
 	public void L2_doSetContinuationObject_slotIndexImmediate_valueObject_()
 	{
 		@SuppressWarnings("unused") int continuationIndex = nextWord();
@@ -1009,6 +1069,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doSetContinuationObject_newPcImmediate_newStackpImmediate_()
 	{
 		@SuppressWarnings("unused") int continuationIndex = nextWord();
@@ -1018,6 +1079,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_()
 	{
 		int continuationIndex = nextWord();
@@ -1039,6 +1101,7 @@ implements L2OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L2_doSend_argumentsVector_()
 	{
 		int selectorIndex = nextWord();
@@ -1086,6 +1149,7 @@ implements L2OperationDispatcher
 		invokeWithoutPrimitiveClosureArguments(closureToCall, _argsBuffer);
 	}
 
+	@Override
 	public void L2_doGetType_destObject_()
 	{
 		int srcIndex = nextWord();
@@ -1093,6 +1157,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, pointerAt(srcIndex).type());
 	}
 
+	@Override
 	public void L2_doSuperSend_argumentsVector_argumentTypesVector_()
 	{
 		int selectorIndex = nextWord();
@@ -1150,6 +1215,7 @@ implements L2OperationDispatcher
 		invokeWithoutPrimitiveClosureArguments(closureToCall, _argsBuffer);
 	}
 
+	@Override
 	public void L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_()
 	{
 		int sizeIndex = nextWord();
@@ -1165,6 +1231,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, tuple);
 	}
 
+	@Override
 	public void L2_doConvertTupleObject_toListObject_()
 	{
 		int tupleObject = nextWord();
@@ -1176,6 +1243,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destObject, list);
 	}
 
+	@Override
 	public void L2_doConcatenateTuplesVector_destObject_()
 	{
 		@SuppressWarnings("unused") int subtupleIndex = nextWord();
@@ -1184,6 +1252,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doCreateSetOfSizeImmediate_valuesVector_destObject_()
 	{
 		@SuppressWarnings("unused") int sizeIndex = nextWord();
@@ -1193,6 +1262,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_()
 	{
 		@SuppressWarnings("unused") int sizeIndex = nextWord();
@@ -1203,6 +1273,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_()
 	{
 		@SuppressWarnings("unused") int sizeIndex = nextWord();
@@ -1213,6 +1284,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doCreateClosureFromCodeObject_outersVector_destObject_()
 	{
 		int codeIndex = nextWord();
@@ -1228,6 +1300,7 @@ implements L2OperationDispatcher
 		pointerAtPut(destIndex, clos);
 	}
 
+	@Override
 	public void L2_doReturnToContinuationObject_valueObject_()
 	{
 		//  Return to the calling continuation with the given value.
@@ -1250,6 +1323,7 @@ implements L2OperationDispatcher
 		prepareToExecuteContinuation(caller);
 	}
 
+	@Override
 	public void L2_doExitContinuationObject_valueObject_()
 	{
 		@SuppressWarnings("unused") int continuationIndex = nextWord();
@@ -1258,6 +1332,7 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doResumeContinuationObject_()
 	{
 		@SuppressWarnings("unused") int continuationIndex = nextWord();
@@ -1265,24 +1340,28 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	@Override
 	public void L2_doMakeImmutableObject_()
 	{
 		int objectIndex = nextWord();
 		pointerAt(objectIndex).makeImmutable();
 	}
 
+	@Override
 	public void L2_doMakeSubobjectsImmutableInObject_()
 	{
 		int objectIndex = nextWord();
 		pointerAt(objectIndex).makeSubobjectsImmutable();
 	}
 
+	@Override
 	public void L2_doBreakpoint()
 	{
 		error("Breakpoint instruction reached");
 		return;
 	}
 
+	@Override
 	public void L2_doAttemptPrimitive_withArguments_result_ifFail_()
 	{
 		//  Attempt the specified primitive with the given arguments.  If the primitive fails,

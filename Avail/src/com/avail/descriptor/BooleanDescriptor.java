@@ -44,6 +44,7 @@ public abstract class BooleanDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -57,7 +58,8 @@ public abstract class BooleanDescriptor extends Descriptor
 
 	// operations-booleans
 
-	boolean ObjectExtractBoolean (
+	@Override
+	public boolean ObjectExtractBoolean (
 			final AvailObject object)
 	{
 		//  Extract a Smalltalk Boolean from object.
@@ -66,7 +68,8 @@ public abstract class BooleanDescriptor extends Descriptor
 		return false;
 	}
 
-	boolean ObjectIsBoolean (
+	@Override
+	public boolean ObjectIsBoolean (
 			final AvailObject object)
 	{
 		return true;

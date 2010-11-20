@@ -92,6 +92,7 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 		_name = token;
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		error("Don't ask for the type of a variable declaration node");
@@ -102,6 +103,7 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitEffectOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -110,6 +112,7 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 		return;
 	}
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -158,6 +161,7 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -171,6 +175,7 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 
 	// testing
 
+	@Override
 	public boolean isDeclaration ()
 	{
 		//  Answer whether the receiver is a local variable declaration.

@@ -50,7 +50,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	// accessing
 
-	void ObjectBodyBlockRequiresBlockReturnsBlock (
+	@Override
+	public void ObjectBodyBlockRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bb, 
 			final AvailObject rqb, 
@@ -64,7 +65,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		object.ensureMetacovariant();
 	}
 
-	AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	@Override
+	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter)
@@ -80,7 +82,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		return result;
 	}
 
-	boolean ObjectIsValidForArgumentTypesInterpreter (
+	@Override
+	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter interpreter)
@@ -93,7 +96,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		return result.extractBoolean();
 	}
 
-	AvailObject ObjectBodySignature (
+	@Override
+	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
 		//  Answer my signature.
@@ -105,54 +109,66 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	// GENERATED accessors
 
-	void ObjectBodyBlock (
+	/**
+	 * Setter for field !B!odyBlock.
+	 */
+	@Override
+	public void ObjectBodyBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectRequiresBlock (
+	/**
+	 * Setter for field !R!equiresBlock.
+	 */
+	@Override
+	public void ObjectRequiresBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectReturnsBlock (
+	/**
+	 * Setter for field !R!eturnsBlock.
+	 */
+	@Override
+	public void ObjectReturnsBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	AvailObject ObjectBodyBlock (
+	/**
+	 * Getter for field !B!odyBlock.
+	 */
+	@Override
+	public AvailObject ObjectBodyBlock (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectRequiresBlock (
+	/**
+	 * Getter for field !R!equiresBlock.
+	 */
+	@Override
+	public AvailObject ObjectRequiresBlock (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectReturnsBlock (
+	/**
+	 * Getter for field !R!eturnsBlock.
+	 */
+	@Override
+	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
@@ -160,7 +176,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	// operations
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -168,7 +185,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		return Types.methodSignature.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -177,7 +195,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		return hash;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -189,7 +208,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	// testing
 
-	boolean ObjectIsImplementation (
+	@Override
+	public boolean ObjectIsImplementation (
 			final AvailObject object)
 	{
 		return true;

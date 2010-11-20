@@ -50,7 +50,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	// accessing
 
-	void ObjectBodySignatureRequiresBlockReturnsBlock (
+	@Override
+	public void ObjectBodySignatureRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bs, 
 			final AvailObject rqb, 
@@ -62,7 +63,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		object.ensureMetacovariant();
 	}
 
-	AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	@Override
+	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter)
@@ -78,7 +80,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		return result;
 	}
 
-	boolean ObjectIsValidForArgumentTypesInterpreter (
+	@Override
+	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter interpreter)
@@ -91,7 +94,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		return result.extractBoolean();
 	}
 
-	AvailObject ObjectBodySignature (
+	@Override
+	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
 		return object.signature();
@@ -101,54 +105,66 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	// GENERATED accessors
 
-	void ObjectRequiresBlock (
+	/**
+	 * Setter for field !R!equiresBlock.
+	 */
+	@Override
+	public void ObjectRequiresBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectReturnsBlock (
+	/**
+	 * Setter for field !R!eturnsBlock.
+	 */
+	@Override
+	public void ObjectReturnsBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	void ObjectSignature (
+	/**
+	 * Setter for field !S!ignature.
+	 */
+	@Override
+	public void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectRequiresBlock (
+	/**
+	 * Getter for field !R!equiresBlock.
+	 */
+	@Override
+	public AvailObject ObjectRequiresBlock (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectReturnsBlock (
+	/**
+	 * Getter for field !R!eturnsBlock.
+	 */
+	@Override
+	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
-	AvailObject ObjectSignature (
+	/**
+	 * Getter for field !S!ignature.
+	 */
+	@Override
+	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -156,7 +172,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	// operations
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -164,7 +181,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		return TypeDescriptor.Types.abstractSignature.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -173,7 +191,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		return hash;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -185,7 +204,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	// testing
 
-	boolean ObjectIsAbstract (
+	@Override
+	public boolean ObjectIsAbstract (
 			final AvailObject object)
 	{
 		return true;

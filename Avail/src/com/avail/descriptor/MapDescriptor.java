@@ -50,7 +50,7 @@ public class MapDescriptor extends Descriptor
 	// GENERATED accessors
 
 	@Override
-	AvailObject ObjectDataAtIndex (
+	public AvailObject ObjectDataAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -60,7 +60,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectDataAtIndexPut (
+	public void ObjectDataAtIndexPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject value)
@@ -70,60 +70,66 @@ public class MapDescriptor extends Descriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + 0), value);
 	}
 
+	/**
+	 * Setter for field !I!nternalHash.
+	 */
 	@Override
-	void ObjectInternalHash (
+	public void ObjectInternalHash (
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
+	/**
+	 * Setter for field !M!apSize.
+	 */
 	@Override
-	void ObjectMapSize (
+	public void ObjectMapSize (
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
+	/**
+	 * Setter for field !N!umBlanks.
+	 */
 	@Override
-	void ObjectNumBlanks (
+	public void ObjectNumBlanks (
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
+	/**
+	 * Getter for field !I!nternalHash.
+	 */
 	@Override
-	int ObjectInternalHash (
+	public int ObjectInternalHash (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
+	/**
+	 * Getter for field !M!apSize.
+	 */
 	@Override
-	int ObjectMapSize (
+	public int ObjectMapSize (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
+	/**
+	 * Getter for field !N!umBlanks.
+	 */
 	@Override
-	int ObjectNumBlanks (
+	public int ObjectNumBlanks (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(12);
 	}
 
@@ -177,7 +183,7 @@ public class MapDescriptor extends Descriptor
 	// operations
 
 	@Override
-	boolean ObjectEquals (
+	public boolean ObjectEquals (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -185,7 +191,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectEqualsMap (
+	public boolean ObjectEqualsMap (
 		final AvailObject object,
 		final AvailObject aMap)
 	{
@@ -216,7 +222,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean ObjectIsInstanceOfSubtypeOf (
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
@@ -268,7 +274,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectExactType (
+	public AvailObject ObjectExactType (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -291,7 +297,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	int ObjectHash (
+	public int ObjectHash (
 		final AvailObject object)
 	{
 		//  Take the internal hash, and twiddle it (so nested maps won't cause unwanted correlation).
@@ -300,7 +306,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsHashAvailable (
+	public boolean ObjectIsHashAvailable (
 		final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -326,7 +332,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectType (
+	public AvailObject ObjectType (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -339,7 +345,7 @@ public class MapDescriptor extends Descriptor
 	// operations-map
 
 	@Override
-	boolean ObjectHasKey (
+	public boolean ObjectHasKey (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -363,7 +369,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectMapAt (
+	public AvailObject ObjectMapAt (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -387,7 +393,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectMapAtPuttingCanDestroy (
+	public AvailObject ObjectMapAtPuttingCanDestroy (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
@@ -421,7 +427,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectMapWithoutKeyCanDestroy (
+	public AvailObject ObjectMapWithoutKeyCanDestroy (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy)
@@ -460,7 +466,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectAsObject (
+	public AvailObject ObjectAsObject (
 		final AvailObject object)
 	{
 		//  Convert the receiver into an object.
@@ -469,7 +475,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	int ObjectCapacity (
+	public int ObjectCapacity (
 		final AvailObject object)
 	{
 		//  Answer the total number of slots reserved for holding keys.
@@ -478,14 +484,14 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsMap (
+	public boolean ObjectIsMap (
 		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	AvailObject ObjectKeysAsSet (
+	public AvailObject ObjectKeysAsSet (
 		final AvailObject object)
 	{
 		//  Answer a set with all my keys.  Mark the keys as immutable because they'll be shared with the new set.
@@ -505,7 +511,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectValuesAsTuple (
+	public AvailObject ObjectValuesAsTuple (
 		final AvailObject object)
 	{
 		//  Answer a tuple with all my values.  Mark the values as immutable because they'll be shared with the new
@@ -540,7 +546,7 @@ public class MapDescriptor extends Descriptor
 	// operations-private
 
 	@Override
-	AvailObject ObjectKeyAtIndex (
+	public AvailObject ObjectKeyAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -550,7 +556,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectKeyAtIndexPut (
+	public void ObjectKeyAtIndexPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject keyObject)
@@ -561,7 +567,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectPrivateExcludeKey (
+	public AvailObject ObjectPrivateExcludeKey (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -602,7 +608,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectPrivateMapAtPut (
+	public AvailObject ObjectPrivateMapAtPut (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject)
@@ -647,7 +653,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectValueAtIndex (
+	public AvailObject ObjectValueAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -657,7 +663,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectValueAtIndexPut (
+	public void ObjectValueAtIndexPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject valueObject)
@@ -672,7 +678,7 @@ public class MapDescriptor extends Descriptor
 	// private-copying
 
 	@Override
-	List<AvailObject> ObjectKeysAsArray (
+	public List<AvailObject> ObjectKeysAsArray (
 		final AvailObject object)
 		{
 		//  Utility method - collect the object's keys into a Smalltalk Array.

@@ -55,7 +55,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	// GENERATED accessors
 
-	int ObjectRawQuadAt (
+	@Override
+	public int ObjectRawQuadAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -64,7 +65,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return object.integerSlotAtByteIndex(((index * 4) + 4));
 	}
 
-	void ObjectRawQuadAtPut (
+	@Override
+	public void ObjectRawQuadAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
@@ -78,6 +80,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -105,7 +108,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	// operations
 
-	boolean ObjectCompareFromToWithStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -121,7 +125,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			startIndex1);
 	}
 
-	boolean ObjectCompareFromToWithTwoByteStringStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -147,14 +152,16 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
 
-	boolean ObjectEqualsTwoByteString (
+	@Override
+	public boolean ObjectEqualsTwoByteString (
 			final AvailObject object, 
 			final AvailObject aTwoByteString)
 	{
@@ -192,12 +199,13 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	boolean ObjectIsString (final @NotNull AvailObject object)
+	public boolean ObjectIsString (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -239,7 +247,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
@@ -256,7 +265,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	// operations-tuples
 
-	short ObjectRawShortForCharacterAt (
+	@Override
+	public short ObjectRawShortForCharacterAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -265,7 +275,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return object.shortSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2));
 	}
 
-	void ObjectRawShortForCharacterAtPut (
+	@Override
+	public void ObjectRawShortForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
@@ -277,7 +288,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		object.shortSlotAtByteIndexPut((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2), anInteger);
 	}
 
-	AvailObject ObjectTupleAt (
+	@Override
+	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -291,7 +303,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return CharacterDescriptor.newImmutableCharacterWithCodePoint(object.shortSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2)));
 	}
 
-	void ObjectTupleAtPut (
+	@Override
+	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject aCharacterObject)
@@ -303,7 +316,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		object.shortSlotAtByteIndexPut((((numberOfFixedIntegerSlots() * 4) + (index * 2)) + 2), ((short)(aCharacterObject.codePoint())));
 	}
 
-	AvailObject ObjectTupleAtPuttingCanDestroy (
+	@Override
+	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject newValueObject, 
@@ -338,7 +352,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			true);
 	}
 
-	int ObjectTupleIntAt (
+	@Override
+	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -348,7 +363,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return 0;
 	}
 
-	int ObjectTupleSize (
+	@Override
+	public int ObjectTupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
@@ -360,7 +376,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	// private-accessing
 
-	int ObjectBitsPerEntry (
+	@Override
+	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -380,7 +397,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	// private-computation
 
-	int ObjectComputeHashFromTo (
+	@Override
+	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int start, 
 			final int end)
@@ -431,6 +449,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
+	@Override
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{

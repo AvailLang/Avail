@@ -49,6 +49,7 @@ public class AvailPushVariable extends AvailInstructionWithIndex
 
 	// initialize-release
 
+	@Override
 	public void initialize ()
 	{
 		super.initialize();

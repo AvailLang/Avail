@@ -57,30 +57,35 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 
+	@Override
 	public void doConstant()
 	{
 		_description.append("Const(");
 		_description.append(_chunk.literalAt(_operand).toString());
 		_description.append(")");
 	}
+	@Override
 	public void doImmediate()
 	{
 		_description.append("Immediate(");
 		_description.append(_operand);
 		_description.append(")");
 	}
+	@Override
 	public void doPC()
 	{
 		_description.append("PC(");
 		_description.append(_operand);
 		_description.append(")");
 	}
+	@Override
 	public void doPrimitive()
 	{
 		_description.append("Prim(");
 		_description.append(Primitive.byPrimitiveNumber((short)_operand).name());
 		_description.append(")");
 	}
+	@Override
 	public void doSelector()
 	{
 		_description.append("Message(");
@@ -88,42 +93,49 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		_description.append(impSet.name().name().asNativeString());
 		_description.append(")");
 	}
+	@Override
 	public void doReadPointer()
 	{
 		_description.append("Obj(");
 		_description.append(_operand);
 		_description.append(")[read]");
 	}
+	@Override
 	public void doWritePointer()
 	{
 		_description.append("Obj(");
 		_description.append(_operand);
 		_description.append(")[write]");
 	}
+	@Override
 	public void doReadWritePointer()
 	{
 		_description.append("Obj(");
 		_description.append(_operand);
 		_description.append(")[read/write]");
 	}
+	@Override
 	public void doReadInt()
 	{
 		_description.append("Int(");
 		_description.append(_operand);
 		_description.append(")[read]");
 	}
+	@Override
 	public void doWriteInt()
 	{
 		_description.append("Int(");
 		_description.append(_operand);
 		_description.append(")[write]");
 	}
+	@Override
 	public void doReadWriteInt()
 	{
 		_description.append("Int(");
 		_description.append(_operand);
 		_description.append(")[read/write]");
 	}
+	@Override
 	public void doReadVector()
 	{
 		_description.append("Vector#");
@@ -140,6 +152,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		}
 		_description.append(")[read]");
 	}
+	@Override
 	public void doWriteVector()
 	{
 		_description.append("Vector#");
@@ -156,6 +169,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		}
 		_description.append(")[write]");
 	}
+	@Override
 	public void doReadWriteVector()
 	{
 		_description.append("Vector#");

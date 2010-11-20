@@ -43,20 +43,24 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectInnerType (
+	/**
+	 * Setter for field !I!nnerType.
+	 */
+	@Override
+	public void ObjectInnerType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectInnerType (
+	/**
+	 * Getter for field !I!nnerType.
+	 */
+	@Override
+	public AvailObject ObjectInnerType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -64,6 +68,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -81,14 +86,16 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsContainerType(object);
 	}
 
-	boolean ObjectEqualsContainerType (
+	@Override
+	public boolean ObjectEqualsContainerType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -101,7 +108,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return aType.innerType().equals(object.innerType());
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -109,7 +117,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return Types.containerType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -117,7 +126,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return ((object.innerType().hash() * 17) ^ 0x613E420);
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -128,7 +138,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return object.innerType().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -140,7 +151,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -149,7 +161,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfContainerType(object);
 	}
 
-	boolean ObjectIsSupertypeOfContainerType (
+	@Override
+	public boolean ObjectIsSupertypeOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -159,7 +172,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return object.innerType().equals(aContainerType.innerType());
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -176,7 +190,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfContainerType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfContainerType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -189,7 +204,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -206,7 +222,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfContainerType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfContainerType (
+	@Override
+	public AvailObject ObjectTypeUnionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{

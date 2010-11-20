@@ -52,6 +52,7 @@ public class L2ConvertTupleToListInstruction extends L2Instruction
 
 	// accessing
 
+	@Override
 	public ArrayList<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
@@ -61,6 +62,7 @@ public class L2ConvertTupleToListInstruction extends L2Instruction
 		return result;
 	}
 
+	@Override
 	public ArrayList<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
@@ -74,6 +76,7 @@ public class L2ConvertTupleToListInstruction extends L2Instruction
 
 	// code generation
 
+	@Override
 	public void emitOn (
 			final L2CodeGenerator anL2CodeGenerator)
 	{
@@ -101,6 +104,7 @@ public class L2ConvertTupleToListInstruction extends L2Instruction
 
 	// typing
 
+	@Override
 	public void propagateTypeInfoFor (
 			final L2Translator anL2Translator)
 	{

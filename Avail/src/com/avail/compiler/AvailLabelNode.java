@@ -44,12 +44,14 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 
 	// accessing
 
+	@Override
 	public AvailObject declaredType ()
 	{
 		assert _declaredType.isInstanceOfSubtypeOf(Types.continuationType.object());
 		return _declaredType;
 	}
 
+	@Override
 	public void declaredType (
 			final AvailObject aContinuationType)
 	{
@@ -61,6 +63,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 
 	// code generation
 
+	@Override
 	public void emitEffectOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -70,6 +73,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 		codeGenerator.emitLabelDeclaration(this);
 	}
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -77,6 +81,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 		return;
 	}
 
+	@Override
 	public void emitVariableAssignmentOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -86,6 +91,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 		return;
 	}
 
+	@Override
 	public void emitVariableReferenceOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -95,6 +101,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 		return;
 	}
 
+	@Override
 	public void emitVariableValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -107,11 +114,13 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 
 	// java printing
 
+	@Override
 	public boolean isArgument ()
 	{
 		return false;
 	}
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -126,11 +135,13 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 
 	// testing
 
+	@Override
 	public boolean isConstant ()
 	{
 		return true;
 	}
 
+	@Override
 	public boolean isLabel ()
 	{
 		return true;

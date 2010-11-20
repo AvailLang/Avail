@@ -78,6 +78,7 @@ public class AvailListNode extends AvailParseNode
 		_listType.makeImmutable();
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		return _listType;
@@ -87,6 +88,7 @@ public class AvailListNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -101,6 +103,7 @@ public class AvailListNode extends AvailParseNode
 
 	// enumerating
 
+	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
@@ -118,6 +121,7 @@ public class AvailListNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)

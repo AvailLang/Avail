@@ -44,6 +44,7 @@ public class L2InterpretOneInstruction extends L2Instruction
 
 	// accessing
 
+	@Override
 	public ArrayList<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.  Skip the callerRegister, which is implicit.
@@ -51,6 +52,7 @@ public class L2InterpretOneInstruction extends L2Instruction
 		return new ArrayList<L2Register>();
 	}
 
+	@Override
 	public ArrayList<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.  But this should never be
@@ -63,6 +65,7 @@ public class L2InterpretOneInstruction extends L2Instruction
 
 	// code generation
 
+	@Override
 	public void emitOn (
 			final L2CodeGenerator anL2CodeGenerator)
 	{
@@ -75,6 +78,7 @@ public class L2InterpretOneInstruction extends L2Instruction
 
 	// typing
 
+	@Override
 	public void propagateTypeInfoFor (
 			final L2Translator anL2Translator)
 	{

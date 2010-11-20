@@ -38,6 +38,7 @@ public enum L1Operation
 {
 	L1_doCall(0, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doCall();
@@ -47,6 +48,7 @@ public enum L1Operation
 
 	L1_doVerifyType(1, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doVerifyType();
@@ -56,6 +58,7 @@ public enum L1Operation
 
 	L1_doReturn(2)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doReturn();
@@ -65,6 +68,7 @@ public enum L1Operation
 
 	L1_doPushLiteral(3, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLiteral();
@@ -74,6 +78,7 @@ public enum L1Operation
 
 	L1_doPushLastLocal(4, L1OperandType.LOCAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLastLocal();
@@ -83,6 +88,7 @@ public enum L1Operation
 
 	L1_doPushLocal(5, L1OperandType.LOCAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLocal();
@@ -92,6 +98,7 @@ public enum L1Operation
 
 	L1_doPushLastOuter(6, L1OperandType.OUTER)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushLastOuter();
@@ -101,6 +108,7 @@ public enum L1Operation
 
 	L1_doClose(7, L1OperandType.IMMEDIATE, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doClose();
@@ -110,6 +118,7 @@ public enum L1Operation
 
 	L1_doSetLocal(8, L1OperandType.LOCAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doSetLocal();
@@ -119,6 +128,7 @@ public enum L1Operation
 
 	L1_doGetLocalClearing(9, L1OperandType.LOCAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetLocalClearing();
@@ -128,6 +138,7 @@ public enum L1Operation
 
 	L1_doPushOuter(10, L1OperandType.OUTER)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPushOuter();
@@ -137,6 +148,7 @@ public enum L1Operation
 
 	L1_doPop(11)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doPop();
@@ -146,6 +158,7 @@ public enum L1Operation
 
 	L1_doGetOuterClearing(12, L1OperandType.OUTER)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetOuterClearing();
@@ -155,6 +168,7 @@ public enum L1Operation
 
 	L1_doSetOuter(13, L1OperandType.OUTER)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doSetOuter();
@@ -164,6 +178,7 @@ public enum L1Operation
 
 	L1_doGetLocal(14, L1OperandType.LOCAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doGetLocal();
@@ -173,6 +188,7 @@ public enum L1Operation
 
 	L1_doExtension(15, L1OperandType.EXTENSION)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doExtension();
@@ -182,6 +198,7 @@ public enum L1Operation
 
 	L1Ext_doGetOuter(16, L1OperandType.OUTER)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doGetOuter();
@@ -191,6 +208,7 @@ public enum L1Operation
 
 	L1Ext_doMakeList(17, L1OperandType.IMMEDIATE)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doMakeList();
@@ -200,6 +218,7 @@ public enum L1Operation
 
 	L1Ext_doPushLabel(18)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doPushLabel();
@@ -209,6 +228,7 @@ public enum L1Operation
 
 	L1Ext_doGetLiteral(19, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doGetLiteral();
@@ -218,6 +238,7 @@ public enum L1Operation
 
 	L1Ext_doSetLiteral(20, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doSetLiteral();
@@ -227,6 +248,7 @@ public enum L1Operation
 
 	L1Ext_doSuperCall(21, L1OperandType.LITERAL)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doSuperCall();
@@ -236,6 +258,7 @@ public enum L1Operation
 
 	L1Ext_doGetType(22, L1OperandType.IMMEDIATE)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doGetType();
@@ -245,6 +268,7 @@ public enum L1Operation
 
 	L1Ext_doReserved(23)
 	{
+		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1Ext_doReserved();

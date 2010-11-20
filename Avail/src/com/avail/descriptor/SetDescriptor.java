@@ -43,7 +43,6 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import static com.avail.descriptor.AvailObject.*;
 
 @ObjectSlots("rootBin")
@@ -53,20 +52,24 @@ public class SetDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectRootBin (
+	/**
+	 * Setter for field !R!ootBin.
+	 */
+	@Override
+	public void ObjectRootBin (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectRootBin (
+	/**
+	 * Getter for field !R!ootBin.
+	 */
+	@Override
+	public AvailObject ObjectRootBin (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -74,6 +77,7 @@ public class SetDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -97,14 +101,16 @@ public class SetDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsSet(object);
 	}
 
-	boolean ObjectEqualsSet (
+	@Override
+	public boolean ObjectEqualsSet (
 			final AvailObject object, 
 			final AvailObject aSet)
 	{
@@ -126,7 +132,8 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().isBinSubsetOf(aSet);
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aTypeObject)
 	{
@@ -156,7 +163,8 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().binUnionType().isSubtypeOf(aTypeObject.contentType());
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Not very efficient - usually optimized out via '_type<=_'.
@@ -168,7 +176,8 @@ public class SetDescriptor extends Descriptor
 		return SetTypeDescriptor.setTypeForSizesContentType(sizeRange, unionType);
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  A set's hash is a simple function of its rootBin's binHash, which is always the sum
@@ -177,13 +186,15 @@ public class SetDescriptor extends Descriptor
 		return (object.rootBin().binHash() ^ 0xCD9EFC6);
 	}
 
-	boolean ObjectIsSet (
+	@Override
+	public boolean ObjectIsSet (
 			final AvailObject object)
 	{
 		return true;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -195,14 +206,16 @@ public class SetDescriptor extends Descriptor
 
 	// operations-set
 
-	boolean ObjectHasElement (
+	@Override
+	public boolean ObjectHasElement (
 			final AvailObject object, 
 			final AvailObject elementObject)
 	{
 		return object.rootBin().binHasElementHash(elementObject, elementObject.hash());
 	}
 
-	boolean ObjectIsSubsetOf (
+	@Override
+	public boolean ObjectIsSubsetOf (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -215,7 +228,8 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().isBinSubsetOf(another);
 	}
 
-	AvailObject ObjectSetIntersectionCanDestroy (
+	@Override
+	public AvailObject ObjectSetIntersectionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
@@ -253,7 +267,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	AvailObject ObjectSetMinusCanDestroy (
+	@Override
+	public AvailObject ObjectSetMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
@@ -280,7 +295,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	AvailObject ObjectSetUnionCanDestroy (
+	@Override
+	public AvailObject ObjectSetUnionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
@@ -329,7 +345,8 @@ public class SetDescriptor extends Descriptor
 		return toModify;
 	}
 
-	AvailObject ObjectSetWithElementCanDestroy (
+	@Override
+	public AvailObject ObjectSetWithElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject newElementObject, 
 			final boolean canDestroy)
@@ -366,7 +383,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	AvailObject ObjectSetWithoutElementCanDestroy (
+	@Override
+	public AvailObject ObjectSetWithoutElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObjectToExclude, 
 			final boolean canDestroy)
@@ -405,13 +423,14 @@ public class SetDescriptor extends Descriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	@NotNull Iterator<AvailObject> ObjectIterator (
+	public @NotNull Iterator<AvailObject> ObjectIterator (
 		final @NotNull AvailObject object)
 	{
 		return object.asTuple().iterator();
 	}
 
-	AvailObject ObjectAsTuple (
+	@Override
+	public AvailObject ObjectAsTuple (
 			final AvailObject object)
 	{
 		//  Convert me to a tuple.  The ordering will be arbitrary and unstable.
@@ -426,7 +445,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	int ObjectSetSize (
+	@Override
+	public int ObjectSetSize (
 			final AvailObject object)
 	{
 		//  Answer how many elements are in the set.  Delegate to the rootBin.

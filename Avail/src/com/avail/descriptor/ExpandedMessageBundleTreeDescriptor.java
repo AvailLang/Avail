@@ -49,54 +49,66 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	// GENERATED accessors
 
-	void ObjectComplete (
+	/**
+	 * Setter for field !C!omplete.
+	 */
+	@Override
+	public void ObjectComplete (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectDepth (
+	/**
+	 * Setter for field !D!epth.
+	 */
+	@Override
+	public void ObjectDepth (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectIncomplete (
+	/**
+	 * Setter for field !I!ncomplete.
+	 */
+	@Override
+	public void ObjectIncomplete (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	AvailObject ObjectComplete (
+	/**
+	 * Getter for field !C!omplete.
+	 */
+	@Override
+	public AvailObject ObjectComplete (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	int ObjectDepth (
+	/**
+	 * Getter for field !D!epth.
+	 */
+	@Override
+	public int ObjectDepth (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	AvailObject ObjectIncomplete (
+	/**
+	 * Getter for field !I!ncomplete.
+	 */
+	@Override
+	public AvailObject ObjectIncomplete (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -104,6 +116,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -128,7 +141,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	// operations
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to
@@ -144,7 +158,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	// operations-bundleTree
 
-	void ObjectAtMessageAddBundle (
+	@Override
+	public void ObjectAtMessageAddBundle (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject bundle)
@@ -189,7 +204,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		}
 	}
 
-	AvailObject ObjectBundleAtMessageParts (
+	@Override
+	public AvailObject ObjectBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
@@ -210,7 +226,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		return incomplete.mapAt(part).bundleAtMessageParts(message, parts);
 	}
 
-	void ObjectCopyToRestrictedTo (
+	@Override
+	public void ObjectCopyToRestrictedTo (
 			final AvailObject object, 
 			final AvailObject filteredBundleTree, 
 			final AvailObject visibleNames)
@@ -247,7 +264,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		AvailObject.unlock(incomplete);
 	}
 
-	AvailObject ObjectIncludeBundleAtMessageParts (
+	@Override
+	public AvailObject ObjectIncludeBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
@@ -291,7 +309,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		return subtree.includeBundleAtMessageParts(message, parts);
 	}
 
-	boolean ObjectRemoveMessageParts (
+	@Override
+	public boolean ObjectRemoveMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
@@ -323,7 +342,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		return ((complete.mapSize() == 0) && (object.incomplete().mapSize() == 0));
 	}
 
-	AvailObject ObjectExpand (
+	@Override
+	public AvailObject ObjectExpand (
 			final AvailObject object)
 	{
 		//  Expand the bundleTree.  In this case, do nothing as I am already expanded.

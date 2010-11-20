@@ -132,6 +132,7 @@ public class AvailBlockNode extends AvailParseNode
 		_statements = anArray;
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		ArrayList<AvailObject> argumentTypes;
@@ -147,6 +148,7 @@ public class AvailBlockNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitEffectOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -154,6 +156,7 @@ public class AvailBlockNode extends AvailParseNode
 		return;
 	}
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -231,6 +234,7 @@ public class AvailBlockNode extends AvailParseNode
 		}
 	}
 
+	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
@@ -247,6 +251,7 @@ public class AvailBlockNode extends AvailParseNode
 		}
 	}
 
+	@Override
 	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
 			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock, 
 			final AvailParseNode parent, 
@@ -261,6 +266,7 @@ public class AvailBlockNode extends AvailParseNode
 		outerNodesWithSelf.add(this);
 		childrenMap(new Transformer1<AvailParseNode, AvailParseNode> ()
 		{
+			@Override
 			public AvailParseNode value(AvailParseNode child)
 			{
 				return child.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
@@ -279,6 +285,7 @@ public class AvailBlockNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -345,6 +352,7 @@ public class AvailBlockNode extends AvailParseNode
 
 	// testing
 
+	@Override
 	public boolean isBlock ()
 	{
 		return true;
@@ -363,6 +371,7 @@ public class AvailBlockNode extends AvailParseNode
 		final Set<AvailVariableDeclarationNode> providedByMe = new HashSet<AvailVariableDeclarationNode>();
 		allLocallyDefinedVariablesDo(new Continuation1<AvailVariableDeclarationNode> ()
 		{
+			@Override
 			public void value(AvailVariableDeclarationNode declarationNode)
 			{
 				providedByMe.add(declarationNode);
@@ -370,6 +379,7 @@ public class AvailBlockNode extends AvailParseNode
 		});
 		final Transformer1<AvailParseNode, AvailParseNode> forEachBlock = new Transformer1<AvailParseNode, AvailParseNode> ()
 		{
+			@Override
 			public AvailParseNode value(AvailParseNode node)
 			{
 				if (node.isBlock())
@@ -401,6 +411,7 @@ public class AvailBlockNode extends AvailParseNode
 		_neededVariables = new ArrayList<AvailVariableDeclarationNode>(needed);
 	}
 
+	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent, 
 			final List<AvailBlockNode> outerBlocks, 

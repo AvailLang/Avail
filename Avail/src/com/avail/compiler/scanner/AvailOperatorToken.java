@@ -38,6 +38,7 @@ public class AvailOperatorToken extends AvailToken
 
 	// accessing
 
+	@Override
 	public TokenType type ()
 	{
 		return TokenType.operator;
@@ -47,6 +48,7 @@ public class AvailOperatorToken extends AvailToken
 
 	// java printing
 
+	@Override
 	public String toString ()
 	{
 		return "{" + _string + "}";

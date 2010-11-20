@@ -44,20 +44,24 @@ public class ListTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectTupleType (
+	/**
+	 * Setter for field !T!upleType.
+	 */
+	@Override
+	public void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectTupleType (
+	/**
+	 * Getter for field !T!upleType.
+	 */
+	@Override
+	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -65,6 +69,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -83,14 +88,16 @@ public class ListTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsListType(object);
 	}
 
-	boolean ObjectEqualsListType (
+	@Override
+	public boolean ObjectEqualsListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -102,7 +109,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return object.tupleType().equals(aListType.tupleType());
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -110,7 +118,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return Types.listType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -118,7 +127,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return ListTypeDescriptor.hashFromTupleTypeHash(object.tupleType().hash());
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -129,7 +139,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return object.tupleType().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -141,7 +152,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -150,7 +162,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfListType(object);
 	}
 
-	boolean ObjectIsSupertypeOfListType (
+	@Override
+	public boolean ObjectIsSupertypeOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -159,7 +172,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return aListType.tupleType().isSubtypeOf(object.tupleType());
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -176,7 +190,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfListType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfListType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -185,7 +200,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return ListTypeDescriptor.listTypeForTupleType(object.tupleType().typeIntersection(aListType.tupleType()));
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -202,7 +218,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfListType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfListType (
+	@Override
+	public AvailObject ObjectTypeUnionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -211,7 +228,8 @@ public class ListTypeDescriptor extends TypeDescriptor
 		return ListTypeDescriptor.listTypeForTupleType(object.tupleType().typeUnion(aListType.tupleType()));
 	}
 
-	boolean ObjectIsListType (
+	@Override
+	public boolean ObjectIsListType (
 			final AvailObject object)
 	{
 		return true;

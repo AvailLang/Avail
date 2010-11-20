@@ -44,6 +44,7 @@ public class AvailGetOuterVariable extends AvailGetVariable
 
 	// nybblecodes
 
+	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
@@ -65,6 +66,7 @@ public class AvailGetOuterVariable extends AvailGetVariable
 
 	// optimization
 
+	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData, 
 			final List<AvailVariableAccessNote> outerData, 

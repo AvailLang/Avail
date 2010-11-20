@@ -44,6 +44,7 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 
 	// nybblecodes
 
+	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
@@ -57,6 +58,7 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 
 	// optimization
 
+	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData, 
 			final List<AvailVariableAccessNote> outerData, 

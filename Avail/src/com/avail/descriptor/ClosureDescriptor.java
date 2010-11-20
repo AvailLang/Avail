@@ -53,16 +53,19 @@ public class ClosureDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectCode (
+	/**
+	 * Setter for field !C!ode.
+	 */
+	@Override
+	public void ObjectCode (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectOuterVarAt (
+	@Override
+	public AvailObject ObjectOuterVarAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -71,7 +74,8 @@ public class ClosureDescriptor extends Descriptor
 		return object.objectSlotAtByteIndex(((index * -4) + -4));
 	}
 
-	void ObjectOuterVarAtPut (
+	@Override
+	public void ObjectOuterVarAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -81,11 +85,13 @@ public class ClosureDescriptor extends Descriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + -4), value);
 	}
 
-	AvailObject ObjectCode (
+	/**
+	 * Getter for field !C!ode.
+	 */
+	@Override
+	public AvailObject ObjectCode (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -93,6 +99,7 @@ public class ClosureDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -114,14 +121,16 @@ public class ClosureDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsClosure(object);
 	}
 
-	boolean ObjectEqualsClosure (
+	@Override
+	public boolean ObjectEqualsClosure (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
@@ -148,7 +157,8 @@ public class ClosureDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Simply asks the compiled code for the closureType.
@@ -156,7 +166,8 @@ public class ClosureDescriptor extends Descriptor
 		return object.code().closureType();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.  If outer vars of mutable
@@ -173,13 +184,15 @@ public class ClosureDescriptor extends Descriptor
 		return hash;
 	}
 
-	boolean ObjectIsClosure (
+	@Override
+	public boolean ObjectIsClosure (
 			final AvailObject object)
 	{
 		return true;
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -201,7 +214,8 @@ public class ClosureDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Simply asks the compiled code for the closureType.
@@ -213,7 +227,8 @@ public class ClosureDescriptor extends Descriptor
 
 	// operations-closure
 
-	boolean ObjectContainsBlock (
+	@Override
+	public boolean ObjectContainsBlock (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
@@ -226,7 +241,8 @@ public class ClosureDescriptor extends Descriptor
 		return object.code().containsBlock(aClosure);
 	}
 
-	boolean ObjectOptionallyNilOuterVar (
+	@Override
+	public boolean ObjectOptionallyNilOuterVar (
 			final AvailObject object, 
 			final int index)
 	{
@@ -245,7 +261,8 @@ public class ClosureDescriptor extends Descriptor
 		return false;
 	}
 
-	int ObjectNumOuterVars (
+	@Override
+	public int ObjectNumOuterVars (
 			final AvailObject object)
 	{
 		//  Answer how many outer vars I've copied.

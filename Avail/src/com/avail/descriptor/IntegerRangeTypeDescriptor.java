@@ -51,54 +51,66 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectInclusiveFlags (
+	/**
+	 * Setter for field !I!nclusiveFlags.
+	 */
+	@Override
+	public void ObjectInclusiveFlags (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectLowerBound (
+	/**
+	 * Setter for field !L!owerBound.
+	 */
+	@Override
+	public void ObjectLowerBound (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectUpperBound (
+	/**
+	 * Setter for field !U!pperBound.
+	 */
+	@Override
+	public void ObjectUpperBound (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	int ObjectInclusiveFlags (
+	/**
+	 * Getter for field !I!nclusiveFlags.
+	 */
+	@Override
+	public int ObjectInclusiveFlags (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	AvailObject ObjectLowerBound (
+	/**
+	 * Getter for field !L!owerBound.
+	 */
+	@Override
+	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectUpperBound (
+	/**
+	 * Getter for field !U!pperBound.
+	 */
+	@Override
+	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -106,6 +118,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -123,14 +136,16 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
 
-	boolean ObjectEqualsIntegerRangeType (
+	@Override
+	public boolean ObjectEqualsIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -155,7 +170,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -163,7 +179,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return Types.integerType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.  Be careful, as the range (10..20) is the same type
@@ -180,7 +197,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			object.upperInclusive());
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -192,7 +210,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	// operations-integer range
 
-	void ObjectLowerInclusiveUpperInclusive (
+	@Override
+	public void ObjectLowerInclusiveUpperInclusive (
 			final AvailObject object, 
 			final boolean lowInc, 
 			final boolean highInc)
@@ -202,13 +221,15 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		object.inclusiveFlags(((lowInc ? 1 : 0) + (highInc ? 256 : 0)));
 	}
 
-	boolean ObjectLowerInclusive (
+	@Override
+	public boolean ObjectLowerInclusive (
 			final AvailObject object)
 	{
 		return ((object.inclusiveFlags() & 1) == 1);
 	}
 
-	boolean ObjectUpperInclusive (
+	@Override
+	public boolean ObjectUpperInclusive (
 			final AvailObject object)
 	{
 		return ((object.inclusiveFlags() & 256) == 256);
@@ -218,7 +239,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -227,7 +249,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
 
-	boolean ObjectIsSupertypeOfIntegerRangeType (
+	@Override
+	public boolean ObjectIsSupertypeOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject possibleSub)
 	{
@@ -262,7 +285,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -279,7 +303,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfIntegerRangeType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -317,7 +342,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			isMaxInc);
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -334,7 +360,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfIntegerRangeType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfIntegerRangeType (
+	@Override
+	public AvailObject ObjectTypeUnionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -369,7 +396,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			isMaxInc);
 	}
 
-	boolean ObjectIsIntegerRangeType (
+	@Override
+	public boolean ObjectIsIntegerRangeType (
 			final AvailObject object)
 	{
 		return true;

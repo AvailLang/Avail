@@ -58,34 +58,41 @@ public class ContinuationDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectCaller (
+	/**
+	 * Setter for field !C!aller.
+	 */
+	@Override
+	public void ObjectCaller (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectClosure (
+	/**
+	 * Setter for field !C!losure.
+	 */
+	@Override
+	public void ObjectClosure (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectHiLevelTwoChunkLowOffset (
+	/**
+	 * Setter for field !H!iLevelTwoChunkLowOffset.
+	 */
+	@Override
+	public void ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
-	AvailObject ObjectLocalOrArgOrStackAt (
+	@Override
+	public AvailObject ObjectLocalOrArgOrStackAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -94,7 +101,8 @@ public class ContinuationDescriptor extends Descriptor
 		return object.objectSlotAtByteIndex(((index * -4) + -8));
 	}
 
-	void ObjectLocalOrArgOrStackAtPut (
+	@Override
+	public void ObjectLocalOrArgOrStackAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -104,61 +112,75 @@ public class ContinuationDescriptor extends Descriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + -8), value);
 	}
 
-	void ObjectPc (
+	/**
+	 * Setter for field !P!c.
+	 */
+	@Override
+	public void ObjectPc (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectStackp (
+	/**
+	 * Setter for field !S!tackp.
+	 */
+	@Override
+	public void ObjectStackp (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
-	AvailObject ObjectCaller (
+	/**
+	 * Getter for field !C!aller.
+	 */
+	@Override
+	public AvailObject ObjectCaller (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectClosure (
+	/**
+	 * Getter for field !C!losure.
+	 */
+	@Override
+	public AvailObject ObjectClosure (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	int ObjectHiLevelTwoChunkLowOffset (
+	/**
+	 * Getter for field !H!iLevelTwoChunkLowOffset.
+	 */
+	@Override
+	public int ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(12);
 	}
 
-	int ObjectPc (
+	/**
+	 * Getter for field !P!c.
+	 */
+	@Override
+	public int ObjectPc (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	int ObjectStackp (
+	/**
+	 * Getter for field !S!tackp.
+	 */
+	@Override
+	public int ObjectStackp (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
@@ -166,6 +188,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -229,14 +252,16 @@ public class ContinuationDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsContinuation(object);
 	}
 
-	boolean ObjectEqualsContinuation (
+	@Override
+	public boolean ObjectEqualsContinuation (
 			final AvailObject object, 
 			final AvailObject aContinuation)
 	{
@@ -270,7 +295,8 @@ public class ContinuationDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -278,7 +304,8 @@ public class ContinuationDescriptor extends Descriptor
 		return ContinuationTypeDescriptor.continuationTypeForClosureType(object.closure().type());
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
@@ -294,7 +321,8 @@ public class ContinuationDescriptor extends Descriptor
 		return h;
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -320,7 +348,8 @@ public class ContinuationDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -332,7 +361,8 @@ public class ContinuationDescriptor extends Descriptor
 
 	// operations-continuations
 
-	void ObjectLevelTwoChunkIndexOffset (
+	@Override
+	public void ObjectLevelTwoChunkIndexOffset (
 			final AvailObject object, 
 			final int index, 
 			final int offset)
@@ -342,7 +372,8 @@ public class ContinuationDescriptor extends Descriptor
 		object.hiLevelTwoChunkLowOffset(((index * 0x10000) + offset));
 	}
 
-	AvailObject ObjectStackAt (
+	@Override
+	public AvailObject ObjectStackAt (
 			final AvailObject object, 
 			final int slotIndex)
 	{
@@ -351,7 +382,8 @@ public class ContinuationDescriptor extends Descriptor
 		return object.objectSlotAtByteIndex(slotIndex * -4);
 	}
 
-	void ObjectStackAtPut (
+	@Override
+	public void ObjectStackAtPut (
 			final AvailObject object, 
 			final int slotIndex, 
 			final AvailObject anObject)
@@ -361,7 +393,8 @@ public class ContinuationDescriptor extends Descriptor
 		object.objectSlotAtByteIndexPut(slotIndex * -4, anObject);
 	}
 
-	AvailObject ObjectEnsureMutable (
+	@Override
+	public AvailObject ObjectEnsureMutable (
 			final AvailObject object)
 	{
 		//  If immutable, copy the object as mutable, otherwise answer the original mutable.
@@ -369,7 +402,8 @@ public class ContinuationDescriptor extends Descriptor
 		return (isMutable ? object : object.copyAsMutableContinuation());
 	}
 
-	int ObjectLevelTwoChunkIndex (
+	@Override
+	public int ObjectLevelTwoChunkIndex (
 			final AvailObject object)
 	{
 		//  Answer the chunk index (without the offset).
@@ -377,7 +411,8 @@ public class ContinuationDescriptor extends Descriptor
 		return (object.hiLevelTwoChunkLowOffset() >>> 16);
 	}
 
-	int ObjectLevelTwoOffset (
+	@Override
+	public int ObjectLevelTwoOffset (
 			final AvailObject object)
 	{
 		//  Answer the wordcode offset into the chunk.
@@ -385,7 +420,8 @@ public class ContinuationDescriptor extends Descriptor
 		return (object.hiLevelTwoChunkLowOffset() & 0xFFFF);
 	}
 
-	int ObjectNumLocalsOrArgsOrStack (
+	@Override
+	public int ObjectNumLocalsOrArgsOrStack (
 			final AvailObject object)
 	{
 		//  Answer the number of slots allocated for locals, arguments, and stack entries.
@@ -397,7 +433,8 @@ public class ContinuationDescriptor extends Descriptor
 
 	// operations-faulting
 
-	void ObjectPostFault (
+	@Override
+	public void ObjectPostFault (
 			final AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
@@ -422,7 +459,8 @@ public class ContinuationDescriptor extends Descriptor
 
 	// private-copying
 
-	AvailObject ObjectCopyAsMutableContinuation (
+	@Override
+	public AvailObject ObjectCopyAsMutableContinuation (
 			final AvailObject object)
 	{
 		//  Answer a fresh mutable copy of the given continuation object.

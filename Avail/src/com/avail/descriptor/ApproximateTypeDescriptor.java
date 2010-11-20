@@ -47,20 +47,24 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectInstance (
+	/**
+	 * Setter for field !I!nstance.
+	 */
+	@Override
+	public void ObjectInstance (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectInstance (
+	/**
+	 * Getter for field !I!nstance.
+	 */
+	@Override
+	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -68,6 +72,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -85,7 +90,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -99,7 +105,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return (inst.canComputeHashOfType() ? inst.typeEquals(another) : object.becomeExactType().equals(another));
 	}
 
-	boolean ObjectHasObjectInstance (
+	@Override
+	public boolean ObjectHasObjectInstance (
 			final AvailObject object, 
 			final AvailObject potentialInstance)
 	{
@@ -108,7 +115,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().hasObjectInstance(potentialInstance);
 	}
 
-	boolean ObjectIsBetterRepresentationThan (
+	@Override
+	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
 	{
@@ -119,7 +127,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	boolean ObjectIsBetterRepresentationThanTupleType (
+	@Override
+	public boolean ObjectIsBetterRepresentationThanTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -130,7 +139,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	AvailObject ObjectBecomeExactType (
+	@Override
+	public AvailObject ObjectBecomeExactType (
 			final AvailObject object)
 	{
 		//  Transform object into an indirection to its exact equivalent.
@@ -140,7 +150,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return exact;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer this object's type (which will be a meta).
@@ -148,7 +159,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().exactType();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value that is always the same for equal objects, but
@@ -158,7 +170,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return (inst.canComputeHashOfType() ? inst.hashOfType() : object.becomeExactType().hash());
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -170,7 +183,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.instance().canComputeHashOfType();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer this object's type (which will be a meta).
@@ -182,21 +196,24 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// operations-faulting
 
-	boolean ObjectEqualsClosureType (
+	@Override
+	public boolean ObjectEqualsClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aClosureType) : object.becomeExactType().equalsClosureType(aClosureType));
 	}
 
-	boolean ObjectEqualsContainerType (
+	@Override
+	public boolean ObjectEqualsContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aContainerType) : object.becomeExactType().equalsContainerType(aContainerType));
 	}
 
-	boolean ObjectEqualsContinuationType (
+	@Override
+	public boolean ObjectEqualsContinuationType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -209,7 +226,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.instance().closure().type().equals(aType.closureType());
 	}
 
-	boolean ObjectEqualsGeneralizedClosureType (
+	@Override
+	public boolean ObjectEqualsGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -218,14 +236,16 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aGeneralizedClosureType) : object.becomeExactType().equalsGeneralizedClosureType(aGeneralizedClosureType));
 	}
 
-	boolean ObjectEqualsIntegerRangeType (
+	@Override
+	public boolean ObjectEqualsIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(anIntegerRangeType) : object.becomeExactType().equalsIntegerRangeType(anIntegerRangeType));
 	}
 
-	boolean ObjectEqualsListType (
+	@Override
+	public boolean ObjectEqualsListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -236,35 +256,40 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	boolean ObjectEqualsMapType (
+	@Override
+	public boolean ObjectEqualsMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aMapType) : object.becomeExactType().equalsMapType(aMapType));
 	}
 
-	boolean ObjectEqualsPrimitiveType (
+	@Override
+	public boolean ObjectEqualsPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aPrimitiveType) : object.becomeExactType().equalsPrimitiveType(aPrimitiveType));
 	}
 
-	boolean ObjectEqualsSetType (
+	@Override
+	public boolean ObjectEqualsSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aSetType) : object.becomeExactType().equalsSetType(aSetType));
 	}
 
-	boolean ObjectEqualsTupleType (
+	@Override
+	public boolean ObjectEqualsTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
 		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aTupleType) : object.becomeExactType().equalsTupleType(aTupleType));
 	}
 
-	boolean ObjectIsSupertypeOfClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -273,7 +298,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfClosureType(aClosureType);
 	}
 
-	boolean ObjectIsSupertypeOfContainerType (
+	@Override
+	public boolean ObjectIsSupertypeOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -282,7 +308,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfContainerType(aContainerType);
 	}
 
-	boolean ObjectIsSupertypeOfCyclicType (
+	@Override
+	public boolean ObjectIsSupertypeOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -291,7 +318,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfCyclicType(aCyclicType);
 	}
 
-	boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -300,7 +328,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
-	boolean ObjectIsSupertypeOfIntegerRangeType (
+	@Override
+	public boolean ObjectIsSupertypeOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -313,7 +342,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfIntegerRangeType(anIntegerRangeType);
 	}
 
-	boolean ObjectIsSupertypeOfListType (
+	@Override
+	public boolean ObjectIsSupertypeOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -326,7 +356,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	boolean ObjectIsSupertypeOfMapType (
+	@Override
+	public boolean ObjectIsSupertypeOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -335,7 +366,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfMapType(aMapType);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -344,7 +376,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfObjectMeta(anObjectMeta);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMetaMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -353,7 +386,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
-	boolean ObjectIsSupertypeOfObjectType (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -362,7 +396,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfObjectType(anObjectType);
 	}
 
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	@Override
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
@@ -371,7 +406,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfPrimitiveType(aPrimitiveType);
 	}
 
-	boolean ObjectIsSupertypeOfSetType (
+	@Override
+	public boolean ObjectIsSupertypeOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -380,7 +416,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfSetType(aSetType);
 	}
 
-	boolean ObjectIsSupertypeOfTupleType (
+	@Override
+	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -389,7 +426,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().isSupertypeOfTupleType(aTupleType);
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -398,7 +436,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersection(another);
 	}
 
-	AvailObject ObjectTypeIntersectionOfClosureType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -407,7 +446,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfClosureType(aClosureType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfContainerType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -416,7 +456,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfContainerType(aContainerType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfCyclicType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -425,7 +466,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfCyclicType(aCyclicType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -434,7 +476,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -443,7 +486,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfIntegerRangeType(anIntegerRangeType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfListType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -452,7 +496,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfListType(aListType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfMapType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -461,7 +506,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfMapType(aMapType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
@@ -472,7 +518,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfMeta(someMeta);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -481,7 +528,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfObjectMeta(anObjectMeta);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -490,7 +538,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -499,7 +548,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfObjectType(anObjectType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfSetType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -508,7 +558,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfSetType(aSetType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -517,7 +568,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeIntersectionOfTupleType(aTupleType);
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -526,7 +578,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnion(another);
 	}
 
-	AvailObject ObjectTypeUnionOfClosureType (
+	@Override
+	public AvailObject ObjectTypeUnionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -535,7 +588,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfClosureType(aClosureType);
 	}
 
-	AvailObject ObjectTypeUnionOfContainerType (
+	@Override
+	public AvailObject ObjectTypeUnionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -544,7 +598,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfContainerType(aContainerType);
 	}
 
-	AvailObject ObjectTypeUnionOfCyclicType (
+	@Override
+	public AvailObject ObjectTypeUnionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -553,7 +608,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfCyclicType(aCyclicType);
 	}
 
-	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	@Override
+	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -562,7 +618,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
-	AvailObject ObjectTypeUnionOfIntegerRangeType (
+	@Override
+	public AvailObject ObjectTypeUnionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -571,7 +628,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfIntegerRangeType(anIntegerRangeType);
 	}
 
-	AvailObject ObjectTypeUnionOfListType (
+	@Override
+	public AvailObject ObjectTypeUnionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -580,7 +638,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfListType(aListType);
 	}
 
-	AvailObject ObjectTypeUnionOfMapType (
+	@Override
+	public AvailObject ObjectTypeUnionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -589,7 +648,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfMapType(aMapType);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectMeta (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -598,7 +658,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfObjectMeta(anObjectMeta);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectType (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -607,7 +668,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfObjectType(anObjectType);
 	}
 
-	AvailObject ObjectTypeUnionOfSetType (
+	@Override
+	public AvailObject ObjectTypeUnionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -616,7 +678,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfSetType(aSetType);
 	}
 
-	AvailObject ObjectTypeUnionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -625,7 +688,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().typeUnionOfTupleType(aTupleType);
 	}
 
-	AvailObject ObjectFieldTypeMap (
+	@Override
+	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
 		return object.becomeExactType().fieldTypeMap();
@@ -635,7 +699,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// operations-integer range
 
-	AvailObject ObjectLowerBound (
+	@Override
+	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -645,7 +710,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().lowerBound();
 	}
 
-	boolean ObjectLowerInclusive (
+	@Override
+	public boolean ObjectLowerInclusive (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -655,7 +721,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().lowerInclusive();
 	}
 
-	AvailObject ObjectUpperBound (
+	@Override
+	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -665,7 +732,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.becomeExactType().upperBound();
 	}
 
-	boolean ObjectUpperInclusive (
+	@Override
+	public boolean ObjectUpperInclusive (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -679,7 +747,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// operations-lists
 
-	AvailObject ObjectTupleType (
+	@Override
+	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
 		//  I must support this in case I represent a listType.  I simply go to my
@@ -692,7 +761,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// operations-tupleType
 
-	AvailObject ObjectTypeAtIndex (
+	@Override
+	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -713,7 +783,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectUnionOfTypesAtThrough (
+	@Override
+	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -746,7 +817,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return unionType;
 	}
 
-	AvailObject ObjectDefaultType (
+	@Override
+	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
 		if (!object.isTupleType())
@@ -761,7 +833,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.instance().tupleAt(object.instance().tupleSize()).type();
 	}
 
-	AvailObject ObjectSizeRange (
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
 		if (!object.isTupleType())
@@ -772,7 +845,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return IntegerDescriptor.objectFromInt(object.instance().tupleSize()).type();
 	}
 
-	AvailObject ObjectTypeTuple (
+	@Override
+	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
 		//  I can't keep pretending forever.  The encapsulation of tupleType has leaked enough
@@ -785,7 +859,8 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -794,31 +869,36 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		return object.instance().isInstanceOfSubtypeOf(aType);
 	}
 
-	boolean ObjectIsIntegerRangeType (
+	@Override
+	public boolean ObjectIsIntegerRangeType (
 			final AvailObject object)
 	{
 		return object.instance().isExtendedInteger();
 	}
 
-	boolean ObjectIsListType (
+	@Override
+	public boolean ObjectIsListType (
 			final AvailObject object)
 	{
 		return object.instance().isList();
 	}
 
-	boolean ObjectIsMapType (
+	@Override
+	public boolean ObjectIsMapType (
 			final AvailObject object)
 	{
 		return object.instance().isMap();
 	}
 
-	boolean ObjectIsSetType (
+	@Override
+	public boolean ObjectIsSetType (
 			final AvailObject object)
 	{
 		return object.instance().isSet();
 	}
 
-	boolean ObjectIsTupleType (
+	@Override
+	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
 		return object.instance().isTuple();

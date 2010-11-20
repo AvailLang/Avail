@@ -44,20 +44,24 @@ public class FloatDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectRawQuad1 (
+	/**
+	 * Setter for field !R!awQuad1.
+	 */
+	@Override
+	public void ObjectRawQuad1 (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	int ObjectRawQuad1 (
+	/**
+	 * Getter for field !R!awQuad1.
+	 */
+	@Override
+	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
@@ -65,6 +69,7 @@ public class FloatDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -78,14 +83,16 @@ public class FloatDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsFloat(object);
 	}
 
-	boolean ObjectEqualsFloat (
+	@Override
+	public boolean ObjectEqualsFloat (
 			final AvailObject object, 
 			final AvailObject aFloatObject)
 	{
@@ -97,13 +104,15 @@ public class FloatDescriptor extends Descriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		return Types.floatObject.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
@@ -112,7 +121,8 @@ public class FloatDescriptor extends Descriptor
 		return (object.rawQuad1() ^ 0x16AE2BFD);
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		return Types.floatObject.object();
@@ -122,7 +132,8 @@ public class FloatDescriptor extends Descriptor
 
 	// operations-floats
 
-	float ObjectExtractFloat (
+	@Override
+	public float ObjectExtractFloat (
 			final AvailObject object)
 	{
 		//  Extract a Smalltalk Float from object.

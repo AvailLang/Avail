@@ -38,6 +38,7 @@ public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNo
 
 	// accessing
 
+	@Override
 	public boolean isConstant ()
 	{
 		return true;
@@ -47,6 +48,7 @@ public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNo
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)

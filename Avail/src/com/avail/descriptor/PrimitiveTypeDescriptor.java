@@ -48,71 +48,87 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectHash (
+	/**
+	 * Setter for field !H!ash.
+	 */
+	@Override
+	public void ObjectHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectMyType (
+	/**
+	 * Setter for field !M!yType.
+	 */
+	@Override
+	public void ObjectMyType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	void ObjectName (
+	/**
+	 * Setter for field !N!ame.
+	 */
+	@Override
+	public void ObjectName (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectParent (
+	/**
+	 * Setter for field !P!arent.
+	 */
+	@Override
+	public void ObjectParent (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	int ObjectHash (
+	/**
+	 * Getter for field !H!ash.
+	 */
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	AvailObject ObjectMyType (
+	/**
+	 * Getter for field !M!yType.
+	 */
+	@Override
+	public AvailObject ObjectMyType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
-	AvailObject ObjectName (
+	/**
+	 * Getter for field !N!ame.
+	 */
+	@Override
+	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectParent (
+	/**
+	 * Getter for field !P!arent.
+	 */
+	@Override
+	public AvailObject ObjectParent (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -120,6 +136,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -133,14 +150,16 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
 
-	boolean ObjectEqualsPrimitiveType (
+	@Override
+	public boolean ObjectEqualsPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -153,7 +172,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -162,7 +182,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfPrimitiveType(object);
 	}
 
-	boolean ObjectIsSupertypeOfClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -172,7 +193,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.closure.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfContainerType (
+	@Override
+	public boolean ObjectIsSupertypeOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
@@ -181,7 +203,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.container.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfContinuationType (
+	@Override
+	public boolean ObjectIsSupertypeOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
@@ -190,7 +213,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.continuation.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfCyclicType (
+	@Override
+	public boolean ObjectIsSupertypeOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -199,7 +223,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.cyclicType.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -209,7 +234,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.all.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfIntegerRangeType (
+	@Override
+	public boolean ObjectIsSupertypeOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
@@ -218,7 +244,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.all.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfListType (
+	@Override
+	public boolean ObjectIsSupertypeOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
@@ -229,7 +256,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.voidType.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfMapType (
+	@Override
+	public boolean ObjectIsSupertypeOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
@@ -239,7 +267,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.all.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
@@ -249,7 +278,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.type.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMetaMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -259,7 +289,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.meta.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfObjectType (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectType (
 			final AvailObject object, 
 			final AvailObject anEagerObjectType)
 	{
@@ -269,7 +300,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.all.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	@Override
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
@@ -282,7 +314,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return aPrimitiveType.parent().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfSetType (
+	@Override
+	public boolean ObjectIsSupertypeOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -292,7 +325,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.all.object().isSubtypeOf(object);
 	}
 
-	boolean ObjectIsSupertypeOfTupleType (
+	@Override
+	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -302,7 +336,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.all.object().isSubtypeOf(object);
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -323,7 +358,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -340,7 +376,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return object.parent().typeUnion(another);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -348,7 +385,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		return object.myType();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer object's type.

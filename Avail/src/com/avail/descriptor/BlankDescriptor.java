@@ -43,6 +43,7 @@ public class BlankDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -56,14 +57,16 @@ public class BlankDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsBlank();
 	}
 
-	boolean ObjectEqualsBlank (
+	@Override
+	public boolean ObjectEqualsBlank (
 			final AvailObject object)
 	{
 		//  There is only one blank.
@@ -71,13 +74,15 @@ public class BlankDescriptor extends Descriptor
 		return true;
 	}
 
-	boolean ObjectEqualsVoidOrBlank (
+	@Override
+	public boolean ObjectEqualsVoidOrBlank (
 			final AvailObject object)
 	{
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -86,7 +91,8 @@ public class BlankDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash.  The blank object should hash to zero, because the
@@ -96,7 +102,8 @@ public class BlankDescriptor extends Descriptor
 		return 0;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

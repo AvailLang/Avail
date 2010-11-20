@@ -56,6 +56,7 @@ public class AvailReferenceNode extends AvailParseNode
 		return _variable.associatedDeclaration();
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		//  The value I represent is a variable itself.  Answer an appropriate container type.
@@ -81,6 +82,7 @@ public class AvailReferenceNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -91,6 +93,7 @@ public class AvailReferenceNode extends AvailParseNode
 
 	// enumerating
 
+	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
@@ -104,6 +107,7 @@ public class AvailReferenceNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -116,6 +120,7 @@ public class AvailReferenceNode extends AvailParseNode
 
 	// validation
 
+	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent, 
 			final List<AvailBlockNode> outerBlocks, 

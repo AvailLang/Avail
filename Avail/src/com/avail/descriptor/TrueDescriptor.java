@@ -41,14 +41,16 @@ public class TrueDescriptor extends BooleanDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsTrue();
 	}
 
-	boolean ObjectEqualsTrue (
+	@Override
+	public boolean ObjectEqualsTrue (
 			final AvailObject object)
 	{
 		//  Answer true if this is the Avail true object, which it is.
@@ -56,7 +58,8 @@ public class TrueDescriptor extends BooleanDescriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -64,7 +67,8 @@ public class TrueDescriptor extends BooleanDescriptor
 		return Types.trueType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -73,7 +77,8 @@ public class TrueDescriptor extends BooleanDescriptor
 		return 0x13F8564E;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -85,7 +90,8 @@ public class TrueDescriptor extends BooleanDescriptor
 
 	// operations-booleans
 
-	boolean ObjectExtractBoolean (
+	@Override
+	public boolean ObjectExtractBoolean (
 			final AvailObject object)
 	{
 		//  Extract a Smalltalk Boolean from object.

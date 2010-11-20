@@ -41,7 +41,7 @@ public abstract class TypeDescriptor extends Descriptor
 	// operations
 
 	@Override
-	boolean ObjectEquals (
+	public boolean ObjectEquals (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -61,7 +61,7 @@ public abstract class TypeDescriptor extends Descriptor
 	// operations-types
 
 	@Override
-	boolean ObjectIsSubtypeOf (
+	public boolean ObjectIsSubtypeOf (
 		final AvailObject object,
 		final AvailObject aType)
 	{
@@ -74,7 +74,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfClosureType (
+	public boolean ObjectIsSupertypeOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
@@ -84,7 +84,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfContainerType (
+	public boolean ObjectIsSupertypeOfContainerType (
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
@@ -96,7 +96,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfContinuationType (
+	public boolean ObjectIsSupertypeOfContinuationType (
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -106,7 +106,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfCyclicType (
+	public boolean ObjectIsSupertypeOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
 	{
@@ -116,7 +116,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 		final AvailObject object,
 		final AvailObject aGeneralizedClosureType)
 	{
@@ -126,7 +126,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfIntegerRangeType (
+	public boolean ObjectIsSupertypeOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
@@ -136,7 +136,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfListType (
+	public boolean ObjectIsSupertypeOfListType (
 		final AvailObject object,
 		final AvailObject aListType)
 	{
@@ -146,7 +146,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfMapType (
+	public boolean ObjectIsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -156,7 +156,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfObjectMeta (
+	public boolean ObjectIsSupertypeOfObjectMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta)
 	{
@@ -168,7 +168,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfObjectMetaMeta (
+	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta)
 	{
@@ -180,7 +180,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfObjectType (
+	public boolean ObjectIsSupertypeOfObjectType (
 		final AvailObject object,
 		final AvailObject aLazyObjectType)
 	{
@@ -192,7 +192,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 		final AvailObject object,
 		final AvailObject aPrimitiveType)
 	{
@@ -207,7 +207,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfSetType (
+	public boolean ObjectIsSupertypeOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -217,7 +217,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfTupleType (
+	public boolean ObjectIsSupertypeOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -227,7 +227,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersection (
+	public AvailObject ObjectTypeIntersection (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -240,7 +240,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfClosureType (
+	public AvailObject ObjectTypeIntersectionOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
@@ -252,7 +252,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfContainerType (
+	public AvailObject ObjectTypeIntersectionOfContainerType (
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
@@ -264,7 +264,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfContinuationType (
+	public AvailObject ObjectTypeIntersectionOfContinuationType (
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -276,7 +276,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfCyclicType (
+	public AvailObject ObjectTypeIntersectionOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
 	{
@@ -288,7 +288,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
 		final AvailObject object,
 		final AvailObject aGeneralizedClosureType)
 	{
@@ -300,7 +300,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
@@ -312,7 +312,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfListType (
+	public AvailObject ObjectTypeIntersectionOfListType (
 		final AvailObject object,
 		final AvailObject aListType)
 	{
@@ -324,7 +324,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfMapType (
+	public AvailObject ObjectTypeIntersectionOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -336,7 +336,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfMeta (
+	public AvailObject ObjectTypeIntersectionOfMeta (
 		final AvailObject object,
 		final AvailObject someMeta)
 	{
@@ -349,7 +349,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfObjectMeta (
+	public AvailObject ObjectTypeIntersectionOfObjectMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta)
 	{
@@ -361,7 +361,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
 		final AvailObject object,
 		final AvailObject anObjectMetaMeta)
 	{
@@ -373,7 +373,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfObjectType (
+	public AvailObject ObjectTypeIntersectionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -385,7 +385,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfSetType (
+	public AvailObject ObjectTypeIntersectionOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -397,7 +397,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeIntersectionOfTupleType (
+	public AvailObject ObjectTypeIntersectionOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -409,7 +409,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnion (
+	public AvailObject ObjectTypeUnion (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -421,7 +421,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfClosureType (
+	public AvailObject ObjectTypeUnionOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
@@ -433,7 +433,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfContainerType (
+	public AvailObject ObjectTypeUnionOfContainerType (
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
@@ -445,7 +445,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfContinuationType (
+	public AvailObject ObjectTypeUnionOfContinuationType (
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -457,7 +457,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfCyclicType (
+	public AvailObject ObjectTypeUnionOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
 	{
@@ -469,7 +469,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 		final AvailObject object,
 		final AvailObject aGeneralizedClosureType)
 	{
@@ -481,7 +481,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfIntegerRangeType (
+	public AvailObject ObjectTypeUnionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -493,7 +493,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfListType (
+	public AvailObject ObjectTypeUnionOfListType (
 		final AvailObject object,
 		final AvailObject aListType)
 	{
@@ -505,7 +505,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfMapType (
+	public AvailObject ObjectTypeUnionOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -517,7 +517,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfObjectMeta (
+	public AvailObject ObjectTypeUnionOfObjectMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta)
 	{
@@ -530,7 +530,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfObjectMetaMeta (
+	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
 		final AvailObject object,
 		final AvailObject anObjectMetaMeta)
 	{
@@ -543,7 +543,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfObjectType (
+	public AvailObject ObjectTypeUnionOfObjectType (
 		final AvailObject object,
 		final AvailObject anEagerObjectType)
 	{
@@ -555,7 +555,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfSetType (
+	public AvailObject ObjectTypeUnionOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -567,7 +567,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTypeUnionOfTupleType (
+	public AvailObject ObjectTypeUnionOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -580,7 +580,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfTerminates (
+	public boolean ObjectIsSupertypeOfTerminates (
 		final AvailObject object)
 	{
 		/* All types are supertypes of terminates.  This method only exists so
@@ -593,7 +593,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsSupertypeOfVoid (
+	public boolean ObjectIsSupertypeOfVoid (
 		final AvailObject object)
 	{
 		/* Only void is a supertype of void.  Overridden in VoidTypeDescriptor.
@@ -603,7 +603,7 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectIsType (
+	public boolean ObjectIsType (
 		final AvailObject object)
 	{
 		return true;

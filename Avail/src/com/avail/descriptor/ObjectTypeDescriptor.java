@@ -45,7 +45,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	// As yet unclassified
 
-	boolean ObjectHasObjectInstance (
+	@Override
+	public boolean ObjectHasObjectInstance (
 			final AvailObject object, 
 			final AvailObject potentialInstance)
 	{
@@ -84,20 +85,24 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectFieldTypeMap (
+	/**
+	 * Setter for field !F!ieldTypeMap.
+	 */
+	@Override
+	public void ObjectFieldTypeMap (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectFieldTypeMap (
+	/**
+	 * Getter for field !F!ieldTypeMap.
+	 */
+	@Override
+	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -105,7 +110,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer this object type's type.
@@ -114,7 +120,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return ObjectMetaDescriptor.fromObjectType(object);
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Use the hash of the map (of field keys and field types), multiplied by 11.
@@ -122,7 +129,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return (object.fieldTypeMap().hash() * 11);
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -133,7 +141,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return object.fieldTypeMap().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer this object type's type.
@@ -146,7 +155,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -155,7 +165,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfObjectType(object);
 	}
 
-	boolean ObjectIsSupertypeOfObjectType (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -190,7 +201,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -207,7 +219,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfObjectType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
@@ -257,7 +270,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return ObjectTypeDescriptor.objectTypeFromMap(resultMap);
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -274,7 +288,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfObjectType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectType (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{

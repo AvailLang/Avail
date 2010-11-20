@@ -53,11 +53,13 @@ public class AvailLiteralToken extends AvailToken
 		_literal = anAvailObject;
 	}
 
+	@Override
 	public AvailObject stringLiteralOrNil ()
 	{
 		return (_literal.isTuple() ? _literal : null);
 	}
 
+	@Override
 	public TokenType type ()
 	{
 		return TokenType.literal;

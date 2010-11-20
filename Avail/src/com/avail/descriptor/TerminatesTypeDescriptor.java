@@ -48,7 +48,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	// operations-from integer range type
 
-	AvailObject ObjectLowerBound (
+	@Override
+	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -56,7 +57,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return InfinityDescriptor.positiveInfinity();
 	}
 
-	boolean ObjectLowerInclusive (
+	@Override
+	public boolean ObjectLowerInclusive (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -64,7 +66,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return false;
 	}
 
-	AvailObject ObjectUpperBound (
+	@Override
+	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -72,7 +75,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return InfinityDescriptor.negativeInfinity();
 	}
 
-	boolean ObjectUpperInclusive (
+	@Override
+	public boolean ObjectUpperInclusive (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -84,7 +88,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	// operations-from map type
 
-	AvailObject ObjectKeyType (
+	@Override
+	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
@@ -93,7 +98,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectSizeRange (
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
@@ -102,7 +108,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectValueType (
+	@Override
+	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
@@ -115,7 +122,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	// operations-from tuple type
 
-	AvailObject ObjectTypeAtIndex (
+	@Override
+	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -126,7 +134,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectUnionOfTypesAtThrough (
+	@Override
+	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -138,7 +147,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectDefaultType (
+	@Override
+	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
 		//  To support the tupleType protcol, I must answer terminates now.
@@ -146,7 +156,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectTypeTuple (
+	@Override
+	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
 		//  To support the tupleType protcol, I must answer <> now.
@@ -158,7 +169,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -168,7 +180,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return aType.isSupertypeOfTerminates();
 	}
 
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	@Override
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
@@ -178,7 +191,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return false;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -189,7 +203,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return object;
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -200,7 +215,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return another;
 	}
 
-	boolean ObjectIsCyclicType (
+	@Override
+	public boolean ObjectIsCyclicType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -210,7 +226,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return true;
 	}
 
-	boolean ObjectIsIntegerRangeType (
+	@Override
+	public boolean ObjectIsIntegerRangeType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -219,7 +236,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return true;
 	}
 
-	boolean ObjectIsListType (
+	@Override
+	public boolean ObjectIsListType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -229,7 +247,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return true;
 	}
 
-	boolean ObjectIsMapType (
+	@Override
+	public boolean ObjectIsMapType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -239,7 +258,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return true;
 	}
 
-	boolean ObjectIsTupleType (
+	@Override
+	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered

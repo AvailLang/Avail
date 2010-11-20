@@ -50,20 +50,24 @@ public class IndirectionDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectTarget (
+	/**
+	 * Setter for field !T!arget.
+	 */
+	@Override
+	public void ObjectTarget (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectTarget (
+	/**
+	 * Getter for field !T!arget.
+	 */
+	@Override
+	public AvailObject ObjectTarget (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -71,143 +75,116 @@ public class IndirectionDescriptor extends Descriptor
 
 	// GENERATED reflex methods
 
-	boolean ObjectAcceptsArgTypesFromClosureType (
+	@Override
+	public boolean ObjectAcceptsArgTypesFromClosureType (
 			final AvailObject object, 
 			final AvailObject closureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsArgTypesFromClosureType(destination, closureType);
+		return ObjectTraversed(object).acceptsArgTypesFromClosureType(closureType);
 	}
 
-	boolean ObjectAcceptsArgumentsFromContinuationStackp (
+	@Override
+	public boolean ObjectAcceptsArgumentsFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsArgumentsFromContinuationStackp(
-			destination,
+		return ObjectTraversed(object).acceptsArgumentsFromContinuationStackp(
 			continuation,
 			stackp);
 	}
 
-	boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
+	@Override
+	public boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsArgumentTypesFromContinuationStackp(
-			destination,
+		return ObjectTraversed(object).acceptsArgumentTypesFromContinuationStackp(
 			continuation,
 			stackp);
 	}
 
-	boolean ObjectAcceptsArrayOfArgTypes (
+	@Override
+	public boolean ObjectAcceptsArrayOfArgTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsArrayOfArgTypes(destination, argTypes);
+		return ObjectTraversed(object).acceptsArrayOfArgTypes(argTypes);
 	}
 
-	boolean ObjectAcceptsArrayOfArgValues (
+	@Override
+	public boolean ObjectAcceptsArrayOfArgValues (
 			final AvailObject object, 
 			final List<AvailObject> argValues)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsArrayOfArgValues(destination, argValues);
+		return ObjectTraversed(object).acceptsArrayOfArgValues(argValues);
 	}
 
-	boolean ObjectAcceptsTupleOfArgTypes (
+	@Override
+	public boolean ObjectAcceptsTupleOfArgTypes (
 			final AvailObject object, 
 			final AvailObject argTypes)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsTupleOfArgTypes(destination, argTypes);
+		return ObjectTraversed(object).acceptsTupleOfArgTypes(argTypes);
 	}
 
-	boolean ObjectAcceptsTupleOfArguments (
+	@Override
+	public boolean ObjectAcceptsTupleOfArguments (
 			final AvailObject object, 
 			final AvailObject arguments)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAcceptsTupleOfArguments(destination, arguments);
+		return ObjectTraversed(object).acceptsTupleOfArguments(arguments);
 	}
 
-	void ObjectAddDependentChunkId (
+	@Override
+	public void ObjectAddDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAddDependentChunkId(destination, aChunkIndex);
+		ObjectTraversed(object).addDependentChunkId(aChunkIndex);
 	}
 
-	void ObjectAddImplementation (
+	@Override
+	public void ObjectAddImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAddImplementation(destination, implementation);
+		ObjectTraversed(object).addImplementation(implementation);
 	}
 
-	void ObjectAddRestrictions (
+	@Override
+	public void ObjectAddRestrictions (
 			final AvailObject object, 
 			final AvailObject restrictions)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAddRestrictions(destination, restrictions);
+		ObjectTraversed(object).addRestrictions(restrictions);
 	}
 
-	AvailObject ObjectAddToInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectAddToInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAddToInfinityCanDestroy(
-			destination,
+		return ObjectTraversed(object).addToInfinityCanDestroy(
 			anInfinity,
 			canDestroy);
 	}
 
-	AvailObject ObjectAddToIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectAddToIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAddToIntegerCanDestroy(
-			destination,
+		return ObjectTraversed(object).addToIntegerCanDestroy(
 			anInteger,
 			canDestroy);
 	}
 
-	void ObjectArgsLocalsStackOutersPrimitive (
+	@Override
+	public void ObjectArgsLocalsStackOutersPrimitive (
 			final AvailObject object, 
 			final int args, 
 			final int locals, 
@@ -215,11 +192,7 @@ public class IndirectionDescriptor extends Descriptor
 			final int outers, 
 			final int primitive)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectArgsLocalsStackOutersPrimitive(
-			destination,
+		ObjectTraversed(object).argsLocalsStackOutersPrimitive(
 			args,
 			locals,
 			stack,
@@ -227,5396 +200,4278 @@ public class IndirectionDescriptor extends Descriptor
 			primitive);
 	}
 
-	AvailObject ObjectArgTypeAt (
+	@Override
+	public AvailObject ObjectArgTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectArgTypeAt(destination, index);
+		return ObjectTraversed(object).argTypeAt(index);
 	}
 
-	void ObjectArgTypeAtPut (
+	@Override
+	public void ObjectArgTypeAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectArgTypeAtPut(
-			destination,
+		ObjectTraversed(object).argTypeAtPut(
 			index,
 			value);
 	}
 
-	void ObjectAtAddMessageRestrictions (
+	@Override
+	public void ObjectAtAddMessageRestrictions (
 			final AvailObject object, 
 			final AvailObject methodName, 
 			final AvailObject illegalArgMsgs)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAtAddMessageRestrictions(
-			destination,
+		ObjectTraversed(object).atAddMessageRestrictions(
 			methodName,
 			illegalArgMsgs);
 	}
 
-	void ObjectAtAddMethodImplementation (
+	@Override
+	public void ObjectAtAddMethodImplementation (
 			final AvailObject object, 
 			final AvailObject methodName, 
 			final AvailObject implementation)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAtAddMethodImplementation(
-			destination,
+		ObjectTraversed(object).atAddMethodImplementation(
 			methodName,
 			implementation);
 	}
 
-	void ObjectAtMessageAddBundle (
+	@Override
+	public void ObjectAtMessageAddBundle (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject bundle)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAtMessageAddBundle(
-			destination,
+		ObjectTraversed(object).atMessageAddBundle(
 			message,
 			bundle);
 	}
 
-	void ObjectAtNameAdd (
+	@Override
+	public void ObjectAtNameAdd (
 			final AvailObject object, 
 			final AvailObject stringName, 
 			final AvailObject trueName)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAtNameAdd(
-			destination,
+		ObjectTraversed(object).atNameAdd(
 			stringName,
 			trueName);
 	}
 
-	void ObjectAtNewNamePut (
+	@Override
+	public void ObjectAtNewNamePut (
 			final AvailObject object, 
 			final AvailObject stringName, 
 			final AvailObject trueName)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAtNewNamePut(
-			destination,
+		ObjectTraversed(object).atNewNamePut(
 			stringName,
 			trueName);
 	}
 
-	void ObjectAtPrivateNameAdd (
+	@Override
+	public void ObjectAtPrivateNameAdd (
 			final AvailObject object, 
 			final AvailObject stringName, 
 			final AvailObject trueName)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectAtPrivateNameAdd(
-			destination,
+		ObjectTraversed(object).atPrivateNameAdd(
 			stringName,
 			trueName);
 	}
 
-	AvailObject ObjectBinAddingElementHashLevelCanDestroy (
+	@Override
+	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
 			final byte myLevel, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinAddingElementHashLevelCanDestroy(
-			destination,
+		return ObjectTraversed(object).binAddingElementHashLevelCanDestroy(
 			elementObject,
 			elementObjectHash,
 			myLevel,
 			canDestroy);
 	}
 
-	AvailObject ObjectBinElementAt (
+	@Override
+	public AvailObject ObjectBinElementAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinElementAt(destination, index);
+		return ObjectTraversed(object).binElementAt(index);
 	}
 
-	void ObjectBinElementAtPut (
+	@Override
+	public void ObjectBinElementAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBinElementAtPut(
-			destination,
+		ObjectTraversed(object).binElementAtPut(
 			index,
 			value);
 	}
 
-	boolean ObjectBinHasElementHash (
+	@Override
+	public boolean ObjectBinHasElementHash (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinHasElementHash(
-			destination,
+		return ObjectTraversed(object).binHasElementHash(
 			elementObject,
 			elementObjectHash);
 	}
 
-	void ObjectBinHash (
+	@Override
+	public void ObjectBinHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBinHash(destination, value);
+		ObjectTraversed(object).binHash(value);
 	}
 
-	AvailObject ObjectBinRemoveElementHashCanDestroy (
+	@Override
+	public AvailObject ObjectBinRemoveElementHashCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinRemoveElementHashCanDestroy(
-			destination,
+		return ObjectTraversed(object).binRemoveElementHashCanDestroy(
 			elementObject,
 			elementObjectHash,
 			canDestroy);
 	}
 
-	void ObjectBinSize (
+	@Override
+	public void ObjectBinSize (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBinSize(destination, value);
+		ObjectTraversed(object).binSize(value);
 	}
 
-	void ObjectBinUnionType (
+	@Override
+	public void ObjectBinUnionType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBinUnionType(destination, value);
+		ObjectTraversed(object).binUnionType(value);
 	}
 
-	void ObjectBitVector (
+	@Override
+	public void ObjectBitVector (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBitVector(destination, value);
+		ObjectTraversed(object).bitVector(value);
 	}
 
-	void ObjectBodyBlock (
+	@Override
+	public void ObjectBodyBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBodyBlock(destination, value);
+		ObjectTraversed(object).bodyBlock(value);
 	}
 
-	void ObjectBodyBlockRequiresBlockReturnsBlock (
+	@Override
+	public void ObjectBodyBlockRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bb, 
 			final AvailObject rqb, 
 			final AvailObject rtb)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBodyBlockRequiresBlockReturnsBlock(
-			destination,
+		ObjectTraversed(object).bodyBlockRequiresBlockReturnsBlock(
 			bb,
 			rqb,
 			rtb);
 	}
 
-	void ObjectBodySignature (
+	@Override
+	public void ObjectBodySignature (
 			final AvailObject object, 
 			final AvailObject signature)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBodySignature(destination, signature);
+		ObjectTraversed(object).bodySignature(signature);
 	}
 
-	void ObjectBodySignatureRequiresBlockReturnsBlock (
+	@Override
+	public void ObjectBodySignatureRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bs, 
 			final AvailObject rqb, 
 			final AvailObject rtb)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBodySignatureRequiresBlockReturnsBlock(
-			destination,
+		ObjectTraversed(object).bodySignatureRequiresBlockReturnsBlock(
 			bs,
 			rqb,
 			rtb);
 	}
 
-	void ObjectBreakpointBlock (
+	@Override
+	public void ObjectBreakpointBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBreakpointBlock(destination, value);
+		ObjectTraversed(object).breakpointBlock(value);
 	}
 
-	void ObjectBuildFilteredBundleTreeFrom (
+	@Override
+	public void ObjectBuildFilteredBundleTreeFrom (
 			final AvailObject object, 
 			final AvailObject bundleTree)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBuildFilteredBundleTreeFrom(destination, bundleTree);
+		ObjectTraversed(object).buildFilteredBundleTreeFrom(bundleTree);
 	}
 
-	AvailObject ObjectBundleAtMessageParts (
+	@Override
+	public AvailObject ObjectBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBundleAtMessageParts(
-			destination,
+		return ObjectTraversed(object).bundleAtMessageParts(
 			message,
 			parts);
 	}
 
-	void ObjectCaller (
+	@Override
+	public void ObjectCaller (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectCaller(destination, value);
+		ObjectTraversed(object).caller(value);
 	}
 
-	void ObjectClosure (
+	@Override
+	public void ObjectClosure (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectClosure(destination, value);
+		ObjectTraversed(object).closure(value);
 	}
 
-	void ObjectClosureType (
+	@Override
+	public void ObjectClosureType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectClosureType(destination, value);
+		ObjectTraversed(object).closureType(value);
 	}
 
-	void ObjectCode (
+	@Override
+	public void ObjectCode (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectCode(destination, value);
+		ObjectTraversed(object).code(value);
 	}
 
-	void ObjectCodePoint (
+	@Override
+	public void ObjectCodePoint (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectCodePoint(destination, value);
+		ObjectTraversed(object).codePoint(value);
 	}
 
-	boolean ObjectCompareFromToWithStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject anotherObject, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithStartingAt(
 			startIndex1,
 			endIndex1,
 			anotherObject,
 			startIndex2);
 	}
 
-	boolean ObjectCompareFromToWithAnyTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithAnyTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject aTuple, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithAnyTupleStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithAnyTupleStartingAt(
 			startIndex1,
 			endIndex1,
 			aTuple,
 			startIndex2);
 	}
 
-	boolean ObjectCompareFromToWithByteStringStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject aByteString, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithByteStringStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithByteStringStartingAt(
 			startIndex1,
 			endIndex1,
 			aByteString,
 			startIndex2);
 	}
 
-	boolean ObjectCompareFromToWithByteTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithByteTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject aByteTuple, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithByteTupleStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithByteTupleStartingAt(
 			startIndex1,
 			endIndex1,
 			aByteTuple,
 			startIndex2);
 	}
 
-	boolean ObjectCompareFromToWithNybbleTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject aNybbleTuple, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithNybbleTupleStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithNybbleTupleStartingAt(
 			startIndex1,
 			endIndex1,
 			aNybbleTuple,
 			startIndex2);
 	}
 
-	boolean ObjectCompareFromToWithObjectTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject anObjectTuple, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithObjectTupleStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithObjectTupleStartingAt(
 			startIndex1,
 			endIndex1,
 			anObjectTuple,
 			startIndex2);
 	}
 
-	boolean ObjectCompareFromToWithTwoByteStringStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
 			final AvailObject aTwoByteString, 
 			final int startIndex2)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCompareFromToWithTwoByteStringStartingAt(
-			destination,
+		return ObjectTraversed(object).compareFromToWithTwoByteStringStartingAt(
 			startIndex1,
 			endIndex1,
 			aTwoByteString,
 			startIndex2);
 	}
 
-	void ObjectComplete (
+	@Override
+	public void ObjectComplete (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectComplete(destination, value);
+		ObjectTraversed(object).complete(value);
 	}
 
-	int ObjectComputeHashFromTo (
+	@Override
+	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int start, 
 			final int end)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectComputeHashFromTo(
-			destination,
+		return ObjectTraversed(object).computeHashFromTo(
 			start,
 			end);
 	}
 
-	AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	@Override
+	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectComputeReturnTypeFromArgumentTypesInterpreter(
-			destination,
+		return ObjectTraversed(object).computeReturnTypeFromArgumentTypesInterpreter(
 			argTypes,
 			anAvailInterpreter);
 	}
 
-	AvailObject ObjectConcatenateTuplesCanDestroy (
+	@Override
+	public AvailObject ObjectConcatenateTuplesCanDestroy (
 			final AvailObject object, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectConcatenateTuplesCanDestroy(destination, canDestroy);
+		return ObjectTraversed(object).concatenateTuplesCanDestroy(canDestroy);
 	}
 
-	void ObjectConstantBindings (
+	@Override
+	public void ObjectConstantBindings (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectConstantBindings(destination, value);
+		ObjectTraversed(object).constantBindings(value);
 	}
 
-	boolean ObjectContainsBlock (
+	@Override
+	public boolean ObjectContainsBlock (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectContainsBlock(destination, aClosure);
+		return ObjectTraversed(object).containsBlock(aClosure);
 	}
 
-	void ObjectContentType (
+	@Override
+	public void ObjectContentType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectContentType(destination, value);
+		ObjectTraversed(object).contentType(value);
 	}
 
-	void ObjectContingentImpSets (
+	@Override
+	public void ObjectContingentImpSets (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectContingentImpSets(destination, value);
+		ObjectTraversed(object).contingentImpSets(value);
 	}
 
-	void ObjectContinuation (
+	@Override
+	public void ObjectContinuation (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectContinuation(destination, value);
+		ObjectTraversed(object).continuation(value);
 	}
 
-	void ObjectCopyToRestrictedTo (
+	@Override
+	public void ObjectCopyToRestrictedTo (
 			final AvailObject object, 
 			final AvailObject filteredBundleTree, 
 			final AvailObject visibleNames)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectCopyToRestrictedTo(
-			destination,
+		ObjectTraversed(object).copyToRestrictedTo(
 			filteredBundleTree,
 			visibleNames);
 	}
 
-	AvailObject ObjectCopyTupleFromToCanDestroy (
+	@Override
+	public AvailObject ObjectCopyTupleFromToCanDestroy (
 			final AvailObject object, 
 			final int start, 
 			final int end, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCopyTupleFromToCanDestroy(
-			destination,
+		return ObjectTraversed(object).copyTupleFromToCanDestroy(
 			start,
 			end,
 			canDestroy);
 	}
 
-	boolean ObjectCouldEverBeInvokedWith (
+	@Override
+	public boolean ObjectCouldEverBeInvokedWith (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCouldEverBeInvokedWith(destination, argTypes);
+		return ObjectTraversed(object).couldEverBeInvokedWith(argTypes);
 	}
 
-	AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
+	@Override
+	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object, 
 			final AvailObject positiveTuple, 
 			final AvailObject possibilities)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities(
-			destination,
+		return ObjectTraversed(object).createTestingTreeWithPositiveMatchesRemainingPossibilities(
 			positiveTuple,
 			possibilities);
 	}
 
-	AvailObject ObjectDataAtIndex (
+	@Override
+	public AvailObject ObjectDataAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDataAtIndex(destination, index);
+		return ObjectTraversed(object).dataAtIndex(index);
 	}
 
-	void ObjectDataAtIndexPut (
+	@Override
+	public void ObjectDataAtIndexPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectDataAtIndexPut(
-			destination,
+		ObjectTraversed(object).dataAtIndexPut(
 			index,
 			value);
 	}
 
-	void ObjectDefaultType (
+	@Override
+	public void ObjectDefaultType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectDefaultType(destination, value);
+		ObjectTraversed(object).defaultType(value);
 	}
 
-	void ObjectDependentChunks (
+	@Override
+	public void ObjectDependentChunks (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectDependentChunks(destination, value);
+		ObjectTraversed(object).dependentChunks(value);
 	}
 
-	void ObjectDepth (
+	@Override
+	public void ObjectDepth (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectDepth(destination, value);
+		ObjectTraversed(object).depth(value);
 	}
 
-	AvailObject ObjectDivideCanDestroy (
+	@Override
+	public AvailObject ObjectDivideCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDivideCanDestroy(
-			destination,
+		return ObjectTraversed(object).divideCanDestroy(
 			aNumber,
 			canDestroy);
 	}
 
-	AvailObject ObjectDivideIntoInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectDivideIntoInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDivideIntoInfinityCanDestroy(
-			destination,
+		return ObjectTraversed(object).divideIntoInfinityCanDestroy(
 			anInfinity,
 			canDestroy);
 	}
 
-	AvailObject ObjectDivideIntoIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectDivideIntoIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDivideIntoIntegerCanDestroy(
-			destination,
+		return ObjectTraversed(object).divideIntoIntegerCanDestroy(
 			anInteger,
 			canDestroy);
 	}
 
-	AvailObject ObjectElementAt (
+	@Override
+	public AvailObject ObjectElementAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectElementAt(destination, index);
+		return ObjectTraversed(object).elementAt(index);
 	}
 
-	void ObjectElementAtPut (
+	@Override
+	public void ObjectElementAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectElementAtPut(
-			destination,
+		ObjectTraversed(object).elementAtPut(
 			index,
 			value);
 	}
 
-	int ObjectEndOfZone (
+	@Override
+	public int ObjectEndOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEndOfZone(destination, zone);
+		return ObjectTraversed(object).endOfZone(zone);
 	}
 
-	int ObjectEndSubtupleIndexInZone (
+	@Override
+	public int ObjectEndSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEndSubtupleIndexInZone(destination, zone);
+		return ObjectTraversed(object).endSubtupleIndexInZone(zone);
 	}
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEquals(destination, another);
+		return ObjectTraversed(object).equals(another);
 	}
 
-	boolean ObjectEqualsAnyTuple (
+	@Override
+	public boolean ObjectEqualsAnyTuple (
 			final AvailObject object, 
 			final AvailObject anotherTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsAnyTuple(destination, anotherTuple);
+		return ObjectTraversed(object).equalsAnyTuple(anotherTuple);
 	}
 
-	boolean ObjectEqualsByteString (
+	@Override
+	public boolean ObjectEqualsByteString (
 			final AvailObject object, 
 			final AvailObject aByteString)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsByteString(destination, aByteString);
+		return ObjectTraversed(object).equalsByteString(aByteString);
 	}
 
-	boolean ObjectEqualsByteTuple (
+	@Override
+	public boolean ObjectEqualsByteTuple (
 			final AvailObject object, 
 			final AvailObject aByteTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsByteTuple(destination, aByteTuple);
+		return ObjectTraversed(object).equalsByteTuple(aByteTuple);
 	}
 
-	boolean ObjectEqualsCharacterWithCodePoint (
+	@Override
+	public boolean ObjectEqualsCharacterWithCodePoint (
 			final AvailObject object, 
 			final int otherCodePoint)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsCharacterWithCodePoint(destination, otherCodePoint);
+		return ObjectTraversed(object).equalsCharacterWithCodePoint(otherCodePoint);
 	}
 
-	boolean ObjectEqualsClosure (
+	@Override
+	public boolean ObjectEqualsClosure (
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsClosure(destination, aClosure);
+		return ObjectTraversed(object).equalsClosure(aClosure);
 	}
 
-	boolean ObjectEqualsClosureType (
+	@Override
+	public boolean ObjectEqualsClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsClosureType(destination, aClosureType);
+		return ObjectTraversed(object).equalsClosureType(aClosureType);
 	}
 
-	boolean ObjectEqualsCompiledCode (
+	@Override
+	public boolean ObjectEqualsCompiledCode (
 			final AvailObject object, 
 			final AvailObject aCompiledCode)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsCompiledCode(destination, aCompiledCode);
+		return ObjectTraversed(object).equalsCompiledCode(aCompiledCode);
 	}
 
-	boolean ObjectEqualsContainer (
+	@Override
+	public boolean ObjectEqualsContainer (
 			final AvailObject object, 
 			final AvailObject aContainer)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsContainer(destination, aContainer);
+		return ObjectTraversed(object).equalsContainer(aContainer);
 	}
 
-	boolean ObjectEqualsContainerType (
+	@Override
+	public boolean ObjectEqualsContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsContainerType(destination, aContainerType);
+		return ObjectTraversed(object).equalsContainerType(aContainerType);
 	}
 
-	boolean ObjectEqualsContinuation (
+	@Override
+	public boolean ObjectEqualsContinuation (
 			final AvailObject object, 
 			final AvailObject aContinuation)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsContinuation(destination, aContinuation);
+		return ObjectTraversed(object).equalsContinuation(aContinuation);
 	}
 
-	boolean ObjectEqualsContinuationType (
+	@Override
+	public boolean ObjectEqualsContinuationType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsContinuationType(destination, aType);
+		return ObjectTraversed(object).equalsContinuationType(aType);
 	}
 
-	boolean ObjectEqualsDouble (
+	@Override
+	public boolean ObjectEqualsDouble (
 			final AvailObject object, 
 			final AvailObject aDoubleObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsDouble(destination, aDoubleObject);
+		return ObjectTraversed(object).equalsDouble(aDoubleObject);
 	}
 
-	boolean ObjectEqualsFloat (
+	@Override
+	public boolean ObjectEqualsFloat (
 			final AvailObject object, 
 			final AvailObject aFloatObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsFloat(destination, aFloatObject);
+		return ObjectTraversed(object).equalsFloat(aFloatObject);
 	}
 
-	boolean ObjectEqualsGeneralizedClosureType (
+	@Override
+	public boolean ObjectEqualsGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsGeneralizedClosureType(destination, aType);
+		return ObjectTraversed(object).equalsGeneralizedClosureType(aType);
 	}
 
-	boolean ObjectEqualsInfinity (
+	@Override
+	public boolean ObjectEqualsInfinity (
 			final AvailObject object, 
 			final AvailObject anInfinity)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsInfinity(destination, anInfinity);
+		return ObjectTraversed(object).equalsInfinity(anInfinity);
 	}
 
-	boolean ObjectEqualsInteger (
+	@Override
+	public boolean ObjectEqualsInteger (
 			final AvailObject object, 
 			final AvailObject anAvailInteger)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsInteger(destination, anAvailInteger);
+		return ObjectTraversed(object).equalsInteger(anAvailInteger);
 	}
 
-	boolean ObjectEqualsIntegerRangeType (
+	@Override
+	public boolean ObjectEqualsIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsIntegerRangeType(destination, anIntegerRangeType);
+		return ObjectTraversed(object).equalsIntegerRangeType(anIntegerRangeType);
 	}
 
-	boolean ObjectEqualsList (
+	@Override
+	public boolean ObjectEqualsList (
 			final AvailObject object, 
 			final AvailObject aList)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsList(destination, aList);
+		return ObjectTraversed(object).equalsList(aList);
 	}
 
-	boolean ObjectEqualsListType (
+	@Override
+	public boolean ObjectEqualsListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsListType(destination, aListType);
+		return ObjectTraversed(object).equalsListType(aListType);
 	}
 
-	boolean ObjectEqualsMap (
+	@Override
+	public boolean ObjectEqualsMap (
 			final AvailObject object, 
 			final AvailObject aMap)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsMap(destination, aMap);
+		return ObjectTraversed(object).equalsMap(aMap);
 	}
 
-	boolean ObjectEqualsMapType (
+	@Override
+	public boolean ObjectEqualsMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsMapType(destination, aMapType);
+		return ObjectTraversed(object).equalsMapType(aMapType);
 	}
 
-	boolean ObjectEqualsNybbleTuple (
+	@Override
+	public boolean ObjectEqualsNybbleTuple (
 			final AvailObject object, 
 			final AvailObject aNybbleTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsNybbleTuple(destination, aNybbleTuple);
+		return ObjectTraversed(object).equalsNybbleTuple(aNybbleTuple);
 	}
 
-	boolean ObjectEqualsObject (
+	@Override
+	public boolean ObjectEqualsObject (
 			final AvailObject object, 
 			final AvailObject anObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsObject(destination, anObject);
+		return ObjectTraversed(object).equalsObject(anObject);
 	}
 
-	boolean ObjectEqualsObjectTuple (
+	@Override
+	public boolean ObjectEqualsObjectTuple (
 			final AvailObject object, 
 			final AvailObject anObjectTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsObjectTuple(destination, anObjectTuple);
+		return ObjectTraversed(object).equalsObjectTuple(anObjectTuple);
 	}
 
-	boolean ObjectEqualsPrimitiveType (
+	@Override
+	public boolean ObjectEqualsPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsPrimitiveType(destination, aPrimitiveType);
+		return ObjectTraversed(object).equalsPrimitiveType(aPrimitiveType);
 	}
 
-	boolean ObjectEqualsSet (
+	@Override
+	public boolean ObjectEqualsSet (
 			final AvailObject object, 
 			final AvailObject aSet)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsSet(destination, aSet);
+		return ObjectTraversed(object).equalsSet(aSet);
 	}
 
-	boolean ObjectEqualsSetType (
+	@Override
+	public boolean ObjectEqualsSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsSetType(destination, aSetType);
+		return ObjectTraversed(object).equalsSetType(aSetType);
 	}
 
-	boolean ObjectEqualsTupleType (
+	@Override
+	public boolean ObjectEqualsTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsTupleType(destination, aTupleType);
+		return ObjectTraversed(object).equalsTupleType(aTupleType);
 	}
 
-	boolean ObjectEqualsTwoByteString (
+	@Override
+	public boolean ObjectEqualsTwoByteString (
 			final AvailObject object, 
 			final AvailObject aTwoByteString)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsTwoByteString(destination, aTwoByteString);
+		return ObjectTraversed(object).equalsTwoByteString(aTwoByteString);
 	}
 
-	void ObjectExecutionMode (
+	@Override
+	public void ObjectExecutionMode (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectExecutionMode(destination, value);
+		ObjectTraversed(object).executionMode(value);
 	}
 
-	void ObjectExecutionState (
+	@Override
+	public void ObjectExecutionState (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectExecutionState(destination, value);
+		ObjectTraversed(object).executionState(value);
 	}
 
-	byte ObjectExtractNybbleFromTupleAt (
+	@Override
+	public byte ObjectExtractNybbleFromTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractNybbleFromTupleAt(destination, index);
+		return ObjectTraversed(object).extractNybbleFromTupleAt(index);
 	}
 
-	void ObjectFieldMap (
+	@Override
+	public void ObjectFieldMap (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectFieldMap(destination, value);
+		ObjectTraversed(object).fieldMap(value);
 	}
 
-	void ObjectFieldTypeMap (
+	@Override
+	public void ObjectFieldTypeMap (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectFieldTypeMap(destination, value);
+		ObjectTraversed(object).fieldTypeMap(value);
 	}
 
-	List<AvailObject> ObjectFilterByTypes (
+	@Override
+	public List<AvailObject> ObjectFilterByTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectFilterByTypes(destination, argTypes);
+		return ObjectTraversed(object).filterByTypes(argTypes);
 	}
 
-	void ObjectFilteredBundleTree (
+	@Override
+	public void ObjectFilteredBundleTree (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectFilteredBundleTree(destination, value);
+		ObjectTraversed(object).filteredBundleTree(value);
 	}
 
-	void ObjectFirstTupleType (
+	@Override
+	public void ObjectFirstTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectFirstTupleType(destination, value);
+		ObjectTraversed(object).firstTupleType(value);
 	}
 
-	AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+	@Override
+	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 			final AvailObject object, 
 			final int zone, 
 			final AvailObject newSubtuple, 
 			final int startSubtupleIndex, 
 			final int endOfZone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone(
-			destination,
+		return ObjectTraversed(object).forZoneSetSubtupleStartSubtupleIndexEndOfZone(
 			zone,
 			newSubtuple,
 			startSubtupleIndex,
 			endOfZone);
 	}
 
-	boolean ObjectGreaterThanInteger (
+	@Override
+	public boolean ObjectGreaterThanInteger (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectGreaterThanInteger(destination, another);
+		return ObjectTraversed(object).greaterThanInteger(another);
 	}
 
-	boolean ObjectGreaterThanSignedInfinity (
+	@Override
+	public boolean ObjectGreaterThanSignedInfinity (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectGreaterThanSignedInfinity(destination, another);
+		return ObjectTraversed(object).greaterThanSignedInfinity(another);
 	}
 
-	boolean ObjectHasElement (
+	@Override
+	public boolean ObjectHasElement (
 			final AvailObject object, 
 			final AvailObject elementObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHasElement(destination, elementObject);
+		return ObjectTraversed(object).hasElement(elementObject);
 	}
 
-	void ObjectHash (
+	@Override
+	public void ObjectHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectHash(destination, value);
+		ObjectTraversed(object).hash(value);
 	}
 
-	int ObjectHashFromTo (
+	@Override
+	public int ObjectHashFromTo (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHashFromTo(
-			destination,
+		return ObjectTraversed(object).hashFromTo(
 			startIndex,
 			endIndex);
 	}
 
-	void ObjectHashOrZero (
+	@Override
+	public void ObjectHashOrZero (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectHashOrZero(destination, value);
+		ObjectTraversed(object).hashOrZero(value);
 	}
 
-	boolean ObjectHasKey (
+	@Override
+	public boolean ObjectHasKey (
 			final AvailObject object, 
 			final AvailObject keyObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHasKey(destination, keyObject);
+		return ObjectTraversed(object).hasKey(keyObject);
 	}
 
-	boolean ObjectHasObjectInstance (
+	@Override
+	public boolean ObjectHasObjectInstance (
 			final AvailObject object, 
 			final AvailObject potentialInstance)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHasObjectInstance(destination, potentialInstance);
+		return ObjectTraversed(object).hasObjectInstance(potentialInstance);
 	}
 
-	void ObjectHiLevelTwoChunkLowOffset (
+	@Override
+	public void ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectHiLevelTwoChunkLowOffset(destination, value);
+		ObjectTraversed(object).hiLevelTwoChunkLowOffset(value);
 	}
 
-	void ObjectHiNumLocalsLowNumArgs (
+	@Override
+	public void ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectHiNumLocalsLowNumArgs(destination, value);
+		ObjectTraversed(object).hiNumLocalsLowNumArgs(value);
 	}
 
-	void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	@Override
+	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectHiPrimitiveLowNumArgsAndLocalsAndStack(destination, value);
+		ObjectTraversed(object).hiPrimitiveLowNumArgsAndLocalsAndStack(value);
 	}
 
-	void ObjectHiStartingChunkIndexLowNumOuters (
+	@Override
+	public void ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectHiStartingChunkIndexLowNumOuters(destination, value);
+		ObjectTraversed(object).hiStartingChunkIndexLowNumOuters(value);
 	}
 
-	ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
+	@Override
+	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectImplementationsAtOrBelow(destination, argTypes);
+		return ObjectTraversed(object).implementationsAtOrBelow(argTypes);
 	}
 
-	void ObjectImplementationsTuple (
+	@Override
+	public void ObjectImplementationsTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectImplementationsTuple(destination, value);
+		ObjectTraversed(object).implementationsTuple(value);
 	}
 
-	AvailObject ObjectIncludeBundleAtMessageParts (
+	@Override
+	public AvailObject ObjectIncludeBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
 			final AvailObject parts)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIncludeBundleAtMessageParts(
-			destination,
+		return ObjectTraversed(object).includeBundleAtMessageParts(
 			message,
 			parts);
 	}
 
-	boolean ObjectIncludes (
+	@Override
+	public boolean ObjectIncludes (
 			final AvailObject object, 
 			final AvailObject imp)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIncludes(destination, imp);
+		return ObjectTraversed(object).includes(imp);
 	}
 
-	void ObjectInclusiveFlags (
+	@Override
+	public void ObjectInclusiveFlags (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectInclusiveFlags(destination, value);
+		ObjectTraversed(object).inclusiveFlags(value);
 	}
 
-	void ObjectIncomplete (
+	@Override
+	public void ObjectIncomplete (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectIncomplete(destination, value);
+		ObjectTraversed(object).incomplete(value);
 	}
 
-	void ObjectIndex (
+	@Override
+	public void ObjectIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectIndex(destination, value);
+		ObjectTraversed(object).index(value);
 	}
 
-	void ObjectInnerType (
+	@Override
+	public void ObjectInnerType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectInnerType(destination, value);
+		ObjectTraversed(object).innerType(value);
 	}
 
-	void ObjectInstance (
+	@Override
+	public void ObjectInstance (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectInstance(destination, value);
+		ObjectTraversed(object).instance(value);
 	}
 
-	void ObjectInternalHash (
+	@Override
+	public void ObjectInternalHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectInternalHash(destination, value);
+		ObjectTraversed(object).internalHash(value);
 	}
 
-	void ObjectInterruptRequestFlag (
+	@Override
+	public void ObjectInterruptRequestFlag (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectInterruptRequestFlag(destination, value);
+		ObjectTraversed(object).interruptRequestFlag(value);
 	}
 
-	void ObjectInvocationCount (
+	@Override
+	public void ObjectInvocationCount (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectInvocationCount(destination, value);
+		ObjectTraversed(object).invocationCount(value);
 	}
 
-	boolean ObjectIsBetterRepresentationThan (
+	@Override
+	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsBetterRepresentationThan(destination, anotherObject);
+		return ObjectTraversed(object).isBetterRepresentationThan(anotherObject);
 	}
 
-	boolean ObjectIsBetterRepresentationThanTupleType (
+	@Override
+	public boolean ObjectIsBetterRepresentationThanTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsBetterRepresentationThanTupleType(destination, aTupleType);
+		return ObjectTraversed(object).isBetterRepresentationThanTupleType(aTupleType);
 	}
 
-	boolean ObjectIsBinSubsetOf (
+	@Override
+	public boolean ObjectIsBinSubsetOf (
 			final AvailObject object, 
 			final AvailObject potentialSuperset)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsBinSubsetOf(destination, potentialSuperset);
+		return ObjectTraversed(object).isBinSubsetOf(potentialSuperset);
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsInstanceOfSubtypeOf(destination, aType);
+		return ObjectTraversed(object).isInstanceOfSubtypeOf(aType);
 	}
 
-	void ObjectIsSaved (
+	@Override
+	public void ObjectIsSaved (
 			final AvailObject object, 
 			final boolean aBoolean)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectIsSaved(destination, aBoolean);
+		ObjectTraversed(object).isSaved(aBoolean);
 	}
 
-	boolean ObjectIsSubsetOf (
+	@Override
+	public boolean ObjectIsSubsetOf (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSubsetOf(destination, another);
+		return ObjectTraversed(object).isSubsetOf(another);
 	}
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSubtypeOf(destination, aType);
+		return ObjectTraversed(object).isSubtypeOf(aType);
 	}
 
-	boolean ObjectIsSupertypeOfClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfClosureType(destination, aClosureType);
+		return ObjectTraversed(object).isSupertypeOfClosureType(aClosureType);
 	}
 
-	boolean ObjectIsSupertypeOfContainerType (
+	@Override
+	public boolean ObjectIsSupertypeOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfContainerType(destination, aContainerType);
+		return ObjectTraversed(object).isSupertypeOfContainerType(aContainerType);
 	}
 
-	boolean ObjectIsSupertypeOfContinuationType (
+	@Override
+	public boolean ObjectIsSupertypeOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfContinuationType(destination, aContinuationType);
+		return ObjectTraversed(object).isSupertypeOfContinuationType(aContinuationType);
 	}
 
-	boolean ObjectIsSupertypeOfCyclicType (
+	@Override
+	public boolean ObjectIsSupertypeOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfCyclicType(destination, aCyclicType);
+		return ObjectTraversed(object).isSupertypeOfCyclicType(aCyclicType);
 	}
 
-	boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfGeneralizedClosureType(destination, aGeneralizedClosureType);
+		return ObjectTraversed(object).isSupertypeOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
-	boolean ObjectIsSupertypeOfIntegerRangeType (
+	@Override
+	public boolean ObjectIsSupertypeOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfIntegerRangeType(destination, anIntegerRangeType);
+		return ObjectTraversed(object).isSupertypeOfIntegerRangeType(anIntegerRangeType);
 	}
 
-	boolean ObjectIsSupertypeOfListType (
+	@Override
+	public boolean ObjectIsSupertypeOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfListType(destination, aListType);
+		return ObjectTraversed(object).isSupertypeOfListType(aListType);
 	}
 
-	boolean ObjectIsSupertypeOfMapType (
+	@Override
+	public boolean ObjectIsSupertypeOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfMapType(destination, aMapType);
+		return ObjectTraversed(object).isSupertypeOfMapType(aMapType);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfObjectMeta(destination, anObjectMeta);
+		return ObjectTraversed(object).isSupertypeOfObjectMeta(anObjectMeta);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMetaMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfObjectMetaMeta(destination, anObjectMetaMeta);
+		return ObjectTraversed(object).isSupertypeOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
-	boolean ObjectIsSupertypeOfObjectType (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfObjectType(destination, anObjectType);
+		return ObjectTraversed(object).isSupertypeOfObjectType(anObjectType);
 	}
 
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	@Override
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfPrimitiveType(destination, aPrimitiveType);
+		return ObjectTraversed(object).isSupertypeOfPrimitiveType(aPrimitiveType);
 	}
 
-	boolean ObjectIsSupertypeOfSetType (
+	@Override
+	public boolean ObjectIsSupertypeOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfSetType(destination, aSetType);
+		return ObjectTraversed(object).isSupertypeOfSetType(aSetType);
 	}
 
-	boolean ObjectIsSupertypeOfTupleType (
+	@Override
+	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfTupleType(destination, aTupleType);
+		return ObjectTraversed(object).isSupertypeOfTupleType(aTupleType);
 	}
 
-	void ObjectIsValid (
+	@Override
+	public void ObjectIsValid (
 			final AvailObject object, 
 			final boolean aBoolean)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectIsValid(destination, aBoolean);
+		ObjectTraversed(object).isValid(aBoolean);
 	}
 
-	boolean ObjectIsValidForArgumentTypesInterpreter (
+	@Override
+	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter interpreter)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsValidForArgumentTypesInterpreter(
-			destination,
+		return ObjectTraversed(object).isValidForArgumentTypesInterpreter(
 			argTypes,
 			interpreter);
 	}
 
-	AvailObject ObjectKeyAtIndex (
+	@Override
+	public AvailObject ObjectKeyAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectKeyAtIndex(destination, index);
+		return ObjectTraversed(object).keyAtIndex(index);
 	}
 
-	void ObjectKeyAtIndexPut (
+	@Override
+	public void ObjectKeyAtIndexPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject keyObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectKeyAtIndexPut(
-			destination,
+		ObjectTraversed(object).keyAtIndexPut(
 			index,
 			keyObject);
 	}
 
-	void ObjectKeyType (
+	@Override
+	public void ObjectKeyType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectKeyType(destination, value);
+		ObjectTraversed(object).keyType(value);
 	}
 
-	boolean ObjectLessOrEqual (
+	@Override
+	public boolean ObjectLessOrEqual (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLessOrEqual(destination, another);
+		return ObjectTraversed(object).lessOrEqual(another);
 	}
 
-	boolean ObjectLessThan (
+	@Override
+	public boolean ObjectLessThan (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLessThan(destination, another);
+		return ObjectTraversed(object).lessThan(another);
 	}
 
-	void ObjectLevelTwoChunkIndexOffset (
+	@Override
+	public void ObjectLevelTwoChunkIndexOffset (
 			final AvailObject object, 
 			final int index, 
 			final int offset)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectLevelTwoChunkIndexOffset(
-			destination,
+		ObjectTraversed(object).levelTwoChunkIndexOffset(
 			index,
 			offset);
 	}
 
-	AvailObject ObjectLiteralAt (
+	@Override
+	public AvailObject ObjectLiteralAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLiteralAt(destination, index);
+		return ObjectTraversed(object).literalAt(index);
 	}
 
-	void ObjectLiteralAtPut (
+	@Override
+	public void ObjectLiteralAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectLiteralAtPut(
-			destination,
+		ObjectTraversed(object).literalAtPut(
 			index,
 			value);
 	}
 
-	AvailObject ObjectLocalOrArgOrStackAt (
+	@Override
+	public AvailObject ObjectLocalOrArgOrStackAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLocalOrArgOrStackAt(destination, index);
+		return ObjectTraversed(object).localOrArgOrStackAt(index);
 	}
 
-	void ObjectLocalOrArgOrStackAtPut (
+	@Override
+	public void ObjectLocalOrArgOrStackAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectLocalOrArgOrStackAtPut(
-			destination,
+		ObjectTraversed(object).localOrArgOrStackAtPut(
 			index,
 			value);
 	}
 
-	AvailObject ObjectLocalTypeAt (
+	@Override
+	public AvailObject ObjectLocalTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLocalTypeAt(destination, index);
+		return ObjectTraversed(object).localTypeAt(index);
 	}
 
-	AvailObject ObjectLookupByTypesFromArray (
+	@Override
+	public AvailObject ObjectLookupByTypesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentTypeArray)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLookupByTypesFromArray(destination, argumentTypeArray);
+		return ObjectTraversed(object).lookupByTypesFromArray(argumentTypeArray);
 	}
 
-	AvailObject ObjectLookupByTypesFromContinuationStackp (
+	@Override
+	public AvailObject ObjectLookupByTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLookupByTypesFromContinuationStackp(
-			destination,
+		return ObjectTraversed(object).lookupByTypesFromContinuationStackp(
 			continuation,
 			stackp);
 	}
 
-	AvailObject ObjectLookupByTypesFromTuple (
+	@Override
+	public AvailObject ObjectLookupByTypesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTypeTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLookupByTypesFromTuple(destination, argumentTypeTuple);
+		return ObjectTraversed(object).lookupByTypesFromTuple(argumentTypeTuple);
 	}
 
-	AvailObject ObjectLookupByValuesFromArray (
+	@Override
+	public AvailObject ObjectLookupByValuesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentArray)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLookupByValuesFromArray(destination, argumentArray);
+		return ObjectTraversed(object).lookupByValuesFromArray(argumentArray);
 	}
 
-	AvailObject ObjectLookupByValuesFromContinuationStackp (
+	@Override
+	public AvailObject ObjectLookupByValuesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
 			final int stackp)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLookupByValuesFromContinuationStackp(
-			destination,
+		return ObjectTraversed(object).lookupByValuesFromContinuationStackp(
 			continuation,
 			stackp);
 	}
 
-	AvailObject ObjectLookupByValuesFromTuple (
+	@Override
+	public AvailObject ObjectLookupByValuesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLookupByValuesFromTuple(destination, argumentTuple);
+		return ObjectTraversed(object).lookupByValuesFromTuple(argumentTuple);
 	}
 
-	void ObjectLowerBound (
+	@Override
+	public void ObjectLowerBound (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectLowerBound(destination, value);
+		ObjectTraversed(object).lowerBound(value);
 	}
 
-	void ObjectLowerInclusiveUpperInclusive (
+	@Override
+	public void ObjectLowerInclusiveUpperInclusive (
 			final AvailObject object, 
 			final boolean lowInc, 
 			final boolean highInc)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectLowerInclusiveUpperInclusive(
-			destination,
+		ObjectTraversed(object).lowerInclusiveUpperInclusive(
 			lowInc,
 			highInc);
 	}
 
-	AvailObject ObjectMapAt (
+	@Override
+	public AvailObject ObjectMapAt (
 			final AvailObject object, 
 			final AvailObject keyObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMapAt(destination, keyObject);
+		return ObjectTraversed(object).mapAt(keyObject);
 	}
 
-	AvailObject ObjectMapAtPuttingCanDestroy (
+	@Override
+	public AvailObject ObjectMapAtPuttingCanDestroy (
 			final AvailObject object, 
 			final AvailObject keyObject, 
 			final AvailObject newValueObject, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMapAtPuttingCanDestroy(
-			destination,
+		return ObjectTraversed(object).mapAtPuttingCanDestroy(
 			keyObject,
 			newValueObject,
 			canDestroy);
 	}
 
-	void ObjectMapSize (
+	@Override
+	public void ObjectMapSize (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMapSize(destination, value);
+		ObjectTraversed(object).mapSize(value);
 	}
 
-	AvailObject ObjectMapWithoutKeyCanDestroy (
+	@Override
+	public AvailObject ObjectMapWithoutKeyCanDestroy (
 			final AvailObject object, 
 			final AvailObject keyObject, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMapWithoutKeyCanDestroy(
-			destination,
+		return ObjectTraversed(object).mapWithoutKeyCanDestroy(
 			keyObject,
 			canDestroy);
 	}
 
-	void ObjectMessage (
+	@Override
+	public void ObjectMessage (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMessage(destination, value);
+		ObjectTraversed(object).message(value);
 	}
 
-	void ObjectMessageParts (
+	@Override
+	public void ObjectMessageParts (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMessageParts(destination, value);
+		ObjectTraversed(object).messageParts(value);
 	}
 
-	void ObjectMethods (
+	@Override
+	public void ObjectMethods (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMethods(destination, value);
+		ObjectTraversed(object).methods(value);
 	}
 
-	AvailObject ObjectMinusCanDestroy (
+	@Override
+	public AvailObject ObjectMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMinusCanDestroy(
-			destination,
+		return ObjectTraversed(object).minusCanDestroy(
 			aNumber,
 			canDestroy);
 	}
 
-	AvailObject ObjectMultiplyByInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectMultiplyByInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMultiplyByInfinityCanDestroy(
-			destination,
+		return ObjectTraversed(object).multiplyByInfinityCanDestroy(
 			anInfinity,
 			canDestroy);
 	}
 
-	AvailObject ObjectMultiplyByIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectMultiplyByIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMultiplyByIntegerCanDestroy(
-			destination,
+		return ObjectTraversed(object).multiplyByIntegerCanDestroy(
 			anInteger,
 			canDestroy);
 	}
 
-	void ObjectMyObjectMeta (
+	@Override
+	public void ObjectMyObjectMeta (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMyObjectMeta(destination, value);
+		ObjectTraversed(object).myObjectMeta(value);
 	}
 
-	void ObjectMyObjectType (
+	@Override
+	public void ObjectMyObjectType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMyObjectType(destination, value);
+		ObjectTraversed(object).myObjectType(value);
 	}
 
-	void ObjectMyRestrictions (
+	@Override
+	public void ObjectMyRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMyRestrictions(destination, value);
+		ObjectTraversed(object).myRestrictions(value);
 	}
 
-	void ObjectMyType (
+	@Override
+	public void ObjectMyType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMyType(destination, value);
+		ObjectTraversed(object).myType(value);
 	}
 
-	void ObjectName (
+	@Override
+	public void ObjectName (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectName(destination, value);
+		ObjectTraversed(object).name(value);
 	}
 
-	void ObjectNames (
+	@Override
+	public void ObjectNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNames(destination, value);
+		ObjectTraversed(object).names(value);
 	}
 
-	boolean ObjectNameVisible (
+	@Override
+	public boolean ObjectNameVisible (
 			final AvailObject object, 
 			final AvailObject trueName)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNameVisible(destination, trueName);
+		return ObjectTraversed(object).nameVisible(trueName);
 	}
 
-	void ObjectNecessaryImplementationSetChanged (
+	@Override
+	public void ObjectNecessaryImplementationSetChanged (
 			final AvailObject object, 
 			final AvailObject anImplementationSet)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNecessaryImplementationSetChanged(destination, anImplementationSet);
+		ObjectTraversed(object).necessaryImplementationSetChanged(anImplementationSet);
 	}
 
-	void ObjectNewNames (
+	@Override
+	public void ObjectNewNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNewNames(destination, value);
+		ObjectTraversed(object).newNames(value);
 	}
 
-	void ObjectNext (
+	@Override
+	public void ObjectNext (
 			final AvailObject object, 
 			final AvailObject nextChunk)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNext(destination, nextChunk);
+		ObjectTraversed(object).next(nextChunk);
 	}
 
-	void ObjectNextIndex (
+	@Override
+	public void ObjectNextIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNextIndex(destination, value);
+		ObjectTraversed(object).nextIndex(value);
 	}
 
-	void ObjectNumBlanks (
+	@Override
+	public void ObjectNumBlanks (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNumBlanks(destination, value);
+		ObjectTraversed(object).numBlanks(value);
 	}
 
-	void ObjectNumFloats (
+	@Override
+	public void ObjectNumFloats (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNumFloats(destination, value);
+		ObjectTraversed(object).numFloats(value);
 	}
 
-	void ObjectNumIntegers (
+	@Override
+	public void ObjectNumIntegers (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNumIntegers(destination, value);
+		ObjectTraversed(object).numIntegers(value);
 	}
 
-	void ObjectNumObjects (
+	@Override
+	public void ObjectNumObjects (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNumObjects(destination, value);
+		ObjectTraversed(object).numObjects(value);
 	}
 
-	void ObjectNybbles (
+	@Override
+	public void ObjectNybbles (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectNybbles(destination, value);
+		ObjectTraversed(object).nybbles(value);
 	}
 
-	boolean ObjectOptionallyNilOuterVar (
+	@Override
+	public boolean ObjectOptionallyNilOuterVar (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectOptionallyNilOuterVar(destination, index);
+		return ObjectTraversed(object).optionallyNilOuterVar(index);
 	}
 
-	AvailObject ObjectOuterTypeAt (
+	@Override
+	public AvailObject ObjectOuterTypeAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectOuterTypeAt(destination, index);
+		return ObjectTraversed(object).outerTypeAt(index);
 	}
 
-	void ObjectOuterTypesLocalTypes (
+	@Override
+	public void ObjectOuterTypesLocalTypes (
 			final AvailObject object, 
 			final AvailObject tupleOfOuterTypes, 
 			final AvailObject tupleOfLocalContainerTypes)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectOuterTypesLocalTypes(
-			destination,
+		ObjectTraversed(object).outerTypesLocalTypes(
 			tupleOfOuterTypes,
 			tupleOfLocalContainerTypes);
 	}
 
-	AvailObject ObjectOuterVarAt (
+	@Override
+	public AvailObject ObjectOuterVarAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectOuterVarAt(destination, index);
+		return ObjectTraversed(object).outerVarAt(index);
 	}
 
-	void ObjectOuterVarAtPut (
+	@Override
+	public void ObjectOuterVarAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectOuterVarAtPut(
-			destination,
+		ObjectTraversed(object).outerVarAtPut(
 			index,
 			value);
 	}
 
-	void ObjectPad (
+	@Override
+	public void ObjectPad (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPad(destination, value);
+		ObjectTraversed(object).pad(value);
 	}
 
-	void ObjectParent (
+	@Override
+	public void ObjectParent (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectParent(destination, value);
+		ObjectTraversed(object).parent(value);
 	}
 
-	void ObjectPc (
+	@Override
+	public void ObjectPc (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPc(destination, value);
+		ObjectTraversed(object).pc(value);
 	}
 
-	AvailObject ObjectPlusCanDestroy (
+	@Override
+	public AvailObject ObjectPlusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPlusCanDestroy(
-			destination,
+		return ObjectTraversed(object).plusCanDestroy(
 			aNumber,
 			canDestroy);
 	}
 
-	int ObjectPopulateTupleStartingAt (
+	@Override
+	public int ObjectPopulateTupleStartingAt (
 			final AvailObject object, 
 			final AvailObject mutableTuple, 
 			final int startingIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPopulateTupleStartingAt(
-			destination,
+		return ObjectTraversed(object).populateTupleStartingAt(
 			mutableTuple,
 			startingIndex);
 	}
 
-	void ObjectPrevious (
+	@Override
+	public void ObjectPrevious (
 			final AvailObject object, 
 			final AvailObject previousChunk)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPrevious(destination, previousChunk);
+		ObjectTraversed(object).previous(previousChunk);
 	}
 
-	void ObjectPreviousIndex (
+	@Override
+	public void ObjectPreviousIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPreviousIndex(destination, value);
+		ObjectTraversed(object).previousIndex(value);
 	}
 
-	void ObjectPriority (
+	@Override
+	public void ObjectPriority (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPriority(destination, value);
+		ObjectTraversed(object).priority(value);
 	}
 
-	AvailObject ObjectPrivateAddElement (
+	@Override
+	public AvailObject ObjectPrivateAddElement (
 			final AvailObject object, 
 			final AvailObject element)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateAddElement(destination, element);
+		return ObjectTraversed(object).privateAddElement(element);
 	}
 
-	AvailObject ObjectPrivateExcludeElement (
+	@Override
+	public AvailObject ObjectPrivateExcludeElement (
 			final AvailObject object, 
 			final AvailObject element)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateExcludeElement(destination, element);
+		return ObjectTraversed(object).privateExcludeElement(element);
 	}
 
-	AvailObject ObjectPrivateExcludeElementKnownIndex (
+	@Override
+	public AvailObject ObjectPrivateExcludeElementKnownIndex (
 			final AvailObject object, 
 			final AvailObject element, 
 			final int knownIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateExcludeElementKnownIndex(
-			destination,
+		return ObjectTraversed(object).privateExcludeElementKnownIndex(
 			element,
 			knownIndex);
 	}
 
-	AvailObject ObjectPrivateExcludeKey (
+	@Override
+	public AvailObject ObjectPrivateExcludeKey (
 			final AvailObject object, 
 			final AvailObject keyObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateExcludeKey(destination, keyObject);
+		return ObjectTraversed(object).privateExcludeKey(keyObject);
 	}
 
-	AvailObject ObjectPrivateMapAtPut (
+	@Override
+	public AvailObject ObjectPrivateMapAtPut (
 			final AvailObject object, 
 			final AvailObject keyObject, 
 			final AvailObject valueObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateMapAtPut(
-			destination,
+		return ObjectTraversed(object).privateMapAtPut(
 			keyObject,
 			valueObject);
 	}
 
-	void ObjectPrivateNames (
+	@Override
+	public void ObjectPrivateNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPrivateNames(destination, value);
+		ObjectTraversed(object).privateNames(value);
 	}
 
-	void ObjectPrivateTestingTree (
+	@Override
+	public void ObjectPrivateTestingTree (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPrivateTestingTree(destination, value);
+		ObjectTraversed(object).privateTestingTree(value);
 	}
 
-	void ObjectProcessGlobals (
+	@Override
+	public void ObjectProcessGlobals (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectProcessGlobals(destination, value);
+		ObjectTraversed(object).processGlobals(value);
 	}
 
-	short ObjectRawByteAt (
+	@Override
+	public short ObjectRawByteAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawByteAt(destination, index);
+		return ObjectTraversed(object).rawByteAt(index);
 	}
 
-	void ObjectRawByteAtPut (
+	@Override
+	public void ObjectRawByteAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawByteAtPut(
-			destination,
+		ObjectTraversed(object).rawByteAtPut(
 			index,
 			anInteger);
 	}
 
-	short ObjectRawByteForCharacterAt (
+	@Override
+	public short ObjectRawByteForCharacterAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawByteForCharacterAt(destination, index);
+		return ObjectTraversed(object).rawByteForCharacterAt(index);
 	}
 
-	void ObjectRawByteForCharacterAtPut (
+	@Override
+	public void ObjectRawByteForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawByteForCharacterAtPut(
-			destination,
+		ObjectTraversed(object).rawByteForCharacterAtPut(
 			index,
 			anInteger);
 	}
 
-	byte ObjectRawNybbleAt (
+	@Override
+	public byte ObjectRawNybbleAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawNybbleAt(destination, index);
+		return ObjectTraversed(object).rawNybbleAt(index);
 	}
 
-	void ObjectRawNybbleAtPut (
+	@Override
+	public void ObjectRawNybbleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final byte aNybble)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawNybbleAtPut(
-			destination,
+		ObjectTraversed(object).rawNybbleAtPut(
 			index,
 			aNybble);
 	}
 
-	void ObjectRawQuad1 (
+	@Override
+	public void ObjectRawQuad1 (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawQuad1(destination, value);
+		ObjectTraversed(object).rawQuad1(value);
 	}
 
-	void ObjectRawQuad2 (
+	@Override
+	public void ObjectRawQuad2 (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawQuad2(destination, value);
+		ObjectTraversed(object).rawQuad2(value);
 	}
 
-	int ObjectRawQuadAt (
+	@Override
+	public int ObjectRawQuadAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawQuadAt(destination, index);
+		return ObjectTraversed(object).rawQuadAt(index);
 	}
 
-	void ObjectRawQuadAtPut (
+	@Override
+	public void ObjectRawQuadAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawQuadAtPut(
-			destination,
+		ObjectTraversed(object).rawQuadAtPut(
 			index,
 			value);
 	}
 
-	short ObjectRawShortForCharacterAt (
+	@Override
+	public short ObjectRawShortForCharacterAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawShortForCharacterAt(destination, index);
+		return ObjectTraversed(object).rawShortForCharacterAt(index);
 	}
 
-	void ObjectRawShortForCharacterAtPut (
+	@Override
+	public void ObjectRawShortForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawShortForCharacterAtPut(
-			destination,
+		ObjectTraversed(object).rawShortForCharacterAtPut(
 			index,
 			anInteger);
 	}
 
-	int ObjectRawSignedIntegerAt (
+	@Override
+	public int ObjectRawSignedIntegerAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawSignedIntegerAt(destination, index);
+		return ObjectTraversed(object).rawSignedIntegerAt(index);
 	}
 
-	void ObjectRawSignedIntegerAtPut (
+	@Override
+	public void ObjectRawSignedIntegerAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawSignedIntegerAtPut(
-			destination,
+		ObjectTraversed(object).rawSignedIntegerAtPut(
 			index,
 			value);
 	}
 
-	long ObjectRawUnsignedIntegerAt (
+	@Override
+	public long ObjectRawUnsignedIntegerAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawUnsignedIntegerAt(destination, index);
+		return ObjectTraversed(object).rawUnsignedIntegerAt(index);
 	}
 
-	void ObjectRawUnsignedIntegerAtPut (
+	@Override
+	public void ObjectRawUnsignedIntegerAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRawUnsignedIntegerAtPut(
-			destination,
+		ObjectTraversed(object).rawUnsignedIntegerAtPut(
 			index,
 			value);
 	}
 
-	void ObjectRemoveDependentChunkId (
+	@Override
+	public void ObjectRemoveDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRemoveDependentChunkId(destination, aChunkIndex);
+		ObjectTraversed(object).removeDependentChunkId(aChunkIndex);
 	}
 
-	void ObjectRemoveFrom (
+	@Override
+	public void ObjectRemoveFrom (
 		final AvailObject object, 
 		final AvailInterpreter anInterpreter)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRemoveFrom(destination, anInterpreter);
+		ObjectTraversed(object).removeFrom(anInterpreter);
 	}
 
-	void ObjectRemoveImplementation (
+	@Override
+	public void ObjectRemoveImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRemoveImplementation(destination, implementation);
+		ObjectTraversed(object).removeImplementation(implementation);
 	}
 
-	boolean ObjectRemoveMessageParts (
+	@Override
+	public boolean ObjectRemoveMessageParts (
 		final AvailObject object, 
 		final AvailObject message, 
 		final AvailObject parts)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRemoveMessageParts(
-			destination,
+		return ObjectTraversed(object).removeMessageParts(
 			message,
 			parts);
 	}
 
-	void ObjectRemoveRestrictions (
+	@Override
+	public void ObjectRemoveRestrictions (
 		final AvailObject object, 
 		final AvailObject obsoleteRestrictions)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRemoveRestrictions(destination, obsoleteRestrictions);
+		ObjectTraversed(object).removeRestrictions(obsoleteRestrictions);
 	}
 
-	void ObjectRequiresBlock (
+	@Override
+	public void ObjectRequiresBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRequiresBlock(destination, value);
+		ObjectTraversed(object).requiresBlock(value);
 	}
 
-	void ObjectResolvedForwardWithName (
+	@Override
+	public void ObjectResolvedForwardWithName (
 			final AvailObject object, 
 			final AvailObject forwardImplementation, 
 			final AvailObject methodName)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectResolvedForwardWithName(
-			destination,
+		ObjectTraversed(object).resolvedForwardWithName(
 			forwardImplementation,
 			methodName);
 	}
 
-	void ObjectRestrictions (
+	@Override
+	public void ObjectRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRestrictions(destination, value);
+		ObjectTraversed(object).restrictions(value);
 	}
 
-	void ObjectReturnsBlock (
+	@Override
+	public void ObjectReturnsBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectReturnsBlock(destination, value);
+		ObjectTraversed(object).returnsBlock(value);
 	}
 
-	void ObjectReturnType (
+	@Override
+	public void ObjectReturnType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectReturnType(destination, value);
+		ObjectTraversed(object).returnType(value);
 	}
 
-	void ObjectRootBin (
+	@Override
+	public void ObjectRootBin (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRootBin(destination, value);
+		ObjectTraversed(object).rootBin(value);
 	}
 
-	void ObjectSecondTupleType (
+	@Override
+	public void ObjectSecondTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSecondTupleType(destination, value);
+		ObjectTraversed(object).secondTupleType(value);
 	}
 
-	AvailObject ObjectSetIntersectionCanDestroy (
+	@Override
+	public AvailObject ObjectSetIntersectionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetIntersectionCanDestroy(
-			destination,
+		return ObjectTraversed(object).setIntersectionCanDestroy(
 			otherSet,
 			canDestroy);
 	}
 
-	AvailObject ObjectSetMinusCanDestroy (
+	@Override
+	public AvailObject ObjectSetMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetMinusCanDestroy(
-			destination,
+		return ObjectTraversed(object).setMinusCanDestroy(
 			otherSet,
 			canDestroy);
 	}
 
-	void ObjectSetSize (
+	@Override
+	public void ObjectSetSize (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSetSize(destination, value);
+		ObjectTraversed(object).setSize(value);
 	}
 
-	void ObjectSetSubtupleForZoneTo (
+	@Override
+	public void ObjectSetSubtupleForZoneTo (
 			final AvailObject object, 
 			final int zoneIndex, 
 			final AvailObject newTuple)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSetSubtupleForZoneTo(
-			destination,
+		ObjectTraversed(object).setSubtupleForZoneTo(
 			zoneIndex,
 			newTuple);
 	}
 
-	AvailObject ObjectSetUnionCanDestroy (
+	@Override
+	public AvailObject ObjectSetUnionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetUnionCanDestroy(
-			destination,
+		return ObjectTraversed(object).setUnionCanDestroy(
 			otherSet,
 			canDestroy);
 	}
 
-	void ObjectSetValue (
+	@Override
+	public void ObjectSetValue (
 			final AvailObject object, 
 			final AvailObject newValue)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSetValue(destination, newValue);
+		ObjectTraversed(object).setValue(newValue);
 	}
 
-	AvailObject ObjectSetWithElementCanDestroy (
+	@Override
+	public AvailObject ObjectSetWithElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject newElementObject, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetWithElementCanDestroy(
-			destination,
+		return ObjectTraversed(object).setWithElementCanDestroy(
 			newElementObject,
 			canDestroy);
 	}
 
-	AvailObject ObjectSetWithoutElementCanDestroy (
+	@Override
+	public AvailObject ObjectSetWithoutElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObjectToExclude, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetWithoutElementCanDestroy(
-			destination,
+		return ObjectTraversed(object).setWithoutElementCanDestroy(
 			elementObjectToExclude,
 			canDestroy);
 	}
 
-	void ObjectSignature (
+	@Override
+	public void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSignature(destination, value);
+		ObjectTraversed(object).signature(value);
 	}
 
-	void ObjectSize (
+	@Override
+	public void ObjectSize (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSize(destination, value);
+		ObjectTraversed(object).size(value);
 	}
 
-	int ObjectSizeOfZone (
+	@Override
+	public int ObjectSizeOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSizeOfZone(destination, zone);
+		return ObjectTraversed(object).sizeOfZone(zone);
 	}
 
-	void ObjectSizeRange (
+	@Override
+	public void ObjectSizeRange (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectSizeRange(destination, value);
+		ObjectTraversed(object).sizeRange(value);
 	}
 
-	AvailObject ObjectStackAt (
+	@Override
+	public AvailObject ObjectStackAt (
 			final AvailObject object, 
 			final int slotIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectStackAt(destination, slotIndex);
+		return ObjectTraversed(object).stackAt(slotIndex);
 	}
 
-	void ObjectStackAtPut (
+	@Override
+	public void ObjectStackAtPut (
 			final AvailObject object, 
 			final int slotIndex, 
 			final AvailObject anObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectStackAtPut(
-			destination,
+		ObjectTraversed(object).stackAtPut(
 			slotIndex,
 			anObject);
 	}
 
-	void ObjectStackp (
+	@Override
+	public void ObjectStackp (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectStackp(destination, value);
+		ObjectTraversed(object).stackp(value);
 	}
 
-	void ObjectStartingChunkIndex (
+	@Override
+	public void ObjectStartingChunkIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectStartingChunkIndex(destination, value);
+		ObjectTraversed(object).startingChunkIndex(value);
 	}
 
-	int ObjectStartOfZone (
+	@Override
+	public int ObjectStartOfZone (
 			final AvailObject object, 
 			final int zone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectStartOfZone(destination, zone);
+		return ObjectTraversed(object).startOfZone(zone);
 	}
 
-	int ObjectStartSubtupleIndexInZone (
+	@Override
+	public int ObjectStartSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectStartSubtupleIndexInZone(destination, zone);
+		return ObjectTraversed(object).startSubtupleIndexInZone(zone);
 	}
 
-	AvailObject ObjectSubtractFromInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectSubtractFromInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSubtractFromInfinityCanDestroy(
-			destination,
+		return ObjectTraversed(object).subtractFromInfinityCanDestroy(
 			anInfinity,
 			canDestroy);
 	}
 
-	AvailObject ObjectSubtractFromIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectSubtractFromIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSubtractFromIntegerCanDestroy(
-			destination,
+		return ObjectTraversed(object).subtractFromIntegerCanDestroy(
 			anInteger,
 			canDestroy);
 	}
 
-	AvailObject ObjectSubtupleForZone (
+	@Override
+	public AvailObject ObjectSubtupleForZone (
 			final AvailObject object, 
 			final int zone)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSubtupleForZone(destination, zone);
+		return ObjectTraversed(object).subtupleForZone(zone);
 	}
 
-	AvailObject ObjectTimesCanDestroy (
+	@Override
+	public AvailObject ObjectTimesCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTimesCanDestroy(
-			destination,
+		return ObjectTraversed(object).timesCanDestroy(
 			aNumber,
 			canDestroy);
 	}
 
-	int ObjectTranslateToZone (
+	@Override
+	public int ObjectTranslateToZone (
 			final AvailObject object, 
 			final int tupleIndex, 
 			final int zoneIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTranslateToZone(
-			destination,
+		return ObjectTraversed(object).translateToZone(
 			tupleIndex,
 			zoneIndex);
 	}
 
-	AvailObject ObjectTrueNamesForStringName (
+	@Override
+	public AvailObject ObjectTrueNamesForStringName (
 			final AvailObject object, 
 			final AvailObject stringName)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTrueNamesForStringName(destination, stringName);
+		return ObjectTraversed(object).trueNamesForStringName(stringName);
 	}
 
-	AvailObject ObjectTruncateTo (
+	@Override
+	public AvailObject ObjectTruncateTo (
 			final AvailObject object, 
 			final int newTupleSize)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTruncateTo(destination, newTupleSize);
+		return ObjectTraversed(object).truncateTo(newTupleSize);
 	}
 
-	void ObjectTuple (
+	@Override
+	public void ObjectTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectTuple(destination, value);
+		ObjectTraversed(object).tuple(value);
 	}
 
-	AvailObject ObjectTupleAt (
+	@Override
+	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTupleAt(destination, index);
+		return ObjectTraversed(object).tupleAt(index);
 	}
 
-	void ObjectTupleAtPut (
+	@Override
+	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject aNybbleObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectTupleAtPut(
-			destination,
+		ObjectTraversed(object).tupleAtPut(
 			index,
 			aNybbleObject);
 	}
 
-	AvailObject ObjectTupleAtPuttingCanDestroy (
+	@Override
+	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject newValueObject, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTupleAtPuttingCanDestroy(
-			destination,
+		return ObjectTraversed(object).tupleAtPuttingCanDestroy(
 			index,
 			newValueObject,
 			canDestroy);
 	}
 
-	int ObjectTupleIntAt (
+	@Override
+	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTupleIntAt(destination, index);
+		return ObjectTraversed(object).tupleIntAt(index);
 	}
 
-	void ObjectTupleType (
+	@Override
+	public void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectTupleType(destination, value);
+		ObjectTraversed(object).tupleType(value);
 	}
 
-	void ObjectType (
+	@Override
+	public void ObjectType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectType(destination, value);
+		ObjectTraversed(object).type(value);
 	}
 
-	AvailObject ObjectTypeAtIndex (
+	@Override
+	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeAtIndex(destination, index);
+		return ObjectTraversed(object).typeAtIndex(index);
 	}
 
-	boolean ObjectTypeEquals (
+	@Override
+	public boolean ObjectTypeEquals (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeEquals(destination, aType);
+		return ObjectTraversed(object).typeEquals(aType);
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersection(destination, another);
+		return ObjectTraversed(object).typeIntersection(another);
 	}
 
-	AvailObject ObjectTypeIntersectionOfClosureType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfClosureType(destination, aClosureType);
+		return ObjectTraversed(object).typeIntersectionOfClosureType(aClosureType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aClosureType, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfClosureTypeCanDestroy(
-			destination,
+		return ObjectTraversed(object).typeIntersectionOfClosureTypeCanDestroy(
 			aClosureType,
 			canDestroy);
 	}
 
-	AvailObject ObjectTypeIntersectionOfContainerType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfContainerType(destination, aContainerType);
+		return ObjectTraversed(object).typeIntersectionOfContainerType(aContainerType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfContinuationType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfContinuationType(destination, aContinuationType);
+		return ObjectTraversed(object).typeIntersectionOfContinuationType(aContinuationType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfCyclicType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfCyclicType(destination, aCyclicType);
+		return ObjectTraversed(object).typeIntersectionOfCyclicType(aCyclicType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfGeneralizedClosureType(destination, aGeneralizedClosureType);
+		return ObjectTraversed(object).typeIntersectionOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy(
-			destination,
+		return ObjectTraversed(object).typeIntersectionOfGeneralizedClosureTypeCanDestroy(
 			aGeneralizedClosureType,
 			canDestroy);
 	}
 
-	AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfIntegerRangeType(destination, anIntegerRangeType);
+		return ObjectTraversed(object).typeIntersectionOfIntegerRangeType(anIntegerRangeType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfListType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfListType(destination, aListType);
+		return ObjectTraversed(object).typeIntersectionOfListType(aListType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfMapType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfMapType(destination, aMapType);
+		return ObjectTraversed(object).typeIntersectionOfMapType(aMapType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfMeta(destination, someMeta);
+		return ObjectTraversed(object).typeIntersectionOfMeta(someMeta);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfObjectMeta(destination, anObjectMeta);
+		return ObjectTraversed(object).typeIntersectionOfObjectMeta(anObjectMeta);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfObjectMetaMeta(destination, anObjectMetaMeta);
+		return ObjectTraversed(object).typeIntersectionOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfObjectType(destination, anObjectType);
+		return ObjectTraversed(object).typeIntersectionOfObjectType(anObjectType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfSetType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfSetType(destination, aSetType);
+		return ObjectTraversed(object).typeIntersectionOfSetType(aSetType);
 	}
 
-	AvailObject ObjectTypeIntersectionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeIntersectionOfTupleType(destination, aTupleType);
+		return ObjectTraversed(object).typeIntersectionOfTupleType(aTupleType);
 	}
 
-	void ObjectTypeTuple (
+	@Override
+	public void ObjectTypeTuple (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectTypeTuple(destination, value);
+		ObjectTraversed(object).typeTuple(value);
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnion(destination, another);
+		return ObjectTraversed(object).typeUnion(another);
 	}
 
-	AvailObject ObjectTypeUnionOfClosureType (
+	@Override
+	public AvailObject ObjectTypeUnionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfClosureType(destination, aClosureType);
+		return ObjectTraversed(object).typeUnionOfClosureType(aClosureType);
 	}
 
-	AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
+	@Override
+	public AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aClosureType, 
 			final boolean canDestroy)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfClosureTypeCanDestroy(
-			destination,
+		return ObjectTraversed(object).typeUnionOfClosureTypeCanDestroy(
 			aClosureType,
 			canDestroy);
 	}
 
-	AvailObject ObjectTypeUnionOfContainerType (
+	@Override
+	public AvailObject ObjectTypeUnionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfContainerType(destination, aContainerType);
+		return ObjectTraversed(object).typeUnionOfContainerType(aContainerType);
 	}
 
-	AvailObject ObjectTypeUnionOfContinuationType (
+	@Override
+	public AvailObject ObjectTypeUnionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfContinuationType(destination, aContinuationType);
+		return ObjectTraversed(object).typeUnionOfContinuationType(aContinuationType);
 	}
 
-	AvailObject ObjectTypeUnionOfCyclicType (
+	@Override
+	public AvailObject ObjectTypeUnionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfCyclicType(destination, aCyclicType);
+		return ObjectTraversed(object).typeUnionOfCyclicType(aCyclicType);
 	}
 
-	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	@Override
+	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfGeneralizedClosureType(destination, aGeneralizedClosureType);
+		return ObjectTraversed(object).typeUnionOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
-	AvailObject ObjectTypeUnionOfIntegerRangeType (
+	@Override
+	public AvailObject ObjectTypeUnionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfIntegerRangeType(destination, anIntegerRangeType);
+		return ObjectTraversed(object).typeUnionOfIntegerRangeType(anIntegerRangeType);
 	}
 
-	AvailObject ObjectTypeUnionOfListType (
+	@Override
+	public AvailObject ObjectTypeUnionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfListType(destination, aListType);
+		return ObjectTraversed(object).typeUnionOfListType(aListType);
 	}
 
-	AvailObject ObjectTypeUnionOfMapType (
+	@Override
+	public AvailObject ObjectTypeUnionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfMapType(destination, aMapType);
+		return ObjectTraversed(object).typeUnionOfMapType(aMapType);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectMeta (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfObjectMeta(destination, anObjectMeta);
+		return ObjectTraversed(object).typeUnionOfObjectMeta(anObjectMeta);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectMetaMeta (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfObjectMetaMeta(destination, anObjectMetaMeta);
+		return ObjectTraversed(object).typeUnionOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectType (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfObjectType(destination, anObjectType);
+		return ObjectTraversed(object).typeUnionOfObjectType(anObjectType);
 	}
 
-	AvailObject ObjectTypeUnionOfSetType (
+	@Override
+	public AvailObject ObjectTypeUnionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfSetType(destination, aSetType);
+		return ObjectTraversed(object).typeUnionOfSetType(aSetType);
 	}
 
-	AvailObject ObjectTypeUnionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeUnionOfTupleType(destination, aTupleType);
+		return ObjectTraversed(object).typeUnionOfTupleType(aTupleType);
 	}
 
-	void ObjectUnclassified (
+	@Override
+	public void ObjectUnclassified (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectUnclassified(destination, value);
+		ObjectTraversed(object).unclassified(value);
 	}
 
-	AvailObject ObjectUnionOfTypesAtThrough (
+	@Override
+	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectUnionOfTypesAtThrough(
-			destination,
+		return ObjectTraversed(object).unionOfTypesAtThrough(
 			startIndex,
 			endIndex);
 	}
 
-	int ObjectUntranslatedDataAt (
+	@Override
+	public int ObjectUntranslatedDataAt (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectUntranslatedDataAt(destination, index);
+		return ObjectTraversed(object).untranslatedDataAt(index);
 	}
 
-	void ObjectUntranslatedDataAtPut (
+	@Override
+	public void ObjectUntranslatedDataAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectUntranslatedDataAtPut(
-			destination,
+		ObjectTraversed(object).untranslatedDataAtPut(
 			index,
 			value);
 	}
 
-	void ObjectUpperBound (
+	@Override
+	public void ObjectUpperBound (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectUpperBound(destination, value);
+		ObjectTraversed(object).upperBound(value);
 	}
 
-	AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
+	@Override
+	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter, 
 			final Continuation1<Generator<String>> failBlock)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectValidateArgumentTypesInterpreterIfFail(
-			destination,
+		return ObjectTraversed(object).validateArgumentTypesInterpreterIfFail(
 			argTypes,
 			anAvailInterpreter,
 			failBlock);
 	}
 
-	void ObjectValidity (
+	@Override
+	public void ObjectValidity (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectValidity(destination, value);
+		ObjectTraversed(object).validity(value);
 	}
 
-	void ObjectValue (
+	@Override
+	public void ObjectValue (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectValue(destination, value);
+		ObjectTraversed(object).value(value);
 	}
 
-	AvailObject ObjectValueAtIndex (
+	@Override
+	public AvailObject ObjectValueAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectValueAtIndex(destination, index);
+		return ObjectTraversed(object).valueAtIndex(index);
 	}
 
-	void ObjectValueAtIndexPut (
+	@Override
+	public void ObjectValueAtIndexPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject valueObject)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectValueAtIndexPut(
-			destination,
+		ObjectTraversed(object).valueAtIndexPut(
 			index,
 			valueObject);
 	}
 
-	void ObjectValueType (
+	@Override
+	public void ObjectValueType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectValueType(destination, value);
+		ObjectTraversed(object).valueType(value);
 	}
 
-	void ObjectVariableBindings (
+	@Override
+	public void ObjectVariableBindings (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectVariableBindings(destination, value);
+		ObjectTraversed(object).variableBindings(value);
 	}
 
-	void ObjectVectors (
+	@Override
+	public void ObjectVectors (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectVectors(destination, value);
+		ObjectTraversed(object).vectors(value);
 	}
 
-	void ObjectVisibleNames (
+	@Override
+	public void ObjectVisibleNames (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectVisibleNames(destination, value);
+		ObjectTraversed(object).visibleNames(value);
 	}
 
-	void ObjectWhichOne (
+	@Override
+	public void ObjectWhichOne (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectWhichOne(destination, value);
+		ObjectTraversed(object).whichOne(value);
 	}
 
-	void ObjectWordcodes (
+	@Override
+	public void ObjectWordcodes (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectWordcodes(destination, value);
+		ObjectTraversed(object).wordcodes(value);
 	}
 
-	int ObjectZoneForIndex (
+	@Override
+	public int ObjectZoneForIndex (
 			final AvailObject object, 
 			final int index)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectZoneForIndex(destination, index);
+		return ObjectTraversed(object).zoneForIndex(index);
 	}
 
-	String ObjectAsNativeString (
+	@Override
+	public String ObjectAsNativeString (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAsNativeString(destination);
+		return ObjectTraversed(object).asNativeString();
 	}
 
-	AvailObject ObjectAsObject (
+	@Override
+	public AvailObject ObjectAsObject (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAsObject(destination);
+		return ObjectTraversed(object).asObject();
 	}
 
-	AvailObject ObjectAsSet (
+	@Override
+	public AvailObject ObjectAsSet (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAsSet(destination);
+		return ObjectTraversed(object).asSet();
 	}
 
-	AvailObject ObjectAsTuple (
+	@Override
+	public AvailObject ObjectAsTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectAsTuple(destination);
+		return ObjectTraversed(object).asTuple();
 	}
 
-	AvailObject ObjectBecomeExactType (
+	@Override
+	public AvailObject ObjectBecomeExactType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBecomeExactType(destination);
+		return ObjectTraversed(object).becomeExactType();
 	}
 
-	void ObjectBecomeRealTupleType (
+	@Override
+	public void ObjectBecomeRealTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectBecomeRealTupleType(destination);
+		ObjectTraversed(object).becomeRealTupleType();
 	}
 
-	int ObjectBinHash (
+	@Override
+	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinHash(destination);
+		return ObjectTraversed(object).binHash();
 	}
 
-	int ObjectBinSize (
+	@Override
+	public int ObjectBinSize (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinSize(destination);
+		return ObjectTraversed(object).binSize();
 	}
 
-	AvailObject ObjectBinUnionType (
+	@Override
+	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBinUnionType(destination);
+		return ObjectTraversed(object).binUnionType();
 	}
 
-	int ObjectBitsPerEntry (
+	@Override
+	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBitsPerEntry(destination);
+		return ObjectTraversed(object).bitsPerEntry();
 	}
 
-	int ObjectBitVector (
+	@Override
+	public int ObjectBitVector (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBitVector(destination);
+		return ObjectTraversed(object).bitVector();
 	}
 
-	AvailObject ObjectBodyBlock (
+	@Override
+	public AvailObject ObjectBodyBlock (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBodyBlock(destination);
+		return ObjectTraversed(object).bodyBlock();
 	}
 
-	AvailObject ObjectBodySignature (
+	@Override
+	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBodySignature(destination);
+		return ObjectTraversed(object).bodySignature();
 	}
 
-	AvailObject ObjectBreakpointBlock (
+	@Override
+	public AvailObject ObjectBreakpointBlock (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectBreakpointBlock(destination);
+		return ObjectTraversed(object).breakpointBlock();
 	}
 
-	AvailObject ObjectCaller (
+	@Override
+	public AvailObject ObjectCaller (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCaller(destination);
+		return ObjectTraversed(object).caller();
 	}
 
-	boolean ObjectCanComputeHashOfType (
+	@Override
+	public boolean ObjectCanComputeHashOfType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCanComputeHashOfType(destination);
+		return ObjectTraversed(object).canComputeHashOfType();
 	}
 
-	int ObjectCapacity (
+	@Override
+	public int ObjectCapacity (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCapacity(destination);
+		return ObjectTraversed(object).capacity();
 	}
 
-	void ObjectCleanUpAfterCompile (
+	@Override
+	public void ObjectCleanUpAfterCompile (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectCleanUpAfterCompile(destination);
+		ObjectTraversed(object).cleanUpAfterCompile();
 	}
 
-	void ObjectClearModule (
+	@Override
+	public void ObjectClearModule (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectClearModule(destination);
+		ObjectTraversed(object).clearModule();
 	}
 
-	void ObjectClearValue (
+	@Override
+	public void ObjectClearValue (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectClearValue(destination);
+		ObjectTraversed(object).clearValue();
 	}
 
-	AvailObject ObjectClosure (
+	@Override
+	public AvailObject ObjectClosure (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectClosure(destination);
+		return ObjectTraversed(object).closure();
 	}
 
-	AvailObject ObjectClosureType (
+	@Override
+	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectClosureType(destination);
+		return ObjectTraversed(object).closureType();
 	}
 
-	AvailObject ObjectCode (
+	@Override
+	public AvailObject ObjectCode (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCode(destination);
+		return ObjectTraversed(object).code();
 	}
 
-	int ObjectCodePoint (
+	@Override
+	public int ObjectCodePoint (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCodePoint(destination);
+		return ObjectTraversed(object).codePoint();
 	}
 
-	AvailObject ObjectComplete (
+	@Override
+	public AvailObject ObjectComplete (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectComplete(destination);
+		return ObjectTraversed(object).complete();
 	}
 
-	AvailObject ObjectConstantBindings (
+	@Override
+	public AvailObject ObjectConstantBindings (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectConstantBindings(destination);
+		return ObjectTraversed(object).constantBindings();
 	}
 
-	AvailObject ObjectContentType (
+	@Override
+	public AvailObject ObjectContentType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectContentType(destination);
+		return ObjectTraversed(object).contentType();
 	}
 
-	AvailObject ObjectContingentImpSets (
+	@Override
+	public AvailObject ObjectContingentImpSets (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectContingentImpSets(destination);
+		return ObjectTraversed(object).contingentImpSets();
 	}
 
-	AvailObject ObjectContinuation (
+	@Override
+	public AvailObject ObjectContinuation (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectContinuation(destination);
+		return ObjectTraversed(object).continuation();
 	}
 
-	AvailObject ObjectCopyAsMutableContinuation (
+	@Override
+	public AvailObject ObjectCopyAsMutableContinuation (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCopyAsMutableContinuation(destination);
+		return ObjectTraversed(object).copyAsMutableContinuation();
 	}
 
-	AvailObject ObjectCopyAsMutableObjectTuple (
+	@Override
+	public AvailObject ObjectCopyAsMutableObjectTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCopyAsMutableObjectTuple(destination);
+		return ObjectTraversed(object).copyAsMutableObjectTuple();
 	}
 
-	AvailObject ObjectCopyAsMutableSpliceTuple (
+	@Override
+	public AvailObject ObjectCopyAsMutableSpliceTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCopyAsMutableSpliceTuple(destination);
+		return ObjectTraversed(object).copyAsMutableSpliceTuple();
 	}
 
-	AvailObject ObjectCopyMutable (
+	@Override
+	public AvailObject ObjectCopyMutable (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectCopyMutable(destination);
+		return ObjectTraversed(object).copyMutable();
 	}
 
-	AvailObject ObjectDefaultType (
+	@Override
+	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDefaultType(destination);
+		return ObjectTraversed(object).defaultType();
 	}
 
-	AvailObject ObjectDependentChunks (
+	@Override
+	public AvailObject ObjectDependentChunks (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDependentChunks(destination);
+		return ObjectTraversed(object).dependentChunks();
 	}
 
-	int ObjectDepth (
+	@Override
+	public int ObjectDepth (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectDepth(destination);
+		return ObjectTraversed(object).depth();
 	}
 
-	void ObjectDisplayTestingTree (
+	@Override
+	public void ObjectDisplayTestingTree (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectDisplayTestingTree(destination);
+		ObjectTraversed(object).displayTestingTree();
 	}
 
-	void ObjectEnsureMetacovariant (
+	@Override
+	public void ObjectEnsureMetacovariant (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectEnsureMetacovariant(destination);
+		ObjectTraversed(object).ensureMetacovariant();
 	}
 
-	AvailObject ObjectEnsureMutable (
+	@Override
+	public AvailObject ObjectEnsureMutable (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEnsureMutable(destination);
+		return ObjectTraversed(object).ensureMutable();
 	}
 
-	boolean ObjectEqualsBlank (
+	@Override
+	public boolean ObjectEqualsBlank (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsBlank(destination);
+		return ObjectTraversed(object).equalsBlank();
 	}
 
-	boolean ObjectEqualsFalse (
+	@Override
+	public boolean ObjectEqualsFalse (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsFalse(destination);
+		return ObjectTraversed(object).equalsFalse();
 	}
 
-	boolean ObjectEqualsTrue (
+	@Override
+	public boolean ObjectEqualsTrue (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsTrue(destination);
+		return ObjectTraversed(object).equalsTrue();
 	}
 
-	boolean ObjectEqualsVoid (
+	@Override
+	public boolean ObjectEqualsVoid (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsVoid(destination);
+		return ObjectTraversed(object).equalsVoid();
 	}
 
-	boolean ObjectEqualsVoidOrBlank (
+	@Override
+	public boolean ObjectEqualsVoidOrBlank (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectEqualsVoidOrBlank(destination);
+		return ObjectTraversed(object).equalsVoidOrBlank();
 	}
 
-	void ObjectEvictedByGarbageCollector (
+	@Override
+	public void ObjectEvictedByGarbageCollector (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectEvictedByGarbageCollector(destination);
+		ObjectTraversed(object).evictedByGarbageCollector();
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExactType(destination);
+		return ObjectTraversed(object).exactType();
 	}
 
-	int ObjectExecutionMode (
+	@Override
+	public int ObjectExecutionMode (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExecutionMode(destination);
+		return ObjectTraversed(object).executionMode();
 	}
 
-	int ObjectExecutionState (
+	@Override
+	public int ObjectExecutionState (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExecutionState(destination);
+		return ObjectTraversed(object).executionState();
 	}
 
-	AvailObject ObjectExpand (
+	@Override
+	public AvailObject ObjectExpand (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExpand(destination);
+		return ObjectTraversed(object).expand();
 	}
 
-	boolean ObjectExtractBoolean (
+	@Override
+	public boolean ObjectExtractBoolean (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractBoolean(destination);
+		return ObjectTraversed(object).extractBoolean();
 	}
 
-	short ObjectExtractByte (
+	@Override
+	public short ObjectExtractByte (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractByte(destination);
+		return ObjectTraversed(object).extractByte();
 	}
 
-	double ObjectExtractDouble (
+	@Override
+	public double ObjectExtractDouble (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractDouble(destination);
+		return ObjectTraversed(object).extractDouble();
 	}
 
-	float ObjectExtractFloat (
+	@Override
+	public float ObjectExtractFloat (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractFloat(destination);
+		return ObjectTraversed(object).extractFloat();
 	}
 
-	int ObjectExtractInt (
+	@Override
+	public int ObjectExtractInt (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractInt(destination);
+		return ObjectTraversed(object).extractInt();
 	}
 
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	long ObjectExtractLong (final @NotNull AvailObject object)
+	public long ObjectExtractLong (final @NotNull AvailObject object)
 	{
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractLong(destination);
+		return ObjectTraversed(object).extractLong();
 	}
 
-	byte ObjectExtractNybble (
+	@Override
+	public byte ObjectExtractNybble (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectExtractNybble(destination);
+		return ObjectTraversed(object).extractNybble();
 	}
 
-	AvailObject ObjectFieldMap (
+	@Override
+	public AvailObject ObjectFieldMap (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectFieldMap(destination);
+		return ObjectTraversed(object).fieldMap();
 	}
 
-	AvailObject ObjectFieldTypeMap (
+	@Override
+	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectFieldTypeMap(destination);
+		return ObjectTraversed(object).fieldTypeMap();
 	}
 
-	AvailObject ObjectFilteredBundleTree (
+	@Override
+	public AvailObject ObjectFilteredBundleTree (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectFilteredBundleTree(destination);
+		return ObjectTraversed(object).filteredBundleTree();
 	}
 
-	AvailObject ObjectFirstTupleType (
+	@Override
+	public AvailObject ObjectFirstTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectFirstTupleType(destination);
+		return ObjectTraversed(object).firstTupleType();
 	}
 
-	int ObjectGetInteger (
+	@Override
+	public int ObjectGetInteger (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectGetInteger(destination);
+		return ObjectTraversed(object).getInteger();
 	}
 
-	AvailObject ObjectGetValue (
+	@Override
+	public AvailObject ObjectGetValue (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectGetValue(destination);
+		return ObjectTraversed(object).getValue();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHash(destination);
+		return ObjectTraversed(object).hash();
 	}
 
-	int ObjectHashOfType (
+	@Override
+	public int ObjectHashOfType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHashOfType(destination);
+		return ObjectTraversed(object).hashOfType();
 	}
 
-	int ObjectHashOrZero (
+	@Override
+	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHashOrZero(destination);
+		return ObjectTraversed(object).hashOrZero();
 	}
 
-	boolean ObjectHasRestrictions (
+	@Override
+	public boolean ObjectHasRestrictions (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHasRestrictions(destination);
+		return ObjectTraversed(object).hasRestrictions();
 	}
 
-	int ObjectHiLevelTwoChunkLowOffset (
+	@Override
+	public int ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHiLevelTwoChunkLowOffset(destination);
+		return ObjectTraversed(object).hiLevelTwoChunkLowOffset();
 	}
 
-	int ObjectHiNumLocalsLowNumArgs (
+	@Override
+	public int ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHiNumLocalsLowNumArgs(destination);
+		return ObjectTraversed(object).hiNumLocalsLowNumArgs();
 	}
 
-	int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	@Override
+	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHiPrimitiveLowNumArgsAndLocalsAndStack(destination);
+		return ObjectTraversed(object).hiPrimitiveLowNumArgsAndLocalsAndStack();
 	}
 
-	int ObjectHiStartingChunkIndexLowNumOuters (
+	@Override
+	public int ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectHiStartingChunkIndexLowNumOuters(destination);
+		return ObjectTraversed(object).hiStartingChunkIndexLowNumOuters();
 	}
 
-	AvailObject ObjectImplementationsTuple (
+	@Override
+	public AvailObject ObjectImplementationsTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectImplementationsTuple(destination);
+		return ObjectTraversed(object).implementationsTuple();
 	}
 
-	int ObjectInclusiveFlags (
+	@Override
+	public int ObjectInclusiveFlags (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectInclusiveFlags(destination);
+		return ObjectTraversed(object).inclusiveFlags();
 	}
 
-	AvailObject ObjectIncomplete (
+	@Override
+	public AvailObject ObjectIncomplete (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIncomplete(destination);
+		return ObjectTraversed(object).incomplete();
 	}
 
-	int ObjectIndex (
+	@Override
+	public int ObjectIndex (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIndex(destination);
+		return ObjectTraversed(object).index();
 	}
 
-	AvailObject ObjectInnerType (
+	@Override
+	public AvailObject ObjectInnerType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectInnerType(destination);
+		return ObjectTraversed(object).innerType();
 	}
 
-	AvailObject ObjectInstance (
+	@Override
+	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectInstance(destination);
+		return ObjectTraversed(object).instance();
 	}
 
-	int ObjectInternalHash (
+	@Override
+	public int ObjectInternalHash (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectInternalHash(destination);
+		return ObjectTraversed(object).internalHash();
 	}
 
-	int ObjectInterruptRequestFlag (
+	@Override
+	public int ObjectInterruptRequestFlag (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectInterruptRequestFlag(destination);
+		return ObjectTraversed(object).interruptRequestFlag();
 	}
 
-	int ObjectInvocationCount (
+	@Override
+	public int ObjectInvocationCount (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectInvocationCount(destination);
+		return ObjectTraversed(object).invocationCount();
 	}
 
-	boolean ObjectIsAbstract (
+	@Override
+	public boolean ObjectIsAbstract (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsAbstract(destination);
+		return ObjectTraversed(object).isAbstract();
 	}
 
-	boolean ObjectIsBoolean (
+	@Override
+	public boolean ObjectIsBoolean (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsBoolean(destination);
+		return ObjectTraversed(object).isBoolean();
 	}
 
-	boolean ObjectIsByte (
+	@Override
+	public boolean ObjectIsByte (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsByte(destination);
+		return ObjectTraversed(object).isByte();
 	}
 
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	boolean ObjectIsByteTuple (final @NotNull AvailObject object)
+	public boolean ObjectIsByteTuple (final @NotNull AvailObject object)
 	{
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsByteTuple(destination);
+		return ObjectTraversed(object).isByteTuple();
 	}
 
-	boolean ObjectIsCharacter (
+	@Override
+	public boolean ObjectIsCharacter (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsCharacter(destination);
+		return ObjectTraversed(object).isCharacter();
 	}
 
-	boolean ObjectIsClosure (
+	@Override
+	public boolean ObjectIsClosure (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsClosure(destination);
+		return ObjectTraversed(object).isClosure();
 	}
 
-	boolean ObjectIsCyclicType (
+	@Override
+	public boolean ObjectIsCyclicType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsCyclicType(destination);
+		return ObjectTraversed(object).isCyclicType();
 	}
 
-	boolean ObjectIsExtendedInteger (
+	@Override
+	public boolean ObjectIsExtendedInteger (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsExtendedInteger(destination);
+		return ObjectTraversed(object).isExtendedInteger();
 	}
 
-	boolean ObjectIsFinite (
+	@Override
+	public boolean ObjectIsFinite (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsFinite(destination);
+		return ObjectTraversed(object).isFinite();
 	}
 
-	boolean ObjectIsForward (
+	@Override
+	public boolean ObjectIsForward (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsForward(destination);
+		return ObjectTraversed(object).isForward();
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsHashAvailable(destination);
+		return ObjectTraversed(object).isHashAvailable();
 	}
 
-	boolean ObjectIsImplementation (
+	@Override
+	public boolean ObjectIsImplementation (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsImplementation(destination);
+		return ObjectTraversed(object).isImplementation();
 	}
 
-	boolean ObjectIsIntegerRangeType (
+	@Override
+	public boolean ObjectIsIntegerRangeType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsIntegerRangeType(destination);
+		return ObjectTraversed(object).isIntegerRangeType();
 	}
 
-	boolean ObjectIsList (
+	@Override
+	public boolean ObjectIsList (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsList(destination);
+		return ObjectTraversed(object).isList();
 	}
 
-	boolean ObjectIsListType (
+	@Override
+	public boolean ObjectIsListType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsListType(destination);
+		return ObjectTraversed(object).isListType();
 	}
 
-	boolean ObjectIsMap (
+	@Override
+	public boolean ObjectIsMap (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsMap(destination);
+		return ObjectTraversed(object).isMap();
 	}
 
-	boolean ObjectIsMapType (
+	@Override
+	public boolean ObjectIsMapType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsMapType(destination);
+		return ObjectTraversed(object).isMapType();
 	}
 
-	boolean ObjectIsNybble (
+	@Override
+	public boolean ObjectIsNybble (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsNybble(destination);
+		return ObjectTraversed(object).isNybble();
 	}
 
-	boolean ObjectIsPositive (
+	@Override
+	public boolean ObjectIsPositive (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsPositive(destination);
+		return ObjectTraversed(object).isPositive();
 	}
 
-	boolean ObjectIsSaved (
+	@Override
+	public boolean ObjectIsSaved (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSaved(destination);
+		return ObjectTraversed(object).isSaved();
 	}
 
-	boolean ObjectIsSet (
+	@Override
+	public boolean ObjectIsSet (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSet(destination);
+		return ObjectTraversed(object).isSet();
 	}
 
-	boolean ObjectIsSetType (
+	@Override
+	public boolean ObjectIsSetType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSetType(destination);
+		return ObjectTraversed(object).isSetType();
 	}
 
-	boolean ObjectIsSplice (
+	@Override
+	public boolean ObjectIsSplice (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSplice(destination);
+		return ObjectTraversed(object).isSplice();
 	}
 
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	boolean ObjectIsString (final @NotNull AvailObject object)
+	public boolean ObjectIsString (final @NotNull AvailObject object)
 	{
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsString(destination);
+		return ObjectTraversed(object).isString();
 	}
 
-	boolean ObjectIsSupertypeOfTerminates (
+	@Override
+	public boolean ObjectIsSupertypeOfTerminates (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfTerminates(destination);
+		return ObjectTraversed(object).isSupertypeOfTerminates();
 	}
 
-	boolean ObjectIsSupertypeOfVoid (
+	@Override
+	public boolean ObjectIsSupertypeOfVoid (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsSupertypeOfVoid(destination);
+		return ObjectTraversed(object).isSupertypeOfVoid();
 	}
 
-	boolean ObjectIsTuple (
+	@Override
+	public boolean ObjectIsTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsTuple(destination);
+		return ObjectTraversed(object).isTuple();
 	}
 
-	boolean ObjectIsTupleType (
+	@Override
+	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsTupleType(destination);
+		return ObjectTraversed(object).isTupleType();
 	}
 
-	boolean ObjectIsType (
+	@Override
+	public boolean ObjectIsType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsType(destination);
+		return ObjectTraversed(object).isType();
 	}
 
-	boolean ObjectIsValid (
+	@Override
+	public boolean ObjectIsValid (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIsValid(destination);
+		return ObjectTraversed(object).isValid();
 	}
 
-	List<AvailObject> ObjectKeysAsArray (
+	@Override
+	public List<AvailObject> ObjectKeysAsArray (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectKeysAsArray(destination);
+		return ObjectTraversed(object).keysAsArray();
 	}
 
-	AvailObject ObjectKeysAsSet (
+	@Override
+	public AvailObject ObjectKeysAsSet (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectKeysAsSet(destination);
+		return ObjectTraversed(object).keysAsSet();
 	}
 
-	AvailObject ObjectKeyType (
+	@Override
+	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectKeyType(destination);
+		return ObjectTraversed(object).keyType();
 	}
 
-	int ObjectLevelTwoChunkIndex (
+	@Override
+	public int ObjectLevelTwoChunkIndex (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLevelTwoChunkIndex(destination);
+		return ObjectTraversed(object).levelTwoChunkIndex();
 	}
 
-	int ObjectLevelTwoOffset (
+	@Override
+	public int ObjectLevelTwoOffset (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLevelTwoOffset(destination);
+		return ObjectTraversed(object).levelTwoOffset();
 	}
 
-	AvailObject ObjectLowerBound (
+	@Override
+	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLowerBound(destination);
+		return ObjectTraversed(object).lowerBound();
 	}
 
-	boolean ObjectLowerInclusive (
+	@Override
+	public boolean ObjectLowerInclusive (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectLowerInclusive(destination);
+		return ObjectTraversed(object).lowerInclusive();
 	}
 
-	void ObjectMakeSubobjectsImmutable (
+	@Override
+	public void ObjectMakeSubobjectsImmutable (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMakeSubobjectsImmutable(destination);
+		ObjectTraversed(object).makeSubobjectsImmutable();
 	}
 
-	int ObjectMapSize (
+	@Override
+	public int ObjectMapSize (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMapSize(destination);
+		return ObjectTraversed(object).mapSize();
 	}
 
-	short ObjectMaxStackDepth (
+	@Override
+	public short ObjectMaxStackDepth (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMaxStackDepth(destination);
+		return ObjectTraversed(object).maxStackDepth();
 	}
 
-	AvailObject ObjectMessage (
+	@Override
+	public AvailObject ObjectMessage (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMessage(destination);
+		return ObjectTraversed(object).message();
 	}
 
-	AvailObject ObjectMessageParts (
+	@Override
+	public AvailObject ObjectMessageParts (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMessageParts(destination);
+		return ObjectTraversed(object).messageParts();
 	}
 
-	AvailObject ObjectMethods (
+	@Override
+	public AvailObject ObjectMethods (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMethods(destination);
+		return ObjectTraversed(object).methods();
 	}
 
-	void ObjectMoveToHead (
+	@Override
+	public void ObjectMoveToHead (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectMoveToHead(destination);
+		ObjectTraversed(object).moveToHead();
 	}
 
-	AvailObject ObjectMyObjectMeta (
+	@Override
+	public AvailObject ObjectMyObjectMeta (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMyObjectMeta(destination);
+		return ObjectTraversed(object).myObjectMeta();
 	}
 
-	AvailObject ObjectMyObjectType (
+	@Override
+	public AvailObject ObjectMyObjectType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMyObjectType(destination);
+		return ObjectTraversed(object).myObjectType();
 	}
 
-	AvailObject ObjectMyRestrictions (
+	@Override
+	public AvailObject ObjectMyRestrictions (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMyRestrictions(destination);
+		return ObjectTraversed(object).myRestrictions();
 	}
 
-	AvailObject ObjectMyType (
+	@Override
+	public AvailObject ObjectMyType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectMyType(destination);
+		return ObjectTraversed(object).myType();
 	}
 
-	AvailObject ObjectName (
+	@Override
+	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectName(destination);
+		return ObjectTraversed(object).name();
 	}
 
-	AvailObject ObjectNames (
+	@Override
+	public AvailObject ObjectNames (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNames(destination);
+		return ObjectTraversed(object).names();
 	}
 
-	AvailObject ObjectNewNames (
+	@Override
+	public AvailObject ObjectNewNames (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNewNames(destination);
+		return ObjectTraversed(object).newNames();
 	}
 
-	AvailObject ObjectNext (
+	@Override
+	public AvailObject ObjectNext (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNext(destination);
+		return ObjectTraversed(object).next();
 	}
 
-	int ObjectNextIndex (
+	@Override
+	public int ObjectNextIndex (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNextIndex(destination);
+		return ObjectTraversed(object).nextIndex();
 	}
 
-	short ObjectNumArgs (
+	@Override
+	public short ObjectNumArgs (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumArgs(destination);
+		return ObjectTraversed(object).numArgs();
 	}
 
-	short ObjectNumArgsAndLocalsAndStack (
+	@Override
+	public short ObjectNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumArgsAndLocalsAndStack(destination);
+		return ObjectTraversed(object).numArgsAndLocalsAndStack();
 	}
 
-	int ObjectNumberOfZones (
+	@Override
+	public int ObjectNumberOfZones (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumberOfZones(destination);
+		return ObjectTraversed(object).numberOfZones();
 	}
 
-	int ObjectNumBlanks (
+	@Override
+	public int ObjectNumBlanks (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumBlanks(destination);
+		return ObjectTraversed(object).numBlanks();
 	}
 
-	int ObjectNumFloats (
+	@Override
+	public int ObjectNumFloats (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumFloats(destination);
+		return ObjectTraversed(object).numFloats();
 	}
 
-	int ObjectNumIntegers (
+	@Override
+	public int ObjectNumIntegers (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumIntegers(destination);
+		return ObjectTraversed(object).numIntegers();
 	}
 
-	short ObjectNumLiterals (
+	@Override
+	public short ObjectNumLiterals (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumLiterals(destination);
+		return ObjectTraversed(object).numLiterals();
 	}
 
-	short ObjectNumLocals (
+	@Override
+	public short ObjectNumLocals (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumLocals(destination);
+		return ObjectTraversed(object).numLocals();
 	}
 
-	int ObjectNumLocalsOrArgsOrStack (
+	@Override
+	public int ObjectNumLocalsOrArgsOrStack (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumLocalsOrArgsOrStack(destination);
+		return ObjectTraversed(object).numLocalsOrArgsOrStack();
 	}
 
-	int ObjectNumObjects (
+	@Override
+	public int ObjectNumObjects (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumObjects(destination);
+		return ObjectTraversed(object).numObjects();
 	}
 
-	short ObjectNumOuters (
+	@Override
+	public short ObjectNumOuters (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumOuters(destination);
+		return ObjectTraversed(object).numOuters();
 	}
 
-	int ObjectNumOuterVars (
+	@Override
+	public int ObjectNumOuterVars (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNumOuterVars(destination);
+		return ObjectTraversed(object).numOuterVars();
 	}
 
-	AvailObject ObjectNybbles (
+	@Override
+	public AvailObject ObjectNybbles (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectNybbles(destination);
+		return ObjectTraversed(object).nybbles();
 	}
 
-	AvailObject ObjectPad (
+	@Override
+	public AvailObject ObjectPad (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPad(destination);
+		return ObjectTraversed(object).pad();
 	}
 
-	AvailObject ObjectParent (
+	@Override
+	public AvailObject ObjectParent (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectParent(destination);
+		return ObjectTraversed(object).parent();
 	}
 
-	int ObjectPc (
+	@Override
+	public int ObjectPc (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPc(destination);
+		return ObjectTraversed(object).pc();
 	}
 
-	void ObjectPostFault (
+	@Override
+	public void ObjectPostFault (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectPostFault(destination);
+		ObjectTraversed(object).postFault();
 	}
 
-	AvailObject ObjectPrevious (
+	@Override
+	public AvailObject ObjectPrevious (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrevious(destination);
+		return ObjectTraversed(object).previous();
 	}
 
-	int ObjectPreviousIndex (
+	@Override
+	public int ObjectPreviousIndex (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPreviousIndex(destination);
+		return ObjectTraversed(object).previousIndex();
 	}
 
-	short ObjectPrimitiveNumber (
+	@Override
+	public short ObjectPrimitiveNumber (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrimitiveNumber(destination);
+		return ObjectTraversed(object).primitiveNumber();
 	}
 
-	int ObjectPriority (
+	@Override
+	public int ObjectPriority (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPriority(destination);
+		return ObjectTraversed(object).priority();
 	}
 
-	AvailObject ObjectPrivateNames (
+	@Override
+	public AvailObject ObjectPrivateNames (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateNames(destination);
+		return ObjectTraversed(object).privateNames();
 	}
 
-	AvailObject ObjectPrivateTestingTree (
+	@Override
+	public AvailObject ObjectPrivateTestingTree (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectPrivateTestingTree(destination);
+		return ObjectTraversed(object).privateTestingTree();
 	}
 
-	AvailObject ObjectProcessGlobals (
+	@Override
+	public AvailObject ObjectProcessGlobals (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectProcessGlobals(destination);
+		return ObjectTraversed(object).processGlobals();
 	}
 
-	int ObjectRawQuad1 (
+	@Override
+	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawQuad1(destination);
+		return ObjectTraversed(object).rawQuad1();
 	}
 
-	int ObjectRawQuad2 (
+	@Override
+	public int ObjectRawQuad2 (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRawQuad2(destination);
+		return ObjectTraversed(object).rawQuad2();
 	}
 
-	void ObjectReadBarrierFault (
+	@Override
+	public void ObjectReadBarrierFault (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectReadBarrierFault(destination);
+		ObjectTraversed(object).readBarrierFault();
 	}
 
-	void ObjectReleaseVariableOrMakeContentsImmutable (
+	@Override
+	public void ObjectReleaseVariableOrMakeContentsImmutable (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectReleaseVariableOrMakeContentsImmutable(destination);
+		ObjectTraversed(object).releaseVariableOrMakeContentsImmutable();
 	}
 
-	void ObjectRemoveFromQueue (
+	@Override
+	public void ObjectRemoveFromQueue (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRemoveFromQueue(destination);
+		ObjectTraversed(object).removeFromQueue();
 	}
 
-	void ObjectRemoveRestrictions (
+	@Override
+	public void ObjectRemoveRestrictions (
 		final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectRemoveRestrictions(destination);
+		ObjectTraversed(object).removeRestrictions();
 	}
 
-	AvailObject ObjectRequiresBlock (
+	@Override
+	public AvailObject ObjectRequiresBlock (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRequiresBlock(destination);
+		return ObjectTraversed(object).requiresBlock();
 	}
 
-	AvailObject ObjectRestrictions (
+	@Override
+	public AvailObject ObjectRestrictions (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRestrictions(destination);
+		return ObjectTraversed(object).restrictions();
 	}
 
-	AvailObject ObjectReturnsBlock (
+	@Override
+	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectReturnsBlock(destination);
+		return ObjectTraversed(object).returnsBlock();
 	}
 
-	AvailObject ObjectReturnType (
+	@Override
+	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectReturnType(destination);
+		return ObjectTraversed(object).returnType();
 	}
 
-	AvailObject ObjectRootBin (
+	@Override
+	public AvailObject ObjectRootBin (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectRootBin(destination);
+		return ObjectTraversed(object).rootBin();
 	}
 
-	AvailObject ObjectSecondTupleType (
+	@Override
+	public AvailObject ObjectSecondTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSecondTupleType(destination);
+		return ObjectTraversed(object).secondTupleType();
 	}
 
-	int ObjectSetSize (
+	@Override
+	public int ObjectSetSize (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSetSize(destination);
+		return ObjectTraversed(object).setSize();
 	}
 
-	AvailObject ObjectSignature (
+	@Override
+	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSignature(destination);
+		return ObjectTraversed(object).signature();
 	}
 
-	int ObjectSize (
+	@Override
+	public int ObjectSize (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSize(destination);
+		return ObjectTraversed(object).size();
 	}
 
-	AvailObject ObjectSizeRange (
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectSizeRange(destination);
+		return ObjectTraversed(object).sizeRange();
 	}
 
-	int ObjectStackp (
+	@Override
+	public int ObjectStackp (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectStackp(destination);
+		return ObjectTraversed(object).stackp();
 	}
 
-	int ObjectStartingChunkIndex (
+	@Override
+	public int ObjectStartingChunkIndex (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectStartingChunkIndex(destination);
+		return ObjectTraversed(object).startingChunkIndex();
 	}
 
-	void ObjectStep (
+	@Override
+	public void ObjectStep (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectStep(destination);
+		ObjectTraversed(object).step();
 	}
 
-	AvailObject ObjectTestingTree (
+	@Override
+	public AvailObject ObjectTestingTree (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTestingTree(destination);
+		return ObjectTraversed(object).testingTree();
 	}
 
-	void ObjectTrimExcessLongs (
+	@Override
+	public void ObjectTrimExcessLongs (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectTrimExcessLongs(destination);
+		ObjectTraversed(object).trimExcessLongs();
 	}
 
-	AvailObject ObjectTuple (
+	@Override
+	public AvailObject ObjectTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTuple(destination);
+		return ObjectTraversed(object).tuple();
 	}
 
-	int ObjectTupleSize (
+	@Override
+	public int ObjectTupleSize (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTupleSize(destination);
+		return ObjectTraversed(object).tupleSize();
 	}
 
-	AvailObject ObjectTupleType (
+	@Override
+	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTupleType(destination);
+		return ObjectTraversed(object).tupleType();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectType(destination);
+		return ObjectTraversed(object).type();
 	}
 
-	AvailObject ObjectTypeTuple (
+	@Override
+	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectTypeTuple(destination);
+		return ObjectTraversed(object).typeTuple();
 	}
 
-	AvailObject ObjectUnclassified (
+	@Override
+	public AvailObject ObjectUnclassified (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectUnclassified(destination);
+		return ObjectTraversed(object).unclassified();
 	}
 
-	AvailObject ObjectUpperBound (
+	@Override
+	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectUpperBound(destination);
+		return ObjectTraversed(object).upperBound();
 	}
 
-	boolean ObjectUpperInclusive (
+	@Override
+	public boolean ObjectUpperInclusive (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectUpperInclusive(destination);
+		return ObjectTraversed(object).upperInclusive();
 	}
 
-	int ObjectValidity (
+	@Override
+	public int ObjectValidity (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectValidity(destination);
+		return ObjectTraversed(object).validity();
 	}
 
-	AvailObject ObjectValue (
+	@Override
+	public AvailObject ObjectValue (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectValue(destination);
+		return ObjectTraversed(object).value();
 	}
 
-	AvailObject ObjectValuesAsTuple (
+	@Override
+	public AvailObject ObjectValuesAsTuple (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectValuesAsTuple(destination);
+		return ObjectTraversed(object).valuesAsTuple();
 	}
 
-	AvailObject ObjectValueType (
+	@Override
+	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectValueType(destination);
+		return ObjectTraversed(object).valueType();
 	}
 
-	AvailObject ObjectVariableBindings (
+	@Override
+	public AvailObject ObjectVariableBindings (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectVariableBindings(destination);
+		return ObjectTraversed(object).variableBindings();
 	}
 
-	AvailObject ObjectVectors (
+	@Override
+	public AvailObject ObjectVectors (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectVectors(destination);
+		return ObjectTraversed(object).vectors();
 	}
 
-	void ObjectVerify (
+	@Override
+	public void ObjectVerify (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		destination.descriptor().ObjectVerify(destination);
+		ObjectTraversed(object).verify();
 	}
 
-	AvailObject ObjectVisibleNames (
+	@Override
+	public AvailObject ObjectVisibleNames (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectVisibleNames(destination);
+		return ObjectTraversed(object).visibleNames();
 	}
 
-	int ObjectWhichOne (
+	@Override
+	public int ObjectWhichOne (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectWhichOne(destination);
+		return ObjectTraversed(object).whichOne();
 	}
 
-	AvailObject ObjectWordcodes (
+	@Override
+	public AvailObject ObjectWordcodes (
 			final AvailObject object)
 	{
-		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectWordcodes(destination);
+		return ObjectTraversed(object).wordcodes();
 	}
 
 
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -5633,6 +4488,7 @@ public class IndirectionDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -5649,7 +4505,8 @@ public class IndirectionDescriptor extends Descriptor
 
 	// operations
 
-	void ObjectScanSubobjects (
+	@Override
+	public void ObjectScanSubobjects (
 			final AvailObject object, 
 			final AvailSubobjectVisitor visitor)
 	{
@@ -5658,7 +4515,8 @@ public class IndirectionDescriptor extends Descriptor
 		visitor.invokeWithParentIndex(object, -4);
 	}
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to make my
@@ -5674,7 +4532,8 @@ public class IndirectionDescriptor extends Descriptor
 
 	// operations-indirections
 
-	AvailObject ObjectTraversed (
+	@Override
+	public AvailObject ObjectTraversed (
 			final AvailObject object)
 	{
 		//  Answer a non-indirection pointed to (transitively) by object.
@@ -5689,10 +4548,9 @@ public class IndirectionDescriptor extends Descriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	Iterator<AvailObject> ObjectIterator (final @NotNull AvailObject object)
+	public Iterator<AvailObject> ObjectIterator (final @NotNull AvailObject object)
 	{
-		final AvailObject destination = object.traversed();
-		return destination.descriptor().ObjectIterator(destination);
+		return ObjectTraversed(object).iterator();
 	}
 
 	/**

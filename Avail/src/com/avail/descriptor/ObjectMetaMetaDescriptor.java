@@ -42,20 +42,24 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectMyObjectMeta (
+	/**
+	 * Setter for field !M!yObjectMeta.
+	 */
+	@Override
+	public void ObjectMyObjectMeta (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectMyObjectMeta (
+	/**
+	 * Getter for field !M!yObjectMeta.
+	 */
+	@Override
+	public AvailObject ObjectMyObjectMeta (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -63,7 +67,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	// operations
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer this object type's type's type's type.
@@ -71,7 +76,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return Types.objectMetaMeta.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  The hash value is always recomputed from the objectMetaMeta's instance (an objectMeta).
@@ -79,7 +85,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return (object.myObjectMeta().hash() + 0xAC9A6AA);
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -90,7 +97,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return object.myObjectMeta().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer this object type's type's type's type.
@@ -102,7 +110,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	// operations-meta
 
-	AvailObject ObjectInstance (
+	@Override
+	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
 		//  Answer this object meta meta's sole instance, an object meta.  Object metas parallel the
@@ -120,7 +129,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -129,7 +139,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfObjectMetaMeta(object);
 	}
 
-	boolean ObjectIsSupertypeOfObjectMetaMeta (
+	@Override
+	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -139,7 +150,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return anObjectMetaMeta.instance().instance().isSubtypeOf(object.instance().instance());
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -156,7 +168,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfObjectMetaMeta(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
@@ -169,7 +182,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return Types.terminatesType.object();
 	}
 
-	AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{
@@ -180,7 +194,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return object.instance().instance().typeIntersection(anObjectMetaMeta.instance().instance()).type().type();
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -197,7 +212,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return another.typeUnionOfObjectMetaMeta(object);
 	}
 
-	AvailObject ObjectTypeUnionOfObjectMetaMeta (
+	@Override
+	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
 	{

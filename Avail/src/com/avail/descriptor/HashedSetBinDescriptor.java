@@ -53,7 +53,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 	// GENERATED accessors
 
-	AvailObject ObjectBinElementAt (
+	@Override
+	public AvailObject ObjectBinElementAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -62,7 +63,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return object.objectSlotAtByteIndex(((index * -4) + -4));
 	}
 
-	void ObjectBinElementAtPut (
+	@Override
+	public void ObjectBinElementAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -72,71 +74,87 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + -4), value);
 	}
 
-	void ObjectBinHash (
+	/**
+	 * Setter for field !B!inHash.
+	 */
+	@Override
+	public void ObjectBinHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectBinSize (
+	/**
+	 * Setter for field !B!inSize.
+	 */
+	@Override
+	public void ObjectBinSize (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
-	void ObjectBinUnionType (
+	/**
+	 * Setter for field !B!inUnionType.
+	 */
+	@Override
+	public void ObjectBinUnionType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectBitVector (
+	/**
+	 * Setter for field !B!itVector.
+	 */
+	@Override
+	public void ObjectBitVector (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
-	int ObjectBinHash (
+	/**
+	 * Getter for field !B!inHash.
+	 */
+	@Override
+	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	int ObjectBinSize (
+	/**
+	 * Getter for field !B!inSize.
+	 */
+	@Override
+	public int ObjectBinSize (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
-	AvailObject ObjectBinUnionType (
+	/**
+	 * Getter for field !B!inUnionType.
+	 */
+	@Override
+	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	int ObjectBitVector (
+	/**
+	 * Getter for field !B!itVector.
+	 */
+	@Override
+	public int ObjectBitVector (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(12);
 	}
 
@@ -144,7 +162,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 	// operations
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
@@ -161,7 +180,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 	// operations-set bins
 
-	AvailObject ObjectBinAddingElementHashLevelCanDestroy (
+	@Override
+	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
@@ -245,7 +265,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return objectToModify;
 	}
 
-	boolean ObjectBinHasElementHash (
+	@Override
+	public boolean ObjectBinHasElementHash (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash)
@@ -264,7 +285,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return object.binElementAt(physicalIndex).binHasElementHash(elementObject, elementObjectHash);
 	}
 
-	AvailObject ObjectBinRemoveElementHashCanDestroy (
+	@Override
+	public AvailObject ObjectBinRemoveElementHashCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
@@ -394,7 +416,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return result;
 	}
 
-	boolean ObjectIsBinSubsetOf (
+	@Override
+	public boolean ObjectIsBinSubsetOf (
 			final AvailObject object, 
 			final AvailObject potentialSuperset)
 	{
@@ -410,7 +433,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return true;
 	}
 
-	int ObjectPopulateTupleStartingAt (
+	@Override
+	public int ObjectPopulateTupleStartingAt (
 			final AvailObject object, 
 			final AvailObject mutableTuple, 
 			final int startingIndex)

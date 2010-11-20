@@ -47,7 +47,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	// GENERATED accessors
 
-	AvailObject ObjectTupleAt (
+	@Override
+	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -56,7 +57,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return object.objectSlotAtByteIndex(((index * -4) + 0));
 	}
 
-	void ObjectTupleAtPut (
+	@Override
+	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -70,7 +72,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	// operations
 
-	boolean ObjectCompareFromToWithStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -86,7 +89,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 			startIndex1);
 	}
 
-	boolean ObjectCompareFromToWithObjectTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -112,14 +116,16 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsObjectTuple(object);
 	}
 
-	boolean ObjectEqualsObjectTuple (
+	@Override
+	public boolean ObjectEqualsObjectTuple (
 			final AvailObject object, 
 			final AvailObject anObjectTuple)
 	{
@@ -161,7 +167,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -187,7 +194,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	// operations-tuples
 
-	AvailObject ObjectCopyTupleFromToCanDestroy (
+	@Override
+	public AvailObject ObjectCopyTupleFromToCanDestroy (
 			final AvailObject object, 
 			final int start, 
 			final int end, 
@@ -287,7 +295,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return result;
 	}
 
-	AvailObject ObjectTruncateTo (
+	@Override
+	public AvailObject ObjectTruncateTo (
 			final AvailObject object, 
 			final int newTupleSize)
 	{
@@ -313,7 +322,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return object;
 	}
 
-	AvailObject ObjectTupleAtPuttingCanDestroy (
+	@Override
+	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject newValueObject, 
@@ -336,7 +346,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return object;
 	}
 
-	int ObjectTupleIntAt (
+	@Override
+	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -350,7 +361,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return object.tupleAt(index).extractInt();
 	}
 
-	int ObjectTupleSize (
+	@Override
+	public int ObjectTupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
@@ -362,7 +374,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	// private-accessing
 
-	int ObjectBitsPerEntry (
+	@Override
+	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -374,7 +387,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	// private-computation
 
-	int ObjectComputeHashFromTo (
+	@Override
+	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int start, 
 			final int end)

@@ -49,20 +49,24 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	// GENERATED accessors
 
-	void ObjectWhichOne (
+	/**
+	 * Setter for field !W!hichOne.
+	 */
+	@Override
+	public void ObjectWhichOne (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	int ObjectWhichOne (
+	/**
+	 * Getter for field !W!hichOne.
+	 */
+	@Override
+	public int ObjectWhichOne (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
@@ -70,6 +74,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -87,14 +92,16 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsInfinity(object);
 	}
 
-	boolean ObjectEqualsInfinity (
+	@Override
+	public boolean ObjectEqualsInfinity (
 			final AvailObject object, 
 			final AvailObject anInfinity)
 	{
@@ -103,14 +110,16 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return (object.whichOne() == anInfinity.whichOne());
 	}
 
-	boolean ObjectGreaterThanInteger (
+	@Override
+	public boolean ObjectGreaterThanInteger (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return object.isPositive();
 	}
 
-	boolean ObjectGreaterThanSignedInfinity (
+	@Override
+	public boolean ObjectGreaterThanSignedInfinity (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -118,7 +127,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return (object.whichOne() < another.whichOne());
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -145,14 +155,16 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return (aType.lowerBound().equals(object) && aType.lowerInclusive());
 	}
 
-	boolean ObjectLessThan (
+	@Override
+	public boolean ObjectLessThan (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.greaterThanSignedInfinity(object);
 	}
 
-	boolean ObjectTypeEquals (
+	@Override
+	public boolean ObjectTypeEquals (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -184,7 +196,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return true;
 	}
 
-	boolean ObjectCanComputeHashOfType (
+	@Override
+	public boolean ObjectCanComputeHashOfType (
 			final AvailObject object)
 	{
 		//  Answer whether object supports the #hashOfType protocol.
@@ -192,7 +205,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -200,7 +214,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -208,7 +223,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return (object.whichOne() == 1) ? 0x14B326DA : (0xBF9302D);
 	}
 
-	int ObjectHashOfType (
+	@Override
+	public int ObjectHashOfType (
 			final AvailObject object)
 	{
 		//  Answer my type's hash value (without creating any objects).
@@ -221,13 +237,15 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			true);
 	}
 
-	boolean ObjectIsFinite (
+	@Override
+	public boolean ObjectIsFinite (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -239,7 +257,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	// operations-numbers
 
-	AvailObject ObjectDivideCanDestroy (
+	@Override
+	public AvailObject ObjectDivideCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -249,7 +268,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return aNumber.divideIntoInfinityCanDestroy(object, canDestroy);
 	}
 
-	AvailObject ObjectMinusCanDestroy (
+	@Override
+	public AvailObject ObjectMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -259,7 +279,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return aNumber.subtractFromInfinityCanDestroy(object, canDestroy);
 	}
 
-	AvailObject ObjectPlusCanDestroy (
+	@Override
+	public AvailObject ObjectPlusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -269,7 +290,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return aNumber.addToInfinityCanDestroy(object, canDestroy);
 	}
 
-	AvailObject ObjectTimesCanDestroy (
+	@Override
+	public AvailObject ObjectTimesCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
 			final boolean canDestroy)
@@ -279,7 +301,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return aNumber.multiplyByInfinityCanDestroy(object, canDestroy);
 	}
 
-	boolean ObjectIsPositive (
+	@Override
+	public boolean ObjectIsPositive (
 			final AvailObject object)
 	{
 		//  Double-dispatch it.
@@ -291,7 +314,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	// private-arithmetic
 
-	AvailObject ObjectAddToInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectAddToInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -304,7 +328,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectAddToIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectAddToIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -312,7 +337,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return object;
 	}
 
-	AvailObject ObjectDivideIntoInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectDivideIntoInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -321,7 +347,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectDivideIntoIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectDivideIntoIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -329,7 +356,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return IntegerDescriptor.zero();
 	}
 
-	AvailObject ObjectMultiplyByInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectMultiplyByInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -337,7 +365,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return ((anInfinity.isPositive() == object.isPositive()) ? InfinityDescriptor.positiveInfinity() : InfinityDescriptor.negativeInfinity());
 	}
 
-	AvailObject ObjectMultiplyByIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectMultiplyByIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)
@@ -350,7 +379,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return ((anInteger.greaterThan(IntegerDescriptor.zero()) ^ object.isPositive()) ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity());
 	}
 
-	AvailObject ObjectSubtractFromInfinityCanDestroy (
+	@Override
+	public AvailObject ObjectSubtractFromInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
 			final boolean canDestroy)
@@ -363,7 +393,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectSubtractFromIntegerCanDestroy (
+	@Override
+	public AvailObject ObjectSubtractFromIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
 			final boolean canDestroy)

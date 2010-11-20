@@ -58,6 +58,7 @@ public class AvailSuperCastNode extends AvailParseNode
 		_expression = anExpression;
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		return _type;
@@ -73,6 +74,7 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitEffectOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -80,6 +82,7 @@ public class AvailSuperCastNode extends AvailParseNode
 		return;
 	}
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -91,6 +94,7 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	// enumerating
 
+	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
@@ -104,6 +108,7 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -121,6 +126,7 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	// testing
 
+	@Override
 	public boolean isSuperCast ()
 	{
 		return true;
@@ -130,6 +136,7 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	// validation
 
+	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent, 
 			final List<AvailBlockNode> outerBlocks, 

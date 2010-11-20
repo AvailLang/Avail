@@ -193,6 +193,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 
 	// private-nybblecodes
 
+	@Override
 	public void L1Ext_doGetLiteral ()
 	{
 		//  [n] - Push the value of the variable that's literal number n in the current compiledCode.
@@ -212,6 +213,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(varUse);
 	}
 
+	@Override
 	public void L1Ext_doGetOuter ()
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
@@ -242,6 +244,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(use);
 	}
 
+	@Override
 	public void L1Ext_doGetType ()
 	{
 		//  [n] - Push the (n+1)st stack element's type.  This is only used by the supercast
@@ -255,6 +258,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(null);
 	}
 
+	@Override
 	public void L1Ext_doMakeList ()
 	{
 		//  [n] - Make a list object from n values popped from the stack.  Push the list.
@@ -265,6 +269,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(listNode);
 	}
 
+	@Override
 	public void L1Ext_doPushLabel ()
 	{
 		//  Build a continuation which, when restarted, will be just like restarting the current continuation.
@@ -290,6 +295,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(useNode);
 	}
 
+	@Override
 	public void L1Ext_doReserved ()
 	{
 		//  An illegal nybblecode.
@@ -297,6 +303,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		error("Illegal extended nybblecode: F+" + (_nybbles.extractNybbleFromTupleAt(_pc - 1)));
 	}
 
+	@Override
 	public void L1Ext_doSetLiteral ()
 	{
 		//  [n] - Pop the stack and assign this value to the variable that's the literal
@@ -320,6 +327,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(assignmentNode);
 	}
 
+	@Override
 	public void L1Ext_doSuperCall ()
 	{
 		//  [n] - Send the message at index n in the compiledCode's literals.  Like the call instruction,
@@ -365,6 +373,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(sendNode);
 	}
 
+	@Override
 	public void L1_doCall ()
 	{
 		//  [n] - Send the message at index n in the compiledCode's literals.  Pop the arguments for
@@ -397,6 +406,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(sendNode);
 	}
 
+	@Override
 	public void L1_doClose ()
 	{
 		//  [n,m] - Pop the top n items off the stack, and use them as outer variables in the
@@ -420,6 +430,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(blockNode);
 	}
 
+	@Override
 	public void L1_doExtension ()
 	{
 		//  The extension nybblecode was encountered.  Read another nybble and dispatch it through ExtendedSelectors.
@@ -429,6 +440,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		L1Operation.values()[nybble + 16].dispatch(this);
 	}
 
+	@Override
 	public void L1_doGetLocal ()
 	{
 		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
@@ -441,6 +453,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(useNode);
 	}
 
+	@Override
 	public void L1_doGetLocalClearing ()
 	{
 		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
@@ -454,6 +467,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(useNode);
 	}
 
+	@Override
 	public void L1_doGetOuterClearing ()
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
@@ -485,6 +499,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(variable);
 	}
 
+	@Override
 	public void L1_doPop ()
 	{
 		//  Remove the top item from the stack.
@@ -492,6 +507,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(popExpression());
 	}
 
+	@Override
 	public void L1_doPushLastLocal ()
 	{
 		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
@@ -517,6 +533,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L1_doPushLastOuter ()
 	{
 		//  [n] - Push the outer variable indexed by n in the current closure.  If the variable is
@@ -526,6 +543,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(_outers.get((getInteger() - 1)));
 	}
 
+	@Override
 	public void L1_doPushLiteral ()
 	{
 		//  [n] - Push the literal indexed by n in the current compiledCode.
@@ -563,6 +581,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L1_doPushLocal ()
 	{
 		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
@@ -586,6 +605,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		}
 	}
 
+	@Override
 	public void L1_doPushOuter ()
 	{
 		//  [n] - Push the outer variable indexed by n in the current closure.
@@ -593,6 +613,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		pushExpression(_outers.get((getInteger() - 1)));
 	}
 
+	@Override
 	public void L1_doReturn ()
 	{
 		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
@@ -604,6 +625,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		assert (_expressionStack.size() == 0) : "There should be nothing on the stack after a return";
 	}
 
+	@Override
 	public void L1_doSetLocal ()
 	{
 		//  [n] - Pop the stack and assign this value to the local variable (not an argument) indexed by n (index 1 is first argument).
@@ -620,6 +642,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(assignment);
 	}
 
+	@Override
 	public void L1_doSetOuter ()
 	{
 		//  [n] - Pop the stack and assign this value to the outer variable indexed by n in the current closure.
@@ -654,6 +677,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(assignment);
 	}
 
+	@Override
 	public void L1_doVerifyType ()
 	{
 		//  [n] - Ensure the top of stack's type is a subtype of the type found at

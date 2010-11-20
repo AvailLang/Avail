@@ -46,7 +46,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	// GENERATED accessors
 
-	AvailObject ObjectBinElementAt (
+	@Override
+	public AvailObject ObjectBinElementAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -55,7 +56,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return object.objectSlotAtByteIndex(((index * -4) + 0));
 	}
 
-	void ObjectBinElementAtPut (
+	@Override
+	public void ObjectBinElementAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -65,20 +67,24 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + 0), value);
 	}
 
-	void ObjectBinHash (
+	/**
+	 * Setter for field !B!inHash.
+	 */
+	@Override
+	public void ObjectBinHash (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	int ObjectBinHash (
+	/**
+	 * Getter for field !B!inHash.
+	 */
+	@Override
+	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
@@ -86,7 +92,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	// operations
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
@@ -103,7 +110,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	// operations-set bins
 
-	AvailObject ObjectBinAddingElementHashLevelCanDestroy (
+	@Override
+	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
@@ -205,7 +213,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return result;
 	}
 
-	boolean ObjectBinHasElementHash (
+	@Override
+	public boolean ObjectBinHasElementHash (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash)
@@ -220,7 +229,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return false;
 	}
 
-	AvailObject ObjectBinRemoveElementHashCanDestroy (
+	@Override
+	public AvailObject ObjectBinRemoveElementHashCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
 			final int elementObjectHash, 
@@ -272,7 +282,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return object;
 	}
 
-	boolean ObjectIsBinSubsetOf (
+	@Override
+	public boolean ObjectIsBinSubsetOf (
 			final AvailObject object, 
 			final AvailObject potentialSuperset)
 	{
@@ -288,7 +299,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return true;
 	}
 
-	int ObjectPopulateTupleStartingAt (
+	@Override
+	public int ObjectPopulateTupleStartingAt (
 			final AvailObject object, 
 			final AvailObject mutableTuple, 
 			final int startingIndex)
@@ -306,7 +318,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return writeIndex;
 	}
 
-	int ObjectBinSize (
+	@Override
+	public int ObjectBinSize (
 			final AvailObject object)
 	{
 		//  Answer how many elements this bin contains.
@@ -314,7 +327,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return (object.objectSlotsCount() - numberOfFixedObjectSlots());
 	}
 
-	AvailObject ObjectBinUnionType (
+	@Override
+	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
 		//  Answer the union of the types of this bin's elements.  I'm supposed

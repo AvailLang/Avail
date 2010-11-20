@@ -50,7 +50,8 @@ public class MessageBundleDescriptor extends Descriptor
 
 	// accessing
 
-	void ObjectAddRestrictions (
+	@Override
+	public void ObjectAddRestrictions (
 			final AvailObject object, 
 			final AvailObject restrictions)
 	{
@@ -72,7 +73,8 @@ public class MessageBundleDescriptor extends Descriptor
 		object.myRestrictions(merged);
 	}
 
-	void ObjectRemoveRestrictions (
+	@Override
+	public void ObjectRemoveRestrictions (
 			final AvailObject object, 
 			final AvailObject obsoleteRestrictions)
 	{
@@ -93,7 +95,8 @@ public class MessageBundleDescriptor extends Descriptor
 		object.myRestrictions(reduced);
 	}
 
-	boolean ObjectHasRestrictions (
+	@Override
+	public boolean ObjectHasRestrictions (
 			final AvailObject object)
 	{
 		if (object.myRestrictions().equalsVoid())
@@ -110,13 +113,15 @@ public class MessageBundleDescriptor extends Descriptor
 		return false;
 	}
 
-	void ObjectRemoveRestrictions (
+	@Override
+	public void ObjectRemoveRestrictions (
 			final AvailObject object)
 	{
 		object.myRestrictions(VoidDescriptor.voidObject());
 	}
 
-	AvailObject ObjectRestrictions (
+	@Override
+	public AvailObject ObjectRestrictions (
 			final AvailObject object)
 	{
 		AvailObject restrictions = object.myRestrictions();
@@ -152,54 +157,66 @@ public class MessageBundleDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectMessage (
+	/**
+	 * Setter for field !M!essage.
+	 */
+	@Override
+	public void ObjectMessage (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectMessageParts (
+	/**
+	 * Setter for field !M!essageParts.
+	 */
+	@Override
+	public void ObjectMessageParts (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectMyRestrictions (
+	/**
+	 * Setter for field !M!yRestrictions.
+	 */
+	@Override
+	public void ObjectMyRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	AvailObject ObjectMessage (
+	/**
+	 * Getter for field !M!essage.
+	 */
+	@Override
+	public AvailObject ObjectMessage (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectMessageParts (
+	/**
+	 * Getter for field !M!essageParts.
+	 */
+	@Override
+	public AvailObject ObjectMessageParts (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectMyRestrictions (
+	/**
+	 * Getter for field !M!yRestrictions.
+	 */
+	@Override
+	public AvailObject ObjectMyRestrictions (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
@@ -207,6 +224,7 @@ public class MessageBundleDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -223,6 +241,7 @@ public class MessageBundleDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -245,14 +264,16 @@ public class MessageBundleDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -260,7 +281,8 @@ public class MessageBundleDescriptor extends Descriptor
 		return Types.messageBundle.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -268,7 +290,8 @@ public class MessageBundleDescriptor extends Descriptor
 		return (object.message().hash() ^ 0x312CAB9);
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

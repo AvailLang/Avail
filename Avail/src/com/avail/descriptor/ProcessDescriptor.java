@@ -57,139 +57,171 @@ public class ProcessDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectBreakpointBlock (
+	/**
+	 * Setter for field !B!reakpointBlock.
+	 */
+	@Override
+	public void ObjectBreakpointBlock (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectContinuation (
+	/**
+	 * Setter for field !C!ontinuation.
+	 */
+	@Override
+	public void ObjectContinuation (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectExecutionMode (
+	/**
+	 * Setter for field !E!xecutionMode.
+	 */
+	@Override
+	public void ObjectExecutionMode (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
-	void ObjectExecutionState (
+	/**
+	 * Setter for field !E!xecutionState.
+	 */
+	@Override
+	public void ObjectExecutionState (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(16, value);
 	}
 
-	void ObjectHashOrZero (
+	/**
+	 * Setter for field !H!ashOrZero.
+	 */
+	@Override
+	public void ObjectHashOrZero (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectInterruptRequestFlag (
+	/**
+	 * Setter for field !I!nterruptRequestFlag.
+	 */
+	@Override
+	public void ObjectInterruptRequestFlag (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(20, value);
 	}
 
-	void ObjectPriority (
+	/**
+	 * Setter for field !P!riority.
+	 */
+	@Override
+	public void ObjectPriority (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
-	void ObjectProcessGlobals (
+	/**
+	 * Setter for field !P!rocessGlobals.
+	 */
+	@Override
+	public void ObjectProcessGlobals (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	AvailObject ObjectBreakpointBlock (
+	/**
+	 * Getter for field !B!reakpointBlock.
+	 */
+	@Override
+	public AvailObject ObjectBreakpointBlock (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectContinuation (
+	/**
+	 * Getter for field !C!ontinuation.
+	 */
+	@Override
+	public AvailObject ObjectContinuation (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	int ObjectExecutionMode (
+	/**
+	 * Getter for field !E!xecutionMode.
+	 */
+	@Override
+	public int ObjectExecutionMode (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(12);
 	}
 
-	int ObjectExecutionState (
+	/**
+	 * Getter for field !E!xecutionState.
+	 */
+	@Override
+	public int ObjectExecutionState (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(16);
 	}
 
-	int ObjectHashOrZero (
+	/**
+	 * Getter for field !H!ashOrZero.
+	 */
+	@Override
+	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	int ObjectInterruptRequestFlag (
+	/**
+	 * Getter for field !I!nterruptRequestFlag.
+	 */
+	@Override
+	public int ObjectInterruptRequestFlag (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(20);
 	}
 
-	int ObjectPriority (
+	/**
+	 * Getter for field !P!riority.
+	 */
+	@Override
+	public int ObjectPriority (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
-	AvailObject ObjectProcessGlobals (
+	/**
+	 * Getter for field !P!rocessGlobals.
+	 */
+	@Override
+	public AvailObject ObjectProcessGlobals (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
@@ -197,6 +229,7 @@ public class ProcessDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -241,7 +274,8 @@ public class ProcessDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -250,7 +284,8 @@ public class ProcessDescriptor extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -258,7 +293,8 @@ public class ProcessDescriptor extends Descriptor
 		return Types.process.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -272,7 +308,8 @@ public class ProcessDescriptor extends Descriptor
 		return hash;
 	}
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
@@ -284,7 +321,8 @@ public class ProcessDescriptor extends Descriptor
 		return object;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -296,7 +334,8 @@ public class ProcessDescriptor extends Descriptor
 
 	// operations-processes
 
-	int ObjectGetInteger (
+	@Override
+	public int ObjectGetInteger (
 			final AvailObject object)
 	{
 		//  Answer an integer extracted at the current program counter from the continuation.  The program
@@ -361,7 +400,8 @@ public class ProcessDescriptor extends Descriptor
 		return result;
 	}
 
-	void ObjectStep (
+	@Override
+	public void ObjectStep (
 			final AvailObject object)
 	{
 		//  Execute one step of the process.

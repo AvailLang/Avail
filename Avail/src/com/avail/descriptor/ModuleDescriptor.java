@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.AvailInterpreter;
 
@@ -56,7 +55,7 @@ public class ModuleDescriptor extends Descriptor
 	// accessing
 
 	@Override
-	void ObjectAtAddMessageRestrictions (
+	public void ObjectAtAddMessageRestrictions (
 		final AvailObject object,
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
@@ -69,7 +68,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectAtAddMethodImplementation (
+	public void ObjectAtAddMethodImplementation (
 		final AvailObject object,
 		final AvailObject methodName,
 		final AvailObject implementation)
@@ -91,7 +90,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectAtNameAdd (
+	public void ObjectAtNameAdd (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -116,7 +115,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectAtNewNamePut (
+	public void ObjectAtNewNamePut (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -136,7 +135,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectAtPrivateNameAdd (
+	public void ObjectAtPrivateNameAdd (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -161,7 +160,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	boolean ObjectNameVisible (
+	public boolean ObjectNameVisible (
 		final AvailObject object,
 		final AvailObject trueName)
 	{
@@ -171,7 +170,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectResolvedForwardWithName (
+	public void ObjectResolvedForwardWithName (
 		final AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
@@ -193,7 +192,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	AvailObject ObjectTrueNamesForStringName (
+	public AvailObject ObjectTrueNamesForStringName (
 		final AvailObject object,
 		final AvailObject stringName)
 	{
@@ -229,193 +228,213 @@ public class ModuleDescriptor extends Descriptor
 
 	// GENERATED accessors
 
+	/**
+	 * Setter for field !C!onstantBindings.
+	 */
 	@Override
-	void ObjectConstantBindings (
+	public void ObjectConstantBindings (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-36, value);
 	}
 
+	/**
+	 * Setter for field !F!ilteredBundleTree.
+	 */
 	@Override
-	void ObjectFilteredBundleTree (
+	public void ObjectFilteredBundleTree (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-40, value);
 	}
 
+	/**
+	 * Setter for field !M!ethods.
+	 */
 	@Override
-	void ObjectMethods (
+	public void ObjectMethods (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-24, value);
 	}
 
+	/**
+	 * Setter for field !N!ame.
+	 */
 	@Override
-	void ObjectName (
+	public void ObjectName (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
+	/**
+	 * Setter for field !N!ames.
+	 */
 	@Override
-	void ObjectNames (
+	public void ObjectNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
+	/**
+	 * Setter for field !N!ewNames.
+	 */
 	@Override
-	void ObjectNewNames (
+	public void ObjectNewNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
+	/**
+	 * Setter for field !P!rivateNames.
+	 */
 	@Override
-	void ObjectPrivateNames (
+	public void ObjectPrivateNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-16, value);
 	}
 
+	/**
+	 * Setter for field !R!estrictions.
+	 */
 	@Override
-	void ObjectRestrictions (
+	public void ObjectRestrictions (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-28, value);
 	}
 
+	/**
+	 * Setter for field !V!ariableBindings.
+	 */
 	@Override
-	void ObjectVariableBindings (
+	public void ObjectVariableBindings (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-32, value);
 	}
 
+	/**
+	 * Setter for field !V!isibleNames.
+	 */
 	@Override
-	void ObjectVisibleNames (
+	public void ObjectVisibleNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-20, value);
 	}
 
+	/**
+	 * Getter for field !C!onstantBindings.
+	 */
 	@Override
-	AvailObject ObjectConstantBindings (
+	public AvailObject ObjectConstantBindings (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-36);
 	}
 
+	/**
+	 * Getter for field !F!ilteredBundleTree.
+	 */
 	@Override
-	AvailObject ObjectFilteredBundleTree (
+	public AvailObject ObjectFilteredBundleTree (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-40);
 	}
 
+	/**
+	 * Getter for field !M!ethods.
+	 */
 	@Override
-	AvailObject ObjectMethods (
+	public AvailObject ObjectMethods (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-24);
 	}
 
+	/**
+	 * Getter for field !N!ame.
+	 */
 	@Override
-	AvailObject ObjectName (
+	public AvailObject ObjectName (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
+	/**
+	 * Getter for field !N!ames.
+	 */
 	@Override
-	AvailObject ObjectNames (
+	public AvailObject ObjectNames (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
+	/**
+	 * Getter for field !N!ewNames.
+	 */
 	@Override
-	AvailObject ObjectNewNames (
+	public AvailObject ObjectNewNames (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
+	/**
+	 * Getter for field !P!rivateNames.
+	 */
 	@Override
-	AvailObject ObjectPrivateNames (
+	public AvailObject ObjectPrivateNames (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-16);
 	}
 
+	/**
+	 * Getter for field !R!estrictions.
+	 */
 	@Override
-	AvailObject ObjectRestrictions (
+	public AvailObject ObjectRestrictions (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-28);
 	}
 
+	/**
+	 * Getter for field !V!ariableBindings.
+	 */
 	@Override
-	AvailObject ObjectVariableBindings (
+	public AvailObject ObjectVariableBindings (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-32);
 	}
 
+	/**
+	 * Getter for field !V!isibleNames.
+	 */
 	@Override
-	AvailObject ObjectVisibleNames (
+	public AvailObject ObjectVisibleNames (
 		final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-20);
 	}
 
@@ -473,7 +492,7 @@ public class ModuleDescriptor extends Descriptor
 	// initialization
 
 	@Override
-	void ObjectBuildFilteredBundleTreeFrom (
+	public void ObjectBuildFilteredBundleTreeFrom (
 		final AvailObject object,
 		final AvailObject bundleTree)
 	{
@@ -485,7 +504,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectCleanUpAfterCompile (
+	public void ObjectCleanUpAfterCompile (
 		final AvailObject object)
 	{
 		object.variableBindings(VoidDescriptor.voidObject());
@@ -494,7 +513,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	void ObjectClearModule (
+	public void ObjectClearModule (
 		final AvailObject object)
 	{
 		object.newNames(MapDescriptor.empty());
@@ -513,7 +532,7 @@ public class ModuleDescriptor extends Descriptor
 	// operations
 
 	@Override
-	boolean ObjectEquals (
+	public boolean ObjectEquals (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -523,7 +542,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	int ObjectHash (
+	public int ObjectHash (
 		final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -536,7 +555,7 @@ public class ModuleDescriptor extends Descriptor
 	// removing
 
 	@Override
-	void ObjectRemoveFrom (
+	public void ObjectRemoveFrom (
 		final @NotNull AvailObject object,
 		final @NotNull AvailInterpreter anInterpreter)
 	{

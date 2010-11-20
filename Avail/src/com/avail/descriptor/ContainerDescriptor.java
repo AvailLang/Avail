@@ -50,54 +50,66 @@ public class ContainerDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectHashOrZero (
+	/**
+	 * Setter for field !H!ashOrZero.
+	 */
+	@Override
+	public void ObjectHashOrZero (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectType (
+	/**
+	 * Setter for field !T!ype.
+	 */
+	@Override
+	public void ObjectType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectValue (
+	/**
+	 * Setter for field !V!alue.
+	 */
+	@Override
+	public void ObjectValue (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	int ObjectHashOrZero (
+	/**
+	 * Getter for field !H!ashOrZero.
+	 */
+	@Override
+	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	AvailObject ObjectType (
+	/**
+	 * Getter for field !T!ype.
+	 */
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectValue (
+	/**
+	 * Getter for field !V!alue.
+	 */
+	@Override
+	public AvailObject ObjectValue (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -105,6 +117,7 @@ public class ContainerDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -125,14 +138,16 @@ public class ContainerDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsContainer(object);
 	}
 
-	boolean ObjectEqualsContainer (
+	@Override
+	public boolean ObjectEqualsContainer (
 			final AvailObject object, 
 			final AvailObject aContainer)
 	{
@@ -143,7 +158,8 @@ public class ContainerDescriptor extends Descriptor
 		return object.sameAddressAs(aContainer);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -151,7 +167,8 @@ public class ContainerDescriptor extends Descriptor
 		return object.type();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -165,7 +182,8 @@ public class ContainerDescriptor extends Descriptor
 		return hash;
 	}
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
@@ -180,7 +198,8 @@ public class ContainerDescriptor extends Descriptor
 
 	// operations-containers
 
-	void ObjectInnerType (
+	@Override
+	public void ObjectInnerType (
 			final AvailObject object, 
 			final AvailObject innerType)
 	{
@@ -189,7 +208,8 @@ public class ContainerDescriptor extends Descriptor
 		object.type(ContainerTypeDescriptor.containerTypeForInnerType(innerType));
 	}
 
-	void ObjectSetValue (
+	@Override
+	public void ObjectSetValue (
 			final AvailObject object, 
 			final AvailObject newValue)
 	{
@@ -197,7 +217,8 @@ public class ContainerDescriptor extends Descriptor
 		object.value(newValue);
 	}
 
-	void ObjectClearValue (
+	@Override
+	public void ObjectClearValue (
 			final AvailObject object)
 	{
 		//  Clears the container (makes it have no current value).
@@ -206,7 +227,8 @@ public class ContainerDescriptor extends Descriptor
 		object.value(VoidDescriptor.voidObject());
 	}
 
-	AvailObject ObjectGetValue (
+	@Override
+	public AvailObject ObjectGetValue (
 			final AvailObject object)
 	{
 		//  Answer the current value of the container.  Fail if no value assigned.
@@ -220,7 +242,8 @@ public class ContainerDescriptor extends Descriptor
 		return value;
 	}
 
-	void ObjectReleaseVariableOrMakeContentsImmutable (
+	@Override
+	public void ObjectReleaseVariableOrMakeContentsImmutable (
 			final AvailObject object)
 	{
 		//  If I'm mutable, release me.  Otherwise make my contents immutable.  This

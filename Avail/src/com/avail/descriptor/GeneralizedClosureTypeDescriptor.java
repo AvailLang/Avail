@@ -44,20 +44,24 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectReturnType (
+	/**
+	 * Setter for field !R!eturnType.
+	 */
+	@Override
+	public void ObjectReturnType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectReturnType (
+	/**
+	 * Getter for field !R!eturnType.
+	 */
+	@Override
+	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -65,6 +69,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -82,14 +87,16 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsGeneralizedClosureType(object);
 	}
 
-	boolean ObjectEqualsGeneralizedClosureType (
+	@Override
+	public boolean ObjectEqualsGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -110,7 +117,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -118,7 +126,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return Types.generalizedClosureType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  The hash value is always recomputed from the argTypeTuple and returnType.
@@ -126,7 +135,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return ((object.returnType().hash() * 13) + 0x359991);
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -138,7 +148,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -147,7 +158,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfGeneralizedClosureType(object);
 	}
 
-	boolean ObjectIsSupertypeOfClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -158,7 +170,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return aClosureType.returnType().isSubtypeOf(object.returnType());
 	}
 
-	boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	@Override
+	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -171,7 +184,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return aGeneralizedClosureType.returnType().isSubtypeOf(object.returnType());
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -188,7 +202,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfGeneralizedClosureType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfClosureType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -202,7 +217,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return aClosureType.typeIntersectionOfGeneralizedClosureType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -212,7 +228,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeIntersection(aGeneralizedClosureType.returnType()));
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -229,7 +246,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfGeneralizedClosureType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfClosureType (
+	@Override
+	public AvailObject ObjectTypeUnionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
 	{
@@ -241,7 +259,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aClosureType.returnType()));
 	}
 
-	AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	@Override
+	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
 	{

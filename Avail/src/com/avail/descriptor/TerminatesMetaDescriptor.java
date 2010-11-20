@@ -46,7 +46,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -63,7 +64,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		return (aType.isSubtypeOf(Types.type.object()) || Types.type.object().isSubtypeOf(aType));
 	}
 
-	boolean ObjectIsSupertypeOfPrimitiveType (
+	@Override
+	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
 	{
@@ -74,7 +76,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		return false;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -95,7 +98,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminates.object();
 	}
 
-	AvailObject ObjectTypeIntersectionOfMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
@@ -108,7 +112,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		return Types.terminatesType.object();
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -128,7 +133,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		return Types.meta.object().typeUnion(another);
 	}
 
-	boolean ObjectIsCyclicType (
+	@Override
+	public boolean ObjectIsCyclicType (
 			final AvailObject object)
 	{
 		//  Because terminatesType is a subtype of all other metatypes, it is even considered

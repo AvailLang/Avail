@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -62,118 +61,133 @@ implements Iterable<AvailObject>
 
 	// GENERATED methods
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsArgTypesFromClosureType (
 		final AvailObject closureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsArgTypesFromClosureType(this, closureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsArgumentsFromContinuationStackp (
 		final AvailObject continuation,
 		final int stackp)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsArgumentsFromContinuationStackp(
 			this,
 			continuation,
 			stackp);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsArgumentTypesFromContinuationStackp (
 		final AvailObject continuation,
 		final int stackp)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsArgumentTypesFromContinuationStackp(
 			this,
 			continuation,
 			stackp);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsArrayOfArgTypes (
 		final List<AvailObject> argTypes)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsArrayOfArgTypes(this, argTypes);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsArrayOfArgValues (
 		final List<AvailObject> argValues)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsArrayOfArgValues(this, argValues);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsTupleOfArgTypes (
 		final AvailObject argTypes)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsTupleOfArgTypes(this, argTypes);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean acceptsTupleOfArguments (
 		final AvailObject arguments)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAcceptsTupleOfArguments(this, arguments);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void addDependentChunkId (
 		final int aChunkIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAddDependentChunkId(this, aChunkIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void addImplementation (
 		final AvailObject implementation)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAddImplementation(this, implementation);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void addRestrictions (
 		final AvailObject restrictions)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAddRestrictions(this, restrictions);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject addToInfinityCanDestroy (
 		final AvailObject anInfinity,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAddToInfinityCanDestroy(
 			this,
 			anInfinity,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject addToIntegerCanDestroy (
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAddToIntegerCanDestroy(
 			this,
 			anInteger,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void argsLocalsStackOutersPrimitive (
 		final int args,
 		final int locals,
@@ -181,8 +195,6 @@ implements Iterable<AvailObject>
 		final int outers,
 		final int primitive)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectArgsLocalsStackOutersPrimitive(
 			this,
 			args,
@@ -192,148 +204,163 @@ implements Iterable<AvailObject>
 			primitive);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject argTypeAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectArgTypeAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void argTypeAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectArgTypeAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public String asNativeString ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAsNativeString(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject asObject ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAsObject(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject asSet ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAsSet(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject asTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectAsTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void atAddMessageRestrictions (
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAtAddMessageRestrictions(
 			this,
 			methodName,
 			illegalArgMsgs);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void atAddMethodImplementation (
 		final AvailObject methodName,
 		final AvailObject implementation)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAtAddMethodImplementation(
 			this,
 			methodName,
 			implementation);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void atMessageAddBundle (
 		final AvailObject message,
 		final AvailObject bundle)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAtMessageAddBundle(
 			this,
 			message,
 			bundle);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void atNameAdd (
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAtNameAdd(
 			this,
 			stringName,
 			trueName);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void atNewNamePut (
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAtNewNamePut(
 			this,
 			stringName,
 			trueName);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void atPrivateNameAdd (
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectAtPrivateNameAdd(
 			this,
 			stringName,
 			trueName);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject becomeExactType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBecomeExactType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void becomeRealTupleType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBecomeRealTupleType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject binAddingElementHashLevelCanDestroy (
 		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinAddingElementHashLevelCanDestroy(
 			this,
 			elementObject,
@@ -342,60 +369,66 @@ implements Iterable<AvailObject>
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject binElementAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinElementAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void binElementAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBinElementAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean binHasElementHash (
 		final AvailObject elementObject,
 		final int elementObjectHash)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinHasElementHash(
 			this,
 			elementObject,
 			elementObjectHash);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int binHash ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinHash(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void binHash (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBinHash(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject binRemoveElementHashCanDestroy (
 		final AvailObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinRemoveElementHashCanDestroy(
 			this,
 			elementObject,
@@ -403,80 +436,90 @@ implements Iterable<AvailObject>
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int binSize ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinSize(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void binSize (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBinSize(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject binUnionType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBinUnionType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void binUnionType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBinUnionType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int bitsPerEntry ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBitsPerEntry(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int bitVector ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBitVector(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void bitVector (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBitVector(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject bodyBlock ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBodyBlock(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void bodyBlock (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBodyBlock(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void bodyBlockRequiresBlockReturnsBlock (
 		final AvailObject bb,
 		final AvailObject rqb,
 		final AvailObject rtb)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBodyBlockRequiresBlockReturnsBlock(
 			this,
 			bb,
@@ -484,28 +527,31 @@ implements Iterable<AvailObject>
 			rtb);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject bodySignature ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBodySignature(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void bodySignature (
 		final AvailObject signature)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBodySignature(this, signature);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void bodySignatureRequiresBlockReturnsBlock (
 		final AvailObject bs,
 		final AvailObject rqb,
 		final AvailObject rtb)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBodySignatureRequiresBlockReturnsBlock(
 			this,
 			bs,
@@ -513,159 +559,179 @@ implements Iterable<AvailObject>
 			rtb);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject breakpointBlock ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBreakpointBlock(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void breakpointBlock (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBreakpointBlock(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void buildFilteredBundleTreeFrom (
 		final AvailObject bundleTree)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectBuildFilteredBundleTreeFrom(this, bundleTree);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject bundleAtMessageParts (
 		final AvailObject message,
 		final AvailObject parts)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectBundleAtMessageParts(
 			this,
 			message,
 			parts);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject caller ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCaller(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void caller (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectCaller(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean canComputeHashOfType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCanComputeHashOfType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int capacity ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCapacity(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void cleanUpAfterCompile ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectCleanUpAfterCompile(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void clearModule ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectClearModule(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void clearValue ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectClearValue(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject closure ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectClosure(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void closure (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectClosure(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject closureType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectClosureType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void closureType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectClosureType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject code ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCode(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void code (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectCode(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int codePoint ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCodePoint(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void codePoint (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectCodePoint(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithStartingAt(
 			this,
 			startIndex1,
@@ -674,14 +740,15 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithAnyTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aTuple,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithAnyTupleStartingAt(
 			this,
 			startIndex1,
@@ -690,14 +757,15 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithByteStringStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aByteString,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithByteStringStartingAt(
 			this,
 			startIndex1,
@@ -706,14 +774,15 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithByteTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aByteTuple,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithByteTupleStartingAt(
 			this,
 			startIndex1,
@@ -722,14 +791,15 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithNybbleTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithNybbleTupleStartingAt(
 			this,
 			startIndex1,
@@ -738,14 +808,15 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithObjectTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anObjectTuple,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithObjectTupleStartingAt(
 			this,
 			startIndex1,
@@ -754,14 +825,15 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean compareFromToWithTwoByteStringStartingAt (
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aTwoByteString,
 		final int startIndex2)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCompareFromToWithTwoByteStringStartingAt(
 			this,
 			startIndex1,
@@ -770,168 +842,188 @@ implements Iterable<AvailObject>
 			startIndex2);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject complete ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectComplete(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void complete (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectComplete(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int computeHashFromTo (
 		final int start,
 		final int end)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectComputeHashFromTo(
 			this,
 			start,
 			end);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject computeReturnTypeFromArgumentTypesInterpreter (
 		final List<AvailObject> argTypes,
 		final AvailInterpreter anAvailInterpreter)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectComputeReturnTypeFromArgumentTypesInterpreter(
 			this,
 			argTypes,
 			anAvailInterpreter);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject concatenateTuplesCanDestroy (
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectConcatenateTuplesCanDestroy(this, canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject constantBindings ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectConstantBindings(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void constantBindings (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectConstantBindings(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean containsBlock (
 		final AvailObject aClosure)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectContainsBlock(this, aClosure);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject contentType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectContentType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void contentType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectContentType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject contingentImpSets ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectContingentImpSets(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void contingentImpSets (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectContingentImpSets(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject continuation ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectContinuation(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void continuation (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectContinuation(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject copyAsMutableContinuation ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCopyAsMutableContinuation(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject copyAsMutableObjectTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCopyAsMutableObjectTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject copyAsMutableSpliceTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCopyAsMutableSpliceTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject copyMutable ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCopyMutable(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void copyToRestrictedTo (
 		final AvailObject filteredBundleTree,
 		final AvailObject visibleNames)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectCopyToRestrictedTo(
 			this,
 			filteredBundleTree,
 			visibleNames);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject copyTupleFromToCanDestroy (
 		final int start,
 		final int end,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCopyTupleFromToCanDestroy(
 			this,
 			start,
@@ -939,542 +1031,609 @@ implements Iterable<AvailObject>
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean couldEverBeInvokedWith (
 		final ArrayList<AvailObject> argTypes)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCouldEverBeInvokedWith(this, argTypes);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject createTestingTreeWithPositiveMatchesRemainingPossibilities (
 		final AvailObject positiveTuple,
 		final AvailObject possibilities)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities(
 			this,
 			positiveTuple,
 			possibilities);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject dataAtIndex (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDataAtIndex(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void dataAtIndexPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectDataAtIndexPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject defaultType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDefaultType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void defaultType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectDefaultType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject dependentChunks ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDependentChunks(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void dependentChunks (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectDependentChunks(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int depth ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDepth(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void depth (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectDepth(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void displayTestingTree ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectDisplayTestingTree(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject divideCanDestroy (
 		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDivideCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject divideIntoInfinityCanDestroy (
 		final AvailObject anInfinity,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDivideIntoInfinityCanDestroy(
 			this,
 			anInfinity,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject divideIntoIntegerCanDestroy (
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectDivideIntoIntegerCanDestroy(
 			this,
 			anInteger,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject elementAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectElementAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void elementAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectElementAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int endOfZone (
 		final int zone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEndOfZone(this, zone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int endSubtupleIndexInZone (
 		final int zone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEndSubtupleIndexInZone(this, zone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void ensureMetacovariant ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectEnsureMetacovariant(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject ensureMutable ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEnsureMutable(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equals (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEquals(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsAnyTuple (
 		final AvailObject anotherTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsAnyTuple(this, anotherTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsBlank ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsBlank(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsByteString (
 		final AvailObject aByteString)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsByteString(this, aByteString);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsByteTuple (
 		final AvailObject aByteTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsByteTuple(this, aByteTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsCharacterWithCodePoint (
 		final int otherCodePoint)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsCharacterWithCodePoint(this, otherCodePoint);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsClosure (
 		final AvailObject aClosure)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsClosure(this, aClosure);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsClosureType (
 		final AvailObject aClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsClosureType(this, aClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsCompiledCode (
 		final AvailObject aCompiledCode)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsCompiledCode(this, aCompiledCode);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsContainer (
 		final AvailObject aContainer)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsContainer(this, aContainer);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsContainerType (
 		final AvailObject aContainerType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsContainerType(this, aContainerType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsContinuation (
 		final AvailObject aContinuation)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsContinuation(this, aContinuation);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsContinuationType (
 		final AvailObject aType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsContinuationType(this, aType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsDouble (
 		final AvailObject aDoubleObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsDouble(this, aDoubleObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsFalse ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsFalse(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsFloat (
 		final AvailObject aFloatObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsFloat(this, aFloatObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsGeneralizedClosureType (
 		final AvailObject aType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsGeneralizedClosureType(this, aType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsInfinity (
 		final AvailObject anInfinity)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsInfinity(this, anInfinity);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsInteger (
 		final AvailObject anAvailInteger)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsInteger(this, anAvailInteger);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsIntegerRangeType(this, anIntegerRangeType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsList (
 		final AvailObject aList)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsList(this, aList);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsListType (
 		final AvailObject aListType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsListType(this, aListType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsMap (
 		final AvailObject aMap)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsMap(this, aMap);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsMapType (
 		final AvailObject aMapType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsMapType(this, aMapType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsNybbleTuple (
 		final AvailObject aNybbleTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsNybbleTuple(this, aNybbleTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsObject (
 		final AvailObject anObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsObject(this, anObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsObjectTuple (
 		final AvailObject anObjectTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsObjectTuple(this, anObjectTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsPrimitiveType (
 		final AvailObject aPrimitiveType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsPrimitiveType(this, aPrimitiveType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsSet (
 		final AvailObject aSet)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsSet(this, aSet);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsSetType (
 		final AvailObject aSetType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsSetType(this, aSetType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsTrue ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsTrue(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsTupleType (
 		final AvailObject aTupleType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsTupleType(this, aTupleType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsTwoByteString (
 		final AvailObject aTwoByteString)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsTwoByteString(this, aTwoByteString);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsVoid ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsVoid(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean equalsVoidOrBlank ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectEqualsVoidOrBlank(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void evictedByGarbageCollector ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectEvictedByGarbageCollector(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject exactType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExactType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int executionMode ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExecutionMode(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void executionMode (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectExecutionMode(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int executionState ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExecutionState(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void executionState (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectExecutionState(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject expand ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExpand(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean extractBoolean ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractBoolean(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short extractByte ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractByte(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public double extractDouble ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractDouble(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public float extractFloat ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractFloat(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int extractInt ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractInt(this);
 	}
 
@@ -1490,97 +1649,109 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectExtractLong(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public byte extractNybble ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractNybble(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public byte extractNybbleFromTupleAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectExtractNybbleFromTupleAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject fieldMap ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectFieldMap(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void fieldMap (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectFieldMap(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject fieldTypeMap ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectFieldTypeMap(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void fieldTypeMap (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectFieldTypeMap(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public List<AvailObject> filterByTypes (
 		final List<AvailObject> argTypes)
 		{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectFilterByTypes(this, argTypes);
 		}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject filteredBundleTree ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectFilteredBundleTree(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void filteredBundleTree (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectFilteredBundleTree(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject firstTupleType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectFirstTupleType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void firstTupleType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectFirstTupleType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject forZoneSetSubtupleStartSubtupleIndexEndOfZone (
 		final int zone,
 		final AvailObject newSubtuple,
 		final int startSubtupleIndex,
 		final int endOfZone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone(
 			this,
 			zone,
@@ -1589,366 +1760,413 @@ implements Iterable<AvailObject>
 			endOfZone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int getInteger ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectGetInteger(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject getValue ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectGetValue(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean greaterThanInteger (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectGreaterThanInteger(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean greaterThanSignedInfinity (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectGreaterThanSignedInfinity(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean hasElement (
 		final AvailObject elementObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHasElement(this, elementObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hashFromTo (
 		final int startIndex,
 		final int endIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHashFromTo(
 			this,
 			startIndex,
 			endIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hashOfType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHashOfType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hashOrZero ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHashOrZero(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void hashOrZero (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectHashOrZero(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean hasKey (
 		final AvailObject keyObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHasKey(this, keyObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean hasObjectInstance (
 		final AvailObject potentialInstance)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHasObjectInstance(this, potentialInstance);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean hasRestrictions ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHasRestrictions(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hiLevelTwoChunkLowOffset ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHiLevelTwoChunkLowOffset(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void hiLevelTwoChunkLowOffset (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectHiLevelTwoChunkLowOffset(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hiNumLocalsLowNumArgs ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHiNumLocalsLowNumArgs(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void hiNumLocalsLowNumArgs (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectHiNumLocalsLowNumArgs(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hiPrimitiveLowNumArgsAndLocalsAndStack ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHiPrimitiveLowNumArgsAndLocalsAndStack(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void hiPrimitiveLowNumArgsAndLocalsAndStack (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectHiPrimitiveLowNumArgsAndLocalsAndStack(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int hiStartingChunkIndexLowNumOuters ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectHiStartingChunkIndexLowNumOuters(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void hiStartingChunkIndexLowNumOuters (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectHiStartingChunkIndexLowNumOuters(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public ArrayList<AvailObject> implementationsAtOrBelow (
 		final ArrayList<AvailObject> argTypes)
 		{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectImplementationsAtOrBelow(this, argTypes);
 		}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject implementationsTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectImplementationsTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void implementationsTuple (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectImplementationsTuple(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject includeBundleAtMessageParts (
 		final AvailObject message,
 		final AvailObject parts)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIncludeBundleAtMessageParts(
 			this,
 			message,
 			parts);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean includes (
 		final AvailObject imp)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIncludes(this, imp);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int inclusiveFlags ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectInclusiveFlags(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void inclusiveFlags (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectInclusiveFlags(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject incomplete ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIncomplete(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void incomplete (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectIncomplete(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int index ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIndex(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void index (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectIndex(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject innerType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectInnerType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void innerType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectInnerType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject instance ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectInstance(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void instance (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectInstance(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int internalHash ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectInternalHash(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void internalHash (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectInternalHash(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int interruptRequestFlag ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectInterruptRequestFlag(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void interruptRequestFlag (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectInterruptRequestFlag(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int invocationCount ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectInvocationCount(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void invocationCount (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectInvocationCount(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isAbstract ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsAbstract(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isBetterRepresentationThan (
 		final AvailObject anotherObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsBetterRepresentationThan(this, anotherObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isBetterRepresentationThanTupleType (
 		final AvailObject aTupleType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsBetterRepresentationThanTupleType(this, aTupleType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isBinSubsetOf (
 		final AvailObject potentialSuperset)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsBinSubsetOf(this, potentialSuperset);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isBoolean ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsBoolean(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isByte ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsByte(this);
 	}
 
@@ -1964,160 +2182,182 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectIsByteTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isCharacter ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsCharacter(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isClosure ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsClosure(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isCyclicType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsCyclicType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isExtendedInteger ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsExtendedInteger(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isFinite ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsFinite(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isForward ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsForward(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isHashAvailable ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsHashAvailable(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isImplementation ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsImplementation(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isInstanceOfSubtypeOf (
 		final AvailObject aType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsInstanceOfSubtypeOf(this, aType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isIntegerRangeType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsIntegerRangeType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isList ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsList(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isListType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsListType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isMap ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsMap(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isMapType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsMapType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isNybble ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsNybble(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isPositive ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsPositive(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSaved ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSaved(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void isSaved (
 		final boolean aBoolean)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectIsSaved(this, aBoolean);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSet ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSet(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSetType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSetType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSplice ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSplice(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSubsetOf (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSubsetOf(this, another);
 	}
 
@@ -2133,182 +2373,205 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectIsString(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSubtypeOf (
 		final AvailObject aType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSubtypeOf(this, aType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfClosureType (
 		final AvailObject aClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfClosureType(this, aClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfContainerType (
 		final AvailObject aContainerType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfContainerType(this, aContainerType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfContinuationType (
 		final AvailObject aContinuationType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfContinuationType(this, aContinuationType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfCyclicType (
 		final AvailObject aCyclicType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfCyclicType(this, aCyclicType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfGeneralizedClosureType (
 		final AvailObject aGeneralizedClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfGeneralizedClosureType(this, aGeneralizedClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfIntegerRangeType(this, anIntegerRangeType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfListType (
 		final AvailObject aListType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfListType(this, aListType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfMapType (
 		final AvailObject aMapType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfMapType(this, aMapType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfObjectMeta (
 		final AvailObject anObjectMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfObjectMeta(this, anObjectMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfObjectMetaMeta (
 		final AvailObject anObjectMetaMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfObjectMetaMeta(this, anObjectMetaMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfObjectType (
 		final AvailObject anObjectType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfObjectType(this, anObjectType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfPrimitiveType (
 		final AvailObject aPrimitiveType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfPrimitiveType(this, aPrimitiveType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfSetType (
 		final AvailObject aSetType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfSetType(this, aSetType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfTerminates ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfTerminates(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfTupleType (
 		final AvailObject aTupleType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfTupleType(this, aTupleType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isSupertypeOfVoid ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsSupertypeOfVoid(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isTupleType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsTupleType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isValid ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsValid(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void isValid (
 		final boolean aBoolean)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectIsValid(this, aBoolean);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean isValidForArgumentTypesInterpreter (
 		final List<AvailObject> argTypes,
 		final AvailInterpreter interpreter)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectIsValidForArgumentTypesInterpreter(
 			this,
 			argTypes,
@@ -2329,264 +2592,294 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectIterator(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject keyAtIndex (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectKeyAtIndex(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void keyAtIndexPut (
 		final int index,
 		final AvailObject keyObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectKeyAtIndexPut(
 			this,
 			index,
 			keyObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public List<AvailObject> keysAsArray ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectKeysAsArray(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject keysAsSet ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectKeysAsSet(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject keyType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectKeyType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void keyType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectKeyType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean lessOrEqual (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLessOrEqual(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean lessThan (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLessThan(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int levelTwoChunkIndex ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLevelTwoChunkIndex(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void levelTwoChunkIndexOffset (
 		final int index,
 		final int offset)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectLevelTwoChunkIndexOffset(
 			this,
 			index,
 			offset);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int levelTwoOffset ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLevelTwoOffset(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject literalAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLiteralAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void literalAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectLiteralAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject localOrArgOrStackAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLocalOrArgOrStackAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void localOrArgOrStackAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectLocalOrArgOrStackAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject localTypeAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLocalTypeAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lookupByTypesFromArray (
 		final List<AvailObject> argumentTypeArray)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLookupByTypesFromArray(this, argumentTypeArray);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lookupByTypesFromContinuationStackp (
 		final AvailObject continuation,
 		final int stackp)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLookupByTypesFromContinuationStackp(
 			this,
 			continuation,
 			stackp);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lookupByTypesFromTuple (
 		final AvailObject argumentTypeTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLookupByTypesFromTuple(this, argumentTypeTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lookupByValuesFromArray (
 		final List<AvailObject> argumentArray)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLookupByValuesFromArray(this, argumentArray);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lookupByValuesFromContinuationStackp (
 		final AvailObject continuation,
 		final int stackp)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLookupByValuesFromContinuationStackp(
 			this,
 			continuation,
 			stackp);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lookupByValuesFromTuple (
 		final AvailObject argumentTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLookupByValuesFromTuple(this, argumentTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject lowerBound ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLowerBound(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void lowerBound (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectLowerBound(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean lowerInclusive ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectLowerInclusive(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void lowerInclusiveUpperInclusive (
 		final boolean lowInc,
 		final boolean highInc)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectLowerInclusiveUpperInclusive(
 			this,
 			lowInc,
 			highInc);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject makeImmutable ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMakeImmutable(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void makeSubobjectsImmutable ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMakeSubobjectsImmutable(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject mapAt (
 		final AvailObject keyObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMapAt(this, keyObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject mapAtPuttingCanDestroy (
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMapAtPuttingCanDestroy(
 			this,
 			keyObject,
@@ -2594,1395 +2887,1561 @@ implements Iterable<AvailObject>
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int mapSize ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMapSize(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void mapSize (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMapSize(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject mapWithoutKeyCanDestroy (
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMapWithoutKeyCanDestroy(
 			this,
 			keyObject,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short maxStackDepth ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMaxStackDepth(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject message ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMessage(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void message (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMessage(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject messageParts ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMessageParts(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void messageParts (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMessageParts(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject methods ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMethods(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void methods (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMethods(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject minusCanDestroy (
 		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMinusCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void moveToHead ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMoveToHead(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject multiplyByInfinityCanDestroy (
 		final AvailObject anInfinity,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMultiplyByInfinityCanDestroy(
 			this,
 			anInfinity,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject multiplyByIntegerCanDestroy (
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMultiplyByIntegerCanDestroy(
 			this,
 			anInteger,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject myObjectMeta ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMyObjectMeta(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void myObjectMeta (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMyObjectMeta(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject myObjectType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMyObjectType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void myObjectType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMyObjectType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject myRestrictions ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMyRestrictions(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void myRestrictions (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMyRestrictions(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject myType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectMyType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void myType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectMyType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject name ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectName(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void name (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectName(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject names ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNames(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void names (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNames(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean nameVisible (
 		final AvailObject trueName)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNameVisible(this, trueName);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void necessaryImplementationSetChanged (
 		final AvailObject anImplementationSet)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNecessaryImplementationSetChanged(this, anImplementationSet);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject newNames ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNewNames(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void newNames (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNewNames(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject next ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNext(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void next (
 		final AvailObject nextChunk)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNext(this, nextChunk);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int nextIndex ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNextIndex(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void nextIndex (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNextIndex(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short numArgs ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumArgs(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short numArgsAndLocalsAndStack ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumArgsAndLocalsAndStack(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numberOfZones ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumberOfZones(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numBlanks ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumBlanks(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void numBlanks (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNumBlanks(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numFloats ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumFloats(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void numFloats (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNumFloats(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numIntegers ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumIntegers(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void numIntegers (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNumIntegers(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short numLiterals ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumLiterals(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short numLocals ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumLocals(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numLocalsOrArgsOrStack ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumLocalsOrArgsOrStack(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numObjects ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumObjects(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void numObjects (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNumObjects(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short numOuters ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumOuters(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int numOuterVars ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNumOuterVars(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject nybbles ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectNybbles(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void nybbles (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectNybbles(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean optionallyNilOuterVar (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectOptionallyNilOuterVar(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject outerTypeAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectOuterTypeAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void outerTypesLocalTypes (
 		final AvailObject tupleOfOuterTypes,
 		final AvailObject tupleOfLocalContainerTypes)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectOuterTypesLocalTypes(
 			this,
 			tupleOfOuterTypes,
 			tupleOfLocalContainerTypes);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject outerVarAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectOuterVarAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void outerVarAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectOuterVarAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject pad ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPad(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void pad (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPad(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject parent ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectParent(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void parent (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectParent(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int pc ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPc(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void pc (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPc(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject plusCanDestroy (
 		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPlusCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int populateTupleStartingAt (
 		final AvailObject mutableTuple,
 		final int startingIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPopulateTupleStartingAt(
 			this,
 			mutableTuple,
 			startingIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void postFault ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPostFault(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject previous ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrevious(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void previous (
 		final AvailObject previousChunk)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPrevious(this, previousChunk);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int previousIndex ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPreviousIndex(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void previousIndex (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPreviousIndex(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short primitiveNumber ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrimitiveNumber(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int priority ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPriority(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void priority (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPriority(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateAddElement (
 		final AvailObject element)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateAddElement(this, element);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateExcludeElement (
 		final AvailObject element)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateExcludeElement(this, element);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateExcludeElementKnownIndex (
 		final AvailObject element,
 		final int knownIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateExcludeElementKnownIndex(
 			this,
 			element,
 			knownIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateExcludeKey (
 		final AvailObject keyObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateExcludeKey(this, keyObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateMapAtPut (
 		final AvailObject keyObject,
 		final AvailObject valueObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateMapAtPut(
 			this,
 			keyObject,
 			valueObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateNames ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateNames(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void privateNames (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPrivateNames(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject privateTestingTree ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectPrivateTestingTree(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void privateTestingTree (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectPrivateTestingTree(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject processGlobals ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectProcessGlobals(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void processGlobals (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectProcessGlobals(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short rawByteAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawByteAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawByteAtPut (
 		final int index,
 		final short anInteger)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawByteAtPut(
 			this,
 			index,
 			anInteger);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short rawByteForCharacterAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawByteForCharacterAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawByteForCharacterAtPut (
 		final int index,
 		final short anInteger)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawByteForCharacterAtPut(
 			this,
 			index,
 			anInteger);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public byte rawNybbleAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawNybbleAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawNybbleAtPut (
 		final int index,
 		final byte aNybble)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawNybbleAtPut(
 			this,
 			index,
 			aNybble);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int rawQuad1 ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawQuad1(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawQuad1 (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawQuad1(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int rawQuad2 ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawQuad2(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawQuad2 (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawQuad2(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int rawQuadAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawQuadAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawQuadAtPut (
 		final int index,
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawQuadAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public short rawShortForCharacterAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawShortForCharacterAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawShortForCharacterAtPut (
 		final int index,
 		final short anInteger)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawShortForCharacterAtPut(
 			this,
 			index,
 			anInteger);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int rawSignedIntegerAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawSignedIntegerAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawSignedIntegerAtPut (
 		final int index,
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawSignedIntegerAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public long rawUnsignedIntegerAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRawUnsignedIntegerAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rawUnsignedIntegerAtPut (
 		final int index,
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRawUnsignedIntegerAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void readBarrierFault ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectReadBarrierFault(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void releaseVariableOrMakeContentsImmutable ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectReleaseVariableOrMakeContentsImmutable(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void removeDependentChunkId (
 		final int aChunkIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRemoveDependentChunkId(this, aChunkIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void removeFrom (
 		final AvailInterpreter anInterpreter)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRemoveFrom(this, anInterpreter);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void removeFromQueue ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRemoveFromQueue(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void removeImplementation (
 		final AvailObject implementation)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRemoveImplementation(this, implementation);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean removeMessageParts (
 		final AvailObject message,
 		final AvailObject parts)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRemoveMessageParts(
 			this,
 			message,
 			parts);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void removeRestrictions ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRemoveRestrictions(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void removeRestrictions (
 		final AvailObject obsoleteRestrictions)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRemoveRestrictions(this, obsoleteRestrictions);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject requiresBlock ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRequiresBlock(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void requiresBlock (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRequiresBlock(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void resolvedForwardWithName (
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectResolvedForwardWithName(
 			this,
 			forwardImplementation,
 			methodName);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject restrictions ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRestrictions(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void restrictions (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRestrictions(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject returnsBlock ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectReturnsBlock(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void returnsBlock (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectReturnsBlock(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject returnType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectReturnType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void returnType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectReturnType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject rootBin ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectRootBin(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void rootBin (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectRootBin(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void scanSubobjects (
 		final AvailSubobjectVisitor visitor)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectScanSubobjects(this, visitor);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject secondTupleType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSecondTupleType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void secondTupleType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSecondTupleType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject setIntersectionCanDestroy (
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSetIntersectionCanDestroy(
 			this,
 			otherSet,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject setMinusCanDestroy (
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSetMinusCanDestroy(
 			this,
 			otherSet,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int setSize ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSetSize(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void setSize (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSetSize(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void setSubtupleForZoneTo (
 		final int zoneIndex,
 		final AvailObject newTuple)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSetSubtupleForZoneTo(
 			this,
 			zoneIndex,
 			newTuple);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject setUnionCanDestroy (
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSetUnionCanDestroy(
 			this,
 			otherSet,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void setValue (
 		final AvailObject newValue)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSetValue(this, newValue);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject setWithElementCanDestroy (
 		final AvailObject newElementObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSetWithElementCanDestroy(
 			this,
 			newElementObject,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject setWithoutElementCanDestroy (
 		final AvailObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSetWithoutElementCanDestroy(
 			this,
 			elementObjectToExclude,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject signature ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSignature(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void signature (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSignature(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void size (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSize(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int sizeOfZone (
 		final int zone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSizeOfZone(this, zone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject sizeRange ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSizeRange(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void sizeRange (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectSizeRange(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject stackAt (
 		final int slotIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectStackAt(this, slotIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void stackAtPut (
 		final int slotIndex,
 		final AvailObject anObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectStackAtPut(
 			this,
 			slotIndex,
 			anObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int stackp ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectStackp(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void stackp (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectStackp(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int startingChunkIndex ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectStartingChunkIndex(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void startingChunkIndex (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectStartingChunkIndex(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int startOfZone (
 		final int zone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectStartOfZone(this, zone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int startSubtupleIndexInZone (
 		final int zone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectStartSubtupleIndexInZone(this, zone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void step ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectStep(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject subtractFromInfinityCanDestroy (
 		final AvailObject anInfinity,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSubtractFromInfinityCanDestroy(
 			this,
 			anInfinity,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject subtractFromIntegerCanDestroy (
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSubtractFromIntegerCanDestroy(
 			this,
 			anInteger,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject subtupleForZone (
 		final int zone)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectSubtupleForZone(this, zone);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject target ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTarget(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void target (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectTarget(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject testingTree ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTestingTree(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject timesCanDestroy (
 		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTimesCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int translateToZone (
 		final int tupleIndex,
 		final int zoneIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTranslateToZone(
 			this,
 			tupleIndex,
 			zoneIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject traversed ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTraversed(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void trimExcessLongs ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectTrimExcessLongs(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject trueNamesForStringName (
 		final AvailObject stringName)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTrueNamesForStringName(this, stringName);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject truncateTo (
 		final int newTupleSize)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTruncateTo(this, newTupleSize);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject tuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void tuple (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectTuple(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject tupleAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTupleAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void tupleAtPut (
 		final int index,
 		final AvailObject aNybbleObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectTupleAtPut(
 			this,
 			index,
 			aNybbleObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject tupleAtPuttingCanDestroy (
 		final int index,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTupleAtPuttingCanDestroy(
 			this,
 			index,
@@ -3990,426 +4449,477 @@ implements Iterable<AvailObject>
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int tupleIntAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTupleIntAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int tupleSize ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTupleSize(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject tupleType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTupleType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void tupleType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectTupleType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject type ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void type (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeAtIndex (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeAtIndex(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean typeEquals (
 		final AvailObject aType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeEquals(this, aType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersection (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersection(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfClosureType (
 		final AvailObject aClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfClosureType(this, aClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfClosureTypeCanDestroy (
 		final AvailObject aClosureType,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfClosureTypeCanDestroy(
 			this,
 			aClosureType,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfContainerType (
 		final AvailObject aContainerType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfContainerType(this, aContainerType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfContinuationType (
 		final AvailObject aContinuationType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfContinuationType(this, aContinuationType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfCyclicType (
 		final AvailObject aCyclicType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfCyclicType(this, aCyclicType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfGeneralizedClosureType (
 		final AvailObject aGeneralizedClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfGeneralizedClosureType(this, aGeneralizedClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfGeneralizedClosureTypeCanDestroy (
 		final AvailObject aGeneralizedClosureType,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy(
 			this,
 			aGeneralizedClosureType,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfIntegerRangeType(this, anIntegerRangeType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfListType (
 		final AvailObject aListType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfListType(this, aListType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfMapType (
 		final AvailObject aMapType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfMapType(this, aMapType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfMeta (
 		final AvailObject someMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfMeta(this, someMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfObjectMeta (
 		final AvailObject anObjectMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfObjectMeta(this, anObjectMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfObjectMetaMeta (
 		final AvailObject anObjectMetaMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfObjectMetaMeta(this, anObjectMetaMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfObjectType (
 		final AvailObject anObjectType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfObjectType(this, anObjectType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfSetType (
 		final AvailObject aSetType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfSetType(this, aSetType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeIntersectionOfTupleType (
 		final AvailObject aTupleType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeIntersectionOfTupleType(this, aTupleType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void typeTuple (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectTypeTuple(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnion (
 		final AvailObject another)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnion(this, another);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfClosureType (
 		final AvailObject aClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfClosureType(this, aClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfClosureTypeCanDestroy (
 		final AvailObject aClosureType,
 		final boolean canDestroy)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfClosureTypeCanDestroy(
 			this,
 			aClosureType,
 			canDestroy);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfContainerType (
 		final AvailObject aContainerType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfContainerType(this, aContainerType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfContinuationType (
 		final AvailObject aContinuationType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfContinuationType(this, aContinuationType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfCyclicType (
 		final AvailObject aCyclicType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfCyclicType(this, aCyclicType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfGeneralizedClosureType (
 		final AvailObject aGeneralizedClosureType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfGeneralizedClosureType(this, aGeneralizedClosureType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfIntegerRangeType(this, anIntegerRangeType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfListType (
 		final AvailObject aListType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfListType(this, aListType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfMapType (
 		final AvailObject aMapType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfMapType(this, aMapType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfObjectMeta (
 		final AvailObject anObjectMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfObjectMeta(this, anObjectMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfObjectMetaMeta (
 		final AvailObject anObjectMetaMeta)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfObjectMetaMeta(this, anObjectMetaMeta);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfObjectType (
 		final AvailObject anObjectType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfObjectType(this, anObjectType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfSetType (
 		final AvailObject aSetType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfSetType(this, aSetType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject typeUnionOfTupleType (
 		final AvailObject aTupleType)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectTypeUnionOfTupleType(this, aTupleType);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject unclassified ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectUnclassified(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void unclassified (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectUnclassified(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject unionOfTypesAtThrough (
 		final int startIndex,
 		final int endIndex)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectUnionOfTypesAtThrough(
 			this,
 			startIndex,
 			endIndex);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int untranslatedDataAt (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectUntranslatedDataAt(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void untranslatedDataAtPut (
 		final int index,
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectUntranslatedDataAtPut(
 			this,
 			index,
 			value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject upperBound ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectUpperBound(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void upperBound (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectUpperBound(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public boolean upperInclusive ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectUpperInclusive(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject validateArgumentTypesInterpreterIfFail (
 		final List<AvailObject> argTypes,
 		final AvailInterpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectValidateArgumentTypesInterpreterIfFail(
 			this,
 			argTypes,
@@ -4417,165 +4927,186 @@ implements Iterable<AvailObject>
 			failBlock);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int validity ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectValidity(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void validity (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectValidity(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject value ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectValue(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void value (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectValue(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject valueAtIndex (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectValueAtIndex(this, index);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void valueAtIndexPut (
 		final int index,
 		final AvailObject valueObject)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectValueAtIndexPut(
 			this,
 			index,
 			valueObject);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject valuesAsTuple ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectValuesAsTuple(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject valueType ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectValueType(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void valueType (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectValueType(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject variableBindings ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectVariableBindings(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void variableBindings (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectVariableBindings(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject vectors ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectVectors(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void vectors (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectVectors(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void verify ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectVerify(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject visibleNames ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectVisibleNames(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void visibleNames (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectVisibleNames(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int whichOne ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectWhichOne(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void whichOne (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectWhichOne(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject wordcodes ()
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectWordcodes(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void wordcodes (
 		final AvailObject value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectWordcodes(this, value);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int zoneForIndex (
 		final int index)
 	{
-		//  GENERATED for descriptor dispatch
-
 		return descriptor().ObjectZoneForIndex(this, index);
 	}
 
@@ -4914,11 +5445,12 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectHash(this);
 	}
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public void hash (
 		final int value)
 	{
-		//  GENERATED for descriptor dispatch
-
 		descriptor().ObjectHash(this, value);
 	}
 

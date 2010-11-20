@@ -45,20 +45,24 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectClosureType (
+	/**
+	 * Setter for field !C!losureType.
+	 */
+	@Override
+	public void ObjectClosureType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectClosureType (
+	/**
+	 * Getter for field !C!losureType.
+	 */
+	@Override
+	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -66,6 +70,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -83,14 +88,16 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsContinuationType(object);
 	}
 
-	boolean ObjectEqualsContinuationType (
+	@Override
+	public boolean ObjectEqualsContinuationType (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -103,7 +110,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return aType.closureType().equals(object.closureType());
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -111,7 +119,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return Types.continuationType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -119,7 +128,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return ((object.closureType().hash() * 11) ^ 0x3E20409);
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -130,7 +140,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return object.closureType().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -142,7 +153,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -151,7 +163,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfContinuationType(object);
 	}
 
-	boolean ObjectIsSupertypeOfContinuationType (
+	@Override
+	public boolean ObjectIsSupertypeOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
@@ -181,7 +194,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -198,7 +212,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfContinuationType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfContinuationType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{
@@ -226,7 +241,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return ContinuationTypeDescriptor.continuationTypeForClosureType(intersection);
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -243,7 +259,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfContinuationType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfContinuationType (
+	@Override
+	public AvailObject ObjectTypeUnionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
 	{

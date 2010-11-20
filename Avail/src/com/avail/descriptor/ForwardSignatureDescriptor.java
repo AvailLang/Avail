@@ -44,7 +44,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	// accessing
 
-	void ObjectBodySignature (
+	@Override
+	public void ObjectBodySignature (
 			final AvailObject object, 
 			final AvailObject signature)
 	{
@@ -52,7 +53,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		object.ensureMetacovariant();
 	}
 
-	AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	@Override
+	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter)
@@ -66,7 +68,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		return object.bodySignature().returnType();
 	}
 
-	boolean ObjectIsValidForArgumentTypesInterpreter (
+	@Override
+	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter interpreter)
@@ -80,7 +83,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		return true;
 	}
 
-	AvailObject ObjectBodySignature (
+	@Override
+	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
 		return object.signature();
@@ -90,20 +94,24 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	// GENERATED accessors
 
-	void ObjectSignature (
+	/**
+	 * Setter for field !S!ignature.
+	 */
+	@Override
+	public void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectSignature (
+	/**
+	 * Getter for field !S!ignature.
+	 */
+	@Override
+	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -111,7 +119,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	// operations
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -119,7 +128,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		return Types.forwardSignature.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -128,7 +138,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		return hash;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -140,7 +151,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	// testing
 
-	boolean ObjectIsForward (
+	@Override
+	public boolean ObjectIsForward (
 			final AvailObject object)
 	{
 		return true;
@@ -150,7 +162,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	// validation
 
-	void ObjectEnsureMetacovariant (
+	@Override
+	public void ObjectEnsureMetacovariant (
 			final AvailObject object)
 	{
 		//  Make sure my requires clauses and returns clauses are expecting the

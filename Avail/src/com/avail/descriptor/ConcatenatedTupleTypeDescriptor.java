@@ -51,37 +51,45 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectFirstTupleType (
+	/**
+	 * Setter for field !F!irstTupleType.
+	 */
+	@Override
+	public void ObjectFirstTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectSecondTupleType (
+	/**
+	 * Setter for field !S!econdTupleType.
+	 */
+	@Override
+	public void ObjectSecondTupleType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	AvailObject ObjectFirstTupleType (
+	/**
+	 * Getter for field !F!irstTupleType.
+	 */
+	@Override
+	public AvailObject ObjectFirstTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	AvailObject ObjectSecondTupleType (
+	/**
+	 * Getter for field !S!econdTupleType.
+	 */
+	@Override
+	public AvailObject ObjectSecondTupleType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -89,14 +97,16 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsTupleType(object);
 	}
 
-	boolean ObjectEqualsTupleType (
+	@Override
+	public boolean ObjectEqualsTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -117,7 +127,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return object.typeTuple().equals(aTupleType.typeTuple());
 	}
 
-	boolean ObjectIsBetterRepresentationThan (
+	@Override
+	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
 	{
@@ -128,7 +139,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	boolean ObjectIsBetterRepresentationThanTupleType (
+	@Override
+	public boolean ObjectIsBetterRepresentationThanTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -139,7 +151,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -147,7 +160,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return Types.tupleType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
@@ -158,7 +172,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return object.hash();
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -169,7 +184,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -181,7 +197,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	// operations-tuple types
 
-	AvailObject ObjectTypeAtIndex (
+	@Override
+	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
 	{
@@ -227,7 +244,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return unionType.typeUnion(object.secondTupleType().unionOfTypesAtThrough(startIndex, endIndex));
 	}
 
-	AvailObject ObjectUnionOfTypesAtThrough (
+	@Override
+	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
 			final int endIndex)
@@ -262,7 +280,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return unionType;
 	}
 
-	void ObjectBecomeRealTupleType (
+	@Override
+	public void ObjectBecomeRealTupleType (
 			final AvailObject object)
 	{
 		//  Expand me into an actual TupleTypeDescriptor, converting my storage into
@@ -315,7 +334,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		object.becomeIndirectionTo(newObject);
 	}
 
-	AvailObject ObjectDefaultType (
+	@Override
+	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
 		//  Answer the type that my last element must have, if any.  Do not call
@@ -346,7 +366,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return unionType;
 	}
 
-	AvailObject ObjectSizeRange (
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
 		//  Answer what range of tuple sizes my instances could be.  Note that this can not
@@ -362,7 +383,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			upper.isFinite());
 	}
 
-	AvailObject ObjectTypeTuple (
+	@Override
+	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
 		//  Since this is really tricky, just compute the TupleTypeDescriptor that I am
@@ -378,7 +400,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -387,7 +410,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfTupleType(object);
 	}
 
-	boolean ObjectIsSupertypeOfTupleType (
+	@Override
+	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -437,7 +461,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -454,7 +479,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfTupleType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -498,7 +524,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			newDefault.makeImmutable());
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -515,7 +542,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfTupleType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfTupleType (
+	@Override
+	public AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
 	{
@@ -555,7 +583,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			newDefault.makeImmutable());
 	}
 
-	boolean ObjectIsTupleType (
+	@Override
+	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
 		//  I am a tupleType, so answer true.

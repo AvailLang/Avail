@@ -49,6 +49,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	// gc helpers
 
+	@Override
 	public AvailObject saveOrForward ()
 	{
 		//  The object is in FromSpace.  If its slotsSize is >= 32768, it represents a forwarding
@@ -96,6 +97,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	// primitive accessing
 
+	@Override
 	public void becomeIndirectionTo (
 			final AvailObject anotherObject)
 	{
@@ -130,6 +132,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		}
 	}
 
+	@Override
 	public short byteSlotAtByteIndex (
 			final int index)
 	{
@@ -141,6 +144,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return (short)((_intSlots[(index / 4) - 1] >> ((index & 3) * 8)) & 0xFF);
 	}
 
+	@Override
 	public void byteSlotAtByteIndexPut (
 			final int index, 
 			final short aByte)
@@ -159,6 +163,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		_intSlots[(index / 4) - 1] = temp;
 	}
 
+	@Override
 	public void checkValidAddress ()
 	{
 		//  Check if my address is valid.  Fail if it's outside all the current pages.
@@ -166,6 +171,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return;
 	}
 
+	@Override
 	public void checkValidAddressWithByteIndex (
 			final int byteIndex)
 	{
@@ -174,11 +180,13 @@ public class AvailObjectUsingArrays extends AvailObject
 		return;
 	}
 
+	@Override
 	public Descriptor descriptor ()
 	{
 		return _descriptor;
 	}
 
+	@Override
 	public void descriptor (
 			final Descriptor aDescriptor)
 	{
@@ -196,11 +204,13 @@ public class AvailObjectUsingArrays extends AvailObject
 		return this;
 	}
 
+	@Override
 	public short descriptorId ()
 	{
 		return _descriptor.id();
 	}
 
+	@Override
 	public void descriptorId (
 			final short anInteger)
 	{
@@ -208,6 +218,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		checkValidAddress();
 	}
 
+	@Override
 	public int integerSlotAtByteIndex (
 			final int index)
 	{
@@ -220,6 +231,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return _intSlots[(index / 4) - 1];
 	}
 
+	@Override
 	public void integerSlotAtByteIndexPut (
 			final int index, 
 			final int anInteger)
@@ -234,11 +246,13 @@ public class AvailObjectUsingArrays extends AvailObject
 		_intSlots[(index / 4) - 1] = anInteger;
 	}
 
+	@Override
 	public int integerSlotsCount ()
 	{
 		return _intSlots.length;
 	}
 
+	@Override
 	public AvailObject objectSlotAtByteIndex (
 			final int index)
 	{
@@ -253,6 +267,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return result;
 	}
 
+	@Override
 	public void objectSlotAtByteIndexPut (
 			final int index, 
 			final AvailObject anAvailObject)
@@ -266,11 +281,13 @@ public class AvailObjectUsingArrays extends AvailObject
 		_objectSlots[(index / -4) - 1] = anAvailObject;
 	}
 
+	@Override
 	public int objectSlotsCount ()
 	{
 		return _objectSlots.length;
 	}
 
+	@Override
 	public boolean sameAddressAs (
 			final AvailObject anotherObject)
 	{
@@ -281,6 +298,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return this == anotherObject;
 	}
 
+	@Override
 	public short shortSlotAtByteIndex (
 			final int index)
 	{
@@ -293,6 +311,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return (short)(_intSlots[(index / 4) - 1] >> ((index & 2) * 8) & 0xFFFF);
 	}
 
+	@Override
 	public void shortSlotAtByteIndexPut (
 			final int index, 
 			final short aShort)
@@ -311,6 +330,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		_intSlots[(index / 4) - 1] = temp;
 	}
 
+	@Override
 	public void truncateWithFillerForNewIntegerSlotsCount (
 			final int newIntegerSlotsCount)
 	{
@@ -337,6 +357,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		_intSlots = newIntSlots;
 	}
 
+	@Override
 	public void truncateWithFillerForNewObjectSlotsCount (
 			final int newObjectSlotsCount)
 	{
@@ -363,6 +384,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		_objectSlots = newObjectSlots;
 	}
 
+	@Override
 	public void verifyFromSpaceAddress ()
 	{
 		//  Check that my address is a valid pointer to FromSpace.
@@ -370,6 +392,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return;
 	}
 
+	@Override
 	public void verifyToSpaceAddress ()
 	{
 		//  Check that my address is a valid pointer to ToSpace.

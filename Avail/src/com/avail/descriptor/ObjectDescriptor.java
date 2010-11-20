@@ -46,20 +46,24 @@ public class ObjectDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectFieldMap (
+	/**
+	 * Setter for field !F!ieldMap.
+	 */
+	@Override
+	public void ObjectFieldMap (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectFieldMap (
+	/**
+	 * Getter for field !F!ieldMap.
+	 */
+	@Override
+	public AvailObject ObjectFieldMap (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -67,14 +71,16 @@ public class ObjectDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsObject(object);
 	}
 
-	boolean ObjectEqualsObject (
+	@Override
+	public boolean ObjectEqualsObject (
 			final AvailObject object, 
 			final AvailObject anObject)
 	{
@@ -85,7 +91,8 @@ public class ObjectDescriptor extends Descriptor
 		return object.fieldMap().equals(anObject.fieldMap());
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aTypeObject)
 	{
@@ -104,7 +111,8 @@ public class ObjectDescriptor extends Descriptor
 		return aTypeObject.hasObjectInstance(object);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -131,7 +139,8 @@ public class ObjectDescriptor extends Descriptor
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -139,7 +148,8 @@ public class ObjectDescriptor extends Descriptor
 		return ObjectDescriptor.computeHashFromFieldMapHash(object.fieldMap().hash());
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -150,7 +160,8 @@ public class ObjectDescriptor extends Descriptor
 		return object.fieldMap().isHashAvailable();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

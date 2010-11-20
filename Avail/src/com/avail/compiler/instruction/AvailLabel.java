@@ -40,6 +40,7 @@ public class AvailLabel extends AvailInstruction
 
 	// nybblecodes
 
+	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{

@@ -49,37 +49,45 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectContentType (
+	/**
+	 * Setter for field !C!ontentType.
+	 */
+	@Override
+	public void ObjectContentType (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	void ObjectSizeRange (
+	/**
+	 * Setter for field !S!izeRange.
+	 */
+	@Override
+	public void ObjectSizeRange (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	AvailObject ObjectContentType (
+	/**
+	 * Getter for field !C!ontentType.
+	 */
+	@Override
+	public AvailObject ObjectContentType (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
-	AvailObject ObjectSizeRange (
+	/**
+	 * Getter for field !S!izeRange.
+	 */
+	@Override
+	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -87,6 +95,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -113,14 +122,16 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsSetType(object);
 	}
 
-	boolean ObjectEqualsSetType (
+	@Override
+	public boolean ObjectEqualsSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -133,7 +144,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return (object.sizeRange().equals(aSetType.sizeRange()) && object.contentType().equals(aSetType.contentType()));
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -141,7 +153,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return Types.setType.object();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -150,7 +163,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return ((object.sizeRange().hash() * 11) + (object.contentType().hash() * 5));
 	}
 
-	boolean ObjectIsHashAvailable (
+	@Override
+	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -169,7 +183,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -181,7 +196,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -190,7 +206,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfSetType(object);
 	}
 
-	boolean ObjectIsSupertypeOfSetType (
+	@Override
+	public boolean ObjectIsSupertypeOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -200,7 +217,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return (aSetType.sizeRange().isSubtypeOf(object.sizeRange()) && aSetType.contentType().isSubtypeOf(object.contentType()));
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -217,7 +235,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfSetType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfSetType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -226,7 +245,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return SetTypeDescriptor.setTypeForSizesContentType(object.sizeRange().typeIntersection(aSetType.sizeRange()), object.contentType().typeIntersection(aSetType.contentType()));
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -247,7 +267,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfSetType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfSetType (
+	@Override
+	public AvailObject ObjectTypeUnionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
 	{
@@ -256,7 +277,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 		return SetTypeDescriptor.setTypeForSizesContentType(object.sizeRange().typeUnion(aSetType.sizeRange()), object.contentType().typeUnion(aSetType.contentType()));
 	}
 
-	boolean ObjectIsSetType (
+	@Override
+	public boolean ObjectIsSetType (
 			final AvailObject object)
 	{
 		return true;

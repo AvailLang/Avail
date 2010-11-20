@@ -55,6 +55,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 		_initializingExpression = expr;
 	}
 
+	@Override
 	public boolean isInitializing ()
 	{
 		return true;
@@ -64,6 +65,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 
 	// code generation
 
+	@Override
 	public void emitEffectOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -74,6 +76,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 		codeGenerator.emitSetLocalOrOuter(this);
 	}
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -89,6 +92,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 
 	// enumerating
 
+	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
@@ -103,6 +107,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)

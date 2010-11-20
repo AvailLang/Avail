@@ -219,13 +219,13 @@ extends Descriptor
 	}
 
 	@Override
-	int ObjectCodePoint (final @NotNull AvailObject object)
+	public int ObjectCodePoint (final @NotNull AvailObject object)
 	{
 		return object.integerSlotAtByteIndex(4);
 	}
 
 	@Override
-	void ObjectCodePoint (
+	public void ObjectCodePoint (
 		final @NotNull AvailObject object, 
 		final int value)
 	{
@@ -234,7 +234,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	boolean ObjectEquals (
+	public boolean ObjectEquals (
 		final @NotNull AvailObject object, 
 		final @NotNull AvailObject another)
 	{
@@ -243,7 +243,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	boolean ObjectEqualsCharacterWithCodePoint (
+	public boolean ObjectEqualsCharacterWithCodePoint (
 		final @NotNull AvailObject object, 
 		final int otherCodePoint)
 	{
@@ -252,14 +252,14 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	@NotNull AvailObject ObjectExactType (final @NotNull AvailObject object)
+	public @NotNull AvailObject ObjectExactType (final @NotNull AvailObject object)
 	{
 		return Types.character.object();
 	}
 
 	@Override
 	@ThreadSafe
-	int ObjectHash (final @NotNull AvailObject object)
+	public int ObjectHash (final @NotNull AvailObject object)
 	{
 		int codePoint = object.codePoint();
 		if (codePoint >= 0 && codePoint <= 255)
@@ -271,14 +271,14 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	boolean ObjectIsCharacter (final @NotNull AvailObject object)
+	public boolean ObjectIsCharacter (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
 	@ThreadSafe
-	AvailObject ObjectType (final @NotNull AvailObject object)
+	public AvailObject ObjectType (final @NotNull AvailObject object)
 	{
 		return Types.character.object();
 	}

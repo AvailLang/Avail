@@ -78,6 +78,7 @@ public class AvailToken
 
 	// java printing
 
+	@Override
 	public String toString ()
 	{
 		return _string;

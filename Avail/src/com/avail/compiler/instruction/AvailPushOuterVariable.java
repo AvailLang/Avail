@@ -44,6 +44,7 @@ public class AvailPushOuterVariable extends AvailPushVariable
 
 	// nybblecodes
 
+	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
@@ -66,6 +67,7 @@ public class AvailPushOuterVariable extends AvailPushVariable
 
 	// optimization
 
+	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData, 
 			final List<AvailVariableAccessNote> outerData, 
@@ -109,6 +111,7 @@ public class AvailPushOuterVariable extends AvailPushVariable
 
 	// testing
 
+	@Override
 	public boolean isOuterUse ()
 	{
 		return true;

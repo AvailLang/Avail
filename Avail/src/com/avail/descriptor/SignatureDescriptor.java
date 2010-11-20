@@ -45,7 +45,8 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	// accessing
 
-	AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	@Override
+	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter anAvailInterpreter)
@@ -57,7 +58,8 @@ public abstract class SignatureDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	boolean ObjectIsValidForArgumentTypesInterpreter (
+	@Override
+	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
 			final AvailInterpreter interpreter)
@@ -68,7 +70,8 @@ public abstract class SignatureDescriptor extends Descriptor
 		return false;
 	}
 
-	AvailObject ObjectBodySignature (
+	@Override
+	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
 		//  Answer a closureType whose argument types reflect the position in the
@@ -84,7 +87,8 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	// operations
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -93,7 +97,8 @@ public abstract class SignatureDescriptor extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
@@ -103,7 +108,8 @@ public abstract class SignatureDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
@@ -117,19 +123,22 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	// testing
 
-	boolean ObjectIsAbstract (
+	@Override
+	public boolean ObjectIsAbstract (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsForward (
+	@Override
+	public boolean ObjectIsForward (
 			final AvailObject object)
 	{
 		return false;
 	}
 
-	boolean ObjectIsImplementation (
+	@Override
+	public boolean ObjectIsImplementation (
 			final AvailObject object)
 	{
 		return false;
@@ -139,7 +148,8 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	// validation
 
-	void ObjectEnsureMetacovariant (
+	@Override
+	public void ObjectEnsureMetacovariant (
 			final AvailObject object)
 	{
 		//  Make sure my requires clauses and returns clauses are expecting the

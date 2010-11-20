@@ -96,6 +96,7 @@ public class AvailVariableUseNode extends AvailParseNode
 		_name = aToken;
 	}
 
+	@Override
 	public AvailObject type ()
 	{
 		return _associatedDeclaration.declaredType();
@@ -105,6 +106,7 @@ public class AvailVariableUseNode extends AvailParseNode
 
 	// code generation
 
+	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
@@ -115,6 +117,7 @@ public class AvailVariableUseNode extends AvailParseNode
 
 	// java printing
 
+	@Override
 	public void printOnIndent (
 			final StringBuilder aStream, 
 			final int indent)
@@ -126,6 +129,7 @@ public class AvailVariableUseNode extends AvailParseNode
 
 	// testing
 
+	@Override
 	public boolean isVariableUse ()
 	{
 		return true;
@@ -135,6 +139,7 @@ public class AvailVariableUseNode extends AvailParseNode
 
 	// validation
 
+	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent, 
 			final List<AvailBlockNode> outerBlocks, 

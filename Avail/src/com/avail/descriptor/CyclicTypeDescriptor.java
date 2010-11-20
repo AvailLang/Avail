@@ -45,37 +45,45 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	// GENERATED accessors
 
-	void ObjectHashOrZero (
+	/**
+	 * Setter for field !H!ashOrZero.
+	 */
+	@Override
+	public void ObjectHashOrZero (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	void ObjectName (
+	/**
+	 * Setter for field !N!ame.
+	 */
+	@Override
+	public void ObjectName (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	int ObjectHashOrZero (
+	/**
+	 * Getter for field !H!ashOrZero.
+	 */
+	@Override
+	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	AvailObject ObjectName (
+	/**
+	 * Getter for field !N!ame.
+	 */
+	@Override
+	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
@@ -83,6 +91,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -99,6 +108,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -123,7 +133,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	// operations
 
-	AvailObject ObjectExactType (
+	@Override
+	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
 		//  The neat thing about cyclic types is that they're their own types.  The
@@ -133,7 +144,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return object.makeImmutable();
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -147,7 +159,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return hash;
 	}
 
-	AvailObject ObjectType (
+	@Override
+	public AvailObject ObjectType (
 			final AvailObject object)
 	{
 		//  The neat thing about cyclic types is that they're their own types.  The
@@ -161,7 +174,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	// operations-types
 
-	boolean ObjectIsSubtypeOf (
+	@Override
+	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -170,7 +184,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return aType.isSupertypeOfCyclicType(object);
 	}
 
-	boolean ObjectIsSupertypeOfCyclicType (
+	@Override
+	public boolean ObjectIsSupertypeOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -182,7 +197,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return object.sameAddressAs(aCyclicType);
 	}
 
-	AvailObject ObjectTypeIntersection (
+	@Override
+	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -199,7 +215,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfCyclicType(object);
 	}
 
-	AvailObject ObjectTypeIntersectionOfCyclicType (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -212,7 +229,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return Types.terminatesType.object();
 	}
 
-	AvailObject ObjectTypeIntersectionOfMeta (
+	@Override
+	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
 	{
@@ -225,7 +243,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return Types.terminatesType.object();
 	}
 
-	AvailObject ObjectTypeUnion (
+	@Override
+	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
 	{
@@ -242,7 +261,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfCyclicType(object);
 	}
 
-	AvailObject ObjectTypeUnionOfCyclicType (
+	@Override
+	public AvailObject ObjectTypeUnionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
 	{
@@ -255,7 +275,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return Types.cyclicType.object();
 	}
 
-	boolean ObjectIsCyclicType (
+	@Override
+	public boolean ObjectIsCyclicType (
 			final AvailObject object)
 	{
 		return true;

@@ -38,6 +38,7 @@ public class AvailEndOfFileToken extends AvailToken
 
 	// accessing
 
+	@Override
 	public TokenType type ()
 	{
 		return TokenType.end;
@@ -47,6 +48,7 @@ public class AvailEndOfFileToken extends AvailToken
 
 	// java printing
 
+	@Override
 	public String toString ()
 	{
 		return "end-of-file";

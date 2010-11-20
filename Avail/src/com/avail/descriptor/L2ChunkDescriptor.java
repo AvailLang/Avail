@@ -68,25 +68,30 @@ public class L2ChunkDescriptor extends Descriptor
 
 	// GENERATED accessors
 
-	void ObjectContingentImpSets (
+	/**
+	 * Setter for field !C!ontingentImpSets.
+	 */
+	@Override
+	public void ObjectContingentImpSets (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-4, value);
 	}
 
-	void ObjectIndex (
+	/**
+	 * Setter for field !I!ndex.
+	 */
+	@Override
+	public void ObjectIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
-	AvailObject ObjectLiteralAt (
+	@Override
+	public AvailObject ObjectLiteralAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -95,7 +100,8 @@ public class L2ChunkDescriptor extends Descriptor
 		return object.objectSlotAtByteIndex(((index * -4) + -12));
 	}
 
-	void ObjectLiteralAtPut (
+	@Override
+	public void ObjectLiteralAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject value)
@@ -105,155 +111,191 @@ public class L2ChunkDescriptor extends Descriptor
 		object.objectSlotAtByteIndexPut(((index * -4) + -12), value);
 	}
 
-	void ObjectNextIndex (
+	/**
+	 * Setter for field !N!extIndex.
+	 */
+	@Override
+	public void ObjectNextIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(24, value);
 	}
 
-	void ObjectNumFloats (
+	/**
+	 * Setter for field !N!umFloats.
+	 */
+	@Override
+	public void ObjectNumFloats (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(20, value);
 	}
 
-	void ObjectNumIntegers (
+	/**
+	 * Setter for field !N!umIntegers.
+	 */
+	@Override
+	public void ObjectNumIntegers (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(16, value);
 	}
 
-	void ObjectNumObjects (
+	/**
+	 * Setter for field !N!umObjects.
+	 */
+	@Override
+	public void ObjectNumObjects (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(12, value);
 	}
 
-	void ObjectPreviousIndex (
+	/**
+	 * Setter for field !P!reviousIndex.
+	 */
+	@Override
+	public void ObjectPreviousIndex (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(28, value);
 	}
 
-	void ObjectValidity (
+	/**
+	 * Setter for field !V!alidity.
+	 */
+	@Override
+	public void ObjectValidity (
 			final AvailObject object, 
 			final int value)
 	{
-		//  GENERATED setter method.
-
 		object.integerSlotAtByteIndexPut(8, value);
 	}
 
-	void ObjectVectors (
+	/**
+	 * Setter for field !V!ectors.
+	 */
+	@Override
+	public void ObjectVectors (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
-	void ObjectWordcodes (
+	/**
+	 * Setter for field !W!ordcodes.
+	 */
+	@Override
+	public void ObjectWordcodes (
 			final AvailObject object, 
 			final AvailObject value)
 	{
-		//  GENERATED setter method.
-
 		object.objectSlotAtByteIndexPut(-8, value);
 	}
 
-	AvailObject ObjectContingentImpSets (
+	/**
+	 * Getter for field !C!ontingentImpSets.
+	 */
+	@Override
+	public AvailObject ObjectContingentImpSets (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-4);
 	}
 
-	int ObjectIndex (
+	/**
+	 * Getter for field !I!ndex.
+	 */
+	@Override
+	public int ObjectIndex (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(4);
 	}
 
-	int ObjectNextIndex (
+	/**
+	 * Getter for field !N!extIndex.
+	 */
+	@Override
+	public int ObjectNextIndex (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(24);
 	}
 
-	int ObjectNumFloats (
+	/**
+	 * Getter for field !N!umFloats.
+	 */
+	@Override
+	public int ObjectNumFloats (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(20);
 	}
 
-	int ObjectNumIntegers (
+	/**
+	 * Getter for field !N!umIntegers.
+	 */
+	@Override
+	public int ObjectNumIntegers (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(16);
 	}
 
-	int ObjectNumObjects (
+	/**
+	 * Getter for field !N!umObjects.
+	 */
+	@Override
+	public int ObjectNumObjects (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(12);
 	}
 
-	int ObjectPreviousIndex (
+	/**
+	 * Getter for field !P!reviousIndex.
+	 */
+	@Override
+	public int ObjectPreviousIndex (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(28);
 	}
 
-	int ObjectValidity (
+	/**
+	 * Getter for field !V!alidity.
+	 */
+	@Override
+	public int ObjectValidity (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.integerSlotAtByteIndex(8);
 	}
 
-	AvailObject ObjectVectors (
+	/**
+	 * Getter for field !V!ectors.
+	 */
+	@Override
+	public AvailObject ObjectVectors (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-12);
 	}
 
-	AvailObject ObjectWordcodes (
+	/**
+	 * Getter for field !W!ordcodes.
+	 */
+	@Override
+	public AvailObject ObjectWordcodes (
 			final AvailObject object)
 	{
-		//  GENERATED getter method.
-
 		return object.objectSlotAtByteIndex(-8);
 	}
 
@@ -261,6 +303,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	// GENERATED special mutable slots
 
+	@Override
 	boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
@@ -305,6 +348,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -350,28 +394,32 @@ public class L2ChunkDescriptor extends Descriptor
 
 	// operations-L2Chunk
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	void ObjectIsSaved (
+	@Override
+	public void ObjectIsSaved (
 			final AvailObject object, 
 			final boolean aBoolean)
 	{
 		object.validity(((object.validity() & -3) + (aBoolean ? 2 : 0)));
 	}
 
-	void ObjectIsValid (
+	@Override
+	public void ObjectIsValid (
 			final AvailObject object, 
 			final boolean aBoolean)
 	{
 		object.validity(((object.validity() & -2) + (aBoolean ? 1 : 0)));
 	}
 
-	void ObjectNecessaryImplementationSetChanged (
+	@Override
+	public void ObjectNecessaryImplementationSetChanged (
 			final AvailObject object, 
 			final AvailObject anImplementationSet)
 	{
@@ -410,7 +458,8 @@ public class L2ChunkDescriptor extends Descriptor
 		object.removeFromQueue();
 	}
 
-	void ObjectNext (
+	@Override
+	public void ObjectNext (
 			final AvailObject object, 
 			final AvailObject nextChunk)
 	{
@@ -419,7 +468,8 @@ public class L2ChunkDescriptor extends Descriptor
 		object.nextIndex(nextChunk.index());
 	}
 
-	void ObjectPrevious (
+	@Override
+	public void ObjectPrevious (
 			final AvailObject object, 
 			final AvailObject previousChunk)
 	{
@@ -428,7 +478,8 @@ public class L2ChunkDescriptor extends Descriptor
 		object.previousIndex(previousChunk.index());
 	}
 
-	void ObjectEvictedByGarbageCollector (
+	@Override
+	public void ObjectEvictedByGarbageCollector (
 			final AvailObject object)
 	{
 		//  The garbage collector has evicted me.  Since it is supposed to ensure I will never be
@@ -457,7 +508,8 @@ public class L2ChunkDescriptor extends Descriptor
 		object.previousIndex(-0x29A);
 	}
 
-	int ObjectHash (
+	@Override
+	public int ObjectHash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -466,19 +518,22 @@ public class L2ChunkDescriptor extends Descriptor
 		return IntegerDescriptor.computeHashOfInt(object.index());
 	}
 
-	boolean ObjectIsSaved (
+	@Override
+	public boolean ObjectIsSaved (
 			final AvailObject object)
 	{
 		return ((object.validity() & 2) == 2);
 	}
 
-	boolean ObjectIsValid (
+	@Override
+	public boolean ObjectIsValid (
 			final AvailObject object)
 	{
 		return ((object.validity() & 1) == 1);
 	}
 
-	void ObjectMoveToHead (
+	@Override
+	public void ObjectMoveToHead (
 			final AvailObject object)
 	{
 		//  Maintain the LRU queue so that some percentage of the most recently used chunks
@@ -495,7 +550,8 @@ public class L2ChunkDescriptor extends Descriptor
 		head.nextIndex(object.index());
 	}
 
-	AvailObject ObjectNext (
+	@Override
+	public AvailObject ObjectNext (
 			final AvailObject object)
 	{
 		//  Answer my successor in whatever ring I'm in.
@@ -504,7 +560,8 @@ public class L2ChunkDescriptor extends Descriptor
 		return ((index == 0) ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index));
 	}
 
-	AvailObject ObjectPrevious (
+	@Override
+	public AvailObject ObjectPrevious (
 			final AvailObject object)
 	{
 		//  Answer my predecessor in whatever ring I'm in.
@@ -513,7 +570,8 @@ public class L2ChunkDescriptor extends Descriptor
 		return ((index == 0) ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index));
 	}
 
-	void ObjectRemoveFromQueue (
+	@Override
+	public void ObjectRemoveFromQueue (
 			final AvailObject object)
 	{
 		//  Unlink this no longer valid entry from the LRU queue.

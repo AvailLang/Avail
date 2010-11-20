@@ -416,6 +416,7 @@ public class AvailScanner
 	{
 		DIGIT ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanDigit();
@@ -423,6 +424,7 @@ public class AvailScanner
 		},
 		DOUBLE_QUOTE ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanDoubleQuote();
@@ -430,6 +432,7 @@ public class AvailScanner
 		},
 		IDENTIFIER_START ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanAlpha();
@@ -437,6 +440,7 @@ public class AvailScanner
 		},
 		SEMICOLON ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanSemicolon();
@@ -444,6 +448,7 @@ public class AvailScanner
 		},
 		SLASH ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanSlash();
@@ -451,6 +456,7 @@ public class AvailScanner
 		},
 		UNKNOWN ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanUnknown();
@@ -458,6 +464,7 @@ public class AvailScanner
 		},
 		WHITESPACE ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanWhitespace();
@@ -465,6 +472,7 @@ public class AvailScanner
 		},
 		ZEROWIDTHWHITESPACE ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanZeroWidthNonbreakingWhitespace();
@@ -472,6 +480,7 @@ public class AvailScanner
 		},
 		OPERATOR ()
 		{
+			@Override
 			void scan (AvailScanner scanner)
 			{
 				scanner.scanOperator();

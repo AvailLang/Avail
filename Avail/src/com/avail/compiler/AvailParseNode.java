@@ -96,6 +96,7 @@ public class AvailParseNode
 
 		childrenMap(new Transformer1<AvailParseNode, AvailParseNode> ()
 		{
+			@Override
 			public AvailParseNode value(final AvailParseNode child)
 			{
 				return child.treeMap(aBlock);
@@ -115,6 +116,7 @@ public class AvailParseNode
 
 		childrenMap(new Transformer1<AvailParseNode, AvailParseNode> ()
 		{
+			@Override
 			public AvailParseNode value(final AvailParseNode child)
 			{
 				return child.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
@@ -149,6 +151,7 @@ public class AvailParseNode
 		printOnIndent(aStream, indent);
 	}
 
+	@Override
 	public String toString ()
 	{
 		StringBuilder stringBuilder = new StringBuilder(100);
@@ -216,6 +219,7 @@ public class AvailParseNode
 		return treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
 			new Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> ()
 			{
+				@Override
 				public AvailParseNode value(AvailParseNode node, AvailParseNode parent, List<AvailBlockNode> blockNodes)
 				{
 					return node.validateLocallyWithParentOuterBlocksInterpreter(parent, blockNodes, anAvailInterpreter);

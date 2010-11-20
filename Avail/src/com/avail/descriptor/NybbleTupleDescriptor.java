@@ -55,7 +55,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// GENERATED accessors
 
-	int ObjectRawQuadAt (
+	@Override
+	public int ObjectRawQuadAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -64,7 +65,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return object.integerSlotAtByteIndex(((index * 4) + 4));
 	}
 
-	void ObjectRawQuadAtPut (
+	@Override
+	public void ObjectRawQuadAtPut (
 			final AvailObject object, 
 			final int index, 
 			final int value)
@@ -78,6 +80,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// java printing
 
+	@Override
 	void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
@@ -127,7 +130,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// operations
 
-	boolean ObjectCompareFromToWithStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -143,7 +147,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			startIndex1);
 	}
 
-	boolean ObjectCompareFromToWithNybbleTupleStartingAt (
+	@Override
+	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
 			final int endIndex1, 
@@ -173,14 +178,16 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectEquals (
+	@Override
+	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
 
-	boolean ObjectEqualsNybbleTuple (
+	@Override
+	public boolean ObjectEqualsNybbleTuple (
 			final AvailObject object, 
 			final AvailObject aNybbleTuple)
 	{
@@ -214,7 +221,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectIsBetterRepresentationThan (
+	@Override
+	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
 	{
@@ -225,7 +233,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	boolean ObjectIsInstanceOfSubtypeOf (
+	@Override
+	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
 	{
@@ -276,7 +285,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	void ObjectRawNybbleAtPut (
+	@Override
+	public void ObjectRawNybbleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final byte aNybble)
@@ -290,7 +300,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		object.byteSlotAtByteIndexPut(byteIndex, theByte);
 	}
 
-	AvailObject ObjectMakeImmutable (
+	@Override
+	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
@@ -307,7 +318,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// operations-tuples
 
-	byte ObjectExtractNybbleFromTupleAt (
+	@Override
+	public byte ObjectExtractNybbleFromTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -320,7 +332,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return (byte)((object.byteSlotAtByteIndex(byteIndex) >> ((index & 1) * 4)) & 15);
 	}
 
-	short ObjectRawByteAt (
+	@Override
+	public short ObjectRawByteAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -329,7 +342,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots() * 4) + index) + 3));
 	}
 
-	void ObjectRawByteAtPut (
+	@Override
+	public void ObjectRawByteAtPut (
 			final AvailObject object, 
 			final int index, 
 			final short anInteger)
@@ -340,7 +354,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots() * 4) + index) + 3), anInteger);
 	}
 
-	byte ObjectRawNybbleAt (
+	@Override
+	public byte ObjectRawNybbleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -351,7 +366,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return (byte)((object.byteSlotAtByteIndex(byteIndex) >> rightShift) & 15);
 	}
 
-	AvailObject ObjectTupleAt (
+	@Override
+	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -360,7 +376,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return IntegerDescriptor.objectFromByte(object.rawNybbleAt(index));
 	}
 
-	void ObjectTupleAtPut (
+	@Override
+	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject aNybbleObject)
@@ -370,7 +387,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		object.rawNybbleAtPut(index, aNybbleObject.extractNybble());
 	}
 
-	AvailObject ObjectTupleAtPuttingCanDestroy (
+	@Override
+	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
 			final AvailObject newValueObject, 
@@ -408,7 +426,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return object;
 	}
 
-	int ObjectTupleIntAt (
+	@Override
+	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
 	{
@@ -417,7 +436,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return object.rawNybbleAt(index);
 	}
 
-	int ObjectTupleSize (
+	@Override
+	public int ObjectTupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
@@ -429,7 +449,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// private-accessing
 
-	int ObjectBitsPerEntry (
+	@Override
+	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -449,7 +470,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// private-computation
 
-	int ObjectComputeHashFromTo (
+	@Override
+	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int start, 
 			final int end)
@@ -490,6 +512,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	// private-initialization
 
+	@Override
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{
