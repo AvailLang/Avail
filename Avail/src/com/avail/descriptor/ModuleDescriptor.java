@@ -49,7 +49,7 @@ import com.avail.interpreter.AvailInterpreter;
 	"constantBindings",
 	"filteredBundleTree"
 })
-public class AvailModuleDescriptor extends Descriptor
+public class ModuleDescriptor extends Descriptor
 {
 
 
@@ -561,7 +561,7 @@ public class AvailModuleDescriptor extends Descriptor
 	{
 		AvailObject emptyMap = MapDescriptor.empty();
 		AvailObject unexpanded = UnexpandedMessageBundleTreeDescriptor.newDepth(1);
-		AvailObject object = AvailObject.newIndexedDescriptor(0, AvailModuleDescriptor.mutableDescriptor());
+		AvailObject object = AvailObject.newIndexedDescriptor(0, ModuleDescriptor.mutableDescriptor());
 		object.newNames(emptyMap);
 		object.names(emptyMap);
 		object.privateNames(emptyMap);
@@ -575,7 +575,7 @@ public class AvailModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link AvailModuleDescriptor}.
+	 * Construct a new {@link ModuleDescriptor}.
 	 *
 	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
@@ -591,7 +591,7 @@ public class AvailModuleDescriptor extends Descriptor
 	 *        Does an {@linkplain AvailObject object} using this {@linkplain
 	 *        Descriptor} have any variable integer slots?
 	 */
-	protected AvailModuleDescriptor (
+	protected ModuleDescriptor (
 		final int myId,
 		final boolean isMutable,
 		final int numberOfFixedObjectSlots,
@@ -609,13 +609,13 @@ public class AvailModuleDescriptor extends Descriptor
 	}
 
 	/* Descriptor lookup */
-	public static AvailModuleDescriptor mutableDescriptor()
+	public static ModuleDescriptor mutableDescriptor()
 	{
-		return (AvailModuleDescriptor) allDescriptors [4];
+		return (ModuleDescriptor) allDescriptors [4];
 	};
-	public static AvailModuleDescriptor immutableDescriptor()
+	public static ModuleDescriptor immutableDescriptor()
 	{
-		return (AvailModuleDescriptor) allDescriptors [5];
+		return (ModuleDescriptor) allDescriptors [5];
 	};
 
 }

@@ -38,7 +38,7 @@ import com.avail.compiler.scanner.AvailKeywordToken;
 import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.compiler.scanner.AvailOperatorToken;
 import com.avail.compiler.scanner.AvailToken;
-import com.avail.descriptor.AvailModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.DoubleDescriptor;
@@ -361,9 +361,9 @@ public class AvailScanner
 
 	/**
 	 * Answer the {@linkplain List list} of {@linkplain AvailToken tokens} that
-	 * comprise a {@linkplain AvailModuleDescriptor module}.
+	 * comprise a {@linkplain ModuleDescriptor module}.
 	 * 
-	 * @param string The text of an Avail {@linkplain AvailModuleDescriptor
+	 * @param string The text of an Avail {@linkplain ModuleDescriptor
 	 *               module} (or at least the prefix up to the <em>Names</em>
 	 *               token).
 	 * @return A {@linkplain List list} of {@linkplain AvailToken tokens}
@@ -389,7 +389,7 @@ public class AvailScanner
 	 * the <em>Names</em> token (inclusive). Forge an {@link
 	 * AvailEndOfFileToken} and append it to the list.
 	 * 
-	 * @param string The text of an Avail {@linkplain AvailModuleDescriptor
+	 * @param string The text of an Avail {@linkplain ModuleDescriptor
 	 *               module} (or at least the prefix up to the <em>Names</em>
 	 *               token).
 	 * @return A {@linkplain List list} of {@linkplain AvailToken tokens}

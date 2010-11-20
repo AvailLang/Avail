@@ -59,7 +59,7 @@ import com.avail.compiler.Mutable;
 import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.compiler.scanner.AvailScanner;
 import com.avail.compiler.scanner.AvailToken;
-import com.avail.descriptor.AvailModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.ClosureDescriptor;
@@ -160,12 +160,12 @@ public class AvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain AvailModuleDescriptor module} from the specified
+	 * Parse a {@linkplain ModuleDescriptor module} from the specified
 	 * string. Use the specified {@linkplain L2Interpreter interpreter} to
 	 * compile and evaluate the relevant portions of the module.
 	 * 
 	 * @param string The {@linkplain String text} of a {@linkplain
-	 *               AvailModuleDescriptor module}.
+	 *               ModuleDescriptor module}.
 	 * @param theInterpreter An {@linkplain L2Interpreter interpreter}.
 	 * @param aBlock A progress {@linkplain Continuation2 block} that accepts
 	 *               the start and end positions of a recently parsed section of
@@ -201,12 +201,12 @@ public class AvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain AvailModuleDescriptor module} header from the
+	 * Parse a {@linkplain ModuleDescriptor module} header from the
 	 * specified string. Populate {@link #extendedModules} and {@link
 	 * #usedModules}.
 	 * 
 	 * @param string The {@linkplain String text} of a {@linkplain
-	 *               AvailModuleDescriptor module}.
+	 *               ModuleDescriptor module}.
 	 * @throws AvailCompilerException
 	 *         If compilation fails.
 	 * @author Todd L Smith &lt;anarkul@gmail.com&gt;
@@ -1977,7 +1977,7 @@ public class AvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain AvailModuleDescriptor module} from the {@linkplain
+	 * Parse a {@linkplain ModuleDescriptor module} from the {@linkplain
 	 * AvailToken token} stream.
 	 * 
 	 * @throws AvailCompilerException
@@ -2394,7 +2394,7 @@ public class AvailCompiler
 	// transactions
 
 	/**
-	 * Start definition of a {@linkplain AvailModuleDescriptor module}. The
+	 * Start definition of a {@linkplain ModuleDescriptor module}. The
 	 * entire definition can be rolled back because the {@linkplain
 	 * AvailInterpreter interpreter}'s context module will contain all methods
 	 * and precedence rules defined between the transaction start and the
@@ -2403,12 +2403,12 @@ public class AvailCompiler
 	private void startModuleTransaction ()
 	{
 		assert module == null;
-		module = AvailModuleDescriptor.newModule();
+		module = ModuleDescriptor.newModule();
 		interpreter.setModule(module);
 	}
 
 	/**
-	 * Rollback the {@linkplain AvailModuleDescriptor module} that was defined
+	 * Rollback the {@linkplain ModuleDescriptor module} that was defined
 	 * since the most recent {@link #startModuleTransaction()
 	 * startModuleTransaction}.
 	 */
@@ -2421,7 +2421,7 @@ public class AvailCompiler
 	}
 
 	/**
-	 * Commit the {@linkplain AvailModuleDescriptor module} that was defined
+	 * Commit the {@linkplain ModuleDescriptor module} that was defined
 	 * since the most recent {@link #startModuleTransaction()
 	 * startModuleTransaction}. Simply clear the "{@linkplain #module module}"
 	 * instance variable.

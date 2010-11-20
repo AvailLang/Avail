@@ -42,7 +42,7 @@ import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.AbstractSignatureDescriptor;
-import com.avail.descriptor.AvailModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
 import com.avail.descriptor.ByteStringDescriptor;
@@ -84,17 +84,17 @@ public abstract class AvailInterpreter
 	}
 
 	/**
-	 * The {@linkplain AvailModuleDescriptor module} currently under {@linkplain
+	 * The {@linkplain ModuleDescriptor module} currently under {@linkplain
 	 * AvailCompiler compilation}.
 	 */
 	private AvailObject module;
 
 	/**
-	 * Set the {@linkplain AvailModuleDescriptor module} context of the
+	 * Set the {@linkplain ModuleDescriptor module} context of the
 	 * {@linkplain AvailInterpreter interpreter}. This feature is used by the
 	 * compiler to establish transaction boundaries for module parsing.
 	 * 
-	 * @param module A {@linkplain AvailModuleDescriptor module}, or {@code
+	 * @param module A {@linkplain ModuleDescriptor module}, or {@code
 	 *               null} to disestablish the transaction.
 	 */
 	public void setModule (final @NotNull AvailObject module)
@@ -605,7 +605,7 @@ public abstract class AvailInterpreter
 
 	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
-	 * {@linkplain AvailModuleDescriptor module}'s namespace. Answer the
+	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
 	 * {@linkplain CyclicTypeDescriptor true name} associated with the string,
 	 * creating the true name if necessary. A local true name always hides other
 	 * true names.

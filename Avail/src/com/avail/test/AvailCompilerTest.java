@@ -46,6 +46,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerException;
 import com.avail.compiler.Continuation2;
+import com.avail.compiler.ModuleRoots;
 import com.avail.compiler.Mutable;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -113,7 +114,7 @@ public class AvailCompilerTest
 	private void compileTier (final @NotNull String[] modulePaths)
 	throws IOException
 	{
-		final AvailRuntime runtime = new AvailRuntime("");
+		final AvailRuntime runtime = new AvailRuntime(new ModuleRoots(""));
 		final AvailCompiler compiler = new AvailCompiler();
 		final Mutable<String> source = new Mutable<String>();
 		try

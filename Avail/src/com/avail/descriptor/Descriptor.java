@@ -38,7 +38,7 @@ import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.descriptor.AbstractSignatureDescriptor;
 import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BlankDescriptor;
 import com.avail.descriptor.ByteStringDescriptor;
@@ -5658,8 +5658,8 @@ public abstract class Descriptor
 		new AbstractSignatureDescriptor(1, false, 3, 0, false, false),
 		new ApproximateTypeDescriptor(2, true, 1, 0, false, false),
 		new ApproximateTypeDescriptor(3, false, 1, 0, false, false),
-		new AvailModuleDescriptor(4, true, 10, 0, false, false),
-		new AvailModuleDescriptor(5, false, 10, 0, false, false),
+		new ModuleDescriptor(4, true, 10, 0, false, false),
+		new ModuleDescriptor(5, false, 10, 0, false, false),
 		new BlankDescriptor(6, true, 0, 0, false, false),
 		new BlankDescriptor(7, false, 0, 0, false, false),
 		new ByteStringDescriptor(8, true, 0, 1, false, true, 0),

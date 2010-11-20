@@ -54,7 +54,11 @@ import java.lang.annotation.Target;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ ElementType.METHOD, ElementType.TYPE })
+@Target({
+	ElementType.CONSTRUCTOR,
+	ElementType.METHOD,
+	ElementType.TYPE
+})
 public @interface ThreadSafe
 {
 	// No implementation required.

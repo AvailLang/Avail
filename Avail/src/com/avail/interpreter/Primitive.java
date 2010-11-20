@@ -52,7 +52,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
-import com.avail.descriptor.AvailModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
 import com.avail.descriptor.ByteTupleDescriptor;
@@ -3355,7 +3355,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 245:</strong> Look up the {@linkplain
 	 * CyclicTypeDescriptor true name} bound to the specified {@linkplain
-	 * TupleDescriptor name} in the {@linkplain AvailModuleDescriptor module}
+	 * TupleDescriptor name} in the {@linkplain ModuleDescriptor module}
 	 * currently under {@linkplain AvailCompiler compilation}, creating the
 	 * true name if necessary.
 	 */

@@ -33,16 +33,14 @@
 package com.avail;
 
 import java.beans.MethodDescriptor;
-import java.io.File;
 import java.io.RandomAccessFile;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailModuleDescriptor;
+import com.avail.compiler.ModuleRoots;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
 import com.avail.descriptor.CyclicTypeDescriptor;
@@ -62,7 +60,7 @@ import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.Primitive;
 
 /**
- * An {@code AvailRuntime} comprises the {@linkplain AvailModuleDescriptor
+ * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
  * modules}, {@linkplain MethodDescriptor methods}, and {@linkplain
  * #specialObject(int) special objects} that define an Avail system. It also
  * manages global resources, such as file connections.
@@ -71,93 +69,29 @@ import com.avail.interpreter.Primitive;
  */
 public final class AvailRuntime
 {
-	/**
-	 * Parse an Avail {@linkplain AvailModuleDescriptor module} path into a
-	 * {@linkplain Map map} of logical root names to absolute pathnames of
-	 * {@linkplain File directories}.
-	 * 
-	 * <p>The format of an Avail module path is described by the following
-	 * simple grammar:</p>
-	 * 
-	 * <pre>
-	 * modulePath ::= binding ++ ";" ;
-	 * binding ::= root "=" directory ;
-	 * root ::= [^=;]+ ; 
-	 * directory ::= [^;]+ ;
-	 * </pre>
-	 * 
-	 * @param modulePath
-	 *        An Avail {@linkplain AvailModuleDescriptor module} path.
-	 * @return A {@linkplain List list} of the top-level {@linkplain File
-	 *         directories} comprising the specified Avail {@linkplain
-	 *         AvailModuleDescriptor module}.
-	 * @throws IllegalArgumentException
-	 *         If any component of the Avail {@linkplain AvailModuleDescriptor
-	 *         module} path is not the absolution pathname of a directory.
-	 */
-	public static @NotNull Map<String, File> parseAvailModulePath (
-			final @NotNull String modulePath)
-		throws IllegalArgumentException
-	{
-		final Map<String, File> directories = new HashMap<String, File>();
-		for (final String component : modulePath.split(";"))
-		{
-			if (!component.isEmpty())
-			{
-				final String[] binding = component.split("=");
-				if (binding.length != 2)
-				{
-					throw new IllegalArgumentException(
-						"An Avail module path component must be a logical root "
-						+ "name, then an equals (=), then the absolute "
-						+ "pathname of a directory containing Avail modules.");
-				}
-				
-				final String rootName = binding[0];
-				final File fileName = new File(binding[1]);
-				if (!fileName.isAbsolute() || !fileName.isDirectory())
-				{
-					throw new IllegalArgumentException(
-						"The Avail module path must contain only semicolon (;) "
-						+ "separated absolute pathnames of existing "
-						+ "directories.");
-				}
-				
-				directories.put(rootName, fileName);
-			}
-		}
-		
-		return directories;
-	}
+	/** The Avail {@linkplain ModuleRoots module roots}. */
+	private final @NotNull ModuleRoots moduleRoots;
 	
 	/**
-	 * The {@linkplain #parseAvailModulePath(String) Avail module path} for this
-	 * {@linkplain AvailRuntime runtime}.
-	 */
-	private final @NotNull Map<String, File> modulePathRoots;
-	
-	/**
-	 * Answer the {@linkplain File components} comprising the Avail {@linkplain
-	 * AvailModuleDescriptor module} path as a {@linkplain Map map} from
-	 * logical root names to absolute pathnames of directories.
+	 * Answer the Avail {@linkplain ModuleRoots module roots}.
 	 * 
-	 * @return The {@linkplain File components} of the Avail {@linkplain
-	 *         AvailModuleDescriptor module} path.
+	 * @return The Avail {@linkplain ModuleRoots module roots}.
 	 */
-	public @NotNull Map<String, File> modulePathRoots ()
+	@ThreadSafe
+	public @NotNull ModuleRoots modulePathRoots ()
 	{
-		return Collections.unmodifiableMap(modulePathRoots);
+		return moduleRoots;
 	}
 	
 	/**
 	 * Construct a new {@link AvailRuntime}.
 	 *
-	 * @param modulePath The {@linkplain #modulePathRoots Avail
-	 *                   module path}.
+	 * @param moduleRoots
+	 *        The {@linkplain #moduleRoots Avail module path}.
 	 */
-	public AvailRuntime (final @NotNull String modulePath)
+	public AvailRuntime (final @NotNull ModuleRoots moduleRoots)
 	{
-		this.modulePathRoots = parseAvailModulePath(modulePath);
+		this.moduleRoots = moduleRoots;
 	}
 	
 	/**
@@ -276,17 +210,17 @@ public final class AvailRuntime
 	}
 	
 	/**
-	 * The loaded Avail {@linkplain AvailModuleDescriptor modules}: a
+	 * The loaded Avail {@linkplain ModuleDescriptor modules}: a
 	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
-	 * names} to {@linkplain AvailModuleDescriptor modules}.
+	 * names} to {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull AvailObject modules = MapDescriptor.empty();
 	
 	/**
-	 * Add the specified {@linkplain AvailModuleDescriptor module} to the
+	 * Add the specified {@linkplain ModuleDescriptor module} to the
 	 * {@linkplain AvailRuntime runtime}.
 	 * 
-	 * @param aModule A {@linkplain AvailModuleDescriptor module}.
+	 * @param aModule A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
 	public void addModule (final @NotNull AvailObject aModule)
@@ -322,12 +256,12 @@ public final class AvailRuntime
 	
 	/**
 	 * Does the {@linkplain AvailRuntime runtime} define a {@linkplain
-	 * AvailModuleDescriptor module} with the specified {@linkplain
+	 * ModuleDescriptor module} with the specified {@linkplain
 	 * TupleDescriptor name}?
 	 * 
 	 * @param moduleName A {@linkplain TupleDescriptor name}.
 	 * @return {@code true} if the {@linkplain AvailRuntime runtime} defines a
-	 *          {@linkplain AvailModuleDescriptor module} with the specified
+	 *          {@linkplain ModuleDescriptor module} with the specified
 	 *          {@linkplain TupleDescriptor name}, {@code false} otherwise.
 	 */
 	@ThreadSafe
@@ -347,11 +281,11 @@ public final class AvailRuntime
 	}
 	
 	/**
-	 * Answer the {@linkplain AvailModuleDescriptor module} with the specified
+	 * Answer the {@linkplain ModuleDescriptor module} with the specified
 	 * {@linkplain TupleDescriptor name}.
 	 * 
 	 * @param moduleName A {@linkplain TupleDescriptor name}.
-	 * @return A {@linkplain AvailModuleDescriptor module}.
+	 * @return A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
 	public @NotNull AvailObject moduleAt (final @NotNull AvailObject moduleName)
@@ -500,7 +434,7 @@ public final class AvailRuntime
 	/**
 	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It
 	 * contains the {@linkplain MessageBundleDescriptor message bundles}
-	 * exported by all loaded {@linkplain AvailModuleDescriptor modules}.
+	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull AvailObject rootBundleTree =
 		UnexpandedMessageBundleTreeDescriptor.newDepth(1);
@@ -511,7 +445,7 @@ public final class AvailRuntime
 	 * 
 	 * @return A {@linkplain MessageBundleTreeDescriptor message bundle tree}
 	 *         that contains the {@linkplain MessageBundleDescriptor message
-	 *         bundles} exported by all loaded {@linkplain AvailModuleDescriptor
+	 *         bundles} exported by all loaded {@linkplain ModuleDescriptor
 	 *         modules}.
 	 */
 	@ThreadSafe
