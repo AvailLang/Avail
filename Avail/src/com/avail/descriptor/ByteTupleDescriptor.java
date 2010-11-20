@@ -343,7 +343,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		if (!canDestroy || !isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
 				index,
