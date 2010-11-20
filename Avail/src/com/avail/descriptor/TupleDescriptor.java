@@ -807,9 +807,11 @@ public abstract class TupleDescriptor extends Descriptor
 	// Startup/shutdown
 
 	static AvailObject EmptyTuple;
-
-
 	static AvailObject UnderscoreTuple;
+	static AvailObject OpenChevronTuple;
+	static AvailObject CloseChevronTuple;
+	static AvailObject DoubleDaggerTuple;
+
 
 	static void createWellKnownObjects ()
 	{
@@ -825,14 +827,38 @@ public abstract class TupleDescriptor extends Descriptor
 		UnderscoreTuple.rawByteForCharacterAtPut(1, (byte)'_');
 		UnderscoreTuple.hashOrZero(0);
 		UnderscoreTuple.makeImmutable();
+
+		OpenChevronTuple = AvailObject.newIndexedDescriptor(
+			1,
+			ByteStringDescriptor.isMutableSize(true, 1));
+		OpenChevronTuple.rawByteForCharacterAtPut(1, (byte) '«');
+		OpenChevronTuple.hashOrZero(0);
+		OpenChevronTuple.makeImmutable();
+
+		CloseChevronTuple = AvailObject.newIndexedDescriptor(
+			1,
+			ByteStringDescriptor.isMutableSize(true, 1));
+		CloseChevronTuple.rawByteForCharacterAtPut(1, (byte) '»');
+		CloseChevronTuple.hashOrZero(0);
+		CloseChevronTuple.makeImmutable();
+
+		DoubleDaggerTuple = AvailObject.newIndexedDescriptor(
+			1,
+			ByteStringDescriptor.isMutableSize(true, 1));
+		DoubleDaggerTuple.rawByteForCharacterAtPut(1, (byte) '‡');
+		DoubleDaggerTuple.hashOrZero(0);
+		DoubleDaggerTuple.makeImmutable();
 	}
 
 	static void clearWellKnownObjects ()
 	{
 		//  Clear my cached empty tuple and underscore tuple.
 
-		EmptyTuple = null;
-		UnderscoreTuple = null;
+		EmptyTuple        = null;
+		UnderscoreTuple   = null;
+		OpenChevronTuple  = null;
+		CloseChevronTuple = null;
+		DoubleDaggerTuple = null;
 	}
 
 
@@ -913,6 +939,21 @@ public abstract class TupleDescriptor extends Descriptor
 	public static AvailObject underscoreTuple ()
 	{
 		return UnderscoreTuple;
+	};
+
+	public static AvailObject openChevronTuple ()
+	{
+		return OpenChevronTuple;
+	};
+
+	public static AvailObject closeChevronTuple ()
+	{
+		return CloseChevronTuple;
+	};
+
+	public static AvailObject doubleDaggerTuple ()
+	{
+		return DoubleDaggerTuple;
 	};
 
 	/* Value conversion... */
