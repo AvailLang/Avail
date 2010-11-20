@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
+import com.avail.compiler.ModuleNameResolver;
 import com.avail.compiler.ModuleRoots;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
@@ -69,8 +70,24 @@ import com.avail.interpreter.Primitive;
  */
 public final class AvailRuntime
 {
-	/** The Avail {@linkplain ModuleRoots module roots}. */
-	private final @NotNull ModuleRoots moduleRoots;
+	/**
+	 * The {@linkplain ModuleNameResolver module name resolver} that this
+	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
+	 * {@linkplain ModuleDescriptor module} names.
+	 */
+	private final @NotNull ModuleNameResolver moduleNameResolver;
+	
+	/**
+	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
+	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
+	 * {@linkplain ModuleDescriptor module} names.
+	 * 
+	 * @return A {@linkplain ModuleNameResolver module name resolver}.
+	 */
+	public @NotNull ModuleNameResolver moduleNameResolver ()
+	{
+		return moduleNameResolver;
+	}
 	
 	/**
 	 * Answer the Avail {@linkplain ModuleRoots module roots}.
@@ -78,20 +95,22 @@ public final class AvailRuntime
 	 * @return The Avail {@linkplain ModuleRoots module roots}.
 	 */
 	@ThreadSafe
-	public @NotNull ModuleRoots modulePathRoots ()
+	public @NotNull ModuleRoots moduleRoots ()
 	{
-		return moduleRoots;
+		return moduleNameResolver.moduleRoots();
 	}
 	
 	/**
 	 * Construct a new {@link AvailRuntime}.
 	 *
-	 * @param moduleRoots
-	 *        The {@linkplain #moduleRoots Avail module path}.
+	 * @param moduleNameResolver
+	 *        The {@linkplain ModuleNameResolver module name resolver} that this
+	 *        {@linkplain AvailRuntime runtime} should use to resolve
+	 *        unqualified {@linkplain ModuleDescriptor module} names.
 	 */
-	public AvailRuntime (final @NotNull ModuleRoots moduleRoots)
+	public AvailRuntime (final @NotNull ModuleNameResolver moduleNameResolver)
 	{
-		this.moduleRoots = moduleRoots;
+		this.moduleNameResolver = moduleNameResolver;
 	}
 	
 	/**

@@ -86,8 +86,18 @@ public final class ModuleNameResolver
 	 */
 	static final @NotNull String moduleGroupRepresentative = "Main.avail";
 	
-	/** The Avail {@linkplain ModuleRoots module roots}. */
-	private final @NotNull ModuleRoots roots;
+	/** The {@linkplain ModuleRoots Avail module roots}. */
+	private final @NotNull ModuleRoots moduleRoots;
+	
+	/**
+	 * Answer the {@linkplain ModuleRoots Avail module roots}.
+	 * 
+	 * @return The {@linkplain ModuleRoots Avail module roots}.
+	 */
+	public @NotNull ModuleRoots moduleRoots ()
+	{
+		return moduleRoots;
+	}
 	
 	/**
 	 * Construct a new {@link ModuleNameResolver}.
@@ -96,7 +106,7 @@ public final class ModuleNameResolver
 	 */
 	ModuleNameResolver (final @NotNull ModuleRoots roots)
 	{
-		this.roots = roots;
+		this.moduleRoots = roots;
 	}
 	
 	/**
@@ -200,7 +210,7 @@ public final class ModuleNameResolver
 		// module groups.
 		final Deque<File> searchStack = new LinkedList<File>();
 		final String enclosingRoot = components[1];
-		searchStack.push(roots.rootDirectoryFor(enclosingRoot));
+		searchStack.push(moduleRoots.rootDirectoryFor(enclosingRoot));
 		for (int index = 2; index < components.length; index++)
 		{
 			searchStack.push(new File(
@@ -225,12 +235,12 @@ public final class ModuleNameResolver
 		// the other root directories.
 		if (resolution == null)
 		{
-			for (final String root : roots.rootNames())
+			for (final String root : moduleRoots.rootNames())
 			{
 				if (!root.equals(enclosingRoot))
 				{
 					final File trial = new File(
-						roots.rootDirectoryFor(root),
+						moduleRoots.rootDirectoryFor(root),
 						localName + ".avail");
 					if (trial.exists())
 					{

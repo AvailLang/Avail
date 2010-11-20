@@ -33,14 +33,10 @@
 package com.avail.compiler;
 
 import java.io.File;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.ModuleDescriptor;;
 
 /**
  * TODO: [TLS] Document this type!
@@ -57,121 +53,32 @@ public final class AvailBuilder
 	private final @NotNull AvailRuntime runtime;
 
 	/**
-	 * A {@linkplain Reader reader} on the {@linkplain ModuleDescriptor
-	 * module} {@linkplain File file} that the {@linkplain AvailBuilder builder}
-	 * must (recursively) load into the {@linkplain AvailRuntime runtime}. 
+	 * The {@linkplain ModuleDescriptor module} {@linkplain File file} that the
+	 * {@linkplain AvailBuilder builder} must (recursively) load into the
+	 * {@linkplain AvailRuntime runtime}. 
 	 */
-	private final @NotNull Reader moduleReader;
+	private final @NotNull File moduleFile;
 
 	/**
-	 * A {@linkplain Reader reader} on the {@linkplain ModuleDescriptor
-	 * module} rename rules that the {@linkplain AvailBuilder builder} should
-	 * apply when resolving abstract module names to {@linkplain
-	 * File#isAbsolute() absolute} {@linkplain File file references}.
-	 */
-	private final @NotNull Reader renamesReader;
-	
-	/**
-	 * A {@linkplain Map map} from {@linkplain File#isAbsolute() absolute}
-	 * {@linkplain File file references} to the {@linkplain Reader readers} that
-	 * should be used to obtain substitution content.
-	 */
-	private final @NotNull Map<File, Reader> substitutionReaders;
-	
-	/**
 	 * Construct a new {@link AvailBuilder}.
 	 *
 	 * @param runtime
 	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
 	 *        AvailBuilder builder} will install the target {@linkplain
 	 *        ModuleDescriptor module} and its dependencies.
-	 * @param moduleReader
-	 *        A {@linkplain Reader reader} on the {@linkplain
-	 *        ModuleDescriptor module} {@linkplain File file} that the
-	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
-	 *        {@linkplain AvailRuntime runtime}.
-	 * @param renamesReader
-	 *        A {@linkplain Reader reader} on the {@linkplain
-	 *        ModuleDescriptor module} rename rules that the {@linkplain
-	 *        AvailBuilder builder} should apply when resolving abstract module
-	 *        names to {@linkplain File#isAbsolute() absolute} {@link File file
-	 *        references}.
-	 * @param substitutionReaders
-	 *        A {@linkplain Map map} from {@linkplain File#isAbsolute()
-	 *        absolute} {@linkplain File file references} to the {@linkplain
-	 *        Reader readers} that should be used to obtain substitution
-	 *        content.
+	 * @param moduleFile
+	 *        The {@linkplain ModuleDescriptor module} {@linkplain File file}
+	 *        that the {@linkplain AvailBuilder builder} must (recursively) load
+	 *        into the {@linkplain AvailRuntime runtime}.
 	 */
 	public AvailBuilder (
 		final @NotNull AvailRuntime runtime,
-		final @NotNull Reader moduleReader,
-		final @NotNull Reader renamesReader,
-		final @NotNull Map<File, Reader> substitutionReaders)
+		final @NotNull File moduleFile)
 	{
-		this.runtime             = runtime;
-		this.moduleReader        = moduleReader;
-		this.renamesReader       = renamesReader;
-		this.substitutionReaders = substitutionReaders;
+		this.runtime    = runtime;
+		this.moduleFile = moduleFile;
 	}
-	
-	/**
-	 * Construct a new {@link AvailBuilder}.
-	 *
-	 * @param runtime
-	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
-	 *        AvailBuilder builder} will install the target {@linkplain
-	 *        ModuleDescriptor module} and its dependencies.
-	 * @param moduleReader
-	 *        A {@linkplain Reader reader} on the {@linkplain
-	 *        ModuleDescriptor module} {@linkplain File file} that the
-	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
-	 *        {@linkplain AvailRuntime runtime}.
-	 * @param renamesReader
-	 *        A {@linkplain Reader reader} on the {@linkplain
-	 *        ModuleDescriptor module} rename rules that the {@linkplain
-	 *        AvailBuilder builder} should apply when resolving abstract module
-	 *        names to {@linkplain File#isAbsolute() absolute} {@link File file
-	 *        references}.
-	 */
-	public AvailBuilder (
-		final @NotNull AvailRuntime runtime,
-		final @NotNull Reader moduleReader,
-		final @NotNull Reader renamesReader)
-	{
-		this(runtime, moduleReader, renamesReader, new HashMap<File, Reader>());
-	}
-	
-	/**
-	 * Construct a new {@link AvailBuilder}.
-	 *
-	 * @param runtime
-	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
-	 *        AvailBuilder builder} will install the target {@linkplain
-	 *        ModuleDescriptor module} and its dependencies.
-	 * @param moduleReader
-	 *        A {@linkplain Reader reader} on the {@linkplain
-	 *        ModuleDescriptor module} {@linkplain File file} that the
-	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
-	 *        {@linkplain AvailRuntime runtime}.
-	 */
-	public AvailBuilder (
-		final @NotNull AvailRuntime runtime,
-		final @NotNull Reader moduleReader)
-	{
-		this(
-			runtime,
-			moduleReader,
-			new StringReader(""),
-			new HashMap<File, Reader>());
-	}
-	
-	/**
-	 * A {@linkplain Map map} from fully-qualified logical {@linkplain
-	 * ModuleDescriptor module} paths to absolute {@linkplain File file}
-	 * references.
-	 */
-	private Map<String, File> renames;
-	
+
 	/**
 	 * An ordered {@linkplain LinkedHashSet set} of unvisited {@linkplain
 	 * ModuleDescriptor module} {@linkplain File files}.

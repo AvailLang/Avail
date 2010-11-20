@@ -38,6 +38,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +49,7 @@ import com.avail.compiler.AvailCompilerException;
 import com.avail.compiler.Continuation2;
 import com.avail.compiler.ModuleRoots;
 import com.avail.compiler.Mutable;
+import com.avail.compiler.RenamesFileParser;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
@@ -108,13 +110,16 @@ public class AvailCompilerTest
 	 * @param modulePaths The paths to the target Avail source files, each
 	 *                    relative to the {@linkplain #libraryPath library
 	 *                    path}.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
 	 */
 	private void compileTier (final @NotNull String[] modulePaths)
-	throws IOException
+		throws Exception
 	{
-		final AvailRuntime runtime = new AvailRuntime(new ModuleRoots(""));
+		final ModuleRoots roots = new ModuleRoots("");
+		final RenamesFileParser parser = new RenamesFileParser(
+			new StringReader(""), roots);
+		final AvailRuntime runtime = new AvailRuntime(parser.parse());
 		final AvailCompiler compiler = new AvailCompiler();
 		final Mutable<String> source = new Mutable<String>();
 		try
