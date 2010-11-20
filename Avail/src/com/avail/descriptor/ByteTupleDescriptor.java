@@ -89,7 +89,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			aStream.append("(mut) ");
 		}
 		aStream.append("ByteTuple with: #[");
-		int rowSize = max ((30 - ((indent * 3) / 2)), 8);
+		int rowSize = max((30 - ((indent * 3) / 2)), 8);
 		rowSize = (((rowSize + 3) / 4) * 4);
 		//  How many equal (shorter by at least 1 on the last) rows are needed?
 		final int rows = ((object.tupleSize() + rowSize) / rowSize);
@@ -104,7 +104,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			{
 				aStream.append('\t');
 			}
-			for (int i = rowStart, _end2 = min (((rowStart + rowSize) - 1), object.tupleSize()); i <= _end2; i++)
+			for (int i = rowStart, _end2 = min(rowStart + rowSize - 1, object.tupleSize()); i <= _end2; i++)
 			{
 				final short val = object.tupleAt(i).extractByte();
 				aStream.append(Integer.toHexString(val >> 4));
@@ -157,11 +157,11 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
-			if (! (object.rawByteAt(index1) == aByteTuple.rawByteAt(index2)))
+			if (object.rawByteAt(index1) != aByteTuple.rawByteAt(index2))
 			{
 				return false;
 			}
-			++index2;
+			index2++;
 		}
 		return true;
 	}
@@ -183,15 +183,15 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (! (object.tupleSize() == aByteTuple.tupleSize()))
+		if (object.tupleSize() != aByteTuple.tupleSize())
 		{
 			return false;
 		}
-		if (! (object.hash() == aByteTuple.hash()))
+		if (object.hash() != aByteTuple.hash())
 		{
 			return false;
 		}
-		if (! object.compareFromToWithByteTupleStartingAt(
+		if (!object.compareFromToWithByteTupleStartingAt(
 			1,
 			object.tupleSize(),
 			aByteTuple,
@@ -212,7 +212,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		return true;
 	}
-	
+
 	boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -229,22 +229,22 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (! aType.isTupleType())
+		if (!aType.isTupleType())
 		{
 			return false;
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
-		if (! size.isInstanceOfSubtypeOf(aType.sizeRange()))
+		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
 		{
 			return false;
 		}
 		//  tuple's size is out of range.
 		final AvailObject typeTuple = aType.typeTuple();
-		final int breakIndex = min (object.tupleSize(), typeTuple.tupleSize());
+		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (! object.tupleAt(i).isInstanceOfSubtypeOf(aType.typeAtIndex(i)))
+			if (!object.tupleAt(i).isInstanceOfSubtypeOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -256,7 +256,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		}
 		for (int i = (breakIndex + 1), _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			if (! object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
 			{
 				return false;
 			}
@@ -306,7 +306,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the element at the given index in the tuple object.
 
-		if (! ((index >= 1) && (index <= object.tupleSize())))
+		if (index < 1 || index > object.tupleSize())
 		{
 			error("index out of bounds", object);
 			return VoidDescriptor.voidObject();
@@ -336,14 +336,14 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
 		assert ((index >= 1) && (index <= object.tupleSize()));
-		if (! newValueObject.isByte())
+		if (!newValueObject.isByte())
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 				index,
 				newValueObject,
 				true);
 		}
-		if (! (canDestroy & isMutable))
+		if (!canDestroy || !isMutable))
 		{
 			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
 				index,
@@ -401,9 +401,9 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = (IntegerDescriptor.hashOfByte(object.rawByteAt(index)) ^ PreToggle);
-			hash = ((TupleDescriptor.multiplierTimes(hash) + itemHash) & HashMask);
+			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
-		return (TupleDescriptor.multiplierTimes(hash) & HashMask);
+		return TupleDescriptor.multiplierTimes(hash);
 	}
 
 
@@ -438,7 +438,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Build a new object instance with room for size elements.
 
-		if (! isMutable)
+		if (!isMutable)
 		{
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
@@ -455,7 +455,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	/* Descriptor lookup */
 	public static ByteTupleDescriptor isMutableSize(boolean flag, int size)
 	{
-		int delta = (flag ? 0 : 1);
+		int delta = flag ? 0 : 1;
 		return (ByteTupleDescriptor) allDescriptors [16 + delta + ((size & 3) * 2)];
 	};
 

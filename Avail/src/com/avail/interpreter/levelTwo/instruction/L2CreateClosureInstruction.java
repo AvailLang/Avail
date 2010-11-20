@@ -116,7 +116,7 @@ public class L2CreateClosureInstruction extends L2Instruction
 			closure.code(_code);
 			for (int i = 1, _end1 = _outersVector.registers().size(); i <= _end1; i++)
 			{
-				closure.outerVarAtPut(i, anL2Translator.registerConstantAt(_outersVector.registers().get((i - 1))));
+				closure.outerVarAtPut(i, anL2Translator.registerConstantAt(_outersVector.registers().get(i - 1)));
 			}
 		}
 		else

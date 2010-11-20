@@ -73,7 +73,7 @@ extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	/**
 	 * Answer a mutable {@link FillerDescriptor}.
 	 * 
@@ -83,7 +83,7 @@ extends Descriptor
 	{
 		return (FillerDescriptor) allDescriptors [50];
 	}
-	
+
 	/**
 	 * Answer an immutable {@link FillerDescriptor}.
 	 * 

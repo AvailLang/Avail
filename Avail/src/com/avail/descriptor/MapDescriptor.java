@@ -148,7 +148,7 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, limit = object.capacity(); i <= limit; i++)
 		{
 			AvailObject key = object.keyAtIndex(i);
-			if (! key.equalsVoidOrBlank())
+			if (!key.equalsVoidOrBlank())
 			{
 				if (size > 3)
 				{
@@ -189,24 +189,24 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject aMap)
 	{
-		if (! (object.internalHash() == aMap.internalHash()))
+		if (object.internalHash() != aMap.internalHash())
 		{
 			return false;
 		}
-		if (! (object.mapSize() == aMap.mapSize()))
+		if (object.mapSize() != aMap.mapSize())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject keyObject = object.keyAtIndex(i);
-			if (! keyObject.equalsVoidOrBlank())
+			if (!keyObject.equalsVoidOrBlank())
 			{
-				if (! aMap.hasKey(keyObject))
+				if (!aMap.hasKey(keyObject))
 				{
 					return false;
 				}
-				if (! aMap.mapAt(keyObject).equals(object.valueAtIndex(i)))
+				if (!aMap.mapAt(keyObject).equals(object.valueAtIndex(i)))
 				{
 					return false;
 				}
@@ -232,13 +232,13 @@ public class MapDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (! aTypeObject.isMapType())
+		if (!aTypeObject.isMapType())
 		{
 			return false;
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.objectFromInt(object.mapSize());
-		if (! size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
@@ -250,14 +250,15 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			key = object.keyAtIndex(i);
-			if (! key.equalsVoidOrBlank())
+			if (!key.equalsVoidOrBlank())
 			{
-				if (! key.isInstanceOfSubtypeOf(keyTypeObject))
+				if (!key.isInstanceOfSubtypeOf(keyTypeObject))
 				{
 					return false;
 				}
 				value = object.valueAtIndex(i);
-				if (! (value.equalsVoidOrBlank() || value.isInstanceOfSubtypeOf(valueTypeObject)))
+				if (!value.equalsVoidOrBlank()
+					&& !value.isInstanceOfSubtypeOf(valueTypeObject))
 				{
 					return false;
 				}
@@ -277,7 +278,7 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject keyObject = object.keyAtIndex(i);
-			if (! keyObject.equalsVoidOrBlank())
+			if (!keyObject.equalsVoidOrBlank())
 			{
 				keyType = keyType.typeUnion(keyObject.type());
 				valueType = valueType.typeUnion(object.valueAtIndex(i).type());
@@ -295,7 +296,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Take the internal hash, and twiddle it (so nested maps won't cause unwanted correlation).
 
-		return (((object.internalHash() + 0x1D79B13) ^ 0x1A9A22FE) & HashMask);
+		return ((object.internalHash() + 0x1D79B13) ^ 0x1A9A22FE);
 	}
 
 	@Override
@@ -312,11 +313,11 @@ public class MapDescriptor extends Descriptor
 
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
-			if (! object.keyAtIndex(i).isHashAvailable())
+			if (!object.keyAtIndex(i).isHashAvailable())
 			{
 				return false;
 			}
-			if (! object.valueAtIndex(i).isHashAvailable())
+			if (!object.valueAtIndex(i).isHashAvailable())
 			{
 				return false;
 			}
@@ -409,7 +410,7 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (! eachKeyObject.equalsVoidOrBlank())
+			if (!eachKeyObject.equalsVoidOrBlank())
 			{
 				result.privateMapAtPut(eachKeyObject, object.valueAtIndex(i));
 			}
@@ -428,16 +429,16 @@ public class MapDescriptor extends Descriptor
 		//  Answer a map like this one but with keyObject removed from it.
 		//  The original map can be destroyed if canDestroy is true and it's mutable.
 
-		if (! object.hasKey(keyObject))
+		if (!object.hasKey(keyObject))
 		{
-			if (! canDestroy)
+			if (!canDestroy)
 			{
 				object.makeImmutable();
 			}
 			//  Existing reference will be kept around.
 			return object;
 		}
-		if ((canDestroy && isMutable))
+		if (canDestroy && isMutable)
 		{
 			return object.privateExcludeKey(keyObject);
 		}
@@ -446,9 +447,9 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (! eachKeyObject.equalsVoidOrBlank())
+			if (!eachKeyObject.equalsVoidOrBlank())
 			{
-				if (! eachKeyObject.equals(keyObject))
+				if (!eachKeyObject.equals(keyObject))
 				{
 					result.privateMapAtPut(eachKeyObject, object.valueAtIndex(i));
 				}
@@ -494,7 +495,7 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (! eachKeyObject.equalsVoidOrBlank())
+			if (!eachKeyObject.equalsVoidOrBlank())
 			{
 				result = result.setWithElementCanDestroy(eachKeyObject.makeImmutable(), true);
 			}
@@ -522,10 +523,10 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end2 = object.capacity(); i <= _end2; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (! eachKeyObject.equalsVoidOrBlank())
+			if (!eachKeyObject.equalsVoidOrBlank())
 			{
 				result.tupleAtPut(targetIndex, object.valueAtIndex(i).makeImmutable());
-				++targetIndex;
+				targetIndex++;
 			}
 		}
 		assert (targetIndex == (object.size() + 1));
@@ -545,7 +546,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Answer the map's indexth key.
 
-		return object.dataAtIndex(((index + index) - 1));
+		return object.dataAtIndex(index + index - 1);
 	}
 
 	@Override
@@ -567,7 +568,7 @@ public class MapDescriptor extends Descriptor
 		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
 		//  Also, computing the key's hash value should not cause an allocation.
 
-		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & isMutable);
+		assert keyObject.isHashAvailable() & !keyObject.equalsVoidOrBlank() & isMutable;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)(((h0 & 0xFFFFFFFFL) % modulus) + 1);
@@ -581,7 +582,7 @@ public class MapDescriptor extends Descriptor
 			}
 			if (slotValue.equals(keyObject))
 			{
-				object.internalHash(((object.internalHash() ^ (h0 + (object.valueAtIndex(probe).hash() * 23))) & HashMask));
+				object.internalHash(object.internalHash() ^ (h0 + (object.valueAtIndex(probe).hash() * 23)));
 				object.keyAtIndexPut(probe, BlankDescriptor.blank());
 				object.valueAtIndexPut(probe, VoidDescriptor.voidObject());
 				object.mapSize((object.mapSize() - 1));
@@ -589,13 +590,13 @@ public class MapDescriptor extends Descriptor
 				AvailObject.unlock(object);
 				return object;
 			}
-			if ((probe == modulus))
+			if (probe == modulus)
 			{
 				probe = 1;
 			}
 			else
 			{
-				++probe;
+				probe++;
 			}
 		}
 	}
@@ -610,8 +611,8 @@ public class MapDescriptor extends Descriptor
 		//  room for the new element.  Also, computing the key's hash value should not cause
 		//  an allocation.
 
-		assert ((keyObject.isHashAvailable() & (! keyObject.equalsVoidOrBlank())) & isMutable);
-		assert (((object.mapSize() + object.numBlanks()) * 4) <= (object.capacity() * 3));
+		assert keyObject.isHashAvailable() & !keyObject.equalsVoidOrBlank() & isMutable;
+		assert (object.mapSize() + object.numBlanks()) * 4 <= object.capacity() * 3;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)(((h0 & 0xFFFFFFFFL) % modulus) + 1);
@@ -623,7 +624,7 @@ public class MapDescriptor extends Descriptor
 			{
 				tempHash = (object.internalHash() ^ (h0 + (object.valueAtIndex(probe).hash() * 23)));
 				tempHash ^= (h0 + (valueObject.hash() * 23));
-				object.internalHash((tempHash & HashMask));
+				object.internalHash(tempHash);
 				object.valueAtIndexPut(probe, valueObject);
 				AvailObject.unlock(object);
 				return object;
@@ -633,7 +634,7 @@ public class MapDescriptor extends Descriptor
 				object.keyAtIndexPut(probe, keyObject);
 				object.valueAtIndexPut(probe, valueObject);
 				object.mapSize((object.mapSize() + 1));
-				object.internalHash(((object.internalHash() ^ (h0 + (valueObject.hash() * 23))) & HashMask));
+				object.internalHash(object.internalHash() ^ (h0 + (valueObject.hash() * 23)));
 				if (slotValue.equalsBlank())
 				{
 					object.numBlanks((object.numBlanks() - 1));
@@ -652,7 +653,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Answer the map's indexth value.
 
-		return object.dataAtIndex((index * 2));
+		return object.dataAtIndex(index * 2);
 	}
 
 	@Override
@@ -663,7 +664,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Set the map's indexth value.
 
-		object.dataAtIndexPut((index * 2), valueObject);
+		object.dataAtIndexPut(index * 2, valueObject);
 	}
 
 
@@ -682,7 +683,7 @@ public class MapDescriptor extends Descriptor
 		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (! eachKeyObject.equalsVoidOrBlank())
+			if (!eachKeyObject.equalsVoidOrBlank())
 			{
 				result.add(eachKeyObject.makeImmutable());
 			}
@@ -768,12 +769,12 @@ public class MapDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static MapDescriptor mutableDescriptor()
 	{
 		return (MapDescriptor) allDescriptors [104];
 	}
-	
+
 	public static MapDescriptor immutableDescriptor()
 	{
 		return (MapDescriptor) allDescriptors [105];

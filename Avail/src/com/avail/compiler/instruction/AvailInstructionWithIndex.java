@@ -50,7 +50,7 @@ public class AvailInstructionWithIndex extends AvailInstruction
 	public AvailInstruction index (
 			final int anInteger)
 	{
-		if ((anInteger < 0))
+		if (anInteger < 0)
 		{
 			error("anInteger (" + anInteger + ") must be >= 0");
 			return null;

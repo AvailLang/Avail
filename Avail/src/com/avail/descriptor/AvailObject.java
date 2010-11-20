@@ -1477,7 +1477,7 @@ implements Iterable<AvailObject>
 
 		return descriptor().ObjectExtractInt(this);
 	}
-	
+
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the {@linkplain
 	 * AvailObject receiver}.
@@ -1951,7 +1951,7 @@ implements Iterable<AvailObject>
 
 		return descriptor().ObjectIsByte(this);
 	}
-	
+
 	/**
 	 * Is the {@link AvailObject receiver} an Avail byte tuple?
 	 * 
@@ -2120,7 +2120,7 @@ implements Iterable<AvailObject>
 
 		return descriptor().ObjectIsSubsetOf(this, another);
 	}
-	
+
 	/**
 	 * Is the {@link AvailObject receiver} an Avail string?
 	 * 
@@ -2314,7 +2314,7 @@ implements Iterable<AvailObject>
 			argTypes,
 			interpreter);
 	}
-	
+
 	/**
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject receiver} with a Java
@@ -3713,7 +3713,7 @@ implements Iterable<AvailObject>
 			elementObjectToExclude,
 			canDestroy);
 	}
-	
+
 	public AvailObject signature ()
 	{
 		//  GENERATED for descriptor dispatch
@@ -4673,11 +4673,11 @@ implements Iterable<AvailObject>
 		//  Set up the object to report nice obvious errors if anyone ever accesses it again.
 
 		checkValidAddress();
-		if (! descriptor().isMutable())
+		if (!descriptor().isMutable())
 		{
 			return;
 		}
-		if (! CanDestroyObjects)
+		if (!CanDestroyObjects)
 		{
 			error("Don't invoke this if destructions are disallowed");
 		}
@@ -5003,11 +5003,11 @@ implements Iterable<AvailObject>
 	public static void lock (AvailObject obj)
 	{
 		LockedObjects [NumLockedObjects] = obj;
-		++ NumLockedObjects;
+		NumLockedObjects++;
 	};
 	public static void unlock (AvailObject obj)
 	{
-		-- NumLockedObjects;
+		NumLockedObjects--;
 		LockedObjects [NumLockedObjects] = null;
 	};
 

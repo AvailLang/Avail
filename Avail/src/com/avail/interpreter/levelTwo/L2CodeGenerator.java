@@ -99,9 +99,9 @@ public class L2CodeGenerator
 	{
 
 		final int index = floatRegister.finalIndex();
-		if ((index != -1))
+		if (index != -1)
 		{
-			_numFloats = max (_numFloats, index);
+			_numFloats = max(_numFloats, index);
 		}
 		emitWord(index);
 	}
@@ -111,9 +111,9 @@ public class L2CodeGenerator
 	{
 
 		final int index = integerRegister.finalIndex();
-		if ((index != -1))
+		if (index != -1)
 		{
-			_numIntegers = max (_numIntegers, index);
+			_numIntegers = max(_numIntegers, index);
 		}
 		emitWord(index);
 	}
@@ -122,7 +122,7 @@ public class L2CodeGenerator
 			final AvailObject aLiteral)
 	{
 		aLiteral.readBarrierFault();
-		assert (! aLiteral.descriptor().isMutable());
+		assert !aLiteral.descriptor().isMutable();
 		int index = _literals.indexOf(aLiteral) + 1;
 		if (index == 0)
 		{
@@ -137,9 +137,9 @@ public class L2CodeGenerator
 	{
 
 		final int index = objectRegister.finalIndex();
-		if ((index != -1))
+		if (index != -1)
 		{
-			_numObjects = max (_numObjects, index);
+			_numObjects = max(_numObjects, index);
 		}
 		emitWord(index);
 	}
@@ -174,7 +174,7 @@ public class L2CodeGenerator
 	{
 		//  Take steps to ensure there will be at least minArgCount object registers available at runtime.
 
-		_numObjects = max (_numObjects, minArgCount);
+		_numObjects = max(_numObjects, minArgCount);
 	}
 
 	public void setInstructions (

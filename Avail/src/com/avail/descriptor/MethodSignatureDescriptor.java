@@ -72,7 +72,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		//  We simply run the 'returns' block, passing in the static argument types from the call site.
 
 		final AvailObject result = anAvailInterpreter.runClosureArguments(object.returnsBlock(), argTypes);
-		if (! result.isSubtypeOf(object.bodySignature().returnType()))
+		if (!result.isSubtypeOf(object.bodySignature().returnType()))
 		{
 			error("The 'returns' block should produce a type more specific than the body's basic return type", object);
 			return VoidDescriptor.voidObject();
@@ -173,7 +173,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer a 32-bit hash value.
 
-		final int hash = ((((object.bodyBlock().hash() * 19) + (object.requiresBlock().hash() * 13)) + (object.returnsBlock().hash() * 3)) & HashMask);
+		final int hash = (((object.bodyBlock().hash() * 19) + (object.requiresBlock().hash() * 13)) + (object.returnsBlock().hash() * 3));
 		return hash;
 	}
 
@@ -228,12 +228,12 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static MethodSignatureDescriptor mutableDescriptor()
 	{
 		return (MethodSignatureDescriptor) allDescriptors [110];
 	}
-	
+
 	public static MethodSignatureDescriptor immutableDescriptor()
 	{
 		return (MethodSignatureDescriptor) allDescriptors [111];

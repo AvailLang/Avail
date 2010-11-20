@@ -99,7 +99,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		if (! object.returnType().equals(aType.returnType()))
+		if (!object.returnType().equals(aType.returnType()))
 		{
 			return false;
 		}
@@ -123,7 +123,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  The hash value is always recomputed from the argTypeTuple and returnType.
 
-		return (((object.returnType().hash() * 13) + 0x359991) & HashMask);
+		return ((object.returnType().hash() * 13) + 0x359991);
 	}
 
 	AvailObject ObjectType (
@@ -297,12 +297,12 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static GeneralizedClosureTypeDescriptor mutableDescriptor()
 	{
 		return (GeneralizedClosureTypeDescriptor) allDescriptors [56];
 	}
-	
+
 	public static GeneralizedClosureTypeDescriptor immutableDescriptor()
 	{
 		return (GeneralizedClosureTypeDescriptor) allDescriptors [57];

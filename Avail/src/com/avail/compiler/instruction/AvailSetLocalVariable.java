@@ -74,11 +74,11 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 		//
 		//  I set the value of a local, so it can't be an argument (they aren't wrapped in a variable).
 
-		AvailVariableAccessNote note = localData.get((_index - 1));
+		AvailVariableAccessNote note = localData.get(_index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			localData.set((_index - 1), note);
+			localData.set(_index - 1, note);
 		}
 		//  If there was a get before this set, leave its canClear flag set to true.
 		note.previousGet(null);

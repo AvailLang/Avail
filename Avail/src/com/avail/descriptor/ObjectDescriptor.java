@@ -118,7 +118,7 @@ public class ObjectDescriptor extends Descriptor
 		for (int i = 1, _end1 = typeMap.capacity(); i <= _end1; i++)
 		{
 			final AvailObject keyObject = valueMap.keyAtIndex(i);
-			if (! keyObject.equalsVoidOrBlank())
+			if (!keyObject.equalsVoidOrBlank())
 			{
 				typeMap = typeMap.mapAtPuttingCanDestroy(
 					keyObject,
@@ -175,7 +175,7 @@ public class ObjectDescriptor extends Descriptor
 	/* Hashing */
 	static int computeHashFromFieldMapHash (int fieldMapHash)
 	{
-		return ((fieldMapHash + 0x1099BE88) ^ 0x38547ADE) & HashMask;
+		return ((fieldMapHash + 0x1099BE88) ^ 0x38547ADE);
 	};
 
 	/**
@@ -216,7 +216,7 @@ public class ObjectDescriptor extends Descriptor
 	{
 		return (ObjectDescriptor) allDescriptors [128];
 	}
-	
+
 	public static ObjectDescriptor immutableDescriptor()
 	{
 		return (ObjectDescriptor) allDescriptors [129];

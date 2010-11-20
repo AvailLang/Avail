@@ -129,7 +129,7 @@ public class MessageBundleDescriptor extends Descriptor
 				final AvailObject part = parts.tupleAt(partIndex);
 				if (part.equals(TupleDescriptor.underscoreTuple()))
 				{
-					++count;
+					count++;
 				}
 			}
 			restrictions = parts.copyTupleFromToCanDestroy(
@@ -212,7 +212,7 @@ public class MessageBundleDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -12))
+		if (index == -12)
 		{
 			return true;
 		}
@@ -265,7 +265,7 @@ public class MessageBundleDescriptor extends Descriptor
 	{
 		//  Answer a 32-bit hash value.
 
-		return ((object.message().hash() ^ 0x312CAB9) & HashMask);
+		return (object.message().hash() ^ 0x312CAB9);
 	}
 
 	AvailObject ObjectType (
@@ -324,12 +324,12 @@ public class MessageBundleDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static MessageBundleDescriptor mutableDescriptor()
 	{
 		return (MessageBundleDescriptor) allDescriptors [108];
 	}
-	
+
 	public static MessageBundleDescriptor immutableDescriptor()
 	{
 		return (MessageBundleDescriptor) allDescriptors [109];

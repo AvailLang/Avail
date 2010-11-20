@@ -180,15 +180,15 @@ public class MapTypeDescriptor extends TypeDescriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that it is likely can be coalesced together.
 
-		if (! object.keyType().isHashAvailable())
+		if (!object.keyType().isHashAvailable())
 		{
 			return false;
 		}
-		if (! object.valueType().isHashAvailable())
+		if (!object.valueType().isHashAvailable())
 		{
 			return false;
 		}
-		if (! object.sizeRange().isHashAvailable())
+		if (!object.sizeRange().isHashAvailable())
 		{
 			return false;
 		}
@@ -313,7 +313,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			int keyTypeHash,
 			int valueTypeHash)
 	{
-		return ((sizesHash * 3) + (keyTypeHash * 5) + (valueTypeHash * 13)) & HashMask;
+		return ((sizesHash * 3) + (keyTypeHash * 5) + (valueTypeHash * 13));
 	};
 
 	/* Object creation */
@@ -385,12 +385,12 @@ public class MapTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static MapTypeDescriptor mutableDescriptor()
 	{
 		return (MapTypeDescriptor) allDescriptors [106];
 	}
-	
+
 	public static MapTypeDescriptor immutableDescriptor()
 	{
 		return (MapTypeDescriptor) allDescriptors [107];

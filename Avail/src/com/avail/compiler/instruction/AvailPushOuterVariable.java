@@ -83,11 +83,11 @@ public class AvailPushOuterVariable extends AvailPushVariable
 		//
 		//  I push an outer variable, which is an outer reference to either a local or an argument.
 
-		AvailVariableAccessNote note = outerData.get((_index - 1));
+		AvailVariableAccessNote note = outerData.get(_index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			outerData.set((_index - 1), note);
+			outerData.set(_index - 1, note);
 		}
 		//  If there was a push before this one, set its isLastAccess to false, as self is clearly a later use.
 		final AvailPushVariable previousPush = note.previousPush();

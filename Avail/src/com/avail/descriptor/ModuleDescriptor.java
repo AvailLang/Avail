@@ -61,7 +61,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
 	{
-		assert (! object.restrictions().hasKey(methodName)) : "Don't declare multiple restrictions on same message separately in module.";
+		assert !object.restrictions().hasKey(methodName) : "Don't declare multiple restrictions on same message separately in module.";
 		object.restrictions(object.restrictions().mapAtPuttingCanDestroy(
 			methodName,
 			illegalArgMsgs,
@@ -213,7 +213,7 @@ public class ModuleDescriptor extends Descriptor
 		{
 			publics = SetDescriptor.empty();
 		}
-		if (! object.privateNames().hasKey(stringName))
+		if (!object.privateNames().hasKey(stringName))
 		{
 			return publics;
 		}
@@ -429,39 +429,39 @@ public class ModuleDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -8))
+		if (index == -8)
 		{
 			return true;
 		}
-		if ((index == -12))
+		if (index == -12)
 		{
 			return true;
 		}
-		if ((index == -16))
+		if (index == -16)
 		{
 			return true;
 		}
-		if ((index == -20))
+		if (index == -20)
 		{
 			return true;
 		}
-		if ((index == -24))
+		if (index == -24)
 		{
 			return true;
 		}
-		if ((index == -28))
+		if (index == -28)
 		{
 			return true;
 		}
-		if ((index == -32))
+		if (index == -32)
 		{
 			return true;
 		}
-		if ((index == -36))
+		if (index == -36)
 		{
 			return true;
 		}
-		if ((index == -40))
+		if (index == -40)
 		{
 			return true;
 		}
@@ -528,7 +528,7 @@ public class ModuleDescriptor extends Descriptor
 	{
 		//  Answer a 32-bit hash value.
 
-		return ((object.name().hash() * 13) & HashMask);
+		return (object.name().hash() * 13);
 	}
 
 

@@ -543,7 +543,7 @@ public abstract class AvailInterpreter
 		//  on the visibility of names in the current module.
 
 		final AvailObject all = module.filteredBundleTree().incomplete();
-		if (! all.hasKey(firstPiece))
+		if (!all.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
 		}
@@ -560,7 +560,7 @@ public abstract class AvailInterpreter
 		{
 			if ((((char)(anAvailString.tupleAt(i).codePoint())) == '_'))
 			{
-				++count;
+				count++;
 			}
 		}
 		return count;
@@ -574,7 +574,7 @@ public abstract class AvailInterpreter
 		//  on the visibility of names in the current module.
 
 		final AvailObject all = module.filteredBundleTree().incomplete();
-		if (! all.hasKey(firstPiece))
+		if (!all.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
 		}
@@ -592,11 +592,11 @@ public abstract class AvailInterpreter
 	private static boolean isCharacterUnderscoreOrSpaceOrOperator (
 		final char aCharacter)
 	{
-		if ((aCharacter == '_'))
+		if (aCharacter == '_')
 		{
 			return true;
 		}
-		if ((aCharacter == ' '))
+		if (aCharacter == ' ')
 		{
 			return true;
 		}
@@ -807,8 +807,8 @@ public abstract class AvailInterpreter
 		}
 		for (int i = 1, _end1 = matching.size(); i <= _end1; i++)
 		{
-			final AvailObject imp = matching.get((i - 1));
-			if (! imp.isValidForArgumentTypesInterpreter(argTypes, this))
+			final AvailObject imp = matching.get(i - 1);
+			if (!imp.isValidForArgumentTypesInterpreter(argTypes, this))
 			{
 				error("A requires clause rejected the arguments");
 				return;

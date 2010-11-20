@@ -128,7 +128,7 @@ public class AvailCompiler
 		//  Evaluate a parse tree node.  It's a top-level statement in a module.  Declarations are
 		//  handled differently - they cause a variable to be declared in the module's scope.
 
-		if (! expressionNode.isDeclaration())
+		if (!expressionNode.isDeclaration())
 		{
 			evaluate(expressionNode);
 			return;
@@ -225,7 +225,7 @@ public class AvailCompiler
 		assert peekToken().type() == AvailToken.TokenType.end
 			: "Expected end of text, not " + peekToken().string();
 	}
-	
+
 	/**
 	 * Report an error by throwing an {@link AvailCompilerException}. The
 	 * exception encapsulates the error string and the text position.
@@ -636,7 +636,7 @@ public class AvailCompiler
 																				{
 																					for (int i = 1, _end1 = arguments.size(); i <= _end1; i++)
 																					{
-																						if (! labelClosureType.argTypeAt(i).equals(arguments.get((i - 1)).declaredType()))
+																						if (!labelClosureType.argTypeAt(i).equals(arguments.get(i - 1).declaredType()))
 																						{
 																							blockTypeGood = true;
 																						}
@@ -686,7 +686,7 @@ public class AvailCompiler
 															{
 																for (int i = 1, _end2 = arguments.size(); i <= _end2; i++)
 																{
-																	if (! labelClosureType.argTypeAt(i).equals(arguments.get((i - 1)).declaredType()))
+																	if (!labelClosureType.argTypeAt(i).equals(arguments.get(i - 1).declaredType()))
 																	{
 																		blockTypeGood = false;
 																	}
@@ -926,7 +926,7 @@ public class AvailCompiler
 
 		final int start = position();
 		final AvailCompilerScopeStack originalScope = scopeStack;
-		if (! fragmentCache.hasComputedTokenPositionScopeStack(start, originalScope))
+		if (!fragmentCache.hasComputedTokenPositionScopeStack(start, originalScope))
 		{
 			fragmentCache.startComputingTokenPositionScopeStack(start, originalScope);
 			final Continuation1<AvailParseNode> justRecord = new Continuation1<AvailParseNode> ()
@@ -953,7 +953,7 @@ public class AvailCompiler
 					parseExpressionListItemsBeyondThen(itemList, justRecord);
 				}
 			});
-			if (! ((position() == start) && (scopeStack == originalScope)))
+			if (!((position() == start) && (scopeStack == originalScope)))
 			{
 				error("token stream position and scopeStack were not restored correctly");
 				return;
@@ -993,13 +993,13 @@ public class AvailCompiler
 			error("Expected a nonempty list of possible messages");
 			return;
 		}
-		if (! (completeMapSize == 0))
+		if (completeMapSize != 0)
 		{
 			AvailObject.lock(complete);
 			for (int mapIndex = 1, _end1 = complete.capacity(); mapIndex <= _end1; mapIndex++)
 			{
 				final AvailObject message = complete.keyAtIndex(mapIndex);
-				if (! message.equalsVoidOrBlank())
+				if (!message.equalsVoidOrBlank())
 				{
 					if (interpreter.runtime().hasMethodsAt(message))
 					{
@@ -1012,7 +1012,7 @@ public class AvailCompiler
 						typesSoFar = new ArrayList<AvailObject>(argsSoFar.size());
 						for (int argIndex = 1, _end2 = argsSoFar.size(); argIndex <= _end2; argIndex++)
 						{
-							typesSoFar.add(argsSoFar.get((argIndex - 1)).type());
+							typesSoFar.add(argsSoFar.get(argIndex - 1).type());
 						}
 						final AvailObject returnType = interpreter.validateTypesOfMessageSendArgumentTypesIfFail(
 							message,
@@ -1040,7 +1040,7 @@ public class AvailCompiler
 			}
 			AvailObject.unlock(complete);
 		}
-		if (! (incompleteMapSize == 0))
+		if (incompleteMapSize != 0)
 		{
 			final AvailToken keywordToken = peekToken();
 			if (((keywordToken.type() == AvailToken.TokenType.keyword) || (keywordToken.type() == AvailToken.TokenType.operator)))
@@ -1191,7 +1191,7 @@ public class AvailCompiler
 
 		final AvailObject complete = interpreter.completeBundlesStartingWith(TupleDescriptor.underscoreTuple());
 		final AvailObject incomplete = interpreter.incompleteBundlesStartingWith(TupleDescriptor.underscoreTuple());
-		if (! ((complete.mapSize() == 0) && (incomplete.mapSize() == 0)))
+		if (complete.mapSize() != 0 || incomplete.mapSize() != 0)
 		{
 			ArrayList<AvailParseNode> argsSoFar;
 			argsSoFar = new ArrayList<AvailParseNode>(2);
@@ -1247,7 +1247,7 @@ public class AvailCompiler
 			final AvailObject incomplete = interpreter.incompleteBundlesStartingWith(start);
 			ArrayList<AvailParseNode> argsSoFar;
 			argsSoFar = new ArrayList<AvailParseNode>(3);
-			if (! ((complete.mapSize() == 0) && (incomplete.mapSize() == 0)))
+			if (complete.mapSize() != 0 || incomplete.mapSize() != 0)
 			{
 				parseFromCompleteBundlesIncompleteBundlesArgumentsSoFarThen(
 					2,
@@ -1344,7 +1344,7 @@ public class AvailCompiler
 					}
 				}
 			});
-		if ((num.value == 0))
+		if (num.value == 0)
 		{
 			continuation.value(((short)(0)));
 		}
@@ -1478,7 +1478,7 @@ public class AvailCompiler
 		//  continuation will be invoked at most once, and only if the statement had
 		//  a single interpretation.
 
-		assert (! (outermost & canBeLabel));
+		assert !(outermost & canBeLabel);
 		tryIfUnambiguousThen(new Continuation1<Continuation1<AvailParseNode>> ()
 		{
 			public void value(final Continuation1<AvailParseNode> whenFoundStatement)
@@ -1549,7 +1549,7 @@ public class AvailCompiler
 							{
 								public void value()
 								{
-									if (((! outermost) || expr.type().equals(Types.voidType.object())))
+									if ((!outermost) || expr.type().equals(Types.voidType.object()))
 									{
 										whenFoundStatement.value(expr);
 									}
@@ -1592,14 +1592,16 @@ public class AvailCompiler
 			if ((statements.size() > 0))
 			{
 				final AvailParseNode lastStatement = statements.get((statements.size() - 1));
-				if (! (lastStatement.isAssignment() || (lastStatement.isDeclaration() || lastStatement.isLabel())))
+				if (!lastStatement.isAssignment()
+					&& !lastStatement.isDeclaration()
+					&& !lastStatement.isLabel())
 				{
 					if (lastStatement.type().equals(Types.terminates.object()))
 					{
 						problem = true;
 						expected("previous statement to be the last statement because it always terminates");
 					}
-					if (! lastStatement.type().equals(Types.voidType.object()))
+					if (!lastStatement.type().equals(Types.voidType.object()))
 					{
 						problem = true;
 						expected(new Generator<String> ()
@@ -1612,7 +1614,7 @@ public class AvailCompiler
 					}
 				}
 			}
-			if (! problem)
+			if (!problem)
 			{
 				parseStatementAsOutermostCanBeLabelThen(
 					false,
@@ -1628,7 +1630,7 @@ public class AvailCompiler
 						}
 					});
 			}
-			if ((! ok.value))
+			if (!ok.value)
 			{
 				break;
 			}
@@ -1707,7 +1709,7 @@ public class AvailCompiler
 	{
 		//  Parse the use of a variable.
 
-		if (! (peekToken().type() == AvailToken.TokenType.keyword))
+		if (peekToken().type() != AvailToken.TokenType.keyword)
 		{
 			return;
 		}
@@ -1802,7 +1804,7 @@ public class AvailCompiler
 							assert pragmaParts.length == 2;
 							pragmaKey = pragmaParts[0].trim();
 							pragmaValue = pragmaParts[1].trim();
-							if (! pragmaKey.matches("\\w+"))
+							if (!pragmaKey.matches("\\w+"))
 							{
 								expected("pragma key (" + pragmaKey + ") must not contain internal whitespace");
 							}
@@ -2042,7 +2044,7 @@ public class AvailCompiler
 		module.buildFilteredBundleTreeFrom(
 			interpreter.runtime().rootBundleTree());
 		fragmentCache = new AvailCompilerFragmentCache();
-		while (!(peekToken().type() == AvailToken.TokenType.end))
+		while (peekToken().type() != AvailToken.TokenType.end)
 		{
 			greatestGuess = 0;
 			greatExpectations = new ArrayList<Generator<String>>();
@@ -2118,12 +2120,12 @@ public class AvailCompiler
 
 	void backupToken ()
 	{
-		if ((position == 0))
+		if (position == 0)
 		{
 			error("Can't backup any more");
 			return;
 		}
-		--position;
+		position--;
 	}
 
 	void expected (
@@ -2144,10 +2146,10 @@ public class AvailCompiler
 
 	AvailToken nextToken ()
 	{
-		assert (! atEnd());
+		assert !atEnd();
 		// System.out.println(Integer.toString(position) + " next = " + tokens.get(position));
-		++position;
-		return tokens.get((position - 1));
+		position++;
+		return tokens.get(position - 1);
 	}
 
 	boolean parseTokenIsTypeString (
@@ -2223,7 +2225,7 @@ public class AvailCompiler
 		{
 			expected(errorGenerator);
 		}
-		if (! ((where == position()) && (oldScope == scopeStack)))
+		if (where != position() || oldScope != scopeStack)
 		{
 			error("token stream position and scopeStack were not preserved");
 			return;
@@ -2232,9 +2234,9 @@ public class AvailCompiler
 
 	AvailToken peekToken ()
 	{
-		assert (! atEnd());
+		assert !atEnd();
 		// System.out.println(Integer.toString(position) + " peek = " + tokens.get(position));
-		return tokens.get(((position + 1) - 1));
+		return tokens.get(position);
 	}
 
 	boolean peekTokenIsTypeString (
@@ -2284,7 +2286,7 @@ public class AvailCompiler
 		{
 			public void value(final AvailParseNode aSolution)
 			{
-				if ((count.value == 0))
+				if (count.value == 0)
 				{
 					solution.value = aSolution;
 					where.value = position();
@@ -2298,7 +2300,7 @@ public class AvailCompiler
 				++count.value;
 			}
 		});
-		if ((count.value > 1))
+		if (count.value > 1)
 		{
 			position(where.value);
 			scopeStack = whatScope.value;
@@ -2307,7 +2309,7 @@ public class AvailCompiler
 			scopeStack = oldScope;
 			return;
 		}
-		if ((count.value == 0))
+		if (count.value == 0)
 		{
 			return;
 		}
@@ -2345,7 +2347,7 @@ public class AvailCompiler
 			final String name)
 	{
 		AvailCompilerScopeStack scope = scopeStack;
-		while (! (scope.name() == null)) {
+		while (scope.name() != null) {
 			if (scope.name().equals(name))
 			{
 				return scope.declaration();

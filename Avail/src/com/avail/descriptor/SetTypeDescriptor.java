@@ -94,7 +94,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 			final int indent)
 	{
 		aStream.append("set");
-		if (! object.sizeRange().equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+		if (!object.sizeRange().equals(IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
 			aStream.append(" ");
 			object.sizeRange().printOnAvoidingIndent(
@@ -147,7 +147,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return (((object.sizeRange().hash() * 11) + (object.contentType().hash() * 5)) & HashMask);
+		return ((object.sizeRange().hash() * 11) + (object.contentType().hash() * 5));
 	}
 
 	boolean ObjectIsHashAvailable (
@@ -158,11 +158,11 @@ public class SetTypeDescriptor extends TypeDescriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that it is likely can be coalesced together.
 
-		if (! object.sizeRange().isHashAvailable())
+		if (!object.sizeRange().isHashAvailable())
 		{
 			return false;
 		}
-		if (! object.contentType().isHashAvailable())
+		if (!object.contentType().isHashAvailable())
 		{
 			return false;
 		}
@@ -344,7 +344,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	{
 		return (SetTypeDescriptor) allDescriptors [144];
 	}
-	
+
 	public static SetTypeDescriptor immutableDescriptor()
 	{
 		return (SetTypeDescriptor) allDescriptors [145];

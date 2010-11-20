@@ -109,7 +109,8 @@ public class L2GetInstruction extends L2Instruction
 			AvailObject varType = anL2Translator.registerTypeAt(_sourceVar);
 			varType = varType.typeIntersection(Types.container.object());
 			anL2Translator.registerTypeAtPut(_sourceVar, varType);
-			if ((varType.isSubtypeOf(Types.container.object()) && (! varType.equals(Types.container.object()))))
+			if (varType.isSubtypeOf(Types.container.object())
+				&& !varType.equals(Types.container.object()))
 			{
 				anL2Translator.registerTypeAtPut(_dest, varType.innerType());
 			}

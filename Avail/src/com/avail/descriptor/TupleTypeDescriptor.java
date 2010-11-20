@@ -145,7 +145,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 				aStream.append("tuple like <");
 				for (int i = 1, _end1 = object.sizeRange().upperBound().extractInt(); i <= _end1; i++)
 				{
-					if ((i > 1))
+					if (i > 1)
 					{
 						aStream.append(", ");
 					}
@@ -198,11 +198,11 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		if (! object.sizeRange().equals(aTupleType.sizeRange()))
+		if (!object.sizeRange().equals(aTupleType.sizeRange()))
 		{
 			return false;
 		}
-		if (! object.defaultType().equals(aTupleType.defaultType()))
+		if (!object.defaultType().equals(aTupleType.defaultType()))
 		{
 			return false;
 		}
@@ -216,7 +216,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  Given two objects that are known to be equal, is the first one in a better form (more
 		//  compact, more efficient, older generation) than the second one?
 
-		return (! anotherObject.isBetterRepresentationThanTupleType(object));
+		return !anotherObject.isBetterRepresentationThanTupleType(object);
 	}
 
 	boolean ObjectIsBetterRepresentationThanTupleType (
@@ -258,15 +258,15 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that it is likely can be coalesced together.
 
-		if (! object.sizeRange().isHashAvailable())
+		if (!object.sizeRange().isHashAvailable())
 		{
 			return false;
 		}
-		if (! object.typeTuple().isHashAvailable())
+		if (!object.typeTuple().isHashAvailable())
 		{
 			return false;
 		}
-		if (! object.defaultType().isHashAvailable())
+		if (!object.defaultType().isHashAvailable())
 		{
 			return false;
 		}
@@ -292,7 +292,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  Answer what type the given index would have in an object instance of me.  Answer
 		//  terminates if the index is out of bounds.
 
-		if ((index <= 0))
+		if (index <= 0)
 		{
 			return Types.terminates.object();
 		}
@@ -319,11 +319,11 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  which don't affect the union (unless all indices are out of range).
 
 		assert (startIndex <= endIndex);
-		if ((startIndex == endIndex))
+		if (startIndex == endIndex)
 		{
 			return object.typeAtIndex(startIndex);
 		}
-		if ((endIndex <= 0))
+		if (endIndex <= 0)
 		{
 			return Types.terminates.object();
 		}
@@ -333,11 +333,11 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			return Types.terminates.object();
 		}
 		final AvailObject leading = object.typeTuple();
-		final int interestingLimit = (leading.tupleSize() + 1);
-		final int clipStart = max (min (startIndex, interestingLimit), 1);
-		final int clipEnd = max (min (endIndex, interestingLimit), 1);
+		final int interestingLimit = leading.tupleSize() + 1;
+		final int clipStart = max(min(startIndex, interestingLimit), 1);
+		final int clipEnd = max(min(endIndex, interestingLimit), 1);
 		AvailObject unionType = object.typeAtIndex(clipStart);
-		for (int i = (clipStart + 1); i <= clipEnd; i++)
+		for (int i = clipStart + 1; i <= clipEnd; i++)
 		{
 			unionType = unionType.typeUnion(object.typeAtIndex(i));
 		}
@@ -369,17 +369,17 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		if (! aTupleType.sizeRange().isSubtypeOf(object.sizeRange()))
+		if (!aTupleType.sizeRange().isSubtypeOf(object.sizeRange()))
 		{
 			return false;
 		}
-		if (! aTupleType.defaultType().isSubtypeOf(object.defaultType()))
+		if (!aTupleType.defaultType().isSubtypeOf(object.defaultType()))
 		{
 			return false;
 		}
 		final AvailObject subTuple = aTupleType.typeTuple();
 		final AvailObject superTuple = object.typeTuple();
-		for (int i = 1, _end1 = max (subTuple.tupleSize(), superTuple.tupleSize()); i <= _end1; i++)
+		for (int i = 1, _end1 = max(subTuple.tupleSize(), superTuple.tupleSize()); i <= _end1; i++)
 		{
 			AvailObject subType;
 			if ((i <= subTuple.tupleSize()))
@@ -399,7 +399,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			{
 				superType = object.defaultType();
 			}
-			if (! subType.isSubtypeOf(superType))
+			if (!subType.isSubtypeOf(superType))
 			{
 				return false;
 			}
@@ -460,7 +460,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  Make sure entries in newLeading are immutable, as typeIntersection: can answer one
 		//  of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault = object.typeAtIndex((newLeadingSize + 1)).typeIntersection(aTupleType.typeAtIndex((newLeadingSize + 1)));
+		final AvailObject newDefault = object.typeAtIndex(newLeadingSize + 1).typeIntersection(aTupleType.typeAtIndex(newLeadingSize + 1));
 		if (newDefault.equals(Types.terminates.object()))
 		{
 			final AvailObject newLeadingSizeObject = IntegerDescriptor.objectFromInt(newLeadingSize);
@@ -533,7 +533,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  Make sure entries in newLeading are immutable, as typeUnion: can answer one
 		//  of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault = object.typeAtIndex((newLeadingSize + 1)).typeUnion(aTupleType.typeAtIndex((newLeadingSize + 1)));
+		final AvailObject newDefault = object.typeAtIndex(newLeadingSize + 1).typeUnion(aTupleType.typeAtIndex(newLeadingSize + 1));
 		//  safety until all primitives are destructive
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			newSizesObject,
@@ -586,7 +586,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			//  See how many other redundant entries we can drop.
 			int index = typeTuple.tupleSize() - 1;
 			while (index > 0 && typeTuple.tupleAt(index).equals(defaultType))
-				--index;
+				index--;
 			return tupleTypeForSizesTypesDefaultType(
 				sizeRange,
 				typeTuple.copyTupleFromToCanDestroy(1, index, false),
@@ -648,7 +648,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			int typeTupleHash,
 			int defaultTypeHash)
 	{
-		return ((sizesHash *13) + (defaultTypeHash * 11) + (typeTupleHash * 7)) & HashMask;
+		return ((sizesHash *13) + (defaultTypeHash * 11) + (typeTupleHash * 7));
 	};
 
 	/**
@@ -689,7 +689,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	{
 		return (TupleTypeDescriptor) allDescriptors [154];
 	}
-	
+
 	public static TupleTypeDescriptor immutableDescriptor()
 	{
 		return (TupleTypeDescriptor) allDescriptors [155];

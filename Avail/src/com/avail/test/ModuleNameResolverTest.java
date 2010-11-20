@@ -52,19 +52,19 @@ public final class ModuleNameResolverTest
 	/** The root of the library path. */
 	private static final @NotNull String libraryPath =
 		new File("avail").getAbsolutePath();
-	
+
 	/** The root of the experimental path. */
 	private static final @NotNull String experimentalPath =
 		new File("experimental").getAbsolutePath();
-	
+
 	/** The Avail module path. */
 	private static final @NotNull String modulePath =
 		"avail=" + libraryPath + ";experimental=" + experimentalPath;
-	
+
 	/** The Avail module path roots. */
 	private static final @NotNull ModuleRoots roots =
 		new ModuleRoots(modulePath);
-	
+
 	/**
 	 * Test: Test basic functionality of {@link RenamesFileParser}.
 	 * 
@@ -124,19 +124,19 @@ public final class ModuleNameResolverTest
 				libraryPath
 			}
 		};
-		
+
 		final RenamesFileParser parser =
 			new RenamesFileParser(new StringReader(
 				RenamesFileParser.renamesFileFromRules(rules)),
 				roots);
 		final ModuleNameResolver renames = parser.parse();
-		
+
 		for (final String[] aCase : cases)
 		{
 			final int index = aCase[0].lastIndexOf('/');
 			final String moduleGroup = aCase[0].substring(0, index);
 			final String localName = aCase[0].substring(index + 1);
-			
+
 			final File expected = new File(aCase[2], aCase[1]);
 			final File actual   = renames.resolve(
 				"/avail" + moduleGroup, localName);

@@ -78,7 +78,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	{
 		//  The hash value is always recomputed from the objectMeta's instance (an objectType).
 
-		return (object.myObjectType().hash() ^ (0x1317C873 & HashMask));
+		return object.myObjectType().hash() ^ (0x1317C873);
 	}
 
 	boolean ObjectIsHashAvailable (
@@ -257,7 +257,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	{
 		return (ObjectMetaDescriptor) allDescriptors [130];
 	}
-	
+
 	public static ObjectMetaDescriptor immutableDescriptor()
 	{
 		return (ObjectMetaDescriptor) allDescriptors [131];

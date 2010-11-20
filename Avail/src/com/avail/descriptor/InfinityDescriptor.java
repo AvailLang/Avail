@@ -76,7 +76,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final List<AvailObject> recursionList, 
 			final int indent)
 	{
-		if (! object.isPositive())
+		if (!object.isPositive())
 		{
 			aStream.append('-');
 		}
@@ -134,7 +134,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		{
 			return true;
 		}
-		if (! aType.isIntegerRangeType())
+		if (!aType.isIntegerRangeType())
 		{
 			return false;
 		}
@@ -160,23 +160,23 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		//  Since my implementation of ObjectCanComputeHashOfType: answers
 		//  true, I'm not allowed to allocate objects to figure this out.
 
-		if (! aType.isIntegerRangeType())
+		if (!aType.isIntegerRangeType())
 		{
 			return false;
 		}
-		if (! aType.lowerBound().equals(object))
+		if (!aType.lowerBound().equals(object))
 		{
 			return false;
 		}
-		if (! aType.lowerInclusive())
+		if (!aType.lowerInclusive())
 		{
 			return false;
 		}
-		if (! aType.upperBound().equals(object))
+		if (!aType.upperBound().equals(object))
 		{
 			return false;
 		}
-		if (! aType.upperInclusive())
+		if (!aType.upperInclusive())
 		{
 			return false;
 		}
@@ -205,7 +205,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	{
 		//  Answer the object's hash value.
 
-		return ((object.whichOne() == 1) ? (0x14B326DA & HashMask) : (0xBF9302D & HashMask));
+		return (object.whichOne() == 1) ? 0x14B326DA : (0xBF9302D);
 	}
 
 	int ObjectHashOfType (
@@ -444,12 +444,12 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static InfinityDescriptor mutableDescriptor()
 	{
 		return (InfinityDescriptor) allDescriptors [76];
 	}
-	
+
 	public static InfinityDescriptor immutableDescriptor()
 	{
 		return (InfinityDescriptor) allDescriptors [77];

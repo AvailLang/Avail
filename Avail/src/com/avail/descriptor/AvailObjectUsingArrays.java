@@ -107,7 +107,7 @@ public class AvailObjectUsingArrays extends AvailObject
 			return;
 		}
 		final int oldSlotsSize = objectSlotsCount();
-		if ((oldSlotsSize == 0))
+		if (oldSlotsSize == 0)
 		{
 			_objectSlots = new AvailObject[1];
 			_objectSlots[0] = VoidDescriptor.voidObject();

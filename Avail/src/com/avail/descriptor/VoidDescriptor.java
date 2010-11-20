@@ -49,24 +49,24 @@ public class VoidDescriptor
 extends Descriptor
 {
 	/** The sole instance of the {@linkplain #voidObject() void object}. */
-    private static AvailObject soleInstance;
+	private static AvailObject soleInstance;
 
-    /**
-     * Create the sole instance of the {@linkplain #voidObject() void object}.
-     */
+	/**
+	 * Create the sole instance of the {@linkplain #voidObject() void object}.
+	 */
 	static void createWellKnownObjects ()
-    {
-    	soleInstance = AvailObject.newIndexedDescriptor(
-    		0, immutableDescriptor());
-    }
+	{
+		soleInstance = AvailObject.newIndexedDescriptor(
+			0, immutableDescriptor());
+	}
 
 	/**
 	 * Discard the sole instance of the {@linkplain #voidObject() void object}.
 	 */
 	static void clearWellKnownObjects ()
-    {
-    	soleInstance = null;
-    }
+	{
+		soleInstance = null;
+	}
 
 	/**
 	 * Answer the sole instance of the void object.
@@ -74,10 +74,10 @@ extends Descriptor
 	 * @return The sole instance of the void object.
 	 */
 	@ThreadSafe
-    public static @NotNull AvailObject voidObject ()
-    {
-    	return soleInstance;
-    }
+	public static @NotNull AvailObject voidObject ()
+	{
+		return soleInstance;
+	}
 
 	/**
 	 * Construct a new {@link VoidDescriptor}.
@@ -112,28 +112,28 @@ extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
-    /**
-     * Answer a mutable {@link VoidDescriptor}.
-     * 
-     * @return A mutable {@link VoidDescriptor}.
-     */
-	@ThreadSafe
-    public static @NotNull VoidDescriptor mutableDescriptor ()
-    {
-    	return (VoidDescriptor) allDescriptors[162];
-    }
 
-    /**
-     * Answer an immutable {@link VoidDescriptor}.
-     * 
-     * @return An immutable {@link VoidDescriptor}.
-     */
+	/**
+	 * Answer a mutable {@link VoidDescriptor}.
+	 * 
+	 * @return A mutable {@link VoidDescriptor}.
+	 */
+	@ThreadSafe
+	public static @NotNull VoidDescriptor mutableDescriptor ()
+	{
+		return (VoidDescriptor) allDescriptors[162];
+	}
+
+	/**
+	 * Answer an immutable {@link VoidDescriptor}.
+	 * 
+	 * @return An immutable {@link VoidDescriptor}.
+	 */
 	@ThreadSafe
 	public static @NotNull VoidDescriptor immutableDescriptor ()
-    {
-    	return (VoidDescriptor) allDescriptors[163];
-    }
+	{
+		return (VoidDescriptor) allDescriptors[163];
+	}
 
 	@Override
 	@ThreadSafe
@@ -268,12 +268,12 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-    void printObjectOnAvoidingIndent (
-    	final @NotNull AvailObject object, 
-    	final @NotNull StringBuilder builder, 
-    	final @NotNull List<AvailObject> recursionList, 
-    	final int indent)
-    {
-    	builder.append("VoidDescriptor void");
-    }
+	void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object, 
+		final @NotNull StringBuilder builder, 
+		final @NotNull List<AvailObject> recursionList, 
+		final int indent)
+	{
+		builder.append("VoidDescriptor void");
+	}
 }

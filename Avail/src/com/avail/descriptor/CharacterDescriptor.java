@@ -53,7 +53,7 @@ extends Descriptor
 {
 	/** The first 256 Unicode characters. */
 	static AvailObject[] byteCharacters;
-	
+
 	/** The hashes of the first 256 Unicode characters. */
 	static final @NotNull int[] hashesOfByteCharacters =
 	{
@@ -142,7 +142,7 @@ extends Descriptor
 		{
 			return byteCharacters[codePoint];
 		}
-		
+
 		AvailObject result = AvailObject.newIndexedDescriptor(
 			0, CharacterDescriptor.mutableDescriptor());
 		result.codePoint(codePoint);
@@ -179,7 +179,7 @@ extends Descriptor
 	{
 		return IntegerDescriptor.computeHashOfInt(codePoint ^ 0x068E9947);
 	}
-	
+
 	/**
 	 * Answer the hash of the Avail {@linkplain CharacterDescriptor character}
 	 * with the specified unsigned 8-bit Unicode code point.
@@ -195,23 +195,23 @@ extends Descriptor
 		assert codePoint >= 0 && codePoint <= 255;
 		return hashesOfByteCharacters[codePoint];
 	}
-	
-    /**
-     * Answer a mutable {@link CharacterDescriptor}.
-     * 
-     * @return A mutable {@link CharacterDescriptor}.
-     */
+
+	/**
+	 * Answer a mutable {@link CharacterDescriptor}.
+	 * 
+	 * @return A mutable {@link CharacterDescriptor}.
+	 */
 	@ThreadSafe
 	public static @NotNull CharacterDescriptor mutableDescriptor()
 	{
 		return (CharacterDescriptor) allDescriptors[24];
 	}
 
-    /**
-     * Answer an immutable {@link CharacterDescriptor}.
-     * 
-     * @return An immutable {@link CharacterDescriptor}.
-     */
+	/**
+	 * Answer an immutable {@link CharacterDescriptor}.
+	 * 
+	 * @return An immutable {@link CharacterDescriptor}.
+	 */
 	@ThreadSafe
 	public static @NotNull CharacterDescriptor immutableDescriptor()
 	{
@@ -315,7 +315,7 @@ extends Descriptor
 				aStream.append('\'');
 		}
 	};
-	
+
 	/**
 	 * Construct a new {@link CharacterDescriptor}.
 	 *

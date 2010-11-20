@@ -124,8 +124,8 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 	{
 		//  Emit an assignment to this variable.
 
-		assert (! isConstant());
-		assert (! isArgument());
+		assert !isConstant();
+		assert !isArgument();
 		codeGenerator.emitSetLocalOrOuter(this);
 	}
 
@@ -134,8 +134,8 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 	{
 		//  Emit a reference to this variable.
 
-		assert (! isConstant());
-		assert (! isArgument());
+		assert !isConstant();
+		assert !isArgument();
 		codeGenerator.emitPushLocalOrOuter(this);
 	}
 

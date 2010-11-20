@@ -138,11 +138,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
-			if (! (object.rawShortForCharacterAt(index1) == aTwoByteString.rawShortForCharacterAt(index2)))
+			if (object.rawShortForCharacterAt(index1) != aTwoByteString.rawShortForCharacterAt(index2))
 			{
 				return false;
 			}
-			++index2;
+			index2++;
 		}
 		return true;
 	}
@@ -164,15 +164,15 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (! (object.tupleSize() == aTwoByteString.tupleSize()))
+		if (object.tupleSize() != aTwoByteString.tupleSize())
 		{
 			return false;
 		}
-		if (! (object.hash() == aTwoByteString.hash()))
+		if (object.hash() != aTwoByteString.hash())
 		{
 			return false;
 		}
-		if (! object.compareFromToWithTwoByteStringStartingAt(
+		if (!object.compareFromToWithTwoByteStringStartingAt(
 			1,
 			object.tupleSize(),
 			aTwoByteString,
@@ -196,7 +196,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	{
 		return true;
 	}
-	
+
 	boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -214,13 +214,13 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (! aType.isTupleType())
+		if (!aType.isTupleType())
 		{
 			return false;
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
-		if (! size.isInstanceOfSubtypeOf(aType.sizeRange()))
+		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
 		{
 			return false;
 		}
@@ -228,10 +228,10 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		//
 		//  Make sure the element types accept character, up to my actual size.
 		final AvailObject typeTuple = aType.typeTuple();
-		final int limit = min (object.tupleSize(), (typeTuple.tupleSize() + 1));
+		final int limit = min(object.tupleSize(), (typeTuple.tupleSize() + 1));
 		for (int i = 1; i <= limit; i++)
 		{
-			if (! Types.character.object().isSubtypeOf(aType.typeAtIndex(i)))
+			if (!Types.character.object().isSubtypeOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -283,7 +283,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer the element at the given index in the tuple object.  It's a one-byte character.
 
-		if (! ((index >= 1) && (index <= object.tupleSize())))
+		if (!((index >= 1) && (index <= object.tupleSize())))
 		{
 			error("index out of bounds", object);
 			return VoidDescriptor.voidObject();
@@ -318,7 +318,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final int codePoint = newValueObject.codePoint();
 			if (((codePoint >= 0) && (codePoint <= 0xFFFF)))
 			{
-				if ((canDestroy & isMutable))
+				if (canDestroy & isMutable)
 				{
 					object.rawShortForCharacterAtPut(index, ((short)(codePoint)));
 					object.hashOrZero(0);
@@ -391,9 +391,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = (CharacterDescriptor.computeHashOfCharacterWithCodePoint(object.rawShortForCharacterAt(index)) ^ PreToggle);
-			hash = ((TupleDescriptor.multiplierTimes(hash) + itemHash) & HashMask);
+			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
-		return (TupleDescriptor.multiplierTimes(hash) & HashMask);
+		return TupleDescriptor.multiplierTimes(hash);
 	}
 
 
@@ -436,7 +436,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	{
 		//  Build a new object instance with room for size elements.
 
-		if (! isMutable)
+		if (!isMutable)
 		{
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
@@ -449,7 +449,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	// Descriptor lookup
 	static TwoByteStringDescriptor isMutableSize(boolean flag, int size)
 	{
-		int delta = (flag ? 0 : 1);
+		int delta = flag ? 0 : 1;
 		return (TwoByteStringDescriptor) allDescriptors [156 + delta + ((size & 1) * 2)];
 	};
 

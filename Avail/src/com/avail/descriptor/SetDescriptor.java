@@ -110,11 +110,11 @@ public class SetDescriptor extends Descriptor
 	{
 		//  First eliminate the trivial case of different sizes.
 
-		if (! (object.setSize() == aSet.setSize()))
+		if (object.setSize() != aSet.setSize())
 		{
 			return false;
 		}
-		if (! (object.hash() == aSet.hash()))
+		if (object.hash() != aSet.hash())
 		{
 			return false;
 		}
@@ -142,13 +142,13 @@ public class SetDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (! aTypeObject.isSetType())
+		if (!aTypeObject.isSetType())
 		{
 			return false;
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.objectFromInt(object.setSize());
-		if (! size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
@@ -174,7 +174,7 @@ public class SetDescriptor extends Descriptor
 		//  A set's hash is a simple function of its rootBin's binHash, which is always the sum
 		//  of its elements' hashes.
 
-		return ((object.rootBin().binHash() ^ 0xCD9EFC6) & HashMask);
+		return (object.rootBin().binHash() ^ 0xCD9EFC6);
 	}
 
 	boolean ObjectIsSet (
@@ -234,7 +234,7 @@ public class SetDescriptor extends Descriptor
 			larger = object;
 			smaller = otherSet.traversed();
 		}
-		if (! canDestroy)
+		if (!canDestroy)
 		{
 			smaller.makeImmutable();
 		}
@@ -245,7 +245,7 @@ public class SetDescriptor extends Descriptor
 		for (int i = 1, _end1 = smallerAsTuple.tupleSize(); i <= _end1; i++)
 		{
 			final AvailObject element = smallerAsTuple.tupleAt(i);
-			if (! larger.hasElement(element))
+			if (!larger.hasElement(element))
 			{
 				result = result.setWithoutElementCanDestroy(smallerAsTuple.tupleAt(i), true);
 			}
@@ -261,7 +261,7 @@ public class SetDescriptor extends Descriptor
 		//  Compute the asymmetric difference of two sets (a \ b).  May destroy one of them if it's
 		//  mutable and canDestroy is true.
 
-		if (! canDestroy)
+		if (!canDestroy)
 		{
 			object.makeImmutable();
 		}
@@ -299,7 +299,9 @@ public class SetDescriptor extends Descriptor
 			larger = object;
 			smaller = otherSet.traversed();
 		}
-		if (! (canDestroy && (smaller.descriptor().isMutable() || larger.descriptor().isMutable())))
+		if (!canDestroy
+				|| (!smaller.descriptor().isMutable()
+					&& !larger.descriptor().isMutable()))
 		{
 			final AvailObject copy = AvailObject.newIndexedDescriptor(0, SetDescriptor.mutableDescriptor());
 			copy.rootBin(larger.rootBin().makeImmutable());
@@ -345,14 +347,14 @@ public class SetDescriptor extends Descriptor
 			(canDestroy & isMutable));
 		if ((newRootBin.binSize() == oldSize))
 		{
-			if (! canDestroy)
+			if (!canDestroy)
 			{
 				object.makeImmutable();
 			}
 			return object;
 		}
 		AvailObject result;
-		if ((canDestroy & isMutable))
+		if (canDestroy & isMutable)
 		{
 			result = object;
 		}
@@ -380,14 +382,14 @@ public class SetDescriptor extends Descriptor
 			(canDestroy & isMutable));
 		if ((newRootBin.binSize() == oldSize))
 		{
-			if (! canDestroy)
+			if (!canDestroy)
 			{
 				object.makeImmutable();
 			}
 			return object;
 		}
 		AvailObject result;
-		if ((canDestroy & isMutable))
+		if (canDestroy & isMutable)
 		{
 			result = object;
 		}
@@ -498,7 +500,7 @@ public class SetDescriptor extends Descriptor
 	{
 		return (SetDescriptor) allDescriptors [142];
 	}
-	
+
 	public static SetDescriptor immutableDescriptor()
 	{
 		return (SetDescriptor) allDescriptors [143];

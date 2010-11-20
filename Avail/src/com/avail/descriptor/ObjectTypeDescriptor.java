@@ -61,15 +61,15 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		for (int i1 = 1, _end1 = typeMap.capacity(); i1 <= _end1; i1++)
 		{
 			final AvailObject key = typeMap.keyAtIndex(i1);
-			if (! key.equalsVoidOrBlank())
+			if (!key.equalsVoidOrBlank())
 			{
 				final AvailObject fieldType = typeMap.valueAtIndex(i1);
-				if (! instMap.hasKey(key))
+				if (!instMap.hasKey(key))
 				{
 					AvailObject.unlock(typeMap);
 					return false;
 				}
-				if (! instMap.mapAt(key).isInstanceOfSubtypeOf(fieldType))
+				if (!instMap.mapAt(key).isInstanceOfSubtypeOf(fieldType))
 				{
 					AvailObject.unlock(typeMap);
 					return false;
@@ -119,7 +119,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	{
 		//  Use the hash of the map (of field keys and field types), multiplied by 11.
 
-		return ((object.fieldTypeMap().hash() * 11) & HashMask);
+		return (object.fieldTypeMap().hash() * 11);
 	}
 
 	boolean ObjectIsHashAvailable (
@@ -163,7 +163,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 		final AvailObject m1 = object.fieldTypeMap();
 		final AvailObject m2 = anObjectType.fieldTypeMap();
-		if (! (m1.mapSize() <= m2.mapSize()))
+		if (m1.mapSize() > m2.mapSize())
 		{
 			return false;
 		}
@@ -171,15 +171,15 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		for (int i1 = 1, _end1 = m1.capacity(); i1 <= _end1; i1++)
 		{
 			final AvailObject key = m1.keyAtIndex(i1);
-			if (! key.equalsVoidOrBlank())
+			if (!key.equalsVoidOrBlank())
 			{
 				final AvailObject v1 = m1.valueAtIndex(i1);
-				if (! m2.hasKey(key))
+				if (!m2.hasKey(key))
 				{
 					AvailObject.unlock(m1);
 					return false;
 				}
-				if (! m2.mapAt(key).isSubtypeOf(v1))
+				if (!m2.mapAt(key).isSubtypeOf(v1))
 				{
 					AvailObject.unlock(m1);
 					return false;
@@ -221,7 +221,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		for (int i = 1, _end1 = map1.capacity(); i <= _end1; i++)
 		{
 			AvailObject keyObject = map1.keyAtIndex(i);
-			if (! keyObject.equalsVoidOrBlank())
+			if (!keyObject.equalsVoidOrBlank())
 			{
 				AvailObject typeObject = map1.valueAtIndex(i);
 				if (map2.hasKey(keyObject))
@@ -240,9 +240,9 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		for (int i = 1, _end2 = map2.capacity(); i <= _end2; i++)
 		{
 			AvailObject keyObject = map2.keyAtIndex(i);
-			if (! keyObject.equalsVoidOrBlank())
+			if (!keyObject.equalsVoidOrBlank())
 			{
-				if (! map1.hasKey(keyObject))
+				if (!map1.hasKey(keyObject))
 				{
 					AvailObject typeObject = map2.valueAtIndex(i);
 					resultMap = resultMap.mapAtPuttingCanDestroy(
@@ -283,13 +283,13 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		AvailObject resultMap = MapDescriptor.newWithCapacity(min (map1.capacity(), map2.capacity()));
+		AvailObject resultMap = MapDescriptor.newWithCapacity(min(map1.capacity(), map2.capacity()));
 		AvailObject.lock(map1);
 		for (int i = 1, _end1 = map1.capacity(); i <= _end1; i++)
 		{
 			final AvailObject keyObject = map1.keyAtIndex(i);
 			AvailObject typeObject;
-			if (! keyObject.equalsVoidOrBlank())
+			if (!keyObject.equalsVoidOrBlank())
 			{
 				if (map2.hasKey(keyObject))
 				{
@@ -317,7 +317,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		//  a Smalltalk Integer between 16r00000001 and 16rFFFFFFFF inclusive.
 		//  Hash the map (of field keys and field types) and multiply it by 11.
 
-		return ((object.fieldTypeMap().hash() * 11) & HashMask);
+		return (object.fieldTypeMap().hash() * 11);
 	}
 
 
@@ -370,7 +370,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	{
 		return (ObjectTypeDescriptor) allDescriptors [136];
 	}
-	
+
 	public static ObjectTypeDescriptor immutableDescriptor()
 	{
 		return (ObjectTypeDescriptor) allDescriptors [137];

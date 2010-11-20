@@ -49,13 +49,13 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 		//  This is a visitor call from a subobject iterator running on some object.  The subobject
 		//  can be extracted at the given byte of the parent object.
 
-		if (! CanDestroyObjects())
+		if (!CanDestroyObjects())
 		{
 			error("Don't invoke this if destructions are disallowed");
 			return;
 		}
 		final AvailObject subobject = parentObject.objectSlotAtByteIndex(byteIndexInParent);
-		if (! subobject.descriptor().isMutable())
+		if (!subobject.descriptor().isMutable())
 		{
 			return;
 		}

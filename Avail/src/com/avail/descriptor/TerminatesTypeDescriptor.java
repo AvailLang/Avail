@@ -287,7 +287,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	{
 		return (TerminatesTypeDescriptor) allDescriptors [150];
 	}
-	
+
 	public static TerminatesTypeDescriptor immutableDescriptor()
 	{
 		return (TerminatesTypeDescriptor) allDescriptors [151];

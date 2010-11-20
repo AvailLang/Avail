@@ -266,35 +266,35 @@ public class L2ChunkDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -4))
+		if (index == -4)
 		{
 			return true;
 		}
-		if ((index == -8))
+		if (index == -8)
 		{
 			return true;
 		}
-		if ((index == -12))
+		if (index == -12)
 		{
 			return true;
 		}
-		if ((index <= -16))
+		if (index <= -16)
 		{
 			return true;
 		}
-		if ((index == 4))
+		if (index == 4)
 		{
 			return true;
 		}
-		if ((index == 8))
+		if (index == 8)
 		{
 			return true;
 		}
-		if ((index == 24))
+		if (index == 24)
 		{
 			return true;
 		}
-		if ((index == 28))
+		if (index == 28)
 		{
 			return true;
 		}
@@ -316,7 +316,7 @@ public class L2ChunkDescriptor extends Descriptor
 		aStream.append("Chunk #");
 		aStream.append(object.index());
 		aStream.append("\n");
-		if (! object.isValid())
+		if (!object.isValid())
 		{
 			for (int t = 1; t <= indent; t++)
 			{
@@ -395,7 +395,7 @@ public class L2ChunkDescriptor extends Descriptor
 		for (int i = 1, _end1 = impSets.tupleSize(); i <= _end1; i++)
 		{
 			final AvailObject imp = impSets.tupleAt(i);
-			if (! imp.equals(anImplementationSet))
+			if (!imp.equals(anImplementationSet))
 			{
 				imp.removeDependentChunkId(object.index());
 			}
@@ -755,12 +755,12 @@ public class L2ChunkDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static L2ChunkDescriptor mutableDescriptor()
 	{
 		return (L2ChunkDescriptor) allDescriptors [82];
 	}
-	
+
 	public static L2ChunkDescriptor immutableDescriptor()
 	{
 		return (L2ChunkDescriptor) allDescriptors [83];

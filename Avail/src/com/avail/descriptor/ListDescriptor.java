@@ -116,7 +116,7 @@ public class ListDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (! aType.isListType())
+		if (!aType.isListType())
 		{
 			return false;
 		}
@@ -136,7 +136,7 @@ public class ListDescriptor extends Descriptor
 	{
 		//  Answer the object's hash.
 
-		return (((object.tuple().hash() + 0x3622137) ^ 0x7896120) & HashMask);
+		return ((object.tuple().hash() + 0x3622137) ^ 0x7896120);
 	}
 
 	boolean ObjectIsHashAvailable (
@@ -201,12 +201,12 @@ public class ListDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static ListDescriptor mutableDescriptor()
 	{
 		return (ListDescriptor) allDescriptors [100];
 	}
-	
+
 	public static ListDescriptor immutableDescriptor()
 	{
 		return (ListDescriptor) allDescriptors [101];

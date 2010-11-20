@@ -86,7 +86,7 @@ public abstract class TupleDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == 4))
+		if (index == 4)
 		{
 			return true;
 		}
@@ -131,17 +131,17 @@ public abstract class TupleDescriptor extends Descriptor
 		}
 		//  Compare sizes...
 		final int size = object.tupleSize();
-		if (! (size == aTuple.tupleSize()))
+		if (size != aTuple.tupleSize())
 		{
 			return false;
 		}
-		if (! (ObjectHash(object) == aTuple.hash()))
+		if (ObjectHash(object) != aTuple.hash())
 		{
 			return false;
 		}
 		for (int i = 1; i <= size; i++)
 		{
-			if (! ObjectTupleAt(object, i).equals(aTuple.tupleAt(i)))
+			if (!ObjectTupleAt(object, i).equals(aTuple.tupleAt(i)))
 			{
 				return false;
 			}
@@ -231,22 +231,22 @@ public abstract class TupleDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (! aTypeObject.isTupleType())
+		if (!aTypeObject.isTupleType())
 		{
 			return false;
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
-		if (! size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
 		//  tuple's size is out of range.
 		final AvailObject typeTuple = aTypeObject.typeTuple();
-		final int breakIndex = min (object.tupleSize(), typeTuple.tupleSize());
+		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (! object.tupleAt(i).isInstanceOfSubtypeOf(aTypeObject.typeAtIndex(i)))
+			if (!object.tupleAt(i).isInstanceOfSubtypeOf(aTypeObject.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -254,7 +254,7 @@ public abstract class TupleDescriptor extends Descriptor
 		final AvailObject defaultTypeObject = aTypeObject.defaultType();
 		for (int i = (breakIndex + 1), _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			if (! object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
 			{
 				return false;
 			}
@@ -290,7 +290,7 @@ public abstract class TupleDescriptor extends Descriptor
 		//  hash must be computed on demand every time it is requested.
 
 		int hash = object.hashOrZero();
-		if ((hash == 0))
+		if (hash == 0)
 		{
 			hash = computeHashForObject(object);
 			object.hashOrZero(hash);
@@ -333,11 +333,11 @@ public abstract class TupleDescriptor extends Descriptor
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
-			if (! object.tupleAt(index1).equals(aTuple.tupleAt(index2)))
+			if (!object.tupleAt(index1).equals(aTuple.tupleAt(index2)))
 			{
 				return false;
 			}
-			++index2;
+			index2++;
 		}
 		return true;
 	}
@@ -445,7 +445,7 @@ public abstract class TupleDescriptor extends Descriptor
 			zones += subZones;
 			newSize += sub.tupleSize();
 		}
-		if ((newSize == 0))
+		if (newSize == 0)
 		{
 			return TupleDescriptor.empty();
 		}
@@ -478,12 +478,12 @@ public abstract class TupleDescriptor extends Descriptor
 					{
 						sub.setSubtupleForZoneTo(originalZone, VoidDescriptor.voidObject());
 					}
-					++zone;
+					zone++;
 				}
 			}
 			else
 			{
-				if (! (sub.tupleSize() == 0))
+				if (sub.tupleSize() != 0)
 				{
 					majorIndex += sub.tupleSize();
 					result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
@@ -491,7 +491,7 @@ public abstract class TupleDescriptor extends Descriptor
 						sub,
 						1,
 						majorIndex);
-					++zone;
+					zone++;
 				}
 				if ((canDestroy && isMutable()))
 				{
@@ -502,7 +502,7 @@ public abstract class TupleDescriptor extends Descriptor
 		assert (zone == (zones + 1)) : "Wrong number of zones";
 		assert (majorIndex == newSize) : "Wrong resulting tuple size";
 		result.hashOrZero(result.computeHashFromTo(1, majorIndex));
-		if ((canDestroy && isMutable))
+		if (canDestroy && isMutable)
 		{
 			object.assertObjectUnreachableIfMutable();
 		}
@@ -525,7 +525,7 @@ public abstract class TupleDescriptor extends Descriptor
 		assert (0 <= end && end <= object.tupleSize());
 		if (((start - 1) == end))
 		{
-			if ((isMutable && canDestroy))
+			if (isMutable && canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
@@ -533,14 +533,14 @@ public abstract class TupleDescriptor extends Descriptor
 		}
 		if ((isMutable && (canDestroy && ((start == 1) || ((end - start) < 20)))))
 		{
-			if (! (start == 1))
+			if (start != 1)
 			{
-				for (int i = 1, _end1 = ((end - start) + 1); i <= _end1; i++)
+				for (int i = 1, _end1 = (end - start + 1); i <= _end1; i++)
 				{
-					object.tupleAtPut(i, object.tupleAt(((start + i) - 1)));
+					object.tupleAtPut(i, object.tupleAt(start + i - 1));
 				}
 			}
-			object.truncateTo(((end - start) + 1));
+			object.truncateTo(end - start + 1);
 			return object;
 		}
 		final AvailObject result = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
@@ -552,7 +552,7 @@ public abstract class TupleDescriptor extends Descriptor
 			1,
 			object,
 			start,
-			((end - start) + 1));
+			(end - start + 1));
 		result.verify();
 		return result;
 	}
@@ -566,7 +566,7 @@ public abstract class TupleDescriptor extends Descriptor
 		//  and its subclasses.
 
 		final int nyb = object.tupleIntAt(index);
-		if (! ((nyb >= 0) && (nyb <= 15)))
+		if (!((nyb >= 0) && (nyb <= 15)))
 		{
 			error("nybble is out of range", object);
 			return 0;
@@ -641,7 +641,7 @@ public abstract class TupleDescriptor extends Descriptor
 	{
 		return true;
 	}
-	
+
 	@Override
 	boolean ObjectIsByteTuple (AvailObject object)
 	{
@@ -652,10 +652,10 @@ public abstract class TupleDescriptor extends Descriptor
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -669,7 +669,7 @@ public abstract class TupleDescriptor extends Descriptor
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -727,9 +727,9 @@ public abstract class TupleDescriptor extends Descriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = (object.tupleAt(index).hash() ^ PreToggle);
-			hash = (((hash * Multiplier) + itemHash) & HashMask);
+			hash = (hash * Multiplier) + itemHash;
 		}
-		return ((hash * Multiplier) & HashMask);
+		return (hash * Multiplier);
 	}
 
 
@@ -784,7 +784,7 @@ public abstract class TupleDescriptor extends Descriptor
 			{
 				return index <= size;
 			}
-			
+
 			@Override
 			public AvailObject next ()
 			{
@@ -792,10 +792,10 @@ public abstract class TupleDescriptor extends Descriptor
 				{
 					throw new NoSuchElementException();
 				}
-				
+
 				return selfSnapshot.tupleAt(index++);
 			}
-			
+
 			@Override
 			public void remove ()
 			{
@@ -959,7 +959,7 @@ public abstract class TupleDescriptor extends Descriptor
 	/* Value conversion... */
 	static int multiplierTimes (int anInteger)
 	{
-		return (Multiplier * anInteger) & HashMask;
+		return (Multiplier * anInteger);
 	};
 
 	/* Hash scrambling... */

@@ -136,19 +136,19 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	{
 		//  Integer range types compare for equality by comparing their minima and maxima.
 
-		if (! object.lowerBound().equals(another.lowerBound()))
+		if (!object.lowerBound().equals(another.lowerBound()))
 		{
 			return false;
 		}
-		if (! object.upperBound().equals(another.upperBound()))
+		if (!object.upperBound().equals(another.upperBound()))
 		{
 			return false;
 		}
-		if (! (object.lowerInclusive() == another.lowerInclusive()))
+		if (object.lowerInclusive() != another.lowerInclusive())
 		{
 			return false;
 		}
-		if (! (object.upperInclusive() == another.upperInclusive()))
+		if (object.upperInclusive() != another.upperInclusive())
 		{
 			return false;
 		}
@@ -245,7 +245,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		{
 			return false;
 		}
-		if ((subMinObject.equals(superMinObject) && (possibleSub.lowerInclusive() && (! object.lowerInclusive()))))
+		if ((subMinObject.equals(superMinObject) && possibleSub.lowerInclusive() && !object.lowerInclusive()))
 		{
 			return false;
 		}
@@ -255,7 +255,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		{
 			return false;
 		}
-		if ((superMaxObject.equals(subMaxObject) && (possibleSub.upperInclusive() && (! object.upperInclusive()))))
+		if ((superMaxObject.equals(subMaxObject) && possibleSub.upperInclusive() && !object.upperInclusive()))
 		{
 			return false;
 		}
@@ -289,7 +289,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
 		{
-			isMinInc = (isMinInc && another.lowerInclusive());
+			isMinInc = isMinInc && another.lowerInclusive();
 		}
 		else if (minObject.lessThan(another.lowerBound()))
 		{
@@ -300,7 +300,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		boolean isMaxInc = object.upperInclusive();
 		if (another.upperBound().equals(maxObject))
 		{
-			isMaxInc = (isMaxInc && another.upperInclusive());
+			isMaxInc = isMaxInc && another.upperInclusive();
 		}
 		else if (another.upperBound().lessThan(maxObject))
 		{
@@ -344,7 +344,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
 		{
-			isMinInc = (isMinInc || another.lowerInclusive());
+			isMinInc = isMinInc || another.lowerInclusive();
 		}
 		else if (another.lowerBound().lessThan(minObject))
 		{
@@ -355,7 +355,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		boolean isMaxInc = object.upperInclusive();
 		if (another.upperBound().equals(maxObject))
 		{
-			isMaxInc = (isMaxInc || another.upperInclusive());
+			isMaxInc = isMaxInc || another.upperInclusive();
 		}
 		else if (maxObject.lessThan(another.upperBound()))
 		{
@@ -465,7 +465,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			lowerInclusive
 				? (upperInclusive ? 0x1503045E : 0x053A6C17)
 				: (upperInclusive ? 0x1DB2D751 : 0x1130427D);
-		return ((lowerBoundHash * 29) ^ flagsHash ^ upperBoundHash) & HashMask;
+		return ((lowerBoundHash * 29) ^ flagsHash ^ upperBoundHash);
 	}
 
 
@@ -515,7 +515,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 				error("Don't plug a mutable object in as two distinct construction parameters");
 		AvailObject low = lowerBound;
 		boolean lowInc = lowerInclusive;
-		if (! lowInc)
+		if (!lowInc)
 		{
 			//  Try to rewrite (if possible) as inclusive boundary.
 			if (low.isFinite())
@@ -526,7 +526,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		}
 		AvailObject high = upperBound;
 		boolean highInc = upperInclusive;
-		if (! highInc)
+		if (!highInc)
 		{
 			//  Try to rewrite (if possible) as inclusive boundary.
 			if (high.isFinite())
@@ -539,7 +539,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		{
 			return Types.terminates.object();
 		}
-		if (high.equals(low) && ((! highInc) || (! lowInc)))
+		if (high.equals(low) && ((!highInc) || !lowInc))
 		{
 			//  Unusual cases such as [INF..INF) give preference to exclusion over inclusion.
 			return Types.terminates.object();
@@ -584,12 +584,12 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static IntegerRangeTypeDescriptor mutableDescriptor()
 	{
 		return (IntegerRangeTypeDescriptor) allDescriptors [80];
 	}
-	
+
 	public static IntegerRangeTypeDescriptor immutableDescriptor()
 	{
 		return (IntegerRangeTypeDescriptor) allDescriptors [81];

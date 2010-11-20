@@ -82,11 +82,11 @@ public class AvailGetOuterVariable extends AvailGetVariable
 		//
 		//  I get the value of an outer, so it can't be an outer reference to an argument (they aren't wrapped in a variable).
 
-		AvailVariableAccessNote note = outerData.get((_index - 1));
+		AvailVariableAccessNote note = outerData.get(_index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			outerData.set((_index - 1), note);
+			outerData.set(_index - 1, note);
 		}
 		final AvailGetVariable previousGet = note.previousGet();
 		if (previousGet != null)

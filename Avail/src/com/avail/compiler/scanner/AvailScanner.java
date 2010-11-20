@@ -115,9 +115,9 @@ public class AvailScanner
 			twoTo59 = 0x800000000000000L;
 			isDoublePrecision = false;
 			while (peekIsDigit())
-				if ((mantissa > twoTo59))
+				if (mantissa > twoTo59)
 				{
-					++decimalExponent;
+					decimalExponent++;
 				}
 				else
 				{
@@ -127,10 +127,10 @@ public class AvailScanner
 			{
 				next();
 				while (peekIsDigit())
-					if ((mantissa <= twoTo59))
+					if (mantissa <= twoTo59)
 					{
 						mantissa = ((mantissa * 10) + nextDigitValue());
-						--decimalExponent;
+						decimalExponent--;
 					}
 					else
 					{
@@ -144,7 +144,7 @@ public class AvailScanner
 				final boolean negateExponent = peekFor('-');
 				while (peekIsDigit()) {
 					explicitExponent = ((explicitExponent * 10) + nextDigitValue());
-					if ((explicitExponent > 0x2710))
+					if (explicitExponent > 0x2710)
 					{
 						error("Literal exponent is (way) out of bounds");
 						return;
@@ -154,8 +154,8 @@ public class AvailScanner
 			}
 			//  The mantissa is in the range of a long, so even if 10**e would overflow we know
 			//  that 10**(e/2) will not (unless the double we're parsing is way out of bounds).
-			decimalExponentPart1 = (decimalExponent / 2);
-			decimalExponentPart2 = (decimalExponent - decimalExponentPart1);
+			decimalExponentPart1 = decimalExponent / 2;
+			decimalExponentPart2 = decimalExponent - decimalExponentPart1;
 			double d;
 			if (true)
 			{
@@ -189,7 +189,7 @@ public class AvailScanner
 			char c = next();
 			if (c == '\"')
 			{
-				if (! peekFor('\"'))
+				if (!peekFor('\"'))
 				{
 					String string = stringBuilder.toString();
 					AvailObject availValue = ByteStringDescriptor.mutableObjectFromNativeString(string);
@@ -220,7 +220,7 @@ public class AvailScanner
 		//  Check to see if this is the start of a comment.  Otherwise it's just the
 		//  usual slash operator.  Supports nested comments.
 
-		if (! peekFor('*'))
+		if (!peekFor('*'))
 		{
 			addToken(new AvailOperatorToken());
 			return;
@@ -235,20 +235,20 @@ public class AvailScanner
 			}
 			if ((peekFor('/') && peekFor('*')))
 			{
-				++depth;
+				depth++;
 			}
 			else if (peekFor('*'))
 			{
 				if (peekFor('/'))
 				{
-					--depth;
+					depth--;
 				}
 			}
 			else
 			{
 				next();
 			}
-			if ((depth == 0))
+			if (depth == 0)
 			{
 				break;
 			}
@@ -315,7 +315,7 @@ public class AvailScanner
 		{
 			return false;
 		}
-		if (! (peek() == aCharacter))
+		if (peek() != aCharacter)
 		{
 			return false;
 		}
@@ -325,7 +325,7 @@ public class AvailScanner
 
 	boolean peekForLetterOrAlphaNumeric ()
 	{
-		if (! atEnd())
+		if (!atEnd())
 		{
 			if (Character.isUnicodeIdentifierPart(peek()))
 			{
@@ -515,7 +515,9 @@ public class AvailScanner
 			{
 				action = ScannerAction.SLASH;
 			}
-			else if (!(Character.isSpaceChar(c) || Character.isWhitespace(c)) && (c < 32 || (c > 126 && c < 160) || (c >= 65534)))
+			else if (!Character.isSpaceChar(c)
+				&& !Character.isWhitespace(c)
+				&& (c < 32 || (c > 126 && c < 160) || (c >= 65534)))
 			{
 				action = ScannerAction.UNKNOWN;
 			}

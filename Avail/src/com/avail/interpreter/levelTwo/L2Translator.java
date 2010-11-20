@@ -262,7 +262,7 @@ public class L2Translator implements L1OperationDispatcher
 		//  Answer the register holding the specified continuation slot.  The slots are the arguments, then the locals,
 		//  then the stack entries.  The first argument is in the 3rd architectural register.
 
-		return architecturalRegister((2 + slotNumber));
+		return architecturalRegister(2 + slotNumber);
 	}
 
 	L2RegisterVector createVector (
@@ -283,25 +283,25 @@ public class L2Translator implements L1OperationDispatcher
 
 		final int tag = nybbles.extractNybbleFromTupleAt(pc);
 		int value;
-		if ((tag < 10))
+		if (tag < 10)
 		{
 			value = tag;
-			++pc;
+			pc++;
 			return value;
 		}
-		if ((tag <= 12))
+		if (tag <= 12)
 		{
-			value = (((tag * 16) - 150) + nybbles.extractNybbleFromTupleAt((pc + 1)));
+			value = (((tag * 16) - 150) + nybbles.extractNybbleFromTupleAt(pc + 1));
 			pc += 2;
 			return value;
 		}
-		if ((tag == 13))
+		if (tag == 13)
 		{
-			value = (((nybbles.extractNybbleFromTupleAt((pc + 1)) << 4) + nybbles.extractNybbleFromTupleAt((pc + 2))) + 58);
+			value = (((nybbles.extractNybbleFromTupleAt(pc + 1) << 4) + nybbles.extractNybbleFromTupleAt(pc + 2)) + 58);
 			pc += 3;
 			return value;
 		}
-		if ((tag == 14))
+		if (tag == 14)
 		{
 			value = 0;
 			for (int _count1 = 1; _count1 <= 4; _count1++)
@@ -309,10 +309,10 @@ public class L2Translator implements L1OperationDispatcher
 				value = ((value << 4) + nybbles.extractNybbleFromTupleAt(++pc));
 			}
 			//  making 5 nybbles total
-			++pc;
+			pc++;
 			return value;
 		}
-		if ((tag == 15))
+		if (tag == 15)
 		{
 			value = 0;
 			for (int _count2 = 1; _count2 <= 8; _count2++)
@@ -320,7 +320,7 @@ public class L2Translator implements L1OperationDispatcher
 				value = ((value << 4) + nybbles.extractNybbleFromTupleAt(++pc));
 			}
 			//  making 9 nybbles total
-			++pc;
+			pc++;
 			return value;
 		}
 		error("Impossible nybble");
@@ -395,7 +395,7 @@ public class L2Translator implements L1OperationDispatcher
 		for (AvailObject bundle : imps)
 		{
 			// If a forward or abstract method is possible, don't inline.
-			if (! bundle.isImplementation())
+			if (!bundle.isImplementation())
 			{
 				return 0;
 			}
@@ -421,7 +421,7 @@ public class L2Translator implements L1OperationDispatcher
 		{
 			return 0;
 		}
-		if (! Primitive.byPrimitiveNumber(prim).hasFlag(Primitive.Flag.CanInline))
+		if (!Primitive.byPrimitiveNumber(prim).hasFlag(Primitive.Flag.CanInline))
 		{
 			return 0;
 		}
@@ -463,7 +463,7 @@ public class L2Translator implements L1OperationDispatcher
 		boolean allConstants = true;
 		for (int i = 1, _end1 = args.size(); i <= _end1; i++)
 		{
-			if (! registerHasConstantAt(args.get((i - 1))))
+			if (!registerHasConstantAt(args.get(i - 1)))
 			{
 				allConstants = false;
 			}
@@ -519,7 +519,7 @@ public class L2Translator implements L1OperationDispatcher
 		//  [n] - Push the value of the variable that's literal number n in the current compiledCode.
 
 		final AvailObject constant = code.literalAt(getInteger());
-		--stackp;
+		stackp--;
 		addInstruction(new L2LoadConstantInstruction().constantDestination(constant, topOfStackRegister()));
 		addInstruction(new L2GetInstruction().sourceVariableDestination(topOfStackRegister(), topOfStackRegister()));
 	}
@@ -529,7 +529,7 @@ public class L2Translator implements L1OperationDispatcher
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
 
 		final int outerIndex = getInteger();
-		--stackp;
+		stackp--;
 		addInstruction(new L2ExtractOuterInstruction().closureRegisterOuterNumberDestination(
 			closureRegister(),
 			outerIndex,
@@ -547,7 +547,7 @@ public class L2Translator implements L1OperationDispatcher
 		//  if it finds only one reference to the type, but I think it's ok still.
 
 		final int index = getInteger();
-		--stackp;
+		stackp--;
 		addInstruction(new L2GetTypeInstruction().sourceDestination(stackRegister(((stackp + 1) + index)), topOfStackRegister()));
 	}
 
@@ -715,7 +715,7 @@ public class L2Translator implements L1OperationDispatcher
 				boolean allConstant = true;
 				for (L2Register arg : args)
 				{
-					if (! registerHasConstantAt(arg))
+					if (!registerHasConstantAt(arg))
 					{
 						allConstant = false;
 					}
@@ -1240,11 +1240,11 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		nybbles = code.nybbles();
 		pc = 1;
-		stackp = (code.maxStackDepth() + 1);
+		stackp = code.maxStackDepth() + 1;
 		// Just past end.  This is not the same offset it would have during
 		// execution.
 		contingentImpSets = SetDescriptor.empty();
-		if ((optLevel == 0))
+		if (optLevel == 0)
 		{
 			code.invocationCount(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());

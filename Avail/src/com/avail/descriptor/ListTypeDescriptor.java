@@ -232,7 +232,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	/* Hashing */
 	static int hashFromTupleTypeHash (int tupleTypeHash)
 	{
-		return ((tupleTypeHash + 0x0286B787) ^ 0x1350B29C) & HashMask;
+		return ((tupleTypeHash + 0x0286B787) ^ 0x1350B29C);
 	};
 
 	/**
@@ -268,12 +268,12 @@ public class ListTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static ListTypeDescriptor mutableDescriptor()
 	{
 		return (ListTypeDescriptor) allDescriptors [102];
 	}
-	
+
 	public static ListTypeDescriptor immutableDescriptor()
 	{
 		return (ListTypeDescriptor) allDescriptors [103];

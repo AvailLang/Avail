@@ -123,25 +123,25 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  counter will be adjusted to skip over the integer.
 
 		final int tag = _nybbles.extractNybbleFromTupleAt(_pc);
-		if ((tag < 10))
+		if (tag < 10)
 		{
-			++_pc;
+			_pc++;
 			return tag;
 		}
 		int integer;
-		if ((tag <= 12))
+		if (tag <= 12)
 		{
-			integer = (((tag * 16) - 150) + _nybbles.extractNybbleFromTupleAt((_pc + 1)));
+			integer = (((tag * 16) - 150) + _nybbles.extractNybbleFromTupleAt(_pc + 1));
 			_pc += 2;
 			return integer;
 		}
-		if ((tag == 13))
+		if (tag == 13)
 		{
-			integer = (((_nybbles.extractNybbleFromTupleAt((_pc + 1)) << 4) + _nybbles.extractNybbleFromTupleAt((_pc + 2))) + 58);
+			integer = (((_nybbles.extractNybbleFromTupleAt(_pc + 1) << 4) + _nybbles.extractNybbleFromTupleAt(_pc + 2)) + 58);
 			_pc += 3;
 			return integer;
 		}
-		if ((tag == 14))
+		if (tag == 14)
 		{
 			integer = 0;
 			for (int _count1 = 1; _count1 <= 4; _count1++)
@@ -149,10 +149,10 @@ public class AvailDecompiler implements L1OperationDispatcher
 				integer = ((integer << 4) + _nybbles.extractNybbleFromTupleAt(++_pc));
 			}
 			//  making 5 nybbles total
-			++_pc;
+			_pc++;
 			return integer;
 		}
-		if ((tag == 15))
+		if (tag == 15)
 		{
 			integer = 0;
 			for (int _count2 = 1; _count2 <= 8; _count2++)
@@ -160,7 +160,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				integer = ((integer << 4) + _nybbles.extractNybbleFromTupleAt(++_pc));
 			}
 			//  making 9 nybbles total
-			++_pc;
+			_pc++;
 			return integer;
 		}
 		error("Impossible nybble");
@@ -342,19 +342,19 @@ public class AvailDecompiler implements L1OperationDispatcher
 		{
 			if (str.tupleAt(i).equals(underscore))
 			{
-				++nArgs;
+				nArgs++;
 			}
 		}
 		final List<AvailParseNode> types = popExpressions(nArgs);
 		final List<AvailParseNode> callArgs = popExpressions(nArgs);
 		for (int i = 1; i <= nArgs; i++)
 		{
-			if (types.get((i - 1)) != null)
+			if (types.get(i - 1) != null)
 			{
 				final AvailSuperCastNode superCast = new AvailSuperCastNode();
-				superCast.expression(callArgs.get((i - 1)));
-				superCast.type(((AvailLiteralNode)(types.get((i - 1)))).availValue());
-				callArgs.set((i - 1), superCast);
+				superCast.expression(callArgs.get(i - 1));
+				superCast.type(((AvailLiteralNode)(types.get(i - 1))).availValue());
+				callArgs.set(i - 1, superCast);
 			}
 		}
 		final AvailSendNode sendNode = new AvailSendNode();
@@ -385,7 +385,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		{
 			if (str.tupleAt(i).equals(underscore))
 			{
-				++nArgs;
+				nArgs++;
 			}
 		}
 		final List<AvailParseNode> callArgs = popExpressions(nArgs);
@@ -499,8 +499,8 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  slot of the current continuation (and the variable's value if appropriate).
 
 		final int index = getInteger();
-		final boolean isArg = (index <= _code.numArgs());
-		final AvailVariableDeclarationNode decl = (isArg ? _args.get((index - 1)) : _locals.get(((index - _code.numArgs()) - 1)));
+		final boolean isArg = index <= _code.numArgs();
+		final AvailVariableDeclarationNode decl = (isArg ? _args.get(index - 1) : _locals.get(((index - _code.numArgs()) - 1)));
 		final AvailVariableUseNode use = new AvailVariableUseNode();
 		use.name(decl.name());
 		use.associatedDeclaration(decl);
@@ -568,8 +568,8 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
 
 		final int index = getInteger();
-		final boolean isArg = (index <= _code.numArgs());
-		final AvailVariableDeclarationNode decl = (isArg ? _args.get((index - 1)) : _locals.get(((index - _code.numArgs()) - 1)));
+		final boolean isArg = index <= _code.numArgs();
+		final AvailVariableDeclarationNode decl = (isArg ? _args.get(index - 1) : _locals.get(((index - _code.numArgs()) - 1)));
 		final AvailVariableUseNode use = new AvailVariableUseNode();
 		use.name(decl.name());
 		use.associatedDeclaration(decl);

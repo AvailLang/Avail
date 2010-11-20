@@ -701,7 +701,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		//  Answer what type the given index would have in an object instance of me.  Answer
 		//  terminates if the index is out of bounds.
 
-		if (! object.isTupleType())
+		if (!object.isTupleType())
 		{
 			error("Don't send typeAtIndex: to a non-tupleType", object);
 			return VoidDescriptor.voidObject();
@@ -724,22 +724,22 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 		assert (startIndex <= endIndex);
 		assert object.isTupleType();
-		if ((startIndex == endIndex))
+		if (startIndex == endIndex)
 		{
 			return object.typeAtIndex(startIndex);
 		}
-		if ((endIndex <= 0))
+		if (endIndex <= 0)
 		{
 			return Types.terminates.object();
 		}
 		final AvailObject tupleObject = object.instance();
 		final int upperIndex = tupleObject.tupleSize();
-		if ((startIndex > upperIndex))
+		if (startIndex > upperIndex)
 		{
 			return Types.terminates.object();
 		}
 		AvailObject unionType = Types.terminates.object();
-		for (int i = max (startIndex, 1), _end1 = min (endIndex, upperIndex); i <= _end1; i++)
+		for (int i = max(startIndex, 1), _end1 = min(endIndex, upperIndex); i <= _end1; i++)
 		{
 			unionType = unionType.typeUnion(tupleObject.tupleAt(i).type());
 		}
@@ -749,7 +749,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
-		if (! object.isTupleType())
+		if (!object.isTupleType())
 		{
 			error("Don't send defaultType to a non-tupleType", object);
 			return VoidDescriptor.voidObject();
@@ -764,7 +764,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		if (! object.isTupleType())
+		if (!object.isTupleType())
 		{
 			error("Don't send sizeRange to a non-tupleType", object);
 			return VoidDescriptor.voidObject();
@@ -874,7 +874,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	{
 		return (ApproximateTypeDescriptor) allDescriptors [2];
 	}
-	
+
 	public static ApproximateTypeDescriptor immutableDescriptor()
 	{
 		return (ApproximateTypeDescriptor) allDescriptors [3];

@@ -170,7 +170,7 @@ public class BlankDescriptor extends Descriptor
 	{
 		return (BlankDescriptor) allDescriptors [6];
 	}
-	
+
 	public static BlankDescriptor immutableDescriptor()
 	{
 		return (BlankDescriptor) allDescriptors [7];

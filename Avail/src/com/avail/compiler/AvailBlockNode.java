@@ -288,7 +288,7 @@ public class AvailBlockNode extends AvailParseNode
 		if (((_arguments.size() == 0) && ((_primitive == 0) && (_statements.size() == 1))))
 		{
 			aStream.append('[');
-			_statements.get(0).printOnIndent(aStream, (indent + 1));
+			_statements.get(0).printOnIndent(aStream, indent + 1);
 			aStream.append(";]");
 			return;
 		}
@@ -296,11 +296,11 @@ public class AvailBlockNode extends AvailParseNode
 		aStream.append('[');
 		if ((_arguments.size() > 0))
 		{
-			_arguments.get(0).printOnIndent(aStream, (indent + 1));
+			_arguments.get(0).printOnIndent(aStream, indent + 1);
 			for (int argIndex = 2, _end1 = _arguments.size(); argIndex <= _end1; argIndex++)
 			{
 				aStream.append(", ");
-				_arguments.get((argIndex - 1)).printOnIndent(aStream, (indent + 1));
+				_arguments.get(argIndex - 1).printOnIndent(aStream, indent + 1);
 			}
 			aStream.append(" |");
 		}
@@ -309,7 +309,7 @@ public class AvailBlockNode extends AvailParseNode
 		{
 			aStream.append('\t');
 		}
-		if (! (_primitive == 0))
+		if (_primitive != 0)
 		{
 			aStream.append('\t');
 			aStream.append("Primitive ");
@@ -323,9 +323,9 @@ public class AvailBlockNode extends AvailParseNode
 		}
 		for (int statementIndex = 1, _end4 = _statements.size(); statementIndex <= _end4; statementIndex++)
 		{
-			final AvailParseNode statement = _statements.get((statementIndex - 1));
+			final AvailParseNode statement = _statements.get(statementIndex - 1);
 			aStream.append('\t');
-			statement.printOnIndent(aStream, (indent + 1));
+			statement.printOnIndent(aStream, indent + 1);
 			aStream.append(';');
 			aStream.append('\n');
 			for (int _count5 = 1; _count5 <= indent; _count5++)
@@ -376,7 +376,7 @@ public class AvailBlockNode extends AvailParseNode
 				{
 					for (AvailVariableDeclarationNode declaration : ((AvailBlockNode)node).neededVariables())
 					{
-						if (! providedByMe.contains(declaration))
+						if (!providedByMe.contains(declaration))
 						{
 							needed.add(declaration);
 						}
@@ -388,7 +388,7 @@ public class AvailBlockNode extends AvailParseNode
 					if (node.isVariableUse())
 					{
 						AvailVariableDeclarationNode declaration = ((AvailVariableUseNode)node).associatedDeclaration();
-						if ((! providedByMe.contains(declaration)) && (! declaration.isSyntheticVariableDeclaration()))
+						if ((!providedByMe.contains(declaration)) && (!declaration.isSyntheticVariableDeclaration()))
 						{
 							needed.add(declaration);
 						}

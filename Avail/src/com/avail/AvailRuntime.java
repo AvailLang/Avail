@@ -76,7 +76,7 @@ public final class AvailRuntime
 	 * {@linkplain ModuleDescriptor module} names.
 	 */
 	private final @NotNull ModuleNameResolver moduleNameResolver;
-	
+
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
@@ -88,7 +88,7 @@ public final class AvailRuntime
 	{
 		return moduleNameResolver;
 	}
-	
+
 	/**
 	 * Answer the Avail {@linkplain ModuleRoots module roots}.
 	 * 
@@ -99,7 +99,7 @@ public final class AvailRuntime
 	{
 		return moduleNameResolver.moduleRoots();
 	}
-	
+
 	/**
 	 * Construct a new {@link AvailRuntime}.
 	 *
@@ -112,7 +112,7 @@ public final class AvailRuntime
 	{
 		this.moduleNameResolver = moduleNameResolver;
 	}
-	
+
 	/**
 	 * The {@linkplain ReentrantReadWriteLock lock} that protects the
 	 * {@linkplain AvailRuntime runtime} data structures against dangerous
@@ -120,7 +120,7 @@ public final class AvailRuntime
 	 */
 	private final @NotNull ReentrantReadWriteLock runtimeLock =
 		new ReentrantReadWriteLock();
-	
+
 	/**
 	 * The {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime}.
@@ -194,7 +194,7 @@ public final class AvailRuntime
 		specialObjects[52] = Types.constantDeclarationNode.object();
 		specialObjects[53] = Types.initializingDeclarationNode.object();
 		specialObjects[54] = Types.labelNode.object();
-		specialObjects[55] = Types.listNode.object();
+		specialObjects[55] = Types.createListNode.object();
 		specialObjects[56] = Types.literalNode.object();
 		specialObjects[57] = Types.parseNode.object();
 		specialObjects[58] = Types.referenceNode.object();
@@ -209,7 +209,7 @@ public final class AvailRuntime
 		specialObjects[70] = BooleanDescriptor.objectFromBoolean(true);
 		specialObjects[71] = BooleanDescriptor.objectFromBoolean(false);
 	}
-	
+
 	/**
 	 * Answer the {@linkplain AvailObject special object} with the specified
 	 * ordinal.
@@ -227,14 +227,14 @@ public final class AvailRuntime
 	{
 		return specialObjects[ordinal];
 	}
-	
+
 	/**
 	 * The loaded Avail {@linkplain ModuleDescriptor modules}: a
 	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
 	 * names} to {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull AvailObject modules = MapDescriptor.empty();
-	
+
 	/**
 	 * Add the specified {@linkplain ModuleDescriptor module} to the
 	 * {@linkplain AvailRuntime runtime}.
@@ -262,7 +262,7 @@ public final class AvailRuntime
 						name, messageParts);
 				rootBundle.addRestrictions(bundle.restrictions());
 			}
-			
+
 			// Finally add the module to the map of loaded modules.
 			modules = modules.mapAtPuttingCanDestroy(
 				aModule.name(), aModule, true);
@@ -272,7 +272,7 @@ public final class AvailRuntime
 			runtimeLock.writeLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * Does the {@linkplain AvailRuntime runtime} define a {@linkplain
 	 * ModuleDescriptor module} with the specified {@linkplain
@@ -287,7 +287,7 @@ public final class AvailRuntime
 	public boolean includesModuleNamed (final @NotNull AvailObject moduleName)
 	{
 		assert moduleName.isString();
-		
+
 		runtimeLock.readLock().lock();
 		try
 		{
@@ -298,7 +298,7 @@ public final class AvailRuntime
 			runtimeLock.readLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} with the specified
 	 * {@linkplain TupleDescriptor name}.
@@ -310,7 +310,7 @@ public final class AvailRuntime
 	public @NotNull AvailObject moduleAt (final @NotNull AvailObject moduleName)
 	{
 		assert moduleName.isString();
-		
+
 		runtimeLock.readLock().lock();
 		try
 		{
@@ -322,7 +322,7 @@ public final class AvailRuntime
 			runtimeLock.readLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * The {@linkplain MethodDescriptor methods} currently known to the
 	 * {@linkplain AvailRuntime runtime}: a {@linkplain MapDescriptor map} from
@@ -330,7 +330,7 @@ public final class AvailRuntime
 	 * ImplementationSetDescriptor implementation set}.
 	 */
 	private @NotNull AvailObject methods = MapDescriptor.empty();
-	
+
 	/**
 	 * Are there any {@linkplain ImplementationSetDescriptor methods} bound to
 	 * the specified {@linkplain CyclicTypeDescriptor selector}?
@@ -344,7 +344,7 @@ public final class AvailRuntime
 	public boolean hasMethodsAt (final @NotNull AvailObject selector)
 	{
 		assert selector.isCyclicType();
-		
+
 		runtimeLock.readLock().lock();
 		try
 		{
@@ -355,7 +355,7 @@ public final class AvailRuntime
 			runtimeLock.readLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
 	 * bound to the specified {@linkplain CyclicTypeDescriptor method name}.
@@ -390,7 +390,7 @@ public final class AvailRuntime
 			runtimeLock.writeLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
 	 * bound to the specified {@linkplain CyclicTypeDescriptor selector}.
@@ -402,7 +402,7 @@ public final class AvailRuntime
 	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)
 	{
 		assert selector.isCyclicType();
-		
+
 		runtimeLock.readLock().lock();
 		try
 		{
@@ -430,7 +430,7 @@ public final class AvailRuntime
 		final @NotNull AvailObject implementation)
 	{
 		assert selector.isCyclicType();
-		
+
 		runtimeLock.writeLock().lock();
 		try
 		{
@@ -449,7 +449,7 @@ public final class AvailRuntime
 			runtimeLock.writeLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It
 	 * contains the {@linkplain MessageBundleDescriptor message bundles}
@@ -457,7 +457,7 @@ public final class AvailRuntime
 	 */
 	private @NotNull AvailObject rootBundleTree =
 		UnexpandedMessageBundleTreeDescriptor.newDepth(1);
-	
+
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
 	 * bundle tree}.
@@ -483,7 +483,7 @@ public final class AvailRuntime
 			runtimeLock.readLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * A {@linkplain MapDescriptor map} from {@linkplain ObjectTypeDescriptor
 	 * user-defined object types} to user-assigned names.
@@ -530,7 +530,7 @@ public final class AvailRuntime
 	 */
 	private Map<AvailObject, RandomAccessFile> openReadableFiles =
 		new HashMap<AvailObject, RandomAccessFile>();
-	
+
 	/**
 	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
 	 * RandomAccessFile}s open for writing.
@@ -552,7 +552,7 @@ public final class AvailRuntime
 		assert handle.isCyclicType();
 		return openReadableFiles.get(handle);
 	}
-	
+
 	/**
 	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
 	 * open readable {@linkplain RandomAccessFile file}.
@@ -567,7 +567,7 @@ public final class AvailRuntime
 		assert handle.isCyclicType();
 		openReadableFiles.put(handle, file);
 	}
-	
+
 	/**
 	 * Remove the association between the specified {@linkplain
 	 * CyclicTypeDescriptor handle} and its open readable {@linkplain
@@ -580,7 +580,7 @@ public final class AvailRuntime
 		assert handle.isCyclicType();
 		openReadableFiles.remove(handle);
 	}
-	
+
 	/**
 	 * Answer the open writable {@linkplain RandomAccessFile file} associated
 	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
@@ -595,7 +595,7 @@ public final class AvailRuntime
 		assert handle.isCyclicType();
 		return openWritableFiles.get(handle);
 	}
-	
+
 	/**
 	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
 	 * open writable {@linkplain RandomAccessFile file}.
@@ -610,7 +610,7 @@ public final class AvailRuntime
 		assert handle.isCyclicType();
 		openWritableFiles.put(handle, file);
 	}
-	
+
 	/**
 	 * Remove the association between the specified {@linkplain
 	 * CyclicTypeDescriptor handle} and its open writable {@linkplain
@@ -623,7 +623,7 @@ public final class AvailRuntime
 		assert handle.isCyclicType();
 		openWritableFiles.remove(handle);
 	}
-	
+
 	/**
 	 * Answer the open {@linkplain RandomAccessFile file} associated with the
 	 * specified {@linkplain CyclicTypeDescriptor handle}.
@@ -641,7 +641,7 @@ public final class AvailRuntime
 		{
 			return file;
 		}
-		
+
 		return openWritableFiles.get(handle);
 	}
 }

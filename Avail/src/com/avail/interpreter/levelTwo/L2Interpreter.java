@@ -171,14 +171,14 @@ implements L2OperationDispatcher
 
 		AvailObject cont = _pointers[callerRegister()];
 		AvailObject handler = VoidDescriptor.voidObject();
-		while (! cont.equalsVoid())
+		while (!cont.equalsVoid())
 		{
 			if ((cont.closure().code().primitiveNumber() == 200) &&
 					exceptionValue.isInstanceOfSubtypeOf(
 						cont.localOrArgOrStackAt(2).type().argTypeAt(1)))
 			{
 				handler = cont.localOrArgOrStackAt(2);
-				assert ! handler.equalsVoid();
+				assert !handler.equalsVoid();
 				_pointers[callerRegister()] = cont.ensureMutable();
 				return invokeClosureArguments (
 					handler,
@@ -388,7 +388,7 @@ implements L2OperationDispatcher
 		for (int i = 1, _end2 = theCode.numLocals(); i <= _end2; i++)
 		{
 			//  non-argument locals
-			newContinuation.localOrArgOrStackAtPut((nArgs + i), ContainerDescriptor.newContainerWithOuterType(theCode.localTypeAt(i)));
+			newContinuation.localOrArgOrStackAtPut(nArgs + i, ContainerDescriptor.newContainerWithOuterType(theCode.localTypeAt(i)));
 		}
 		pointerAtPut(destIndex, newContinuation);
 	}
@@ -446,9 +446,9 @@ implements L2OperationDispatcher
 
 		final AvailObject theClosure = pointerAt(closureRegister());
 		final AvailObject theCode = theClosure.code();
-		final int newCount = (theCode.invocationCount() - 1);
+		final int newCount = theCode.invocationCount() - 1;
 		assert (newCount >= 0);
-		if ((newCount != 0))
+		if (newCount != 0)
 		{
 			theCode.invocationCount(newCount);
 		}
@@ -1028,7 +1028,7 @@ implements L2OperationDispatcher
 		pointerAtPut(senderDestIndex, cont.caller());
 		pointerAtPut(closureDestIndex, cont.closure());
 		final AvailObject slotsVector = _chunkVectors.tupleAt(slotsDestIndex);
-		if (! (slotsVector.tupleSize() == cont.closure().code().numArgsAndLocalsAndStack()))
+		if (!(slotsVector.tupleSize() == cont.closure().code().numArgsAndLocalsAndStack()))
 		{
 			error("problem in doExplode...");
 			return;
@@ -1056,7 +1056,7 @@ implements L2OperationDispatcher
 			error("Unable to find unique implementation for call");
 			return;
 		}
-		if (! signatureToCall.isImplementation())
+		if (!signatureToCall.isImplementation())
 		{
 			error("Attempted to call a non-implementation signature");
 			return;
@@ -1064,7 +1064,7 @@ implements L2OperationDispatcher
 		final AvailObject closureToCall = signatureToCall.bodyBlock();
 		final AvailObject codeToCall = closureToCall.code();
 		final short primNum = codeToCall.primitiveNumber();
-		if ((primNum != 0))
+		if (primNum != 0)
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
 			Result primResult = attemptPrimitive(primNum, _argsBuffer);
@@ -1114,7 +1114,7 @@ implements L2OperationDispatcher
 			error("Unable to find unique implementation for call");
 			return;
 		}
-		if (! signatureToCall.isImplementation())
+		if (!signatureToCall.isImplementation())
 		{
 			error("Attempted to call a non-implementation signature");
 			return;
@@ -1128,7 +1128,7 @@ implements L2OperationDispatcher
 		final AvailObject closureToCall = signatureToCall.bodyBlock();
 		final AvailObject codeToCall = closureToCall.code();
 		final short primNum = codeToCall.primitiveNumber();
-		if ((primNum != 0))
+		if (primNum != 0)
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
 			Result primResult = attemptPrimitive(primNum, _argsBuffer);
@@ -1366,7 +1366,7 @@ implements L2OperationDispatcher
 		cont.stackp(((cont.stackp() + nArgs) - 1));
 		//  leave one (void) slot on stack to distinguish label/call continuations.
 		final short primNum = theCode.primitiveNumber();
-		if ((primNum != 0))
+		if (primNum != 0)
 		{
 			assert(_chunk == L2ChunkDescriptor.chunkFromId (_pointers[callerRegister()].levelTwoChunkIndex()));
 			Result primResult = attemptPrimitive(primNum, _argsBuffer);
@@ -1394,7 +1394,7 @@ implements L2OperationDispatcher
 		final AvailObject cont = pointerAt(callerRegister());
 		final AvailObject value = cont.stackAt(cont.stackp());
 		final AvailObject literalType = cont.closure().code().literalAt(getInteger());
-		if (! value.isInstanceOfSubtypeOf(literalType))
+		if (!value.isInstanceOfSubtypeOf(literalType))
 		{
 			error("A method has not met its \"returns\" clause's criterion (or a supermethod's) at runtime.");
 			return;
@@ -1435,7 +1435,7 @@ implements L2OperationDispatcher
 		final AvailObject constant = cont.closure().code().literalAt(index);
 		//  index is one-based
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		//  We don't need to make constant beImmutable because *code objects* are always immutable.
 		cont.stackAtPut(stackp, constant);
 	}
@@ -1465,7 +1465,7 @@ implements L2OperationDispatcher
 		//  index is one-based
 		variable.makeImmutable();
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, variable);
 	}
 
@@ -1483,12 +1483,12 @@ implements L2OperationDispatcher
 			error("Someone prematurely erased this outer var");
 			return;
 		}
-		if (! cont.closure().optionallyNilOuterVar(index))
+		if (!cont.closure().optionallyNilOuterVar(index))
 		{
 			variable.makeImmutable();
 		}
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, variable);
 	}
 
@@ -1510,7 +1510,7 @@ implements L2OperationDispatcher
 		{
 			newClosure.outerVarAtPut(i, cont.stackAt(stackIndex));
 			cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
-			--stackIndex;
+			stackIndex--;
 		}
 		//  We don't assert assertObjectUnreachableIfMutable: on the popped copied vars
 		//  because each copied var's new reference from the closure balances the lost
@@ -1554,7 +1554,7 @@ implements L2OperationDispatcher
 			value.makeImmutable();
 		}
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, value);
 	}
 
@@ -1572,7 +1572,7 @@ implements L2OperationDispatcher
 		}
 		variable.makeImmutable();
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, variable);
 	}
 
@@ -1605,7 +1605,7 @@ implements L2OperationDispatcher
 			value.makeImmutable();
 		}
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, value);
 	}
 
@@ -1624,7 +1624,7 @@ implements L2OperationDispatcher
 		int stackp;
 		final AvailObject value = cont.stackAt(stackp = cont.stackp());
 		cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-		++stackp;
+		stackp++;
 		cont.stackp(stackp);
 		//  The value's reference from the stack is now from the variable.
 		variable.setValue(value);
@@ -1641,7 +1641,7 @@ implements L2OperationDispatcher
 		final AvailObject value = variable.getValue();
 		value.makeImmutable();
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, value);
 	}
 
@@ -1685,7 +1685,7 @@ implements L2OperationDispatcher
 		final AvailObject value = variable.getValue();
 		value.makeImmutable();
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, value);
 	}
 
@@ -1701,12 +1701,12 @@ implements L2OperationDispatcher
 		{
 			tuple.tupleAtPut(i, cont.stackAt(stackp));
 			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-			++stackp;
+			stackp++;
 		}
 		tuple.hashOrZero(0);
 		final AvailObject list = AvailObject.newIndexedDescriptor(0, ListDescriptor.mutableDescriptor());
 		list.tuple(tuple);
-		--stackp;
+		stackp--;
 		cont.stackp(stackp);
 		cont.stackAtPut(stackp, list);
 	}
@@ -1732,14 +1732,17 @@ implements L2OperationDispatcher
 		{
 			newContinuation.stackAtPut(i, VoidDescriptor.voidObject());
 		}
-		for (int i = (code.numArgs() + 1), _end2 = (code.numArgs() + code.numLocals()); i <= _end2; i++)
+		for (int i = code.numArgs() + 1, _end2 = (code.numArgs() + code.numLocals()); i <= _end2; i++)
 		{
 			newContinuation.localOrArgOrStackAtPut(i, VoidDescriptor.voidObject());
 		}
 		//  Freeze all fields of the new object, including its caller, closure, and args.
 		newContinuation.makeSubobjectsImmutable();
-		assert (newContinuation.caller().equalsVoid() || (! newContinuation.caller().descriptor().isMutable())) : "Caller should freeze because two continuations can see it";
-		assert cont.descriptor().isMutable() : "The CURRENT continuation can't POSSIBLY be seen by anyone!";
+		assert (newContinuation.caller().equalsVoid()
+				|| !newContinuation.caller().descriptor().isMutable())
+			: "Caller should freeze because two continuations can see it";
+		assert cont.descriptor().isMutable()
+			: "The CURRENT continuation can't POSSIBLY be seen by anyone!";
 		//  ...always a fresh copy, always mutable (uniquely owned).
 		cont.stackAtPut(--stackp, newContinuation);
 		cont.stackp(stackp);
@@ -1755,7 +1758,7 @@ implements L2OperationDispatcher
 		//  index is one-based
 		final AvailObject value = constant.getValue().makeImmutable();
 		int stackp;
-		cont.stackp(stackp = (cont.stackp() - 1));
+		cont.stackp(stackp = cont.stackp() - 1);
 		cont.stackAtPut(stackp, value);
 	}
 
@@ -1770,7 +1773,7 @@ implements L2OperationDispatcher
 		int stackp;
 		final AvailObject value = cont.stackAt(stackp = cont.stackp());
 		cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-		++stackp;
+		stackp++;
 		cont.stackp(stackp);
 		//  The value's reference from the stack is now from the variable.
 		variable.setValue(value);
@@ -1817,7 +1820,7 @@ implements L2OperationDispatcher
 		final short nArgs = theCode.numArgs();
 		for (int i = 1; i <= nArgs; i++)
 		{
-			cont.stackAtPut(((stackp + i) - 1), VoidDescriptor.voidObject());
+			cont.stackAtPut(stackp + i - 1, VoidDescriptor.voidObject());
 		}
 		_argsBuffer.clear();
 		int base = stackp + nArgs + nArgs;
@@ -1831,7 +1834,7 @@ implements L2OperationDispatcher
 		//  remove types and arguments, but then leave one (void) slot on stack to distinguish label/call continuations.
 		cont.stackp(stackp);
 		final short primNum = theCode.primitiveNumber();
-		if ((primNum != 0))
+		if (primNum != 0)
 		{
 			assert(_chunk == L2ChunkDescriptor.chunkFromId(_pointers[callerRegister()].levelTwoChunkIndex()));
 			Result primResult = attemptPrimitive(primNum, _argsBuffer);
@@ -1862,7 +1865,7 @@ implements L2OperationDispatcher
 		final AvailObject cont = pointerAt(callerRegister());
 		final int index = getInteger();
 		int stackp = cont.stackp();
-		final AvailObject value = cont.stackAt((stackp + index));
+		final AvailObject value = cont.stackAt(stackp + index);
 		cont.stackp(--stackp);
 		cont.stackAtPut(stackp, value.type());
 	}

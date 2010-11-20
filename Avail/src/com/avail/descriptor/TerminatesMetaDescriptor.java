@@ -175,7 +175,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	{
 		return (TerminatesMetaDescriptor) allDescriptors [148];
 	}
-	
+
 	public static TerminatesMetaDescriptor immutableDescriptor()
 	{
 		return (TerminatesMetaDescriptor) allDescriptors [149];

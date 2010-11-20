@@ -45,7 +45,7 @@ extends Exception
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = -7113513880608719974L;
-	
+
 	/**
 	 * Construct a new {@link RenamesFileParserException}.
 	 * 
@@ -55,7 +55,7 @@ extends Exception
 	{
 		super(message);
 	}
-	
+
 	/**
 	 * Construct a new {@link RenamesFileParserException}.
 	 *

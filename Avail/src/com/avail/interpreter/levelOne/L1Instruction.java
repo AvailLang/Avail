@@ -43,7 +43,7 @@ public class L1Instruction
 {
 	/** The {@link L1Operation}. */
 	private final @NotNull L1Operation operation;
-	
+
 	/** The operands. */
 	private final @NotNull int [] operands;
 
@@ -66,7 +66,7 @@ public class L1Instruction
 	{
 		return operands;
 	}
-	
+
 	/**
 	 * Construct an {@link L1Instruction}.
 	 * 

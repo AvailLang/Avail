@@ -112,7 +112,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == 4))
+		if (index == 4)
 		{
 			return true;
 		}
@@ -147,7 +147,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 			{
-				if ((i > 1))
+				if (i > 1)
 				{
 					aStream.append(',');
 				}
@@ -166,11 +166,11 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			for (int i = 1, _end3 = object.numArgs(); i <= _end3; i++)
 			{
-				if ((i > 1))
+				if (i > 1)
 				{
 					aStream.append(", ");
 				}
-				aStream.append(tempStrings.get((i - 1)));
+				aStream.append(tempStrings.get(i - 1));
 			}
 		}
 		aStream.append("]->");
@@ -202,23 +202,23 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		if (! (object.hash() == aType.hash()))
+		if (object.hash() != aType.hash())
 		{
 			return false;
 		}
 		final short num = object.numArgs();
-		if (! (num == aType.numArgs()))
+		if (num != aType.numArgs())
 		{
 			return false;
 		}
 		for (int i = 1; i <= num; i++)
 		{
-			if (! object.argTypeAt(i).equals(aType.argTypeAt(i)))
+			if (!object.argTypeAt(i).equals(aType.argTypeAt(i)))
 			{
 				return false;
 			}
 		}
-		if (! object.returnType().equals(aType.returnType()))
+		if (!object.returnType().equals(aType.returnType()))
 		{
 			return false;
 		}
@@ -246,14 +246,14 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  Answer the raw hash value (i.e., a Smalltalk Integer).
 
 		int hash = object.hashOrZero();
-		if ((hash == 0))
+		if (hash == 0)
 		{
-			hash = (0x63FC934 & HashMask);
+			hash = 0x63FC934;
 			hash ^= object.returnType().hash();
 			for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 			{
 				final AvailObject argTypeObject = object.argTypeAt(i);
-				hash = (((hash * 23) ^ argTypeObject.hash()) & HashMask);
+				hash = ((hash * 23) ^ argTypeObject.hash());
 			}
 			object.hashOrZero(hash);
 		}
@@ -315,13 +315,13 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer whether these are acceptable argument types for invoking a closure that's an instance of me.
 
-		if (! (closureType.numArgs() == object.numArgs()))
+		if (closureType.numArgs() != object.numArgs())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = closureType.numArgs(); i <= _end1; i++)
 		{
-			if (! closureType.argTypeAt(i).isSubtypeOf(object.argTypeAt(i)))
+			if (!closureType.argTypeAt(i).isSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -340,7 +340,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		final short numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			if (! continuation.stackAt(((stackp + numArgs) - i)).isInstanceOfSubtypeOf(object.argTypeAt(i)))
+			if (!continuation.stackAt(stackp + numArgs - i).isInstanceOfSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -359,7 +359,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		final short numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			if (! continuation.stackAt(((stackp + numArgs) - i)).isSubtypeOf(object.argTypeAt(i)))
+			if (!continuation.stackAt(stackp + numArgs - i).isSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -375,7 +375,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (! argTypes.get((i - 1)).isSubtypeOf(object.argTypeAt(i)))
+			if (!argTypes.get(i - 1).isSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -391,7 +391,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (! argValues.get((i - 1)).isInstanceOfSubtypeOf(object.argTypeAt(i)))
+			if (!argValues.get(i - 1).isInstanceOfSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -408,7 +408,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (! argTypes.tupleAt(i).isSubtypeOf(object.argTypeAt(i)))
+			if (!argTypes.tupleAt(i).isSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -425,7 +425,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (! arguments.tupleAt(i).isInstanceOfSubtypeOf(object.argTypeAt(i)))
+			if (!arguments.tupleAt(i).isInstanceOfSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -446,7 +446,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (object.argTypeAt(i).typeIntersection(argTypes.get((i - 1))).equals(Types.terminates.object()))
+			if (object.argTypeAt(i).typeIntersection(argTypes.get(i - 1)).equals(Types.terminates.object()))
 			{
 				return false;
 			}
@@ -478,17 +478,17 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		if (! (object.numArgs() == aClosureType.numArgs()))
+		if (object.numArgs() != aClosureType.numArgs())
 		{
 			return false;
 		}
-		if (! aClosureType.returnType().isSubtypeOf(object.returnType()))
+		if (!aClosureType.returnType().isSubtypeOf(object.returnType()))
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (! object.argTypeAt(i).isSubtypeOf(aClosureType.argTypeAt(i)))
+			if (!object.argTypeAt(i).isSubtypeOf(aClosureType.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -541,11 +541,11 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  Answer the most general type that is still at least as specific as these.  The
 		//  object can be destroyed if it's mutable and canDestroy is true.
 
-		if (! (object.numArgs() == aClosureType.numArgs()))
+		if (object.numArgs() != aClosureType.numArgs())
 		{
 			return Types.terminates.object();
 		}
-		if (! (canDestroy && isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			return object.copyMutable().typeIntersectionOfClosureTypeCanDestroy(aClosureType, true);
 		}
@@ -581,7 +581,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  of a closure type and a generalized closure type is always a closure type, so simply
 		//  intersect the return types, and use the argument types verbatim.
 
-		if (! (canDestroy && isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			return object.copyMutable().typeIntersectionOfGeneralizedClosureTypeCanDestroy(aGeneralizedClosureType, true);
 		}
@@ -627,11 +627,11 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  Answer the most specific type that is still at least as general as these.  The
 		//  object can be destroyed if it's mutable and canDestroy is true.
 
-		if (! (object.numArgs() == aClosureType.numArgs()))
+		if (object.numArgs() != aClosureType.numArgs())
 		{
 			return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aClosureType.returnType()));
 		}
-		if (! (canDestroy && isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			return object.copyMutable().typeUnionOfClosureTypeCanDestroy(aClosureType, true);
 		}
@@ -714,12 +714,12 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static ClosureTypeDescriptor mutableDescriptor()
 	{
 		return (ClosureTypeDescriptor) allDescriptors [28];
 	}
-	
+
 	public static ClosureTypeDescriptor immutableDescriptor()
 	{
 		return (ClosureTypeDescriptor) allDescriptors [29];

@@ -107,7 +107,8 @@ public class L2GetClearingInstruction extends L2Instruction
 		if (anL2Translator.registerHasTypeAt(_sourceVar))
 		{
 			final AvailObject varType = anL2Translator.registerTypeAt(_sourceVar);
-			if ((varType.isSubtypeOf(Types.container.object()) && (! varType.equals(Types.container.object()))))
+			if (varType.isSubtypeOf(Types.container.object())
+				&& !varType.equals(Types.container.object()))
 			{
 				anL2Translator.registerTypeAtPut(_dest, varType.innerType());
 			}

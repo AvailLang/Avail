@@ -139,7 +139,7 @@ public class AvailSuperCastNode extends AvailParseNode
 		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
 		//  Answer the receiver.
 
-		if (! parent.isSend())
+		if (!parent.isSend())
 		{
 			error("Only use superCast notation as a message argument");
 			return null;

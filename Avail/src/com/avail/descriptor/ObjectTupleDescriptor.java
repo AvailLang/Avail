@@ -103,11 +103,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
-			if (! object.tupleAt(index1).equals(anObjectTuple.tupleAt(index2)))
+			if (!object.tupleAt(index1).equals(anObjectTuple.tupleAt(index2)))
 			{
 				return false;
 			}
-			++index2;
+			index2++;
 		}
 		return true;
 	}
@@ -131,15 +131,15 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (! (ObjectTupleSize(object) == anObjectTuple.tupleSize()))
+		if (ObjectTupleSize(object) != anObjectTuple.tupleSize())
 		{
 			return false;
 		}
-		if (! (ObjectHash(object) == anObjectTuple.hash()))
+		if (ObjectHash(object) != anObjectTuple.hash())
 		{
 			return false;
 		}
-		if (! object.compareFromToWithObjectTupleStartingAt(
+		if (!object.compareFromToWithObjectTupleStartingAt(
 			1,
 			object.tupleSize(),
 			anObjectTuple,
@@ -169,13 +169,13 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that it is likely can be coalesced together.
 
-		if (! (object.hashOrZero() == 0))
+		if (object.hashOrZero() != 0)
 		{
 			return true;
 		}
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			if (! object.tupleAt(i).isHashAvailable())
+			if (!object.tupleAt(i).isHashAvailable())
 			{
 				return false;
 			}
@@ -200,7 +200,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 		assert (1 <= start && start <= (end + 1));
 		assert (0 <= end && end <= object.tupleSize());
-		if ((isMutable && canDestroy))
+		if (isMutable && canDestroy)
 		{
 			if (((start - 1) == end))
 			{
@@ -211,17 +211,17 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 			object.hashOrZero(0);
 			if (((start == 1) || ((end - start) < 30)))
 			{
-				if (! (start == 1))
+				if (start != 1)
 				{
-					for (int i = 1, _end1 = (start - 1); i <= _end1; i++)
+					for (int i = 1, _end1 = start - 1; i <= _end1; i++)
 					{
 						object.tupleAt(i).assertObjectUnreachableIfMutable();
 					}
-					for (int i = 1, _end2 = ((end - start) + 1); i <= _end2; i++)
+					for (int i = 1, _end2 = (end - start + 1); i <= _end2; i++)
 					{
-						object.tupleAtPut(i, object.tupleAt(((start + i) - 1)));
+						object.tupleAtPut(i, object.tupleAt(start + i - 1));
 					}
-					for (int i = ((end - start) + 2); i <= end; i++)
+					for (int i = (end - start + 2); i <= end; i++)
 					{
 						object.tupleAtPut(i, zeroObject);
 					}
@@ -231,11 +231,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 					object.tupleAt(i).assertObjectUnreachableIfMutable();
 					object.tupleAtPut(i, zeroObject);
 				}
-				object.truncateTo(((end - start) + 1));
+				object.truncateTo(end - start + 1);
 				//  Clip remaining items off end, padding lost space with a dummy header.
 				return object;
 			}
-			for (int i = 1, _end4 = (start - 1); i <= _end4; i++)
+			for (int i = 1, _end4 = start - 1; i <= _end4; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
@@ -258,11 +258,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		AvailObject result;
 		if (((end - start) < 10))
 		{
-			result = AvailObject.newIndexedDescriptor(((end - start) + 1), ObjectTupleDescriptor.mutableDescriptor());
+			result = AvailObject.newIndexedDescriptor(end - start + 1, ObjectTupleDescriptor.mutableDescriptor());
 			result.hashOrZero(newHash);
-			for (int i = 1, _end6 = ((end - start) + 1); i <= _end6; i++)
+			for (int i = 1, _end6 = (end - start + 1); i <= _end6; i++)
 			{
-				result.tupleAtPut(i, object.tupleAt(((i + start) - 1)).makeImmutable());
+				result.tupleAtPut(i, object.tupleAt(i + start - 1).makeImmutable());
 			}
 		}
 		else
@@ -271,7 +271,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 				1,
 				2,
 				SpliceTupleDescriptor.mutableDescriptor());
-			if ((isMutable && (! canDestroy)))
+			if (isMutable && !canDestroy)
 			{
 				object.makeImmutable();
 			}
@@ -281,7 +281,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 				1,
 				object,
 				start,
-				((end - start) + 1));
+				(end - start + 1));
 			result.verify();
 		}
 		return result;
@@ -300,14 +300,14 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  on the right with a dummy descriptor and slotsSize for the garbage collector.
 
 		assert isMutable;
-		final int delta = (object.tupleSize() - newTupleSize);
-		if ((delta == 0))
+		final int delta = object.tupleSize() - newTupleSize;
+		if (delta == 0)
 		{
 			return object;
 		}
 		final int oldSlotsSize = object.objectSlotsCount();
 		assert (oldSlotsSize > 0);
-		final int newSlotsCount = (oldSlotsSize - delta);
+		final int newSlotsCount = oldSlotsSize - delta;
 		assert (newSlotsCount > 0);
 		object.truncateWithFillerForNewObjectSlotsCount(newSlotsCount);
 		return object;
@@ -323,7 +323,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
 		assert ((index >= 1) && (index <= object.tupleSize()));
-		if (! (canDestroy & isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 				index,
@@ -385,9 +385,9 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = (object.tupleAt(index).hash() ^ PreToggle);
-			hash = ((TupleDescriptor.multiplierTimes(hash) + itemHash) & HashMask);
+			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
-		return (TupleDescriptor.multiplierTimes(hash) & HashMask);
+		return TupleDescriptor.multiplierTimes(hash);
 	}
 
 	/**
@@ -428,7 +428,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	{
 		return (ObjectTupleDescriptor) allDescriptors [134];
 	}
-	
+
 	public static ObjectTupleDescriptor immutableDescriptor()
 	{
 		return (ObjectTupleDescriptor) allDescriptors [135];

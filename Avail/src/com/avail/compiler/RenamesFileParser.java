@@ -112,16 +112,16 @@ public final class RenamesFileParser
 		}
 		return builder.toString();
 	}
-	
+
 	/**
 	 * The {@linkplain Reader reader} responsible for fetching {@linkplain
 	 * Token tokens}.
 	 */
 	private final @NotNull Reader reader;
-	
+
 	/** The Avail {@linkplain ModuleRoots module roots}. */
 	private final @NotNull ModuleRoots roots;
-	
+
 	/**
 	 * Construct a new {@link RenamesFileParser}.
 	 *
@@ -139,7 +139,7 @@ public final class RenamesFileParser
 		this.reader = reader;
 		this.roots  = roots;
 	}
-	
+
 	/**
 	 * The types of the {@linkplain Token tokens}.
 	 */
@@ -150,17 +150,17 @@ public final class RenamesFileParser
 		 * File file} path.
 		 */
 		PATH,
-		
+
 		/** An arrow (->). */
 		ARROW,
-		
+
 		/** An insignificant token. */
 		UNKNOWN,
-		
+
 		/** End of file. */
 		EOF;
 	}
-	
+
 	/**
 	 * A {@code Token} associates a {@link TokenType} with a {@linkplain String
 	 * lexeme} from the source text of the renames file. 
@@ -169,10 +169,10 @@ public final class RenamesFileParser
 	{
 		/** The {@link TokenType}. */
 		final @NotNull TokenType tokenType;
-		
+
 		/** The {@linkplain String lexeme}. */
 		final @NotNull String lexeme;
-		
+
 		/**
 		 * Construct a new {@link Token}.
 		 *
@@ -185,7 +185,7 @@ public final class RenamesFileParser
 			this.lexeme    = lexeme;
 		}
 	}
-	
+
 	/**
 	 * Has the scanner read the entire source text?
 	 * 
@@ -201,7 +201,7 @@ public final class RenamesFileParser
 		reader.reset();
 		return next == -1;
 	}
-	
+
 	/**
 	 * Answer and consume the next character from the {@linkplain #reader}.
 	 * 
@@ -215,7 +215,7 @@ public final class RenamesFileParser
 		assert next != -1;
 		return (char) next;
 	}
-	
+
 	/**
 	 * Answer (but don't consume) the next character from the {@linkplain
 	 * #reader}.
@@ -232,7 +232,7 @@ public final class RenamesFileParser
 		reader.reset();
 		return (char) next;
 	}
-	
+
 	/**
 	 * Peek for the specified character. If the next character from the
 	 * {@linkplain #reader} matches, then consume it and answer {@code true}.
@@ -249,16 +249,16 @@ public final class RenamesFileParser
 		{
 			return false;
 		}
-		
+
 		if (peekCharacter() != c)
 		{
 			return false;
 		}
-		
+
 		nextCharacter();
 		return true;
 	}
-	
+
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme began with a double-quote
 	 * (").
@@ -274,7 +274,7 @@ public final class RenamesFileParser
 		{
 			return new Token(TokenType.UNKNOWN, "\"");
 		}
-		
+
 		final StringBuilder builder = new StringBuilder(50);
 		while (true)
 		{
@@ -306,10 +306,10 @@ public final class RenamesFileParser
 		{
 			return new Token(TokenType.ARROW, "->");
 		}
-		
+
 		return new Token(TokenType.UNKNOWN, "-");
 	}
-	
+
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme began with a slash (/).
 	 * 
@@ -324,7 +324,7 @@ public final class RenamesFileParser
 		{
 			return new Token(TokenType.UNKNOWN, "/");
 		}
-		
+
 		int depth = 1;
 		while (true)
 		{
@@ -334,7 +334,7 @@ public final class RenamesFileParser
 					"Expected close comment to correspond with open comment "
 					+ "but found end-of-file");
 			}
-			
+
 			if (peekFor('/') && peekFor('*'))
 			{
 				depth++;
@@ -347,14 +347,14 @@ public final class RenamesFileParser
 			{
 				nextCharacter();
 			}
-			
+
 			if (depth == 0)
 			{
 				return null;
 			}
 		}
 	}
-	
+
 	/**
 	 * Consume whitespace.
 	 * 
@@ -364,7 +364,7 @@ public final class RenamesFileParser
 	{
 		return null;
 	}
-	
+
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme is the specified
 	 * character of unknown significance.
@@ -376,7 +376,7 @@ public final class RenamesFileParser
 	{
 		return new Token(TokenType.UNKNOWN, Character.toString(unknownChar));
 	}
-	
+
 	/**
 	 * A {@code ScannerAction} attempts to read a {@linkplain Token token} from
 	 * the {@linkplain #reader}.
@@ -395,7 +395,7 @@ public final class RenamesFileParser
 				return parser.scanDoubleQuote();
 			}
 		},
-		
+
 		/** A hyphen (-) was just seen. */
 		HYPHEN
 		{
@@ -408,7 +408,7 @@ public final class RenamesFileParser
 				return parser.scanHyphen();
 			}
 		},
-		
+
 		/** A forward slash (/) was just seen. */
 		SLASH
 		{
@@ -421,7 +421,7 @@ public final class RenamesFileParser
 				return parser.scanSlash();
 			}
 		},
-		
+
 		/** A whitespace character was just seen. */
 		WHITESPACE
 		{
@@ -433,7 +433,7 @@ public final class RenamesFileParser
 				return parser.scanWhitespace();
 			}
 		},
-		
+
 		/** A character of unknown significance was just seen. */
 		UNKNOWN
 		{
@@ -446,7 +446,7 @@ public final class RenamesFileParser
 				return parser.scanUnknown(firstChar);
 			}
 		};
-		
+
 		/**
 		 * Answer the next {@linkplain Token token} from the {@linkplain
 		 * #reader stream}.
@@ -503,7 +503,7 @@ public final class RenamesFileParser
 			scannerTable[i] = (byte) action.ordinal();
 		}
 	}
-	
+
 	/**
 	 * Answer the next {@linkplain Token token}.
 	 * 
@@ -529,14 +529,14 @@ public final class RenamesFileParser
 					throw new RenamesFileParserException(
 						"Unknown token (" + token.lexeme + ")");
 				}
-				
+
 				return token;
 			}
 		}
-		
+
 		return new Token(TokenType.EOF, "<EOF>");
 	}
-	
+
 	/**
 	 * Resolve the logical file path (<em>filePath</em>) into an absolute
 	 * {@linkplain File file reference}.
@@ -562,7 +562,7 @@ public final class RenamesFileParser
 				"a file path (" + filePath + ") must name more than just a "
 				+ "root name");
 		}
-		
+
 		File resolved = roots.rootDirectoryFor(components[1]);
 		for (int index = 2; index < components.length; index++)
 		{
@@ -573,24 +573,24 @@ public final class RenamesFileParser
 			resolved = new File(
 				resolved, ModuleNameResolver.moduleGroupRepresentative);
 		}
-		
+
 		if (!resolved.isFile())
 		{
 			throw new RenamesFileParserException(
 				"file path (" + filePath + ") resolves to nonexistent "
 				+ "file reference (" + resolved.getAbsolutePath() + ")");
 		}
-		
+
 		return resolved;
 	}
-	
+
 	/**
 	 * A {@linkplain ModuleNameResolver module name resolver}. The goal of the
 	 * {@linkplain RenamesFileParser parser} is to populate the resolver with
 	 * renaming rules.
 	 */
 	private ModuleNameResolver resolver;
-	
+
 	/**
 	 * Parse a rename rule (<em>renameRule</em>) and install an appropriate
 	 * transformation rule into the {@linkplain ModuleNameResolver module
@@ -611,7 +611,7 @@ public final class RenamesFileParser
 			throw new RenamesFileParserException(
 				"expected -> but found (" + token.lexeme + ")");
 		}
-		
+
 		final Token filePath = scan();
 		if (filePath.tokenType != TokenType.PATH)
 		{
@@ -624,7 +624,7 @@ public final class RenamesFileParser
 				"module path (" + modulePath + ") must not bind an empty "
 				+ "file path");
 		}
-		
+
 		if (resolver.hasRenameRuleFor(modulePath))
 		{
 			throw new RenamesFileParserException(
@@ -633,7 +633,7 @@ public final class RenamesFileParser
 		}
 		resolver.addRenameRule(modulePath, resolveFilePath(filePath.lexeme));
 	}
-	
+
 	/**
 	 * Parse a renames file (<em>renamesFile</em>).
 	 * 
@@ -661,7 +661,7 @@ public final class RenamesFileParser
 				"expected end of file but found (" + token.lexeme + ")");
 		}
 	}
-	
+
 	/**
 	 * Parse the source text and answer a {@linkplain ModuleNameResolver module
 	 * name resolver} with the appropriate renaming rules.
@@ -687,7 +687,7 @@ public final class RenamesFileParser
 				throw new RenamesFileParserException(e);
 			}
 		}
-		
+
 		return resolver;
 	}
 }

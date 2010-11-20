@@ -254,7 +254,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			final AvailObject value = var.getValue();
-			if (! var.descriptor().isMutable())
+			if (!var.descriptor().isMutable())
 			{
 				value.makeImmutable();
 			}
@@ -739,7 +739,7 @@ public enum Primitive
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final AvailObject anArg = argTuple.tupleAt(i);
-				if (! anArg.isInstanceOfSubtypeOf(blockType.argTypeAt(i)))
+				if (!anArg.isInstanceOfSubtypeOf(blockType.argTypeAt(i)))
 				{
 					return Result.FAILURE;
 				}
@@ -784,7 +784,7 @@ public enum Primitive
 			final AvailObject arg1 = args.get(1);
 			AvailObject blockType = block.type();
 			assert blockType.numArgs() == 1;
-			if (! arg1.isInstanceOfSubtypeOf(blockType.argTypeAt(1)))
+			if (!arg1.isInstanceOfSubtypeOf(blockType.argTypeAt(1)))
 			{
 				return Result.FAILURE;
 			}
@@ -1060,15 +1060,15 @@ public enum Primitive
 			//  always be mutable...
 			final AvailObject conCopy = con.ensureMutable();
 			final AvailObject itsCode = conCopy.closure().code();
-			if (! arguments.isTuple())
+			if (!arguments.isTuple())
 			{
 				return Result.FAILURE;
 			}
-			if (! (itsCode.numArgs() == arguments.tupleSize()))
+			if (itsCode.numArgs() != arguments.tupleSize())
 			{
 				return Result.FAILURE;
 			}
-			if (! itsCode.closureType().acceptsTupleOfArguments(arguments))
+			if (!itsCode.closureType().acceptsTupleOfArguments(arguments))
 			{
 				return Result.FAILURE;
 			}
@@ -1102,7 +1102,7 @@ public enum Primitive
 			//  and make a mutable copy (if necessary) because the interpreter requires the current continuation to
 			//  always be mutable...
 			final AvailObject expectedType = con.closure().type().returnType();
-			if (! result.isInstanceOfSubtypeOf(expectedType))
+			if (!result.isInstanceOfSubtypeOf(expectedType))
 			{
 				return Result.FAILURE;
 			}
@@ -2372,9 +2372,9 @@ public enum Primitive
 			{
 				buffer = size.isFinite()
 				? new byte[size.extractInt()]
-				           : new byte[(int) Math.min(
-				        	   Integer.MAX_VALUE,
-				        	   file.length() - file.getFilePointer())];
+						   : new byte[(int) Math.min(
+							   Integer.MAX_VALUE,
+							   file.length() - file.getFilePointer())];
 				bytesRead = file.read(buffer);
 			}
 			catch (final IOException e)
@@ -4032,7 +4032,7 @@ public enum Primitive
 			{
 				long highInt = a.rawUnsignedIntegerAt(size);
 				long lowInt = a.rawUnsignedIntegerAt(size - 1);
-				boolean neg = (highInt & (0x80000000L)) != 0;
+				boolean neg = (highInt & 0x80000000L) != 0;
 				highInt = ~highInt;
 				lowInt = ~lowInt;
 				if ((int)++lowInt == 0)
@@ -4305,7 +4305,7 @@ public enum Primitive
 				long highInt = a.rawUnsignedIntegerAt(size);
 				long nextInt = a.rawUnsignedIntegerAt(size - 1);
 				long lowInt = size >= 3 ? a.rawUnsignedIntegerAt(size - 2) : 0;
-				boolean neg = (highInt & (0x80000000L)) != 0;
+				boolean neg = (highInt & 0x80000000L) != 0;
 				if (neg)
 				{
 					highInt = ~highInt;
@@ -4315,7 +4315,7 @@ public enum Primitive
 					{
 						if ((int)++nextInt == 0)
 						{
-							++highInt;
+							highInt++;
 						}
 					}
 				}

@@ -115,10 +115,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		}
 		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
 		{
-			final int clipOffsetInZone = max ((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (! object.subtupleForZone(zone).compareFromToWithStartingAt(
+			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			if (!object.subtupleForZone(zone).compareFromToWithStartingAt(
 				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min (object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
+				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
 				anotherObject,
 				(((object.startOfZone(zone) - startIndex1) + startIndex2) + clipOffsetInZone)))
 			{
@@ -141,10 +141,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
 		{
-			final int clipOffsetInZone = max ((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (! object.subtupleForZone(zone).compareFromToWithByteStringStartingAt(
+			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			if (!object.subtupleForZone(zone).compareFromToWithByteStringStartingAt(
 				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min (object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
+				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
 				aByteString,
 				(((startIndex2 + object.startOfZone(zone)) + clipOffsetInZone) - startIndex1)))
 			{
@@ -167,10 +167,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
 		{
-			final int clipOffsetInZone = max ((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (! object.subtupleForZone(zone).compareFromToWithByteTupleStartingAt(
+			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			if (!object.subtupleForZone(zone).compareFromToWithByteTupleStartingAt(
 				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min (object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
+				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
 				aByteTuple,
 				(((startIndex2 + object.startOfZone(zone)) + clipOffsetInZone) - startIndex1)))
 			{
@@ -197,10 +197,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		}
 		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
 		{
-			final int clipOffsetInZone = max ((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (! object.subtupleForZone(zone).compareFromToWithNybbleTupleStartingAt(
+			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			if (!object.subtupleForZone(zone).compareFromToWithNybbleTupleStartingAt(
 				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min (object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
+				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
 				aNybbleTuple,
 				(object.startOfZone(zone) + clipOffsetInZone)))
 			{
@@ -227,10 +227,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		}
 		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
 		{
-			final int clipOffsetInZone = max ((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (! object.subtupleForZone(zone).compareFromToWithObjectTupleStartingAt(
+			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			if (!object.subtupleForZone(zone).compareFromToWithObjectTupleStartingAt(
 				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min (object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
+				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
 				anObjectTuple,
 				(((object.startOfZone(zone) - startIndex1) + startIndex2) + clipOffsetInZone)))
 			{
@@ -261,17 +261,17 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (! (object.tupleSize() == anotherTuple.tupleSize()))
+		if (object.tupleSize() != anotherTuple.tupleSize())
 		{
 			return false;
 		}
-		if (! (object.hash() == anotherTuple.hash()))
+		if (object.hash() != anotherTuple.hash())
 		{
 			return false;
 		}
 		for (int zone = 1, _end1 = object.numberOfZones(); zone <= _end1; zone++)
 		{
-			if (! object.subtupleForZone(zone).compareFromToWithStartingAt(
+			if (!object.subtupleForZone(zone).compareFromToWithStartingAt(
 				object.startSubtupleIndexInZone(zone),
 				object.endSubtupleIndexInZone(zone),
 				anotherTuple,
@@ -280,7 +280,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 				return false;
 			}
 		}
-		if (((! anotherTuple.isSplice()) || (anotherTuple.numberOfZones() < object.numberOfZones())))
+		if (!anotherTuple.isSplice() || anotherTuple.numberOfZones() < object.numberOfZones())
 		{
 			object.becomeIndirectionTo(anotherTuple);
 			anotherTuple.makeImmutable();
@@ -301,13 +301,13 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that it is likely can be coalesced together.
 
-		if (! (object.hashOrZero() == 0))
+		if (object.hashOrZero() != 0)
 		{
 			return true;
 		}
 		for (int zone = 1, _end1 = object.numberOfZones(); zone <= _end1; zone++)
 		{
-			if (! object.subtupleForZone(zone).isHashAvailable())
+			if (!object.subtupleForZone(zone).isHashAvailable())
 			{
 				return false;
 			}
@@ -373,7 +373,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the size of the given zone.
 
-		if ((zone == 1))
+		if (zone == 1)
 		{
 			return object.integerSlotAtByteIndex(((2 + numberOfFixedIntegerSlots) * 4));
 		}
@@ -386,7 +386,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the starting index for the given zone.
 
-		if ((zone == 1))
+		if (zone == 1)
 		{
 			return 1;
 		}
@@ -430,15 +430,15 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		int high = object.numberOfZones();
 		int low = 1;
 		int mid;
-		while (! ((high == low))) {
-			mid = ((high + low) / 2);
+		while (high != low) {
+			mid = (high + low) / 2;
 			if ((index <= object.endOfZone(mid)))
 			{
 				high = mid;
 			}
 			else
 			{
-				low = (mid + 1);
+				low = mid + 1;
 			}
 		}
 		return high;
@@ -475,17 +475,17 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		final int lowZone = object.zoneForIndex(start);
 		final int highZone = object.zoneForIndex(end);
 		final AvailObject result = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-			((highZone - lowZone) + 1),
-			(((highZone - lowZone) + 1) * 2),
+			(highZone - lowZone + 1),
+			((highZone - lowZone + 1) * 2),
 			SpliceTupleDescriptor.mutableDescriptor());
 		result.hashOrZero(object.computeHashFromTo(start, end));
 		int mainIndex = 0;
 		int destZone = 1;
 		for (int zone = lowZone; zone <= highZone; zone++)
 		{
-			final int leftClippedFromZone = max ((object.translateToZone(start, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			final int leftClippedFromZone = max((object.translateToZone(start, zone) - object.startSubtupleIndexInZone(zone)), 0);
 			//  ...only nonzero for first used zone, and only if start is part way through it.
-			final int rightClippedFromZone = max ((object.endSubtupleIndexInZone(zone) - object.translateToZone(end, zone)), 0);
+			final int rightClippedFromZone = max((object.endSubtupleIndexInZone(zone) - object.translateToZone(end, zone)), 0);
 			//  ...only nonzero for last used zone, and only if end is part way through it.
 			mainIndex = (((mainIndex + object.sizeOfZone(zone)) - leftClippedFromZone) - rightClippedFromZone);
 			result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
@@ -493,9 +493,9 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 				object.subtupleForZone(zone),
 				(object.startSubtupleIndexInZone(zone) + leftClippedFromZone),
 				mainIndex);
-			++destZone;
+			destZone++;
 		}
-		assert (mainIndex == ((end - start) + 1)) : "Incorrect zone clipping for splice tuple";
+		assert (mainIndex == (end - start + 1)) : "Incorrect zone clipping for splice tuple";
 		//  There should be no empty zones if the above algorithm is correct.
 		result.verify();
 		return result;
@@ -538,7 +538,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
 		assert ((index >= 1) && (index <= object.tupleSize()));
-		if (! (canDestroy & isMutable))
+		if (!(canDestroy & isMutable))
 		{
 			return object.copyAsMutableSpliceTuple().tupleAtPuttingCanDestroy(
 				index,
@@ -612,17 +612,17 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		int pieceMultiplierPower = 0;
 		for (int zone = object.zoneForIndex(startIndex), _end1 = object.zoneForIndex(endIndex); zone <= _end1; zone++)
 		{
-			final int clipOffsetInZone = max ((object.translateToZone(startIndex, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			final int clipOffsetInZone = max((object.translateToZone(startIndex, zone) - object.startSubtupleIndexInZone(zone)), 0);
 			//  Can only be nonzero for leftmost affected zone, and only if start > start of zone.
 			final AvailObject piece = object.subtupleForZone(zone);
-			final int startInPiece = (object.startSubtupleIndexInZone(zone) + clipOffsetInZone);
-			final int endInPiece = min (object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex, zone));
+			final int startInPiece = object.startSubtupleIndexInZone(zone) + clipOffsetInZone;
+			final int endInPiece = min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex, zone));
 			int pieceHash = piece.hashFromTo(startInPiece, endInPiece);
-			pieceHash = ((pieceHash * TupleDescriptor.multiplierRaisedTo(pieceMultiplierPower)) & HashMask);
+			pieceHash = pieceHash * TupleDescriptor.multiplierRaisedTo(pieceMultiplierPower);
 			pieceMultiplierPower = (((pieceMultiplierPower + endInPiece) - startInPiece) + 1);
 			hash += pieceHash;
 		}
-		return (hash & HashMask);
+		return hash;
 	}
 
 
@@ -644,11 +644,11 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 			SpliceTupleDescriptor.mutableDescriptor());
 		assert (result.objectSlotsCount() == object.objectSlotsCount());
 		result.hashOrZero(object.hashOrZero());
-		for (int byteIndex = ((numberOfFixedObjectSlots + 1) * -4), _end1 = (object.objectSlotsCount() * -4); byteIndex >= _end1; byteIndex -= 4)
+		for (int byteIndex = (numberOfFixedObjectSlots + 1) * -4, _end1 = object.objectSlotsCount() * -4; byteIndex >= _end1; byteIndex -= 4)
 		{
 			result.objectSlotAtByteIndexPut(byteIndex, object.objectSlotAtByteIndex(byteIndex));
 		}
-		for (int byteIndex = ((numberOfFixedIntegerSlots + 1) * 4), _end2 = (object.integerSlotsCount() * 4); byteIndex <= _end2; byteIndex += 4)
+		for (int byteIndex = (numberOfFixedIntegerSlots + 1) * 4, _end2 = object.integerSlotsCount() * 4; byteIndex <= _end2; byteIndex += 4)
 		{
 			result.integerSlotAtByteIndexPut(byteIndex, object.integerSlotAtByteIndex(byteIndex));
 		}
@@ -710,7 +710,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	{
 		return (SpliceTupleDescriptor) allDescriptors [146];
 	}
-	
+
 	public static SpliceTupleDescriptor immutableDescriptor()
 	{
 		return (SpliceTupleDescriptor) allDescriptors [147];

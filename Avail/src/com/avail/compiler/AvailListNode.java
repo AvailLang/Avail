@@ -124,11 +124,11 @@ public class AvailListNode extends AvailParseNode
 	{
 		for (int i = 1, _end1 = _expressions.size(); i <= _end1; i++)
 		{
-			if ((i > 1))
+			if (i > 1)
 			{
 				aStream.append(", ");
 			}
-			_expressions.get((i - 1)).printOnIndentIn(
+			_expressions.get(i - 1).printOnIndentIn(
 				aStream,
 				(indent + 1),
 				this);

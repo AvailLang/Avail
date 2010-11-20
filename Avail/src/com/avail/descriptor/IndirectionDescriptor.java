@@ -2818,7 +2818,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailInterpreter anInterpreter)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-	
+
 		final AvailObject destination = object.traversed();
 		destination.descriptor().ObjectRemoveFrom(destination, anInterpreter);
 	}
@@ -2839,7 +2839,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject parts)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-	
+
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectRemoveMessageParts(
 			destination,
@@ -2852,7 +2852,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject obsoleteRestrictions)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-	
+
 		final AvailObject destination = object.traversed();
 		destination.descriptor().ObjectRemoveRestrictions(destination, obsoleteRestrictions);
 	}
@@ -3284,7 +3284,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectTupleIntAt(destination, index);
 	}
-	
+
 	void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4340,7 +4340,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectExtractInt(destination);
 	}
-	
+
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -4593,7 +4593,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject destination = object.traversed();
 		return destination.descriptor().ObjectIsByte(destination);
 	}
-	
+
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -5311,7 +5311,7 @@ public class IndirectionDescriptor extends Descriptor
 		final AvailObject object)
 	{
 		//  GENERATED reflex method.  Traverse the indirection and pass along the message.
-	
+
 		final AvailObject destination = object.traversed();
 		destination.descriptor().ObjectRemoveRestrictions(destination);
 	}
@@ -5622,7 +5622,7 @@ public class IndirectionDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -4))
+		if (index == -4)
 		{
 			return true;
 		}
@@ -5684,7 +5684,7 @@ public class IndirectionDescriptor extends Descriptor
 		object.target(finalObject);
 		return finalObject;
 	}
-	
+
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -5733,7 +5733,7 @@ public class IndirectionDescriptor extends Descriptor
 	{
 		return (IndirectionDescriptor) allDescriptors [74];
 	}
-	
+
 	public static IndirectionDescriptor immutableDescriptor()
 	{
 		return (IndirectionDescriptor) allDescriptors [75];

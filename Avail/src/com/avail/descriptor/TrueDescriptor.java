@@ -70,7 +70,7 @@ public class TrueDescriptor extends BooleanDescriptor
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return (0x13F8564E & HashMask);
+		return 0x13F8564E;
 	}
 
 	AvailObject ObjectType (
@@ -141,7 +141,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	{
 		return (TrueDescriptor) allDescriptors [152];
 	}
-	
+
 	public static TrueDescriptor immutableDescriptor()
 	{
 		return (TrueDescriptor) allDescriptors [153];

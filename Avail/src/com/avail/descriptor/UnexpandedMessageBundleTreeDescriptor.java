@@ -110,11 +110,11 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -4))
+		if (index == -4)
 		{
 			return true;
 		}
-		if ((index == 4))
+		if (index == 4)
 		{
 			return true;
 		}
@@ -187,7 +187,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		{
 			final AvailObject message = unclassified.keyAtIndex(mapIndex);
 			AvailObject bundle;
-			if (! message.equalsVoidOrBlank())
+			if (!message.equalsVoidOrBlank())
 			{
 				if (visibleNames.hasElement(message))
 				{
@@ -230,7 +230,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		//  Answer true if this tree is now empty and should be removed.
 
 		AvailObject unclassified = object.unclassified();
-		if (! unclassified.hasKey(message))
+		if (!unclassified.hasKey(message))
 		{
 			error("Message was not in bundle tree", object);
 			return false;
@@ -263,7 +263,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			AvailObject subtree;
 			AvailObject bundle;
 			AvailObject parts;
-			if (! message.equalsVoidOrBlank())
+			if (!message.equalsVoidOrBlank())
 			{
 				bundle = unclassified.valueAtIndex(mapIndex);
 				parts = bundle.messageParts();
@@ -283,7 +283,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 					}
 					else
 					{
-						subtree = UnexpandedMessageBundleTreeDescriptor.newDepth((depth + 1));
+						subtree = UnexpandedMessageBundleTreeDescriptor.newDepth(depth + 1);
 						incomplete = incomplete.mapAtPuttingCanDestroy(
 							part,
 							subtree,
@@ -362,7 +362,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	{
 		return (UnexpandedMessageBundleTreeDescriptor) allDescriptors [160];
 	}
-	
+
 	public static UnexpandedMessageBundleTreeDescriptor immutableDescriptor()
 	{
 		return (UnexpandedMessageBundleTreeDescriptor) allDescriptors [161];

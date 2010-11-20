@@ -2272,7 +2272,7 @@ public abstract class Descriptor
 		final AvailInterpreter anInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
-	
+
 		error("Subclass responsibility: Object:removeFrom: in Avail.Descriptor", object);
 		return;
 	}
@@ -2293,7 +2293,7 @@ public abstract class Descriptor
 		final AvailObject parts)
 	{
 		//  GENERATED pure (abstract) method.
-	
+
 		error("Subclass responsibility: Object:removeMessage:parts: in Avail.Descriptor", object);
 		return false;
 	}
@@ -2303,7 +2303,7 @@ public abstract class Descriptor
 		final AvailObject obsoleteRestrictions)
 	{
 		//  GENERATED pure (abstract) method.
-	
+
 		error("Subclass responsibility: Object:removeRestrictions: in Avail.Descriptor", object);
 		return;
 	}
@@ -2692,7 +2692,7 @@ public abstract class Descriptor
 		error("Subclass responsibility: Object:tupleIntAt: in Avail.Descriptor", object);
 		return 0;
 	}
-	
+
 	void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3626,7 +3626,7 @@ public abstract class Descriptor
 		error("Subclass responsibility: ObjectExtractInt: in Avail.Descriptor", object);
 		return 0;
 	}
-	
+
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the specified Avail
 	 * {@linkplain IntegerDescriptor integer}.
@@ -4376,7 +4376,7 @@ public abstract class Descriptor
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
-	
+
 		error("Subclass responsibility: ObjectRemoveRestrictions: in Avail.Descriptor", object);
 		return;
 	}
@@ -5341,10 +5341,10 @@ public abstract class Descriptor
 		}
 		//  Create a linear bin with two slots.
 		final AvailObject result = AvailObject.newIndexedDescriptor(2, LinearSetBinDescriptor.isMutableLevel(true, myLevel));
-		result.binHash(((object.hash() + elementObject.hash()) & HashMask));
+		result.binHash(object.hash() + elementObject.hash());
 		result.binElementAtPut(1, object);
 		result.binElementAtPut(2, elementObject);
-		if (! canDestroy)
+		if (!canDestroy)
 		{
 			result.makeImmutable();
 		}
@@ -5377,7 +5377,7 @@ public abstract class Descriptor
 		{
 			return VoidDescriptor.voidObject();
 		}
-		if (! canDestroy)
+		if (!canDestroy)
 		{
 			object.makeImmutable();
 		}
@@ -5542,7 +5542,7 @@ public abstract class Descriptor
 			final AvailObject object, 
 			final AvailSubobjectVisitor visitor)
 	{
-		for (int byteIndex = -4, _end1 = (object.objectSlotsCount() * -4); byteIndex >= _end1; byteIndex -= 4)
+		for (int byteIndex = -4, _end1 = object.objectSlotsCount() * -4; byteIndex >= _end1; byteIndex -= 4)
 		{
 			visitor.invokeWithParentIndex(object, byteIndex);
 		}
@@ -5647,9 +5647,6 @@ public abstract class Descriptor
 
 	}
 
-
-
-	static final int HashMask = 0x00FFFFFF;
 
 	static final int numActualDescriptors = 166;
 

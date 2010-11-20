@@ -89,7 +89,7 @@ public class FloatDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aFloatObject)
 	{
-		if (! (object.extractFloat() == aFloatObject.extractFloat()))
+		if (object.extractFloat() != aFloatObject.extractFloat())
 		{
 			return false;
 		}
@@ -109,7 +109,7 @@ public class FloatDescriptor extends Descriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return ((object.rawQuad1() ^ 0x16AE2BFD) & HashMask);
+		return (object.rawQuad1() ^ 0x16AE2BFD);
 	}
 
 	AvailObject ObjectType (
@@ -213,12 +213,12 @@ public class FloatDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static FloatDescriptor mutableDescriptor()
 	{
 		return (FloatDescriptor) allDescriptors [52];
 	}
-	
+
 	public static FloatDescriptor immutableDescriptor()
 	{
 		return (FloatDescriptor) allDescriptors [53];

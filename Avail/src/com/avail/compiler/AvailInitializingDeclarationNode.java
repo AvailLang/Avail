@@ -69,7 +69,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 	{
 		//  This constant declaration acts like an assignment at the point it occurs in code.
 
-		assert (! isArgument()) : "inconsistency - is it constant or argument?";
+		assert !isArgument() : "inconsistency - is it constant or argument?";
 		_initializingExpression.emitValueOn(codeGenerator);
 		codeGenerator.emitSetLocalOrOuter(this);
 	}

@@ -74,11 +74,11 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 		//
 		//  I set the value of an outer, so it can't be an outer reference to an argument (they aren't wrapped in a variable).
 
-		AvailVariableAccessNote note = outerData.get((_index - 1));
+		AvailVariableAccessNote note = outerData.get(_index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			outerData.set((_index - 1), note);
+			outerData.set(_index - 1, note);
 		}
 		//  If there was a get before this set, leave its canClear flag set to true.
 		note.previousGet(null);

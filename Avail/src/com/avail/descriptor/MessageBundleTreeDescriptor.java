@@ -74,7 +74,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 
 		return Types.messageBundleTree.object();
 	}
-	
+
 	/**
 	 * Construct a new {@link MessageBundleTreeDescriptor}.
 	 *

@@ -81,11 +81,11 @@ public class AvailGetLocalVariable extends AvailGetVariable
 		//
 		//  I get the value of a local, so it can't be an argument (they aren't wrapped in a variable).
 
-		AvailVariableAccessNote note = localData.get((_index - 1));
+		AvailVariableAccessNote note = localData.get(_index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			localData.set((_index - 1), note);
+			localData.set(_index - 1, note);
 		}
 		final AvailGetVariable previousGet = note.previousGet();
 		if (previousGet != null)

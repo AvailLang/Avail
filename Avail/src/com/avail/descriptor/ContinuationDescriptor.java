@@ -171,7 +171,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == 12))
+		if (index == 12)
 		{
 			return true;
 		}
@@ -207,7 +207,7 @@ public class ContinuationDescriptor extends Descriptor
 		}
 		//  Set up arguments...
 		final int nArgs = args.size();
-		if (! (nArgs == code.numArgs()))
+		if (nArgs != code.numArgs())
 		{
 			error("Wrong number of arguments");
 			return VoidDescriptor.voidObject();
@@ -215,12 +215,12 @@ public class ContinuationDescriptor extends Descriptor
 		for (int i = 1; i <= nArgs; i++)
 		{
 			//  arguments area
-			cont.localOrArgOrStackAtPut(i, args.get((i - 1)));
+			cont.localOrArgOrStackAtPut(i, args.get(i - 1));
 		}
 		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
 		{
 			//  non-argument locals
-			cont.localOrArgOrStackAtPut((nArgs + i), ContainerDescriptor.newContainerWithOuterType(code.localTypeAt(i)));
+			cont.localOrArgOrStackAtPut(nArgs + i, ContainerDescriptor.newContainerWithOuterType(code.localTypeAt(i)));
 		}
 		return cont;
 	}
@@ -244,25 +244,25 @@ public class ContinuationDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (! object.caller().equals(aContinuation.caller()))
+		if (!object.caller().equals(aContinuation.caller()))
 		{
 			return false;
 		}
-		if (! object.closure().equals(aContinuation.closure()))
+		if (!object.closure().equals(aContinuation.closure()))
 		{
 			return false;
 		}
-		if (! (object.pc() == aContinuation.pc()))
+		if (object.pc() != aContinuation.pc())
 		{
 			return false;
 		}
-		if (! (object.stackp() == aContinuation.stackp()))
+		if (object.stackp() != aContinuation.stackp())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
 		{
-			if (! object.localOrArgOrStackAt(i).equals(aContinuation.localOrArgOrStackAt(i)))
+			if (!object.localOrArgOrStackAt(i).equals(aContinuation.localOrArgOrStackAt(i)))
 			{
 				return false;
 			}
@@ -289,9 +289,8 @@ public class ContinuationDescriptor extends Descriptor
 		h = ((h + object.closure().hash()) + (object.pc() * object.stackp()));
 		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
 		{
-			h = ((((h * 23) + 0x221C9) & HashMask) ^ object.localOrArgOrStackAt(i).hash());
+			h = (((h * 23) + 0x221C9) ^ object.localOrArgOrStackAt(i).hash());
 		}
-		h &= HashMask;
 		return h;
 	}
 
@@ -303,17 +302,17 @@ public class ContinuationDescriptor extends Descriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that it is likely can be coalesced together.
 
-		if (! object.closure().isHashAvailable())
+		if (!object.closure().isHashAvailable())
 		{
 			return false;
 		}
-		if (! object.caller().isHashAvailable())
+		if (!object.caller().isHashAvailable())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
 		{
-			if (! object.localOrArgOrStackAt(i).isHashAvailable())
+			if (!object.localOrArgOrStackAt(i).isHashAvailable())
 			{
 				return false;
 			}
@@ -349,7 +348,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Read from the stack at the given slot index (relative to the object, not the stack area).
 
-		return object.objectSlotAtByteIndex((slotIndex * -4));
+		return object.objectSlotAtByteIndex(slotIndex * -4);
 	}
 
 	void ObjectStackAtPut (
@@ -359,7 +358,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Write to the stack at the given slot index (relative to the object, not the stack area).
 
-		object.objectSlotAtByteIndexPut((slotIndex * -4), anObject);
+		object.objectSlotAtByteIndexPut(slotIndex * -4, anObject);
 	}
 
 	AvailObject ObjectEnsureMutable (
@@ -485,7 +484,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		return (ContinuationDescriptor) allDescriptors [38];
 	}
-	
+
 	public static ContinuationDescriptor immutableDescriptor()
 	{
 		return (ContinuationDescriptor) allDescriptors [39];

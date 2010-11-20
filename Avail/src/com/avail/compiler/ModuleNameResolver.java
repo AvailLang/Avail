@@ -85,10 +85,10 @@ public final class ModuleNameResolver
 	 * representative.
 	 */
 	static final @NotNull String moduleGroupRepresentative = "Main.avail";
-	
+
 	/** The {@linkplain ModuleRoots Avail module roots}. */
 	private final @NotNull ModuleRoots moduleRoots;
-	
+
 	/**
 	 * Answer the {@linkplain ModuleRoots Avail module roots}.
 	 * 
@@ -98,7 +98,7 @@ public final class ModuleNameResolver
 	{
 		return moduleRoots;
 	}
-	
+
 	/**
 	 * Construct a new {@link ModuleNameResolver}.
 	 * 
@@ -108,14 +108,14 @@ public final class ModuleNameResolver
 	{
 		this.moduleRoots = roots;
 	}
-	
+
 	/**
 	 * A {@linkplain Map map} from logical {@linkplain ModuleDescriptor
 	 * module} paths to absolute {@linkplain File file references}.
 	 */
 	private final @NotNull Map<String, File> renames =
 		new HashMap<String, File>();
-	
+
 	/**
 	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
 	 * rule for the specified logical {@linkplain ModuleDescriptor module}
@@ -133,7 +133,7 @@ public final class ModuleNameResolver
 	{
 		return renames.containsKey(modulePath);
 	}
-	
+
 	/**
 	 * Add a rule to translate the specified logical {@linkplain
 	 * ModuleDescriptor module} path into the specified {@linkplain
@@ -153,7 +153,7 @@ public final class ModuleNameResolver
 		assert !renames.containsKey(modulePath);
 		renames.put(modulePath, fileReference);
 	}
-	
+
 	/**
 	 * Trivially translate the specified module group name and local module name
 	 * into a filename.
@@ -168,7 +168,7 @@ public final class ModuleNameResolver
 	{
 		return moduleGroup + "/" + localName + ".avail";
 	}
-	
+
 	/**
 	 * Resolve a reference to the specified unqualified module name made from
 	 * within the given module group to an {@linkplain File#isAbsolute()
@@ -188,7 +188,7 @@ public final class ModuleNameResolver
 		final @NotNull String localName)
 	{
 		assert localName.indexOf('/') == -1;
-		
+
 		// First attempt to lookup the canonical module name in the map of
 		// renaming rules. Apply the rule if it exists.
 		final String modulePath = moduleGroup + "/" + localName;
@@ -197,15 +197,15 @@ public final class ModuleNameResolver
 		{
 			return rename;
 		}
-		
+
 		File resolution = null;
-		
+
 		// Really resolve the local name. Start by splitting the module
 		// group into its components.
 		final String[] components = moduleGroup.split("/");
 		assert components.length > 1;
 		assert components[0].isEmpty();
-		
+
 		// Build a search stack of trials at ascending tiers of enclosing
 		// module groups.
 		final Deque<File> searchStack = new LinkedList<File>();
@@ -217,7 +217,7 @@ public final class ModuleNameResolver
 				searchStack.peekFirst(),
 				components[index] + ".avail"));
 		}
-		
+
 		// Explore the search stack from most enclosing module group to
 		// least enclosing.
 		while (!searchStack.isEmpty())
@@ -230,7 +230,7 @@ public final class ModuleNameResolver
 				break;
 			}
 		}
-		
+
 		// If resolution failed, then one final option is available: search
 		// the other root directories.
 		if (resolution == null)
@@ -250,7 +250,7 @@ public final class ModuleNameResolver
 				}
 			}
 		}
-		
+
 		if (resolution != null)
 		{
 			// We found a candidate. If it is a module group, then substitute
@@ -265,7 +265,7 @@ public final class ModuleNameResolver
 				}
 			}
 		}
-		
+
 		// Answer the (possibly null) resolution.
 		return resolution;
 	}

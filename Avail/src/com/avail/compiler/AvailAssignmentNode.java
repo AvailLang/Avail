@@ -85,7 +85,7 @@ public class AvailAssignmentNode extends AvailParseNode
 	{
 		final AvailVariableDeclarationNode varDecl = _variable.associatedDeclaration();
 		//  Disallow assignment to args, but allow assignment to module variables.
-		assert (! varDecl.isArgument());
+		assert !varDecl.isArgument();
 		_expression.emitValueOn(codeGenerator);
 		varDecl.emitVariableAssignmentOn(codeGenerator);
 	}

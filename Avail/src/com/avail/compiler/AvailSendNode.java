@@ -186,10 +186,10 @@ public class AvailSendNode extends AvailParseNode
 		{
 			if ((((char)(_message.name().tupleAt(charIndex).codePoint())) == '_'))
 			{
-				++underscores;
+				underscores++;
 			}
 		}
-		if (! (underscores == _arguments.size()))
+		if (underscores != _arguments.size())
 		{
 			aStream.append("<An AvailSendNode with the wrong number of arguments>");
 			return;
@@ -198,14 +198,14 @@ public class AvailSendNode extends AvailParseNode
 		for (int charIndex = 1, _end2 = _message.name().tupleSize(); charIndex <= _end2; charIndex++)
 		{
 			final char chr = ((char)(_message.name().tupleAt(charIndex).codePoint()));
-			if ((chr == '_'))
+			if (chr == '_')
 			{
-				if ((charIndex > 1))
+				if (charIndex > 1)
 				{
 					aStream.append(' ');
 				}
 				//  No leading space for leading args
-				_arguments.get((argIndex - 1)).printOnIndentIn(
+				_arguments.get(argIndex - 1).printOnIndentIn(
 					aStream,
 					indent,
 					this);
@@ -214,7 +214,7 @@ public class AvailSendNode extends AvailParseNode
 					aStream.append(' ');
 				}
 				//  No trailing space for trailing args
-				++argIndex;
+				argIndex++;
 			}
 			else
 			{

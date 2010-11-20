@@ -83,11 +83,11 @@ public class AvailPushLocalVariable extends AvailPushVariable
 		//
 		//  I push a local variable or an argument.
 
-		AvailVariableAccessNote note = localData.get((_index - 1));
+		AvailVariableAccessNote note = localData.get(_index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			localData.set((_index - 1), note);
+			localData.set(_index - 1, note);
 		}
 		//  If there was a push before this one, set its isLastAccess to false, as self is clearly a later use.
 		final AvailPushVariable previousPush = note.previousPush();

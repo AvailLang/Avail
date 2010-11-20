@@ -125,13 +125,13 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		//  Compare two integers for equality.
 
-		if (! (object.integerSlotsCount() == anAvailInteger.integerSlotsCount()))
+		if (object.integerSlotsCount() != anAvailInteger.integerSlotsCount())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.integerSlotsCount(); i <= _end1; i++)
 		{
-			if (! (object.rawUnsignedIntegerAt(i) == anAvailInteger.rawUnsignedIntegerAt(i)))
+			if (object.rawUnsignedIntegerAt(i) != anAvailInteger.rawUnsignedIntegerAt(i))
 			{
 				return false;
 			}
@@ -150,15 +150,15 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		final int size2 = another.integerSlotsCount();
 		final int high1 = object.rawSignedIntegerAt(size1);
 		final int high2 = another.rawSignedIntegerAt(size2);
-		if ((high1 >= 0))
+		if (high1 >= 0)
 		{
-			if ((high2 >= 0))
+			if (high2 >= 0)
 			{
-				if ((size1 > size2))
+				if (size1 > size2)
 				{
 					return true;
 				}
-				if ((size1 < size2))
+				if (size1 < size2)
 				{
 					return false;
 				}
@@ -170,38 +170,38 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		}
 		else
 		{
-			if ((high2 >= 0))
+			if (high2 >= 0)
 			{
 				return false;
 			}
-			if ((size1 > size2))
+			if (size1 > size2)
 			{
 				return false;
 			}
-			if ((size1 < size2))
+			if (size1 < size2)
 			{
 				return true;
 			}
 		}
-		if (! (size1 == size2))
+		if (size1 != size2)
 		{
 			error("Sizes should match", object);
 			return false;
 		}
-		if (! ((high1 >= 0) == (high2 >= 0)))
+		if ((high1 >= 0) != (high2 >= 0))
 		{
 			error("Signs should match", object);
 			return false;
 		}
-		if (! (high1 == high2))
+		if (high1 != high2)
 		{
 			return (high1 > high2);
 		}
-		for (int i = (size1 - 1); i >= 1; i--)
+		for (int i = size1 - 1; i >= 1; i--)
 		{
 			long a = object.rawUnsignedIntegerAt(i);
 			long b = another.rawUnsignedIntegerAt(i);
-			if (a != b) return ((a & 0xFFFFFFFFL)) > ((b & 0xFFFFFFFFL));
+			if (a != b) return (a & 0xFFFFFFFFL) > (b & 0xFFFFFFFFL);
 		}
 		//  They're equal.
 		return false;
@@ -212,7 +212,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return (! another.isPositive());
+		return !another.isPositive();
 	}
 
 	@Override
@@ -232,29 +232,29 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		{
 			return true;
 		}
-		if (! aType.isIntegerRangeType())
+		if (!aType.isIntegerRangeType())
 		{
 			return false;
 		}
 		if (aType.upperInclusive())
 		{
-			if (! object.lessOrEqual(aType.upperBound()))
+			if (!object.lessOrEqual(aType.upperBound()))
 			{
 				return false;
 			}
 		}
-		else if (! object.lessThan(aType.upperBound()))
+		else if (!object.lessThan(aType.upperBound()))
 		{
 			return false;
 		}
 		if (aType.lowerInclusive())
 		{
-			if (! aType.lowerBound().lessOrEqual(object))
+			if (!aType.lowerBound().lessOrEqual(object))
 			{
 				return false;
 			}
 		}
-		else if (! aType.lowerBound().lessThan(object))
+		else if (!aType.lowerBound().lessThan(object))
 		{
 			return false;
 		}
@@ -278,23 +278,23 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  Since my implementation of ObjectCanComputeHashOfType: answers
 		//  true, I'm not allowed to allocate objects to figure this out.
 
-		if (! aType.isIntegerRangeType())
+		if (!aType.isIntegerRangeType())
 		{
 			return false;
 		}
-		if (! aType.lowerBound().equals(object))
+		if (!aType.lowerBound().equals(object))
 		{
 			return false;
 		}
-		if (! aType.lowerInclusive())
+		if (!aType.lowerInclusive())
 		{
 			return false;
 		}
-		if (! aType.upperBound().equals(object))
+		if (!aType.upperBound().equals(object))
 		{
 			return false;
 		}
-		if (! aType.upperInclusive())
+		if (!aType.upperInclusive())
 		{
 			return false;
 		}
@@ -429,7 +429,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		assert (object.integerSlotsCount() == 1) : "Integer value out of bounds";
 		return object.rawSignedIntegerAt(1);
 	}
-	
+
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -439,12 +439,12 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		assert
 			(object.integerSlotsCount() >= 1 && object.integerSlotsCount() <= 2)
 			: "Integer value out of bounds";
-		
+
 		if (object.integerSlotsCount() == 1)
 		{
 			return object.rawSignedIntegerAt(1);
 		}
-		
+
 		long value = object.rawSignedIntegerAt(1);
 		value |= object.rawSignedIntegerAt(2) << 32L;
 		return value;
@@ -496,7 +496,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  Manually constructed accessor method.  Access the quad-byte using the native byte-ordering,
 		//  but using little endian between quad-bytes (i.e., least significant quad comes first).
 
-		return (object.integerSlotAtByteIndex((index * 4)) & 0xFFFFFFFFL);
+		return (object.integerSlotAtByteIndex(index * 4) & 0xFFFFFFFFL);
 	}
 
 	@Override
@@ -508,7 +508,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  Manually constructed accessor method.  Overwrite the quad-byte using the native byte-ordering,
 		//  but using little endian between quad-bytes (i.e., least significant quad comes first).
 
-		object.integerSlotAtByteIndexPut((index * 4), value);
+		object.integerSlotAtByteIndexPut(index * 4, value);
 	}
 
 	@Override
@@ -520,19 +520,19 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 		assert isMutable;
 		int size = object.integerSlotsCount();
-		if ((size > 1))
+		if (size > 1)
 		{
 			if (object.rawSignedIntegerAt(size) >= 0)
 			{
 				while (size > 1 && object.rawSignedIntegerAt(size) == 0 && object.rawSignedIntegerAt(size - 1) >= 0) {
-					--size;
+					size--;
 					object.truncateWithFillerForNewIntegerSlotsCount(size);
 				}
 			}
 			else
 			{
 				while (size > 1 && object.rawSignedIntegerAt(size) == -1 && object.rawSignedIntegerAt(size - 1) < 0) {
-					--size;
+					size--;
 					object.truncateWithFillerForNewIntegerSlotsCount(size);
 				}
 			}
@@ -617,8 +617,8 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 				IntegerDescriptor.mutableDescriptor());
 		}
 		int outputSize = output.integerSlotsCount();
-		long extendedObject = (object.rawSignedIntegerAt(objectSize) >> 31) & 0xFFFFFFFFL;
-		long extendedAnInteger = (anInteger.rawSignedIntegerAt(anIntegerSize) >> 31) & 0xFFFFFFFFL;
+		long extendedObject = object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
+		long extendedAnInteger = anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
 		long partial = 0;
 		int lastInt = 0;
 		// The object is always big enough to store the max of the number of quads from each
@@ -809,7 +809,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 				//  remainder we're actually dealing with is positive or negative, and then negate the
 				//  remainder to keep it positive.
 				remainder = remainder.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), false);
-				remainderIsReallyNegative = (! remainderIsReallyNegative);
+				remainderIsReallyNegative = !remainderIsReallyNegative;
 			}
 		}
 		//  At this point, we really have a remainder in [-object+1..object-1].  If the remainder is less than zero,
@@ -1009,8 +1009,8 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 				IntegerDescriptor.mutableDescriptor());
 		}
 		int outputSize = output.integerSlotsCount();
-		long extendedObject = (object.rawSignedIntegerAt(objectSize) >> 31) & 0xFFFFFFFFL;
-		long extendedAnInteger = (anInteger.rawSignedIntegerAt(anIntegerSize) >> 31) & 0xFFFFFFFFL;
+		long extendedObject = object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
+		long extendedAnInteger = anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
 		long partial = 1;
 		int lastInt = 0;
 		// The object is always big enough to store the max of the number of quads from each
@@ -1076,7 +1076,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 
 	/* Value conversion... */
-	
+
 	/**
 	 * Convert the specified Java {@code long} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
@@ -1157,10 +1157,10 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	/* Hashing */
 	static int computeHashOfInt (int anInteger)
 	{
-		int [] map1 = ByteToWordMappings[4-1];
-		int [] map2 = ByteToWordMappings[7-1];
-		int [] map3 = ByteToWordMappings[3-1];
-		int [] map4 = ByteToWordMappings[5-1];
+		int [] map1 = ByteToWordMappings[3];
+		int [] map2 = ByteToWordMappings[6];
+		int [] map3 = ByteToWordMappings[2];
+		int [] map4 = ByteToWordMappings[4];
 		int high = 0x821E;
 		int low = 0x4903;
 		int residue = anInteger;
@@ -1172,15 +1172,15 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			low ^= map4[low&255];
 			residue = residue >> 8;
 		}
-		return ((high << 16L) + (low & 0xFFFF)) & HashMask;
+		return ((high << 16L) + (low & 0xFFFF));
 	}
 
 	static int computeHashOfIntegerObject (AvailObject anIntegerObject)
 	{
-		int [] map1 = ByteToWordMappings[4-1];
-		int [] map2 = ByteToWordMappings[7-1];
-		int [] map3 = ByteToWordMappings[3-1];
-		int [] map4 = ByteToWordMappings[5-1];
+		int [] map1 = ByteToWordMappings[3];
+		int [] map2 = ByteToWordMappings[6];
+		int [] map3 = ByteToWordMappings[2];
+		int [] map4 = ByteToWordMappings[4];
 		int high = 0x821E;
 		int low = 0x4903;
 		int count = anIntegerObject.integerSlotsCount();
@@ -1196,7 +1196,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 				residue = residue >>> 8;
 			}
 		}
-		return ((high << 16L) + (low & 0xFFFF)) & HashMask;
+		return ((high << 16L) + (low & 0xFFFF));
 	}
 
 	/* Various permutation tables for hashing... */
@@ -1465,7 +1465,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		return (IntegerDescriptor) allDescriptors [78];
 	}
-	
+
 	public static IntegerDescriptor immutableDescriptor()
 	{
 		return (IntegerDescriptor) allDescriptors [79];

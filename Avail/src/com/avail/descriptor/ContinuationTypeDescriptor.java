@@ -116,7 +116,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's hash value.
 
-		return ((((object.closureType().hash() * 11) & HashMask) ^ 0x3E20409) & HashMask);
+		return ((object.closureType().hash() * 11) ^ 0x3E20409);
 	}
 
 	boolean ObjectIsHashAvailable (
@@ -163,17 +163,17 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 		final AvailObject subClosureType = aContinuationType.closureType();
 		final AvailObject superClosureType = object.closureType();
-		if (! (subClosureType.numArgs() == superClosureType.numArgs()))
+		if (subClosureType.numArgs() != superClosureType.numArgs())
 		{
 			return false;
 		}
-		if (! superClosureType.returnType().isSubtypeOf(subClosureType.returnType()))
+		if (!superClosureType.returnType().isSubtypeOf(subClosureType.returnType()))
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = subClosureType.numArgs(); i <= _end1; i++)
 		{
-			if (! superClosureType.argTypeAt(i).isSubtypeOf(subClosureType.argTypeAt(i)))
+			if (!superClosureType.argTypeAt(i).isSubtypeOf(subClosureType.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -210,7 +210,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		if (! (closType1.numArgs() == closType2.numArgs()))
+		if (closType1.numArgs() != closType2.numArgs())
 		{
 			return Types.terminates.object();
 		}
@@ -255,7 +255,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		if (! (closType1.numArgs() == closType2.numArgs()))
+		if (closType1.numArgs() != closType2.numArgs())
 		{
 			return Types.continuation.object();
 		}
@@ -317,12 +317,12 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static ContinuationTypeDescriptor mutableDescriptor()
 	{
 		return (ContinuationTypeDescriptor) allDescriptors [40];
 	}
-	
+
 	public static ContinuationTypeDescriptor immutableDescriptor()
 	{
 		return (ContinuationTypeDescriptor) allDescriptors [41];

@@ -114,7 +114,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's hash value.
 
-		return ((((object.innerType().hash() * 17) & HashMask) ^ 0x613E420) & HashMask);
+		return ((object.innerType().hash() * 17) ^ 0x613E420);
 	}
 
 	boolean ObjectIsHashAvailable (
@@ -265,13 +265,13 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	/* Descriptor lookup */
 	public static ContainerTypeDescriptor mutableDescriptor()
 	{
 		return (ContainerTypeDescriptor) allDescriptors [36];
 	}
-	
+
 	public static ContainerTypeDescriptor immutableDescriptor()
 	{
 		return (ContainerTypeDescriptor) allDescriptors [37];

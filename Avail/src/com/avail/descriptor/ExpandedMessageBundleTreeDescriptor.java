@@ -109,15 +109,15 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -4))
+		if (index == -4)
 		{
 			return true;
 		}
-		if ((index == -8))
+		if (index == -8)
 		{
 			return true;
 		}
-		if ((index == 4))
+		if (index == 4)
 		{
 			return true;
 		}
@@ -178,7 +178,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			}
 			else
 			{
-				subtree = UnexpandedMessageBundleTreeDescriptor.newDepth((depth + 1));
+				subtree = UnexpandedMessageBundleTreeDescriptor.newDepth(depth + 1);
 				incomplete = incomplete.mapAtPuttingCanDestroy(
 					part,
 					subtree,
@@ -224,7 +224,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		{
 			final AvailObject message = complete.keyAtIndex(mapIndex);
 			AvailObject bundle;
-			if (! message.equalsVoidOrBlank())
+			if (!message.equalsVoidOrBlank())
 			{
 				if (visibleNames.hasElement(message))
 				{
@@ -239,7 +239,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		for (int mapIndex = 1, _end2 = incomplete.capacity(); mapIndex <= _end2; mapIndex++)
 		{
 			final AvailObject subtree = incomplete.valueAtIndex(mapIndex);
-			if (! subtree.equalsVoid())
+			if (!subtree.equalsVoid())
 			{
 				subtree.copyToRestrictedTo(filteredBundleTree, visibleNames);
 			}
@@ -281,7 +281,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		}
 		else
 		{
-			subtree = UnexpandedMessageBundleTreeDescriptor.newDepth((depth + 1));
+			subtree = UnexpandedMessageBundleTreeDescriptor.newDepth(depth + 1);
 			incomplete = incomplete.mapAtPuttingCanDestroy(
 				part,
 				subtree,
@@ -364,12 +364,12 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static ExpandedMessageBundleTreeDescriptor mutableDescriptor()
 	{
 		return (ExpandedMessageBundleTreeDescriptor) allDescriptors [46];
 	}
-	
+
 	public static ExpandedMessageBundleTreeDescriptor immutableDescriptor()
 	{
 		return (ExpandedMessageBundleTreeDescriptor) allDescriptors [47];

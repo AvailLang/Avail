@@ -202,35 +202,35 @@ public class ProcessDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -4))
+		if (index == -4)
 		{
 			return true;
 		}
-		if ((index == -8))
+		if (index == -8)
 		{
 			return true;
 		}
-		if ((index == -12))
+		if (index == -12)
 		{
 			return true;
 		}
-		if ((index == 4))
+		if (index == 4)
 		{
 			return true;
 		}
-		if ((index == 8))
+		if (index == 8)
 		{
 			return true;
 		}
-		if ((index == 12))
+		if (index == 12)
 		{
 			return true;
 		}
-		if ((index == 16))
+		if (index == 16)
 		{
 			return true;
 		}
-		if ((index == 20))
+		if (index == 20)
 		{
 			return true;
 		}
@@ -266,7 +266,7 @@ public class ProcessDescriptor extends Descriptor
 		int hash = object.hashOrZero();
 		while (hash == 0)
 		{
-			hash = (hashGenerator.nextInt()) & HashMask;
+			hash = hashGenerator.nextInt();
 		}
 		object.hashOrZero(hash);
 		return hash;
@@ -409,7 +409,7 @@ public class ProcessDescriptor extends Descriptor
 	{
 		return (ProcessDescriptor) allDescriptors [140];
 	}
-	
+
 	public static ProcessDescriptor immutableDescriptor()
 	{
 		return (ProcessDescriptor) allDescriptors [141];

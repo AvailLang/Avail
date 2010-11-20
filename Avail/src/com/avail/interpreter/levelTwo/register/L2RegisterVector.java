@@ -64,7 +64,7 @@ public class L2RegisterVector
 	{
 		for (int i = 1, _end1 = _registers.size(); i <= _end1; i++)
 		{
-			if (! anL2Translator.registerHasConstantAt(_registers.get(i - 1)))
+			if (!anL2Translator.registerHasConstantAt(_registers.get(i - 1)))
 			{
 				return false;
 			}

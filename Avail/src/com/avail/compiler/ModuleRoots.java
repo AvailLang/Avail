@@ -66,7 +66,7 @@ public final class ModuleRoots
 {
 	/** The Avail {@linkplain ModuleDescriptor module} path. */
 	private final @NotNull String modulePath;
-	
+
 	/**
 	 * Answer the Avail {@linkplain ModuleDescriptor module} path.
 	 * 
@@ -77,7 +77,7 @@ public final class ModuleRoots
 	{
 		return modulePath;
 	}
-	
+
 	/**
 	 * A {@linkplain Map map} from logical root names to {@linkplain
 	 * File#isAbsolute() absolute} pathnames of {@linkplain File directories}
@@ -85,7 +85,7 @@ public final class ModuleRoots
 	 */
 	private final @NotNull Map<String, File> rootMap =
 		new LinkedHashMap<String, File>();
-	
+
 	/**
 	 * Parse the Avail {@linkplain ModuleDescriptor module} path into a
 	 * {@linkplain Map map} of logical root names to {@linkplain
@@ -110,7 +110,7 @@ public final class ModuleRoots
 						+ "name, then an equals (=), then the absolute "
 						+ "pathname of a directory containing Avail modules.");
 				}
-				
+
 				final String rootName = binding[0];
 				final File fileName = new File(binding[1]);
 				if (!fileName.isAbsolute() || !fileName.isDirectory())
@@ -121,12 +121,12 @@ public final class ModuleRoots
 						+ ") did not specify the absolute pathname of a "
 						+ "directory.");
 				}
-				
+
 				rootMap.put(rootName, fileName);
 			}
 		}
 	}
-	
+
 	/**
 	 * Answer the logical root names in the order that they are specified in
 	 * the Avail {@linkplain ModuleDescriptor module} path.
@@ -138,7 +138,7 @@ public final class ModuleRoots
 	{
 		return Collections.unmodifiableSet(rootMap.keySet());
 	}
-	
+
 	/**
 	 * Answer the {@linkplain File root directory} bound to the specified
 	 * logical root name.
@@ -154,7 +154,7 @@ public final class ModuleRoots
 	{
 		return rootMap.get(rootName);
 	}
-	
+
 	/**
 	 * Construct a new {@link ModuleRoots} from the specified Avail {@linkplain
 	 * ModuleDescriptor module} path.

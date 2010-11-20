@@ -107,7 +107,7 @@ public class ClosureDescriptor extends Descriptor
 		{
 			aStream.append("Immutable closure with code: ");
 		}
-		AvailDecompiler.parse(object).printOnIndent(aStream, (indent + 1));
+		AvailDecompiler.parse(object).printOnIndent(aStream, indent + 1);
 	}
 
 
@@ -125,17 +125,17 @@ public class ClosureDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aClosure)
 	{
-		if (! object.code().equals(aClosure.code()))
+		if (!object.code().equals(aClosure.code()))
 		{
 			return false;
 		}
-		if (! (object.numOuterVars() == aClosure.numOuterVars()))
+		if (object.numOuterVars() != aClosure.numOuterVars())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
 		{
-			if (! object.outerVarAt(i).equals(aClosure.outerVarAt(i)))
+			if (!object.outerVarAt(i).equals(aClosure.outerVarAt(i)))
 			{
 				return false;
 			}
@@ -165,10 +165,10 @@ public class ClosureDescriptor extends Descriptor
 		//  0 or something), it's ok because nobody could know what the hash value
 		//  *used to be* for this closure.
 
-		int hash = ((object.code().hash() ^ 0x1386D4F6) & HashMask);
+		int hash = (object.code().hash() ^ 0x1386D4F6);
 		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
 		{
-			hash = (((hash * 13) + object.outerVarAt(i).hash()) & HashMask);
+			hash = ((hash * 13) + object.outerVarAt(i).hash());
 		}
 		return hash;
 	}
@@ -187,13 +187,13 @@ public class ClosureDescriptor extends Descriptor
 		//  objects to attempt to coalesce.  The garbage collector uses the hash values
 		//  to find objects that likely can be coalesced together.
 
-		if (! object.code().isHashAvailable())
+		if (!object.code().isHashAvailable())
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
 		{
-			if (! object.outerVarAt(i).isHashAvailable())
+			if (!object.outerVarAt(i).isHashAvailable())
 			{
 				return false;
 			}
@@ -368,7 +368,7 @@ public class ClosureDescriptor extends Descriptor
 	{
 		return (ClosureDescriptor) allDescriptors [26];
 	}
-	
+
 	public static ClosureDescriptor immutableDescriptor()
 	{
 		return (ClosureDescriptor) allDescriptors [27];

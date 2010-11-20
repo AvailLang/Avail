@@ -394,7 +394,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	{
 		return (PrimitiveTypeDescriptor) allDescriptors [138];
 	}
-	
+
 	public static PrimitiveTypeDescriptor immutableDescriptor()
 	{
 		return (PrimitiveTypeDescriptor) allDescriptors [139];

@@ -203,11 +203,11 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == 16))
+		if (index == 16)
 		{
 			return true;
 		}
-		if ((index == 20))
+		if (index == 20)
 		{
 			return true;
 		}
@@ -233,33 +233,33 @@ public class CompiledCodeDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (! (object.hash() == aCompiledCode.hash()))
+		if (object.hash() != aCompiledCode.hash())
 		{
 			return false;
 		}
-		if (! (object.numLiterals() == aCompiledCode.numLiterals()))
+		if (object.numLiterals() != aCompiledCode.numLiterals())
 		{
 			return false;
 		}
-		if (! object.nybbles().equals(aCompiledCode.nybbles()))
+		if (!object.nybbles().equals(aCompiledCode.nybbles()))
 		{
 			return false;
 		}
-		if (! (object.hiPrimitiveLowNumArgsAndLocalsAndStack() == aCompiledCode.hiPrimitiveLowNumArgsAndLocalsAndStack()))
+		if (object.hiPrimitiveLowNumArgsAndLocalsAndStack() != aCompiledCode.hiPrimitiveLowNumArgsAndLocalsAndStack())
 		{
 			return false;
 		}
-		if (! (object.hiNumLocalsLowNumArgs() == aCompiledCode.hiNumLocalsLowNumArgs()))
+		if (object.hiNumLocalsLowNumArgs() != aCompiledCode.hiNumLocalsLowNumArgs())
 		{
 			return false;
 		}
-		if (! object.closureType().equals(aCompiledCode.closureType()))
+		if (!object.closureType().equals(aCompiledCode.closureType()))
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = object.numLiterals(); i <= _end1; i++)
 		{
-			if (! object.literalAt(i).equals(aCompiledCode.literalAt(i)))
+			if (!object.literalAt(i).equals(aCompiledCode.literalAt(i)))
 			{
 				return false;
 			}
@@ -328,7 +328,7 @@ public class CompiledCodeDescriptor extends Descriptor
 
 		assert (0 <= args && args <= 0xFFFF);
 		assert (0 <= locals && locals <= 0xFFFF);
-		final int slotCount = ((args + locals) + stack);
+		final int slotCount = (args + locals) + stack;
 		assert (0 <= slotCount && slotCount <= 0xFFFF);
 		assert (0 <= outers && outers <= 0xFFFF);
 		assert (0 <= primitive && primitive <= 0xFFFF);
@@ -367,13 +367,13 @@ public class CompiledCodeDescriptor extends Descriptor
 		for (int dest = (((object.numLiterals() - object.numLocals()) - object.numOuters()) + 1), _end1 = (object.numLiterals() - object.numLocals()); dest <= _end1; dest++)
 		{
 			object.literalAtPut(dest, tupleOfOuterTypes.tupleAt(src));
-			++src;
+			src++;
 		}
 		src = 1;
 		for (int dest = ((object.numLiterals() - object.numLocals()) + 1), _end2 = object.numLiterals(); dest <= _end2; dest++)
 		{
 			object.literalAtPut(dest, tupleOfLocalContainerTypes.tupleAt(src));
-			++src;
+			src++;
 		}
 	}
 
@@ -525,7 +525,7 @@ public class CompiledCodeDescriptor extends Descriptor
 		{
 			hash = (hash * 5 + localTypes.tupleAt(i).hash()) ^ 0x01E37808;
 		}
-		code.hash(hash & HashMask);
+		code.hash(hash);
 		code.makeImmutable();
 		CanAllocateObjects(true);
 
@@ -565,12 +565,12 @@ public class CompiledCodeDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static CompiledCodeDescriptor mutableDescriptor()
 	{
 		return (CompiledCodeDescriptor) allDescriptors [30];
 	}
-	
+
 	public static CompiledCodeDescriptor immutableDescriptor()
 	{
 		return (CompiledCodeDescriptor) allDescriptors [31];

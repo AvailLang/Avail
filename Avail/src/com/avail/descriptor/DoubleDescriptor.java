@@ -110,7 +110,7 @@ public class DoubleDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject aDoubleObject)
 	{
-		if (! (object.extractDouble() == aDoubleObject.extractDouble()))
+		if (object.extractDouble() != aDoubleObject.extractDouble())
 		{
 			return false;
 		}
@@ -130,7 +130,7 @@ public class DoubleDescriptor extends Descriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return (((object.rawQuad1() ^ 0x16AE2BFD) - (object.rawQuad2() ^ 0x7C453FD)) & HashMask);
+		return ((object.rawQuad1() ^ 0x16AE2BFD) - (object.rawQuad2() ^ 0x7C453FD));
 	}
 
 	AvailObject ObjectType (
@@ -241,12 +241,12 @@ public class DoubleDescriptor extends Descriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static DoubleDescriptor mutableDescriptor()
 	{
 		return (DoubleDescriptor) allDescriptors [44];
 	}
-	
+
 	public static DoubleDescriptor immutableDescriptor()
 	{
 		return (DoubleDescriptor) allDescriptors [45];

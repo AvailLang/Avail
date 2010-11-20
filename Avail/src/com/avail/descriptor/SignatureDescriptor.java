@@ -157,11 +157,11 @@ public abstract class SignatureDescriptor extends Descriptor
 		{
 			final AvailObject bodyType = sig.argTypeAt(i);
 			final AvailObject bodyMeta = bodyType.type();
-			if (! bodyMeta.isSubtypeOf(req.argTypeAt(i)))
+			if (!bodyMeta.isSubtypeOf(req.argTypeAt(i)))
 			{
 				error("Argument of requires clause was not metacovariant");
 			}
-			if (! bodyMeta.isSubtypeOf(ret.argTypeAt(i)))
+			if (!bodyMeta.isSubtypeOf(ret.argTypeAt(i)))
 			{
 				error("Argument of returns clause was not metacovariant");
 			}

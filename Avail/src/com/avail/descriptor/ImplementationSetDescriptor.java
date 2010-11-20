@@ -138,15 +138,15 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if ((index == -4))
+		if (index == -4)
 		{
 			return true;
 		}
-		if ((index == -8))
+		if (index == -8)
 		{
 			return true;
 		}
-		if ((index == -12))
+		if (index == -12)
 		{
 			return true;
 		}
@@ -197,7 +197,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  the name (a cyclicType), because the name's hash is random and permanent,
 		//  and an implementationSet's name is permanent, too.
 
-		return ((object.name().hash() + 0x61AF3FC) & HashMask);
+		return (object.name().hash() + 0x61AF3FC);
 	}
 
 	AvailObject ObjectMakeImmutable (
@@ -317,7 +317,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		AvailObject possibility;
 		for (int i = 1, _end3 = possibilities.tupleSize(); i <= _end3; i++)
 		{
-			if (! possibleSolutionExists)
+			if (!possibleSolutionExists)
 			{
 				possibility = imps.tupleAt(possibilities.tupleAt(i).extractInt()).bodySignature();
 				boolean allPossibleAreParents = true;
@@ -330,7 +330,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		for (int i = 1, _end5 = positiveTuple.tupleSize(); i <= _end5; i++)
 		{
-			if (! possibleSolutionExists)
+			if (!possibleSolutionExists)
 			{
 				possibility = imps.tupleAt(positiveTuple.tupleAt(i).extractInt()).bodySignature();
 				boolean allPossibleAreParents = true;
@@ -341,7 +341,7 @@ public class ImplementationSetDescriptor extends Descriptor
 				possibleSolutionExists = allPossibleAreParents;
 			}
 		}
-		if (! possibleSolutionExists)
+		if (!possibleSolutionExists)
 		{
 			result = AvailObject.newIndexedDescriptor(1, ByteTupleDescriptor.isMutableSize(true, 1));
 			result.hashOrZero(0);
@@ -353,7 +353,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		//  Compute a one-layer MinMax to find a good signature to check next.
 		int bestIndex = 0;
-		int bestMax = (possibilities.tupleSize() + 2);
+		int bestMax = possibilities.tupleSize() + 2;
 		for (int i = 1, _end7 = possibilities.tupleSize(); i <= _end7; i++)
 		{
 			possibility = imps.tupleAt(possibilities.tupleAt(i).extractInt());
@@ -363,15 +363,15 @@ public class ImplementationSetDescriptor extends Descriptor
 			{
 				if (possibility.bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(possibilities.tupleAt(k).extractInt()).bodySignature()))
 				{
-					++trueCount;
+					trueCount++;
 				}
 				else
 				{
-					++falseCount;
+					falseCount++;
 				}
 			}
-			final int maxCount = max (trueCount, falseCount);
-			if ((maxCount < bestMax))
+			final int maxCount = max(trueCount, falseCount);
+			if (maxCount < bestMax)
 			{
 				bestMax = maxCount;
 				bestIndex = possibilities.tupleAt(i).extractInt();
@@ -426,7 +426,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		result.hashOrZero(0);
 		result = result.tupleAtPuttingCanDestroy(
 			1,
-			IntegerDescriptor.objectFromInt((bestIndex * 2)),
+			IntegerDescriptor.objectFromInt(bestIndex * 2),
 			true);
 		result = result.tupleAtPuttingCanDestroy(
 			2,
@@ -529,9 +529,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = (test & 1);
-			test = (test >>> 1);
-			if ((lowBit == 1))
+			final int lowBit = test & 1;
+			test = test >>> 1;
+			if (lowBit == 1)
 			{
 				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
 			}
@@ -541,7 +541,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt((index + 1)).extractInt());
+				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
 			}
 		}
 	}
@@ -561,9 +561,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = (test & 1);
-			test = (test >>> 1);
-			if ((lowBit == 1))
+			final int lowBit = test & 1;
+			test = test >>> 1;
+			if (lowBit == 1)
 			{
 				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
 			}
@@ -573,7 +573,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt((index + 1)).extractInt());
+				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
 			}
 		}
 	}
@@ -592,9 +592,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = (test & 1);
-			test = (test >>> 1);
-			if ((lowBit == 1))
+			final int lowBit = test & 1;
+			test = test >>> 1;
+			if (lowBit == 1)
 			{
 				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
 			}
@@ -604,7 +604,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt((index + 1)).extractInt());
+				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
 			}
 		}
 	}
@@ -622,9 +622,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = (test & 1);
-			test = (test >>> 1);
-			if ((lowBit == 1))
+			final int lowBit = test & 1;
+			test = test >>> 1;
+			if (lowBit == 1)
 			{
 				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
 			}
@@ -634,7 +634,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt((index + 1)).extractInt());
+				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
 			}
 		}
 	}
@@ -654,9 +654,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = (test & 1);
-			test = (test >>> 1);
-			if ((lowBit == 1))
+			final int lowBit = test & 1;
+			test = test >>> 1;
+			if (lowBit == 1)
 			{
 				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
 			}
@@ -666,7 +666,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt((index + 1)).extractInt());
+				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
 			}
 		}
 	}
@@ -686,9 +686,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = (test & 1);
-			test = (test >>> 1);
-			if ((lowBit == 1))
+			final int lowBit = test & 1;
+			test = test >>> 1;
+			if (lowBit == 1)
 			{
 				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
 			}
@@ -698,7 +698,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt((index + 1)).extractInt());
+				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
 			}
 		}
 	}
@@ -750,7 +750,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
 			final int finalIndex = index;
-			if (argTypes.get((finalIndex - 1)).equals(Types.terminates.object()))
+			if (argTypes.get(finalIndex - 1).equals(Types.terminates.object()))
 			{
 				failBlock.value(new Generator<String> ()
 				{
@@ -774,13 +774,13 @@ public class ImplementationSetDescriptor extends Descriptor
 			mostSpecific.value = new ArrayList<AvailObject>(2);
 			for (int typeIndex = 1, _end2 = satisfyingTypes.size(); typeIndex <= _end2; typeIndex++)
 			{
-				final AvailObject imp = satisfyingTypes.get((typeIndex - 1));
+				final AvailObject imp = satisfyingTypes.get(typeIndex - 1);
 				final AvailObject impType = imp.bodySignature();
 				boolean isBest = true;
 				for (int otherIndex = 1, _end3 = satisfyingTypes.size(); otherIndex <= _end3; otherIndex++)
 				{
-					final AvailObject other = satisfyingTypes.get((otherIndex - 1));
-					if ((isBest && (! imp.equals(other))))
+					final AvailObject other = satisfyingTypes.get(otherIndex - 1);
+					if (isBest && !imp.equals(other))
 					{
 						final AvailObject otherType = other.bodySignature();
 						for (int argIndex = 1, _end4 = impType.numArgs(); argIndex <= _end4; argIndex++)
@@ -818,9 +818,9 @@ public class ImplementationSetDescriptor extends Descriptor
 							boolean any = false;
 							for (int signatureIndex = 1, _end7 = signatures.size(); signatureIndex <= _end7; signatureIndex++)
 							{
-								if (! any)
+								if (!any)
 								{
-									if (argTypes.get((index - 1)).isSubtypeOf(signatures.get((signatureIndex - 1)).argTypeAt(index)))
+									if (argTypes.get(index - 1).isSubtypeOf(signatures.get(signatureIndex - 1).argTypeAt(index)))
 									{
 										any = true;
 									}
@@ -879,7 +879,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  maximum number of remaining possible solutions after a test.
 
 		AvailObject result = object.privateTestingTree();
-		if (! result.equalsVoid())
+		if (!result.equalsVoid())
 		{
 			return result;
 		}
@@ -957,7 +957,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		return (ImplementationSetDescriptor) allDescriptors [72];
 	}
-	
+
 	public static ImplementationSetDescriptor immutableDescriptor()
 	{
 		return (ImplementationSetDescriptor) allDescriptors [73];

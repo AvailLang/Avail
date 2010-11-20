@@ -70,49 +70,49 @@ public class AvailInstruction
 	{
 		//  Write a nybble-coded integer (in variable-sized format) to the stream (a WriteStream on a ByteArray).
 
-		if ((anInteger < 0))
+		if (anInteger < 0)
 		{
 			error("Only positive integers, please");
 			return;
 		}
-		if ((anInteger < 10))
+		if (anInteger < 10)
 		{
 			aStream.write(anInteger);
 			return;
 		}
-		if ((anInteger < 58))
+		if (anInteger < 58)
 		{
 			aStream.write((((anInteger - 10) >>> 4) + 10));
 			aStream.write(((anInteger - 10) & 15));
 			return;
 		}
-		if ((anInteger < 0x13A))
+		if (anInteger < 0x13A)
 		{
 			aStream.write(13);
 			aStream.write(((anInteger - 58) >>> 4));
 			aStream.write(((anInteger - 58) & 15));
 			return;
 		}
-		if ((anInteger < 0x10000))
+		if (anInteger < 0x10000)
 		{
 			aStream.write(14);
-			aStream.write((anInteger >>> 12));
+			aStream.write(anInteger >>> 12);
 			aStream.write(((anInteger >>> 8) & 15));
 			aStream.write(((anInteger >>> 4) & 15));
-			aStream.write((anInteger & 15));
+			aStream.write(anInteger & 15);
 			return;
 		}
-		if ((anInteger < 0x100000000L))
+		if (anInteger < 0x100000000L)
 		{
 			aStream.write(15);
-			aStream.write((anInteger >>> 28));
+			aStream.write(anInteger >>> 28);
 			aStream.write(((anInteger >>> 24) & 15));
 			aStream.write(((anInteger >>> 20) & 15));
 			aStream.write(((anInteger >>> 16) & 15));
 			aStream.write(((anInteger >>> 12) & 15));
 			aStream.write(((anInteger >>> 8) & 15));
 			aStream.write(((anInteger >>> 4) & 15));
-			aStream.write((anInteger & 15));
+			aStream.write(anInteger & 15);
 			return;
 		}
 		error("Integer is out of range");

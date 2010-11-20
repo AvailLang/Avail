@@ -124,7 +124,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer a 32-bit hash value.
 
-		final int hash = ((object.signature().hash() * 19) & HashMask);
+		final int hash = (object.signature().hash() * 19);
 		return hash;
 	}
 
@@ -198,7 +198,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	{
 		return (ForwardSignatureDescriptor) allDescriptors [54];
 	}
-	
+
 	public static ForwardSignatureDescriptor immutableDescriptor()
 	{
 		return (ForwardSignatureDescriptor) allDescriptors [55];

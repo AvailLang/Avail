@@ -85,8 +85,8 @@ public final class AvailBuilder
 	 */
 	private final @NotNull LinkedHashSet<File> unvisited =
 		new LinkedHashSet<File>();
+
 	
-	
-	
+
 	// TODO: [TLS] Complete implementation.
 }

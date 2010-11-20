@@ -42,7 +42,7 @@ public abstract class ExtendedNumberDescriptor extends Descriptor
 			final AvailObject object, 
 			final AvailObject another)
 	{
-		return (! another.lessThan(object));
+		return !another.lessThan(object);
 	}
 
 	boolean ObjectIsExtendedInteger (
@@ -50,7 +50,7 @@ public abstract class ExtendedNumberDescriptor extends Descriptor
 	{
 		return true;
 	}
-	
+
 	/**
 	 * Construct a new {@link ExtendedNumberDescriptor}.
 	 *

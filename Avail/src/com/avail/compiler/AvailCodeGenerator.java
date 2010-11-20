@@ -91,7 +91,7 @@ public class AvailCodeGenerator
 
 		int index;
 		index = _literals.indexOf(aLiteral) + 1;
-		if ((index == 0))
+		if (index == 0)
 		{
 			_literals.add(aLiteral);
 			index = _literals.size();
@@ -224,7 +224,7 @@ public class AvailCodeGenerator
 			final int delta)
 	{
 		_depth -= delta;
-		if ((_depth < 0))
+		if (_depth < 0)
 		{
 			error("Inconsistency - Generated code would pop too much.");
 			return;
@@ -235,7 +235,7 @@ public class AvailCodeGenerator
 			final int delta)
 	{
 		_depth += delta;
-		if ((_depth > _maxDepth))
+		if (_depth > _maxDepth)
 		{
 			_maxDepth = _depth;
 		}
@@ -258,7 +258,7 @@ public class AvailCodeGenerator
 	{
 		final int index = indexOfLiteral(aLiteral);
 		_instructions.add(new AvailSuperCall().index(index));
-		decreaseDepth((nArgs + nArgs));
+		decreaseDepth(nArgs + nArgs);
 		//  Pops off all types then all values.
 		//
 		//  Leaves room for result
@@ -284,7 +284,7 @@ public class AvailCodeGenerator
 	{
 		for (int i = 1, _end1 = copiedVars.size(); i <= _end1; i++)
 		{
-			emitPushLocalOrOuter(copiedVars.get((i - 1)));
+			emitPushLocalOrOuter(copiedVars.get(i - 1));
 		}
 		final int index = indexOfLiteral(anAvailCompiledBlock);
 		_instructions.add(new AvailCloseCode().numCopiedVarsCodeIndex(copiedVars.size(), index));
@@ -333,9 +333,9 @@ public class AvailCodeGenerator
 			final int stackDepth)
 	{
 		_instructions.add(new AvailGetType().depth(stackDepth));
-		decreaseDepth((stackDepth + 1));
+		decreaseDepth(stackDepth + 1);
 		//  make sure there are sufficient elements on the stack by 'testing the water'.
-		increaseDepth((stackDepth + 1));
+		increaseDepth(stackDepth + 1);
 		//  undo the effect of 'testing the water'.
 		//
 		//  push type
@@ -487,7 +487,7 @@ public class AvailCodeGenerator
 		outerData = new ArrayList<AvailVariableAccessNote>(Arrays.asList(new AvailVariableAccessNote[_outerMap.size()]));
 		for (int index = 1, _end1 = _instructions.size(); index <= _end1; index++)
 		{
-			final AvailInstruction instruction = _instructions.get((index - 1));
+			final AvailInstruction instruction = _instructions.get(index - 1);
 			instruction.fixFlagsUsingLocalDataOuterDataCodeGenerator(
 				localData,
 				outerData,

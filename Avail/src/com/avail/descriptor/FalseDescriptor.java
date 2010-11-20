@@ -70,7 +70,7 @@ public class FalseDescriptor extends BooleanDescriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return (0x15F6584D & HashMask);
+		return 0x15F6584D;
 	}
 
 	AvailObject ObjectType (
@@ -136,12 +136,12 @@ public class FalseDescriptor extends BooleanDescriptor
 			hasVariableObjectSlots,
 			hasVariableIntegerSlots);
 	}
-	
+
 	public static FalseDescriptor mutableDescriptor()
 	{
 		return (FalseDescriptor) allDescriptors [48];
 	}
-	
+
 	public static FalseDescriptor immutableDescriptor()
 	{
 		return (FalseDescriptor) allDescriptors [49];
