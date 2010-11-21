@@ -1,5 +1,5 @@
 /**
- * .../Tier-1/Main.avail
+ * .../Tier-4/Tier-4.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,22 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Tier-4"
 Extends
-	"Tier-0",
-	"Boolean",
-	"Block",
-	"CompiledCode",
-	"Container",
-	"CyclicType",
-	"Integer",
-	"Method",
-	"PrimType",
-	"Set",
-	"Tuple",
-	"Type"
+	"Tier-3",
+	"Collection",
+	"Factory",
+	"Graph",
+	"Iterator",
+	"TupleIterator"
 Uses
 	"Test"
 Names
 Body
+
 

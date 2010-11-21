@@ -1,5 +1,5 @@
 /**
- * Backtrack/Main.avail
+ * Reflection/Reflection.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,10 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Reflection"
 Extends
-	"Backtrack"
+	"Modules",
+	"Methods",
+	"Method validation",
+	"ParseNodes"
 Uses
-	"Test"
 Names
 Body
+

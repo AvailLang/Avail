@@ -869,21 +869,21 @@ public abstract class TupleDescriptor extends Descriptor
 		OpenChevronTuple = AvailObject.newIndexedDescriptor(
 			1,
 			ByteStringDescriptor.isMutableSize(true, 1));
-		OpenChevronTuple.rawByteForCharacterAtPut(1, (byte) '«');
+		OpenChevronTuple.rawByteForCharacterAtPut(1, (short) '«');
 		OpenChevronTuple.hashOrZero(0);
 		OpenChevronTuple.makeImmutable();
 
 		CloseChevronTuple = AvailObject.newIndexedDescriptor(
 			1,
 			ByteStringDescriptor.isMutableSize(true, 1));
-		CloseChevronTuple.rawByteForCharacterAtPut(1, (byte) '»');
+		CloseChevronTuple.rawByteForCharacterAtPut(1, (short) '»');
 		CloseChevronTuple.hashOrZero(0);
 		CloseChevronTuple.makeImmutable();
 
 		DoubleDaggerTuple = AvailObject.newIndexedDescriptor(
 			1,
-			ByteStringDescriptor.isMutableSize(true, 1));
-		DoubleDaggerTuple.rawByteForCharacterAtPut(1, (byte) '‡');
+			TwoByteStringDescriptor.isMutableSize(true, 1));
+		DoubleDaggerTuple.rawShortForCharacterAtPut(1, (short) '‡');
 		DoubleDaggerTuple.hashOrZero(0);
 		DoubleDaggerTuple.makeImmutable();
 	}

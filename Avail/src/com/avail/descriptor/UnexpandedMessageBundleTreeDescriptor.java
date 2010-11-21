@@ -249,11 +249,6 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		//  Answer true if this tree is now empty and should be removed.
 
 		AvailObject unclassified = object.unclassified();
-		if (!unclassified.hasKey(message))
-		{
-			error("Message was not in bundle tree", object);
-			return false;
-		}
 		unclassified = unclassified.mapWithoutKeyCanDestroy(message, true);
 		object.unclassified(unclassified);
 		return (unclassified.mapSize() == 0);

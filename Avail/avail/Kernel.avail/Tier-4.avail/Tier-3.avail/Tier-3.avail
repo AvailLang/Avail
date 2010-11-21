@@ -1,5 +1,5 @@
 /**
- * Compiler/Main.avail
+ * .../Tier-3/Tier-3.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,12 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Tier-3"
 Extends
-	"ParseTree",
-	"Parser",
-	"LexicalScanner"
+	"Tier-2",
+	"Exception",
+	"Object"
 Uses
-	"Test-Parser"
+	"Test"
 Names
 Body
+

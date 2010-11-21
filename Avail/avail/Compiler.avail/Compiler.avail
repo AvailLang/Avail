@@ -1,5 +1,5 @@
 /**
- * IO/Main.avail
+ * Compiler/Compiler.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,15 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Compiler"
 Extends
-	"File",
-	"InputFile",
-	"OutputFile",
-	"ObjectDumping",
-	"ObjectLoading"
+	"ParseTree",
+	"Parser",
+	"LexicalScanner"
 Uses
-	"Test"
+	"Test-Parser"
 Names
 Body
-

@@ -32,54 +32,83 @@
 
 package com.avail.compiler;
 
+import java.io.File;
 import java.lang.RuntimeException;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.ModuleDescriptor;
 
-public class AvailCompilerException extends RuntimeException
+/**
+ * An {@code AvailCompilerException} is thrown by the {@linkplain AvailCompiler
+ * Avail compiler} when compilation fails for any reason.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class AvailCompilerException
+extends RuntimeException
 {
-	int _position;
-	String _errorText;
-
-
-	// accessing
-
-	public String errorText ()
-	{
-		return _errorText;
-	}
-
-	void errorText (
-			final String aString)
-	{
-		_errorText = aString;
-	}
-
-	public int position ()
-	{
-		return _position;
-	}
-
-	void position (
-			final int anInteger)
-	{
-		_position = anInteger;
-	}
-
-
-
-
-
-	// Serialization support
+	/** The serial version identifier. */
 	private static final long serialVersionUID = 486558432544374634L;
-
-
-	// Constructor
-
-	AvailCompilerException (
-		int position,
-		String errorText)
+	
+	/**
+	 * The {@linkplain ModuleName fully-qualified name} of the {@linkplain
+	 * ModuleDescriptor module} undergoing {@linkplain AvailCompiler
+	 * compilation}.
+	 */
+	private final @NotNull ModuleName moduleName;
+	
+	/**
+	 * Answer the {@linkplain ModuleName fully-qualified name} of the
+	 * {@linkplain ModuleDescriptor module} undergoing {@linkplain AvailCompiler
+	 * compilation}.
+	 * 
+	 * @return A {@linkplain ModuleName module name}.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	public @NotNull ModuleName moduleName ()
 	{
-		_position = position;
-		_errorText = errorText;
+		return moduleName;
+	}
+	
+	/**
+	 * The position within the {@linkplain ModuleDescriptor module} undergoing
+	 * {@linkplain AvailCompiler compilation} at which the error was detected.
+	 */
+	private final long position;
+	
+	/**
+	 * Answer the position within the {@linkplain ModuleDescriptor module}
+	 * undergoing {@linkplain AvailCompiler compilation} at which the error was
+	 * detected.
+	 * 
+	 * @return A {@linkplain File file} position.
+	 */
+	public long position ()
+	{
+		return position;
 	}
 
+	/**
+	 * Construct a new {@link AvailCompilerException}.
+	 *
+	 * @param moduleName
+	 *        The {@linkplain ModuleName fully-qualified name} of the
+	 *        {@linkplain ModuleDescriptor module} undergoing {@linkplain
+	 *        AvailCompiler compilation}.
+	 * @param position
+	 *        The position within the {@linkplain ModuleDescriptor module}
+	 *        undergoing {@linkplain AvailCompiler compilation} at which the
+	 *        error was detected.
+	 * @param errorText
+	 *        The text of the error message, intended for display at the
+	 *        encapsulated position.
+	 */
+	AvailCompilerException (
+		final @NotNull ModuleName moduleName,
+		long position,
+		final @NotNull String errorText)
+	{
+		super(errorText);
+		this.moduleName = moduleName;
+		this.position   = position;
+	}
 }

@@ -33,6 +33,7 @@
 Module "Test-Parser"
 Extends
 Uses
+	"BlockA",
 	"Integer"
 Names
 Body

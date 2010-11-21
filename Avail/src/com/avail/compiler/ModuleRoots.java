@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/ModuleRoots.java
+ * compiler/ModuleRoots.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

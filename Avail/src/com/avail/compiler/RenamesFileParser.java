@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/RenamesFileParser.java
+ * compiler/RenamesFileParser.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -51,32 +51,26 @@ import com.avail.descriptor.ModuleDescriptor;
  * 
  * <pre>
  * renamesFile ::= renameRule* ;
- * renameRule ::= quotedModulePath "->" quotedFilePath ;
+ * renameRule ::= quotedModulePath "->" quotedModulePath ;
  * quotedModulePath ::= '"' modulePath '"' ;
- * quotedFilePath ::= '"' filePath '"' ;
  * modulePath ::= moduleId ++ "/" ;
- * filePath ::= moduleId ++ "/" ;
  * moduleId ::= [^/"]+ ;
  * </pre>
  * 
  * <p>Conceptually the renames file establishes a set of module reference
- * renaming rules. On the left-hand side of a rule is a module reference
- * (<em>quotedModulePath</em>) of the form "/R/X/.../Y/Z", where
- * <strong>R</strong> is a root name referring to a vendor, <strong>X</strong>
- * is a public module group provided by the vendor, <strong>Y</strong> is a
- * module group recursively within module group <strong>X</strong>, and
- * <strong>Z</strong> is a local module name. On the right-hand side of a rule
- * is a file reference (<em>quotedFilePath</em>) of the form "/R/A/B", where
- * <strong>R</strong> is a root name referring to a vendor and bound to an
- * absolute directory <strong>P</strong> specified on the Avail module path,
- * <strong>A.avail</strong> is a subdirectory of <strong>P</strong>, and
- * <strong>B.avail</strong> is a file or subdirectory of
- * <strong>A.avail</strong>. The rule resolves references to <strong>Z</strong>
- * within module group <strong>Y</strong> to the module at
- * <strong>P/A.avail/B.avail</strong> or the module group representative
- * <strong>P/A.avail/B.avail/Main.avail</strong>.</p>
+ * renaming rules. On the left-hand side of a rule is a fully-qualified module
+ * reference (<em>quotedModulePath</em>) of the form
+ * <strong>"/R/X/.../Y/Z"</strong>, where <strong>R</strong> is a root name
+ * referring to a vendor, <strong>X</strong> is a public module group provided
+ * by the vendor, <strong>Y</strong> is a module group recursively within module
+ * group <strong>X</strong>, and <strong>Z</strong> is a local module name. On
+ * the right-hand side of a rule is another module reference of the form
+ * <strong>"/Q/A/.../B/C"</strong>, where <strong>Q</strong> is a root name
+ * referring to a vendor, <strong>A</strong> is a public module group provided
+ * by the vendor, <strong>B</strong> is a module group recursively within module
+ * group <strong>A</strong>, and <strong>C</strong> is a local module name.</p>
  * 
- * <p>Note that some operating systems may have difficulty handling certain
+ * <p>Note that some operating systems may have difficulty resolving certain
  * <em>moduleId</em>s if they contain arbitrary Unicode characters.</p>
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -538,53 +532,6 @@ public final class RenamesFileParser
 	}
 
 	/**
-	 * Resolve the logical file path (<em>filePath</em>) into an absolute
-	 * {@linkplain File file reference}.
-	 * 
-	 * @param filePath A logical file path.
-	 * @return An {@linkplain File#isAbsolute() absolute} {@linkplain File
-	 *         file reference}.
-	 * @throws RenamesFileParserException
-	 *         If a semantic rule is violated.
-	 */
-	private @NotNull File resolveFilePath (final @NotNull String filePath)
-		throws RenamesFileParserException
-	{
-		final String[] components = filePath.split("/");
-		if (!components[0].isEmpty())
-		{
-			throw new RenamesFileParserException(
-				"a file path must begin with a slash (/)");
-		}
-		if (components.length < 3)
-		{
-			throw new RenamesFileParserException(
-				"a file path (" + filePath + ") must name more than just a "
-				+ "root name");
-		}
-
-		File resolved = roots.rootDirectoryFor(components[1]);
-		for (int index = 2; index < components.length; index++)
-		{
-			resolved = new File(resolved, components[2] + ".avail");
-		}
-		if (resolved.isDirectory())
-		{
-			resolved = new File(
-				resolved, ModuleNameResolver.moduleGroupRepresentative);
-		}
-
-		if (!resolved.isFile())
-		{
-			throw new RenamesFileParserException(
-				"file path (" + filePath + ") resolves to nonexistent "
-				+ "file reference (" + resolved.getAbsolutePath() + ")");
-		}
-
-		return resolved;
-	}
-
-	/**
 	 * A {@linkplain ModuleNameResolver module name resolver}. The goal of the
 	 * {@linkplain RenamesFileParser parser} is to populate the resolver with
 	 * renaming rules.
@@ -631,7 +578,7 @@ public final class RenamesFileParser
 				"duplicate rename rule for \"" + modulePath + "\" "
 				+ "is not allowed");
 		}
-		resolver.addRenameRule(modulePath, resolveFilePath(filePath.lexeme));
+		resolver.addRenameRule(modulePath, filePath.lexeme);
 	}
 
 	/**
@@ -666,9 +613,7 @@ public final class RenamesFileParser
 	 * Parse the source text and answer a {@linkplain ModuleNameResolver module
 	 * name resolver} with the appropriate renaming rules.
 	 * 
-	 * @return A {@linkplain Map map} from logical {@linkplain
-	 *         ModuleDescriptor module} paths to {@linkplain
-	 *         File#isAbsolute() absolute} {@linkplain File file references}.
+	 * @return A {@linkplain ModuleNameResolver module name resolver}.
 	 * @throws RenamesFileParserException
 	 *         If the parse fails for any reason.
 	 */

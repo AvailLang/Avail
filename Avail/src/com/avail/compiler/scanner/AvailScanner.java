@@ -366,43 +366,19 @@ public class AvailScanner
 	 * @param string The text of an Avail {@linkplain ModuleDescriptor
 	 *               module} (or at least the prefix up to the <em>Names</em>
 	 *               token).
+	 * @param stopAfterNamesToken
+	 *        Stop scanning after encountering the <em>Names</em> token?
 	 * @return A {@linkplain List list} of {@linkplain AvailToken tokens}
 	 *         terminated by {@link AvailEndOfFileToken}.
 	 */
-	public @NotNull List<AvailToken> scanString (final @NotNull String string)
+	public @NotNull List<AvailToken> scanString (
+		final @NotNull String string,
+		final boolean stopAfterNamesToken)
 	{
 		_inputString = string;
 		_position = 0;
 		_outputTokens = new ArrayList<AvailToken>(100);
-		while (!atEnd())
-		{
-			_startOfToken = position();
-			int c = next();
-			ScannerAction.values()[DispatchTable[c]].scan(this);
-		}
-		addToken(new AvailEndOfFileToken());
-		return _outputTokens;
-	}
-
-	/**
-	 * Answer the {@linkplain List list} of {@linkplain AvailToken tokens} up to
-	 * the <em>Names</em> token (inclusive). Forge an {@link
-	 * AvailEndOfFileToken} and append it to the list.
-	 * 
-	 * @param string The text of an Avail {@linkplain ModuleDescriptor
-	 *               module} (or at least the prefix up to the <em>Names</em>
-	 *               token).
-	 * @return A {@linkplain List list} of {@linkplain AvailToken tokens}
-	 *         terminated by {@link AvailEndOfFileToken}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	public @NotNull List<AvailToken> scanStringUpToNamesToken (
-		final @NotNull String string)
-	{
-		_inputString = string;
-		_position = 0;
-		_outputTokens = new ArrayList<AvailToken>(50);
-		while (!_encounteredNamesToken)
+		while (!(stopAfterNamesToken ? _encounteredNamesToken : atEnd()))
 		{
 			_startOfToken = position();
 			int c = next();

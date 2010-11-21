@@ -1,5 +1,5 @@
 /**
- * .../Tier-3/Main.avail
+ * .../Tier-2/Tier-2.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,13 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Tier-2"
 Extends
-	"Tier-2",
-	"Exception",
-	"Object"
+	"Tier-1",
+	"BlockA",
+	"BlockB",
+	"Container",
+	"Continuation",
+	"Integer",
+	"Map",
+	"Set",
+	"Tuple",
+	"Character"
 Uses
 	"Test"
 Names
 Body
+
 

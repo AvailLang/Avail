@@ -33,7 +33,10 @@
 Module "Test-Precedence"
 Extends
 Uses
-	"Tier-0"
+	"Tier-0",
+	"Block",
+	"Set",
+	"Tuple"
 Names
 Body
 

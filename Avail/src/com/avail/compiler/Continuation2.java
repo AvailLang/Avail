@@ -34,7 +34,7 @@ package com.avail.compiler;
 
 import com.avail.compiler.Continuation2;
 
-public abstract class Continuation2 <X,Y>
+public interface Continuation2 <X,Y>
 {
-	public abstract void value (X arg1, Y arg2);
+	public void value (X arg1, Y arg2);
 }

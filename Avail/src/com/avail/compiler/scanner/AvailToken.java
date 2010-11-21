@@ -37,18 +37,18 @@ import com.avail.descriptor.AvailObject;
 public class AvailToken
 {
 	String _string;
-	int _start;
+	long _start;
 
 
 	// accessing
 
-	public int start ()
+	public long start ()
 	{
 		return _start;
 	}
 
 	void start (
-			final int position)
+			final long position)
 	{
 		_start = position;
 	}

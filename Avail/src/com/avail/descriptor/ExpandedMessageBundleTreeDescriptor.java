@@ -323,20 +323,21 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		AvailObject incomplete = object.incomplete();
 		if ((depth == (parts.tupleSize() + 1)))
 		{
-			assert complete.hasKey(message) : "That method should be in the bundle tree";
 			complete = complete.mapWithoutKeyCanDestroy(message, true);
 			object.complete(complete);
 		}
 		else
 		{
 			final AvailObject part = parts.tupleAt(depth);
-			assert incomplete.hasKey(part) : "That method should be in the subtree";
-			final AvailObject subtree = object.incomplete().mapAt(part);
-			final boolean prune = subtree.removeMessageParts(message, parts);
-			if (prune)
+			if (object.incomplete().hasKey(part))
 			{
-				incomplete = incomplete.mapWithoutKeyCanDestroy(part, true);
-				object.incomplete(incomplete);
+				final AvailObject subtree = object.incomplete().mapAt(part);
+				final boolean prune = subtree.removeMessageParts(message, parts);
+				if (prune)
+				{
+					incomplete = incomplete.mapWithoutKeyCanDestroy(part, true);
+					object.incomplete(incomplete);
+				}
 			}
 		}
 		return ((complete.mapSize() == 0) && (object.incomplete().mapSize() == 0));

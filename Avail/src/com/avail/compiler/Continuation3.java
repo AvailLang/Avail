@@ -1,5 +1,5 @@
 /**
- * Process/Main.avail
+ * compiler/Continuation3.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,10 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
-Extends
-	"Process",
-	"Semaphore"
-Uses
-Names
-Body
+package com.avail.compiler;
+
+/**
+ * Implementors of {@code Continuation3} provide a single arbitrary operation
+ * that accepts three arguments. 
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @param <X> The type of the first argument.
+ * @param <Y> The type of the second argument.
+ * @param <Z> The type of the third argument.
+ */
+public interface Continuation3<X, Y, Z>
+{
+	/**
+	 * Perform the operation.
+	 * 
+	 * @param arg1 The first argument.
+	 * @param arg2 The second argument.
+	 * @param arg3 The third argument.
+	 */
+	public void value (X arg1, Y arg2, Z arg3);
+}

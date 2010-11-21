@@ -5476,7 +5476,7 @@ implements Iterable<AvailObject>
 		SetDescriptor.clearWellKnownObjects();
 		InfinityDescriptor.clearWellKnownObjects();
 		IntegerDescriptor.clearWellKnownObjects();
-		Descriptor.clearWellKnownObjects();
+		AbstractDescriptor.clearWellKnownObjects();
 		IntegerRangeTypeDescriptor.clearWellKnownObjects();
 		L2ChunkDescriptor.clearWellKnownObjects();
 	}
@@ -5493,7 +5493,7 @@ implements Iterable<AvailObject>
 		SetDescriptor.createWellKnownObjects();
 		InfinityDescriptor.createWellKnownObjects();
 		IntegerDescriptor.createWellKnownObjects();
-		Descriptor.createWellKnownObjects();
+		AbstractDescriptor.createWellKnownObjects();
 		IntegerRangeTypeDescriptor.createWellKnownObjects();
 		L2ChunkDescriptor.createWellKnownObjects();
 	}

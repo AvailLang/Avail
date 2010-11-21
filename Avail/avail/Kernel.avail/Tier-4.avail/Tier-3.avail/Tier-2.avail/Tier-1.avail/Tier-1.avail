@@ -1,5 +1,5 @@
 /**
- * Reflection/Main.avail
+ * .../Tier-1/Tier-1.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,13 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Tier-1"
 Extends
-	"Modules",
-	"Methods",
-	"Method validation",
-	"ParseNodes"
+	"Tier-0",
+	"Boolean",
+	"Block",
+	"CompiledCode",
+	"Container",
+	"CyclicType",
+	"Integer",
+	"Method",
+	"PrimType",
+	"Set",
+	"Tuple",
+	"Type"
 Uses
+	"Test"
 Names
 Body
 

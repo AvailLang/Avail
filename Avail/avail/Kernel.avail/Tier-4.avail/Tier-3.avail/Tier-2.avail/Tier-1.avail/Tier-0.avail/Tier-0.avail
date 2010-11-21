@@ -1,5 +1,5 @@
 /**
- * .../Tier-0/Main.avail
+ * .../Tier-0/Tier-0.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Main"
+Module "Tier-0"
 Extends
 	"Pragmas"
 Uses

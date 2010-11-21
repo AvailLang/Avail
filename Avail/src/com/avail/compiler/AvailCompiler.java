@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailAssignmentNode;
 import com.avail.compiler.AvailBlockNode;
@@ -71,6 +72,11 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -79,23 +85,34 @@ import static com.avail.descriptor.AvailObject.*;
 
 public class AvailCompiler
 {
-	List<AvailToken> tokens;
-	int position;
-	L2Interpreter interpreter;
-	AvailCompilerScopeStack scopeStack;
-	int greatestGuess;
-	List<Generator<String>> greatExpectations;
-	AvailObject module;
-	AvailCompilerFragmentCache fragmentCache;
+	/**
+	 * The {@linkplain L2Interpreter interpreter} to use when evaluating
+	 * top-level expressions.
+	 */
+	private final @NotNull L2Interpreter interpreter;
+	
+	public AvailCompiler (final @NotNull L2Interpreter interpreter)
+	{
+		this.interpreter = interpreter;
+	}
+	
+	private List<AvailToken> tokens;
+	private int position;
+	
+	private AvailCompilerScopeStack scopeStack;
+	private int greatestGuess;
+	private List<Generator<String>> greatExpectations;
+	private AvailObject module;
+	private AvailCompilerFragmentCache fragmentCache;
 	List<AvailObject> extendedModules;
 	List<AvailObject> usedModules;
-	List<AvailObject> exportedNames;
-	Continuation2<Integer, Integer> progressBlock;
+	private List<AvailObject> exportedNames;
+	private Continuation3<ModuleName, Long, Long> progressBlock;
 
 
 	// evaluation
 
-	AvailObject evaluate (
+	private AvailObject evaluate (
 			final AvailParseNode expressionNode)
 	{
 		//  Evaluate a parse tree node.
@@ -122,7 +139,7 @@ public class AvailCompiler
 		return result;
 	}
 
-	void evaluateModuleStatement (
+	private void evaluateModuleStatement (
 			final AvailParseNode expressionNode)
 	{
 		//  Evaluate a parse tree node.  It's a top-level statement in a module.  Declarations are
@@ -160,40 +177,102 @@ public class AvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain ModuleDescriptor module} from the specified
-	 * string. Use the specified {@linkplain L2Interpreter interpreter} to
-	 * compile and evaluate the relevant portions of the module.
+	 * Tokenize the {@linkplain ModuleDescriptor module} specified by the
+	 * fully-qualified {@linkplain ModuleName module name}.
 	 * 
-	 * @param string The {@linkplain String text} of a {@linkplain
-	 *               ModuleDescriptor module}.
-	 * @param theInterpreter An {@linkplain L2Interpreter interpreter}.
-	 * @param aBlock A progress {@linkplain Continuation2 block} that accepts
-	 *               the start and end positions of a recently parsed section of
-	 *               the module text.
+	 * @param qualifiedName
+	 *        A fully-qualified {@linkplain ModuleName module name}.
+	 * @param stopAfterNamesToken
+	 *        Stop scanning after encountering the <em>Names</em> token?
+	 * @return The {@linkplain ResolvedModuleName resolved module name}.
+	 * @throws AvailCompilerException
+	 *         If tokenization failed for any reason.
+	 */
+	private @NotNull ResolvedModuleName tokenize (
+		final @NotNull ModuleName qualifiedName,
+		final boolean stopAfterNamesToken)
+		throws AvailCompilerException
+	{
+		final ModuleNameResolver resolver =
+			interpreter.runtime().moduleNameResolver();
+		final ResolvedModuleName resolvedName = resolver.resolve(qualifiedName);
+		if (resolvedName == null)
+		{
+			throw new AvailCompilerException(
+				qualifiedName,
+				0,
+				"Unable to resolve fully-qualified module name \""
+				+ qualifiedName.qualifiedName()
+				+ "\" to an existing file");
+		}
+		
+		final String source;
+		try
+		{
+			final StringBuilder sourceBuilder = new StringBuilder(4096);
+			final char[] buffer = new char[4096];
+			final Reader reader = new BufferedReader(new FileReader(
+				resolvedName.fileReference()));
+			int charsRead;
+			while ((charsRead = reader.read(buffer)) > 0)
+			{
+				sourceBuilder.append(buffer, 0, charsRead);
+			}
+			source = sourceBuilder.toString();
+		}
+		catch (final IOException e)
+		{
+			throw new AvailCompilerException(
+				qualifiedName,
+				0,
+				"Encountered an I/O exception while reading source module \""
+				+ qualifiedName.qualifiedName()
+				+ "\" (resolved to \""
+				+ resolvedName.fileReference().getAbsolutePath()
+				+ "\")");
+		}
+		
+		tokens = new AvailScanner().scanString(source, stopAfterNamesToken);
+		return resolvedName;
+	}
+	
+	/**
+	 * Parse a {@linkplain ModuleDescriptor module} and install it into the
+	 * {@linkplain AvailRuntime runtime}.
+	 * 
+	 * @param qualifiedName
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor source module}.
+	 * @param aBlock
+	 *        A {@linkplain Continuation3 continuation} that accepts the
+	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
+	 *        module} undergoing {@linkplain AvailCompiler compilation}, the
+	 *        position of the ongoing parse (in bytes), and the size of the
+	 *        module (in bytes). 
 	 * @throws AvailCompilerException
 	 *         If compilation fails.
 	 */
-	public void parseModuleFromStringInterpreterProgressBlock (
-			final @NotNull String string, 
-			final @NotNull L2Interpreter theInterpreter, 
-			final @NotNull Continuation2<Integer, Integer> aBlock)
+	public void parseModule (
+			final @NotNull ModuleName qualifiedName, 
+			final @NotNull Continuation3<ModuleName, Long, Long> aBlock)
 		throws AvailCompilerException
 	{
 		progressBlock = aBlock;
-		interpreter = theInterpreter;
 		greatestGuess = -1;
 		greatExpectations = null;
-		tokens = new AvailScanner().scanString(string);
-		position = 0;
 		clearScopeStack();
+		position = 0;
+		final ResolvedModuleName resolvedName = tokenize(qualifiedName, false);
+
 		startModuleTransaction();
 		try
 		{
-			parseModule();
+			parseModule(resolvedName);
 		}
-		finally
+		catch (final AvailCompilerException e)
 		{
 			rollbackModuleTransaction();
+			throw e;
 		}
 		assert peekToken().type() == AvailToken.TokenType.end
 			: "Expected end of text, not " + peekToken().string();
@@ -205,43 +284,52 @@ public class AvailCompiler
 	 * specified string. Populate {@link #extendedModules} and {@link
 	 * #usedModules}.
 	 * 
-	 * @param string The {@linkplain String text} of a {@linkplain
-	 *               ModuleDescriptor module}.
+	 * @param qualifiedName
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
 	 *         If compilation fails.
 	 * @author Todd L Smith &lt;anarkul@gmail.com&gt;
 	 */
-	void parseModuleHeaderFromString (final @NotNull String string)
+	void parseModuleHeader (final @NotNull ModuleName qualifiedName)
 		throws AvailCompilerException
 	{
 		progressBlock = null;
-		interpreter = null;
 		greatestGuess = -1;
 		greatExpectations = null;
-		tokens = new AvailScanner().scanStringUpToNamesToken(string);
-		position = 0;
 		clearScopeStack();
-		parseHeaderForDependenciesOnly();
+		position = 0;
+		final ResolvedModuleName resolvedName = tokenize(qualifiedName, true);
+		if (!parseHeaderForDependenciesOnly(resolvedName))
+		{
+			reportError(resolvedName);
+			assert false;
+		}
 		assert peekToken().type() == AvailToken.TokenType.end
 			: "Expected end of text, not " + peekToken().string();
 	}
 
 	/**
 	 * Report an error by throwing an {@link AvailCompilerException}. The
-	 * exception encapsulates the error string and the text position.
-	 * This position is the rightmost position encountered during the parse, and
-	 * the error strings in {@link #greatExpectations} are the things that were
-	 * expected but not found at that position.  This seems to work very well in
-	 * practice.
+	 * exception encapsulates the {@linkplain ModuleName module name} of the
+	 * {@linkplain ModuleDescriptor module} undergoing compilation, the error
+	 * string, and the text position. This position is the rightmost position
+	 * encountered during the parse, and the error strings in {@link
+	 * #greatExpectations} are the things that were expected but not found at
+	 * that position.  This seems to work very well in practice.
 	 * 
+	 * @param qualifiedName
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
 	 *         Always thrown.
 	 */
-	private void reportError () throws AvailCompilerException
+	private void reportError (final @NotNull ModuleName qualifiedName)
+		throws AvailCompilerException
 	{
 		int tokenPosSave = position();
 		position(greatestGuess);
-		int charPos = peekToken().start();
+		long charPos = peekToken().start();
 		position(tokenPosSave);
 		StringBuilder text = new StringBuilder(100);
 		text.append("<-- Expected...\n");
@@ -258,7 +346,7 @@ public class AvailCompiler
 				text.append("\n");
 			}
 		}
-		throw new AvailCompilerException(charPos, text.toString());
+		throw new AvailCompilerException(qualifiedName, charPos, text.toString());
 	}
 
 
@@ -307,7 +395,7 @@ public class AvailCompiler
 			});
 	}
 
-	void parseAndEvaluateExpressionYieldingInstanceOfThen (
+	private void parseAndEvaluateExpressionYieldingInstanceOfThen (
 			final AvailObject someType, 
 			final Continuation1<AvailObject> continuation)
 	{
@@ -390,7 +478,7 @@ public class AvailCompiler
 		position(oldPosition);
 	}
 
-	void parseAssignmentThen (
+	private void parseAssignmentThen (
 			final Continuation1<AvailAssignmentNode> continuation)
 	{
 		//  Since this is now a statement instead of an expression, we don't need
@@ -497,7 +585,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseBlockArgumentsThen (
+	private void parseBlockArgumentsThen (
 			final Continuation1<List<AvailVariableDeclarationNode>> continuation)
 	{
 		//  Parse a block's formal arguments from the token stream.  A verticalBar
@@ -517,7 +605,7 @@ public class AvailCompiler
 		});
 	}
 
-	void parseBlockArgumentThen (
+	private void parseBlockArgumentThen (
 			final Continuation1<AvailVariableDeclarationNode> continuation)
 	{
 		//  Requires block arguments to be named.
@@ -572,7 +660,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseBlockThen (
+	private void parseBlockThen (
 			final Continuation1<AvailBlockNode> continuation)
 	{
 		//  Parse a block from the token stream.
@@ -743,7 +831,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseDeclarationThen (
+	private void parseDeclarationThen (
 			final Continuation1<AvailVariableDeclarationNode> continuation)
 	{
 		//  Parse a local variable declaration.  These are one of three forms:
@@ -877,7 +965,7 @@ public class AvailCompiler
 		position(where);
 	}
 
-	void parseExpressionListItemsBeyondThen (
+	private void parseExpressionListItemsBeyondThen (
 			final List<AvailParseNode> itemsSoFar, 
 			final Continuation1<AvailParseNode> continuation)
 	{
@@ -917,7 +1005,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseExpressionListItemThen (
+	private void parseExpressionListItemThen (
 			final Continuation1<AvailParseNode> continuation)
 	{
 		//  Parse an expression that isn't a list.  Backtracking will find all valid interpretations.
@@ -948,7 +1036,7 @@ public class AvailCompiler
 		});
 	}
 
-	void parseExpressionThen (
+	private void parseExpressionThen (
 			final Continuation1<AvailParseNode> originalContinuation)
 	{
 		//  Parse an expression.  Backtracking will find all valid interpretations.  Note that
@@ -1012,7 +1100,7 @@ public class AvailCompiler
 		position(start);
 	}
 
-	void parseFromCompleteBundlesIncompleteBundlesArgumentsSoFarThen (
+	private void parseFromCompleteBundlesIncompleteBundlesArgumentsSoFarThen (
 			final int partIndex, 
 			final AvailObject complete, 
 			final AvailObject incomplete, 
@@ -1173,7 +1261,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseLabelThen (
+	private void parseLabelThen (
 			final Continuation1<AvailLabelNode> continuation)
 	{
 		//  Parse a label declaration.
@@ -1226,7 +1314,7 @@ public class AvailCompiler
 			});
 	}
 
-	void parseLeadingArgumentSendAfterThen (
+	private void parseLeadingArgumentSendAfterThen (
 			final AvailParseNode leadingArgument, 
 			final Continuation1<AvailSendNode> continuation)
 	{
@@ -1278,7 +1366,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseLeadingKeywordSendThen (
+	private void parseLeadingKeywordSendThen (
 			final Continuation1<AvailSendNode> continuation)
 	{
 		//  Parse a send node.  To prevent infinite left-recursion and false ambiguity, we only
@@ -1305,7 +1393,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseOptionalLeadingArgumentSendAfterThen (
+	private void parseOptionalLeadingArgumentSendAfterThen (
 			final AvailParseNode node, 
 			final Continuation1<AvailParseNode> continuation)
 	{
@@ -1336,7 +1424,7 @@ public class AvailCompiler
 			});
 	}
 
-	void parseOptionalPrimitiveForArgCountThen (
+	private void parseOptionalPrimitiveForArgCountThen (
 			final int argCount, 
 			final Continuation1<Short> continuation)
 	{
@@ -1399,7 +1487,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseOptionalSuperCastAfterErrorSuffixThen (
+	private void parseOptionalSuperCastAfterErrorSuffixThen (
 			final AvailParseNode expr, 
 			final String errorSuffix, 
 			final Continuation1<? super AvailParseNode> continuation)
@@ -1454,7 +1542,7 @@ public class AvailCompiler
 		}
 	}
 
-	void parseSendArgumentWithExplanationThen (
+	private void parseSendArgumentWithExplanationThen (
 			final String explanation, 
 			final Continuation1<AvailParseNode> continuation)
 	{
@@ -1473,7 +1561,7 @@ public class AvailCompiler
 		});
 	}
 
-	void parseSimpleThen (
+	private void parseSimpleThen (
 			final Continuation1<? super AvailParseNode> continuation)
 	{
 		//  Look for a variable, reference, or literal.
@@ -1522,7 +1610,7 @@ public class AvailCompiler
 		assert (position == originalPosition);
 	}
 
-	void parseStatementAsOutermostCanBeLabelThen (
+	private void parseStatementAsOutermostCanBeLabelThen (
 			final boolean outermost, 
 			final boolean canBeLabel, 
 			final Continuation1<AvailParseNode> continuation)
@@ -1635,7 +1723,7 @@ public class AvailCompiler
 		});
 	}
 
-	void parseStatementsThen (
+	private void parseStatementsThen (
 			final Continuation1<List<AvailParseNode>> continuation)
 	{
 		//  Parse zero or more statements from the tokenStream.  Parse as many
@@ -1710,7 +1798,7 @@ public class AvailCompiler
 		scopeStack = oldScope;
 	}
 
-	AvailObject parseStringLiteral ()
+	private AvailObject parseStringLiteral ()
 	{
 		//  Parse a string literal.  Report an error if one isn't present.
 
@@ -1725,7 +1813,7 @@ public class AvailCompiler
 		return stringObject;
 	}
 
-	List<AvailObject> parseStrings ()
+	private List<AvailObject> parseStrings ()
 	{
 		//  Parse one or more string literals separated by commas.  This parse isn't
 		//  backtracking like the rest of the grammar - it's greedy.  It considers a
@@ -1755,7 +1843,7 @@ public class AvailCompiler
 		return list;
 	}
 
-	void parseStringsThen (
+	private void parseStringsThen (
 			final Continuation1<List<AvailObject>> continuation)
 	{
 		//  Parse one or more string literals separated by commas.  This parse isn't
@@ -1769,7 +1857,7 @@ public class AvailCompiler
 		position(where);
 	}
 
-	void parseVariableUseWithExplanationThen (
+	private void parseVariableUseWithExplanationThen (
 			final String exp, 
 			final Continuation1<? super AvailVariableUseNode> continuation)
 	{
@@ -1839,7 +1927,8 @@ public class AvailCompiler
 
 	// private - parsing main
 
-	boolean parseHeader ()
+	private boolean parseHeader (
+		final @NotNull ResolvedModuleName qualifiedName)
 	{
 		//  Parse the header of the module from the token stream.  See my class's
 		//  'documentation - grammar' protocol for details.  Leave the token stream set
@@ -1861,7 +1950,19 @@ public class AvailCompiler
 				public void value()
 				{
 					final int savePosition = position();
-					module.name(parseStringLiteral());
+					final AvailObject localName = parseStringLiteral();
+					final String nativeLocalName = localName.asNativeString();
+					expected(
+						"declared local module name to agree with "
+						+ "fully-qualified module name");
+					if (!qualifiedName.localName().equals(nativeLocalName))
+					{
+						position(savePosition);
+						return;
+					}
+					module.name(
+						ByteStringDescriptor.mutableObjectFromNativeString(
+							qualifiedName.qualifiedName()));
 					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
 					{
 						for (final AvailObject pragmaString : parseStrings())
@@ -1972,10 +2073,16 @@ public class AvailCompiler
 	 * from the (truncated) {@linkplain AvailToken token} stream. Populate
 	 * {@link #extendedModules} and {@link #usedModules}.
 	 * 
+	 * @param qualifiedName
+	 *        The {@linkplain ResolvedModuleName resolved name} of the
+	 *        {@linkplain ModuleDescriptor source module}.
+	 * @return {@code true} if the parse succeeded, {@code false} otherwise.
 	 * @throws AvailCompilerException
 	 *         If parsing fails.
 	 */
-	void parseHeaderForDependenciesOnly () throws AvailCompilerException
+	private boolean parseHeaderForDependenciesOnly (
+			final @NotNull ResolvedModuleName qualifiedName)
+		throws AvailCompilerException
 	{
 		final Mutable<Integer> where = new Mutable<Integer>();
 		final Mutable<Boolean> ok = new Mutable<Boolean>();
@@ -1993,7 +2100,16 @@ public class AvailCompiler
 				public void value()
 				{
 					final int savePosition = position();
-					module.name(parseStringLiteral());
+					final AvailObject localName = parseStringLiteral();
+					final String nativeLocalName = localName.asNativeString();
+					expected(
+						"declared local module name to agree with "
+						+ "fully-qualified module name");
+					if (!qualifiedName.localName().equals(nativeLocalName))
+					{
+						position(savePosition);
+						return;
+					}
 					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
 					{
 						parseStrings();
@@ -2057,38 +2173,66 @@ public class AvailCompiler
 		{
 			position(where.value);
 		}
+		return ok.value;
 	}
 
 	/**
-	 * Parse a {@linkplain ModuleDescriptor module} from the {@linkplain
+	 * Parse the {@linkplain ModuleDescriptor module} with the specified
+	 * fully-qualified {@linkplain ModuleName module name} from the {@linkplain
 	 * AvailToken token} stream.
 	 * 
+	 * @param qualifiedName
+	 *        The {@linkplain ResolvedModuleName resolved name} of the
+	 *        {@linkplain ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
 	 *         If compilation fails.
 	 */
-	void parseModule () throws AvailCompilerException
+	private void parseModule (
+			final @NotNull ResolvedModuleName qualifiedName)
+		throws AvailCompilerException
 	{
+		final AvailRuntime runtime = interpreter.runtime();
+		final ModuleNameResolver resolver = runtime.moduleNameResolver();
+		final long sourceLength = qualifiedName.fileReference().length();
 		final Mutable<AvailParseNode> interpretation =
 			new Mutable<AvailParseNode>();
 		final Mutable<Integer> endOfStatement = new Mutable<Integer>();
 		interpreter.checkUnresolvedForwards();
 		greatestGuess = 0;
 		greatExpectations = new ArrayList<Generator<String>>();
-		if (!parseHeader())
+		if (!parseHeader(qualifiedName))
 		{
-			reportError();
+			reportError(qualifiedName);
 			assert false;
 		}
-		int oldStart = (peekToken() == null ? 1 : (peekToken().start() + 1));
+		greatestGuess = 0;
+		greatExpectations = new ArrayList<Generator<String>>();
+		long oldStart = (peekToken() == null ? 1 : (peekToken().start() + 1));
 		if (!atEnd())
 		{
-			progressBlock.value(1, peekToken().start());
+			progressBlock.value(
+				qualifiedName,
+				peekToken().start(),
+				sourceLength);
 		}
 		for (final AvailObject modName : extendedModules)
 		{
 			assert modName.isString();
-			// TODO: [TLS] Needs to be resolved differently ...
-			AvailObject mod = interpreter.runtime().moduleAt(modName);
+			ModuleName ref = resolver.canonicalNameFor(
+				qualifiedName.asSibling(modName.asNativeString()));
+			AvailObject availRef =
+				ByteStringDescriptor.mutableObjectFromNativeString(
+					ref.qualifiedName());
+			if (!runtime.includesModuleNamed(availRef))
+			{
+				expected(
+					"module \""
+					+ ref.qualifiedName()
+					+ "\" to be loaded already");
+				reportError(qualifiedName);
+				assert false;
+			}
+			AvailObject mod = runtime.moduleAt(availRef);
 			AvailObject modNames = mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
 			{
@@ -2102,8 +2246,21 @@ public class AvailCompiler
 		for (final AvailObject modName : usedModules)
 		{
 			assert modName.isString();
-			// TODO: [TLS] Needs to be resolved differently ...
-			AvailObject mod = interpreter.runtime().moduleAt(modName);
+			ModuleName ref = resolver.canonicalNameFor(
+				qualifiedName.asSibling(modName.asNativeString()));
+			AvailObject availRef =
+				ByteStringDescriptor.mutableObjectFromNativeString(
+					ref.qualifiedName());
+			if (!runtime.includesModuleNamed(availRef))
+			{
+				expected(
+					"module \""
+					+ ref.qualifiedName()
+					+ "\" to be loaded already");
+				reportError(qualifiedName);
+				assert false;
+			}
+			AvailObject mod = runtime.moduleAt(availRef);
 			AvailObject modNames = mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
 			{
@@ -2147,7 +2304,7 @@ public class AvailCompiler
 				});
 			if (interpretation.value == null)
 			{
-				reportError();
+				reportError(qualifiedName);
 				assert false;
 			}
 			//  Clear the section of the fragment cache associated with the
@@ -2161,7 +2318,10 @@ public class AvailCompiler
 			if (!atEnd())
 			{
 				backupToken();
-				progressBlock.value(oldStart, (nextToken().start() + 2));
+				progressBlock.value(
+					qualifiedName,
+					(nextToken().start() + 2),
+					sourceLength);
 				oldStart = (peekToken().start() + 1);
 			}
 		}
@@ -2172,7 +2332,7 @@ public class AvailCompiler
 
 	// private - parsing utilities
 
-	void ambiguousInterpretationsAnd (
+	private void ambiguousInterpretationsAnd (
 			final AvailParseNode interpretation1, 
 			final AvailParseNode interpretation2)
 	{
@@ -2196,7 +2356,7 @@ public class AvailCompiler
 		});
 	}
 
-	boolean atEnd ()
+	private boolean atEnd ()
 	{
 		return (position == tokens.size());
 	}
@@ -2235,7 +2395,7 @@ public class AvailCompiler
 		return tokens.get(position - 1);
 	}
 
-	boolean parseTokenIsTypeString (
+	private boolean parseTokenIsTypeString (
 			final AvailToken.TokenType tokenType, 
 			final String string)
 	{
@@ -2248,7 +2408,7 @@ public class AvailCompiler
 		return false;
 	}
 
-	void parseTokenTypeStringContinue (
+	private void parseTokenTypeStringContinue (
 			final AvailToken.TokenType tokenType, 
 			final String string, 
 			final Continuation0 continuationNoArgs)
@@ -2277,7 +2437,7 @@ public class AvailCompiler
 		assert (oldScope == scopeStack);
 	}
 
-	void parseTokenTypeStringErrorContinue (
+	private void parseTokenTypeStringErrorContinue (
 			final AvailToken.TokenType tokenType, 
 			final String string, 
 			final String error, 
@@ -2290,7 +2450,7 @@ public class AvailCompiler
 			continuationNoArgs);
 	}
 
-	void parseTokenTypeStringErrorGeneratorContinue (
+	private void parseTokenTypeStringErrorGeneratorContinue (
 			final AvailToken.TokenType tokenType, 
 			final String string, 
 			final Generator<String> errorGenerator, 
@@ -2316,14 +2476,14 @@ public class AvailCompiler
 		}
 	}
 
-	AvailToken peekToken ()
+	private AvailToken peekToken ()
 	{
 		assert !atEnd();
 		// System.out.println(Integer.toString(position) + " peek = " + tokens.get(position));
 		return tokens.get(position);
 	}
 
-	boolean peekTokenIsTypeString (
+	private boolean peekTokenIsTypeString (
 			final AvailToken.TokenType tokenType, 
 			final String string)
 	{
@@ -2331,25 +2491,25 @@ public class AvailCompiler
 		return ((token.type() == tokenType) && token.string().equals(string));
 	}
 
-	int position ()
+	private int position ()
 	{
 		return position;
 	}
 
-	void position (
+	private void position (
 			final int anInteger)
 	{
 		position = anInteger;
 	}
 
-	void privateClearFrags ()
+	private void privateClearFrags ()
 	{
 		//  Clear the fragment cache.  Only the range minFrag to maxFrag could be notNil.
 
 		fragmentCache.clear();
 	}
 
-	void tryIfUnambiguousThen (
+	private void tryIfUnambiguousThen (
 			final Continuation1<Continuation1<AvailParseNode>> tryBlock, 
 			final Continuation1<AvailParseNode> continuation)
 	{
@@ -2410,7 +2570,7 @@ public class AvailCompiler
 		position(oldPosition);
 	}
 
-	Generator<String> wrapInGenerator (
+	private Generator<String> wrapInGenerator (
 			final String aString)
 	{
 		//  Answer a block that will yield aString.  The Java version should create a Generator.
@@ -2429,7 +2589,7 @@ public class AvailCompiler
 
 	// scope
 
-	AvailVariableDeclarationNode lookupDeclaration (
+	private AvailVariableDeclarationNode lookupDeclaration (
 			final String name)
 	{
 		AvailCompilerScopeStack scope = scopeStack;
@@ -2443,12 +2603,12 @@ public class AvailCompiler
 		return null;
 	}
 
-	void popDeclaration ()
+	private void popDeclaration ()
 	{
 		scopeStack = scopeStack.next();
 	}
 
-	void pushDeclaration (
+	private void pushDeclaration (
 			final AvailVariableDeclarationNode declaration)
 	{
 		scopeStack = new AvailCompilerScopeStack(
@@ -2461,7 +2621,7 @@ public class AvailCompiler
 
 	// scope / cache
 
-	void clearScopeStack ()
+	private void clearScopeStack ()
 	{
 		scopeStack = new AvailCompilerScopeStack(
 			null,
@@ -2500,7 +2660,7 @@ public class AvailCompiler
 	 * since the most recent {@link #startModuleTransaction()
 	 * startModuleTransaction}.
 	 */
-	void rollbackModuleTransaction ()
+	private void rollbackModuleTransaction ()
 	{
 		assert module != null;
 		module.removeFrom(interpreter);
@@ -2522,12 +2682,6 @@ public class AvailCompiler
 		module = null;
 		interpreter.setModule(null);
 	}
-
-
-
-
-
-
 
 	// Declare helper "expected(String)" to call "expected(Generator<String>)".
 	void expected (final String aString)

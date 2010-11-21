@@ -1,5 +1,5 @@
 /**
- * .../Tier-2/Main.avail
+ * Kernel/Kernel.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -29,22 +29,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-Module "Main"
+ 
+Module "Kernel"
 Extends
-	"Tier-1",
-	"BlockA",
-	"BlockB",
-	"Container",
-	"Continuation",
-	"Integer",
-	"Map",
-	"Set",
-	"Tuple",
-	"Character"
+	"Tier-4"
 Uses
-	"Test"
 Names
 Body
-
-

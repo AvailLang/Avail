@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.StringReader;
 import org.junit.Test;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.ModuleName;
 import com.avail.compiler.ModuleNameResolver;
 import com.avail.compiler.ModuleRoots;
 import com.avail.compiler.RenamesFileParser;
@@ -90,7 +91,7 @@ public final class ModuleNameResolverTest
 			},
 			{
 				"/Input-Output",
-				"IO.avail/Main.avail",
+				"IO.avail/IO.avail",
 				libraryPath
 			},
 			{
@@ -105,7 +106,7 @@ public final class ModuleNameResolverTest
 			},
 			{
 				"/Kernel/Tier-4/Tier-3",
-				"Kernel.avail/Tier-4.avail/Tier-3.avail/Main.avail",
+				"Kernel.avail/Tier-4.avail/Tier-3.avail/Tier-3.avail",
 				libraryPath
 			},
 			{
@@ -120,7 +121,7 @@ public final class ModuleNameResolverTest
 			},
 			{
 				"/Kernel/Tier-4/Tier-3/Tier-2/Tier-1/Tier-0/IO",
-				"IO.avail/Main.avail",
+				"IO.avail/IO.avail",
 				libraryPath
 			}
 		};
@@ -138,8 +139,8 @@ public final class ModuleNameResolverTest
 			final String localName = aCase[0].substring(index + 1);
 
 			final File expected = new File(aCase[2], aCase[1]);
-			final File actual   = renames.resolve(
-				"/avail" + moduleGroup, localName);
+			final File actual   = renames.resolve(new ModuleName(
+				"/avail" + moduleGroup, localName)).fileReference();
 			assertEquals(expected, actual);
 		}
 	}

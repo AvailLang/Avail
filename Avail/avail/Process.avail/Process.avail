@@ -32,75 +32,8 @@
 
 Module "Process"
 Extends
+	"Thread",
+	"Semaphore"
 Uses
-	"Kernel"
 Names
-	"_priority",
-	"_priority_",
-	"_suspend",
-	"_resume",
-	"_terminate",
-	"current process",
-	"_[_]",
-	"_[_]:=_"
 Body
-
-
-/* Process support.  Processes in Avail are lightweight, but not manually
-   scheduled like fibers.  The scheduler time-slices all ready-to-run processes
-   that have the highest ready priority.  There is no provision for blocking
-   other processes from running except the use of semaphores and other
-   synchronization media, or by asking a process to suspend / resume.
-   There is no quota system implemented yet, but eventually processes
-   will be granted time-slices from their originating processes.  When a
-   parent process dies, its quota is permanently distributed among its
-   live children.  While a parent process is alive it may apportion fractions
-   of its time slice to its children processes.  This is a form of sandboxing
-   similar to pointer abstraction and garbage collection.  Even memory
-   allocation may be sandboxed in this way eventually, but that's a lot
-   harder.
-*/
-
-
-Method "_priority" is [p : process |
-	Primitive 20;
-	Failed;
-] : [0..100];
-
-
-Method "_priority_" is [p : process, priority : [0..100] |
-	Primitive 21;
-	Failed;
-] : void;
-
-Method "_suspend" is [p : process |
-	Primitive 22;
-	Failed;
-] : void;
-
-Method "_resume" is [p : process |
-	Primitive 23;
-	Failed;
-] : void;
-
-Method "_terminate" is [p : process |
-	Primitive 24;
-	Failed;
-] : void;
-
-Method "current process" is [
-	Primitive 25;
-	Failed;
-] : process;
-
-Method "_[_]" is [p : process, key : cyclicType |
-	/* Lookup a process variable. */
-	Primitive 26;
-	Failed;
-] : all;
-
-Method "_[_]:=_" is [p : process, key : cyclicType, value : all |
-	/* Set a process variable. */
-	Primitive 27;
-	Failed;
-] : void;

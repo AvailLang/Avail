@@ -1,5 +1,5 @@
 /**
- * compiler/RenamesFileParserException.java
+ * compiler/RecursiveDependencyException.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,38 +32,67 @@
 
 package com.avail.compiler;
 
+import java.util.Collections;
+import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.ModuleDescriptor;
 
 /**
- * {@code RenamesFileParserException} is thrown by a {@link RenamesFileParser}
- * when a {@linkplain RenamesFileParser#parse() parse} fails for any reason.
+ * A {@code RecursiveDependencyException} is thrown by the {@linkplain
+ * AvailBuilder builder} when a recursive {@linkplain ModuleDescriptor module}
+ * dependency is discovered.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class RenamesFileParserException
+public final class RecursiveDependencyException
 extends Exception
 {
 	/** The serial version identifier. */
-	private static final long serialVersionUID = -7113513880608719974L;
-
+	private static final long serialVersionUID = 6654397420941119005L;
+	
 	/**
-	 * Construct a new {@link RenamesFileParserException}.
+	 * The path that the {@linkplain AvailBuilder builder} followed to identify
+	 * the dependency recursion.
+	 */
+	private final @NotNull List<ModuleName> recursionPath;
+	
+	/**
+	 * Answer the {@linkplain ModuleName module name} of the [@linkplain
+	 * ModuleDescriptor module} that recursively depends upon itself.
 	 * 
-	 * @param message The detail message.
+	 * @return A {@linkplain ModuleName module name}.
 	 */
-	RenamesFileParserException (final @NotNull String message)
+	public @NotNull ModuleName recursiveDependent ()
 	{
-		super(message);
+		return recursionPath.get(recursionPath.size() - 1);
 	}
-
+	
 	/**
-	 * Construct a new {@link RenamesFileParserException}.
-	 *
-	 * @param cause The original {@link Throwable} that caused this {@linkplain
-	 *              RenamesFileParserException exception}.
+	 * Answer the path that the {@linkplain AvailBuilder builder} followed to
+	 * identify the dependency recursion.
+	 * 
+	 * @return The path that the {@linkplain AvailBuilder builder} followed to
+	 *         identify the dependency recursion.
 	 */
-	RenamesFileParserException (final @NotNull Throwable cause)
+	public @NotNull List<ModuleName> recursionPath ()
 	{
-		super(cause);
+		return Collections.unmodifiableList(recursionPath);
+	}
+	
+	/**
+	 * Construct a new {@link RecursiveDependencyException}.
+	 *
+	 * @param recursionPath
+	 *        The path that the {@linkplain AvailBuilder builder} followed to
+	 *        identify the dependency recursion.
+	 */
+	RecursiveDependencyException (
+		final @NotNull List<ModuleName> recursionPath)
+	{
+		super(
+			"module \""
+			+ recursionPath.get(recursionPath.size() - 1).qualifiedName()
+			+ "\" recursively depends upon itself");
+		this.recursionPath = recursionPath;
 	}
 }

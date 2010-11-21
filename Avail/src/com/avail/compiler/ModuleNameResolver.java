@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/RenameRules.java
+ * compiler/RenameRules.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -41,35 +41,34 @@ import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
- * A {@code ModuleNameResolver} resolves unqualified references to Avail
+ * A {@code ModuleNameResolver} resolves fully-qualified references to Avail
  * {@linkplain ModuleDescriptor modules} to {@linkplain File#isAbsolute()
  * absolute} {@linkplain File file references}.
  * 
  * <p>Assuming that the Avail module path comprises four module roots listed in
  * the order <strong>S</strong>, <strong>P</strong>,<strong>Q</strong>,
- * <strong>R</strong>, then the following algorithm is used for resolution of an
- * unqualified reference <strong>M</strong> from within a fully-qualified module
- * group <strong>/R/A/B/C</strong>:</p>
+ * <strong>R</strong>, then the following algorithm is used for resolution of a
+ * fully-qualified reference <strong>/R/X/Y/Z/M</strong>:</p>
  * 
  * <ol>
- * <li>If a module renaming rule exists for <strong>/R/A/B/C/M</strong>, then
- * apply it and answer the resultant file reference <strong>M'</strong>.</li>
- * <li>If module group <strong>/R/A/B/C</strong> contains a module
- * <strong>M</strong>, then capture its file reference <string>F</strong>.</li>
- * <li>If module group <strong>/R/A/B</strong> contains a module
- * <strong>M</strong>, then capture its file reference <string>F</strong>.</li>
- * <li>If module group <strong>/R/A</strong> contains a module
- * <strong>M</strong>, then capture its file reference <string>F</strong>.</li>
- * <li>If module root <strong>/R</strong> contains a module <strong>M</strong>,
+ * <li>Obtain the canonical name <strong>/R'/A/B/C/M'</strong> by applying an
+ * existing renaming rule for <strong>/R/X/Y/Z/M</strong>.
+ * <li>If module group <strong>/R'/A/B/C</strong> contains a module
+ * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
+ * <li>If module group <strong>/R'/A/B</strong> contains a module
+ * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
+ * <li>If module group <strong>/R'/A</strong> contains a module
+ * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
+ * <li>If module root <strong>/R</strong> contains a module <strong>M'</strong>,
  * then capture its file reference <strong>F</strong>.</li>
- * <li>If module root <strong>/S</strong> contains a module <strong>M</strong>,
+ * <li>If module root <strong>/S</strong> contains a module <strong>M'</strong>,
  * then capture its file reference <strong>F</strong>.</li>
- * <li>If module root <strong>/P</strong> contains a module <strong>M</strong>,
+ * <li>If module root <strong>/P</strong> contains a module <strong>M'</strong>,
  * then capture its file reference <strong>F</strong>.</li>
- * <li>If module root <strong>/Q</strong> contains a module <strong>M</strong>,
+ * <li>If module root <strong>/Q</strong> contains a module <strong>M'</strong>,
  * then capture its file reference <strong>F</strong>.</li>
  * <li>If the resolution succeeded and <strong>F</strong> specifies a directory,
- * then replace the resolution with <strong>F/Main.avail</strong>. Verify that
+ * then replace the resolution with <strong>F/M'.avail</strong>. Verify that
  * the resolution specifies an existing regular file.</li>   
  * <li>Otherwise resolution failed.</li>
  * </ol>
@@ -81,10 +80,10 @@ import com.avail.descriptor.ModuleDescriptor;
 public final class ModuleNameResolver
 {
 	/**
-	 * The local module name of the specially designated module group
-	 * representative.
+	 * The standard extension for Avail {@linkplain ModuleDescriptor module}
+	 * source files.
 	 */
-	static final @NotNull String moduleGroupRepresentative = "Main.avail";
+	static final @NotNull String availExtension = ".avail";
 
 	/** The {@linkplain ModuleRoots Avail module roots}. */
 	private final @NotNull ModuleRoots moduleRoots;
@@ -110,24 +109,19 @@ public final class ModuleNameResolver
 	}
 
 	/**
-	 * A {@linkplain Map map} from logical {@linkplain ModuleDescriptor
-	 * module} paths to absolute {@linkplain File file references}.
+	 * A {@linkplain Map map} from fully-qualified module names to their
+	 * canonical names.
 	 */
-	private final @NotNull Map<String, File> renames =
-		new HashMap<String, File>();
+	private final @NotNull Map<String, String> renames =
+		new HashMap<String, String>();
 
 	/**
 	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
-	 * rule for the specified logical {@linkplain ModuleDescriptor module}
-	 * path? 
+	 * rule for the specified fully-qualified module name?
 	 * 
-	 * @param modulePath
-	 *        The logical {@linkplain ModuleDescriptor module} path that
-	 *        should be queried.
-	 * @return {@code true} if there is a rule to transform the logical
-	 *         {@linkplain ModuleDescriptor module} path into an
-	 *         {@linkplain File#isAbsolute() absolute} {@linkplain File file
-	 *         reference}, {@code false} otherwise.
+	 * @param modulePath A fully-qualified module name.
+	 * @return {@code true} if there is a rule to transform the fully-qualified
+	 *         module name into another one, {@code false} otherwise.
 	 */
 	boolean hasRenameRuleFor (final @NotNull String modulePath)
 	{
@@ -135,23 +129,17 @@ public final class ModuleNameResolver
 	}
 
 	/**
-	 * Add a rule to translate the specified logical {@linkplain
-	 * ModuleDescriptor module} path into the specified {@linkplain
-	 * File#isAbsolute() absolute} {@linkplain File file reference}.
+	 * Add a rule to translate the specified fully-qualified module name.
 	 * 
-	 * @param modulePath
-	 *        The logical {@linkplain ModuleDescriptor module} path that
-	 *        should be translated.
-	 * @param fileReference
-	 *        An {@linkplain File#isAbsolute() absolute} {@linkplain File file
-	 *        reference}.
+	 * @param modulePath A fully-qualified module name.
+	 * @param substitutePath The canonical name.
 	 */
 	void addRenameRule (
 		final @NotNull String modulePath,
-		final @NotNull File fileReference)
+		final @NotNull String substitutePath)
 	{
 		assert !renames.containsKey(modulePath);
-		renames.put(modulePath, fileReference);
+		renames.put(modulePath, substitutePath);
 	}
 
 	/**
@@ -162,68 +150,75 @@ public final class ModuleNameResolver
 	 * @param localName A local module name.
 	 * @return A filename that specifies the module within the module group.
 	 */
-	private @NotNull String translate (
+	private @NotNull String filenameFor (
 		final @NotNull String moduleGroup,
 		final @NotNull String localName)
 	{
-		return moduleGroup + "/" + localName + ".avail";
+		return moduleGroup + "/" + localName + availExtension;
 	}
 
 	/**
-	 * Resolve a reference to the specified unqualified module name made from
-	 * within the given module group to an {@linkplain File#isAbsolute()
-	 * absolute} {@linkplain File file reference}.
+	 * Answer the canonical name that should be used in place of the
+	 * fully-qualified {@linkplain ModuleName module name}.
 	 * 
-	 * @param moduleGroup
-	 *        The fully-qualified name of the module group from within which the
-	 *        reference is being made.
-	 * @param localName
-	 *        An unqualified module name.
-	 * @return An {@linkplain File#isAbsolute() absolute} {@linkplain File file
-	 *         reference}, or {@code null} if the module reference could not be
-	 *         resolved.
+	 * @param qualifiedName
+	 *        A fully-qualified {@linkplain ModuleName module name}.
+	 * @return The canonical name that should be used in place of the
+	 *         fully-qualified {@linkplain ModuleName module name}.
 	 */
-	public File resolve (
-		final @NotNull String moduleGroup,
-		final @NotNull String localName)
+	public @NotNull ModuleName canonicalNameFor (
+		@NotNull ModuleName qualifiedName)
 	{
-		assert localName.indexOf('/') == -1;
-
-		// First attempt to lookup the canonical module name in the map of
-		// renaming rules. Apply the rule if it exists.
-		final String modulePath = moduleGroup + "/" + localName;
-		final File rename = renames.get(modulePath);
-		if (rename != null)
+		final String substitute = renames.get(qualifiedName.qualifiedName());
+		if (substitute != null)
 		{
-			return rename;
+			return new ModuleName(substitute);
 		}
-
+		
+		return qualifiedName;
+	}
+	
+	/**
+	 * Resolve a fully-qualified module name (as a reference to the {@linkplain
+	 * ModuleName#localName() local name} made from within the {@linkplain
+	 * ModuleName#moduleGroup() module group}).
+	 * 
+	 * @param qualifiedName
+	 *        A fully-qualified {@linkplain ModuleName module name}.
+	 * @return A {@linkplain ResolvedModuleName resolved module name}.
+	 */
+	public ResolvedModuleName resolve (@NotNull ModuleName qualifiedName)
+	{
 		File resolution = null;
+
+		// First attempt to lookup the fully-qualified name in the map of
+		// renaming rules. Apply the rule if it exists.
+		final ModuleName canonicalName = canonicalNameFor(qualifiedName);
 
 		// Really resolve the local name. Start by splitting the module
 		// group into its components.
-		final String[] components = moduleGroup.split("/");
+		final String[] components = canonicalName.moduleGroup().split("/");
 		assert components.length > 1;
 		assert components[0].isEmpty();
 
 		// Build a search stack of trials at ascending tiers of enclosing
 		// module groups.
 		final Deque<File> searchStack = new LinkedList<File>();
-		final String enclosingRoot = components[1];
+		final String enclosingRoot = canonicalName.moduleRoot();
 		searchStack.push(moduleRoots.rootDirectoryFor(enclosingRoot));
 		for (int index = 2; index < components.length; index++)
 		{
 			searchStack.push(new File(
 				searchStack.peekFirst(),
-				components[index] + ".avail"));
+				components[index] + availExtension));
 		}
 
 		// Explore the search stack from most enclosing module group to
 		// least enclosing.
 		while (!searchStack.isEmpty())
 		{
-			final File trial = new File(translate(
-				searchStack.pop().getPath(), localName));
+			final File trial = new File(filenameFor(
+				searchStack.pop().getPath(), canonicalName.localName()));
 			if (trial.exists())
 			{
 				resolution = trial;
@@ -241,7 +236,7 @@ public final class ModuleNameResolver
 				{
 					final File trial = new File(
 						moduleRoots.rootDirectoryFor(root),
-						localName + ".avail");
+						canonicalName.localName() + availExtension);
 					if (trial.exists())
 					{
 						resolution = trial;
@@ -253,20 +248,26 @@ public final class ModuleNameResolver
 
 		if (resolution != null)
 		{
+			boolean isModuleGroup = resolution.isDirectory();
+			
 			// We found a candidate. If it is a module group, then substitute
 			// the module group representative.
-			if (resolution.isDirectory())
+			if (isModuleGroup)
 			{
-				resolution = new File(resolution, moduleGroupRepresentative);
+				resolution = new File(
+					resolution, canonicalName.localName() + availExtension);
 				if (!resolution.isFile())
 				{
 					// Alas, the module group representative did not exist.
 					return null;
 				}
 			}
+			
+			return new ResolvedModuleName(
+				qualifiedName, isModuleGroup, resolution);
 		}
 
-		// Answer the (possibly null) resolution.
-		return resolution;
+		// Resolution failed.
+		return null;
 	}
 }
