@@ -48,7 +48,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !I!nstance.
+	 * Setter for field instance.
 	 */
 	@Override
 	public void ObjectInstance (
@@ -59,7 +59,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !I!nstance.
+	 * Getter for field instance.
 	 */
 	@Override
 	public AvailObject ObjectInstance (
@@ -73,7 +73,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

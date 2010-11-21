@@ -62,7 +62,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !D!ependentChunks.
+	 * Setter for field dependentChunks.
 	 */
 	@Override
 	public void ObjectDependentChunks (
@@ -73,7 +73,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !I!mplementationsTuple.
+	 * Setter for field implementationsTuple.
 	 */
 	@Override
 	public void ObjectImplementationsTuple (
@@ -84,7 +84,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!ame.
+	 * Setter for field name.
 	 */
 	@Override
 	public void ObjectName (
@@ -95,7 +95,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !P!rivateTestingTree.
+	 * Setter for field privateTestingTree.
 	 */
 	@Override
 	public void ObjectPrivateTestingTree (
@@ -106,7 +106,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !D!ependentChunks.
+	 * Getter for field dependentChunks.
 	 */
 	@Override
 	public AvailObject ObjectDependentChunks (
@@ -116,7 +116,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !I!mplementationsTuple.
+	 * Getter for field implementationsTuple.
 	 */
 	@Override
 	public AvailObject ObjectImplementationsTuple (
@@ -126,7 +126,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!ame.
+	 * Getter for field name.
 	 */
 	@Override
 	public AvailObject ObjectName (
@@ -136,7 +136,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !P!rivateTestingTree.
+	 * Getter for field privateTestingTree.
 	 */
 	@Override
 	public AvailObject ObjectPrivateTestingTree (
@@ -175,7 +175,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

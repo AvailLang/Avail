@@ -229,7 +229,7 @@ public class ModuleDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!onstantBindings.
+	 * Setter for field constantBindings.
 	 */
 	@Override
 	public void ObjectConstantBindings (
@@ -240,7 +240,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !F!ilteredBundleTree.
+	 * Setter for field filteredBundleTree.
 	 */
 	@Override
 	public void ObjectFilteredBundleTree (
@@ -251,7 +251,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !M!ethods.
+	 * Setter for field methods.
 	 */
 	@Override
 	public void ObjectMethods (
@@ -262,7 +262,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!ame.
+	 * Setter for field name.
 	 */
 	@Override
 	public void ObjectName (
@@ -273,7 +273,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!ames.
+	 * Setter for field names.
 	 */
 	@Override
 	public void ObjectNames (
@@ -284,7 +284,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!ewNames.
+	 * Setter for field newNames.
 	 */
 	@Override
 	public void ObjectNewNames (
@@ -295,7 +295,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !P!rivateNames.
+	 * Setter for field privateNames.
 	 */
 	@Override
 	public void ObjectPrivateNames (
@@ -306,7 +306,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !R!estrictions.
+	 * Setter for field restrictions.
 	 */
 	@Override
 	public void ObjectRestrictions (
@@ -317,7 +317,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !V!ariableBindings.
+	 * Setter for field variableBindings.
 	 */
 	@Override
 	public void ObjectVariableBindings (
@@ -328,7 +328,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !V!isibleNames.
+	 * Setter for field visibleNames.
 	 */
 	@Override
 	public void ObjectVisibleNames (
@@ -339,7 +339,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!onstantBindings.
+	 * Getter for field constantBindings.
 	 */
 	@Override
 	public AvailObject ObjectConstantBindings (
@@ -349,7 +349,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !F!ilteredBundleTree.
+	 * Getter for field filteredBundleTree.
 	 */
 	@Override
 	public AvailObject ObjectFilteredBundleTree (
@@ -359,7 +359,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !M!ethods.
+	 * Getter for field methods.
 	 */
 	@Override
 	public AvailObject ObjectMethods (
@@ -369,7 +369,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!ame.
+	 * Getter for field name.
 	 */
 	@Override
 	public AvailObject ObjectName (
@@ -379,7 +379,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!ames.
+	 * Getter for field names.
 	 */
 	@Override
 	public AvailObject ObjectNames (
@@ -389,7 +389,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!ewNames.
+	 * Getter for field newNames.
 	 */
 	@Override
 	public AvailObject ObjectNewNames (
@@ -399,7 +399,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !P!rivateNames.
+	 * Getter for field privateNames.
 	 */
 	@Override
 	public AvailObject ObjectPrivateNames (
@@ -409,7 +409,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !R!estrictions.
+	 * Getter for field restrictions.
 	 */
 	@Override
 	public AvailObject ObjectRestrictions (
@@ -419,7 +419,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !V!ariableBindings.
+	 * Getter for field variableBindings.
 	 */
 	@Override
 	public AvailObject ObjectVariableBindings (
@@ -429,7 +429,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !V!isibleNames.
+	 * Getter for field visibleNames.
 	 */
 	@Override
 	public AvailObject ObjectVisibleNames (

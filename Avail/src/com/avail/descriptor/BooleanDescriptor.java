@@ -45,7 +45,7 @@ public abstract class BooleanDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

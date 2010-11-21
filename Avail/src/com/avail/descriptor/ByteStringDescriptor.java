@@ -82,7 +82,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

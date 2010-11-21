@@ -678,11 +678,11 @@ public abstract class TypeDescriptor extends Descriptor
 
 		protected final Types parent;
 		protected final String myTypeName;
-		protected final Descriptor descriptor;
+		protected final AbstractDescriptor descriptor;
 		protected AvailObject object;
 
 		// Constructors
-		Types (Types parent, String myTypeName, Descriptor descriptor)
+		Types (Types parent, String myTypeName, AbstractDescriptor descriptor)
 		{
 			this.parent = parent;
 			this.myTypeName = myTypeName;

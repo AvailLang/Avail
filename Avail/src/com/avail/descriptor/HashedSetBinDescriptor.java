@@ -75,7 +75,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Setter for field !B!inHash.
+	 * Setter for field binHash.
 	 */
 	@Override
 	public void ObjectBinHash (
@@ -86,7 +86,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Setter for field !B!inSize.
+	 * Setter for field binSize.
 	 */
 	@Override
 	public void ObjectBinSize (
@@ -97,7 +97,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Setter for field !B!inUnionType.
+	 * Setter for field binUnionType.
 	 */
 	@Override
 	public void ObjectBinUnionType (
@@ -108,7 +108,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Setter for field !B!itVector.
+	 * Setter for field bitVector.
 	 */
 	@Override
 	public void ObjectBitVector (
@@ -119,7 +119,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Getter for field !B!inHash.
+	 * Getter for field binHash.
 	 */
 	@Override
 	public int ObjectBinHash (
@@ -129,7 +129,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Getter for field !B!inSize.
+	 * Getter for field binSize.
 	 */
 	@Override
 	public int ObjectBinSize (
@@ -139,7 +139,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Getter for field !B!inUnionType.
+	 * Getter for field binUnionType.
 	 */
 	@Override
 	public AvailObject ObjectBinUnionType (
@@ -149,7 +149,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Getter for field !B!itVector.
+	 * Getter for field bitVector.
 	 */
 	@Override
 	public int ObjectBitVector (

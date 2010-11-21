@@ -47,7 +47,7 @@ public class ListDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !T!uple.
+	 * Setter for field tuple.
 	 */
 	@Override
 	public void ObjectTuple (
@@ -58,7 +58,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !T!uple.
+	 * Getter for field tuple.
 	 */
 	@Override
 	public AvailObject ObjectTuple (
@@ -72,7 +72,7 @@ public class ListDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

@@ -50,7 +50,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!omplete.
+	 * Setter for field complete.
 	 */
 	@Override
 	public void ObjectComplete (
@@ -61,7 +61,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	}
 
 	/**
-	 * Setter for field !D!epth.
+	 * Setter for field depth.
 	 */
 	@Override
 	public void ObjectDepth (
@@ -72,7 +72,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	}
 
 	/**
-	 * Setter for field !I!ncomplete.
+	 * Setter for field incomplete.
 	 */
 	@Override
 	public void ObjectIncomplete (
@@ -83,7 +83,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	}
 
 	/**
-	 * Getter for field !C!omplete.
+	 * Getter for field complete.
 	 */
 	@Override
 	public AvailObject ObjectComplete (
@@ -93,7 +93,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	}
 
 	/**
-	 * Getter for field !D!epth.
+	 * Getter for field depth.
 	 */
 	@Override
 	public int ObjectDepth (
@@ -103,7 +103,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	}
 
 	/**
-	 * Getter for field !I!ncomplete.
+	 * Getter for field incomplete.
 	 */
 	@Override
 	public AvailObject ObjectIncomplete (

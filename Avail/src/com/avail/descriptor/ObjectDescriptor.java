@@ -47,7 +47,7 @@ public class ObjectDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !F!ieldMap.
+	 * Setter for field fieldMap.
 	 */
 	@Override
 	public void ObjectFieldMap (
@@ -58,7 +58,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !F!ieldMap.
+	 * Getter for field fieldMap.
 	 */
 	@Override
 	public AvailObject ObjectFieldMap (

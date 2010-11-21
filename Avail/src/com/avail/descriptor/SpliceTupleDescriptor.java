@@ -51,7 +51,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object, 
 		final @NotNull StringBuilder aStream, 
 		final @NotNull List<AvailObject> recursionList, 

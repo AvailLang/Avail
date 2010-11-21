@@ -158,7 +158,7 @@ public class MessageBundleDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !M!essage.
+	 * Setter for field message.
 	 */
 	@Override
 	public void ObjectMessage (
@@ -169,7 +169,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !M!essageParts.
+	 * Setter for field messageParts.
 	 */
 	@Override
 	public void ObjectMessageParts (
@@ -180,7 +180,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !M!yRestrictions.
+	 * Setter for field myRestrictions.
 	 */
 	@Override
 	public void ObjectMyRestrictions (
@@ -191,7 +191,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !M!essage.
+	 * Getter for field message.
 	 */
 	@Override
 	public AvailObject ObjectMessage (
@@ -201,7 +201,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !M!essageParts.
+	 * Getter for field messageParts.
 	 */
 	@Override
 	public AvailObject ObjectMessageParts (
@@ -211,7 +211,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !M!yRestrictions.
+	 * Getter for field myRestrictions.
 	 */
 	@Override
 	public AvailObject ObjectMyRestrictions (
@@ -242,7 +242,7 @@ public class MessageBundleDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

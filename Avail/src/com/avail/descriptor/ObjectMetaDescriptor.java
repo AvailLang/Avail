@@ -44,7 +44,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !M!yObjectType.
+	 * Setter for field myObjectType.
 	 */
 	@Override
 	public void ObjectMyObjectType (
@@ -55,7 +55,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !M!yObjectType.
+	 * Getter for field myObjectType.
 	 */
 	@Override
 	public AvailObject ObjectMyObjectType (

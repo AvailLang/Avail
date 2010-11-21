@@ -50,7 +50,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !W!hichOne.
+	 * Setter for field whichOne.
 	 */
 	@Override
 	public void ObjectWhichOne (
@@ -61,7 +61,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	}
 
 	/**
-	 * Getter for field !W!hichOne.
+	 * Getter for field whichOne.
 	 */
 	@Override
 	public int ObjectWhichOne (
@@ -75,7 +75,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

@@ -54,7 +54,7 @@ public class ClosureDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!ode.
+	 * Setter for field code.
 	 */
 	@Override
 	public void ObjectCode (
@@ -86,7 +86,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!ode.
+	 * Getter for field code.
 	 */
 	@Override
 	public AvailObject ObjectCode (
@@ -100,7 +100,7 @@ public class ClosureDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

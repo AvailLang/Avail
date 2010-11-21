@@ -45,7 +45,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !R!eturnType.
+	 * Setter for field returnType.
 	 */
 	@Override
 	public void ObjectReturnType (
@@ -56,7 +56,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !R!eturnType.
+	 * Getter for field returnType.
 	 */
 	@Override
 	public AvailObject ObjectReturnType (
@@ -70,7 +70,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

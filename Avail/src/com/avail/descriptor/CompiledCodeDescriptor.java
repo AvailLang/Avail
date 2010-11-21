@@ -57,7 +57,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!losureType.
+	 * Setter for field closureType.
 	 */
 	@Override
 	public void ObjectClosureType (
@@ -68,7 +68,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !H!ash.
+	 * Setter for field hash.
 	 */
 	@Override
 	public void ObjectHash (
@@ -79,7 +79,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !H!iNumLocalsLowNumArgs.
+	 * Setter for field hiNumLocalsLowNumArgs.
 	 */
 	@Override
 	public void ObjectHiNumLocalsLowNumArgs (
@@ -90,7 +90,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !H!iPrimitiveLowNumArgsAndLocalsAndStack.
+	 * Setter for field hiPrimitiveLowNumArgsAndLocalsAndStack.
 	 */
 	@Override
 	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
@@ -101,7 +101,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !H!iStartingChunkIndexLowNumOuters.
+	 * Setter for field hiStartingChunkIndexLowNumOuters.
 	 */
 	@Override
 	public void ObjectHiStartingChunkIndexLowNumOuters (
@@ -112,7 +112,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !I!nvocationCount.
+	 * Setter for field invocationCount.
 	 */
 	@Override
 	public void ObjectInvocationCount (
@@ -144,7 +144,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!ybbles.
+	 * Setter for field nybbles.
 	 */
 	@Override
 	public void ObjectNybbles (
@@ -155,7 +155,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!losureType.
+	 * Getter for field closureType.
 	 */
 	@Override
 	public AvailObject ObjectClosureType (
@@ -165,7 +165,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!ash.
+	 * Getter for field hash.
 	 */
 	@Override
 	public int ObjectHash (
@@ -175,7 +175,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!iNumLocalsLowNumArgs.
+	 * Getter for field hiNumLocalsLowNumArgs.
 	 */
 	@Override
 	public int ObjectHiNumLocalsLowNumArgs (
@@ -185,7 +185,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!iPrimitiveLowNumArgsAndLocalsAndStack.
+	 * Getter for field hiPrimitiveLowNumArgsAndLocalsAndStack.
 	 */
 	@Override
 	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
@@ -195,7 +195,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!iStartingChunkIndexLowNumOuters.
+	 * Getter for field hiStartingChunkIndexLowNumOuters.
 	 */
 	@Override
 	public int ObjectHiStartingChunkIndexLowNumOuters (
@@ -205,7 +205,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !I!nvocationCount.
+	 * Getter for field invocationCount.
 	 */
 	@Override
 	public int ObjectInvocationCount (
@@ -215,7 +215,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!ybbles.
+	 * Getter for field nybbles.
 	 */
 	@Override
 	public AvailObject ObjectNybbles (

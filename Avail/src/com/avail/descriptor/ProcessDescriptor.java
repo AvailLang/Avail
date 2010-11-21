@@ -58,7 +58,7 @@ public class ProcessDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !B!reakpointBlock.
+	 * Setter for field breakpointBlock.
 	 */
 	@Override
 	public void ObjectBreakpointBlock (
@@ -69,7 +69,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !C!ontinuation.
+	 * Setter for field continuation.
 	 */
 	@Override
 	public void ObjectContinuation (
@@ -80,7 +80,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !E!xecutionMode.
+	 * Setter for field executionMode.
 	 */
 	@Override
 	public void ObjectExecutionMode (
@@ -91,7 +91,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !E!xecutionState.
+	 * Setter for field executionState.
 	 */
 	@Override
 	public void ObjectExecutionState (
@@ -102,7 +102,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !H!ashOrZero.
+	 * Setter for field hashOrZero.
 	 */
 	@Override
 	public void ObjectHashOrZero (
@@ -113,7 +113,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !I!nterruptRequestFlag.
+	 * Setter for field interruptRequestFlag.
 	 */
 	@Override
 	public void ObjectInterruptRequestFlag (
@@ -124,7 +124,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !P!riority.
+	 * Setter for field priority.
 	 */
 	@Override
 	public void ObjectPriority (
@@ -135,7 +135,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !P!rocessGlobals.
+	 * Setter for field processGlobals.
 	 */
 	@Override
 	public void ObjectProcessGlobals (
@@ -146,7 +146,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !B!reakpointBlock.
+	 * Getter for field breakpointBlock.
 	 */
 	@Override
 	public AvailObject ObjectBreakpointBlock (
@@ -156,7 +156,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!ontinuation.
+	 * Getter for field continuation.
 	 */
 	@Override
 	public AvailObject ObjectContinuation (
@@ -166,7 +166,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !E!xecutionMode.
+	 * Getter for field executionMode.
 	 */
 	@Override
 	public int ObjectExecutionMode (
@@ -176,7 +176,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !E!xecutionState.
+	 * Getter for field executionState.
 	 */
 	@Override
 	public int ObjectExecutionState (
@@ -186,7 +186,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!ashOrZero.
+	 * Getter for field hashOrZero.
 	 */
 	@Override
 	public int ObjectHashOrZero (
@@ -196,7 +196,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !I!nterruptRequestFlag.
+	 * Getter for field interruptRequestFlag.
 	 */
 	@Override
 	public int ObjectInterruptRequestFlag (
@@ -206,7 +206,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !P!riority.
+	 * Getter for field priority.
 	 */
 	@Override
 	public int ObjectPriority (
@@ -216,7 +216,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !P!rocessGlobals.
+	 * Getter for field processGlobals.
 	 */
 	@Override
 	public AvailObject ObjectProcessGlobals (

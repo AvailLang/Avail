@@ -52,7 +52,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !F!irstTupleType.
+	 * Setter for field firstTupleType.
 	 */
 	@Override
 	public void ObjectFirstTupleType (
@@ -63,7 +63,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !S!econdTupleType.
+	 * Setter for field secondTupleType.
 	 */
 	@Override
 	public void ObjectSecondTupleType (
@@ -74,7 +74,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !F!irstTupleType.
+	 * Getter for field firstTupleType.
 	 */
 	@Override
 	public AvailObject ObjectFirstTupleType (
@@ -84,7 +84,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !S!econdTupleType.
+	 * Getter for field secondTupleType.
 	 */
 	@Override
 	public AvailObject ObjectSecondTupleType (

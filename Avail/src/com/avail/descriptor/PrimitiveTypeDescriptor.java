@@ -49,7 +49,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !H!ash.
+	 * Setter for field hash.
 	 */
 	@Override
 	public void ObjectHash (
@@ -60,7 +60,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !M!yType.
+	 * Setter for field myType.
 	 */
 	@Override
 	public void ObjectMyType (
@@ -71,7 +71,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !N!ame.
+	 * Setter for field name.
 	 */
 	@Override
 	public void ObjectName (
@@ -82,7 +82,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !P!arent.
+	 * Setter for field parent.
 	 */
 	@Override
 	public void ObjectParent (
@@ -93,7 +93,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !H!ash.
+	 * Getter for field hash.
 	 */
 	@Override
 	public int ObjectHash (
@@ -103,7 +103,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !M!yType.
+	 * Getter for field myType.
 	 */
 	@Override
 	public AvailObject ObjectMyType (
@@ -113,7 +113,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !N!ame.
+	 * Getter for field name.
 	 */
 	@Override
 	public AvailObject ObjectName (
@@ -123,7 +123,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !P!arent.
+	 * Getter for field parent.
 	 */
 	@Override
 	public AvailObject ObjectParent (
@@ -137,7 +137,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

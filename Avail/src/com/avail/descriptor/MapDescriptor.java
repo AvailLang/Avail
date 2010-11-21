@@ -71,7 +71,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !I!nternalHash.
+	 * Setter for field internalHash.
 	 */
 	@Override
 	public void ObjectInternalHash (
@@ -82,7 +82,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !M!apSize.
+	 * Setter for field mapSize.
 	 */
 	@Override
 	public void ObjectMapSize (
@@ -93,7 +93,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!umBlanks.
+	 * Setter for field numBlanks.
 	 */
 	@Override
 	public void ObjectNumBlanks (
@@ -104,7 +104,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !I!nternalHash.
+	 * Getter for field internalHash.
 	 */
 	@Override
 	public int ObjectInternalHash (
@@ -114,7 +114,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !M!apSize.
+	 * Getter for field mapSize.
 	 */
 	@Override
 	public int ObjectMapSize (
@@ -124,7 +124,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!umBlanks.
+	 * Getter for field numBlanks.
 	 */
 	@Override
 	public int ObjectNumBlanks (
@@ -138,7 +138,7 @@ public class MapDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final List<AvailObject> recursionList,

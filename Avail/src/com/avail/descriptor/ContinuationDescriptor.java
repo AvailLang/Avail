@@ -59,7 +59,7 @@ public class ContinuationDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!aller.
+	 * Setter for field caller.
 	 */
 	@Override
 	public void ObjectCaller (
@@ -70,7 +70,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !C!losure.
+	 * Setter for field closure.
 	 */
 	@Override
 	public void ObjectClosure (
@@ -81,7 +81,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !H!iLevelTwoChunkLowOffset.
+	 * Setter for field hiLevelTwoChunkLowOffset.
 	 */
 	@Override
 	public void ObjectHiLevelTwoChunkLowOffset (
@@ -113,7 +113,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !P!c.
+	 * Setter for field pc.
 	 */
 	@Override
 	public void ObjectPc (
@@ -124,7 +124,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !S!tackp.
+	 * Setter for field stackp.
 	 */
 	@Override
 	public void ObjectStackp (
@@ -135,7 +135,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!aller.
+	 * Getter for field caller.
 	 */
 	@Override
 	public AvailObject ObjectCaller (
@@ -145,7 +145,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!losure.
+	 * Getter for field closure.
 	 */
 	@Override
 	public AvailObject ObjectClosure (
@@ -155,7 +155,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!iLevelTwoChunkLowOffset.
+	 * Getter for field hiLevelTwoChunkLowOffset.
 	 */
 	@Override
 	public int ObjectHiLevelTwoChunkLowOffset (
@@ -165,7 +165,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !P!c.
+	 * Getter for field pc.
 	 */
 	@Override
 	public int ObjectPc (
@@ -175,7 +175,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !S!tackp.
+	 * Getter for field stackp.
 	 */
 	@Override
 	public int ObjectStackp (

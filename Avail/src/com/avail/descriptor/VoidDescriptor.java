@@ -213,7 +213,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object, 
 		final @NotNull StringBuilder builder, 
 		final @NotNull List<AvailObject> recursionList, 

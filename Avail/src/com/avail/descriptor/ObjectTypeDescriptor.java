@@ -86,7 +86,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !F!ieldTypeMap.
+	 * Setter for field fieldTypeMap.
 	 */
 	@Override
 	public void ObjectFieldTypeMap (
@@ -97,7 +97,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !F!ieldTypeMap.
+	 * Getter for field fieldTypeMap.
 	 */
 	@Override
 	public AvailObject ObjectFieldTypeMap (

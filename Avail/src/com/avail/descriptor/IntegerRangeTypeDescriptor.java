@@ -52,7 +52,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !I!nclusiveFlags.
+	 * Setter for field inclusiveFlags.
 	 */
 	@Override
 	public void ObjectInclusiveFlags (
@@ -63,7 +63,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !L!owerBound.
+	 * Setter for field lowerBound.
 	 */
 	@Override
 	public void ObjectLowerBound (
@@ -74,7 +74,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !U!pperBound.
+	 * Setter for field upperBound.
 	 */
 	@Override
 	public void ObjectUpperBound (
@@ -85,7 +85,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !I!nclusiveFlags.
+	 * Getter for field inclusiveFlags.
 	 */
 	@Override
 	public int ObjectInclusiveFlags (
@@ -95,7 +95,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !L!owerBound.
+	 * Getter for field lowerBound.
 	 */
 	@Override
 	public AvailObject ObjectLowerBound (
@@ -105,7 +105,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !U!pperBound.
+	 * Getter for field upperBound.
 	 */
 	@Override
 	public AvailObject ObjectUpperBound (
@@ -119,7 +119,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

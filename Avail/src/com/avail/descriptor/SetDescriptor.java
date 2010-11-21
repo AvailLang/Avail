@@ -53,7 +53,7 @@ public class SetDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !R!ootBin.
+	 * Setter for field rootBin.
 	 */
 	@Override
 	public void ObjectRootBin (
@@ -64,7 +64,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !R!ootBin.
+	 * Getter for field rootBin.
 	 */
 	@Override
 	public AvailObject ObjectRootBin (
@@ -78,7 +78,7 @@ public class SetDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

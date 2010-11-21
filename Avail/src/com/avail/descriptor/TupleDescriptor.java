@@ -61,7 +61,7 @@ public abstract class TupleDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !H!ashOrZero.
+	 * Setter for field hashOrZero.
 	 */
 	@Override
 	public void ObjectHashOrZero (
@@ -72,7 +72,7 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!ashOrZero.
+	 * Getter for field hashOrZero.
 	 */
 	@Override
 	public int ObjectHashOrZero (
@@ -103,7 +103,7 @@ public abstract class TupleDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

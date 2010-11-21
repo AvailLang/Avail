@@ -46,7 +46,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !H!ashOrZero.
+	 * Setter for field hashOrZero.
 	 */
 	@Override
 	public void ObjectHashOrZero (
@@ -57,7 +57,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !N!ame.
+	 * Setter for field name.
 	 */
 	@Override
 	public void ObjectName (
@@ -68,7 +68,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !H!ashOrZero.
+	 * Getter for field hashOrZero.
 	 */
 	@Override
 	public int ObjectHashOrZero (
@@ -78,7 +78,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !N!ame.
+	 * Getter for field name.
 	 */
 	@Override
 	public AvailObject ObjectName (
@@ -109,7 +109,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

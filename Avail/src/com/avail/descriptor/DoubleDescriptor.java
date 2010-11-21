@@ -49,7 +49,7 @@ public class DoubleDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !R!awQuad1.
+	 * Setter for field rawQuad1.
 	 */
 	@Override
 	public void ObjectRawQuad1 (
@@ -60,7 +60,7 @@ public class DoubleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !R!awQuad2.
+	 * Setter for field rawQuad2.
 	 */
 	@Override
 	public void ObjectRawQuad2 (
@@ -71,7 +71,7 @@ public class DoubleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !R!awQuad1.
+	 * Getter for field rawQuad1.
 	 */
 	@Override
 	public int ObjectRawQuad1 (
@@ -81,7 +81,7 @@ public class DoubleDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !R!awQuad2.
+	 * Getter for field rawQuad2.
 	 */
 	@Override
 	public int ObjectRawQuad2 (
@@ -95,7 +95,7 @@ public class DoubleDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

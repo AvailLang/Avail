@@ -51,7 +51,7 @@ public class ContainerDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !H!ashOrZero.
+	 * Setter for field hashOrZero.
 	 */
 	@Override
 	public void ObjectHashOrZero (
@@ -62,7 +62,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !T!ype.
+	 * Setter for field type.
 	 */
 	@Override
 	public void ObjectType (
@@ -73,7 +73,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !V!alue.
+	 * Setter for field value.
 	 */
 	@Override
 	public void ObjectValue (
@@ -84,7 +84,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !H!ashOrZero.
+	 * Getter for field hashOrZero.
 	 */
 	@Override
 	public int ObjectHashOrZero (
@@ -94,7 +94,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !T!ype.
+	 * Getter for field type.
 	 */
 	@Override
 	public AvailObject ObjectType (
@@ -104,7 +104,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !V!alue.
+	 * Getter for field value.
 	 */
 	@Override
 	public AvailObject ObjectValue (

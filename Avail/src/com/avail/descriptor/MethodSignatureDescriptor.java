@@ -110,7 +110,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !B!odyBlock.
+	 * Setter for field bodyBlock.
 	 */
 	@Override
 	public void ObjectBodyBlock (
@@ -121,7 +121,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Setter for field !R!equiresBlock.
+	 * Setter for field requiresBlock.
 	 */
 	@Override
 	public void ObjectRequiresBlock (
@@ -132,7 +132,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Setter for field !R!eturnsBlock.
+	 * Setter for field returnsBlock.
 	 */
 	@Override
 	public void ObjectReturnsBlock (
@@ -143,7 +143,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !B!odyBlock.
+	 * Getter for field bodyBlock.
 	 */
 	@Override
 	public AvailObject ObjectBodyBlock (
@@ -153,7 +153,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !R!equiresBlock.
+	 * Getter for field requiresBlock.
 	 */
 	@Override
 	public AvailObject ObjectRequiresBlock (
@@ -163,7 +163,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !R!eturnsBlock.
+	 * Getter for field returnsBlock.
 	 */
 	@Override
 	public AvailObject ObjectReturnsBlock (

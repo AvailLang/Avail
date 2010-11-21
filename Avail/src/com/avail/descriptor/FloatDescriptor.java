@@ -45,7 +45,7 @@ public class FloatDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !R!awQuad1.
+	 * Setter for field rawQuad1.
 	 */
 	@Override
 	public void ObjectRawQuad1 (
@@ -56,7 +56,7 @@ public class FloatDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !R!awQuad1.
+	 * Getter for field rawQuad1.
 	 */
 	@Override
 	public int ObjectRawQuad1 (
@@ -70,7 +70,7 @@ public class FloatDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

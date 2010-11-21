@@ -106,7 +106,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !R!equiresBlock.
+	 * Setter for field requiresBlock.
 	 */
 	@Override
 	public void ObjectRequiresBlock (
@@ -117,7 +117,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Setter for field !R!eturnsBlock.
+	 * Setter for field returnsBlock.
 	 */
 	@Override
 	public void ObjectReturnsBlock (
@@ -128,7 +128,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Setter for field !S!ignature.
+	 * Setter for field signature.
 	 */
 	@Override
 	public void ObjectSignature (
@@ -139,7 +139,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !R!equiresBlock.
+	 * Getter for field requiresBlock.
 	 */
 	@Override
 	public AvailObject ObjectRequiresBlock (
@@ -149,7 +149,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !R!eturnsBlock.
+	 * Getter for field returnsBlock.
 	 */
 	@Override
 	public AvailObject ObjectReturnsBlock (
@@ -159,7 +159,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !S!ignature.
+	 * Getter for field signature.
 	 */
 	@Override
 	public AvailObject ObjectSignature (

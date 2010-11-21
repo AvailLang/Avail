@@ -95,7 +95,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !S!ignature.
+	 * Setter for field signature.
 	 */
 	@Override
 	public void ObjectSignature (
@@ -106,7 +106,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Getter for field !S!ignature.
+	 * Getter for field signature.
 	 */
 	@Override
 	public AvailObject ObjectSignature (

@@ -51,7 +51,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !K!eyType.
+	 * Setter for field keyType.
 	 */
 	@Override
 	public void ObjectKeyType (
@@ -62,7 +62,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !S!izeRange.
+	 * Setter for field sizeRange.
 	 */
 	@Override
 	public void ObjectSizeRange (
@@ -73,7 +73,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !V!alueType.
+	 * Setter for field valueType.
 	 */
 	@Override
 	public void ObjectValueType (
@@ -84,7 +84,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !K!eyType.
+	 * Getter for field keyType.
 	 */
 	@Override
 	public AvailObject ObjectKeyType (
@@ -94,7 +94,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !S!izeRange.
+	 * Getter for field sizeRange.
 	 */
 	@Override
 	public AvailObject ObjectSizeRange (
@@ -104,7 +104,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !V!alueType.
+	 * Getter for field valueType.
 	 */
 	@Override
 	public AvailObject ObjectValueType (
@@ -118,7 +118,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

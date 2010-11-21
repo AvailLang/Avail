@@ -46,7 +46,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!losureType.
+	 * Setter for field closureType.
 	 */
 	@Override
 	public void ObjectClosureType (
@@ -57,7 +57,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !C!losureType.
+	 * Getter for field closureType.
 	 */
 	@Override
 	public AvailObject ObjectClosureType (
@@ -71,7 +71,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

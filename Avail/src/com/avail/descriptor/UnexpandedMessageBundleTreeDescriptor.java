@@ -51,7 +51,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !D!epth.
+	 * Setter for field depth.
 	 */
 	@Override
 	public void ObjectDepth (
@@ -62,7 +62,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Setter for field !P!ad.
+	 * Setter for field pad.
 	 */
 	@Override
 	public void ObjectPad (
@@ -73,7 +73,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Setter for field !U!nclassified.
+	 * Setter for field unclassified.
 	 */
 	@Override
 	public void ObjectUnclassified (
@@ -84,7 +84,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Getter for field !D!epth.
+	 * Getter for field depth.
 	 */
 	@Override
 	public int ObjectDepth (
@@ -94,7 +94,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Getter for field !P!ad.
+	 * Getter for field pad.
 	 */
 	@Override
 	public AvailObject ObjectPad (
@@ -104,7 +104,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Getter for field !U!nclassified.
+	 * Getter for field unclassified.
 	 */
 	@Override
 	public AvailObject ObjectUnclassified (

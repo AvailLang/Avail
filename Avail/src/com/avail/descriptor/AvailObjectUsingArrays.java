@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.IndirectionDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
@@ -42,7 +41,7 @@ import java.util.List;
 
 public class AvailObjectUsingArrays extends AvailObject
 {
-	Descriptor _descriptor;
+	AbstractDescriptor _descriptor;
 	AvailObject [] _objectSlots;
 	int [] _intSlots;
 
@@ -181,20 +180,20 @@ public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public Descriptor descriptor ()
+	public AbstractDescriptor descriptor ()
 	{
 		return _descriptor;
 	}
 
 	@Override
 	public void descriptor (
-			final Descriptor aDescriptor)
+			final AbstractDescriptor aDescriptor)
 	{
 		_descriptor = aDescriptor;
 	}
 
 	public AvailObject descriptorObjectSlotsSizeIntSlotsSize (
-			final Descriptor theDescriptor, 
+			final AbstractDescriptor theDescriptor, 
 			final int objectSlotsSize, 
 			final int intSlotsCount)
 	{
@@ -214,7 +213,7 @@ public class AvailObjectUsingArrays extends AvailObject
 	public void descriptorId (
 			final short anInteger)
 	{
-		_descriptor = Descriptor.allDescriptors.get(anInteger);
+		_descriptor = AbstractDescriptor.allDescriptors.get(anInteger);
 		checkValidAddress();
 	}
 
@@ -404,7 +403,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 
 
-	public static AvailObject newIndexedDescriptor(int size, Descriptor descriptor)
+	public static AvailObject newIndexedDescriptor(int size, AbstractDescriptor descriptor)
 	{
 		assert CanAllocateObjects();
 		int objectSlotCount = descriptor.numberOfFixedObjectSlots();
@@ -426,7 +425,7 @@ public class AvailObjectUsingArrays extends AvailObject
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
 			int variableObjectSlots,
 			int variableIntegerSlots,
-			Descriptor descriptor)
+			AbstractDescriptor descriptor)
 	{
 		assert CanAllocateObjects();
 		assert descriptor.hasVariableObjectSlots() || variableObjectSlots == 0;

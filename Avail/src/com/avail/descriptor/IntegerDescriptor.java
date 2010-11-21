@@ -73,7 +73,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final List<AvailObject> recursionList,

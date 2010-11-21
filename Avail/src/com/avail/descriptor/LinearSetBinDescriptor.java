@@ -68,7 +68,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Setter for field !B!inHash.
+	 * Setter for field binHash.
 	 */
 	@Override
 	public void ObjectBinHash (
@@ -79,7 +79,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	}
 
 	/**
-	 * Getter for field !B!inHash.
+	 * Getter for field binHash.
 	 */
 	@Override
 	public int ObjectBinHash (

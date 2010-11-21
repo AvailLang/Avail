@@ -5275,14 +5275,14 @@ implements Iterable<AvailObject>
 		descriptor().checkWriteAtByteIndex(index);
 	}
 
-	public Descriptor descriptor ()
+	public AbstractDescriptor descriptor ()
 	{
 		error("Subclass responsibility: descriptor in Avail.AvailObject");
 		return null;
 	}
 
 	public void descriptor (
-		final Descriptor aDescriptor)
+		final AbstractDescriptor aDescriptor)
 	{
 		error("Subclass responsibility: descriptor: in Avail.AvailObject");
 		return;
@@ -5503,7 +5503,7 @@ implements Iterable<AvailObject>
 		throw new RuntimeException((String)args[0]);
 	};
 
-	public static AvailObject newIndexedDescriptor(int size, Descriptor descriptor)
+	public static AvailObject newIndexedDescriptor(int size, AbstractDescriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newIndexedDescriptor(size, descriptor);
 	};
@@ -5511,7 +5511,7 @@ implements Iterable<AvailObject>
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
 		int variableObjectSlots,
 		int variableIntegerSlots,
-		Descriptor descriptor)
+		AbstractDescriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newObjectIndexedIntegerIndexedDescriptor(
 			variableObjectSlots,

@@ -44,7 +44,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !I!nnerType.
+	 * Setter for field innerType.
 	 */
 	@Override
 	public void ObjectInnerType (
@@ -55,7 +55,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !I!nnerType.
+	 * Getter for field innerType.
 	 */
 	@Override
 	public AvailObject ObjectInnerType (
@@ -69,7 +69,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

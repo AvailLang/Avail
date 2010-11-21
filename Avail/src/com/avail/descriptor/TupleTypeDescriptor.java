@@ -53,7 +53,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !D!efaultType.
+	 * Setter for field defaultType.
 	 */
 	@Override
 	public void ObjectDefaultType (
@@ -64,7 +64,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !S!izeRange.
+	 * Setter for field sizeRange.
 	 */
 	@Override
 	public void ObjectSizeRange (
@@ -75,7 +75,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !T!ypeTuple.
+	 * Setter for field typeTuple.
 	 */
 	@Override
 	public void ObjectTypeTuple (
@@ -86,7 +86,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !D!efaultType.
+	 * Getter for field defaultType.
 	 */
 	@Override
 	public AvailObject ObjectDefaultType (
@@ -96,7 +96,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !S!izeRange.
+	 * Getter for field sizeRange.
 	 */
 	@Override
 	public AvailObject ObjectSizeRange (
@@ -106,7 +106,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !T!ypeTuple.
+	 * Getter for field typeTuple.
 	 */
 	@Override
 	public AvailObject ObjectTypeTuple (
@@ -120,7 +120,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

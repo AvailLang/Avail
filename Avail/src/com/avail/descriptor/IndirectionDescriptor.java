@@ -44,14 +44,14 @@ import java.util.Iterator;
 import java.util.List;
 
 @ObjectSlots("target")
-public class IndirectionDescriptor extends Descriptor
+public class IndirectionDescriptor extends AbstractDescriptor
 {
 
 
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !T!arget.
+	 * Setter for field target.
 	 */
 	@Override
 	public void ObjectTarget (
@@ -62,7 +62,7 @@ public class IndirectionDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !T!arget.
+	 * Getter for field target.
 	 */
 	@Override
 	public AvailObject ObjectTarget (
@@ -4489,7 +4489,7 @@ public class IndirectionDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 
@@ -4579,4 +4579,5 @@ public class IndirectionDescriptor extends Descriptor
 	{
 		return immutableDescriptor;
 	}
+
 }

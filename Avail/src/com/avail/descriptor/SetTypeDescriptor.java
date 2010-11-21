@@ -50,7 +50,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!ontentType.
+	 * Setter for field contentType.
 	 */
 	@Override
 	public void ObjectContentType (
@@ -61,7 +61,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Setter for field !S!izeRange.
+	 * Setter for field sizeRange.
 	 */
 	@Override
 	public void ObjectSizeRange (
@@ -72,7 +72,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !C!ontentType.
+	 * Getter for field contentType.
 	 */
 	@Override
 	public AvailObject ObjectContentType (
@@ -82,7 +82,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * Getter for field !S!izeRange.
+	 * Getter for field sizeRange.
 	 */
 	@Override
 	public AvailObject ObjectSizeRange (
@@ -96,7 +96,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

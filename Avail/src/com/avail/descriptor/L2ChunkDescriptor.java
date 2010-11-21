@@ -69,7 +69,7 @@ public class L2ChunkDescriptor extends Descriptor
 	// GENERATED accessors
 
 	/**
-	 * Setter for field !C!ontingentImpSets.
+	 * Setter for field contingentImpSets.
 	 */
 	@Override
 	public void ObjectContingentImpSets (
@@ -80,7 +80,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !I!ndex.
+	 * Setter for field index.
 	 */
 	@Override
 	public void ObjectIndex (
@@ -112,7 +112,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!extIndex.
+	 * Setter for field nextIndex.
 	 */
 	@Override
 	public void ObjectNextIndex (
@@ -123,7 +123,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!umFloats.
+	 * Setter for field numFloats.
 	 */
 	@Override
 	public void ObjectNumFloats (
@@ -134,7 +134,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!umIntegers.
+	 * Setter for field numIntegers.
 	 */
 	@Override
 	public void ObjectNumIntegers (
@@ -145,7 +145,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !N!umObjects.
+	 * Setter for field numObjects.
 	 */
 	@Override
 	public void ObjectNumObjects (
@@ -156,7 +156,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !P!reviousIndex.
+	 * Setter for field previousIndex.
 	 */
 	@Override
 	public void ObjectPreviousIndex (
@@ -167,7 +167,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !V!alidity.
+	 * Setter for field validity.
 	 */
 	@Override
 	public void ObjectValidity (
@@ -178,7 +178,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !V!ectors.
+	 * Setter for field vectors.
 	 */
 	@Override
 	public void ObjectVectors (
@@ -189,7 +189,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Setter for field !W!ordcodes.
+	 * Setter for field wordcodes.
 	 */
 	@Override
 	public void ObjectWordcodes (
@@ -200,7 +200,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !C!ontingentImpSets.
+	 * Getter for field contingentImpSets.
 	 */
 	@Override
 	public AvailObject ObjectContingentImpSets (
@@ -210,7 +210,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !I!ndex.
+	 * Getter for field index.
 	 */
 	@Override
 	public int ObjectIndex (
@@ -220,7 +220,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!extIndex.
+	 * Getter for field nextIndex.
 	 */
 	@Override
 	public int ObjectNextIndex (
@@ -230,7 +230,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!umFloats.
+	 * Getter for field numFloats.
 	 */
 	@Override
 	public int ObjectNumFloats (
@@ -240,7 +240,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!umIntegers.
+	 * Getter for field numIntegers.
 	 */
 	@Override
 	public int ObjectNumIntegers (
@@ -250,7 +250,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !N!umObjects.
+	 * Getter for field numObjects.
 	 */
 	@Override
 	public int ObjectNumObjects (
@@ -260,7 +260,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !P!reviousIndex.
+	 * Getter for field previousIndex.
 	 */
 	@Override
 	public int ObjectPreviousIndex (
@@ -270,7 +270,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !V!alidity.
+	 * Getter for field validity.
 	 */
 	@Override
 	public int ObjectValidity (
@@ -280,7 +280,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !V!ectors.
+	 * Getter for field vectors.
 	 */
 	@Override
 	public AvailObject ObjectVectors (
@@ -290,7 +290,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field !W!ordcodes.
+	 * Getter for field wordcodes.
 	 */
 	@Override
 	public AvailObject ObjectWordcodes (
@@ -349,7 +349,7 @@ public class L2ChunkDescriptor extends Descriptor
 	// java printing
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 			final AvailObject object, 
 			final StringBuilder aStream, 
 			final List<AvailObject> recursionList, 

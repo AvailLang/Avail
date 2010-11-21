@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.NotNull;
-import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.descriptor.VoidDescriptor;
@@ -45,31 +44,20 @@ import java.util.Iterator;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-public abstract class Descriptor
+public abstract class Descriptor extends AbstractDescriptor
 {
-	final short myId;
-	final boolean isMutable;
-	final int numberOfFixedObjectSlots;
-	final int numberOfFixedIntegerSlots;
-	final boolean hasVariableObjectSlots;
-	final boolean hasVariableIntegerSlots;
-
-	// accessing
-
-	public short id ()
+	/**
+	 * Construct a new {@link Descriptor}.
+	 *
+	 * @param isMutable
+	 */
+	public Descriptor (boolean isMutable)
 	{
-		return myId;
+		super(isMutable);
 	}
 
-	public boolean isMutable ()
-	{
-		return isMutable;
-	}
-
-
-
-	// GENERATED pure methods
-
+	
+	@Override
 	public boolean ObjectAcceptsArgTypesFromClosureType (
 			final AvailObject object, 
 			final AvailObject closureType)
@@ -86,6 +74,7 @@ public abstract class Descriptor
 	 * @param stackp
 	 * @return
 	 */
+	@Override
 	public boolean ObjectAcceptsArgumentsFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
@@ -103,6 +92,7 @@ public abstract class Descriptor
 	 * @param stackp
 	 * @return
 	 */
+	@Override
 	public boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
@@ -119,6 +109,7 @@ public abstract class Descriptor
 	 * @param argTypes
 	 * @return
 	 */
+	@Override
 	public boolean ObjectAcceptsArrayOfArgTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
@@ -134,6 +125,7 @@ public abstract class Descriptor
 	 * @param argValues
 	 * @return
 	 */
+	@Override
 	public boolean ObjectAcceptsArrayOfArgValues (
 			final AvailObject object, 
 			final List<AvailObject> argValues)
@@ -149,6 +141,7 @@ public abstract class Descriptor
 	 * @param argTypes
 	 * @return
 	 */
+	@Override
 	public boolean ObjectAcceptsTupleOfArgTypes (
 			final AvailObject object, 
 			final AvailObject argTypes)
@@ -164,6 +157,7 @@ public abstract class Descriptor
 	 * @param arguments
 	 * @return
 	 */
+	@Override
 	public boolean ObjectAcceptsTupleOfArguments (
 			final AvailObject object, 
 			final AvailObject arguments)
@@ -178,6 +172,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param aChunkIndex
 	 */
+	@Override
 	public void ObjectAddDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
@@ -192,6 +187,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param implementation
 	 */
+	@Override
 	public void ObjectAddImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
@@ -206,6 +202,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param restrictions
 	 */
+	@Override
 	public void ObjectAddRestrictions (
 			final AvailObject object, 
 			final AvailObject restrictions)
@@ -222,6 +219,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectAddToInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
@@ -239,6 +237,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectAddToIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
@@ -258,6 +257,7 @@ public abstract class Descriptor
 	 * @param outers
 	 * @param primitive
 	 */
+	@Override
 	public void ObjectArgsLocalsStackOutersPrimitive (
 			final AvailObject object, 
 			final int args, 
@@ -277,6 +277,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectArgTypeAt (
 			final AvailObject object, 
 			final int index)
@@ -292,6 +293,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectArgTypeAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -308,6 +310,7 @@ public abstract class Descriptor
 	 * @param methodName
 	 * @param illegalArgMsgs
 	 */
+	@Override
 	public void ObjectAtAddMessageRestrictions (
 			final AvailObject object, 
 			final AvailObject methodName, 
@@ -324,6 +327,7 @@ public abstract class Descriptor
 	 * @param methodName
 	 * @param implementation
 	 */
+	@Override
 	public void ObjectAtAddMethodImplementation (
 			final AvailObject object, 
 			final AvailObject methodName, 
@@ -340,6 +344,7 @@ public abstract class Descriptor
 	 * @param message
 	 * @param bundle
 	 */
+	@Override
 	public void ObjectAtMessageAddBundle (
 			final AvailObject object, 
 			final AvailObject message, 
@@ -356,6 +361,7 @@ public abstract class Descriptor
 	 * @param stringName
 	 * @param trueName
 	 */
+	@Override
 	public void ObjectAtNameAdd (
 			final AvailObject object, 
 			final AvailObject stringName, 
@@ -372,6 +378,7 @@ public abstract class Descriptor
 	 * @param stringName
 	 * @param trueName
 	 */
+	@Override
 	public void ObjectAtNewNamePut (
 			final AvailObject object, 
 			final AvailObject stringName, 
@@ -388,6 +395,7 @@ public abstract class Descriptor
 	 * @param stringName
 	 * @param trueName
 	 */
+	@Override
 	public void ObjectAtPrivateNameAdd (
 			final AvailObject object, 
 			final AvailObject stringName, 
@@ -404,6 +412,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBinElementAt (
 			final AvailObject object, 
 			final int index)
@@ -419,6 +428,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectBinElementAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -434,6 +444,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectBinHash (
 			final AvailObject object, 
 			final int value)
@@ -448,6 +459,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectBinSize (
 			final AvailObject object, 
 			final int value)
@@ -462,6 +474,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectBinUnionType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -476,6 +489,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectBitVector (
 			final AvailObject object, 
 			final int value)
@@ -490,6 +504,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectBodyBlock (
 			final AvailObject object, 
 			final AvailObject value)
@@ -506,6 +521,7 @@ public abstract class Descriptor
 	 * @param rqb
 	 * @param rtb
 	 */
+	@Override
 	public void ObjectBodyBlockRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bb, 
@@ -522,6 +538,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param signature
 	 */
+	@Override
 	public void ObjectBodySignature (
 			final AvailObject object, 
 			final AvailObject signature)
@@ -538,6 +555,7 @@ public abstract class Descriptor
 	 * @param rqb
 	 * @param rtb
 	 */
+	@Override
 	public void ObjectBodySignatureRequiresBlockReturnsBlock (
 			final AvailObject object, 
 			final AvailObject bs, 
@@ -554,6 +572,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectBreakpointBlock (
 			final AvailObject object, 
 			final AvailObject value)
@@ -568,6 +587,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param bundleTree
 	 */
+	@Override
 	public void ObjectBuildFilteredBundleTreeFrom (
 			final AvailObject object, 
 			final AvailObject bundleTree)
@@ -584,6 +604,7 @@ public abstract class Descriptor
 	 * @param parts
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
@@ -599,6 +620,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectCaller (
 			final AvailObject object, 
 			final AvailObject value)
@@ -613,6 +635,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectClosure (
 			final AvailObject object, 
 			final AvailObject value)
@@ -627,6 +650,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectClosureType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -641,6 +665,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectCode (
 			final AvailObject object, 
 			final AvailObject value)
@@ -655,6 +680,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectCodePoint (
 			final AvailObject object, 
 			final int value)
@@ -673,6 +699,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -694,6 +721,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithAnyTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -715,6 +743,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -736,6 +765,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithByteTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -757,6 +787,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -778,6 +809,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -799,6 +831,7 @@ public abstract class Descriptor
 	 * @param startIndex2
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
 			final AvailObject object, 
 			final int startIndex1, 
@@ -816,6 +849,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectComplete (
 			final AvailObject object, 
 			final AvailObject value)
@@ -832,6 +866,7 @@ public abstract class Descriptor
 	 * @param end
 	 * @return
 	 */
+	@Override
 	public int ObjectComputeHashFromTo (
 			final AvailObject object, 
 			final int start, 
@@ -849,6 +884,7 @@ public abstract class Descriptor
 	 * @param anAvailInterpreter
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
@@ -865,6 +901,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectConcatenateTuplesCanDestroy (
 			final AvailObject object, 
 			final boolean canDestroy)
@@ -879,6 +916,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectConstantBindings (
 			final AvailObject object, 
 			final AvailObject value)
@@ -893,6 +931,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectContentType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -907,6 +946,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectContingentImpSets (
 			final AvailObject object, 
 			final AvailObject value)
@@ -921,6 +961,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectContinuation (
 			final AvailObject object, 
 			final AvailObject value)
@@ -936,6 +977,7 @@ public abstract class Descriptor
 	 * @param filteredBundleTree
 	 * @param visibleNames
 	 */
+	@Override
 	public void ObjectCopyToRestrictedTo (
 			final AvailObject object, 
 			final AvailObject filteredBundleTree, 
@@ -954,6 +996,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCopyTupleFromToCanDestroy (
 			final AvailObject object, 
 			final int start, 
@@ -971,6 +1014,7 @@ public abstract class Descriptor
 	 * @param argTypes
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCouldEverBeInvokedWith (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
@@ -987,6 +1031,7 @@ public abstract class Descriptor
 	 * @param possibilities
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object, 
 			final AvailObject positiveTuple, 
@@ -1003,6 +1048,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectDataAtIndex (
 			final AvailObject object, 
 			final int index)
@@ -1018,6 +1064,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectDataAtIndexPut (
 			final AvailObject object, 
 			final int index, 
@@ -1033,6 +1080,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectDefaultType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1047,6 +1095,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectDependentChunks (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1061,6 +1110,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectDepth (
 			final AvailObject object, 
 			final int value)
@@ -1077,6 +1127,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectDivideCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
@@ -1094,6 +1145,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectDivideIntoInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
@@ -1111,6 +1163,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectDivideIntoIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
@@ -1127,6 +1180,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectElementAt (
 			final AvailObject object, 
 			final int index)
@@ -1142,6 +1196,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectElementAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -1158,6 +1213,7 @@ public abstract class Descriptor
 	 * @param zone
 	 * @return
 	 */
+	@Override
 	public int ObjectEndOfZone (
 			final AvailObject object, 
 			final int zone)
@@ -1173,6 +1229,7 @@ public abstract class Descriptor
 	 * @param zone
 	 * @return
 	 */
+	@Override
 	public int ObjectEndSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
@@ -1187,6 +1244,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectExecutionMode (
 			final AvailObject object, 
 			final int value)
@@ -1201,6 +1259,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectExecutionState (
 			final AvailObject object, 
 			final int value)
@@ -1216,6 +1275,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public byte ObjectExtractNybbleFromTupleAt (
 			final AvailObject object, 
 			final int index)
@@ -1230,6 +1290,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectFieldMap (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1244,6 +1305,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectFieldTypeMap (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1259,6 +1321,7 @@ public abstract class Descriptor
 	 * @param argTypes
 	 * @return
 	 */
+	@Override
 	public List<AvailObject> ObjectFilterByTypes (
 			final AvailObject object, 
 			final List<AvailObject> argTypes)
@@ -1273,6 +1336,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectFilteredBundleTree (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1287,6 +1351,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectFirstTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1305,6 +1370,7 @@ public abstract class Descriptor
 	 * @param endOfZone
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 			final AvailObject object, 
 			final int zone, 
@@ -1323,6 +1389,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectGreaterThanInteger (
 			final AvailObject object, 
 			final AvailObject another)
@@ -1338,6 +1405,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectGreaterThanSignedInfinity (
 			final AvailObject object, 
 			final AvailObject another)
@@ -1353,6 +1421,7 @@ public abstract class Descriptor
 	 * @param elementObject
 	 * @return
 	 */
+	@Override
 	public boolean ObjectHasElement (
 			final AvailObject object, 
 			final AvailObject elementObject)
@@ -1367,6 +1436,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectHash (
 			final AvailObject object, 
 			final int value)
@@ -1383,6 +1453,7 @@ public abstract class Descriptor
 	 * @param endIndex
 	 * @return
 	 */
+	@Override
 	public int ObjectHashFromTo (
 			final AvailObject object, 
 			final int startIndex, 
@@ -1398,6 +1469,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectHashOrZero (
 			final AvailObject object, 
 			final int value)
@@ -1413,6 +1485,7 @@ public abstract class Descriptor
 	 * @param keyObject
 	 * @return
 	 */
+	@Override
 	public boolean ObjectHasKey (
 			final AvailObject object, 
 			final AvailObject keyObject)
@@ -1427,6 +1500,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object, 
 			final int value)
@@ -1441,6 +1515,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object, 
 			final int value)
@@ -1455,6 +1530,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object, 
 			final int value)
@@ -1469,6 +1545,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object, 
 			final int value)
@@ -1484,6 +1561,7 @@ public abstract class Descriptor
 	 * @param argTypes
 	 * @return
 	 */
+	@Override
 	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
 			final AvailObject object, 
 			final ArrayList<AvailObject> argTypes)
@@ -1498,6 +1576,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectImplementationsTuple (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1514,6 +1593,7 @@ public abstract class Descriptor
 	 * @param parts
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectIncludeBundleAtMessageParts (
 			final AvailObject object, 
 			final AvailObject message, 
@@ -1530,6 +1610,7 @@ public abstract class Descriptor
 	 * @param imp
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIncludes (
 			final AvailObject object, 
 			final AvailObject imp)
@@ -1544,6 +1625,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectInclusiveFlags (
 			final AvailObject object, 
 			final int value)
@@ -1558,6 +1640,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectIncomplete (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1572,6 +1655,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectIndex (
 			final AvailObject object, 
 			final int value)
@@ -1586,6 +1670,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectInnerType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1600,6 +1685,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectInstance (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1614,6 +1700,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectInternalHash (
 			final AvailObject object, 
 			final int value)
@@ -1628,6 +1715,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectInterruptRequestFlag (
 			final AvailObject object, 
 			final int value)
@@ -1642,6 +1730,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectInvocationCount (
 			final AvailObject object, 
 			final int value)
@@ -1656,6 +1745,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param aBoolean
 	 */
+	@Override
 	public void ObjectIsSaved (
 			final AvailObject object, 
 			final boolean aBoolean)
@@ -1671,6 +1761,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSubsetOf (
 			final AvailObject object, 
 			final AvailObject another)
@@ -1686,6 +1777,7 @@ public abstract class Descriptor
 	 * @param aType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -1701,6 +1793,7 @@ public abstract class Descriptor
 	 * @param aClosureType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
@@ -1716,6 +1809,7 @@ public abstract class Descriptor
 	 * @param aContainerType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
@@ -1731,6 +1825,7 @@ public abstract class Descriptor
 	 * @param aContinuationType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
@@ -1746,6 +1841,7 @@ public abstract class Descriptor
 	 * @param aCyclicType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
@@ -1761,6 +1857,7 @@ public abstract class Descriptor
 	 * @param aGeneralizedClosureType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
@@ -1776,6 +1873,7 @@ public abstract class Descriptor
 	 * @param anIntegerRangeType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
@@ -1791,6 +1889,7 @@ public abstract class Descriptor
 	 * @param aListType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
@@ -1806,6 +1905,7 @@ public abstract class Descriptor
 	 * @param aMapType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
@@ -1821,6 +1921,7 @@ public abstract class Descriptor
 	 * @param anObjectMeta
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
@@ -1836,6 +1937,7 @@ public abstract class Descriptor
 	 * @param anObjectMetaMeta
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
@@ -1851,6 +1953,7 @@ public abstract class Descriptor
 	 * @param anObjectType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
@@ -1866,6 +1969,7 @@ public abstract class Descriptor
 	 * @param aPrimitiveType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aPrimitiveType)
@@ -1881,6 +1985,7 @@ public abstract class Descriptor
 	 * @param aSetType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
@@ -1896,6 +2001,7 @@ public abstract class Descriptor
 	 * @param aTupleType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
@@ -1910,6 +2016,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param aBoolean
 	 */
+	@Override
 	public void ObjectIsValid (
 			final AvailObject object, 
 			final boolean aBoolean)
@@ -1926,6 +2033,7 @@ public abstract class Descriptor
 	 * @param interpreter
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsValidForArgumentTypesInterpreter (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
@@ -1942,6 +2050,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectKeyAtIndex (
 			final AvailObject object, 
 			final int index)
@@ -1957,6 +2066,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param keyObject
 	 */
+	@Override
 	public void ObjectKeyAtIndexPut (
 			final AvailObject object, 
 			final int index, 
@@ -1972,6 +2082,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectKeyType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -1987,6 +2098,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectLessOrEqual (
 			final AvailObject object, 
 			final AvailObject another)
@@ -2002,6 +2114,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectLessThan (
 			final AvailObject object, 
 			final AvailObject another)
@@ -2017,6 +2130,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param offset
 	 */
+	@Override
 	public void ObjectLevelTwoChunkIndexOffset (
 			final AvailObject object, 
 			final int index, 
@@ -2033,6 +2147,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLiteralAt (
 			final AvailObject object, 
 			final int index)
@@ -2048,6 +2163,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectLiteralAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -2064,6 +2180,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLocalOrArgOrStackAt (
 			final AvailObject object, 
 			final int index)
@@ -2079,6 +2196,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectLocalOrArgOrStackAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -2095,6 +2213,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLocalTypeAt (
 			final AvailObject object, 
 			final int index)
@@ -2110,6 +2229,7 @@ public abstract class Descriptor
 	 * @param argumentTypeArray
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLookupByTypesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentTypeArray)
@@ -2126,6 +2246,7 @@ public abstract class Descriptor
 	 * @param stackp
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLookupByTypesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
@@ -2142,6 +2263,7 @@ public abstract class Descriptor
 	 * @param argumentTypeTuple
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLookupByTypesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTypeTuple)
@@ -2157,6 +2279,7 @@ public abstract class Descriptor
 	 * @param argumentArray
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLookupByValuesFromArray (
 			final AvailObject object, 
 			final List<AvailObject> argumentArray)
@@ -2173,6 +2296,7 @@ public abstract class Descriptor
 	 * @param stackp
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLookupByValuesFromContinuationStackp (
 			final AvailObject object, 
 			final AvailObject continuation, 
@@ -2189,6 +2313,7 @@ public abstract class Descriptor
 	 * @param argumentTuple
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLookupByValuesFromTuple (
 			final AvailObject object, 
 			final AvailObject argumentTuple)
@@ -2203,6 +2328,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectLowerBound (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2218,6 +2344,7 @@ public abstract class Descriptor
 	 * @param lowInc
 	 * @param highInc
 	 */
+	@Override
 	public void ObjectLowerInclusiveUpperInclusive (
 			final AvailObject object, 
 			final boolean lowInc, 
@@ -2234,6 +2361,7 @@ public abstract class Descriptor
 	 * @param keyObject
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMapAt (
 			final AvailObject object, 
 			final AvailObject keyObject)
@@ -2251,6 +2379,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMapAtPuttingCanDestroy (
 			final AvailObject object, 
 			final AvailObject keyObject, 
@@ -2267,6 +2396,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMapSize (
 			final AvailObject object, 
 			final int value)
@@ -2283,6 +2413,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMapWithoutKeyCanDestroy (
 			final AvailObject object, 
 			final AvailObject keyObject, 
@@ -2298,6 +2429,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMessage (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2312,6 +2444,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMessageParts (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2326,6 +2459,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMethods (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2342,6 +2476,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
@@ -2359,6 +2494,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMultiplyByInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
@@ -2376,6 +2512,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMultiplyByIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
@@ -2391,6 +2528,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMyObjectMeta (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2405,6 +2543,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMyObjectType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2419,6 +2558,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMyRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2433,6 +2573,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectMyType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2447,6 +2588,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectName (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2461,6 +2603,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNames (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2476,6 +2619,7 @@ public abstract class Descriptor
 	 * @param trueName
 	 * @return
 	 */
+	@Override
 	public boolean ObjectNameVisible (
 			final AvailObject object, 
 			final AvailObject trueName)
@@ -2490,6 +2634,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param anImplementationSet
 	 */
+	@Override
 	public void ObjectNecessaryImplementationSetChanged (
 			final AvailObject object, 
 			final AvailObject anImplementationSet)
@@ -2504,6 +2649,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNewNames (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2518,6 +2664,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param nextChunk
 	 */
+	@Override
 	public void ObjectNext (
 			final AvailObject object, 
 			final AvailObject nextChunk)
@@ -2532,6 +2679,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNextIndex (
 			final AvailObject object, 
 			final int value)
@@ -2546,6 +2694,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNumBlanks (
 			final AvailObject object, 
 			final int value)
@@ -2560,6 +2709,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNumFloats (
 			final AvailObject object, 
 			final int value)
@@ -2574,6 +2724,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNumIntegers (
 			final AvailObject object, 
 			final int value)
@@ -2588,6 +2739,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNumObjects (
 			final AvailObject object, 
 			final int value)
@@ -2602,6 +2754,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectNybbles (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2617,6 +2770,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public boolean ObjectOptionallyNilOuterVar (
 			final AvailObject object, 
 			final int index)
@@ -2632,6 +2786,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectOuterTypeAt (
 			final AvailObject object, 
 			final int index)
@@ -2647,6 +2802,7 @@ public abstract class Descriptor
 	 * @param tupleOfOuterTypes
 	 * @param tupleOfLocalContainerTypes
 	 */
+	@Override
 	public void ObjectOuterTypesLocalTypes (
 			final AvailObject object, 
 			final AvailObject tupleOfOuterTypes, 
@@ -2663,6 +2819,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectOuterVarAt (
 			final AvailObject object, 
 			final int index)
@@ -2678,6 +2835,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectOuterVarAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -2693,6 +2851,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectPad (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2707,6 +2866,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectParent (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2721,6 +2881,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectPc (
 			final AvailObject object, 
 			final int value)
@@ -2737,6 +2898,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPlusCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
@@ -2752,6 +2914,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param previousChunk
 	 */
+	@Override
 	public void ObjectPrevious (
 			final AvailObject object, 
 			final AvailObject previousChunk)
@@ -2766,6 +2929,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectPreviousIndex (
 			final AvailObject object, 
 			final int value)
@@ -2780,6 +2944,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectPriority (
 			final AvailObject object, 
 			final int value)
@@ -2795,6 +2960,7 @@ public abstract class Descriptor
 	 * @param element
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateAddElement (
 			final AvailObject object, 
 			final AvailObject element)
@@ -2810,6 +2976,7 @@ public abstract class Descriptor
 	 * @param element
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateExcludeElement (
 			final AvailObject object, 
 			final AvailObject element)
@@ -2826,6 +2993,7 @@ public abstract class Descriptor
 	 * @param knownIndex
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateExcludeElementKnownIndex (
 			final AvailObject object, 
 			final AvailObject element, 
@@ -2842,6 +3010,7 @@ public abstract class Descriptor
 	 * @param keyObject
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateExcludeKey (
 			final AvailObject object, 
 			final AvailObject keyObject)
@@ -2858,6 +3027,7 @@ public abstract class Descriptor
 	 * @param valueObject
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateMapAtPut (
 			final AvailObject object, 
 			final AvailObject keyObject, 
@@ -2873,6 +3043,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectPrivateNames (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2887,6 +3058,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectPrivateTestingTree (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2901,6 +3073,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectProcessGlobals (
 			final AvailObject object, 
 			final AvailObject value)
@@ -2916,6 +3089,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public short ObjectRawByteAt (
 			final AvailObject object, 
 			final int index)
@@ -2931,6 +3105,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param anInteger
 	 */
+	@Override
 	public void ObjectRawByteAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -2947,6 +3122,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public short ObjectRawByteForCharacterAt (
 			final AvailObject object, 
 			final int index)
@@ -2962,6 +3138,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param anInteger
 	 */
+	@Override
 	public void ObjectRawByteForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -2978,6 +3155,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public byte ObjectRawNybbleAt (
 			final AvailObject object, 
 			final int index)
@@ -2993,6 +3171,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param aNybble
 	 */
+	@Override
 	public void ObjectRawNybbleAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -3008,6 +3187,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectRawQuad1 (
 			final AvailObject object, 
 			final int value)
@@ -3022,6 +3202,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectRawQuad2 (
 			final AvailObject object, 
 			final int value)
@@ -3037,6 +3218,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public int ObjectRawQuadAt (
 			final AvailObject object, 
 			final int index)
@@ -3052,6 +3234,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectRawQuadAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -3068,6 +3251,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public short ObjectRawShortForCharacterAt (
 			final AvailObject object, 
 			final int index)
@@ -3083,6 +3267,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param anInteger
 	 */
+	@Override
 	public void ObjectRawShortForCharacterAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -3099,6 +3284,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public int ObjectRawSignedIntegerAt (
 			final AvailObject object, 
 			final int index)
@@ -3114,6 +3300,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectRawSignedIntegerAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -3130,6 +3317,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public long ObjectRawUnsignedIntegerAt (
 			final AvailObject object, 
 			final int index)
@@ -3145,6 +3333,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectRawUnsignedIntegerAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -3160,6 +3349,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param aChunkIndex
 	 */
+	@Override
 	public void ObjectRemoveDependentChunkId (
 			final AvailObject object, 
 			final int aChunkIndex)
@@ -3174,6 +3364,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param anInterpreter
 	 */
+	@Override
 	public void ObjectRemoveFrom (
 		final AvailObject object, 
 		final AvailInterpreter anInterpreter)
@@ -3188,6 +3379,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param implementation
 	 */
+	@Override
 	public void ObjectRemoveImplementation (
 			final AvailObject object, 
 			final AvailObject implementation)
@@ -3204,6 +3396,7 @@ public abstract class Descriptor
 	 * @param parts
 	 * @return
 	 */
+	@Override
 	public boolean ObjectRemoveMessageParts (
 		final AvailObject object, 
 		final AvailObject message, 
@@ -3219,6 +3412,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param obsoleteRestrictions
 	 */
+	@Override
 	public void ObjectRemoveRestrictions (
 		final AvailObject object, 
 		final AvailObject obsoleteRestrictions)
@@ -3233,6 +3427,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectRequiresBlock (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3248,6 +3443,7 @@ public abstract class Descriptor
 	 * @param forwardImplementation
 	 * @param methodName
 	 */
+	@Override
 	public void ObjectResolvedForwardWithName (
 			final AvailObject object, 
 			final AvailObject forwardImplementation, 
@@ -3263,6 +3459,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectRestrictions (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3277,6 +3474,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectReturnsBlock (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3291,6 +3489,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectReturnType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3305,6 +3504,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectRootBin (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3319,6 +3519,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectSecondTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3335,6 +3536,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSetIntersectionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
@@ -3352,6 +3554,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSetMinusCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
@@ -3367,6 +3570,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectSetSize (
 			final AvailObject object, 
 			final int value)
@@ -3382,6 +3586,7 @@ public abstract class Descriptor
 	 * @param zoneIndex
 	 * @param newTuple
 	 */
+	@Override
 	public void ObjectSetSubtupleForZoneTo (
 			final AvailObject object, 
 			final int zoneIndex, 
@@ -3399,6 +3604,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSetUnionCanDestroy (
 			final AvailObject object, 
 			final AvailObject otherSet, 
@@ -3414,6 +3620,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param newValue
 	 */
+	@Override
 	public void ObjectSetValue (
 			final AvailObject object, 
 			final AvailObject newValue)
@@ -3430,6 +3637,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSetWithElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject newElementObject, 
@@ -3447,6 +3655,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSetWithoutElementCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObjectToExclude, 
@@ -3462,6 +3671,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectSignature (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3476,6 +3686,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectSize (
 			final AvailObject object, 
 			final int value)
@@ -3491,6 +3702,7 @@ public abstract class Descriptor
 	 * @param zone
 	 * @return
 	 */
+	@Override
 	public int ObjectSizeOfZone (
 			final AvailObject object, 
 			final int zone)
@@ -3505,6 +3717,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectSizeRange (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3520,6 +3733,7 @@ public abstract class Descriptor
 	 * @param slotIndex
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectStackAt (
 			final AvailObject object, 
 			final int slotIndex)
@@ -3535,6 +3749,7 @@ public abstract class Descriptor
 	 * @param slotIndex
 	 * @param anObject
 	 */
+	@Override
 	public void ObjectStackAtPut (
 			final AvailObject object, 
 			final int slotIndex, 
@@ -3550,6 +3765,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectStackp (
 			final AvailObject object, 
 			final int value)
@@ -3564,6 +3780,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectStartingChunkIndex (
 			final AvailObject object, 
 			final int value)
@@ -3579,6 +3796,7 @@ public abstract class Descriptor
 	 * @param zone
 	 * @return
 	 */
+	@Override
 	public int ObjectStartOfZone (
 			final AvailObject object, 
 			final int zone)
@@ -3594,6 +3812,7 @@ public abstract class Descriptor
 	 * @param zone
 	 * @return
 	 */
+	@Override
 	public int ObjectStartSubtupleIndexInZone (
 			final AvailObject object, 
 			final int zone)
@@ -3610,6 +3829,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSubtractFromInfinityCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInfinity, 
@@ -3627,6 +3847,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSubtractFromIntegerCanDestroy (
 			final AvailObject object, 
 			final AvailObject anInteger, 
@@ -3643,6 +3864,7 @@ public abstract class Descriptor
 	 * @param zone
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSubtupleForZone (
 			final AvailObject object, 
 			final int zone)
@@ -3659,6 +3881,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTimesCanDestroy (
 			final AvailObject object, 
 			final AvailObject aNumber, 
@@ -3676,6 +3899,7 @@ public abstract class Descriptor
 	 * @param zoneIndex
 	 * @return
 	 */
+	@Override
 	public int ObjectTranslateToZone (
 			final AvailObject object, 
 			final int tupleIndex, 
@@ -3692,6 +3916,7 @@ public abstract class Descriptor
 	 * @param stringName
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTrueNamesForStringName (
 			final AvailObject object, 
 			final AvailObject stringName)
@@ -3707,6 +3932,7 @@ public abstract class Descriptor
 	 * @param newTupleSize
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTruncateTo (
 			final AvailObject object, 
 			final int newTupleSize)
@@ -3721,6 +3947,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectTuple (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3736,6 +3963,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTupleAt (
 			final AvailObject object, 
 			final int index)
@@ -3751,6 +3979,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param aNybbleObject
 	 */
+	@Override
 	public void ObjectTupleAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -3769,6 +3998,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object, 
 			final int index, 
@@ -3786,6 +4016,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public int ObjectTupleIntAt (
 			final AvailObject object, 
 			final int index)
@@ -3800,6 +4031,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectTupleType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3814,6 +4046,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -3829,6 +4062,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeAtIndex (
 			final AvailObject object, 
 			final int index)
@@ -3844,6 +4078,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersection (
 			final AvailObject object, 
 			final AvailObject another)
@@ -3859,6 +4094,7 @@ public abstract class Descriptor
 	 * @param aClosureType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
@@ -3875,6 +4111,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aClosureType, 
@@ -3891,6 +4128,7 @@ public abstract class Descriptor
 	 * @param aContainerType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
@@ -3906,6 +4144,7 @@ public abstract class Descriptor
 	 * @param aContinuationType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
@@ -3921,6 +4160,7 @@ public abstract class Descriptor
 	 * @param aCyclicType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
@@ -3936,6 +4176,7 @@ public abstract class Descriptor
 	 * @param aGeneralizedClosureType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
@@ -3952,6 +4193,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType, 
@@ -3968,6 +4210,7 @@ public abstract class Descriptor
 	 * @param anIntegerRangeType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
@@ -3983,6 +4226,7 @@ public abstract class Descriptor
 	 * @param aListType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
@@ -3998,6 +4242,7 @@ public abstract class Descriptor
 	 * @param aMapType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
@@ -4013,6 +4258,7 @@ public abstract class Descriptor
 	 * @param someMeta
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfMeta (
 			final AvailObject object, 
 			final AvailObject someMeta)
@@ -4028,6 +4274,7 @@ public abstract class Descriptor
 	 * @param anObjectMeta
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
@@ -4043,6 +4290,7 @@ public abstract class Descriptor
 	 * @param anObjectMetaMeta
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
@@ -4058,6 +4306,7 @@ public abstract class Descriptor
 	 * @param anObjectType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
@@ -4073,6 +4322,7 @@ public abstract class Descriptor
 	 * @param aSetType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
@@ -4088,6 +4338,7 @@ public abstract class Descriptor
 	 * @param aTupleType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeIntersectionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
@@ -4102,6 +4353,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectTypeTuple (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4117,6 +4369,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnion (
 			final AvailObject object, 
 			final AvailObject another)
@@ -4132,6 +4385,7 @@ public abstract class Descriptor
 	 * @param aClosureType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
@@ -4148,6 +4402,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
 			final AvailObject object, 
 			final AvailObject aClosureType, 
@@ -4164,6 +4419,7 @@ public abstract class Descriptor
 	 * @param aContainerType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfContainerType (
 			final AvailObject object, 
 			final AvailObject aContainerType)
@@ -4179,6 +4435,7 @@ public abstract class Descriptor
 	 * @param aContinuationType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfContinuationType (
 			final AvailObject object, 
 			final AvailObject aContinuationType)
@@ -4194,6 +4451,7 @@ public abstract class Descriptor
 	 * @param aCyclicType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfCyclicType (
 			final AvailObject object, 
 			final AvailObject aCyclicType)
@@ -4209,6 +4467,7 @@ public abstract class Descriptor
 	 * @param aGeneralizedClosureType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
@@ -4224,6 +4483,7 @@ public abstract class Descriptor
 	 * @param anIntegerRangeType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject anIntegerRangeType)
@@ -4239,6 +4499,7 @@ public abstract class Descriptor
 	 * @param aListType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfListType (
 			final AvailObject object, 
 			final AvailObject aListType)
@@ -4254,6 +4515,7 @@ public abstract class Descriptor
 	 * @param aMapType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
@@ -4269,6 +4531,7 @@ public abstract class Descriptor
 	 * @param anObjectMeta
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfObjectMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMeta)
@@ -4284,6 +4547,7 @@ public abstract class Descriptor
 	 * @param anObjectMetaMeta
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
 			final AvailObject object, 
 			final AvailObject anObjectMetaMeta)
@@ -4299,6 +4563,7 @@ public abstract class Descriptor
 	 * @param anObjectType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfObjectType (
 			final AvailObject object, 
 			final AvailObject anObjectType)
@@ -4314,6 +4579,7 @@ public abstract class Descriptor
 	 * @param aSetType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
@@ -4329,6 +4595,7 @@ public abstract class Descriptor
 	 * @param aTupleType
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeUnionOfTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
@@ -4343,6 +4610,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectUnclassified (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4359,6 +4627,7 @@ public abstract class Descriptor
 	 * @param endIndex
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectUnionOfTypesAtThrough (
 			final AvailObject object, 
 			final int startIndex, 
@@ -4375,6 +4644,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public int ObjectUntranslatedDataAt (
 			final AvailObject object, 
 			final int index)
@@ -4390,6 +4660,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param value
 	 */
+	@Override
 	public void ObjectUntranslatedDataAtPut (
 			final AvailObject object, 
 			final int index, 
@@ -4405,6 +4676,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectUpperBound (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4422,6 +4694,7 @@ public abstract class Descriptor
 	 * @param failBlock
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object, 
 			final List<AvailObject> argTypes, 
@@ -4438,6 +4711,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectValidity (
 			final AvailObject object, 
 			final int value)
@@ -4452,6 +4726,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectValue (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4467,6 +4742,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectValueAtIndex (
 			final AvailObject object, 
 			final int index)
@@ -4482,6 +4758,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @param valueObject
 	 */
+	@Override
 	public void ObjectValueAtIndexPut (
 			final AvailObject object, 
 			final int index, 
@@ -4497,6 +4774,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectValueType (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4511,6 +4789,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectVariableBindings (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4525,6 +4804,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectVectors (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4539,6 +4819,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectVisibleNames (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4553,6 +4834,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectWhichOne (
 			final AvailObject object, 
 			final int value)
@@ -4567,6 +4849,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectWordcodes (
 			final AvailObject object, 
 			final AvailObject value)
@@ -4582,6 +4865,7 @@ public abstract class Descriptor
 	 * @param index
 	 * @return
 	 */
+	@Override
 	public int ObjectZoneForIndex (
 			final AvailObject object, 
 			final int index)
@@ -4596,6 +4880,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public String ObjectAsNativeString (
 			final AvailObject object)
 	{
@@ -4609,6 +4894,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectAsObject (
 			final AvailObject object)
 	{
@@ -4622,6 +4908,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectAsSet (
 			final AvailObject object)
 	{
@@ -4635,6 +4922,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectAsTuple (
 			final AvailObject object)
 	{
@@ -4648,6 +4936,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBecomeExactType (
 			final AvailObject object)
 	{
@@ -4660,6 +4949,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectBecomeRealTupleType (
 			final AvailObject object)
 	{
@@ -4673,6 +4963,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectBitsPerEntry (
 			final AvailObject object)
 	{
@@ -4686,6 +4977,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectBitVector (
 			final AvailObject object)
 	{
@@ -4699,6 +4991,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBodyBlock (
 			final AvailObject object)
 	{
@@ -4712,6 +5005,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBodySignature (
 			final AvailObject object)
 	{
@@ -4725,6 +5019,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBreakpointBlock (
 			final AvailObject object)
 	{
@@ -4738,6 +5033,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCaller (
 			final AvailObject object)
 	{
@@ -4751,6 +5047,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectCapacity (
 			final AvailObject object)
 	{
@@ -4763,6 +5060,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectCleanUpAfterCompile (
 			final AvailObject object)
 	{
@@ -4775,6 +5073,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectClearModule (
 			final AvailObject object)
 	{
@@ -4787,6 +5086,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectClearValue (
 			final AvailObject object)
 	{
@@ -4800,6 +5100,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectClosure (
 			final AvailObject object)
 	{
@@ -4813,6 +5114,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
@@ -4826,6 +5128,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCode (
 			final AvailObject object)
 	{
@@ -4839,6 +5142,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectCodePoint (
 			final AvailObject object)
 	{
@@ -4852,6 +5156,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectComplete (
 			final AvailObject object)
 	{
@@ -4865,6 +5170,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectConstantBindings (
 			final AvailObject object)
 	{
@@ -4878,6 +5184,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectContentType (
 			final AvailObject object)
 	{
@@ -4891,6 +5198,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectContingentImpSets (
 			final AvailObject object)
 	{
@@ -4904,6 +5212,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectContinuation (
 			final AvailObject object)
 	{
@@ -4917,6 +5226,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCopyAsMutableContinuation (
 			final AvailObject object)
 	{
@@ -4930,6 +5240,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCopyAsMutableObjectTuple (
 			final AvailObject object)
 	{
@@ -4943,6 +5254,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCopyAsMutableSpliceTuple (
 			final AvailObject object)
 	{
@@ -4956,6 +5268,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectCopyMutable (
 			final AvailObject object)
 	{
@@ -4969,6 +5282,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
@@ -4982,6 +5296,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectDependentChunks (
 			final AvailObject object)
 	{
@@ -4995,6 +5310,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectDepth (
 			final AvailObject object)
 	{
@@ -5007,6 +5323,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectDisplayTestingTree (
 			final AvailObject object)
 	{
@@ -5019,6 +5336,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectEnsureMetacovariant (
 			final AvailObject object)
 	{
@@ -5032,6 +5350,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectEnsureMutable (
 			final AvailObject object)
 	{
@@ -5044,6 +5363,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectEvictedByGarbageCollector (
 			final AvailObject object)
 	{
@@ -5057,6 +5377,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectExecutionMode (
 			final AvailObject object)
 	{
@@ -5070,6 +5391,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectExecutionState (
 			final AvailObject object)
 	{
@@ -5083,6 +5405,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectExpand (
 			final AvailObject object)
 	{
@@ -5096,6 +5419,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectExtractBoolean (
 			final AvailObject object)
 	{
@@ -5109,6 +5433,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectExtractByte (
 			final AvailObject object)
 	{
@@ -5122,6 +5447,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public double ObjectExtractDouble (
 			final AvailObject object)
 	{
@@ -5135,6 +5461,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public float ObjectExtractFloat (
 			final AvailObject object)
 	{
@@ -5148,6 +5475,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectExtractInt (
 			final AvailObject object)
 	{
@@ -5169,6 +5497,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public long ObjectExtractLong (final @NotNull AvailObject object)
 	{
 		error(
@@ -5181,6 +5510,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public byte ObjectExtractNybble (
 			final AvailObject object)
 	{
@@ -5194,6 +5524,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectFieldMap (
 			final AvailObject object)
 	{
@@ -5207,6 +5538,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
@@ -5220,6 +5552,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectFilteredBundleTree (
 			final AvailObject object)
 	{
@@ -5233,6 +5566,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectFirstTupleType (
 			final AvailObject object)
 	{
@@ -5246,6 +5580,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectGetInteger (
 			final AvailObject object)
 	{
@@ -5259,6 +5594,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectGetValue (
 			final AvailObject object)
 	{
@@ -5272,6 +5608,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
@@ -5285,6 +5622,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectHasRestrictions (
 			final AvailObject object)
 	{
@@ -5298,6 +5636,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
@@ -5311,6 +5650,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
@@ -5324,6 +5664,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
@@ -5337,6 +5678,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
@@ -5350,6 +5692,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectImplementationsTuple (
 			final AvailObject object)
 	{
@@ -5363,6 +5706,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectInclusiveFlags (
 			final AvailObject object)
 	{
@@ -5376,6 +5720,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectIncomplete (
 			final AvailObject object)
 	{
@@ -5389,6 +5734,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectIndex (
 			final AvailObject object)
 	{
@@ -5402,6 +5748,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectInnerType (
 			final AvailObject object)
 	{
@@ -5415,6 +5762,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
@@ -5428,6 +5776,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectInternalHash (
 			final AvailObject object)
 	{
@@ -5441,6 +5790,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectInterruptRequestFlag (
 			final AvailObject object)
 	{
@@ -5454,6 +5804,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectInvocationCount (
 			final AvailObject object)
 	{
@@ -5467,6 +5818,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsAbstract (
 			final AvailObject object)
 	{
@@ -5480,6 +5832,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsFinite (
 			final AvailObject object)
 	{
@@ -5493,6 +5846,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsForward (
 			final AvailObject object)
 	{
@@ -5506,6 +5860,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsImplementation (
 			final AvailObject object)
 	{
@@ -5519,6 +5874,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsPositive (
 			final AvailObject object)
 	{
@@ -5532,6 +5888,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSaved (
 			final AvailObject object)
 	{
@@ -5545,6 +5902,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSplice (
 			final AvailObject object)
 	{
@@ -5558,6 +5916,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfTerminates (
 			final AvailObject object)
 	{
@@ -5571,6 +5930,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSupertypeOfVoid (
 			final AvailObject object)
 	{
@@ -5584,6 +5944,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsValid (
 			final AvailObject object)
 	{
@@ -5597,6 +5958,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public List<AvailObject> ObjectKeysAsArray (
 			final AvailObject object)
 	{
@@ -5610,6 +5972,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectKeysAsSet (
 			final AvailObject object)
 	{
@@ -5623,6 +5986,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
@@ -5636,6 +6000,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectLevelTwoChunkIndex (
 			final AvailObject object)
 	{
@@ -5649,6 +6014,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectLevelTwoOffset (
 			final AvailObject object)
 	{
@@ -5662,6 +6028,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
@@ -5675,6 +6042,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectLowerInclusive (
 			final AvailObject object)
 	{
@@ -5688,6 +6056,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectMapSize (
 			final AvailObject object)
 	{
@@ -5701,6 +6070,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectMaxStackDepth (
 			final AvailObject object)
 	{
@@ -5714,6 +6084,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMessage (
 			final AvailObject object)
 	{
@@ -5727,6 +6098,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMessageParts (
 			final AvailObject object)
 	{
@@ -5740,6 +6112,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMethods (
 			final AvailObject object)
 	{
@@ -5752,6 +6125,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectMoveToHead (
 			final AvailObject object)
 	{
@@ -5765,6 +6139,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMyObjectMeta (
 			final AvailObject object)
 	{
@@ -5778,6 +6153,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMyObjectType (
 			final AvailObject object)
 	{
@@ -5791,6 +6167,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMyRestrictions (
 			final AvailObject object)
 	{
@@ -5804,6 +6181,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMyType (
 			final AvailObject object)
 	{
@@ -5817,6 +6195,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
@@ -5830,6 +6209,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectNames (
 			final AvailObject object)
 	{
@@ -5843,6 +6223,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectNewNames (
 			final AvailObject object)
 	{
@@ -5856,6 +6237,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectNext (
 			final AvailObject object)
 	{
@@ -5869,6 +6251,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNextIndex (
 			final AvailObject object)
 	{
@@ -5882,6 +6265,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectNumArgs (
 			final AvailObject object)
 	{
@@ -5895,6 +6279,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
@@ -5908,6 +6293,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumberOfZones (
 			final AvailObject object)
 	{
@@ -5921,6 +6307,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumBlanks (
 			final AvailObject object)
 	{
@@ -5934,6 +6321,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumFloats (
 			final AvailObject object)
 	{
@@ -5947,6 +6335,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumIntegers (
 			final AvailObject object)
 	{
@@ -5960,6 +6349,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectNumLiterals (
 			final AvailObject object)
 	{
@@ -5973,6 +6363,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectNumLocals (
 			final AvailObject object)
 	{
@@ -5986,6 +6377,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumLocalsOrArgsOrStack (
 			final AvailObject object)
 	{
@@ -5999,6 +6391,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumObjects (
 			final AvailObject object)
 	{
@@ -6012,6 +6405,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectNumOuters (
 			final AvailObject object)
 	{
@@ -6025,6 +6419,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectNumOuterVars (
 			final AvailObject object)
 	{
@@ -6038,6 +6433,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectNybbles (
 			final AvailObject object)
 	{
@@ -6051,6 +6447,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPad (
 			final AvailObject object)
 	{
@@ -6064,6 +6461,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectParent (
 			final AvailObject object)
 	{
@@ -6077,6 +6475,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectPc (
 			final AvailObject object)
 	{
@@ -6090,6 +6489,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrevious (
 			final AvailObject object)
 	{
@@ -6103,6 +6503,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectPreviousIndex (
 			final AvailObject object)
 	{
@@ -6116,6 +6517,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public short ObjectPrimitiveNumber (
 			final AvailObject object)
 	{
@@ -6129,6 +6531,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectPriority (
 			final AvailObject object)
 	{
@@ -6142,6 +6545,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateNames (
 			final AvailObject object)
 	{
@@ -6155,6 +6559,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectPrivateTestingTree (
 			final AvailObject object)
 	{
@@ -6168,6 +6573,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectProcessGlobals (
 			final AvailObject object)
 	{
@@ -6181,6 +6587,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
@@ -6194,6 +6601,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectRawQuad2 (
 			final AvailObject object)
 	{
@@ -6206,6 +6614,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectReleaseVariableOrMakeContentsImmutable (
 			final AvailObject object)
 	{
@@ -6218,6 +6627,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectRemoveFromQueue (
 			final AvailObject object)
 	{
@@ -6230,6 +6640,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectRemoveRestrictions (
 		final AvailObject object)
 	{
@@ -6243,6 +6654,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectRequiresBlock (
 		final AvailObject object)
 	{
@@ -6256,6 +6668,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectRestrictions (
 			final AvailObject object)
 	{
@@ -6269,6 +6682,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
@@ -6282,6 +6696,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
@@ -6295,6 +6710,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectRootBin (
 			final AvailObject object)
 	{
@@ -6308,6 +6724,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSecondTupleType (
 			final AvailObject object)
 	{
@@ -6321,6 +6738,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectSetSize (
 			final AvailObject object)
 	{
@@ -6334,6 +6752,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
@@ -6347,6 +6766,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectSize (
 			final AvailObject object)
 	{
@@ -6360,6 +6780,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
@@ -6373,6 +6794,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectStackp (
 			final AvailObject object)
 	{
@@ -6386,6 +6808,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectStartingChunkIndex (
 			final AvailObject object)
 	{
@@ -6398,6 +6821,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectStep (
 			final AvailObject object)
 	{
@@ -6411,6 +6835,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTestingTree (
 			final AvailObject object)
 	{
@@ -6423,6 +6848,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectTrimExcessLongs (
 			final AvailObject object)
 	{
@@ -6436,6 +6862,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTuple (
 			final AvailObject object)
 	{
@@ -6449,6 +6876,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectTupleSize (
 			final AvailObject object)
 	{
@@ -6462,6 +6890,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
@@ -6475,6 +6904,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
@@ -6488,6 +6918,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectUnclassified (
 			final AvailObject object)
 	{
@@ -6501,6 +6932,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
@@ -6514,6 +6946,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectUpperInclusive (
 			final AvailObject object)
 	{
@@ -6527,6 +6960,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectValidity (
 			final AvailObject object)
 	{
@@ -6540,6 +6974,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectValue (
 			final AvailObject object)
 	{
@@ -6553,6 +6988,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectValuesAsTuple (
 			final AvailObject object)
 	{
@@ -6566,6 +7002,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
@@ -6579,6 +7016,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectVariableBindings (
 			final AvailObject object)
 	{
@@ -6592,6 +7030,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectVectors (
 			final AvailObject object)
 	{
@@ -6604,6 +7043,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectVerify (
 			final AvailObject object)
 	{
@@ -6617,6 +7057,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectVisibleNames (
 			final AvailObject object)
 	{
@@ -6630,6 +7071,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectWhichOne (
 			final AvailObject object)
 	{
@@ -6643,6 +7085,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectWordcodes (
 			final AvailObject object)
 	{
@@ -6661,6 +7104,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEquals (
 			final AvailObject object, 
 			final AvailObject another)
@@ -6674,6 +7118,7 @@ public abstract class Descriptor
 	 * @param aTuple
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsAnyTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
@@ -6686,6 +7131,7 @@ public abstract class Descriptor
 	 * @param aString
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsByteString (
 			final AvailObject object, 
 			final AvailObject aString)
@@ -6698,6 +7144,7 @@ public abstract class Descriptor
 	 * @param aTuple
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsByteTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
@@ -6710,6 +7157,7 @@ public abstract class Descriptor
 	 * @param otherCodePoint
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsCharacterWithCodePoint (
 			final AvailObject object, 
 			final int otherCodePoint)
@@ -6722,6 +7170,7 @@ public abstract class Descriptor
 	 * @param aClosure
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsClosure (
 			final AvailObject object, 
 			final AvailObject aClosure)
@@ -6734,6 +7183,7 @@ public abstract class Descriptor
 	 * @param aClosureType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsClosureType (
 			final AvailObject object, 
 			final AvailObject aClosureType)
@@ -6746,6 +7196,7 @@ public abstract class Descriptor
 	 * @param aCompiledCode
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsCompiledCode (
 			final AvailObject object, 
 			final AvailObject aCompiledCode)
@@ -6758,6 +7209,7 @@ public abstract class Descriptor
 	 * @param aContainer
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsContainer (
 			final AvailObject object, 
 			final AvailObject aContainer)
@@ -6770,6 +7222,7 @@ public abstract class Descriptor
 	 * @param aType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsContainerType (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -6782,6 +7235,7 @@ public abstract class Descriptor
 	 * @param aContinuation
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsContinuation (
 			final AvailObject object, 
 			final AvailObject aContinuation)
@@ -6794,6 +7248,7 @@ public abstract class Descriptor
 	 * @param aType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsContinuationType (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -6808,6 +7263,7 @@ public abstract class Descriptor
 	 * @param aDoubleObject
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsDouble (
 			final AvailObject object, 
 			final AvailObject aDoubleObject)
@@ -6820,6 +7276,7 @@ public abstract class Descriptor
 	 * @param aFloatObject
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsFloat (
 			final AvailObject object, 
 			final AvailObject aFloatObject)
@@ -6832,6 +7289,7 @@ public abstract class Descriptor
 	 * @param aGeneralizedClosureType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsGeneralizedClosureType (
 			final AvailObject object, 
 			final AvailObject aGeneralizedClosureType)
@@ -6844,6 +7302,7 @@ public abstract class Descriptor
 	 * @param anInfinity
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsInfinity (
 			final AvailObject object, 
 			final AvailObject anInfinity)
@@ -6856,6 +7315,7 @@ public abstract class Descriptor
 	 * @param anAvailInteger
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsInteger (
 			final AvailObject object, 
 			final AvailObject anAvailInteger)
@@ -6868,6 +7328,7 @@ public abstract class Descriptor
 	 * @param another
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsIntegerRangeType (
 			final AvailObject object, 
 			final AvailObject another)
@@ -6880,6 +7341,7 @@ public abstract class Descriptor
 	 * @param aList
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsList (
 			final AvailObject object, 
 			final AvailObject aList)
@@ -6892,6 +7354,7 @@ public abstract class Descriptor
 	 * @param aListType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsListType (
 			final AvailObject object, 
 			final AvailObject aListType)
@@ -6904,6 +7367,7 @@ public abstract class Descriptor
 	 * @param aMap
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsMap (
 			final AvailObject object, 
 			final AvailObject aMap)
@@ -6916,6 +7380,7 @@ public abstract class Descriptor
 	 * @param aMapType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsMapType (
 			final AvailObject object, 
 			final AvailObject aMapType)
@@ -6928,6 +7393,7 @@ public abstract class Descriptor
 	 * @param aTuple
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsNybbleTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
@@ -6940,6 +7406,7 @@ public abstract class Descriptor
 	 * @param anObject
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsObject (
 			final AvailObject object, 
 			final AvailObject anObject)
@@ -6952,6 +7419,7 @@ public abstract class Descriptor
 	 * @param aTuple
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsObjectTuple (
 			final AvailObject object, 
 			final AvailObject aTuple)
@@ -6964,6 +7432,7 @@ public abstract class Descriptor
 	 * @param aType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsPrimitiveType (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -6976,6 +7445,7 @@ public abstract class Descriptor
 	 * @param aSet
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsSet (
 			final AvailObject object, 
 			final AvailObject aSet)
@@ -6988,6 +7458,7 @@ public abstract class Descriptor
 	 * @param aSetType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsSetType (
 			final AvailObject object, 
 			final AvailObject aSetType)
@@ -7000,6 +7471,7 @@ public abstract class Descriptor
 	 * @param aTupleType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
@@ -7012,6 +7484,7 @@ public abstract class Descriptor
 	 * @param aString
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsTwoByteString (
 			final AvailObject object, 
 			final AvailObject aString)
@@ -7024,6 +7497,7 @@ public abstract class Descriptor
 	 * @param potentialInstance
 	 * @return
 	 */
+	@Override
 	public boolean ObjectHasObjectInstance (
 			final AvailObject object, 
 			final AvailObject potentialInstance)
@@ -7038,6 +7512,7 @@ public abstract class Descriptor
 	 * @param anotherObject
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsBetterRepresentationThan (
 			final AvailObject object, 
 			final AvailObject anotherObject)
@@ -7053,6 +7528,7 @@ public abstract class Descriptor
 	 * @param aTupleType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsBetterRepresentationThanTupleType (
 			final AvailObject object, 
 			final AvailObject aTupleType)
@@ -7072,6 +7548,7 @@ public abstract class Descriptor
 	 * @param aType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -7087,6 +7564,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectCanComputeHashOfType (
 			final AvailObject object)
 	{
@@ -7099,6 +7577,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsBlank (
 			final AvailObject object)
 	{
@@ -7109,6 +7588,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsFalse (
 			final AvailObject object)
 	{
@@ -7121,6 +7601,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsTrue (
 			final AvailObject object)
 	{
@@ -7133,6 +7614,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsVoid (
 			final AvailObject object)
 	{
@@ -7143,6 +7625,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectEqualsVoidOrBlank (
 			final AvailObject object)
 	{
@@ -7153,6 +7636,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
@@ -7166,6 +7650,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHash (
 			final AvailObject object)
 	{
@@ -7180,6 +7665,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsClosure (
 			final AvailObject object)
 	{
@@ -7190,6 +7676,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsHashAvailable (
 			final AvailObject object)
 	{
@@ -7205,6 +7692,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
@@ -7222,6 +7710,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectMakeSubobjectsImmutable (
 			final AvailObject object)
 	{
@@ -7236,6 +7725,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectType (
 			final AvailObject object)
 	{
@@ -7253,6 +7743,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsBoolean (
 			final AvailObject object)
 	{
@@ -7271,6 +7762,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsByteTuple (final @NotNull AvailObject object)
 	{
 		return false;
@@ -7282,6 +7774,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsCharacter (
 			final AvailObject object)
 	{
@@ -7300,6 +7793,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsString (final @NotNull AvailObject object)
 	{
 		return false;
@@ -7313,6 +7807,7 @@ public abstract class Descriptor
 	 * @param aClosure
 	 * @return
 	 */
+	@Override
 	public boolean ObjectContainsBlock (
 			final AvailObject object, 
 			final AvailObject aClosure)
@@ -7330,6 +7825,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectPostFault (
 			final AvailObject object)
 	{
@@ -7344,6 +7840,7 @@ public abstract class Descriptor
 	/**
 	 * @param object
 	 */
+	@Override
 	public void ObjectReadBarrierFault (
 			final AvailObject object)
 	{
@@ -7363,6 +7860,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param value
 	 */
+	@Override
 	public void ObjectTarget (
 			final AvailObject object, 
 			final AvailObject value)
@@ -7377,6 +7875,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTarget (
 			final AvailObject object)
 	{
@@ -7390,6 +7889,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectTraversed (
 			final AvailObject object)
 	{
@@ -7406,6 +7906,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsList (
 			final AvailObject object)
 	{
@@ -7420,6 +7921,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsMap (
 			final AvailObject object)
 	{
@@ -7434,6 +7936,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsByte (
 			final AvailObject object)
 	{
@@ -7444,6 +7947,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsNybble (
 			final AvailObject object)
 	{
@@ -7458,6 +7962,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSet (
 			final AvailObject object)
 	{
@@ -7476,6 +7981,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
@@ -7510,6 +8016,7 @@ public abstract class Descriptor
 	 * @param elementObjectHash
 	 * @return
 	 */
+	@Override
 	public boolean ObjectBinHasElementHash (
 			final AvailObject object, 
 			final AvailObject elementObject, 
@@ -7528,6 +8035,7 @@ public abstract class Descriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBinRemoveElementHashCanDestroy (
 			final AvailObject object, 
 			final AvailObject elementObject, 
@@ -7555,6 +8063,7 @@ public abstract class Descriptor
 	 * @param potentialSuperset
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsBinSubsetOf (
 			final AvailObject object, 
 			final AvailObject potentialSuperset)
@@ -7572,6 +8081,7 @@ public abstract class Descriptor
 	 * @param startingIndex
 	 * @return
 	 */
+	@Override
 	public int ObjectPopulateTupleStartingAt (
 			final AvailObject object, 
 			final AvailObject mutableTuple, 
@@ -7590,6 +8100,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectBinHash (
 			final AvailObject object)
 	{
@@ -7603,6 +8114,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectBinSize (
 			final AvailObject object)
 	{
@@ -7615,6 +8127,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
@@ -7631,6 +8144,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsTuple (
 			final AvailObject object)
 	{
@@ -7642,6 +8156,7 @@ public abstract class Descriptor
 	 * @param aType
 	 * @return
 	 */
+	@Override
 	public boolean ObjectTypeEquals (
 			final AvailObject object, 
 			final AvailObject aType)
@@ -7659,6 +8174,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public int ObjectHashOfType (
 			final AvailObject object)
 	{
@@ -7677,6 +8193,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsCyclicType (
 			final AvailObject object)
 	{
@@ -7687,6 +8204,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsExtendedInteger (
 			final AvailObject object)
 	{
@@ -7697,6 +8215,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsIntegerRangeType (
 			final AvailObject object)
 	{
@@ -7707,6 +8226,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsListType (
 			final AvailObject object)
 	{
@@ -7717,6 +8237,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsMapType (
 			final AvailObject object)
 	{
@@ -7727,6 +8248,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsSetType (
 			final AvailObject object)
 	{
@@ -7737,6 +8259,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsTupleType (
 			final AvailObject object)
 	{
@@ -7747,6 +8270,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public boolean ObjectIsType (
 			final AvailObject object)
 	{
@@ -7761,6 +8285,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @param visitor
 	 */
+	@Override
 	public void ObjectScanSubobjects (
 			final AvailObject object, 
 			final AvailSubobjectVisitor visitor)
@@ -7784,6 +8309,7 @@ public abstract class Descriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	public @NotNull Iterator<AvailObject> ObjectIterator (
 		final @NotNull AvailObject object)
 	{
@@ -7792,269 +8318,5 @@ public abstract class Descriptor
 			+ getClass().getCanonicalName(),
 			object);
 		return null;
-	}
-
-	// GENERATED special mutable slots
-	
-	/**
-	 * @param index
-	 * @return
-	 */
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
-	{
-		//  GENERATED special mutable slots method.
-	
-		return false;
-	}
-
-	// java printing
-	
-	/**
-	 * @return
-	 */
-	int maximumIndent ()
-	{
-		//  Answer the deepest a recursive print can go before summarizing.
-	
-		return 5;
-	}
-
-	/**
-	 * Recursively print the specified {@link AvailObject} to the {@link
-	 * StringBuilder} unless it is already present in the {@linkplain List
-	 * recursion list}. Printing will begin at the specified indent level,
-	 * measured in horizontal tab characters.
-	 * 
-	 * <p>This operation exists primarily to provide useful representations of
-	 * {@code AvailObject}s for Java-side debugging.</p>
-	 * 
-	 * @param object An {@link AvailObject}.
-	 * @param builder A {@link StringBuilder}.
-	 * @param recursionList A {@linkplain List list} containing {@link
-	 *                      AvailObject}s already visited during the recursive
-	 *                      print.
-	 * @param indent The indent level, in horizontal tabs, at which the {@link
-	 *               AvailObject} should be printed.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	/**
-	 * @param object
-	 * @param builder
-	 * @param recursionList
-	 * @param indent
-	 */
-	@ThreadSafe
-	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object, 
-		final @NotNull StringBuilder builder, 
-		final @NotNull List<AvailObject> recursionList, 
-		final int indent)
-	{
-		builder.append('a');
-		String className = getClass().getSimpleName();
-		String shortenedName = className.substring(0, className.length() - 10);
-		switch (shortenedName.codePointAt(0))
-		{
-			case 'A':
-			case 'E':
-			case 'I':
-			case 'O':
-			case 'U':
-				builder.append('n');
-				break;
-			default:
-				// Do nothing.
-		}
-		builder.append(' ');
-		builder.append(shortenedName);
-		IntegerSlots integerSlotAnnotation =
-			getClass().getAnnotation(IntegerSlots.class);
-		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
-		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
-			int n = Math.min(i, integerSlotAnnotation.value().length) - 1;
-			String slotName = integerSlotAnnotation.value()[n];
-			if (slotName.charAt(slotName.length() - 1) == '#')
-			{
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(i - integerSlotAnnotation.value().length + 1);
-				builder.append(']');
-			}
-			else
-			{
-				builder.append(slotName);
-			}
-			builder.append(" = ");
-			builder.append(object.integerSlotAtByteIndex(i << 2));
-		}
-		ObjectSlots objectSlotAnnotation =
-			getClass().getAnnotation(ObjectSlots.class);
-		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
-		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
-			int n = Math.min(i, objectSlotAnnotation.value().length) - 1;
-			String slotName = objectSlotAnnotation.value()[n];
-			if (slotName.charAt(slotName.length() - 1) == '#')
-			{
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(i - objectSlotAnnotation.value().length + 1);
-				builder.append(']');
-			}
-			else
-			{
-				builder.append(slotName);
-			}
-			builder.append(" = ");
-			(object.objectSlotAtByteIndex(-(i << 2))).printOnAvoidingIndent(
-				builder, recursionList, indent + 1);
-		}
-	}
-
-	
-	// slots
-
-	void checkWriteAtByteIndex (
-			final int index)
-	{
-		if (isMutable())
-		{
-			return;
-		}
-		if (allowsImmutableToMutableReferenceAtByteIndex(index))
-		{
-			return;
-		}
-		error("Illegal write into immutable object");
-		return;
-	}
-
-	boolean hasVariableIntegerSlots ()
-	{
-		//  Answer whether I have a variable number of integer slots.
-
-		return hasVariableIntegerSlots;
-	}
-
-	boolean hasVariableObjectSlots ()
-	{
-		//  Answer whether I have a variable number of object slots.
-
-		return hasVariableObjectSlots;
-	}
-
-	int numberOfFixedIntegerSlots ()
-	{
-		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
-
-		return numberOfFixedIntegerSlots;
-	}
-
-	int numberOfFixedObjectSlots ()
-	{
-		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
-
-		return numberOfFixedObjectSlots;
-	}
-
-
-	// Startup/shutdown
-	static void createWellKnownObjects ()
-	{
-		//  Default implementation - subclasses may need more variations.
-		//
-		//  do nothing
-
-
-	}
-
-	static void clearWellKnownObjects ()
-	{
-		//  Default implementation - subclasses may need more variations.
-		//
-		//  do nothing
-
-
-	}
-
-	static final List<Descriptor> allDescriptors =
-		new ArrayList<Descriptor>(200);
-
-	
-	/* Arithmetic utilities (until a refactor) */
-	static int bitShift (int value, int leftShift)
-	{
-		// Note:  This is a logical shift *without* Java's implicit modulus on
-		// the shift amount.
-		if (leftShift >= 32) return 0;
-		if (leftShift >= 0) return value << leftShift;
-		if (leftShift > -32) return value >>> -leftShift;
-		return 0;
-	}
-
-	/**
-	 * Construct a new {@link Descriptor}.
-	 * @param isMutable Does the {@linkplain Descriptor descriptor} represent a
-	 *            mutable object?
-	 */
-	protected Descriptor (
-		final boolean isMutable)
-	{
-		this.myId = (short)allDescriptors.size();
-		allDescriptors.add(this);
-		this.isMutable = isMutable;
-
-		@SuppressWarnings("unchecked")
-		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
-
-		final ObjectSlots objectSlots = cls.getAnnotation(ObjectSlots.class);
-		final String[] objectSlotsValue = (objectSlots == null)
-			? new String[0]
-			: objectSlots.value();
-		if (objectSlots == null || objectSlotsValue.length == 0)
-		{
-			this.numberOfFixedObjectSlots = 0;
-			this.hasVariableObjectSlots = false;
-		}
-		else if (objectSlotsValue[objectSlotsValue.length - 1].matches(".*#"))
-		{
-			this.numberOfFixedObjectSlots = objectSlotsValue.length - 1;
-			this.hasVariableObjectSlots = true;
-		}
-		else
-		{
-			this.numberOfFixedObjectSlots = objectSlotsValue.length;
-			this.hasVariableObjectSlots = false;
-		}
-
-		final IntegerSlots integerSlots = cls.getAnnotation(IntegerSlots.class);
-		final String[] integerSlotsValue = (integerSlots == null)
-			? new String[0]
-			: integerSlots.value();
-		if (integerSlots == null || integerSlotsValue.length == 0)
-		{
-			this.numberOfFixedIntegerSlots = 0;
-			this.hasVariableIntegerSlots = false;
-		}
-		else if (integerSlotsValue[integerSlotsValue.length - 1].matches(".*#"))
-		{
-			this.numberOfFixedIntegerSlots = integerSlotsValue.length - 1;
-			this.hasVariableIntegerSlots = true;
-		}
-		else
-		{
-			this.numberOfFixedIntegerSlots = integerSlotsValue.length;
-			this.hasVariableIntegerSlots = false;
-		}
 	}
 }
