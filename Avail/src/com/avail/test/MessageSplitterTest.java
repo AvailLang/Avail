@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/MessageSplitterTest.java
+ * compiler/MessageSplitterTest.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -58,9 +58,11 @@ import com.avail.descriptor.ByteStringDescriptor;
  */
 public class MessageSplitterTest
 {
-
-	ModuleNameResolver  moduleNameResolver;
-	AvailRuntime        runtime;
+	/** A {@linkplain ModuleNameResolver module name resolver}. */
+	private ModuleNameResolver moduleNameResolver;
+	
+	/** An {@linkplain AvailRuntime Avail runtime}. */ 
+	private AvailRuntime runtime;
 
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
@@ -82,7 +84,9 @@ public class MessageSplitterTest
 		runtime = new AvailRuntime(resolver);
 	}
 
-	static String[][] splitCases = {
+	/** Test cases. */
+	private static String[][] splitCases =
+	{
 		{"Foo", "Foo", "[6]"},
 		{"Print_", "Print", "_", "[6, 0]"},
 		{"_+_", "_", "+", "_", "[0, 10, 0]"},
@@ -95,6 +99,9 @@ public class MessageSplitterTest
 		{"_``_", "_", "`", "`", "_", "[0, 14, 0]"},
 	};
 	
+	/**
+	 * Test: Split the test cases.
+	 */
 	@Test
 	public void testSplitting ()
 	{

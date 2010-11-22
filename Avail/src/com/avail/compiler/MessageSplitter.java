@@ -43,18 +43,19 @@ import com.avail.descriptor.TupleDescriptor;
  * This class is used to split Avail message names into a sequence of
  * pseudo-instructions that can be used directly for parsing.  The
  * pseudo-instructions are of the form:
- * <ul>
- *    <li>0     - parseArgument
- *    <li>1     - pushEmptyList
- *    <li>2     - append (pop A, append A to list on top of stack)
- *    <li>3     - (reserved)
- *    <li>4*N   - branch to instruction N (attempt to continue parsing at both the
- *                next instruction and N)
- *    <li>4*N+1 - jump to instruction N (do not attempt to continue at the next
- *                instruction)
- *    <li>4*N+2 - parseKeyword at part N
- *    <li>4*N+3 - (reserved)
- * </ul>
+ * 
+ * <p><ul>
+ * <li>0     - parseArgument</li>
+ * <li>1     - pushEmptyList</li>
+ * <li>2     - append (pop A, append A to list on top of stack)</li>
+ * <li>3     - (reserved)</li>
+ * <li>4*N   - branch to instruction N (attempt to continue parsing at both
+ *             the next instruction and N)</li>
+ * <li>4*N+1 - jump to instruction N (do not attempt to continue at the next
+ *             instruction)</li>
+ * <li>4*N+2 - parseKeyword at part N</li>
+ * <li>4*N+3 - (reserved)</li>
+ * </ul></p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

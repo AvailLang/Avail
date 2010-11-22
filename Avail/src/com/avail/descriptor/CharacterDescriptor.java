@@ -52,10 +52,10 @@ public class CharacterDescriptor
 extends Descriptor
 {
 	/** The first 256 Unicode characters. */
-	static AvailObject[] byteCharacters;
+	private static AvailObject[] byteCharacters;
 
 	/** The hashes of the first 256 Unicode characters. */
-	static final @NotNull int[] hashesOfByteCharacters = new int[256];
+	private static final @NotNull int[] hashesOfByteCharacters = new int[256];
 	static
 	{
 		for (int i = 0; i <= 255; i++)
@@ -159,7 +159,9 @@ extends Descriptor
 	}
 
 
-	final static CharacterDescriptor mutableDescriptor = new CharacterDescriptor(true);
+	/** The mutable {@link CharacterDescriptor}. */
+	final static CharacterDescriptor mutableDescriptor =
+		new CharacterDescriptor(true);
 
 	/**
 	 * Answer a mutable {@link CharacterDescriptor}.
@@ -172,7 +174,9 @@ extends Descriptor
 		return mutableDescriptor;
 	}
 
-	final static CharacterDescriptor immutableDescriptor = new CharacterDescriptor(false);
+	/** The immutable {@link CharacterDescriptor}. */
+	final static CharacterDescriptor immutableDescriptor =
+		new CharacterDescriptor(false);
 
 	/**
 	 * Answer an immutable {@link CharacterDescriptor}.
@@ -287,7 +291,6 @@ extends Descriptor
 	/**
 	 * Construct a new {@link CharacterDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
