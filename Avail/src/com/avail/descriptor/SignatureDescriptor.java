@@ -47,8 +47,8 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
 	{
 		//  Determine the return type for a call site invoking this method or an override of it
@@ -60,8 +60,8 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsValidForArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
 	{
 		//  Determine if these argument types are appropriate at a call site.
@@ -89,7 +89,7 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Compare by address (identity) for now.  Eventually we can introduce value semantics.

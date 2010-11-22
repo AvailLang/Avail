@@ -55,7 +55,7 @@ extends Descriptor
 
 	/**
 	 * Answer a mutable {@link FillerDescriptor}.
-	 * 
+	 *
 	 * @return A mutable {@link FillerDescriptor}.
 	 */
 	final static FillerDescriptor mutableDescriptor = new FillerDescriptor(true);
@@ -67,7 +67,7 @@ extends Descriptor
 
 	/**
 	 * Answer an immutable {@link FillerDescriptor}.
-	 * 
+	 *
 	 * @return An immutable {@link FillerDescriptor}.
 	 */
 	final static FillerDescriptor immutableDescriptor = new FillerDescriptor(false);

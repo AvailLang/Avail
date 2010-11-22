@@ -88,7 +88,7 @@ public class L2MoveInstruction extends L2Instruction
 	// initialization
 
 	public L2MoveInstruction sourceDestination (
-			final L2ObjectRegister sourceObjectRegister, 
+			final L2ObjectRegister sourceObjectRegister,
 			final L2ObjectRegister destinationObjectRegister)
 	{
 		_source = sourceObjectRegister;

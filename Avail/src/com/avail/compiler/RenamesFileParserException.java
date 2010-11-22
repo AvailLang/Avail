@@ -48,7 +48,7 @@ extends Exception
 
 	/**
 	 * Construct a new {@link RenamesFileParserException}.
-	 * 
+	 *
 	 * @param message The detail message.
 	 */
 	RenamesFileParserException (final @NotNull String message)

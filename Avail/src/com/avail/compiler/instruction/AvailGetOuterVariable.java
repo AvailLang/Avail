@@ -68,8 +68,8 @@ public class AvailGetOuterVariable extends AvailGetVariable
 
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData, 
-			final List<AvailVariableAccessNote> outerData, 
+			final List<AvailVariableAccessNote> localData,
+			final List<AvailVariableAccessNote> outerData,
 			final AvailCodeGenerator codeGenerator)
 	{
 		//  The instructions of a block are being iterated over.  Coordinate optimizations

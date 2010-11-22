@@ -89,7 +89,7 @@ public class L2SetInstruction extends L2Instruction
 	// initialization
 
 	public L2SetInstruction variableValue (
-			final L2ObjectRegister var, 
+			final L2ObjectRegister var,
 			final L2ObjectRegister val)
 	{
 		_variable = var;

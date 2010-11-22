@@ -42,8 +42,8 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
 @ObjectSlots({
-	"sizeRange", 
-	"typeTuple", 
+	"sizeRange",
+	"typeTuple",
 	"defaultType"
 })
 public class TupleTypeDescriptor extends TypeDescriptor
@@ -57,7 +57,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectDefaultType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);
@@ -68,7 +68,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectSizeRange (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -79,7 +79,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectTypeTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -121,9 +121,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		//  Be nice about it and use special forms for common cases...
@@ -196,7 +196,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsTupleType(object);
@@ -204,7 +204,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Tuple types are equal iff their sizeRange, typeTuple, and defaultType match.
@@ -226,7 +226,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsBetterRepresentationThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
@@ -237,7 +237,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsBetterRepresentationThanTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Given two objects that are known to be equal, the second of which is in the form of
@@ -308,7 +308,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer what type the given index would have in an object instance of me.  Answer
@@ -333,8 +333,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectUnionOfTypesAtThrough (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  Answer the union of the types that object's instances could have in the
@@ -373,7 +373,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -383,7 +383,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Tuple type A is a supertype of tuple type B iff all the *possible
@@ -434,7 +434,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -452,7 +452,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -513,7 +513,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -531,7 +531,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Answer the most specific type that is still at least as general as these.

@@ -51,7 +51,7 @@ public class ObjectDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectFieldMap (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -73,7 +73,7 @@ public class ObjectDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsObject(object);
@@ -81,7 +81,7 @@ public class ObjectDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsObject (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObject)
 	{
 		if (object.sameAddressAs(anObject))
@@ -93,7 +93,7 @@ public class ObjectDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTypeObject)
 	{
 		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate

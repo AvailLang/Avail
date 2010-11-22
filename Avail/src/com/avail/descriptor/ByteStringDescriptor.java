@@ -46,7 +46,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
 @IntegerSlots({
-	"hashOrZero", 
+	"hashOrZero",
 	"rawQuadAt#"
 })
 public class ByteStringDescriptor extends TupleDescriptor
@@ -58,7 +58,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectRawQuadAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -68,8 +68,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawQuadAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED setter method (indexed).
@@ -83,9 +83,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append('"');
@@ -102,10 +102,10 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  My instance is a string.
@@ -119,10 +119,10 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteString,
 			final int startIndex2)
 	{
 		//  Compare sections of two byte strings.
@@ -146,7 +146,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsByteString(object);
@@ -154,7 +154,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEqualsByteString (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aByteString)
 	{
 		//  First, check for object-structure (address) identity.
@@ -198,7 +198,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
@@ -259,7 +259,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public short ObjectRawByteForCharacterAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the byte that encodes the character at the given index.
@@ -269,8 +269,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawByteForCharacterAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  Set the character at the given index based on the given byte.
@@ -282,7 +282,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the element at the given index in the tuple object.  It's a one-byte character.
@@ -297,8 +297,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject aCharacterObject)
 	{
 		//  Set the byte at the given index to the given object (which should be an AvailObject that's a one-byte character).
@@ -310,9 +310,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -353,7 +353,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -376,13 +376,13 @@ public class ByteStringDescriptor extends TupleDescriptor
 	}
 
 
-	
+
 	// private-computation
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.
@@ -466,7 +466,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		{
 			char c = aNativeByteString.charAt(index - 1);
 			assert 0 <= c && c <= 255;
-			result.rawByteForCharacterAtPut(index, (byte)c);
+			result.rawByteForCharacterAtPut(index, (short)c);
 		}
 		return result;
 	}
@@ -511,8 +511,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 	};
 
 
-	
-	
+
+
 	// Object creation
 	public static AvailObject mutableObjectFromNativeByteString(String aNativeByteString)
 	{
@@ -530,6 +530,6 @@ public class ByteStringDescriptor extends TupleDescriptor
 			}
 		}
 		return ByteStringDescriptor.mutableObjectFromNativeByteString(aNativeString);
-	}	
+	}
 
 }

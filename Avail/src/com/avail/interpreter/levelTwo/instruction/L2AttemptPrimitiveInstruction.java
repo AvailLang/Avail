@@ -96,9 +96,9 @@ public class L2AttemptPrimitiveInstruction extends L2Instruction
 	// initialization
 
 	public L2AttemptPrimitiveInstruction primitiveArgumentsDestinationIfFail (
-			final int prim, 
-			final L2RegisterVector args, 
-			final L2ObjectRegister destination, 
+			final int prim,
+			final L2RegisterVector args,
+			final L2ObjectRegister destination,
 			final L2LabelInstruction ifFail)
 	{
 		_primNum = prim;

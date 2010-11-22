@@ -61,8 +61,8 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	@Override
 	public void printOnAvoidingIndent (
-		final @NotNull StringBuilder builder, 
-		final @NotNull List<AvailObject> recursionList, 
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (isDestroyed())
@@ -145,7 +145,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	@Override
 	public void byteSlotAtByteIndexPut (
-			final int index, 
+			final int index,
 			final short aByte)
 	{
 		//  Store the byte at the given byte-index.  Always use little endian encoding.
@@ -193,8 +193,8 @@ public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	public AvailObject descriptorObjectSlotsSizeIntSlotsSize (
-			final AbstractDescriptor theDescriptor, 
-			final int objectSlotsSize, 
+			final AbstractDescriptor theDescriptor,
+			final int objectSlotsSize,
 			final int intSlotsCount)
 	{
 		_descriptor = theDescriptor;
@@ -232,7 +232,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	@Override
 	public void integerSlotAtByteIndexPut (
-			final int index, 
+			final int index,
 			final int anInteger)
 	{
 		//  Store the (signed 32-bit) integer in the four bytes starting at the given byte-index.
@@ -268,7 +268,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	@Override
 	public void objectSlotAtByteIndexPut (
-			final int index, 
+			final int index,
 			final AvailObject anAvailObject)
 	{
 		//  Store the object at the given byte-index.
@@ -312,7 +312,7 @@ public class AvailObjectUsingArrays extends AvailObject
 
 	@Override
 	public void shortSlotAtByteIndexPut (
-			final int index, 
+			final int index,
 			final short aShort)
 	{
 		//  Store the byte at the given byte-index.

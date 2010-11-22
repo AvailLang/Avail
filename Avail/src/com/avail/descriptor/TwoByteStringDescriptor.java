@@ -45,7 +45,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
 @IntegerSlots({
-	"hashOrZero", 
+	"hashOrZero",
 	"rawQuadAt#"
 })
 public class TwoByteStringDescriptor extends TupleDescriptor
@@ -57,7 +57,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectRawQuadAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -67,8 +67,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawQuadAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED setter method (indexed).
@@ -82,9 +82,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append("\"");
@@ -110,10 +110,10 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  My instance is a two-byte-string.
@@ -127,10 +127,10 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTwoByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aTwoByteString,
 			final int startIndex2)
 	{
 		//  Compare sections of two byte strings.
@@ -154,7 +154,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsTwoByteString(object);
@@ -162,7 +162,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEqualsTwoByteString (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTwoByteString)
 	{
 		//  First, check for object-structure (address) identity.
@@ -206,7 +206,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
@@ -267,7 +267,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public short ObjectRawShortForCharacterAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the byte that encodes the character at the given index.
@@ -277,8 +277,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawShortForCharacterAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  Set the character at the given index based on the given byte.
@@ -290,7 +290,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the element at the given index in the tuple object.  It's a one-byte character.
@@ -305,8 +305,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject aCharacterObject)
 	{
 		//  Set the byte at the given index to the given object (which should be an AvailObject that's a two-byte character).
@@ -318,9 +318,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -354,7 +354,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -399,8 +399,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.

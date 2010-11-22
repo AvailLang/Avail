@@ -46,9 +46,9 @@ public abstract class BooleanDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append(object.extractBoolean());

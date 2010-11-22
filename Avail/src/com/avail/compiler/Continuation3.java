@@ -34,7 +34,7 @@ package com.avail.compiler;
 
 /**
  * Implementors of {@code Continuation3} provide a single arbitrary operation
- * that accepts three arguments. 
+ * that accepts three arguments.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  * @param <X> The type of the first argument.
@@ -45,7 +45,7 @@ public interface Continuation3<X, Y, Z>
 {
 	/**
 	 * Perform the operation.
-	 * 
+	 *
 	 * @param arg1 The first argument.
 	 * @param arg2 The second argument.
 	 * @param arg3 The third argument.

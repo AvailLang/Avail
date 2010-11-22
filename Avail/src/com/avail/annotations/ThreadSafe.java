@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  * {@code ThreadSafe} annotation indicates that the annotated target is safe
  * for concurrent access. The precise meaning depends upon the type of the
  * target:
- * 
+ *
  * <p><ul>
  * <li><strong>Method.</strong> The method is safe for concurrent execution by
  * multiple {@linkplain Thread threads}. Whether the method is side-effect

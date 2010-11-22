@@ -90,8 +90,8 @@ public class L2ExtractOuterInstruction extends L2Instruction
 	// initialization
 
 	public L2ExtractOuterInstruction closureRegisterOuterNumberDestination (
-			final L2ObjectRegister closureRegister, 
-			final int outerNum, 
+			final L2ObjectRegister closureRegister,
+			final int outerNum,
 			final L2ObjectRegister destRegister)
 	{
 		_closureReg = closureRegister;

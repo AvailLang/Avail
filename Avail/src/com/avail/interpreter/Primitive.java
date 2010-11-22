@@ -1319,7 +1319,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 69:</strong> Answer the user-assigned name of the
 	 * specified {@linkplain ObjectTypeDescriptor user-defined object type}.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim69_TypeName_userType(69, 1, Flag.CanInline)
@@ -2159,7 +2159,7 @@ public enum Primitive
 	 * <strong>Primitive 160:</strong> Open a {@linkplain RandomAccessFile file}
 	 * for reading. Answer a {@linkplain CyclicTypeDescriptor handle} that
 	 * uniquely identifies the file.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim160_FileOpenRead_nameString(160, 1, Flag.CanInline, Flag.HasSideEffect)
@@ -2200,7 +2200,7 @@ public enum Primitive
 	 * <strong>Primitive 161:</strong> Open a {@linkplain RandomAccessFile file}
 	 * for writing. Answer a {@linkplain CyclicTypeDescriptor handle} that
 	 * uniquely identifies the file.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim161_FileOpenWrite_nameString(161, 2, Flag.CanInline, Flag.HasSideEffect)
@@ -2249,7 +2249,7 @@ public enum Primitive
 	 * <strong>Primitive 162:</strong> Open a {@linkplain RandomAccessFile file}
 	 * for reading and writing. Answer a {@linkplain CyclicTypeDescriptor
 	 * handle} that uniquely identifies the file.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim162_FileOpenReadWrite_nameString (162, 1, Flag.CanInline, Flag.HasSideEffect)
@@ -2290,7 +2290,7 @@ public enum Primitive
 	 * <strong>Primitive 163:</strong> Close the {@linkplain RandomAccessFile
 	 * file} associated with the specified {@linkplain CyclicTypeDescriptor
 	 * handle}. Forget the association between the handle and the file.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim163_FileClose_handle(163, 1, Flag.CanInline, Flag.HasSideEffect)
@@ -2340,7 +2340,7 @@ public enum Primitive
 	 * ByteTupleDescriptor tuple}. If fewer bytes are available, then simply
 	 * return a shorter tuple. If the request amount is infinite, then answer a
 	 * tuple containing all remaining bytes.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim164_FileRead_handle_size(164, 2, Flag.CanInline, Flag.HasSideEffect)
@@ -2408,7 +2408,7 @@ public enum Primitive
 	 * associated with the {@linkplain CyclicTypeDescriptor handle}. Answer
 	 * a {@linkplain ByteTupleDescriptor tuple} containing the bytes that
 	 * could not be written.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim165_FileWrite_handle_bytes(165, 2, Flag.CanInline, Flag.HasSideEffect)
@@ -2461,7 +2461,7 @@ public enum Primitive
 	 * {@linkplain RandomAccessFile file} associated with the specified
 	 * {@linkplain CyclicTypeDescriptor handle}. Supports 64-bit file
 	 * sizes.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim166_FileSize_handle(166, 1, Flag.CanInline)
@@ -2507,7 +2507,7 @@ public enum Primitive
 	 * pointer within the readable {@linkplain RandomAccessFile file} associated
 	 * with the specified {@linkplain CyclicTypeDescriptor handle}. Supports
 	 * 64-bit file sizes and positions.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim167_FilePosition_handle(167, 1, Flag.CanInline)
@@ -2553,7 +2553,7 @@ public enum Primitive
 	 * pointer within the readable {@linkplain RandomAccessFile file} associated
 	 * with the specified {@linkplain CyclicTypeDescriptor handle}. Supports
 	 * 64-bit file sizes and positions.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim168_FileSetPosition_handle_newPosition(168, 2, Flag.CanInline, Flag.HasSideEffect)
@@ -2599,7 +2599,7 @@ public enum Primitive
 	 * <strong>Primitive 168:</strong> Force all system buffers associated with
 	 * the writable {@linkplain RandomAccessFile file} to synchronize with the
 	 * underlying device.
-	 * 
+	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim169_FileSync_handle(169, 1, Flag.CanInline, Flag.HasSideEffect)

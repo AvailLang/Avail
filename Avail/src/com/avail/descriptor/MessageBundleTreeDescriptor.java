@@ -43,7 +43,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);

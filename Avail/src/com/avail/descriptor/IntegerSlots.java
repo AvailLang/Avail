@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for {@link Descriptor} to document its integer slots.
- * 
+ *
  * @author Todd L Smith &lt;todd@elushae.org&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -49,7 +49,7 @@ public @interface IntegerSlots
 	/**
 	 * Answer the {@linkplain String names} of the {@linkplain Descriptor
 	 * descriptor}'s integer slots.
-	 * 
+	 *
 	 * @return The {@linkplain String names} corresponding to the {@linkplain
 	 *         Descriptor descriptor}'s integer slots.
 	 */

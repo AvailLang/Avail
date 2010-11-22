@@ -90,7 +90,7 @@ public class L2GetTypeInstruction extends L2Instruction
 	// initialization
 
 	public L2GetTypeInstruction sourceDestination (
-			final L2ObjectRegister sourceReg, 
+			final L2ObjectRegister sourceReg,
 			final L2ObjectRegister destinationReg)
 	{
 		_source = sourceReg;

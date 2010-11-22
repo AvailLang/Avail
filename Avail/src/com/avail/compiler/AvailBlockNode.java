@@ -253,8 +253,8 @@ public class AvailBlockNode extends AvailParseNode
 
 	@Override
 	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
-			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock, 
-			final AvailParseNode parent, 
+			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
+			final AvailParseNode parent,
 			final List<AvailBlockNode> outerNodes)
 	{
 		//  Map the tree through the (destructive) transformation specified by aBlock, children
@@ -287,7 +287,7 @@ public class AvailBlockNode extends AvailParseNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		//  Optimize for one-liners...
@@ -413,8 +413,8 @@ public class AvailBlockNode extends AvailParseNode
 
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent, 
-			final List<AvailBlockNode> outerBlocks, 
+			final AvailParseNode parent,
+			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
 		//  Ensure the node represented by the receiver is valid.  Raise an appropriate

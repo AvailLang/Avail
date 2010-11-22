@@ -38,8 +38,8 @@ import java.util.List;
 
 @IntegerSlots("hash")
 @ObjectSlots({
-	"name", 
-	"parent", 
+	"name",
+	"parent",
 	"myType"
 })
 public class PrimitiveTypeDescriptor extends TypeDescriptor
@@ -53,7 +53,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectHash (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -64,7 +64,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectMyType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);
@@ -75,7 +75,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectName (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -86,7 +86,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectParent (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -138,9 +138,9 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append(object.name().asNativeString());
@@ -152,7 +152,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsPrimitiveType(object);
@@ -160,7 +160,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsPrimitiveType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Primitive types compare by identity.
@@ -174,7 +174,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -184,7 +184,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  This primitive type is a supertype of aClosureType if and only if this
@@ -195,7 +195,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  A primitive type is a supertype of a container type if it is a supertype of container.
@@ -205,7 +205,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  A primitive type is a supertype of a continuation type if it is a supertype of continuation.
@@ -215,7 +215,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  Only the primitive type 'cyclicType' and its ancestors are ancestors of a cyclic type.
@@ -225,7 +225,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  This primitive type is a supertype of aGeneralizedClosureType if and only if this
@@ -236,7 +236,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
 		//  Parent of the top integer range type is all, so continue searching there.
@@ -246,7 +246,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfListType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aListType)
 	{
 		//  A list type's supertypes are all instances of listType until they reach void.  Note that
@@ -258,7 +258,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfMapType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aMapType)
 	{
 		//  This primitive type is a supertype of aMapType if and only if this
@@ -269,7 +269,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  Check if I'm a supertype of the given lazy object meta.  Only type and its
@@ -280,7 +280,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfObjectMetaMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
 		//  Check if I'm a supertype of the given object meta meta.  Only meta and its
@@ -291,7 +291,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anEagerObjectType)
 	{
 		//  Check if I'm a supertype of the given eager object type.  Only all and its
@@ -302,7 +302,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfPrimitiveType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
 		//  Check if object (a primitive type) is a supertype of aPrimitiveType (also a primitive type).
@@ -316,7 +316,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfSetType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSetType)
 	{
 		//  This primitive type is a supertype of aSetType if and only if this
@@ -327,7 +327,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  This primitive type is a supertype of aTupleType if and only if this
@@ -338,7 +338,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -360,7 +360,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that still includes both of these.

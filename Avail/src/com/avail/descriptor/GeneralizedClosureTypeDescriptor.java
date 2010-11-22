@@ -49,7 +49,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectReturnType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -71,9 +71,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append("[...]->");
@@ -89,7 +89,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsGeneralizedClosureType(object);
@@ -97,7 +97,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Generalized closure types are equal iff they have the same return type.
@@ -150,7 +150,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -160,7 +160,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  Closure types are contravariant by arguments and covariant by return type.  Since
@@ -172,7 +172,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  Generalized closure types are covariant by return type.
@@ -186,7 +186,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -204,7 +204,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  Answer the most general type that is still at least as specific as these.  The intersection
@@ -219,7 +219,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  Answer the most general type that is still at least as specific as these.  Respect
@@ -230,7 +230,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -248,7 +248,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  Answer the most specific type that is still at least as general as these.  Respect
@@ -261,7 +261,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  Answer the most specific type that is still at least as general as these.  Respect

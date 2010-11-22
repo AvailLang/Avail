@@ -89,7 +89,7 @@ public class L2CallInstruction extends L2Instruction
 	// initialization
 
 	public L2CallInstruction selectorArgsVector (
-			final AvailObject theImpSet, 
+			final AvailObject theImpSet,
 			final L2RegisterVector args)
 	{
 		_impSet = theImpSet;

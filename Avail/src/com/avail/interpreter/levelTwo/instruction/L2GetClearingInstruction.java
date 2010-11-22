@@ -90,7 +90,7 @@ public class L2GetClearingInstruction extends L2Instruction
 	// initialization
 
 	public L2GetClearingInstruction sourceVariableDestination (
-			final L2ObjectRegister sourceVariable, 
+			final L2ObjectRegister sourceVariable,
 			final L2ObjectRegister destination)
 	{
 		_sourceVar = sourceVariable;

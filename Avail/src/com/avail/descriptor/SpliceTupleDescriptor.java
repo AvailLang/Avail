@@ -42,7 +42,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
 @IntegerSlots({
-	"hashOrZero", 
+	"hashOrZero",
 	"_DoNotGenerateIntegerAt#"
 })
 @ObjectSlots("_DoNotGenerateObjectAt#")
@@ -52,9 +52,9 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object, 
-		final @NotNull StringBuilder aStream, 
-		final @NotNull List<AvailObject> recursionList, 
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (object.tupleSize() == 0)
@@ -100,10 +100,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  Compare a subrange of this splice tuple and a subrange of the given tuple.
@@ -131,10 +131,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteString,
 			final int startIndex2)
 	{
 		//  Compare a subrange of this splice tuple and a subrange of the given bytestring.
@@ -158,10 +158,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithByteTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteTuple,
 			final int startIndex2)
 	{
 		//  Compare a subrange of this splice tuple and a subrange of the given byte tuple.
@@ -185,10 +185,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aNybbleTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aNybbleTuple,
 			final int startIndex2)
 	{
 		//  Compare a subrange of this splice tuple and a subrange of the given nybble tuple.
@@ -216,10 +216,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anObjectTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anObjectTuple,
 			final int startIndex2)
 	{
 		//  Compare a subrange of this splice tuple and a subrange of the given object tuple.
@@ -247,7 +247,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Compare this splice tuple and the given tuple.
@@ -257,7 +257,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEqualsAnyTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anotherTuple)
 	{
 		//  Compare this splice tuple and the given tuple.
@@ -330,7 +330,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectEndOfZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  Answer the ending index for the given zone.
@@ -340,7 +340,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectEndSubtupleIndexInZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  Answer the ending index into the subtuple for the given zone.
@@ -350,10 +350,10 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-			final AvailObject object, 
-			final int zone, 
-			final AvailObject newSubtuple, 
-			final int startSubtupleIndex, 
+			final AvailObject object,
+			final int zone,
+			final AvailObject newSubtuple,
+			final int startSubtupleIndex,
 			final int endOfZone)
 	{
 		//  Replace the zone information with the given zone information.  This is fairly low-level
@@ -368,8 +368,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectSetSubtupleForZoneTo (
-			final AvailObject object, 
-			final int zoneIndex, 
+			final AvailObject object,
+			final int zoneIndex,
 			final AvailObject newTuple)
 	{
 		//  Modify the subtuple holding the elements for the given zone.  This is 'unclipped'.  Should only
@@ -381,7 +381,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectSizeOfZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  Answer the size of the given zone.
@@ -395,7 +395,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectStartOfZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  Answer the starting index for the given zone.
@@ -409,7 +409,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectStartSubtupleIndexInZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  Answer the starting index into the subtuple for the given zone.
@@ -419,7 +419,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectSubtupleForZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  Answer the subtuple holding the elements for the given zone.  This is 'unclipped'.
@@ -429,8 +429,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTranslateToZone (
-			final AvailObject object, 
-			final int tupleIndex, 
+			final AvailObject object,
+			final int tupleIndex,
 			final int zoneIndex)
 	{
 		//  Convert the tuple index into an index into the (unclipped) subtuple for the given zone.
@@ -440,7 +440,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectZoneForIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the zone number that contains the given index.
@@ -477,9 +477,9 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectCopyTupleFromToCanDestroy (
-			final AvailObject object, 
-			final int start, 
-			final int end, 
+			final AvailObject object,
+			final int start,
+			final int end,
 			final boolean canDestroy)
 	{
 		//  Make a tuple that only contains the given range of elements of the given tuple.
@@ -523,7 +523,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the element at the given index in the tuple object.
@@ -539,8 +539,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject anObject)
 	{
 		//  Error - tupleAt:put: is not supported by SpliceTuples.  The different tuple variants have
@@ -552,9 +552,9 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -580,7 +580,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -630,8 +630,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  Hash part of the tuple object.

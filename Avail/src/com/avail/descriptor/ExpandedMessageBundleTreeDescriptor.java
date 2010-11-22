@@ -40,8 +40,9 @@ import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots("depth")
 @ObjectSlots({
-	"complete", 
-	"incomplete"
+	"complete",
+	"incomplete",
+	"specialActions"
 })
 public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
@@ -54,7 +55,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	 */
 	@Override
 	public void ObjectComplete (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -65,7 +66,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	 */
 	@Override
 	public void ObjectDepth (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -76,10 +77,21 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	 */
 	@Override
 	public void ObjectIncomplete (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
+	}
+
+	/**
+	 * Setter for field specialActions.
+	 */
+	@Override
+	public void ObjectSpecialActions (
+			final AvailObject object,
+			final AvailObject value)
+	{
+		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
 	/**
@@ -110,6 +122,16 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object)
 	{
 		return object.objectSlotAtByteIndex(-8);
+	}
+
+	/**
+	 * Getter for field specialActions.
+	 */
+	@Override
+	public AvailObject ObjectSpecialActions (
+			final AvailObject object)
+	{
+		return object.objectSlotAtByteIndex(-12);
 	}
 
 
@@ -160,8 +182,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	@Override
 	public void ObjectAtMessageAddBundle (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject bundle)
 	{
 		//  Add the given message/bundle pair.
@@ -206,8 +228,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	@Override
 	public AvailObject ObjectBundleAtMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  Answer the bundle with the given message (also split into parts).
@@ -228,8 +250,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	@Override
 	public void ObjectCopyToRestrictedTo (
-			final AvailObject object, 
-			final AvailObject filteredBundleTree, 
+			final AvailObject object,
+			final AvailObject filteredBundleTree,
 			final AvailObject visibleNames)
 	{
 		//  Copy the visible message bundles to the filteredBundleTree.  The Avail set
@@ -266,8 +288,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	@Override
 	public AvailObject ObjectIncludeBundleAtMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  If there isn't one already, add a bundle to correspond to the given message.
@@ -311,8 +333,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	@Override
 	public boolean ObjectRemoveMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  Remove the bundle with the given message name (expanded as parts).

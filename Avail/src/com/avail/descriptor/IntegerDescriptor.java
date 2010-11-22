@@ -1080,7 +1080,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	/**
 	 * Convert the specified Java {@code long} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
-	 * 
+	 *
 	 * @param anInteger A Java {@code long}.
 	 * @return An {@link AvailObject}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -1108,7 +1108,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	/**
 	 * Convert the specified Java {@code int} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
-	 * 
+	 *
 	 * @param anInteger A Java {@code int}.
 	 * @return An {@link AvailObject}.
 	 */
@@ -1126,7 +1126,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	/**
 	 * Convert the specified byte-valued Java {@code short} into an Avail
 	 * {@linkplain IntegerDescriptor integer}.
-	 * 
+	 *
 	 * @param anInteger A Java {@code int}.
 	 * @return An {@link AvailObject}.
 	 */

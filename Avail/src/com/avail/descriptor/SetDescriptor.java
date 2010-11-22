@@ -57,7 +57,7 @@ public class SetDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectRootBin (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -79,9 +79,9 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		AvailObject tuple = object.asTuple();
@@ -103,7 +103,7 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsSet(object);
@@ -111,7 +111,7 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsSet (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSet)
 	{
 		//  First eliminate the trivial case of different sizes.
@@ -134,7 +134,7 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTypeObject)
 	{
 		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
@@ -208,7 +208,7 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectHasElement (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject elementObject)
 	{
 		return object.rootBin().binHasElementHash(elementObject, elementObject.hash());
@@ -216,7 +216,7 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsSubsetOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Check if object is a subset of another.
@@ -230,8 +230,8 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectSetIntersectionCanDestroy (
-			final AvailObject object, 
-			final AvailObject otherSet, 
+			final AvailObject object,
+			final AvailObject otherSet,
 			final boolean canDestroy)
 	{
 		//  Compute the intersection of two sets.  May destroy one of them if it's mutable and canDestroy is true.
@@ -269,8 +269,8 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectSetMinusCanDestroy (
-			final AvailObject object, 
-			final AvailObject otherSet, 
+			final AvailObject object,
+			final AvailObject otherSet,
 			final boolean canDestroy)
 	{
 		//  Compute the asymmetric difference of two sets (a \ b).  May destroy one of them if it's
@@ -297,8 +297,8 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectSetUnionCanDestroy (
-			final AvailObject object, 
-			final AvailObject otherSet, 
+			final AvailObject object,
+			final AvailObject otherSet,
 			final boolean canDestroy)
 	{
 		//  Compute the union of two sets.  May destroy one of them if it's mutable and canDestroy is true.
@@ -347,8 +347,8 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectSetWithElementCanDestroy (
-			final AvailObject object, 
-			final AvailObject newElementObject, 
+			final AvailObject object,
+			final AvailObject newElementObject,
 			final boolean canDestroy)
 	{
 		//  Ensure newElementObject is in the set, adding it if necessary.  May destroy the
@@ -385,8 +385,8 @@ public class SetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectSetWithoutElementCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObjectToExclude, 
+			final AvailObject object,
+			final AvailObject elementObjectToExclude,
 			final boolean canDestroy)
 	{
 		//  Ensure elementObjectToExclude is not in the set, removing it if necessary.

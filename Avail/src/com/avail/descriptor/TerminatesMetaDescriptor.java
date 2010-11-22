@@ -36,8 +36,8 @@ import com.avail.descriptor.AvailObject;
 
 @IntegerSlots("hash")
 @ObjectSlots({
-	"name", 
-	"parent", 
+	"name",
+	"parent",
 	"myType"
 })
 public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
@@ -48,7 +48,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (terminatesType) is a subtype of aType (should also be a type).
@@ -66,7 +66,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfPrimitiveType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
 		//  Check if object (terminates type) is a supertype of aPrimitiveType (a primitive type).
@@ -78,7 +78,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -100,7 +100,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -114,7 +114,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that still includes both of these.

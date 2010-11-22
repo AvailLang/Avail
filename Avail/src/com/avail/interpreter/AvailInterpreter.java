@@ -33,14 +33,13 @@
 package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
-import com.avail.compiler.scanner.AvailScanner;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.AbstractSignatureDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
@@ -74,7 +73,7 @@ public abstract class AvailInterpreter
 	/**
 	 * Answer the {@link AvailRuntime} that the {@linkplain AvailInterpreter
 	 * receiver} uses to locate and store Avail runtime elements.
-	 * 
+	 *
 	 * @return An {@link AvailRuntime}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -93,7 +92,7 @@ public abstract class AvailInterpreter
 	 * Set the {@linkplain ModuleDescriptor module} context of the
 	 * {@linkplain AvailInterpreter interpreter}. This feature is used by the
 	 * compiler to establish transaction boundaries for module parsing.
-	 * 
+	 *
 	 * @param module A {@linkplain ModuleDescriptor module}, or {@code
 	 *               null} to disestablish the transaction.
 	 */
@@ -120,14 +119,16 @@ public abstract class AvailInterpreter
 		this.runtime = runtime;
 	}
 
-	// translate-accessing
 
+	/** 
+	 * Answer how many arguments this primitive expects.
+	 * 
+	 * @param n Which primitive.
+	 * @return The number of arguments.
+	 */
 	public int argCountForPrimitive (
 		final short n)
 	{
-		//  Answer how many arguments this primitive expects (not counting the array of arguments
-		//  used for reference maintenance).
-
 		return Primitive.byPrimitiveNumber(n).argCount();
 	}
 
@@ -135,7 +136,7 @@ public abstract class AvailInterpreter
 	 * This is a forward declaration of a method. Insert an appropriately
 	 * stubbed implementation in the module's method dictionary, and add it to
 	 * the list of methods needing to be declared later in this module.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param bodySignature A {@linkplain MethodSignatureDescriptor method
 	 *                      signature}.
@@ -189,20 +190,34 @@ public abstract class AvailInterpreter
 		imps.addImplementation(newImp);
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
 			newImp, true);
+		assert methodName.isCyclicType();
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject messageParts = splitter.messageParts();
 		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName, splitMethodName(methodName));
+			methodName, messageParts);
 	}
 
+	/**
+	 * Add the method implementation.  The precedence rules can not change after
+	 * the first implementation is encountered, so set them to 'no restrictions'
+	 * if they're not set already.
+	 * 
+	 * @param methodName The method's name, an Avail string.
+	 * @param method A {@link AvailMethodDescriptor} method.
+	 */
 	public void atAddMethodBody (
 		final AvailObject methodName,
 		final AvailObject method)
 	{
-		//  Add the method implementation.  The precedence rules can not change after the first
-		//  implementation is encountered, so set them to 'no restrictions' if they're not set already.
-
 		final short numArgs = method.type().numArgs();
-		final AvailObject returnsBlock = ClosureDescriptor.newStubForNumArgsConstantResult(numArgs, method.type().returnType());
-		final AvailObject requiresBlock = ClosureDescriptor.newStubForNumArgsConstantResult(numArgs, BooleanDescriptor.objectFromBoolean(true));
+		final AvailObject returnsBlock =
+			ClosureDescriptor.newStubForNumArgsConstantResult(
+				numArgs,
+				method.type().returnType());
+		final AvailObject requiresBlock =
+			ClosureDescriptor.newStubForNumArgsConstantResult(
+				numArgs,
+				BooleanDescriptor.objectFromBoolean(true));
 		atAddMethodBodyRequiresBlockReturnsBlock(
 			methodName,
 			method,
@@ -217,7 +232,7 @@ public abstract class AvailInterpreter
 	 * block</em> lets us home in on the type returned by a general method by
 	 * transforming the call-site-specific argument type information into a
 	 * return type for the method.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param bodyBlock The {@linkplain ClosureDescriptor body block}.
 	 * @param requiresBlock The {@linkplain ClosureDescriptor requires block}.
@@ -304,8 +319,11 @@ public abstract class AvailInterpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		imps.addImplementation(newImp);
+		assert methodName.isCyclicType();
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject messageParts = splitter.messageParts();
 		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName, splitMethodName(methodName));
+			methodName, messageParts);
 	}
 
 	/**
@@ -317,7 +335,7 @@ public abstract class AvailInterpreter
 	 * the type returned by a general method by transforming the
 	 * call-site-specific argument type information into a return type for the
 	 * method.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param bodySignature The {@linkplain MethodSignatureDescriptor method
 	 *                      signature}.
@@ -404,8 +422,10 @@ public abstract class AvailInterpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		imps.addImplementation(newImp);
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject messageParts = splitter.messageParts();
 		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName, splitMethodName(methodName));
+			methodName, messageParts);
 	}
 
 	/**
@@ -414,7 +434,7 @@ public abstract class AvailInterpreter
 	 * to be messages generating the arguments of this message.  For example,
 	 * <{'_+_'} , {'_+_' , '_*_'}> for the '_*_' operator makes * bind tighter
 	 * than + and also groups multiple *'s left-to-right.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param illegalArgMsgs The {@linkplain TupleDescriptor restrictions}.
 	 */
@@ -427,9 +447,11 @@ public abstract class AvailInterpreter
 		illegalArgMsgs.makeImmutable();
 		//  So we can safely hold this data in the VM
 		final int numArgs = countUnderscoresIn(methodName.name());
-		assert (numArgs == illegalArgMsgs.tupleSize())
-		: "Wrong number of entries in restriction tuple.";
-		final AvailObject parts = splitMethodName(methodName);
+		assert numArgs == illegalArgMsgs.tupleSize()
+			: "Wrong number of entries in restriction tuple.";
+		assert methodName.isCyclicType();
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject parts = splitter.messageParts();
 		//  Fix precedence.
 		AvailObject bundle =
 			module.filteredBundleTree().includeBundleAtMessageParts(
@@ -442,7 +464,7 @@ public abstract class AvailInterpreter
 	 * Create the two-argument defining method. The first parameter of the
 	 * method is the name, the second parameter is the {@linkplain
 	 * ClosureDescriptor block}.
-	 * 
+	 *
 	 * @param defineMethodName The name of the defining method.
 	 */
 	public void bootstrapDefiningMethod (
@@ -481,7 +503,7 @@ public abstract class AvailInterpreter
 	 * Create the one-argument {@linkplain AvailRuntime#specialObject(int)
 	 * special object} method. The parameter is the {@linkplain
 	 * IntegerDescriptor ordinal} of the special object.
-	 * 
+	 *
 	 * @param specialObjectName
 	 *        The name of the {@linkplain AvailRuntime#specialObject(int)
 	 *        special object} method.
@@ -582,34 +604,12 @@ public abstract class AvailInterpreter
 	}
 
 	/**
-	 * Answer whether the specified character is an operator character, space,
-	 * or underscore.
-	 * 
-	 * @param aCharacter A Java {@code char}.
-	 * @return {@code true} if the specified character is an operator character,
-	 *          space, or underscore; or {@code false} otherwise.
-	 */
-	private static boolean isCharacterUnderscoreOrSpaceOrOperator (
-		final char aCharacter)
-	{
-		if (aCharacter == '_')
-		{
-			return true;
-		}
-		if (aCharacter == ' ')
-		{
-			return true;
-		}
-		return AvailScanner.isOperatorCharacter(aCharacter);
-	}
-
-	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
 	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
 	 * {@linkplain CyclicTypeDescriptor true name} associated with the string,
 	 * creating the true name if necessary. A local true name always hides other
 	 * true names.
-	 * 
+	 *
 	 * @param stringName An Avail {@linkplain TupleDescriptor string}.
 	 * @return A {@linkplain CyclicTypeDescriptor true name}.
 	 */
@@ -646,7 +646,7 @@ public abstract class AvailInterpreter
 	 * The given forward is in the process of being resolved. A real
 	 * implementation is about to be added to the method tables, so remove the
 	 * forward now.
-	 * 
+	 *
 	 * @param aForward A forward declaration.
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 */
@@ -681,7 +681,7 @@ public abstract class AvailInterpreter
 	/**
 	 * Unbind the specified implementation from the {@linkplain
 	 * CyclicTypeDescriptor selector}.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor selector}.
 	 * @param implementation An implementation.
 	 */
@@ -700,82 +700,9 @@ public abstract class AvailInterpreter
 	}
 
 	/**
-	 * Break a {@linkplain CyclicTypeDescriptor selector} down into the
-	 * substrings that will be expected as tokens. Each underscore also becomes
-	 * an entry.  Spaces are dropped, except as a means to separate keywords;
-	 * e.g., '_and a_' matches '1 and a 2'.  I already canonize selectors with a
-	 * *single* space between consecutive *alphanumeric* tokens. Answer a
-	 * {@linkplain TupleDescriptor tuple} of Avail strings.
-	 * 
-	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
-	 * @return A {@linkplain TupleDescriptor tuple} of Avail strings.
-	 */
-	public static AvailObject splitMethodName (
-		final @NotNull AvailObject selector)
-	{
-		assert selector.isCyclicType();
-		final AvailObject in = selector.name();
-		if ((in.tupleSize() == 0))
-		{
-			return TupleDescriptor.empty();
-		}
-		int inPos = 1;
-		List<AvailObject> out = new ArrayList<AvailObject>(10);
-		while (inPos <= in.tupleSize()) {
-			final char ch = (char) in.tupleAt(inPos).codePoint();
-			if (ch == ' ')
-			{
-				if (out.size() == 0
-						|| isCharacterUnderscoreOrSpaceOrOperator(
-							(char) in.tupleAt(inPos - 1).codePoint()))
-				{
-					error(
-						"Illegally canonized method name"
-						+ " (problem before space)");
-					return VoidDescriptor.voidObject();
-				}
-				//  Skip the space.
-				inPos++;
-				if (inPos > in.tupleSize()
-						|| isCharacterUnderscoreOrSpaceOrOperator(
-							(char) in.tupleAt(inPos).codePoint()))
-				{
-					error(
-						"Illegally canonized method name"
-						+ " (problem after space)");
-					return VoidDescriptor.voidObject();
-				}
-			}
-			else if (ch == '_' || AvailScanner.isOperatorCharacter(ch))
-			{
-				out.add(in.copyTupleFromToCanDestroy(
-					inPos,
-					inPos,
-					false));
-				inPos++;
-			}
-			else
-			{
-				final int start = inPos;
-				while (inPos <= in.tupleSize()
-						&& !isCharacterUnderscoreOrSpaceOrOperator(
-							(char) in.tupleAt(inPos).codePoint()))
-				{
-					inPos++;
-				}
-				out.add(in.copyTupleFromToCanDestroy(
-					start,
-					(inPos - 1),
-					false));
-			}
-		}
-		return TupleDescriptor.mutableObjectFromArray(out).makeImmutable();
-	}
-
-	/**
 	 * Does the {@linkplain AvailInterpreter interpreter} provide a {@linkplain
 	 * Primitive primitive} with the specified ordinal?
-	 * 
+	 *
 	 * @param ordinal An ordinal.
 	 * @return {@code true} if there is a {@linkplain Primitive primitive} with
 	 *         the specified ordinal, {@code false} otherwise.
@@ -787,7 +714,7 @@ public abstract class AvailInterpreter
 
 	/**
 	 * Attempt to run the requires clauses applicable to this message send.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
 	 *                 of the message send.
@@ -819,7 +746,7 @@ public abstract class AvailInterpreter
 	/**
 	 * Answers the return type. Fails if no applicable implementation (or more
 	 * than one).
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
 	 *                 of the message send.

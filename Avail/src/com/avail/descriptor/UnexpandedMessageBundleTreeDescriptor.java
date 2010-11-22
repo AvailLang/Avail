@@ -41,8 +41,9 @@ import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots("depth")
 @ObjectSlots({
-	"unclassified", 
-	"pad"
+	"unclassified",
+	"pad1",
+	"pad2"
 })
 public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
@@ -55,21 +56,32 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 */
 	@Override
 	public void ObjectDepth (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
 	}
 
 	/**
-	 * Setter for field pad.
+	 * Setter for field pad1.
 	 */
 	@Override
-	public void ObjectPad (
-			final AvailObject object, 
+	public void ObjectPad1 (
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
+	}
+
+	/**
+	 * Setter for field pad2.
+	 */
+	@Override
+	public void ObjectPad2 (
+			final AvailObject object,
+			final AvailObject value)
+	{
+		object.objectSlotAtByteIndexPut(-12, value);
 	}
 
 	/**
@@ -77,7 +89,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 */
 	@Override
 	public void ObjectUnclassified (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -94,13 +106,23 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Getter for field pad.
+	 * Getter for field pad1.
 	 */
 	@Override
-	public AvailObject ObjectPad (
+	public AvailObject ObjectPad1 (
 			final AvailObject object)
 	{
 		return object.objectSlotAtByteIndex(-8);
+	}
+
+	/**
+	 * Getter for field pad2.
+	 */
+	@Override
+	public AvailObject ObjectPad2 (
+			final AvailObject object)
+	{
+		return object.objectSlotAtByteIndex(-12);
 	}
 
 	/**
@@ -157,8 +179,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public void ObjectAtMessageAddBundle (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject bundle)
 	{
 		//  Add the given message/bundle pair.
@@ -178,8 +200,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public AvailObject ObjectBundleAtMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  Answer the bundle with the given message (also split into parts).
@@ -191,8 +213,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public void ObjectCopyToRestrictedTo (
-			final AvailObject object, 
-			final AvailObject filteredBundleTree, 
+			final AvailObject object,
+			final AvailObject filteredBundleTree,
 			final AvailObject visibleNames)
 	{
 		//  Copy the visible message bundles to the filteredBundleTree.  The Avail set
@@ -218,8 +240,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public AvailObject ObjectIncludeBundleAtMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  If there isn't one already, add a bundle to correspond to the given message.
@@ -241,8 +263,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public boolean ObjectRemoveMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  Remove the bundle with the given message name (expanded as parts).
@@ -336,7 +358,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			0,
 			UnexpandedMessageBundleTreeDescriptor.immutableDescriptor());
 		result.unclassified(MapDescriptor.empty());
-		result.pad(VoidDescriptor.voidObject());
+		result.pad1(VoidDescriptor.voidObject());
+		result.pad2(VoidDescriptor.voidObject());
 		result.depth(depth);
 		return result;
 	};

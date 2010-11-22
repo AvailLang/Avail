@@ -50,9 +50,9 @@ import java.util.List;
 import static java.lang.Math.*;
 
 @ObjectSlots({
-	"implementationsTuple", 
-	"privateTestingTree", 
-	"dependentChunks", 
+	"implementationsTuple",
+	"privateTestingTree",
+	"dependentChunks",
 	"name"
 })
 public class ImplementationSetDescriptor extends Descriptor
@@ -66,7 +66,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectDependentChunks (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);
@@ -77,7 +77,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectImplementationsTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -88,7 +88,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectName (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-16, value);
@@ -99,7 +99,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectPrivateTestingTree (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -176,9 +176,9 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		final int size = object.implementationsTuple().tupleSize();
@@ -193,7 +193,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  ImplementationSets compare by identity.
@@ -252,7 +252,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public void ObjectAddDependentChunkId (
-			final AvailObject object, 
+			final AvailObject object,
 			final int aChunkIndex)
 	{
 		//  Record the fact that the chunk indexed by aChunkIndex depends on
@@ -263,7 +263,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public void ObjectAddImplementation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject implementation)
 	{
 		//  Add the implementation to me.  Causes dependent chunks to be invalidated.
@@ -287,8 +287,8 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
-			final AvailObject object, 
-			final AvailObject positiveTuple, 
+			final AvailObject object,
+			final AvailObject positiveTuple,
 			final AvailObject possibilities)
 	{
 		//  Create the testing tree for computing which implementation to invoke when given
@@ -477,7 +477,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public List<AvailObject> ObjectFilterByTypes (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
 		//  Look up all method implementations that could match the given argument types.
@@ -499,7 +499,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
-			final AvailObject object, 
+			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
 		//  Look up all method implementations that could match arguments with the given types,
@@ -529,7 +529,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIncludes (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject imp)
 	{
 		//  Test if the implementation is present.
@@ -547,7 +547,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLookupByTypesFromArray (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argumentTypeArray)
 	{
 		//  Look up the implementation to invoke, given an array of argument types.
@@ -578,8 +578,8 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLookupByTypesFromContinuationStackp (
-			final AvailObject object, 
-			final AvailObject continuation, 
+			final AvailObject object,
+			final AvailObject continuation,
 			final int stackp)
 	{
 		//  Assume the argument types have been pushed in the continuation.  The object
@@ -611,7 +611,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLookupByTypesFromTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject argumentTypeTuple)
 	{
 		//  Look up the implementation to invoke, given an array of argument types.
@@ -643,7 +643,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLookupByValuesFromArray (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argumentArray)
 	{
 		//  Look up the implementation to invoke, given an array of argument values.
@@ -674,8 +674,8 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLookupByValuesFromContinuationStackp (
-			final AvailObject object, 
-			final AvailObject continuation, 
+			final AvailObject object,
+			final AvailObject continuation,
 			final int stackp)
 	{
 		//  Assume the arguments have been pushed in the continuation.  The object at
@@ -707,7 +707,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLookupByValuesFromTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject argumentTuple)
 	{
 		//  Look up the implementation to invoke, given a tuple of argument values.
@@ -740,7 +740,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public void ObjectRemoveDependentChunkId (
-			final AvailObject object, 
+			final AvailObject object,
 			final int aChunkIndex)
 	{
 		//  Remove the chunk from my set of dependent chunks.  This is probably because
@@ -753,7 +753,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public void ObjectRemoveImplementation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject implementation)
 	{
 		//  Remove the implementation from me.  Causes dependent chunks to be invalidated.
@@ -777,9 +777,9 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
-			final AvailInterpreter anAvailInterpreter, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
+			final AvailInterpreter anAvailInterpreter,
 			final Continuation1<Generator<String>> failBlock)
 	{
 		//  Answers the return type.  Fails if no (or >1) applicable implementation.

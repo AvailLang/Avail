@@ -57,7 +57,7 @@ import com.avail.descriptor.ModuleDescriptor;
 
 /**
  * Broad test suite for the Avail compiler, interpreter, and library.
- * 
+ *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public class AvailCompilerTest
@@ -65,7 +65,7 @@ public class AvailCompilerTest
 	/**
 	 * Read and answer the text of the specified {@linkplain ModuleDescriptor
 	 * Avail module}.
-	 * 
+	 *
 	 * @param sourceFile
 	 *        A {@linkplain File file reference} to an {@linkplain
 	 *        ModuleDescriptor Avail module}.
@@ -80,7 +80,7 @@ public class AvailCompilerTest
 			final char[] sourceBuffer = new char[(int) sourceFile.length()];
 			final Reader sourceReader =
 				new BufferedReader(new FileReader(sourceFile));
-	
+
 			int offset = 0;
 			int bytesRead = -1;
 			while ((bytesRead = sourceReader.read(
@@ -88,7 +88,7 @@ public class AvailCompilerTest
 			{
 				offset += bytesRead;
 			}
-	
+
 			return new String(sourceBuffer, 0, offset);
 		}
 		catch (final IOException e)
@@ -96,21 +96,21 @@ public class AvailCompilerTest
 			return null;
 		}
 	}
-	
+
 	/** The {@linkplain ModuleRoots Avail module roots}. */
 	private static final @NotNull ModuleRoots roots =
 		new ModuleRoots("avail=" + new File("avail").getAbsolutePath());
-	
+
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
 	private ModuleNameResolver resolver;
-	
+
 	/** The {@linkplain AvailRuntime Avail runtime}. */
 	private AvailRuntime runtime;
 
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime.
-	 * 
+	 *
 	 * @throws RenamesFileParserException
 	 *         Never happens.
 	 */
@@ -126,7 +126,7 @@ public class AvailCompilerTest
 
 	/**
 	 * Compile the specified Avail {@linkplain ModuleDescriptor module}.
-	 * 
+	 *
 	 * @param target
 	 *        The {@linkplain ModuleName fully-qualified name} of the target
 	 *        {@linkplain ModuleDescriptor module}.
@@ -168,7 +168,7 @@ public class AvailCompilerTest
 								moduleName,
 								globalCodeSize - position);
 						}
-						
+
 						System.out.printf(
 							"\t... bytes processed = %d (%.2f%% done)%n",
 							position,
@@ -185,14 +185,14 @@ public class AvailCompilerTest
 				System.err.printf("%s%n", e.getMessage());
 				throw e;
 			}
-			
+
 			final String source = readSourceFile(resolvedName.fileReference());
 			if (source == null)
 			{
 				System.err.printf("%s%n", e.getMessage());
 				throw e;
 			}
-			
+
 			final char[] sourceBuffer = source.toCharArray();
 			final StringBuilder builder = new StringBuilder();
 			System.err.append(new String(
@@ -208,7 +208,7 @@ public class AvailCompilerTest
 
 	/**
 	 * Test: Compile the Tier-0 modules.
-	 * 
+	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
@@ -224,7 +224,7 @@ public class AvailCompilerTest
 
 	/**
 	 * Test: Compile the Tier-1 modules.
-	 * 
+	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
@@ -239,7 +239,7 @@ public class AvailCompilerTest
 
 	/**
 	 * Test: Compile the Tier-2 modules.
-	 * 
+	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
@@ -254,7 +254,7 @@ public class AvailCompilerTest
 
 	/**
 	 * Test: Compile the Tier-3 modules.
-	 * 
+	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
@@ -269,7 +269,7 @@ public class AvailCompilerTest
 
 	/**
 	 * Test: Compile the Tier-4 modules.
-	 * 
+	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */

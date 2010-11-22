@@ -122,7 +122,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		aStream.append('$');

@@ -90,7 +90,7 @@ public class L2GetInstruction extends L2Instruction
 	// initialization
 
 	public L2GetInstruction sourceVariableDestination (
-			final L2ObjectRegister sourceVariable, 
+			final L2ObjectRegister sourceVariable,
 			final L2ObjectRegister destination)
 	{
 		_sourceVar = sourceVariable;

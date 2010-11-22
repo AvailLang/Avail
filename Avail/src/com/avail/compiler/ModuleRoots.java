@@ -49,17 +49,17 @@ import com.avail.descriptor.ModuleDescriptor;
  * containing Avail modules. A logical root name should typically belong to a
  * vendor of Avail modules, ergo a domain name or registered trademark suffices
  * nicely.
- *   
+ *
  * <p>The format of an Avail module path is described by the following
  * simple grammar:</p>
- * 
+ *
  * <pre>
  * modulePath ::= binding ++ ";" ;
  * binding ::= root "=" directory ;
- * root ::= [^=;]+ ; 
+ * root ::= [^=;]+ ;
  * directory ::= [^;]+ ;
  * </pre>
- * 
+ *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public final class ModuleRoots
@@ -69,7 +69,7 @@ public final class ModuleRoots
 
 	/**
 	 * Answer the Avail {@linkplain ModuleDescriptor module} path.
-	 * 
+	 *
 	 * @return The Avail {@linkplain ModuleDescriptor module} path.
 	 */
 	@ThreadSafe
@@ -90,7 +90,7 @@ public final class ModuleRoots
 	 * Parse the Avail {@linkplain ModuleDescriptor module} path into a
 	 * {@linkplain Map map} of logical root names to {@linkplain
 	 * File#isAbsolute() absolute} pathnames of {@linkplain File directories}.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         If any component of the Avail {@linkplain ModuleDescriptor
 	 *         module} path is not the absolution pathname of a directory.
@@ -130,7 +130,7 @@ public final class ModuleRoots
 	/**
 	 * Answer the logical root names in the order that they are specified in
 	 * the Avail {@linkplain ModuleDescriptor module} path.
-	 * 
+	 *
 	 * @return The logical root names.
 	 */
 	@ThreadSafe
@@ -142,7 +142,7 @@ public final class ModuleRoots
 	/**
 	 * Answer the {@linkplain File root directory} bound to the specified
 	 * logical root name.
-	 * 
+	 *
 	 * @param rootName A logical root name, typically something owned by a
 	 *                 vendor of Avail {@linkplain ModuleDescriptor
 	 *                 modules}.

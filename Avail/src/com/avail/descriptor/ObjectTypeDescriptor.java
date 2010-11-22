@@ -47,7 +47,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectHasObjectInstance (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject potentialInstance)
 	{
 		//  The potentialInstance is a user-defined object.  See if it is an instance of me.
@@ -90,7 +90,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectFieldTypeMap (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -157,7 +157,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -167,7 +167,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectType)
 	{
 		//  Check if I'm a supertype of the given eager object type.
@@ -203,7 +203,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -221,7 +221,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectType)
 	{
 		//  Answer the most general type that is still at least as specific as these.  Here we're finding
@@ -272,7 +272,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -290,7 +290,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectType)
 	{
 		//  Answer the most specific type that is still at least as general as these.  Here we're finding

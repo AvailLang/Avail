@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  * {@code NotNull} annotation indicates that the annotated target must not
  * yield a {@code null} when evaluated. The precise meaning depends upon the
  * type of the target:
- * 
+ *
  * <p><ul>
  * <li><strong>Static field.</strong> Once all {@code static} initializers have
  * run to completion, the field must not and must never again contain {@code

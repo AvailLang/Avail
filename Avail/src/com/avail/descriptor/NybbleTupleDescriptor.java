@@ -45,7 +45,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
 @IntegerSlots({
-	"hashOrZero", 
+	"hashOrZero",
 	"rawQuadAt#"
 })
 public class NybbleTupleDescriptor extends TupleDescriptor
@@ -57,7 +57,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectRawQuadAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -67,8 +67,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawQuadAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED setter method (indexed).
@@ -82,9 +82,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		if ((object.tupleSize() == 0))
@@ -132,10 +132,10 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.
@@ -149,10 +149,10 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aNybbleTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aNybbleTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two nybble tuples.
@@ -180,7 +180,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsNybbleTuple(object);
@@ -188,7 +188,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEqualsNybbleTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aNybbleTuple)
 	{
 		//  First, check for object-structure (address) identity.
@@ -223,7 +223,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectIsBetterRepresentationThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
@@ -235,7 +235,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
@@ -287,8 +287,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawNybbleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final byte aNybble)
 	{
 		//  Set the nybble at the given index.  Use big Endian.
@@ -320,7 +320,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public byte ObjectExtractNybbleFromTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Get the element at the given index in the tuple object, and extract a nybble from it.
@@ -334,7 +334,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public short ObjectRawByteAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the byte at the given byte-index.  This is actually two nybbles packed together.
@@ -344,8 +344,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawByteAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  Set the byte at the given byte-index.  This is actually two nybbles packed together.
@@ -356,7 +356,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public byte ObjectRawNybbleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the nybble at the given index in the nybble tuple object.
@@ -368,7 +368,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the element at the given index in the nybble tuple object.
@@ -378,8 +378,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject aNybbleObject)
 	{
 		//  Set the nybble at the given index to the given object (which should be an AvailObject that's an integer 0<=n<=15).
@@ -389,9 +389,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -428,7 +428,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the nybble tuple object.
@@ -472,8 +472,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.

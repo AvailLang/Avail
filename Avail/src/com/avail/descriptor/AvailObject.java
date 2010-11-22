@@ -1640,7 +1640,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the {@linkplain
 	 * AvailObject receiver}.
-	 * 
+	 *
 	 * @return A 64-bit signed Java {@code long}
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -2172,7 +2172,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Is the {@link AvailObject receiver} an Avail byte tuple?
-	 * 
+	 *
 	 * @return {@code true} if the receiver is an Avail byte tuple, {@code
 	 *         false} otherwise.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -2363,7 +2363,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Is the {@link AvailObject receiver} an Avail string?
-	 * 
+	 *
 	 * @return {@code true} if the receiver is an Avail string, {@code false}
 	 *         otherwise.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -2582,7 +2582,7 @@ implements Iterable<AvailObject>
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject receiver} with a Java
 	 * <em>foreach</em> construct.
-	 * 
+	 *
 	 * @return An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -3399,18 +3399,35 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject pad ()
+	public AvailObject pad1 ()
 	{
-		return descriptor().ObjectPad(this);
+		return descriptor().ObjectPad1(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void pad (
+	public AvailObject pad2 ()
+	{
+		return descriptor().ObjectPad2(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void pad1 (
 		final AvailObject value)
 	{
-		descriptor().ObjectPad(this, value);
+		descriptor().ObjectPad1(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void pad2 (
+		final AvailObject value)
+	{
+		descriptor().ObjectPad2(this, value);
 	}
 
 	/**
@@ -4191,6 +4208,23 @@ implements Iterable<AvailObject>
 		final AvailObject value)
 	{
 		descriptor().ObjectSizeRange(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public AvailObject specialActions ()
+	{
+		return descriptor().ObjectSpecialActions(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void specialActions (
+		final AvailObject value)
+	{
+		descriptor().ObjectSpecialActions(this, value);
 	}
 
 	/**
@@ -5115,10 +5149,10 @@ implements Iterable<AvailObject>
 	 * StringBuilder} unless it is already present in the {@linkplain List
 	 * recursion list}. Printing will begin at the specified indent level,
 	 * measured in horizontal tab characters.
-	 * 
+	 *
 	 * <p>This operation exists primarily to provide useful representations of
 	 * {@code AvailObject}s for Java-side debugging.</p>
-	 * 
+	 *
 	 * @param builder A {@link StringBuilder}.
 	 * @param recursionList A {@linkplain List list} containing {@link
 	 *                      AvailObject}s already visited during the recursive

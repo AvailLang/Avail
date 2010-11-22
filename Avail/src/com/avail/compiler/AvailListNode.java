@@ -123,7 +123,7 @@ public class AvailListNode extends AvailParseNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		for (int i = 1, _end1 = _expressions.size(); i <= _end1; i++)

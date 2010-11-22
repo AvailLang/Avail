@@ -49,7 +49,7 @@ public class FloatDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectRawQuad1 (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -71,9 +71,9 @@ public class FloatDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append(object.extractFloat());
@@ -85,7 +85,7 @@ public class FloatDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsFloat(object);
@@ -93,7 +93,7 @@ public class FloatDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsFloat (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aFloatObject)
 	{
 		if (object.extractFloat() != aFloatObject.extractFloat())

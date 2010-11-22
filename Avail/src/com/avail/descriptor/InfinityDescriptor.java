@@ -54,7 +54,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	 */
 	@Override
 	public void ObjectWhichOne (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -76,9 +76,9 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		if (!object.isPositive())
@@ -94,7 +94,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsInfinity(object);
@@ -102,7 +102,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectEqualsInfinity (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anInfinity)
 	{
 		//  Compare infinities by their whichOne fields.
@@ -112,7 +112,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectGreaterThanInteger (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return object.isPositive();
@@ -120,7 +120,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectGreaterThanSignedInfinity (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  1=+inf, 2=-inf
@@ -129,7 +129,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
@@ -157,7 +157,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectLessThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.greaterThanSignedInfinity(object);
@@ -165,7 +165,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean ObjectTypeEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
@@ -259,8 +259,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectDivideCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  Double-dispatch it.
@@ -270,8 +270,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectMinusCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  Double-dispatch it.
@@ -281,8 +281,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectPlusCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  Double-dispatch it.
@@ -292,8 +292,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectTimesCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  Double-dispatch it.
@@ -316,8 +316,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectAddToInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		if ((anInfinity.isPositive() == object.isPositive()))
@@ -330,8 +330,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectAddToIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		return object;
@@ -339,8 +339,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectDivideIntoInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		error("Can't divide infinities", object);
@@ -349,8 +349,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectDivideIntoIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		return IntegerDescriptor.zero();
@@ -358,8 +358,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectMultiplyByInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		return ((anInfinity.isPositive() == object.isPositive()) ? InfinityDescriptor.positiveInfinity() : InfinityDescriptor.negativeInfinity());
@@ -367,8 +367,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectMultiplyByIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		if (anInteger.equals(IntegerDescriptor.zero()))
@@ -381,8 +381,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectSubtractFromInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		if ((anInfinity.isPositive() ^ object.isPositive()))
@@ -395,8 +395,8 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	@Override
 	public AvailObject ObjectSubtractFromIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		return (object.isPositive() ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity());

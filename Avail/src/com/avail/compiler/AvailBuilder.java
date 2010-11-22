@@ -71,7 +71,7 @@ public final class AvailBuilder
 
 	/** An {@linkplain L2Interpreter interpreter}. */
 	private final @NotNull L2Interpreter interpreter;
-	
+
 	/**
 	 * Construct a new {@link AvailBuilder}.
 	 *
@@ -100,32 +100,32 @@ public final class AvailBuilder
 	 */
 	private final @NotNull Set<ModuleName> recursionSet =
 		new LinkedHashSet<ModuleName>();
-	
+
 	/**
 	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to
 	 * their predecessors.
 	 */
 	private final @NotNull Map<ModuleName, Set<ModuleName>> predecessors =
 		new HashMap<ModuleName, Set<ModuleName>>();
-	
+
 	/**
 	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to
 	 * their successors.
 	 */
 	private final @NotNull Map<ModuleName, Set<ModuleName>> successors =
 		new HashMap<ModuleName, Set<ModuleName>>();
-	
+
 	/**
 	 * The {@linkplain ModuleName dependencies} of the {@linkplain #target
 	 * target}.
 	 */
 	private final @NotNull List<ModuleName> dependencies =
 		new ArrayList<ModuleName>();
-	
+
 	/**
 	 * Trace the imports of the {@linkplain ModuleDescriptor module} specified
 	 * by the given {@linkplain ModuleName module name}.
-	 * 
+	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @throws AvailCompilerException
@@ -148,15 +148,15 @@ public final class AvailBuilder
 			recursionList.add(qualifiedName);
 			throw new RecursiveDependencyException(recursionList);
 		}
-		
+
 		// Prevent recursion into this module.
 		recursionSet.add(qualifiedName);
-		
+
 		assert !successors.containsKey(qualifiedName);
 		assert !predecessors.containsKey(qualifiedName);
 		successors.put(qualifiedName, new HashSet<ModuleName>());
 		predecessors.put(qualifiedName, new HashSet<ModuleName>());
-		
+
 		final ResolvedModuleName resolution =
 			runtime.moduleNameResolver().resolve(qualifiedName);
 
@@ -175,7 +175,7 @@ public final class AvailBuilder
 			importedModules.add(
 				resolution.asSibling(usedModule.asNativeString()));
 		}
-		
+
 		// Recurse into each previously unseen import.
 		for (final ModuleName moduleName : importedModules)
 		{
@@ -186,11 +186,11 @@ public final class AvailBuilder
 			successors.get(moduleName).add(qualifiedName);
 			predecessors.get(qualifiedName).add(moduleName);
 		}
-		
+
 		// Permit visitation of this module again.
 		recursionSet.remove(qualifiedName);
 	}
-	
+
 	/**
 	 * Compute {@linkplain ModuleDescriptor module} loading order from the
 	 * partial order implicitly specified by {@link #predecessors} and
@@ -217,13 +217,13 @@ public final class AvailBuilder
 				}
 			}
 		}
-		
+
 		assert successors.isEmpty();
 	}
 
 	/**
 	 * Answer the size, in bytes, of all source files that will be built.
-	 * 
+	 *
 	 * @return The size, in bytes, of all source files that will be built.
 	 */
 	private long globalCodeSize ()
@@ -237,16 +237,16 @@ public final class AvailBuilder
 		}
 		return globalCodeSize;
 	}
-	
+
 	/**
 	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
-	 * 
+	 *
 	 * @param localTracker
 	 *        A {@linkplain Continuation3 continuation} that accepts the
 	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
 	 *        module} undergoing {@linkplain AvailCompiler compilation}, the
 	 *        position of the ongoing parse (in bytes), and the size of the
-	 *        module (in bytes). 
+	 *        module (in bytes).
 	 * @param globalTracker
 	 *        A {@linkplain Continuation3 continuation} that accepts the
 	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
@@ -265,11 +265,11 @@ public final class AvailBuilder
 				ModuleName, Long, Long> localTracker,
 			final @NotNull Continuation3<
 				ModuleName, Long, Long> globalTracker)
-		throws AvailCompilerException, RecursiveDependencyException	
+		throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
 		final AvailCompiler compiler = new AvailCompiler(interpreter);
-		
+
 		traceModuleImports(target);
 		linearizeModuleImports();
 		final long globalCodeSize = globalCodeSize();
@@ -307,5 +307,5 @@ public final class AvailBuilder
 		}
 		assert globalPosition.value == globalCodeSize;
 		globalTracker.value(target, globalPosition.value, globalCodeSize);
-	}	
+	}
 }

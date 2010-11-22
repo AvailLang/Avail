@@ -70,7 +70,7 @@ extends Descriptor
 
 	/**
 	 * Answer the sole instance of the void object.
-	 * 
+	 *
 	 * @return The sole instance of the void object.
 	 */
 	@ThreadSafe
@@ -132,10 +132,10 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject ObjectBinAddingElementHashLevelCanDestroy (
-		final @NotNull AvailObject object, 
-		final @NotNull AvailObject elementObject, 
-		final int elementObjectHash, 
-		final byte myLevel, 
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
 		// The voidObject can't be an actual member of a set, so if one
@@ -152,7 +152,7 @@ extends Descriptor
 	@Override
 	@ThreadSafe
 	public boolean ObjectIsBinSubsetOf (
-		final @NotNull AvailObject object, 
+		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialSuperset)
 	{
 		// Void can't actually be a member of a set, so treat it as a
@@ -164,9 +164,9 @@ extends Descriptor
 	@Override
 	@ThreadSafe
 	public @NotNull AvailObject ObjectBinRemoveElementHashCanDestroy (
-		final @NotNull AvailObject object, 
-		final @NotNull AvailObject elementObject, 
-		final int elementObjectHash, 
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash,
 		final boolean canDestroy)
 	{
 		// The void object is acting as a bin of size zero, so the answer must
@@ -177,8 +177,8 @@ extends Descriptor
 	@Override
 	@ThreadSafe
 	public int ObjectPopulateTupleStartingAt (
-		final @NotNull AvailObject object, 
-		final @NotNull AvailObject mutableTuple, 
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject mutableTuple,
 		final int startingIndex)
 	{
 		// The void object acts as an empty bin, so do nothing.
@@ -214,14 +214,14 @@ extends Descriptor
 	@Override
 	@ThreadSafe
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object, 
-		final @NotNull StringBuilder builder, 
-		final @NotNull List<AvailObject> recursionList, 
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
 		builder.append("VoidDescriptor void");
 	}
-	
+
 	/**
 	 * Construct a new {@link VoidDescriptor}.
 	 *
@@ -240,7 +240,7 @@ extends Descriptor
 
 	/**
 	 * Answer a mutable {@link VoidDescriptor}.
-	 * 
+	 *
 	 * @return A mutable {@link VoidDescriptor}.
 	 */
 	@ThreadSafe
@@ -254,7 +254,7 @@ extends Descriptor
 
 	/**
 	 * Answer an immutable {@link VoidDescriptor}.
-	 * 
+	 *
 	 * @return An immutable {@link VoidDescriptor}.
 	 */
 	@ThreadSafe

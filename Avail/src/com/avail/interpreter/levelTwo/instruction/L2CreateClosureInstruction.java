@@ -93,8 +93,8 @@ public class L2CreateClosureInstruction extends L2Instruction
 	// initialization
 
 	public L2CreateClosureInstruction codeOutersVectorDestObject (
-			final AvailObject codeLiteral, 
-			final L2RegisterVector outerVect, 
+			final AvailObject codeLiteral,
+			final L2RegisterVector outerVect,
 			final L2ObjectRegister destClosure)
 	{
 		_code = codeLiteral;

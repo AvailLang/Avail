@@ -187,10 +187,10 @@ public class AvailCodeGenerator
 	}
 
 	public void startBlockWithArgumentsLocalsLabelsOuterVarsResultType (
-			final List<AvailVariableDeclarationNode> arguments, 
-			final List<AvailVariableDeclarationNode> locals, 
-			final List<AvailLabelNode> labels, 
-			final List<AvailVariableDeclarationNode> outerVars, 
+			final List<AvailVariableDeclarationNode> arguments,
+			final List<AvailVariableDeclarationNode> locals,
+			final List<AvailLabelNode> labels,
+			final List<AvailVariableDeclarationNode> outerVars,
 			final AvailObject resType)
 	{
 		_numArgs = arguments.size();
@@ -253,7 +253,7 @@ public class AvailCodeGenerator
 	// emitting instructions
 
 	public void emitCallMethodByTypesNumArgsLiteral (
-			final int nArgs, 
+			final int nArgs,
 			final AvailObject aLiteral)
 	{
 		final int index = indexOfLiteral(aLiteral);
@@ -266,7 +266,7 @@ public class AvailCodeGenerator
 	}
 
 	public void emitCallMethodByValuesNumArgsLiteral (
-			final int nArgs, 
+			final int nArgs,
 			final AvailObject aLiteral)
 	{
 		final int index = indexOfLiteral(aLiteral);
@@ -279,7 +279,7 @@ public class AvailCodeGenerator
 	}
 
 	public void emitClosedBlockWithCopiedVars (
-			final AvailObject anAvailCompiledBlock, 
+			final AvailObject anAvailCompiledBlock,
 			final List<AvailVariableDeclarationNode> copiedVars)
 	{
 		for (int i = 1, _end1 = copiedVars.size(); i <= _end1; i++)

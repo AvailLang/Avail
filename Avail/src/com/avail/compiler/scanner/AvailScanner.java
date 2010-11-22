@@ -362,7 +362,7 @@ public class AvailScanner
 	/**
 	 * Answer the {@linkplain List list} of {@linkplain AvailToken tokens} that
 	 * comprise a {@linkplain ModuleDescriptor module}.
-	 * 
+	 *
 	 * @param string The text of an Avail {@linkplain ModuleDescriptor
 	 *               module} (or at least the prefix up to the <em>Names</em>
 	 *               token).

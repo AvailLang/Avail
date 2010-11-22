@@ -65,7 +65,7 @@ public class AvailInstruction
 	}
 
 	public void writeIntegerOn (
-			final int anInteger, 
+			final int anInteger,
 			final ByteArrayOutputStream aStream)
 	{
 		//  Write a nybble-coded integer (in variable-sized format) to the stream (a WriteStream on a ByteArray).
@@ -133,8 +133,8 @@ public class AvailInstruction
 	// optimization
 
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData, 
-			final List<AvailVariableAccessNote> outerData, 
+			final List<AvailVariableAccessNote> localData,
+			final List<AvailVariableAccessNote> outerData,
 			final AvailCodeGenerator codeGenerator)
 	{
 		//  The instructions of a block are being iterated over.  Coordinate optimizations

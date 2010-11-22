@@ -45,10 +45,10 @@ import com.avail.descriptor.ModuleDescriptor;
  * A {@code RenamesFileParser} parses a {@linkplain File file} of Avail
  * {@linkplain ModuleDescriptor module} renaming rules and answers a
  * {@linkplain Map map}.
- * 
+ *
  * <p>The format of the renames file is specified by the following
  * simple grammar:</p>
- * 
+ *
  * <pre>
  * renamesFile ::= renameRule* ;
  * renameRule ::= quotedModulePath "->" quotedModulePath ;
@@ -56,7 +56,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * modulePath ::= moduleId ++ "/" ;
  * moduleId ::= [^/"]+ ;
  * </pre>
- * 
+ *
  * <p>Conceptually the renames file establishes a set of module reference
  * renaming rules. On the left-hand side of a rule is a fully-qualified module
  * reference (<em>quotedModulePath</em>) of the form
@@ -69,7 +69,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * referring to a vendor, <strong>A</strong> is a public module group provided
  * by the vendor, <strong>B</strong> is a module group recursively within module
  * group <strong>A</strong>, and <strong>C</strong> is a local module name.</p>
- * 
+ *
  * <p>Note that some operating systems may have difficulty resolving certain
  * <em>moduleId</em>s if they contain arbitrary Unicode characters.</p>
  *
@@ -79,7 +79,7 @@ public final class RenamesFileParser
 {
 	/**
 	 * Build the source text of a renames file from the specified rules.
-	 * 
+	 *
 	 * @param rules
 	 *        An array of rules, where each rule is a 2-element {@linkplain
 	 *        String string} array whose first element is an Avail {@linkplain
@@ -157,7 +157,7 @@ public final class RenamesFileParser
 
 	/**
 	 * A {@code Token} associates a {@link TokenType} with a {@linkplain String
-	 * lexeme} from the source text of the renames file. 
+	 * lexeme} from the source text of the renames file.
 	 */
 	private static class Token
 	{
@@ -182,7 +182,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Has the scanner read the entire source text?
-	 * 
+	 *
 	 * @return {@code true} if the scanner has read the entire {@linkplain
 	 *         Reader stream} of source text, {@code false} otherwise.
 	 * @throws IOException
@@ -198,7 +198,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Answer and consume the next character from the {@linkplain #reader}.
-	 * 
+	 *
 	 * @return The next character from the {@linkplain #reader}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
@@ -213,7 +213,7 @@ public final class RenamesFileParser
 	/**
 	 * Answer (but don't consume) the next character from the {@linkplain
 	 * #reader}.
-	 * 
+	 *
 	 * @return The next character from the {@linkplain #reader}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
@@ -230,7 +230,7 @@ public final class RenamesFileParser
 	/**
 	 * Peek for the specified character. If the next character from the
 	 * {@linkplain #reader} matches, then consume it and answer {@code true}.
-	 * 
+	 *
 	 * @param c A character.
 	 * @return {@code true} if the next character from the {@linkplain #reader}
 	 *         matches the specified character, {@code false} otherwise.
@@ -256,7 +256,7 @@ public final class RenamesFileParser
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme began with a double-quote
 	 * (").
-	 * 
+	 *
 	 * @return A {@linkplain Token token}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} or unexpected
@@ -288,7 +288,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme began with a hyphen (-).
-	 * 
+	 *
 	 * @return A {@linkplain Token token}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} or unexpected
@@ -306,7 +306,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme began with a slash (/).
-	 * 
+	 *
 	 * @return A {@linkplain Token token} or {@code null}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} or unexpected
@@ -351,7 +351,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Consume whitespace.
-	 * 
+	 *
 	 * @return {@code null}.
 	 */
 	Token scanWhitespace ()
@@ -362,7 +362,7 @@ public final class RenamesFileParser
 	/**
 	 * Answer a {@linkplain Token token} whose lexeme is the specified
 	 * character of unknown significance.
-	 * 
+	 *
 	 * @param unknownChar A character.
 	 * @return A {@linkplain Token token}.
 	 */
@@ -377,7 +377,7 @@ public final class RenamesFileParser
 	 */
 	private static enum ScannerAction
 	{
-		/** A double quote (") was just seen. */ 
+		/** A double quote (") was just seen. */
 		DOUBLE_QUOTE
 		{
 			@Override
@@ -444,14 +444,14 @@ public final class RenamesFileParser
 		/**
 		 * Answer the next {@linkplain Token token} from the {@linkplain
 		 * #reader stream}.
-		 * 
+		 *
 		 * @param parser A {@link RenamesFileParser}.
 		 * @param firstChar The character used to select the {@link
 		 *                  ScannerAction}.
 		 * @return A {@linkplain Token token}.
 		 * @throws IOException
 		 *         If the scanner encounters an error while trying to scan for
-		 *         the next {@linkplain Token token}. 
+		 *         the next {@linkplain Token token}.
 		 */
 		abstract Token scan (
 				@NotNull RenamesFileParser parser,
@@ -500,7 +500,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Answer the next {@linkplain Token token}.
-	 * 
+	 *
 	 * @return A {@linkplain Token token}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
@@ -542,7 +542,7 @@ public final class RenamesFileParser
 	 * Parse a rename rule (<em>renameRule</em>) and install an appropriate
 	 * transformation rule into the {@linkplain ModuleNameResolver module
 	 * name resolver}.
-	 * 
+	 *
 	 * @param modulePath A {@linkplain ModuleDescriptor module} path.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception}.
@@ -583,7 +583,7 @@ public final class RenamesFileParser
 
 	/**
 	 * Parse a renames file (<em>renamesFile</em>).
-	 * 
+	 *
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception}.
 	 * @throws RenamesFileParserException
@@ -612,7 +612,7 @@ public final class RenamesFileParser
 	/**
 	 * Parse the source text and answer a {@linkplain ModuleNameResolver module
 	 * name resolver} with the appropriate renaming rules.
-	 * 
+	 *
 	 * @return A {@linkplain ModuleNameResolver module name resolver}.
 	 * @throws RenamesFileParserException
 	 *         If the parse fails for any reason.

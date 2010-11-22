@@ -92,7 +92,7 @@ public class L2ConvertTupleToListInstruction extends L2Instruction
 	// initialization
 
 	public L2ConvertTupleToListInstruction sourceDestination (
-			final L2ObjectRegister sourceTupleRegister, 
+			final L2ObjectRegister sourceTupleRegister,
 			final L2ObjectRegister destinationListRegister)
 	{
 		_source = sourceTupleRegister;

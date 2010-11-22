@@ -50,7 +50,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectHashOrZero (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -61,7 +61,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectName (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -110,9 +110,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append('$');
@@ -176,7 +176,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -186,7 +186,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  Two cyclic types are identical if and only if they are at the same address in
@@ -199,7 +199,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -217,7 +217,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -231,7 +231,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -245,7 +245,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -263,7 +263,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  Answer the most specific type that is still at least as general as these.

@@ -51,7 +51,7 @@ public class ListDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -73,9 +73,9 @@ public class ListDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append("(");
@@ -92,7 +92,7 @@ public class ListDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsList(object);
@@ -100,7 +100,7 @@ public class ListDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsList (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aList)
 	{
 		if (object.sameAddressAs(aList))
@@ -113,7 +113,7 @@ public class ListDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate

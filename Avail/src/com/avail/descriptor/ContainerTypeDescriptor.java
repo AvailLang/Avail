@@ -48,7 +48,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectInnerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -70,9 +70,9 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append("& : ");
@@ -88,7 +88,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsContainerType(object);
@@ -96,7 +96,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Container types compare for equality by comparing their innerTypes.
@@ -153,7 +153,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -163,7 +163,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  Container types are invariant (co- and contra-variant simultaneously).  Strange to
@@ -174,7 +174,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -192,7 +192,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -206,7 +206,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -224,7 +224,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  Answer the most specific type that is still at least as general as these.

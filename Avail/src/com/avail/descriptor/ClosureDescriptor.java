@@ -44,7 +44,7 @@ import java.util.List;
 import static java.util.Arrays.*;
 
 @ObjectSlots({
-	"code", 
+	"code",
 	"outerVarAt#"
 })
 public class ClosureDescriptor extends Descriptor
@@ -58,7 +58,7 @@ public class ClosureDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectCode (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -66,7 +66,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectOuterVarAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -76,8 +76,8 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public void ObjectOuterVarAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
@@ -101,9 +101,9 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		if (isMutable)
@@ -123,7 +123,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsClosure(object);
@@ -131,7 +131,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsClosure (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosure)
 	{
 		if (!object.code().equals(aClosure.code()))
@@ -229,7 +229,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectContainsBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosure)
 	{
 		//  Answer true if either I am aClosure or I contain aClosure.
@@ -243,7 +243,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectOptionallyNilOuterVar (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  This one's kind of tricky.  An outer variable is being used by the interpreter (the

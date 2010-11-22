@@ -43,7 +43,7 @@ public class FalseDescriptor extends BooleanDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsFalse();

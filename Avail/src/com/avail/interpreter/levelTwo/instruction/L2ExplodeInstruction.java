@@ -95,9 +95,9 @@ public class L2ExplodeInstruction extends L2Instruction
 	// initialization
 
 	public L2ExplodeInstruction toExplodeDestSenderDestClosureDestVector (
-			final L2ObjectRegister givenContinuationRegister, 
-			final L2ObjectRegister senderReg, 
-			final L2ObjectRegister closureReg, 
+			final L2ObjectRegister givenContinuationRegister,
+			final L2ObjectRegister senderReg,
+			final L2ObjectRegister closureReg,
 			final L2RegisterVector regVector)
 	{
 		_toExplode = givenContinuationRegister;

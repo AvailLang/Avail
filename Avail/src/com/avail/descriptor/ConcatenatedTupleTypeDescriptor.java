@@ -42,7 +42,7 @@ import com.avail.descriptor.VoidDescriptor;
 import static java.lang.Math.*;
 
 @ObjectSlots({
-	"firstTupleType", 
+	"firstTupleType",
 	"secondTupleType"
 })
 public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
@@ -56,7 +56,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectFirstTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -67,7 +67,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectSecondTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -99,7 +99,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsTupleType(object);
@@ -107,7 +107,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Tuple types are equal iff their sizeRange, typeTuple, and defaultType match.
@@ -129,7 +129,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsBetterRepresentationThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
@@ -141,7 +141,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsBetterRepresentationThanTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Given two objects that are known to be equal, the second of which is in the form of
@@ -199,7 +199,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer what type the given index would have in an object instance of me.  Answer
@@ -246,8 +246,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectUnionOfTypesAtThrough (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  Answer the union of the types that object's instances could have in the
@@ -402,7 +402,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -412,7 +412,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Tuple type A is a supertype of tuple type B iff all the *possible
@@ -463,7 +463,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -481,7 +481,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -526,7 +526,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -544,7 +544,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Answer the most specific type that is still at least as general as these.

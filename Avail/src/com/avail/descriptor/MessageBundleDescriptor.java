@@ -40,8 +40,8 @@ import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 
 @ObjectSlots({
-	"message", 
-	"messageParts", 
+	"message",
+	"messageParts",
 	"myRestrictions"
 })
 public class MessageBundleDescriptor extends Descriptor
@@ -52,7 +52,7 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public void ObjectAddRestrictions (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject restrictions)
 	{
 		assert restrictions.isTuple();
@@ -75,7 +75,7 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public void ObjectRemoveRestrictions (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject obsoleteRestrictions)
 	{
 		assert obsoleteRestrictions.isTuple();
@@ -162,7 +162,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectMessage (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -173,7 +173,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectMessageParts (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -184,7 +184,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectMyRestrictions (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);
@@ -243,9 +243,9 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		//  The existing implementations are also printed in parentheses to help distinguish
@@ -266,7 +266,7 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);

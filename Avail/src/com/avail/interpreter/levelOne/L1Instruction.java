@@ -49,7 +49,7 @@ public class L1Instruction
 
 	/**
 	 * Answer the {@link L1Operation}.
-	 * 
+	 *
 	 * @return The {@link L1Operation}.
 	 */
 	public L1Operation operation ()
@@ -59,7 +59,7 @@ public class L1Instruction
 
 	/**
 	 * Answer the operands.
-	 * 
+	 *
 	 * @return The operands.
 	 */
 	public int [] operands ()
@@ -69,7 +69,7 @@ public class L1Instruction
 
 	/**
 	 * Construct an {@link L1Instruction}.
-	 * 
+	 *
 	 * @param operation The {@link L1Operation}.
 	 * @param operands The operands.
 	 */

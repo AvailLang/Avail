@@ -40,15 +40,15 @@ import java.util.Random;
 import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots({
-	"hashOrZero", 
-	"priority", 
-	"executionMode", 
-	"executionState", 
+	"hashOrZero",
+	"priority",
+	"executionMode",
+	"executionState",
 	"interruptRequestFlag"
 })
 @ObjectSlots({
-	"continuation", 
-	"breakpointBlock", 
+	"continuation",
+	"breakpointBlock",
 	"processGlobals"
 })
 public class ProcessDescriptor extends Descriptor
@@ -62,7 +62,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectBreakpointBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -73,7 +73,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectContinuation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -84,7 +84,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectExecutionMode (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(12, value);
@@ -95,7 +95,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectExecutionState (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(16, value);
@@ -106,7 +106,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectHashOrZero (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -117,7 +117,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectInterruptRequestFlag (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(20, value);
@@ -128,7 +128,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectPriority (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(8, value);
@@ -139,7 +139,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectProcessGlobals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);
@@ -276,7 +276,7 @@ public class ProcessDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Compare processes by address (identity).

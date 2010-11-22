@@ -44,12 +44,12 @@ import com.avail.descriptor.ModuleDescriptor;
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail
  * {@linkplain ModuleDescriptor modules} to {@linkplain File#isAbsolute()
  * absolute} {@linkplain File file references}.
- * 
+ *
  * <p>Assuming that the Avail module path comprises four module roots listed in
  * the order <strong>S</strong>, <strong>P</strong>,<strong>Q</strong>,
  * <strong>R</strong>, then the following algorithm is used for resolution of a
  * fully-qualified reference <strong>/R/X/Y/Z/M</strong>:</p>
- * 
+ *
  * <ol>
  * <li>Obtain the canonical name <strong>/R'/A/B/C/M'</strong> by applying an
  * existing renaming rule for <strong>/R/X/Y/Z/M</strong>.
@@ -69,12 +69,12 @@ import com.avail.descriptor.ModuleDescriptor;
  * then capture its file reference <strong>F</strong>.</li>
  * <li>If the resolution succeeded and <strong>F</strong> specifies a directory,
  * then replace the resolution with <strong>F/M'.avail</strong>. Verify that
- * the resolution specifies an existing regular file.</li>   
+ * the resolution specifies an existing regular file.</li>
  * <li>Otherwise resolution failed.</li>
  * </ol>
  *
  * <p>An instance is obtained via {@link RenamesFileParser#parse()}.</p>
- * 
+ *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public final class ModuleNameResolver
@@ -90,7 +90,7 @@ public final class ModuleNameResolver
 
 	/**
 	 * Answer the {@linkplain ModuleRoots Avail module roots}.
-	 * 
+	 *
 	 * @return The {@linkplain ModuleRoots Avail module roots}.
 	 */
 	public @NotNull ModuleRoots moduleRoots ()
@@ -100,7 +100,7 @@ public final class ModuleNameResolver
 
 	/**
 	 * Construct a new {@link ModuleNameResolver}.
-	 * 
+	 *
 	 * @param roots The Avail {@linkplain ModuleRoots module roots}.
 	 */
 	ModuleNameResolver (final @NotNull ModuleRoots roots)
@@ -118,7 +118,7 @@ public final class ModuleNameResolver
 	/**
 	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
 	 * rule for the specified fully-qualified module name?
-	 * 
+	 *
 	 * @param modulePath A fully-qualified module name.
 	 * @return {@code true} if there is a rule to transform the fully-qualified
 	 *         module name into another one, {@code false} otherwise.
@@ -130,7 +130,7 @@ public final class ModuleNameResolver
 
 	/**
 	 * Add a rule to translate the specified fully-qualified module name.
-	 * 
+	 *
 	 * @param modulePath A fully-qualified module name.
 	 * @param substitutePath The canonical name.
 	 */
@@ -145,7 +145,7 @@ public final class ModuleNameResolver
 	/**
 	 * Trivially translate the specified module group name and local module name
 	 * into a filename.
-	 * 
+	 *
 	 * @param moduleGroup A module group name.
 	 * @param localName A local module name.
 	 * @return A filename that specifies the module within the module group.
@@ -160,7 +160,7 @@ public final class ModuleNameResolver
 	/**
 	 * Answer the canonical name that should be used in place of the
 	 * fully-qualified {@linkplain ModuleName module name}.
-	 * 
+	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @return The canonical name that should be used in place of the
@@ -174,15 +174,15 @@ public final class ModuleNameResolver
 		{
 			return new ModuleName(substitute);
 		}
-		
+
 		return qualifiedName;
 	}
-	
+
 	/**
 	 * Resolve a fully-qualified module name (as a reference to the {@linkplain
 	 * ModuleName#localName() local name} made from within the {@linkplain
 	 * ModuleName#moduleGroup() module group}).
-	 * 
+	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @return A {@linkplain ResolvedModuleName resolved module name}.
@@ -249,7 +249,7 @@ public final class ModuleNameResolver
 		if (resolution != null)
 		{
 			boolean isModuleGroup = resolution.isDirectory();
-			
+
 			// We found a candidate. If it is a module group, then substitute
 			// the module group representative.
 			if (isModuleGroup)
@@ -262,7 +262,7 @@ public final class ModuleNameResolver
 					return null;
 				}
 			}
-			
+
 			return new ResolvedModuleName(
 				qualifiedName, isModuleGroup, resolution);
 		}

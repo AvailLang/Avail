@@ -48,7 +48,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectMyObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -134,7 +134,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -144,7 +144,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  Check if I'm a supertype of the given object meta.
@@ -154,7 +154,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -172,7 +172,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -186,7 +186,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.  Here we're finding
@@ -197,7 +197,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -215,7 +215,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  Answer the most specific type that is still at least as general as these.

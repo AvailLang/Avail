@@ -87,7 +87,7 @@ public class L2CreateVariableInstruction extends L2Instruction
 	// initialization
 
 	public L2CreateVariableInstruction typeDestination (
-			final AvailObject type, 
+			final AvailObject type,
 			final L2ObjectRegister destination)
 	{
 		_constantType = type;

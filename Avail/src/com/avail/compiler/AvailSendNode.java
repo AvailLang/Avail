@@ -182,7 +182,7 @@ public class AvailSendNode extends AvailParseNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		int underscores = 0;
@@ -229,8 +229,8 @@ public class AvailSendNode extends AvailParseNode
 
 	@Override
 	public void printOnIndentIn (
-			final StringBuilder aStream, 
-			final int indent, 
+			final StringBuilder aStream,
+			final int indent,
 			final AvailParseNode outerNode)
 	{
 		aStream.append('(');
@@ -254,8 +254,8 @@ public class AvailSendNode extends AvailParseNode
 
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent, 
-			final List<AvailBlockNode> outerBlocks, 
+			final AvailParseNode parent,
+			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
 		//  Ensure the node represented by the receiver is valid.  Raise an appropriate

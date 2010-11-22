@@ -46,7 +46,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public void ObjectBodySignature (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject signature)
 	{
 		object.signature(signature);
@@ -55,8 +55,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
 	{
 		//  We're just a forward declaration, so just say the actual implementation's result will
@@ -70,8 +70,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public boolean ObjectIsValidForArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
 	{
 		//  We're just a forward declaration, so just say our implementation accepts the argument types.  There
@@ -99,7 +99,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	 */
 	@Override
 	public void ObjectSignature (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);

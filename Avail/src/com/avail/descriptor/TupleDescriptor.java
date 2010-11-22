@@ -65,7 +65,7 @@ public abstract class TupleDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectHashOrZero (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -104,9 +104,9 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append('<');
@@ -127,7 +127,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsAnyTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		//  Compare this arbitrary Tuple and the given arbitrary tuple.
@@ -169,7 +169,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsByteString (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aByteString)
 	{
 		//  Default to generic tuple comparison.
@@ -179,7 +179,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsByteTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		//  Default to generic tuple comparison.
@@ -189,7 +189,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsNybbleTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		//  Default to generic comparison.
@@ -199,7 +199,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsObjectTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		//  Default to generic comparison.
@@ -209,7 +209,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsTwoByteString (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTwoByteString)
 	{
 		//  Default to generic tuple comparison.
@@ -219,7 +219,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsBetterRepresentationThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
@@ -230,7 +230,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTypeObject)
 	{
 		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
@@ -329,10 +329,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		error("Subclass responsibility: Object:compareFrom:to:with:startingAt: in Avail.TupleDescriptor", object);
@@ -341,10 +341,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithAnyTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  Default generic comparison.
@@ -363,10 +363,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteString,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  Default to generic comparison.
@@ -381,10 +381,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithByteTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  Default to generic comparison.
@@ -399,10 +399,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aNybbleTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aNybbleTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  Default to generic comparison.
@@ -417,10 +417,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anObjectTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anObjectTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  Default to generic comparison.
@@ -435,10 +435,10 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTwoByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aTwoByteString,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.  Default to generic comparison.
@@ -453,7 +453,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectConcatenateTuplesCanDestroy (
-			final AvailObject object, 
+			final AvailObject object,
 			final boolean canDestroy)
 	{
 		//  Take a tuple of tuples and answer one big tuple constructed by concatenating the
@@ -537,9 +537,9 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectCopyTupleFromToCanDestroy (
-			final AvailObject object, 
-			final int start, 
-			final int end, 
+			final AvailObject object,
+			final int start,
+			final int end,
 			final boolean canDestroy)
 	{
 		//  Make a tuple that only contains the given range of elements of the given tuple.
@@ -585,7 +585,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public byte ObjectExtractNybbleFromTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Get the element at the given index in the tuple object, and extract a nybble from it.
@@ -603,8 +603,8 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public int ObjectHashFromTo (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  Compute object's hash value over the given range.
@@ -618,7 +618,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the element at the given index in the tuple object.
@@ -629,9 +629,9 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -643,7 +643,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -741,8 +741,8 @@ public abstract class TupleDescriptor extends Descriptor
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  Compute the hash value from the object's data.  The result should be
@@ -849,6 +849,7 @@ public abstract class TupleDescriptor extends Descriptor
 	static AvailObject OpenChevronTuple;
 	static AvailObject CloseChevronTuple;
 	static AvailObject DoubleDaggerTuple;
+	static AvailObject BackQuoteTuple;
 
 
 	static void createWellKnownObjects ()
@@ -859,34 +860,26 @@ public abstract class TupleDescriptor extends Descriptor
 		EmptyTuple.hashOrZero(0);
 		EmptyTuple.makeImmutable();
 
-		UnderscoreTuple = AvailObject.newIndexedDescriptor(
-			1,
-			ByteStringDescriptor.isMutableSize(true, 1));
-		UnderscoreTuple.rawByteForCharacterAtPut(1, (byte)'_');
-		UnderscoreTuple.hashOrZero(0);
+		UnderscoreTuple = ByteStringDescriptor.mutableObjectFromNativeString(
+			"_");
 		UnderscoreTuple.makeImmutable();
 
-		OpenChevronTuple = AvailObject.newIndexedDescriptor(
-			1,
-			ByteStringDescriptor.isMutableSize(true, 1));
-		OpenChevronTuple.rawByteForCharacterAtPut(1, (short) '«');
-		OpenChevronTuple.hashOrZero(0);
+		OpenChevronTuple = ByteStringDescriptor.mutableObjectFromNativeString(
+			"«");
 		OpenChevronTuple.makeImmutable();
 
-		CloseChevronTuple = AvailObject.newIndexedDescriptor(
-			1,
-			ByteStringDescriptor.isMutableSize(true, 1));
-		CloseChevronTuple.rawByteForCharacterAtPut(1, (short) '»');
-		CloseChevronTuple.hashOrZero(0);
+		CloseChevronTuple = ByteStringDescriptor.mutableObjectFromNativeString(
+			"»");
 		CloseChevronTuple.makeImmutable();
 
-		DoubleDaggerTuple = AvailObject.newIndexedDescriptor(
-			1,
-			TwoByteStringDescriptor.isMutableSize(true, 1));
-		DoubleDaggerTuple.rawShortForCharacterAtPut(1, (short) '‡');
-		DoubleDaggerTuple.hashOrZero(0);
+		DoubleDaggerTuple = ByteStringDescriptor.mutableObjectFromNativeString(
+			"‡");
 		DoubleDaggerTuple.makeImmutable();
-	}
+
+		BackQuoteTuple = ByteStringDescriptor.mutableObjectFromNativeString(
+			"`");
+		BackQuoteTuple.makeImmutable();
+}
 
 	static void clearWellKnownObjects ()
 	{
@@ -897,6 +890,7 @@ public abstract class TupleDescriptor extends Descriptor
 		OpenChevronTuple  = null;
 		CloseChevronTuple = null;
 		DoubleDaggerTuple = null;
+		BackQuoteTuple = null;
 	}
 
 
@@ -992,6 +986,11 @@ public abstract class TupleDescriptor extends Descriptor
 	public static AvailObject doubleDaggerTuple ()
 	{
 		return DoubleDaggerTuple;
+	};
+
+	public static AvailObject backQuoteTuple ()
+	{
+		return BackQuoteTuple;
 	};
 
 	/* Value conversion... */

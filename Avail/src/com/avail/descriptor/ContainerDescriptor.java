@@ -41,7 +41,7 @@ import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots("hashOrZero")
 @ObjectSlots({
-	"value", 
+	"value",
 	"type"
 })
 public class ContainerDescriptor extends Descriptor
@@ -55,7 +55,7 @@ public class ContainerDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectHashOrZero (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -66,7 +66,7 @@ public class ContainerDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -77,7 +77,7 @@ public class ContainerDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectValue (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -140,7 +140,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsContainer(object);
@@ -148,7 +148,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsContainer (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainer)
 	{
 		//  Containers compare by address (Smalltalk object identity).  No need to traverse the
@@ -200,7 +200,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public void ObjectInnerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject innerType)
 	{
 		//  Initialize my type based on the given inner type.
@@ -210,7 +210,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public void ObjectSetValue (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject newValue)
 	{
 		assert newValue.isInstanceOfSubtypeOf(object.type().innerType()) : "Container can't hold that value (wrong type)";

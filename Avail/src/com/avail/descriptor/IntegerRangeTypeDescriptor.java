@@ -42,7 +42,7 @@ import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots("inclusiveFlags")
 @ObjectSlots({
-	"lowerBound", 
+	"lowerBound",
 	"upperBound"
 })
 public class IntegerRangeTypeDescriptor extends TypeDescriptor
@@ -56,7 +56,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectInclusiveFlags (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -67,7 +67,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectLowerBound (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -78,7 +78,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectUpperBound (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -120,16 +120,16 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append(object.lowerInclusive() ? '[' : '(');
 		object.lowerBound().printOnAvoidingIndent(aStream, recursionList, indent + 1);
 		aStream.append("..");
 		object.upperBound().printOnAvoidingIndent(aStream, recursionList, indent + 1);
-		aStream.append(object.upperInclusive() ? ']' : ')');		
+		aStream.append(object.upperInclusive() ? ']' : ')');
 	}
 
 
@@ -138,7 +138,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsIntegerRangeType(object);
@@ -146,7 +146,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Integer range types compare for equality by comparing their minima and maxima.
@@ -212,8 +212,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void ObjectLowerInclusiveUpperInclusive (
-			final AvailObject object, 
-			final boolean lowInc, 
+			final AvailObject object,
+			final boolean lowInc,
 			final boolean highInc)
 	{
 		//  Set the lower inclusive and upper inclusive flags.
@@ -241,7 +241,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -251,7 +251,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject possibleSub)
 	{
 		//  Integer range types compare like the subsets they represent.  The only elements that
@@ -287,7 +287,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -305,7 +305,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -344,7 +344,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -362,7 +362,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.

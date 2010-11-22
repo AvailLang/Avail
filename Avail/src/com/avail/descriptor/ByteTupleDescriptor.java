@@ -45,7 +45,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
 @IntegerSlots({
-	"hashOrZero", 
+	"hashOrZero",
 	"rawQuadAt#"
 })
 public class ByteTupleDescriptor extends TupleDescriptor
@@ -57,7 +57,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectRawQuadAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -67,8 +67,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawQuadAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED setter method (indexed).
@@ -82,9 +82,9 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		if (isMutable())
@@ -129,10 +129,10 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.
@@ -146,10 +146,10 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithByteTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two byte tuples.
@@ -173,7 +173,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsByteTuple(object);
@@ -181,7 +181,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEqualsByteTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aByteTuple)
 	{
 		//  First, check for object-structure (address) identity.
@@ -222,7 +222,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
@@ -292,7 +292,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public short ObjectRawByteAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the byte at the given index.
@@ -302,8 +302,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectRawByteAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  Set the byte at the given index.
@@ -313,7 +313,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the element at the given index in the tuple object.
@@ -328,8 +328,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject aByteObject)
 	{
 		//  Set the byte at the given index to the given object (which should be an AvailObject that's an integer 0<=n<=255.
@@ -341,9 +341,9 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -373,7 +373,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -399,8 +399,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.

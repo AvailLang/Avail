@@ -87,7 +87,7 @@ public class L2LoadConstantInstruction extends L2Instruction
 	// initialization
 
 	public L2LoadConstantInstruction constantDestination (
-			final AvailObject constantObject, 
+			final AvailObject constantObject,
 			final L2ObjectRegister destRegister)
 	{
 		_constant = constantObject;

@@ -44,7 +44,7 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 
 	@Override
 	public void invokeWithParentIndex (
-			final AvailObject parentObject, 
+			final AvailObject parentObject,
 			final int byteIndexInParent)
 	{
 		//  This is a visitor call from a subobject iterator running on some object.  The subobject

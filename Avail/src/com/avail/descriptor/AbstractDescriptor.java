@@ -1,21 +1,21 @@
 /**
  * com.avail.descriptor/AbstractDescriptor.java Copyright (c) 2010, Mark van
  * Gulik. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * 
+ *
  * * Neither the name of the copyright holder nor the names of the contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -62,8 +62,8 @@ public abstract class AbstractDescriptor
 		//  Default implementation - subclasses may need more variations.
 		//
 		//  do nothing
-	
-	
+
+
 	}
 
 	static void clearWellKnownObjects ()
@@ -71,8 +71,8 @@ public abstract class AbstractDescriptor
 		//  Default implementation - subclasses may need more variations.
 		//
 		//  do nothing
-	
-	
+
+
 	}
 
 	protected static final List<AbstractDescriptor> allDescriptors =
@@ -99,10 +99,10 @@ public abstract class AbstractDescriptor
 		this.myId = (short)allDescriptors.size();
 		allDescriptors.add(this);
 		this.isMutable = isMutable;
-	
+
 		@SuppressWarnings("unchecked")
 		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
-	
+
 		final ObjectSlots objectSlots = cls.getAnnotation(ObjectSlots.class);
 		final String[] objectSlotsValue = (objectSlots == null)
 			? new String[0]
@@ -122,7 +122,7 @@ public abstract class AbstractDescriptor
 			this.numberOfFixedObjectSlots = objectSlotsValue.length;
 			this.hasVariableObjectSlots = false;
 		}
-	
+
 		final IntegerSlots integerSlots = cls.getAnnotation(IntegerSlots.class);
 		final String[] integerSlotsValue = (integerSlots == null)
 			? new String[0]
@@ -1677,7 +1677,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void ObjectPad (final AvailObject object, final AvailObject value);
+	public abstract void ObjectPad1 (final AvailObject object, final AvailObject value);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void ObjectPad2 (final AvailObject object, final AvailObject value);
 
 	/**
 	 * @param object
@@ -2138,6 +2144,14 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 */
 	public abstract void ObjectSizeRange (
+		final AvailObject object,
+		final AvailObject value);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void ObjectSpecialActions (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -3030,7 +3044,7 @@ public abstract class AbstractDescriptor
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the specified Avail
 	 * {@linkplain IntegerDescriptor integer}.
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -3447,7 +3461,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject ObjectPad (final AvailObject object);
+	public abstract AvailObject ObjectPad1 (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject ObjectPad2 (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3590,6 +3610,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject ObjectSizeRange (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject ObjectSpecialActions (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4111,7 +4137,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail byte tuple?
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is a byte tuple, {@code false}
 	 *         otherwise.
@@ -4131,7 +4157,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail string?
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is an Avail string, {@code false}
 	 *         otherwise.
@@ -4368,7 +4394,7 @@ public abstract class AbstractDescriptor
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject object} with a Java
 	 * <em>foreach</em> construct.
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -4393,28 +4419,28 @@ public abstract class AbstractDescriptor
 	protected boolean hasVariableIntegerSlots ()
 	{
 		//  Answer whether I have a variable number of integer slots.
-	
+
 		return hasVariableIntegerSlots;
 	}
 
 	protected boolean hasVariableObjectSlots ()
 	{
 		//  Answer whether I have a variable number of object slots.
-	
+
 		return hasVariableObjectSlots;
 	}
 
 	protected int numberOfFixedIntegerSlots ()
 	{
 		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
-	
+
 		return numberOfFixedIntegerSlots;
 	}
 
 	protected int numberOfFixedObjectSlots ()
 	{
 		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
-	
+
 		return numberOfFixedObjectSlots;
 	}
 
@@ -4422,7 +4448,7 @@ public abstract class AbstractDescriptor
 	/**
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
-	 * 
+	 *
 	 * @param index The byte offset of the field to check.
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
@@ -4434,13 +4460,13 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer how many levels of printing to allow before elision.
-	 * 
+	 *
 	 * @return The number of levels.
 	 */
 	public int maximumIndent ()
 	{
 		//  Answer the deepest a recursive print can go before summarizing.
-	
+
 		return 5;
 	}
 
@@ -4449,10 +4475,10 @@ public abstract class AbstractDescriptor
 	 * descriptor name and a line-by-line list of fields.  If the indent is
 	 * beyond maximumIndent, indicate it's too deep without recursing.  If the
 	 * object is in recursionList, indicate a recursive print and return.
-	 * 
+	 *
 	 * @param object The object to print (its descriptor is me).
 	 * @param builder Where to print the object.
-	 * @param recursionList Which ancestor objects are currently being printed. 
+	 * @param recursionList Which ancestor objects are currently being printed.
 	 * @param indent What level to indent subsequent lines.
 	 */
 	@ThreadSafe

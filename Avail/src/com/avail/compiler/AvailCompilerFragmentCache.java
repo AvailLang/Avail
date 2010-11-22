@@ -47,7 +47,7 @@ public class AvailCompilerFragmentCache
 	// accessing
 
 	List<AvailCompilerCachedSolution> atTokenPositionScopeStack (
-			final int tokenPosition, 
+			final int tokenPosition,
 			final AvailCompilerScopeStack scopeStack)
 	{
 		//  Answer the previously recorded solution for the recursive ascent optimization.
@@ -56,8 +56,8 @@ public class AvailCompilerFragmentCache
 	}
 
 	void atTokenPositionScopeStackAddSolution (
-			final int tokenPosition, 
-			final AvailCompilerScopeStack scopeStack, 
+			final int tokenPosition,
+			final AvailCompilerScopeStack scopeStack,
 			final AvailCompilerCachedSolution solution)
 	{
 		//  Record a solution for the recursive ascent optimization.
@@ -71,7 +71,7 @@ public class AvailCompilerFragmentCache
 	}
 
 	boolean hasComputedTokenPositionScopeStack (
-			final int tokenPosition, 
+			final int tokenPosition,
 			final AvailCompilerScopeStack scopeStack)
 	{
 		//  Answer whether a parse has already occurred at the specified position.
@@ -81,7 +81,7 @@ public class AvailCompilerFragmentCache
 	}
 
 	void startComputingTokenPositionScopeStack (
-			final int tokenPosition, 
+			final int tokenPosition,
 			final AvailCompilerScopeStack scopeStack)
 	{
 		//  Indicate that a parse at the given position has started.

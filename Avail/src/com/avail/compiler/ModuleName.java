@@ -51,23 +51,23 @@ public class ModuleName
 {
 	/** The fully-qualified module name. */
 	private final @NotNull String qualifiedName;
-	
+
 	/**
 	 * Answer the fully-qualified module name.
-	 * 
+	 *
 	 * @return The fully-qualified module name.
 	 */
 	public @NotNull String qualifiedName ()
 	{
 		return qualifiedName;
 	}
-	
+
 	/** The logical root name of the {@linkplain ModuleName module name}. */
 	private final @NotNull String moduleRoot;
-	
+
 	/**
 	 * Answer the logical root name of the {@linkplain ModuleName module name}.
-	 * 
+	 *
 	 * @return the moduleRoot
 	 *         The logical root name of the {@linkplain ModuleName module name}.
 	 */
@@ -75,17 +75,17 @@ public class ModuleName
 	{
 		return moduleRoot;
 	}
-	
+
 	/**
 	 * The fully-qualified module group of the {@linkplain ModuleName module
 	 * name}.
 	 */
 	private final @NotNull String moduleGroup;
-	
+
 	/**
 	 * Answer the fully-qualified module group of the {@linkplain ModuleName
 	 * module name}.
-	 * 
+	 *
 	 * @return The fully-qualified module group of the {@linkplain ModuleName
 	 *         module name}.
 	 */
@@ -93,17 +93,17 @@ public class ModuleName
 	{
 		return moduleGroup;
 	}
-	
+
 	/**
 	 * The local name of the {@linkplain ModuleDescriptor module} referenced by
 	 * this {@linkplain ModuleName module name}.
 	 */
 	private final @NotNull String localName;
-	
+
 	/**
 	 * Answer the local name of the {@linkplain ModuleDescriptor module}
 	 * referenced by this {@linkplain ModuleName module name}.
-	 * 
+	 *
 	 * @return The local name of the {@linkplain ModuleDescriptor module}
 	 *         referenced by this {@linkplain ModuleName module name}.
 	 */
@@ -111,27 +111,27 @@ public class ModuleName
 	{
 		return localName;
 	}
-	
+
 	/**
 	 * Construct a new {@link ModuleName} from the specified fully-qualified
 	 * module name.
 	 *
 	 * @param qualifiedName A fully-qualified module name.
 	 * @throws IllegalArgumentException
-	 *         If the argument was malformed. 
+	 *         If the argument was malformed.
 	 */
 	public ModuleName (final @NotNull String qualifiedName)
 		throws IllegalArgumentException
 	{
 		this.qualifiedName = qualifiedName;
-		
+
 		final String[] components = qualifiedName.split("/");
 		if (components.length < 3 || !components[0].isEmpty())
 		{
 			throw new IllegalArgumentException(
 				"invalid fully-qualified module name (" + qualifiedName + ")");
 		}
-		
+
 		// Handle the easy ones first.
 		moduleRoot = components[1];
 		localName  = components[components.length - 1];
@@ -145,7 +145,7 @@ public class ModuleName
 		}
 		moduleGroup = builder.toString();
 	}
-	
+
 	/**
 	 * Construct a new {@link ModuleName} from the specified canonical module
 	 * group name and local name.
@@ -153,7 +153,7 @@ public class ModuleName
 	 * @param moduleGroup A canonical module group name.
 	 * @param localName A local module name.
 	 * @throws IllegalArgumentException
-	 *         If the argument was malformed. 
+	 *         If the argument was malformed.
 	 */
 	public ModuleName (
 			final @NotNull String moduleGroup,
@@ -162,7 +162,7 @@ public class ModuleName
 	{
 		this(moduleGroup + "/" + localName);
 	}
-	
+
 	@Override
 	public boolean equals (final Object obj)
 	{
@@ -170,17 +170,17 @@ public class ModuleName
 		{
 			return qualifiedName.equals(((ModuleName) obj).qualifiedName);
 		}
-		
+
 		return false;
 	}
-	
+
 	@Override
 	public int hashCode ()
 	{
 		// The magic number is a prime.
 		return 345533 * qualifiedName.hashCode();
 	}
-	
+
 	@Override
 	public String toString ()
 	{

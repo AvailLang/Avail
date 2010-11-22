@@ -95,7 +95,7 @@ public class L2CreateTupleInstruction extends L2Instruction
 	// initialization
 
 	public L2CreateTupleInstruction sourceVectorDestination (
-			final L2RegisterVector srcVect, 
+			final L2RegisterVector srcVect,
 			final L2ObjectRegister destination)
 	{
 		_sourceVector = srcVect;

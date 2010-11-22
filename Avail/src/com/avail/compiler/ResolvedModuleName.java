@@ -51,11 +51,11 @@ extends ModuleName
 	 * {@linkplain File file reference}.
 	 */
 	private final @NotNull File fileReference;
-	
+
 	/**
 	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
 	 * {@linkplain File file reference}.
-	 * 
+	 *
 	 * @return The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
 	 *         {@linkplain File file reference}.
 	 */
@@ -63,18 +63,18 @@ extends ModuleName
 	{
 		return fileReference;
 	}
-	
+
 	/**
 	 * Does the {@linkplain ResolvedModuleName resolved module name} represent
 	 * a module group? This is a cached value produced by {@link
 	 * #isModuleGroup()}.
 	 */
 	private final boolean isModuleGroup;
-	
+
 	/**
 	 * Does the {@linkplain ResolvedModuleName resolved module name} represent
 	 * a module group?
-	 * 
+	 *
 	 * @return {@code true} if the {@linkplain ResolvedModuleName resolved
 	 *         module name} represents a module group, {@code false} otherwise.
 	 */
@@ -82,11 +82,11 @@ extends ModuleName
 	{
 		return isModuleGroup;
 	}
-	
+
 	/**
 	 * Answer the local module name as a sibling of the {@linkplain
 	 * ResolvedModuleName receiver}.
-	 * 
+	 *
 	 * @param localName A local module name.
 	 * @return A {@linkplain ModuleName module name}.
 	 */
@@ -97,7 +97,7 @@ extends ModuleName
 			: moduleGroup();
 		return new ModuleName(moduleGroup, localName);
 	}
-	
+
 	/**
 	 * Construct a new {@link ResolvedModuleName}.
 	 *

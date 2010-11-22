@@ -48,18 +48,18 @@ import java.util.Collections;
 import java.util.List;
 
 @IntegerSlots({
-	"index", 
-	"validity", 
-	"numObjects", 
-	"numIntegers", 
-	"numFloats", 
-	"nextIndex", 
+	"index",
+	"validity",
+	"numObjects",
+	"numIntegers",
+	"numFloats",
+	"nextIndex",
 	"previousIndex"
 })
 @ObjectSlots({
-	"contingentImpSets", 
-	"wordcodes", 
-	"vectors", 
+	"contingentImpSets",
+	"wordcodes",
+	"vectors",
 	"literalAt#"
 })
 public class L2ChunkDescriptor extends Descriptor
@@ -73,7 +73,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectContingentImpSets (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -84,7 +84,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -92,7 +92,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLiteralAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -102,8 +102,8 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void ObjectLiteralAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
@@ -116,7 +116,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectNextIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(24, value);
@@ -127,7 +127,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectNumFloats (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(20, value);
@@ -138,7 +138,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectNumIntegers (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(16, value);
@@ -149,7 +149,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectNumObjects (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(12, value);
@@ -160,7 +160,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectPreviousIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(28, value);
@@ -171,7 +171,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectValidity (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(8, value);
@@ -182,7 +182,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectVectors (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);
@@ -193,7 +193,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectWordcodes (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -350,9 +350,9 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		//  Print this chunk on the given stream.
@@ -396,7 +396,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
@@ -404,7 +404,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void ObjectIsSaved (
-			final AvailObject object, 
+			final AvailObject object,
 			final boolean aBoolean)
 	{
 		object.validity(((object.validity() & -3) + (aBoolean ? 2 : 0)));
@@ -412,7 +412,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void ObjectIsValid (
-			final AvailObject object, 
+			final AvailObject object,
 			final boolean aBoolean)
 	{
 		object.validity(((object.validity() & -2) + (aBoolean ? 1 : 0)));
@@ -420,7 +420,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void ObjectNecessaryImplementationSetChanged (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anImplementationSet)
 	{
 		//  An implementation set has changed.  This means a method definition (or a forward or
@@ -460,7 +460,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void ObjectNext (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject nextChunk)
 	{
 		//  Set my successor in whatever ring I'm in.
@@ -470,7 +470,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void ObjectPrevious (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject previousChunk)
 	{
 		//  Set my predecessor in whatever ring I'm in.

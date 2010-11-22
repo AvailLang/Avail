@@ -76,8 +76,8 @@ public class AvailDecompiler implements L1OperationDispatcher
 	// parsing
 
 	public AvailBlockNode parseWithOuterVarsTempGenerator (
-			final AvailObject aCodeObject, 
-			final List<? extends AvailParseNode> outerVars, 
+			final AvailObject aCodeObject,
+			final List<? extends AvailParseNode> outerVars,
 			final Transformer1<String, String> tempBlock)
 	{
 		//  Parse the given compiled code object.  Its outer vars map to the given Array of
@@ -107,9 +107,9 @@ public class AvailDecompiler implements L1OperationDispatcher
 		blockNode.primitive(_primitive);
 		blockNode.statements(_statements);
 		blockNode.resultType(aCodeObject.closureType().returnType());
-		//  regenerated := blockNode generateOn: AvailCodeGenerator new. 
+		//  regenerated := blockNode generateOn: AvailCodeGenerator new.
 		//
-		//  [regenerated = aCodeObject] assert: 'The decompiled code doesn''t compile back to the original'. 
+		//  [regenerated = aCodeObject] assert: 'The decompiled code doesn''t compile back to the original'.
 		return blockNode;
 	}
 

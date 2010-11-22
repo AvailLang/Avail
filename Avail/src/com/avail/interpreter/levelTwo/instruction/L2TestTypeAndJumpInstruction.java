@@ -88,8 +88,8 @@ public class L2TestTypeAndJumpInstruction extends L2AbstractJumpInstruction
 	// initialization
 
 	public L2TestTypeAndJumpInstruction targetRegisterConstantType (
-			final L2Instruction targetLabel, 
-			final L2ObjectRegister reg, 
+			final L2Instruction targetLabel,
+			final L2ObjectRegister reg,
 			final AvailObject constant)
 	{
 		_target = targetLabel;

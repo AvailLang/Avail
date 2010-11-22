@@ -48,7 +48,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public AvailObject ObjectBinElementAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -58,8 +58,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public void ObjectBinElementAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
@@ -72,7 +72,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	 */
 	@Override
 	public void ObjectBinHash (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -112,10 +112,10 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
-			final byte myLevel, 
+			final AvailObject object,
+			final AvailObject elementObject,
+			final int elementObjectHash,
+			final byte myLevel,
 			final boolean canDestroy)
 	{
 		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
@@ -215,8 +215,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public boolean ObjectBinHasElementHash (
-			final AvailObject object, 
-			final AvailObject elementObject, 
+			final AvailObject object,
+			final AvailObject elementObject,
 			final int elementObjectHash)
 	{
 		for (int x = 1, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); x <= _end1; x++)
@@ -231,9 +231,9 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public AvailObject ObjectBinRemoveElementHashCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
+			final AvailObject object,
+			final AvailObject elementObject,
+			final int elementObjectHash,
 			final boolean canDestroy)
 	{
 		//  Remove elementObject from the bin object, if present.  Answer the resulting bin.  The bin
@@ -284,7 +284,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public boolean ObjectIsBinSubsetOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject potentialSuperset)
 	{
 		//  Check if object, a bin, holds a subset of aSet's elements.
@@ -301,8 +301,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public int ObjectPopulateTupleStartingAt (
-			final AvailObject object, 
-			final AvailObject mutableTuple, 
+			final AvailObject object,
+			final AvailObject mutableTuple,
 			final int startingIndex)
 	{
 		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
@@ -352,10 +352,10 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return 8;
 	};
 
-	
+
 	static LinearSetBinDescriptor isMutableLevel (boolean flag, byte level)
 	{
-		assert(0 <= level && level <= numberOfLevels()); 
+		assert(0 <= level && level <= numberOfLevels());
 		return descriptors [level * 2 + (flag ? 0 : 1)];
 	};
 

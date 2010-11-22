@@ -106,8 +106,8 @@ public class AvailParseNode
 	}
 
 	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
-			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock, 
-			final AvailParseNode parent, 
+			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
+			final AvailParseNode parent,
 			final List<AvailBlockNode> outerNodes)
 	{
 		//  Map the tree through the (destructive) transformation specified by aBlock, children
@@ -136,7 +136,7 @@ public class AvailParseNode
 	// java printing
 
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		error("Subclass responsibility: printOn:indent: in Avail.AvailParseNode");
@@ -144,8 +144,8 @@ public class AvailParseNode
 	}
 
 	public void printOnIndentIn (
-			final StringBuilder aStream, 
-			final int indent, 
+			final StringBuilder aStream,
+			final int indent,
 			final AvailParseNode outerNode)
 	{
 		printOnIndent(aStream, indent);
@@ -230,8 +230,8 @@ public class AvailParseNode
 	}
 
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent, 
-			final List<AvailBlockNode> outerBlocks, 
+			final AvailParseNode parent,
+			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
 		//  Ensure the node represented by the receiver is valid.  Raise an appropriate

@@ -109,7 +109,7 @@ public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNo
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		if (_name != null)

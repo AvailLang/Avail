@@ -105,13 +105,13 @@ public class L2CreateContinuationInstruction extends L2Instruction
 	// initialization
 
 	public L2CreateContinuationInstruction callerClosurePcStackpSizeSlotsVectorLabelDestination (
-			final L2ObjectRegister callerReg, 
-			final L2ObjectRegister closureReg, 
-			final int pcInt, 
-			final int spInt, 
-			final int sizeInt, 
-			final L2RegisterVector slots, 
-			final L2LabelInstruction label, 
+			final L2ObjectRegister callerReg,
+			final L2ObjectRegister closureReg,
+			final int pcInt,
+			final int spInt,
+			final int sizeInt,
+			final L2RegisterVector slots,
+			final L2LabelInstruction label,
 			final L2ObjectRegister destination)
 	{
 		_caller = callerReg;

@@ -110,7 +110,7 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		_expression.printOnIndentIn(
@@ -138,8 +138,8 @@ public class AvailSuperCastNode extends AvailParseNode
 
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent, 
-			final List<AvailBlockNode> outerBlocks, 
+			final AvailParseNode parent,
+			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
 		//  Ensure the node represented by the receiver is valid.  Raise an appropriate

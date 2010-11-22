@@ -94,7 +94,7 @@ public class AvailLiteralNode extends AvailParseNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream, 
+			final StringBuilder aStream,
 			final int indent)
 	{
 		aStream.append(_availValue.toString());

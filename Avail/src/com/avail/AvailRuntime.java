@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
+import com.avail.compiler.MessageSplitter;
 import com.avail.compiler.ModuleNameResolver;
 import com.avail.compiler.ModuleRoots;
 import com.avail.descriptor.ModuleDescriptor;
@@ -57,7 +58,6 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.Primitive;
 
 /**
@@ -81,7 +81,7 @@ public final class AvailRuntime
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.
-	 * 
+	 *
 	 * @return A {@linkplain ModuleNameResolver module name resolver}.
 	 */
 	public @NotNull ModuleNameResolver moduleNameResolver ()
@@ -91,7 +91,7 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the Avail {@linkplain ModuleRoots module roots}.
-	 * 
+	 *
 	 * @return The Avail {@linkplain ModuleRoots module roots}.
 	 */
 	@ThreadSafe
@@ -213,7 +213,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the {@linkplain AvailObject special object} with the specified
 	 * ordinal.
-	 * 
+	 *
 	 * @param ordinal The {@linkplain AvailObject special object} with the
 	 *                specified ordinal.
 	 * @return An {@link AvailObject}.
@@ -238,7 +238,7 @@ public final class AvailRuntime
 	/**
 	 * Add the specified {@linkplain ModuleDescriptor module} to the
 	 * {@linkplain AvailRuntime runtime}.
-	 * 
+	 *
 	 * @param aModule A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
@@ -252,8 +252,9 @@ public final class AvailRuntime
 			for (final AvailObject name : visibleNames)
 			{
 				assert name.isCyclicType();
+				MessageSplitter splitter = new MessageSplitter(name.name());
 				final AvailObject messageParts =
-					AvailInterpreter.splitMethodName(name);
+					splitter.messageParts();
 				final AvailObject rootBundle =
 					rootBundleTree.includeBundleAtMessageParts(
 						name, messageParts);
@@ -277,7 +278,7 @@ public final class AvailRuntime
 	 * Does the {@linkplain AvailRuntime runtime} define a {@linkplain
 	 * ModuleDescriptor module} with the specified {@linkplain
 	 * TupleDescriptor name}?
-	 * 
+	 *
 	 * @param moduleName A {@linkplain TupleDescriptor name}.
 	 * @return {@code true} if the {@linkplain AvailRuntime runtime} defines a
 	 *          {@linkplain ModuleDescriptor module} with the specified
@@ -302,7 +303,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} with the specified
 	 * {@linkplain TupleDescriptor name}.
-	 * 
+	 *
 	 * @param moduleName A {@linkplain TupleDescriptor name}.
 	 * @return A {@linkplain ModuleDescriptor module}.
 	 */
@@ -334,7 +335,7 @@ public final class AvailRuntime
 	/**
 	 * Are there any {@linkplain ImplementationSetDescriptor methods} bound to
 	 * the specified {@linkplain CyclicTypeDescriptor selector}?
-	 * 
+	 *
 	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
 	 * @return {@code true} if there are {@linkplain ImplementationSetDescriptor
 	 *         methods} bound to the specified {@linkplain CyclicTypeDescriptor
@@ -360,7 +361,7 @@ public final class AvailRuntime
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
 	 * bound to the specified {@linkplain CyclicTypeDescriptor method name}.
 	 * If necessary, then create a new implementation set and bind it.
-	 * 
+	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
 	 */
@@ -394,7 +395,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
 	 * bound to the specified {@linkplain CyclicTypeDescriptor selector}.
-	 * 
+	 *
 	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
 	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
 	 */
@@ -406,7 +407,7 @@ public final class AvailRuntime
 		runtimeLock.readLock().lock();
 		try
 		{
-			return methods.mapAt(selector);			
+			return methods.mapAt(selector);
 		}
 		finally
 		{
@@ -420,7 +421,7 @@ public final class AvailRuntime
 	 * {@linkplain ImplementationSetDescriptor implementation set}, then
 	 * forget the selector from the method dictionary and the {@linkplain
 	 * #rootBundleTree() root message bundle tree}.
-	 * 
+	 *
 	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
 	 * @param implementation An implementation.
 	 */
@@ -440,8 +441,9 @@ public final class AvailRuntime
 			if (implementationSet.implementationsTuple().tupleSize() == 0)
 			{
 				methods = methods.mapWithoutKeyCanDestroy(selector, true);
-				rootBundleTree.removeMessageParts(
-					selector, AvailInterpreter.splitMethodName(selector));
+				MessageSplitter splitter = new MessageSplitter(selector.name());
+				final AvailObject messageParts = splitter.messageParts();
+				rootBundleTree.removeMessageParts(selector, messageParts);
 			}
 		}
 		finally
@@ -461,7 +463,7 @@ public final class AvailRuntime
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
 	 * bundle tree}.
-	 * 
+	 *
 	 * @return A {@linkplain MessageBundleTreeDescriptor message bundle tree}
 	 *         that contains the {@linkplain MessageBundleDescriptor message
 	 *         bundles} exported by all loaded {@linkplain ModuleDescriptor
@@ -493,7 +495,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the user-assigned name of the specified {@linkplain
 	 * ObjectTypeDescriptor user-defined object type}.
-	 * 
+	 *
 	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
 	 *                     object type}.
 	 * @return The name of the {@linkplain ObjectTypeDescriptor user-defined
@@ -511,7 +513,7 @@ public final class AvailRuntime
 	/**
 	 * Assign a name to the specified {@linkplain ObjectTypeDescriptor
 	 * user-defined object type}.
-	 * 
+	 *
 	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
 	 *                     object type}.
 	 * @param aString A name.
@@ -541,7 +543,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the open readable {@linkplain RandomAccessFile file} associated
 	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
 	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
@@ -556,7 +558,7 @@ public final class AvailRuntime
 	/**
 	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
 	 * open readable {@linkplain RandomAccessFile file}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
@@ -572,7 +574,7 @@ public final class AvailRuntime
 	 * Remove the association between the specified {@linkplain
 	 * CyclicTypeDescriptor handle} and its open readable {@linkplain
 	 * RandomAccessFile file}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 */
 	public void forgetReadableFile (final @NotNull AvailObject handle)
@@ -584,7 +586,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the open writable {@linkplain RandomAccessFile file} associated
 	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
 	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
@@ -599,7 +601,7 @@ public final class AvailRuntime
 	/**
 	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
 	 * open writable {@linkplain RandomAccessFile file}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
@@ -615,7 +617,7 @@ public final class AvailRuntime
 	 * Remove the association between the specified {@linkplain
 	 * CyclicTypeDescriptor handle} and its open writable {@linkplain
 	 * RandomAccessFile file}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 */
 	public void forgetWritableFile (final @NotNull AvailObject handle)
@@ -627,7 +629,7 @@ public final class AvailRuntime
 	/**
 	 * Answer the open {@linkplain RandomAccessFile file} associated with the
 	 * specified {@linkplain CyclicTypeDescriptor handle}.
-	 * 
+	 *
 	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
 	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no

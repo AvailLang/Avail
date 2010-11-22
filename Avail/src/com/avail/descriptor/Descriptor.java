@@ -56,15 +56,20 @@ public abstract class Descriptor extends AbstractDescriptor
 		super(isMutable);
 	}
 
+
+	public void subclassResponsibility(Object... args)
+	{
+		error(args);
+	}
 	
 	@Override
 	public boolean ObjectAcceptsArgTypesFromClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject closureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsArgTypesFromClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsArgTypesFromClosureType:", object);
 		return false;
 	}
 
@@ -76,13 +81,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectAcceptsArgumentsFromContinuationStackp (
-			final AvailObject object, 
-			final AvailObject continuation, 
+			final AvailObject object,
+			final AvailObject continuation,
 			final int stackp)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsArgumentsFromContinuation:stackp: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsArgumentsFromContinuation:stackp:", object);
 		return false;
 	}
 
@@ -94,13 +99,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
-			final AvailObject object, 
-			final AvailObject continuation, 
+			final AvailObject object,
+			final AvailObject continuation,
 			final int stackp)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsArgumentTypesFromContinuation:stackp: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsArgumentTypesFromContinuation:stackp:", object);
 		return false;
 	}
 
@@ -111,12 +116,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectAcceptsArrayOfArgTypes (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsArrayOfArgTypes: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsArrayOfArgTypes:", object);
 		return false;
 	}
 
@@ -127,12 +132,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectAcceptsArrayOfArgValues (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argValues)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsArrayOfArgValues: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsArrayOfArgValues:", object);
 		return false;
 	}
 
@@ -143,12 +148,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectAcceptsTupleOfArgTypes (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject argTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsTupleOfArgTypes: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsTupleOfArgTypes:", object);
 		return false;
 	}
 
@@ -159,12 +164,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectAcceptsTupleOfArguments (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject arguments)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:acceptsTupleOfArguments: in Avail.Descriptor", object);
+		subclassResponsibility("Object:acceptsTupleOfArguments:", object);
 		return false;
 	}
 
@@ -174,12 +179,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAddDependentChunkId (
-			final AvailObject object, 
+			final AvailObject object,
 			final int aChunkIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:addDependentChunkId: in Avail.Descriptor", object);
+		subclassResponsibility("Object:addDependentChunkId:", object);
 		return;
 	}
 
@@ -189,12 +194,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAddImplementation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject implementation)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:addImplementation: in Avail.Descriptor", object);
+		subclassResponsibility("Object:addImplementation:", object);
 		return;
 	}
 
@@ -204,12 +209,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAddRestrictions (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject restrictions)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:addRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("Object:addRestrictions:", object);
 		return;
 	}
 
@@ -221,13 +226,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectAddToInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:addToInfinity:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:addToInfinity:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -239,13 +244,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectAddToIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:addToInteger:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:addToInteger:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -259,16 +264,16 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectArgsLocalsStackOutersPrimitive (
-			final AvailObject object, 
-			final int args, 
-			final int locals, 
-			final int stack, 
-			final int outers, 
+			final AvailObject object,
+			final int args,
+			final int locals,
+			final int stack,
+			final int outers,
 			final int primitive)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:args:locals:stack:outers:primitive: in Avail.Descriptor", object);
+		subclassResponsibility("Object:args:locals:stack:outers:primitive:", object);
 		return;
 	}
 
@@ -279,12 +284,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectArgTypeAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:argTypeAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:argTypeAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -295,13 +300,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectArgTypeAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:argTypeAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:argTypeAt:put:", object);
 		return;
 	}
 
@@ -312,13 +317,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAtAddMessageRestrictions (
-			final AvailObject object, 
-			final AvailObject methodName, 
+			final AvailObject object,
+			final AvailObject methodName,
 			final AvailObject illegalArgMsgs)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:at:addMessageRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("Object:at:addMessageRestrictions:", object);
 		return;
 	}
 
@@ -329,13 +334,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAtAddMethodImplementation (
-			final AvailObject object, 
-			final AvailObject methodName, 
+			final AvailObject object,
+			final AvailObject methodName,
 			final AvailObject implementation)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:at:addMethodImplementation: in Avail.Descriptor", object);
+		subclassResponsibility("Object:at:addMethodImplementation:", object);
 		return;
 	}
 
@@ -346,13 +351,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAtMessageAddBundle (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject bundle)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:atMessage:addBundle: in Avail.Descriptor", object);
+		subclassResponsibility("Object:atMessage:addBundle:", object);
 		return;
 	}
 
@@ -363,13 +368,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAtNameAdd (
-			final AvailObject object, 
-			final AvailObject stringName, 
+			final AvailObject object,
+			final AvailObject stringName,
 			final AvailObject trueName)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:atName:add: in Avail.Descriptor", object);
+		subclassResponsibility("Object:atName:add:", object);
 		return;
 	}
 
@@ -380,13 +385,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAtNewNamePut (
-			final AvailObject object, 
-			final AvailObject stringName, 
+			final AvailObject object,
+			final AvailObject stringName,
 			final AvailObject trueName)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:atNewName:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:atNewName:put:", object);
 		return;
 	}
 
@@ -397,13 +402,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectAtPrivateNameAdd (
-			final AvailObject object, 
-			final AvailObject stringName, 
+			final AvailObject object,
+			final AvailObject stringName,
 			final AvailObject trueName)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:atPrivateName:add: in Avail.Descriptor", object);
+		subclassResponsibility("Object:atPrivateName:add:", object);
 		return;
 	}
 
@@ -414,12 +419,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectBinElementAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:binElementAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:binElementAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -430,13 +435,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBinElementAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:binElementAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:binElementAt:put:", object);
 		return;
 	}
 
@@ -446,12 +451,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBinHash (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:binHash: in Avail.Descriptor", object);
+		subclassResponsibility("Object:binHash:", object);
 		return;
 	}
 
@@ -461,12 +466,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBinSize (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:binSize: in Avail.Descriptor", object);
+		subclassResponsibility("Object:binSize:", object);
 		return;
 	}
 
@@ -476,12 +481,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBinUnionType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:binUnionType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:binUnionType:", object);
 		return;
 	}
 
@@ -491,12 +496,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBitVector (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:bitVector: in Avail.Descriptor", object);
+		subclassResponsibility("Object:bitVector:", object);
 		return;
 	}
 
@@ -506,12 +511,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBodyBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:bodyBlock: in Avail.Descriptor", object);
+		subclassResponsibility("Object:bodyBlock:", object);
 		return;
 	}
 
@@ -523,14 +528,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBodyBlockRequiresBlockReturnsBlock (
-			final AvailObject object, 
-			final AvailObject bb, 
-			final AvailObject rqb, 
+			final AvailObject object,
+			final AvailObject bb,
+			final AvailObject rqb,
 			final AvailObject rtb)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:bodyBlock:requiresBlock:returnsBlock: in Avail.Descriptor", object);
+		subclassResponsibility("Object:bodyBlock:requiresBlock:returnsBlock:", object);
 		return;
 	}
 
@@ -540,12 +545,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBodySignature (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject signature)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:bodySignature: in Avail.Descriptor", object);
+		subclassResponsibility("Object:bodySignature:", object);
 		return;
 	}
 
@@ -557,14 +562,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBodySignatureRequiresBlockReturnsBlock (
-			final AvailObject object, 
-			final AvailObject bs, 
-			final AvailObject rqb, 
+			final AvailObject object,
+			final AvailObject bs,
+			final AvailObject rqb,
 			final AvailObject rtb)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:bodySignature:requiresBlock:returnsBlock: in Avail.Descriptor", object);
+		subclassResponsibility("Object:bodySignature:requiresBlock:returnsBlock:", object);
 		return;
 	}
 
@@ -574,12 +579,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBreakpointBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:breakpointBlock: in Avail.Descriptor", object);
+		subclassResponsibility("Object:breakpointBlock:", object);
 		return;
 	}
 
@@ -589,12 +594,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectBuildFilteredBundleTreeFrom (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject bundleTree)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:buildFilteredBundleTreeFrom: in Avail.Descriptor", object);
+		subclassResponsibility("Object:buildFilteredBundleTreeFrom:", object);
 		return;
 	}
 
@@ -606,13 +611,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectBundleAtMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:bundleAtMessage:parts: in Avail.Descriptor", object);
+		subclassResponsibility("Object:bundleAtMessage:parts:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -622,12 +627,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectCaller (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:caller: in Avail.Descriptor", object);
+		subclassResponsibility("Object:caller:", object);
 		return;
 	}
 
@@ -637,12 +642,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectClosure (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:closure: in Avail.Descriptor", object);
+		subclassResponsibility("Object:closure:", object);
 		return;
 	}
 
@@ -652,12 +657,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:closureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:closureType:", object);
 		return;
 	}
 
@@ -667,12 +672,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectCode (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:code: in Avail.Descriptor", object);
+		subclassResponsibility("Object:code:", object);
 		return;
 	}
 
@@ -682,12 +687,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectCodePoint (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:codePoint: in Avail.Descriptor", object);
+		subclassResponsibility("Object:codePoint:", object);
 		return;
 	}
 
@@ -701,15 +706,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:with:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:with:startingAt:", object);
 		return false;
 	}
 
@@ -723,15 +728,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithAnyTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aTuple,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:withAnyTuple:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:withAnyTuple:startingAt:", object);
 		return false;
 	}
 
@@ -745,15 +750,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteString,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:withByteString:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:withByteString:startingAt:", object);
 		return false;
 	}
 
@@ -767,15 +772,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithByteTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aByteTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aByteTuple,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:withByteTuple:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:withByteTuple:startingAt:", object);
 		return false;
 	}
 
@@ -789,15 +794,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aNybbleTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aNybbleTuple,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:withNybbleTuple:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:withNybbleTuple:startingAt:", object);
 		return false;
 	}
 
@@ -811,15 +816,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anObjectTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anObjectTuple,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:withObjectTuple:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:withObjectTuple:startingAt:", object);
 		return false;
 	}
 
@@ -833,15 +838,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject aTwoByteString, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject aTwoByteString,
 			final int startIndex2)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:compareFrom:to:withTwoByteString:startingAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:compareFrom:to:withTwoByteString:startingAt:", object);
 		return false;
 	}
 
@@ -851,12 +856,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectComplete (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:complete: in Avail.Descriptor", object);
+		subclassResponsibility("Object:complete:", object);
 		return;
 	}
 
@@ -868,13 +873,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:computeHashFrom:to: in Avail.Descriptor", object);
+		subclassResponsibility("Object:computeHashFrom:to:", object);
 		return 0;
 	}
 
@@ -886,13 +891,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:computeReturnTypeFromArgumentTypes:interpreter: in Avail.Descriptor", object);
+		subclassResponsibility("Object:computeReturnTypeFromArgumentTypes:interpreter:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -903,12 +908,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectConcatenateTuplesCanDestroy (
-			final AvailObject object, 
+			final AvailObject object,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:concatenateTuplesCanDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:concatenateTuplesCanDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -918,12 +923,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectConstantBindings (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:constantBindings: in Avail.Descriptor", object);
+		subclassResponsibility("Object:constantBindings:", object);
 		return;
 	}
 
@@ -933,12 +938,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectContentType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:contentType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:contentType:", object);
 		return;
 	}
 
@@ -948,12 +953,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectContingentImpSets (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:contingentImpSets: in Avail.Descriptor", object);
+		subclassResponsibility("Object:contingentImpSets:", object);
 		return;
 	}
 
@@ -963,12 +968,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectContinuation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:continuation: in Avail.Descriptor", object);
+		subclassResponsibility("Object:continuation:", object);
 		return;
 	}
 
@@ -979,13 +984,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectCopyToRestrictedTo (
-			final AvailObject object, 
-			final AvailObject filteredBundleTree, 
+			final AvailObject object,
+			final AvailObject filteredBundleTree,
 			final AvailObject visibleNames)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:copyTo:restrictedTo: in Avail.Descriptor", object);
+		subclassResponsibility("Object:copyTo:restrictedTo:", object);
 		return;
 	}
 
@@ -998,14 +1003,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectCopyTupleFromToCanDestroy (
-			final AvailObject object, 
-			final int start, 
-			final int end, 
+			final AvailObject object,
+			final int start,
+			final int end,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:copyTupleFrom:to:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:copyTupleFrom:to:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1016,12 +1021,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectCouldEverBeInvokedWith (
-			final AvailObject object, 
+			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:couldEverBeInvokedWith: in Avail.Descriptor", object);
+		subclassResponsibility("Object:couldEverBeInvokedWith:", object);
 		return false;
 	}
 
@@ -1033,13 +1038,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
-			final AvailObject object, 
-			final AvailObject positiveTuple, 
+			final AvailObject object,
+			final AvailObject positiveTuple,
 			final AvailObject possibilities)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:createTestingTreeWithPositiveMatches:remainingPossibilities: in Avail.Descriptor", object);
+		subclassResponsibility("Object:createTestingTreeWithPositiveMatches:remainingPossibilities:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1050,12 +1055,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectDataAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:dataAtIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:dataAtIndex:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1066,13 +1071,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectDataAtIndexPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:dataAtIndex:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:dataAtIndex:put:", object);
 		return;
 	}
 
@@ -1082,12 +1087,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectDefaultType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:defaultType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:defaultType:", object);
 		return;
 	}
 
@@ -1097,12 +1102,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectDependentChunks (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:dependentChunks: in Avail.Descriptor", object);
+		subclassResponsibility("Object:dependentChunks:", object);
 		return;
 	}
 
@@ -1112,12 +1117,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectDepth (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:depth: in Avail.Descriptor", object);
+		subclassResponsibility("Object:depth:", object);
 		return;
 	}
 
@@ -1129,13 +1134,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectDivideCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:divide:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:divide:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1147,13 +1152,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectDivideIntoInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:divideIntoInfinity:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:divideIntoInfinity:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1165,13 +1170,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectDivideIntoIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:divideIntoInteger:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:divideIntoInteger:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1182,12 +1187,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectElementAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:elementAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:elementAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1198,13 +1203,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectElementAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:elementAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:elementAt:put:", object);
 		return;
 	}
 
@@ -1215,12 +1220,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectEndOfZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:endOfZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:endOfZone:", object);
 		return 0;
 	}
 
@@ -1231,12 +1236,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectEndSubtupleIndexInZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:endSubtupleIndexInZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:endSubtupleIndexInZone:", object);
 		return 0;
 	}
 
@@ -1246,12 +1251,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectExecutionMode (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:executionMode: in Avail.Descriptor", object);
+		subclassResponsibility("Object:executionMode:", object);
 		return;
 	}
 
@@ -1261,12 +1266,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectExecutionState (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:executionState: in Avail.Descriptor", object);
+		subclassResponsibility("Object:executionState:", object);
 		return;
 	}
 
@@ -1277,12 +1282,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public byte ObjectExtractNybbleFromTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:extractNybbleFromTupleAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:extractNybbleFromTupleAt:", object);
 		return 0;
 	}
 
@@ -1292,12 +1297,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectFieldMap (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:fieldMap: in Avail.Descriptor", object);
+		subclassResponsibility("Object:fieldMap:", object);
 		return;
 	}
 
@@ -1307,12 +1312,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectFieldTypeMap (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:fieldTypeMap: in Avail.Descriptor", object);
+		subclassResponsibility("Object:fieldTypeMap:", object);
 		return;
 	}
 
@@ -1323,12 +1328,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public List<AvailObject> ObjectFilterByTypes (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:filterByTypes: in Avail.Descriptor", object);
+		subclassResponsibility("Object:filterByTypes:", object);
 		return null;
 	}
 
@@ -1338,12 +1343,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectFilteredBundleTree (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:filteredBundleTree: in Avail.Descriptor", object);
+		subclassResponsibility("Object:filteredBundleTree:", object);
 		return;
 	}
 
@@ -1353,12 +1358,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectFirstTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:firstTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:firstTupleType:", object);
 		return;
 	}
 
@@ -1372,15 +1377,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-			final AvailObject object, 
-			final int zone, 
-			final AvailObject newSubtuple, 
-			final int startSubtupleIndex, 
+			final AvailObject object,
+			final int zone,
+			final AvailObject newSubtuple,
+			final int startSubtupleIndex,
 			final int endOfZone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:forZone:setSubtuple:startSubtupleIndex:endOfZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:forZone:setSubtuple:startSubtupleIndex:endOfZone:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1391,12 +1396,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectGreaterThanInteger (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:greaterThanInteger: in Avail.Descriptor", object);
+		subclassResponsibility("Object:greaterThanInteger:", object);
 		return false;
 	}
 
@@ -1407,12 +1412,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectGreaterThanSignedInfinity (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:greaterThanSignedInfinity: in Avail.Descriptor", object);
+		subclassResponsibility("Object:greaterThanSignedInfinity:", object);
 		return false;
 	}
 
@@ -1423,12 +1428,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectHasElement (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject elementObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hasElement: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hasElement:", object);
 		return false;
 	}
 
@@ -1438,12 +1443,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectHash (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hash: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hash:", object);
 		return;
 	}
 
@@ -1455,13 +1460,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectHashFromTo (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hashFrom:to: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hashFrom:to:", object);
 		return 0;
 	}
 
@@ -1471,12 +1476,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectHashOrZero (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hashOrZero: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hashOrZero:", object);
 		return;
 	}
 
@@ -1487,12 +1492,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectHasKey (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject keyObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hasKey: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hasKey:", object);
 		return false;
 	}
 
@@ -1502,12 +1507,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectHiLevelTwoChunkLowOffset (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hiLevelTwoChunkLowOffset: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hiLevelTwoChunkLowOffset:", object);
 		return;
 	}
 
@@ -1517,12 +1522,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectHiNumLocalsLowNumArgs (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hiNumLocalsLowNumArgs: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hiNumLocalsLowNumArgs:", object);
 		return;
 	}
 
@@ -1532,12 +1537,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hiPrimitiveLowNumArgsAndLocalsAndStack: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hiPrimitiveLowNumArgsAndLocalsAndStack:", object);
 		return;
 	}
 
@@ -1547,12 +1552,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectHiStartingChunkIndexLowNumOuters (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:hiStartingChunkIndexLowNumOuters: in Avail.Descriptor", object);
+		subclassResponsibility("Object:hiStartingChunkIndexLowNumOuters:", object);
 		return;
 	}
 
@@ -1563,12 +1568,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
-			final AvailObject object, 
+			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:implementationsAtOrBelow: in Avail.Descriptor", object);
+		subclassResponsibility("Object:implementationsAtOrBelow:", object);
 		return null;
 	}
 
@@ -1578,12 +1583,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectImplementationsTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:implementationsTuple: in Avail.Descriptor", object);
+		subclassResponsibility("Object:implementationsTuple:", object);
 		return;
 	}
 
@@ -1595,13 +1600,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectIncludeBundleAtMessageParts (
-			final AvailObject object, 
-			final AvailObject message, 
+			final AvailObject object,
+			final AvailObject message,
 			final AvailObject parts)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:includeBundleAtMessage:parts: in Avail.Descriptor", object);
+		subclassResponsibility("Object:includeBundleAtMessage:parts:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1612,12 +1617,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIncludes (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject imp)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:includes: in Avail.Descriptor", object);
+		subclassResponsibility("Object:includes:", object);
 		return false;
 	}
 
@@ -1627,12 +1632,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectInclusiveFlags (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:inclusiveFlags: in Avail.Descriptor", object);
+		subclassResponsibility("Object:inclusiveFlags:", object);
 		return;
 	}
 
@@ -1642,12 +1647,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectIncomplete (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:incomplete: in Avail.Descriptor", object);
+		subclassResponsibility("Object:incomplete:", object);
 		return;
 	}
 
@@ -1657,12 +1662,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:index: in Avail.Descriptor", object);
+		subclassResponsibility("Object:index:", object);
 		return;
 	}
 
@@ -1672,12 +1677,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectInnerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:innerType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:innerType:", object);
 		return;
 	}
 
@@ -1687,12 +1692,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectInstance (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:instance: in Avail.Descriptor", object);
+		subclassResponsibility("Object:instance:", object);
 		return;
 	}
 
@@ -1702,12 +1707,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectInternalHash (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:internalHash: in Avail.Descriptor", object);
+		subclassResponsibility("Object:internalHash:", object);
 		return;
 	}
 
@@ -1717,12 +1722,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectInterruptRequestFlag (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:interruptRequestFlag: in Avail.Descriptor", object);
+		subclassResponsibility("Object:interruptRequestFlag:", object);
 		return;
 	}
 
@@ -1732,12 +1737,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectInvocationCount (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:invocationCount: in Avail.Descriptor", object);
+		subclassResponsibility("Object:invocationCount:", object);
 		return;
 	}
 
@@ -1747,12 +1752,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectIsSaved (
-			final AvailObject object, 
+			final AvailObject object,
 			final boolean aBoolean)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSaved: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSaved:", object);
 		return;
 	}
 
@@ -1763,12 +1768,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSubsetOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSubsetOf: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSubsetOf:", object);
 		return false;
 	}
 
@@ -1779,12 +1784,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSubtypeOf: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSubtypeOf:", object);
 		return false;
 	}
 
@@ -1795,12 +1800,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfClosureType:", object);
 		return false;
 	}
 
@@ -1811,12 +1816,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfContainerType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfContainerType:", object);
 		return false;
 	}
 
@@ -1827,12 +1832,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfContinuationType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfContinuationType:", object);
 		return false;
 	}
 
@@ -1843,12 +1848,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfCyclicType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfCyclicType:", object);
 		return false;
 	}
 
@@ -1859,12 +1864,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfGeneralizedClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfGeneralizedClosureType:", object);
 		return false;
 	}
 
@@ -1875,12 +1880,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfIntegerRangeType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfIntegerRangeType:", object);
 		return false;
 	}
 
@@ -1891,12 +1896,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfListType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aListType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfListType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfListType:", object);
 		return false;
 	}
 
@@ -1907,12 +1912,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfMapType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aMapType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfMapType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfMapType:", object);
 		return false;
 	}
 
@@ -1923,12 +1928,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfObjectMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfObjectMeta:", object);
 		return false;
 	}
 
@@ -1939,12 +1944,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfObjectMetaMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfObjectMetaMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfObjectMetaMeta:", object);
 		return false;
 	}
 
@@ -1955,12 +1960,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfObjectType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfObjectType:", object);
 		return false;
 	}
 
@@ -1971,12 +1976,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfPrimitiveType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfPrimitiveType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfPrimitiveType:", object);
 		return false;
 	}
 
@@ -1987,12 +1992,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfSetType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSetType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfSetType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfSetType:", object);
 		return false;
 	}
 
@@ -2003,12 +2008,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsSupertypeOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isSupertypeOfTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isSupertypeOfTupleType:", object);
 		return false;
 	}
 
@@ -2018,12 +2023,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectIsValid (
-			final AvailObject object, 
+			final AvailObject object,
 			final boolean aBoolean)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isValid: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isValid:", object);
 		return;
 	}
 
@@ -2035,13 +2040,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsValidForArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:isValidForArgumentTypes:interpreter: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isValidForArgumentTypes:interpreter:", object);
 		return false;
 	}
 
@@ -2052,12 +2057,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectKeyAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:keyAtIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:keyAtIndex:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2068,13 +2073,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectKeyAtIndexPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject keyObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:keyAtIndex:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:keyAtIndex:put:", object);
 		return;
 	}
 
@@ -2084,12 +2089,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectKeyType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:keyType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:keyType:", object);
 		return;
 	}
 
@@ -2100,12 +2105,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectLessOrEqual (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lessOrEqual: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lessOrEqual:", object);
 		return false;
 	}
 
@@ -2116,12 +2121,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectLessThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lessThan: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lessThan:", object);
 		return false;
 	}
 
@@ -2132,13 +2137,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectLevelTwoChunkIndexOffset (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int offset)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:levelTwoChunkIndex:offset: in Avail.Descriptor", object);
+		subclassResponsibility("Object:levelTwoChunkIndex:offset:", object);
 		return;
 	}
 
@@ -2149,12 +2154,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLiteralAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:literalAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:literalAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2165,13 +2170,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectLiteralAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:literalAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:literalAt:put:", object);
 		return;
 	}
 
@@ -2182,12 +2187,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLocalOrArgOrStackAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:localOrArgOrStackAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:localOrArgOrStackAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2198,13 +2203,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectLocalOrArgOrStackAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:localOrArgOrStackAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:localOrArgOrStackAt:put:", object);
 		return;
 	}
 
@@ -2215,12 +2220,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLocalTypeAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:localTypeAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:localTypeAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2231,12 +2236,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLookupByTypesFromArray (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argumentTypeArray)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lookupByTypesFromArray: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lookupByTypesFromArray:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2248,13 +2253,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLookupByTypesFromContinuationStackp (
-			final AvailObject object, 
-			final AvailObject continuation, 
+			final AvailObject object,
+			final AvailObject continuation,
 			final int stackp)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lookupByTypesFromContinuation:stackp: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lookupByTypesFromContinuation:stackp:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2265,12 +2270,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLookupByTypesFromTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject argumentTypeTuple)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lookupByTypesFromTuple: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lookupByTypesFromTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2281,12 +2286,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLookupByValuesFromArray (
-			final AvailObject object, 
+			final AvailObject object,
 			final List<AvailObject> argumentArray)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lookupByValuesFromArray: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lookupByValuesFromArray:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2298,13 +2303,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLookupByValuesFromContinuationStackp (
-			final AvailObject object, 
-			final AvailObject continuation, 
+			final AvailObject object,
+			final AvailObject continuation,
 			final int stackp)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lookupByValuesFromContinuation:stackp: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lookupByValuesFromContinuation:stackp:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2315,12 +2320,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectLookupByValuesFromTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject argumentTuple)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lookupByValuesFromTuple: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lookupByValuesFromTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2330,12 +2335,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectLowerBound (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lowerBound: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lowerBound:", object);
 		return;
 	}
 
@@ -2346,13 +2351,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectLowerInclusiveUpperInclusive (
-			final AvailObject object, 
-			final boolean lowInc, 
+			final AvailObject object,
+			final boolean lowInc,
 			final boolean highInc)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:lowerInclusive:upperInclusive: in Avail.Descriptor", object);
+		subclassResponsibility("Object:lowerInclusive:upperInclusive:", object);
 		return;
 	}
 
@@ -2363,12 +2368,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectMapAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject keyObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:mapAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:mapAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2381,14 +2386,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectMapAtPuttingCanDestroy (
-			final AvailObject object, 
-			final AvailObject keyObject, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final AvailObject keyObject,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:mapAt:putting:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:mapAt:putting:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2398,12 +2403,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMapSize (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:mapSize: in Avail.Descriptor", object);
+		subclassResponsibility("Object:mapSize:", object);
 		return;
 	}
 
@@ -2415,13 +2420,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectMapWithoutKeyCanDestroy (
-			final AvailObject object, 
-			final AvailObject keyObject, 
+			final AvailObject object,
+			final AvailObject keyObject,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:mapWithoutKey:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:mapWithoutKey:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2431,12 +2436,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMessage (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:message: in Avail.Descriptor", object);
+		subclassResponsibility("Object:message:", object);
 		return;
 	}
 
@@ -2446,12 +2451,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMessageParts (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:messageParts: in Avail.Descriptor", object);
+		subclassResponsibility("Object:messageParts:", object);
 		return;
 	}
 
@@ -2461,12 +2466,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMethods (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:methods: in Avail.Descriptor", object);
+		subclassResponsibility("Object:methods:", object);
 		return;
 	}
 
@@ -2478,13 +2483,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectMinusCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:minus:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:minus:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2496,13 +2501,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectMultiplyByInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:multiplyByInfinity:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:multiplyByInfinity:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2514,13 +2519,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectMultiplyByIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:multiplyByInteger:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:multiplyByInteger:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2530,12 +2535,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMyObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:myObjectMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:myObjectMeta:", object);
 		return;
 	}
 
@@ -2545,12 +2550,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMyObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:myObjectType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:myObjectType:", object);
 		return;
 	}
 
@@ -2560,12 +2565,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMyRestrictions (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:myRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("Object:myRestrictions:", object);
 		return;
 	}
 
@@ -2575,12 +2580,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectMyType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:myType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:myType:", object);
 		return;
 	}
 
@@ -2590,12 +2595,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectName (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:name: in Avail.Descriptor", object);
+		subclassResponsibility("Object:name:", object);
 		return;
 	}
 
@@ -2605,12 +2610,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNames (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:names: in Avail.Descriptor", object);
+		subclassResponsibility("Object:names:", object);
 		return;
 	}
 
@@ -2621,12 +2626,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectNameVisible (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject trueName)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:nameVisible: in Avail.Descriptor", object);
+		subclassResponsibility("Object:nameVisible:", object);
 		return false;
 	}
 
@@ -2636,12 +2641,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNecessaryImplementationSetChanged (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anImplementationSet)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:necessaryImplementationSetChanged: in Avail.Descriptor", object);
+		subclassResponsibility("Object:necessaryImplementationSetChanged:", object);
 		return;
 	}
 
@@ -2651,12 +2656,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNewNames (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:newNames: in Avail.Descriptor", object);
+		subclassResponsibility("Object:newNames:", object);
 		return;
 	}
 
@@ -2666,12 +2671,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNext (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject nextChunk)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:next: in Avail.Descriptor", object);
+		subclassResponsibility("Object:next:", object);
 		return;
 	}
 
@@ -2681,12 +2686,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNextIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:nextIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:nextIndex:", object);
 		return;
 	}
 
@@ -2696,12 +2701,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNumBlanks (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:numBlanks: in Avail.Descriptor", object);
+		subclassResponsibility("Object:numBlanks:", object);
 		return;
 	}
 
@@ -2711,12 +2716,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNumFloats (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:numFloats: in Avail.Descriptor", object);
+		subclassResponsibility("Object:numFloats:", object);
 		return;
 	}
 
@@ -2726,12 +2731,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNumIntegers (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:numIntegers: in Avail.Descriptor", object);
+		subclassResponsibility("Object:numIntegers:", object);
 		return;
 	}
 
@@ -2741,12 +2746,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNumObjects (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:numObjects: in Avail.Descriptor", object);
+		subclassResponsibility("Object:numObjects:", object);
 		return;
 	}
 
@@ -2756,12 +2761,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectNybbles (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:nybbles: in Avail.Descriptor", object);
+		subclassResponsibility("Object:nybbles:", object);
 		return;
 	}
 
@@ -2772,12 +2777,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectOptionallyNilOuterVar (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:optionallyNilOuterVar: in Avail.Descriptor", object);
+		subclassResponsibility("Object:optionallyNilOuterVar:", object);
 		return false;
 	}
 
@@ -2788,12 +2793,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectOuterTypeAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:outerTypeAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:outerTypeAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2804,13 +2809,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectOuterTypesLocalTypes (
-			final AvailObject object, 
-			final AvailObject tupleOfOuterTypes, 
+			final AvailObject object,
+			final AvailObject tupleOfOuterTypes,
 			final AvailObject tupleOfLocalContainerTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:outerTypes:localTypes: in Avail.Descriptor", object);
+		subclassResponsibility("Object:outerTypes:localTypes:", object);
 		return;
 	}
 
@@ -2821,12 +2826,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectOuterVarAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:outerVarAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:outerVarAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2837,13 +2842,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectOuterVarAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:outerVarAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:outerVarAt:put:", object);
 		return;
 	}
 
@@ -2852,13 +2857,28 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void ObjectPad (
-			final AvailObject object, 
+	public void ObjectPad1 (
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:pad: in Avail.Descriptor", object);
+		subclassResponsibility("Object:pad1:", object);
+		return;
+	}
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	@Override
+	public void ObjectPad2 (
+			final AvailObject object,
+			final AvailObject value)
+	{
+		//  GENERATED pure (abstract) method.
+
+		subclassResponsibility("Object:pad2:", object);
 		return;
 	}
 
@@ -2868,12 +2888,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectParent (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:parent: in Avail.Descriptor", object);
+		subclassResponsibility("Object:parent:", object);
 		return;
 	}
 
@@ -2883,12 +2903,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectPc (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:pc: in Avail.Descriptor", object);
+		subclassResponsibility("Object:pc:", object);
 		return;
 	}
 
@@ -2900,13 +2920,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectPlusCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:plus:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:plus:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2916,12 +2936,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectPrevious (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject previousChunk)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:previous: in Avail.Descriptor", object);
+		subclassResponsibility("Object:previous:", object);
 		return;
 	}
 
@@ -2931,12 +2951,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectPreviousIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:previousIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:previousIndex:", object);
 		return;
 	}
 
@@ -2946,12 +2966,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectPriority (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:priority: in Avail.Descriptor", object);
+		subclassResponsibility("Object:priority:", object);
 		return;
 	}
 
@@ -2962,12 +2982,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectPrivateAddElement (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject element)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateAddElement: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateAddElement:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2978,12 +2998,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectPrivateExcludeElement (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject element)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateExcludeElement: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateExcludeElement:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2995,13 +3015,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectPrivateExcludeElementKnownIndex (
-			final AvailObject object, 
-			final AvailObject element, 
+			final AvailObject object,
+			final AvailObject element,
 			final int knownIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateExcludeElement:knownIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateExcludeElement:knownIndex:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3012,12 +3032,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectPrivateExcludeKey (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject keyObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateExcludeKey: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateExcludeKey:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3029,13 +3049,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectPrivateMapAtPut (
-			final AvailObject object, 
-			final AvailObject keyObject, 
+			final AvailObject object,
+			final AvailObject keyObject,
 			final AvailObject valueObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateMapAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateMapAt:put:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3045,12 +3065,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectPrivateNames (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateNames: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateNames:", object);
 		return;
 	}
 
@@ -3060,12 +3080,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectPrivateTestingTree (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:privateTestingTree: in Avail.Descriptor", object);
+		subclassResponsibility("Object:privateTestingTree:", object);
 		return;
 	}
 
@@ -3075,12 +3095,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectProcessGlobals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:processGlobals: in Avail.Descriptor", object);
+		subclassResponsibility("Object:processGlobals:", object);
 		return;
 	}
 
@@ -3091,12 +3111,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public short ObjectRawByteAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawByteAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawByteAt:", object);
 		return 0;
 	}
 
@@ -3107,13 +3127,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawByteAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawByteAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawByteAt:put:", object);
 		return;
 	}
 
@@ -3124,12 +3144,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public short ObjectRawByteForCharacterAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawByteForCharacterAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawByteForCharacterAt:", object);
 		return 0;
 	}
 
@@ -3140,13 +3160,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawByteForCharacterAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawByteForCharacterAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawByteForCharacterAt:put:", object);
 		return;
 	}
 
@@ -3157,12 +3177,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public byte ObjectRawNybbleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawNybbleAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawNybbleAt:", object);
 		return 0;
 	}
 
@@ -3173,13 +3193,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawNybbleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final byte aNybble)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawNybbleAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawNybbleAt:put:", object);
 		return;
 	}
 
@@ -3189,12 +3209,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawQuad1 (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawQuad1: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawQuad1:", object);
 		return;
 	}
 
@@ -3204,12 +3224,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawQuad2 (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawQuad2: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawQuad2:", object);
 		return;
 	}
 
@@ -3220,12 +3240,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectRawQuadAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawQuadAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawQuadAt:", object);
 		return 0;
 	}
 
@@ -3236,13 +3256,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawQuadAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawQuadAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawQuadAt:put:", object);
 		return;
 	}
 
@@ -3253,12 +3273,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public short ObjectRawShortForCharacterAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawShortForCharacterAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawShortForCharacterAt:", object);
 		return 0;
 	}
 
@@ -3269,13 +3289,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawShortForCharacterAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final short anInteger)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawShortForCharacterAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawShortForCharacterAt:put:", object);
 		return;
 	}
 
@@ -3286,12 +3306,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectRawSignedIntegerAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawSignedIntegerAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawSignedIntegerAt:", object);
 		return 0;
 	}
 
@@ -3302,13 +3322,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawSignedIntegerAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawSignedIntegerAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawSignedIntegerAt:put:", object);
 		return;
 	}
 
@@ -3319,12 +3339,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public long ObjectRawUnsignedIntegerAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawUnsignedIntegerAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawUnsignedIntegerAt:", object);
 		return 0;
 	}
 
@@ -3335,13 +3355,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRawUnsignedIntegerAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rawUnsignedIntegerAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rawUnsignedIntegerAt:put:", object);
 		return;
 	}
 
@@ -3351,12 +3371,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRemoveDependentChunkId (
-			final AvailObject object, 
+			final AvailObject object,
 			final int aChunkIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:removeDependentChunkId: in Avail.Descriptor", object);
+		subclassResponsibility("Object:removeDependentChunkId:", object);
 		return;
 	}
 
@@ -3366,12 +3386,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRemoveFrom (
-		final AvailObject object, 
+		final AvailObject object,
 		final AvailInterpreter anInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:removeFrom: in Avail.Descriptor", object);
+		subclassResponsibility("Object:removeFrom:", object);
 		return;
 	}
 
@@ -3381,12 +3401,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRemoveImplementation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject implementation)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:removeImplementation: in Avail.Descriptor", object);
+		subclassResponsibility("Object:removeImplementation:", object);
 		return;
 	}
 
@@ -3398,13 +3418,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectRemoveMessageParts (
-		final AvailObject object, 
-		final AvailObject message, 
+		final AvailObject object,
+		final AvailObject message,
 		final AvailObject parts)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:removeMessage:parts: in Avail.Descriptor", object);
+		subclassResponsibility("Object:removeMessage:parts:", object);
 		return false;
 	}
 
@@ -3414,12 +3434,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRemoveRestrictions (
-		final AvailObject object, 
+		final AvailObject object,
 		final AvailObject obsoleteRestrictions)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:removeRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("Object:removeRestrictions:", object);
 		return;
 	}
 
@@ -3429,12 +3449,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRequiresBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:requiresBlock: in Avail.Descriptor", object);
+		subclassResponsibility("Object:requiresBlock:", object);
 		return;
 	}
 
@@ -3445,13 +3465,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectResolvedForwardWithName (
-			final AvailObject object, 
-			final AvailObject forwardImplementation, 
+			final AvailObject object,
+			final AvailObject forwardImplementation,
 			final AvailObject methodName)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:resolvedForward:withName: in Avail.Descriptor", object);
+		subclassResponsibility("Object:resolvedForward:withName:", object);
 		return;
 	}
 
@@ -3461,12 +3481,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRestrictions (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:restrictions: in Avail.Descriptor", object);
+		subclassResponsibility("Object:restrictions:", object);
 		return;
 	}
 
@@ -3476,12 +3496,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectReturnsBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:returnsBlock: in Avail.Descriptor", object);
+		subclassResponsibility("Object:returnsBlock:", object);
 		return;
 	}
 
@@ -3491,12 +3511,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectReturnType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:returnType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:returnType:", object);
 		return;
 	}
 
@@ -3506,12 +3526,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectRootBin (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:rootBin: in Avail.Descriptor", object);
+		subclassResponsibility("Object:rootBin:", object);
 		return;
 	}
 
@@ -3521,12 +3541,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSecondTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:secondTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:secondTupleType:", object);
 		return;
 	}
 
@@ -3538,13 +3558,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSetIntersectionCanDestroy (
-			final AvailObject object, 
-			final AvailObject otherSet, 
+			final AvailObject object,
+			final AvailObject otherSet,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setIntersection:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setIntersection:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3556,13 +3576,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSetMinusCanDestroy (
-			final AvailObject object, 
-			final AvailObject otherSet, 
+			final AvailObject object,
+			final AvailObject otherSet,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setMinus:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setMinus:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3572,12 +3592,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSetSize (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setSize: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setSize:", object);
 		return;
 	}
 
@@ -3588,13 +3608,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSetSubtupleForZoneTo (
-			final AvailObject object, 
-			final int zoneIndex, 
+			final AvailObject object,
+			final int zoneIndex,
 			final AvailObject newTuple)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setSubtupleForZone:to: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setSubtupleForZone:to:", object);
 		return;
 	}
 
@@ -3606,13 +3626,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSetUnionCanDestroy (
-			final AvailObject object, 
-			final AvailObject otherSet, 
+			final AvailObject object,
+			final AvailObject otherSet,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setUnion:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setUnion:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3622,12 +3642,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSetValue (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject newValue)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setValue: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setValue:", object);
 		return;
 	}
 
@@ -3639,13 +3659,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSetWithElementCanDestroy (
-			final AvailObject object, 
-			final AvailObject newElementObject, 
+			final AvailObject object,
+			final AvailObject newElementObject,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setWithElement:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setWithElement:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3657,13 +3677,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSetWithoutElementCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObjectToExclude, 
+			final AvailObject object,
+			final AvailObject elementObjectToExclude,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:setWithoutElement:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:setWithoutElement:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3673,12 +3693,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSignature (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:signature: in Avail.Descriptor", object);
+		subclassResponsibility("Object:signature:", object);
 		return;
 	}
 
@@ -3688,12 +3708,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSize (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:size: in Avail.Descriptor", object);
+		subclassResponsibility("Object:size:", object);
 		return;
 	}
 
@@ -3704,12 +3724,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectSizeOfZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:sizeOfZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:sizeOfZone:", object);
 		return 0;
 	}
 
@@ -3719,12 +3739,27 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectSizeRange (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:sizeRange: in Avail.Descriptor", object);
+		subclassResponsibility("Object:sizeRange:", object);
+		return;
+	}
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	@Override
+	public void ObjectSpecialActions (
+			final AvailObject object,
+			final AvailObject value)
+	{
+		//  GENERATED pure (abstract) method.
+
+		subclassResponsibility("Object:specialActions:", object);
 		return;
 	}
 
@@ -3735,12 +3770,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectStackAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int slotIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:stackAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:stackAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3751,13 +3786,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectStackAtPut (
-			final AvailObject object, 
-			final int slotIndex, 
+			final AvailObject object,
+			final int slotIndex,
 			final AvailObject anObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:stackAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:stackAt:put:", object);
 		return;
 	}
 
@@ -3767,12 +3802,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectStackp (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:stackp: in Avail.Descriptor", object);
+		subclassResponsibility("Object:stackp:", object);
 		return;
 	}
 
@@ -3782,12 +3817,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectStartingChunkIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:startingChunkIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:startingChunkIndex:", object);
 		return;
 	}
 
@@ -3798,12 +3833,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectStartOfZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:startOfZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:startOfZone:", object);
 		return 0;
 	}
 
@@ -3814,12 +3849,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectStartSubtupleIndexInZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:startSubtupleIndexInZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:startSubtupleIndexInZone:", object);
 		return 0;
 	}
 
@@ -3831,13 +3866,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSubtractFromInfinityCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInfinity, 
+			final AvailObject object,
+			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:subtractFromInfinity:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:subtractFromInfinity:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3849,13 +3884,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSubtractFromIntegerCanDestroy (
-			final AvailObject object, 
-			final AvailObject anInteger, 
+			final AvailObject object,
+			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:subtractFromInteger:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:subtractFromInteger:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3866,12 +3901,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectSubtupleForZone (
-			final AvailObject object, 
+			final AvailObject object,
 			final int zone)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:subtupleForZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:subtupleForZone:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3883,13 +3918,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTimesCanDestroy (
-			final AvailObject object, 
-			final AvailObject aNumber, 
+			final AvailObject object,
+			final AvailObject aNumber,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:times:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:times:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3901,13 +3936,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectTranslateToZone (
-			final AvailObject object, 
-			final int tupleIndex, 
+			final AvailObject object,
+			final int tupleIndex,
 			final int zoneIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:translate:toZone: in Avail.Descriptor", object);
+		subclassResponsibility("Object:translate:toZone:", object);
 		return 0;
 	}
 
@@ -3918,12 +3953,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTrueNamesForStringName (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject stringName)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:trueNamesForStringName: in Avail.Descriptor", object);
+		subclassResponsibility("Object:trueNamesForStringName:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3934,12 +3969,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTruncateTo (
-			final AvailObject object, 
+			final AvailObject object,
 			final int newTupleSize)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:truncateTo: in Avail.Descriptor", object);
+		subclassResponsibility("Object:truncateTo:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3949,12 +3984,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:tuple: in Avail.Descriptor", object);
+		subclassResponsibility("Object:tuple:", object);
 		return;
 	}
 
@@ -3965,12 +4000,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:tupleAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:tupleAt:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3981,13 +4016,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject aNybbleObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:tupleAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:tupleAt:put:", object);
 		return;
 	}
 
@@ -4000,14 +4035,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:tupleAt:putting:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:tupleAt:putting:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4018,12 +4053,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:tupleIntAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:tupleIntAt:", object);
 		return 0;
 	}
 
@@ -4033,12 +4068,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:tupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:tupleType:", object);
 		return;
 	}
 
@@ -4048,12 +4083,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:type: in Avail.Descriptor", object);
+		subclassResponsibility("Object:type:", object);
 		return;
 	}
 
@@ -4064,12 +4099,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeAtIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeAtIndex:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4080,12 +4115,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersection: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersection:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4096,12 +4131,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfClosureType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4113,13 +4148,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
-			final AvailObject object, 
-			final AvailObject aClosureType, 
+			final AvailObject object,
+			final AvailObject aClosureType,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfClosureType:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfClosureType:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4130,12 +4165,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfContainerType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfContainerType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4146,12 +4181,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfContinuationType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfContinuationType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4162,12 +4197,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfCyclicType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfCyclicType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4178,12 +4213,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfGeneralizedClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfGeneralizedClosureType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4195,13 +4230,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
-			final AvailObject object, 
-			final AvailObject aGeneralizedClosureType, 
+			final AvailObject object,
+			final AvailObject aGeneralizedClosureType,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfGeneralizedClosureType:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfGeneralizedClosureType:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4212,12 +4247,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfIntegerRangeType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfIntegerRangeType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4228,12 +4263,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfListType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aListType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfListType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfListType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4244,12 +4279,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfMapType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aMapType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfMapType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfMapType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4260,12 +4295,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject someMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4276,12 +4311,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfObjectMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfObjectMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4292,12 +4327,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfObjectMetaMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfObjectMetaMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4308,12 +4343,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfObjectType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfObjectType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4324,12 +4359,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfSetType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSetType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfSetType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfSetType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4340,12 +4375,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeIntersectionOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeIntersectionOfTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeIntersectionOfTupleType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4355,12 +4390,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectTypeTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeTuple: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeTuple:", object);
 		return;
 	}
 
@@ -4371,12 +4406,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnion: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnion:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4387,12 +4422,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfClosureType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4404,13 +4439,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
-			final AvailObject object, 
-			final AvailObject aClosureType, 
+			final AvailObject object,
+			final AvailObject aClosureType,
 			final boolean canDestroy)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfClosureType:canDestroy: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfClosureType:canDestroy:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4421,12 +4456,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainerType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfContainerType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfContainerType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4437,12 +4472,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfContinuationType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfContinuationType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4453,12 +4488,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfCyclicType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfCyclicType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfCyclicType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4469,12 +4504,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfGeneralizedClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfGeneralizedClosureType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4485,12 +4520,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfIntegerRangeType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfIntegerRangeType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4501,12 +4536,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfListType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aListType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfListType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfListType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4517,12 +4552,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfMapType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aMapType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfMapType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfMapType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4533,12 +4568,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfObjectMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfObjectMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfObjectMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4549,12 +4584,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfObjectMetaMeta: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfObjectMetaMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4565,12 +4600,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfObjectType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfObjectType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfObjectType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4581,12 +4616,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfSetType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSetType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfSetType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfSetType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4597,12 +4632,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectTypeUnionOfTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:typeUnionOfTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeUnionOfTupleType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4612,12 +4647,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectUnclassified (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:unclassified: in Avail.Descriptor", object);
+		subclassResponsibility("Object:unclassified:", object);
 		return;
 	}
 
@@ -4629,13 +4664,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectUnionOfTypesAtThrough (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:unionOfTypesAt:through: in Avail.Descriptor", object);
+		subclassResponsibility("Object:unionOfTypesAt:through:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4646,12 +4681,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectUntranslatedDataAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:untranslatedDataAt: in Avail.Descriptor", object);
+		subclassResponsibility("Object:untranslatedDataAt:", object);
 		return 0;
 	}
 
@@ -4662,13 +4697,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectUntranslatedDataAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:untranslatedDataAt:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:untranslatedDataAt:put:", object);
 		return;
 	}
 
@@ -4678,12 +4713,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectUpperBound (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:upperBound: in Avail.Descriptor", object);
+		subclassResponsibility("Object:upperBound:", object);
 		return;
 	}
 
@@ -4696,14 +4731,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
-			final AvailInterpreter anAvailInterpreter, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
+			final AvailInterpreter anAvailInterpreter,
 			final Continuation1<Generator<String>> failBlock)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:validateArgumentTypes:interpreter:ifFail: in Avail.Descriptor", object);
+		subclassResponsibility("Object:validateArgumentTypes:interpreter:ifFail:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4713,12 +4748,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectValidity (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:validity: in Avail.Descriptor", object);
+		subclassResponsibility("Object:validity:", object);
 		return;
 	}
 
@@ -4728,12 +4763,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectValue (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:value: in Avail.Descriptor", object);
+		subclassResponsibility("Object:value:", object);
 		return;
 	}
 
@@ -4744,12 +4779,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectValueAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:valueAtIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:valueAtIndex:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4760,13 +4795,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectValueAtIndexPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject valueObject)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:valueAtIndex:put: in Avail.Descriptor", object);
+		subclassResponsibility("Object:valueAtIndex:put:", object);
 		return;
 	}
 
@@ -4776,12 +4811,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectValueType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:valueType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:valueType:", object);
 		return;
 	}
 
@@ -4791,12 +4826,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectVariableBindings (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:variableBindings: in Avail.Descriptor", object);
+		subclassResponsibility("Object:variableBindings:", object);
 		return;
 	}
 
@@ -4806,12 +4841,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectVectors (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:vectors: in Avail.Descriptor", object);
+		subclassResponsibility("Object:vectors:", object);
 		return;
 	}
 
@@ -4821,12 +4856,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectVisibleNames (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:visibleNames: in Avail.Descriptor", object);
+		subclassResponsibility("Object:visibleNames:", object);
 		return;
 	}
 
@@ -4836,12 +4871,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectWhichOne (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:whichOne: in Avail.Descriptor", object);
+		subclassResponsibility("Object:whichOne:", object);
 		return;
 	}
 
@@ -4851,12 +4886,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectWordcodes (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:wordcodes: in Avail.Descriptor", object);
+		subclassResponsibility("Object:wordcodes:", object);
 		return;
 	}
 
@@ -4867,12 +4902,12 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectZoneForIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: Object:zoneForIndex: in Avail.Descriptor", object);
+		subclassResponsibility("Object:zoneForIndex:", object);
 		return 0;
 	}
 
@@ -4886,7 +4921,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectAsNativeString: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectAsNativeString:", object);
 		return "";
 	}
 
@@ -4900,7 +4935,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectAsObject: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectAsObject:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4914,7 +4949,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectAsSet: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectAsSet:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4928,7 +4963,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectAsTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectAsTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4942,7 +4977,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBecomeExactType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBecomeExactType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4955,7 +4990,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBecomeRealTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBecomeRealTupleType:", object);
 		return;
 	}
 
@@ -4969,7 +5004,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBitsPerEntry: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBitsPerEntry:", object);
 		return 0;
 	}
 
@@ -4983,7 +5018,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBitVector: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBitVector:", object);
 		return 0;
 	}
 
@@ -4997,7 +5032,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBodyBlock: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBodyBlock:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5011,7 +5046,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBodySignature: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBodySignature:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5025,7 +5060,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectBreakpointBlock: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectBreakpointBlock:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5039,7 +5074,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCaller: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCaller:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5053,7 +5088,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCapacity: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCapacity:", object);
 		return 0;
 	}
 
@@ -5066,7 +5101,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCleanUpAfterCompile: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCleanUpAfterCompile:", object);
 		return;
 	}
 
@@ -5079,7 +5114,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectClearModule: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectClearModule:", object);
 		return;
 	}
 
@@ -5092,7 +5127,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectClearValue: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectClearValue:", object);
 		return;
 	}
 
@@ -5106,7 +5141,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectClosure: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectClosure:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5120,7 +5155,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectClosureType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectClosureType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5134,7 +5169,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCode: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCode:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5148,7 +5183,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCodePoint: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCodePoint:", object);
 		return 0;
 	}
 
@@ -5162,7 +5197,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectComplete: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectComplete:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5176,7 +5211,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectConstantBindings: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectConstantBindings:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5190,7 +5225,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectContentType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectContentType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5204,7 +5239,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectContingentImpSets: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectContingentImpSets:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5218,7 +5253,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectContinuation: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectContinuation:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5232,7 +5267,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCopyAsMutableContinuation: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCopyAsMutableContinuation:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5246,7 +5281,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCopyAsMutableObjectTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCopyAsMutableObjectTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5260,7 +5295,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCopyAsMutableSpliceTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCopyAsMutableSpliceTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5274,7 +5309,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectCopyMutable: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectCopyMutable:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5288,7 +5323,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectDefaultType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectDefaultType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5302,7 +5337,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectDependentChunks: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectDependentChunks:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5316,7 +5351,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectDepth: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectDepth:", object);
 		return 0;
 	}
 
@@ -5329,7 +5364,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectDisplayTestingTree: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectDisplayTestingTree:", object);
 		return;
 	}
 
@@ -5342,7 +5377,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectEnsureMetacovariant: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectEnsureMetacovariant:", object);
 		return;
 	}
 
@@ -5356,7 +5391,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectEnsureMutable: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectEnsureMutable:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5369,7 +5404,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectEvictedByGarbageCollector: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectEvictedByGarbageCollector:", object);
 		return;
 	}
 
@@ -5383,7 +5418,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExecutionMode: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExecutionMode:", object);
 		return 0;
 	}
 
@@ -5397,7 +5432,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExecutionState: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExecutionState:", object);
 		return 0;
 	}
 
@@ -5411,7 +5446,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExpand: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExpand:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5425,7 +5460,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExtractBoolean: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExtractBoolean:", object);
 		return false;
 	}
 
@@ -5439,7 +5474,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExtractByte: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExtractByte:", object);
 		return 0;
 	}
 
@@ -5453,7 +5488,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExtractDouble: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExtractDouble:", object);
 		return 0.0d;
 	}
 
@@ -5467,7 +5502,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExtractFloat: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExtractFloat:", object);
 		return 0.0f;
 	}
 
@@ -5481,14 +5516,14 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExtractInt: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExtractInt:", object);
 		return 0;
 	}
 
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the specified Avail
 	 * {@linkplain IntegerDescriptor integer}.
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -5516,7 +5551,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectExtractNybble: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExtractNybble:", object);
 		return 0;
 	}
 
@@ -5530,7 +5565,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectFieldMap: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectFieldMap:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5544,7 +5579,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectFieldTypeMap: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectFieldTypeMap:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5558,7 +5593,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectFilteredBundleTree: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectFilteredBundleTree:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5572,7 +5607,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectFirstTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectFirstTupleType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5586,7 +5621,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectGetInteger: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectGetInteger:", object);
 		return 0;
 	}
 
@@ -5600,7 +5635,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectGetValue: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectGetValue:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5614,7 +5649,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectHashOrZero: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHashOrZero:", object);
 		return 0;
 	}
 
@@ -5628,7 +5663,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectHasRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHasRestrictions:", object);
 		return false;
 	}
 
@@ -5642,7 +5677,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectHiLevelTwoChunkLowOffset: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHiLevelTwoChunkLowOffset:", object);
 		return 0;
 	}
 
@@ -5656,7 +5691,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectHiNumLocalsLowNumArgs: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHiNumLocalsLowNumArgs:", object);
 		return 0;
 	}
 
@@ -5670,7 +5705,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectHiPrimitiveLowNumArgsAndLocalsAndStack: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHiPrimitiveLowNumArgsAndLocalsAndStack:", object);
 		return 0;
 	}
 
@@ -5684,7 +5719,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectHiStartingChunkIndexLowNumOuters: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHiStartingChunkIndexLowNumOuters:", object);
 		return 0;
 	}
 
@@ -5698,7 +5733,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectImplementationsTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectImplementationsTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5712,7 +5747,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectInclusiveFlags: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectInclusiveFlags:", object);
 		return 0;
 	}
 
@@ -5726,7 +5761,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIncomplete: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIncomplete:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5740,7 +5775,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIndex: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIndex:", object);
 		return 0;
 	}
 
@@ -5754,7 +5789,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectInnerType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectInnerType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5768,7 +5803,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectInstance: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectInstance:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5782,7 +5817,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectInternalHash: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectInternalHash:", object);
 		return 0;
 	}
 
@@ -5796,7 +5831,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectInterruptRequestFlag: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectInterruptRequestFlag:", object);
 		return 0;
 	}
 
@@ -5810,7 +5845,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectInvocationCount: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectInvocationCount:", object);
 		return 0;
 	}
 
@@ -5824,7 +5859,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsAbstract: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsAbstract:", object);
 		return false;
 	}
 
@@ -5838,7 +5873,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsFinite: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsFinite:", object);
 		return false;
 	}
 
@@ -5852,7 +5887,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsForward: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsForward:", object);
 		return false;
 	}
 
@@ -5866,7 +5901,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsImplementation: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsImplementation:", object);
 		return false;
 	}
 
@@ -5880,7 +5915,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsPositive: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsPositive:", object);
 		return false;
 	}
 
@@ -5894,7 +5929,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsSaved: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsSaved:", object);
 		return false;
 	}
 
@@ -5908,7 +5943,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsSplice: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsSplice:", object);
 		return false;
 	}
 
@@ -5922,7 +5957,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsSupertypeOfTerminates: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsSupertypeOfTerminates:", object);
 		return false;
 	}
 
@@ -5936,7 +5971,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsSupertypeOfVoid: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsSupertypeOfVoid:", object);
 		return false;
 	}
 
@@ -5950,7 +5985,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectIsValid: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectIsValid:", object);
 		return false;
 	}
 
@@ -5964,7 +5999,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectKeysAsArray: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectKeysAsArray:", object);
 		return null;
 	}
 
@@ -5978,7 +6013,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectKeysAsSet: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectKeysAsSet:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5992,7 +6027,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectKeyType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectKeyType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6006,7 +6041,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectLevelTwoChunkIndex: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectLevelTwoChunkIndex:", object);
 		return 0;
 	}
 
@@ -6020,7 +6055,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectLevelTwoOffset: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectLevelTwoOffset:", object);
 		return 0;
 	}
 
@@ -6034,7 +6069,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectLowerBound: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectLowerBound:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6048,7 +6083,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectLowerInclusive: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectLowerInclusive:", object);
 		return false;
 	}
 
@@ -6062,7 +6097,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMapSize: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMapSize:", object);
 		return 0;
 	}
 
@@ -6076,7 +6111,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMaxStackDepth: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMaxStackDepth:", object);
 		return 0;
 	}
 
@@ -6090,7 +6125,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMessage: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMessage:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6104,7 +6139,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMessageParts: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMessageParts:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6118,7 +6153,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMethods: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMethods:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6131,7 +6166,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMoveToHead: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMoveToHead:", object);
 		return;
 	}
 
@@ -6145,7 +6180,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMyObjectMeta: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMyObjectMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6159,7 +6194,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMyObjectType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMyObjectType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6173,7 +6208,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMyRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMyRestrictions:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6187,7 +6222,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectMyType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectMyType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6201,7 +6236,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectName: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectName:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6215,7 +6250,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNames: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNames:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6229,7 +6264,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNewNames: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNewNames:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6243,7 +6278,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNext: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNext:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6257,7 +6292,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNextIndex: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNextIndex:", object);
 		return 0;
 	}
 
@@ -6271,7 +6306,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumArgs: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumArgs:", object);
 		return 0;
 	}
 
@@ -6285,7 +6320,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumArgsAndLocalsAndStack: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumArgsAndLocalsAndStack:", object);
 		return 0;
 	}
 
@@ -6299,7 +6334,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumberOfZones: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumberOfZones:", object);
 		return 0;
 	}
 
@@ -6313,7 +6348,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumBlanks: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumBlanks:", object);
 		return 0;
 	}
 
@@ -6327,7 +6362,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumFloats: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumFloats:", object);
 		return 0;
 	}
 
@@ -6341,7 +6376,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumIntegers: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumIntegers:", object);
 		return 0;
 	}
 
@@ -6355,7 +6390,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumLiterals: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumLiterals:", object);
 		return 0;
 	}
 
@@ -6369,7 +6404,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumLocals: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumLocals:", object);
 		return 0;
 	}
 
@@ -6383,7 +6418,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumLocalsOrArgsOrStack: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumLocalsOrArgsOrStack:", object);
 		return 0;
 	}
 
@@ -6397,7 +6432,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumObjects: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumObjects:", object);
 		return 0;
 	}
 
@@ -6411,7 +6446,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumOuters: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumOuters:", object);
 		return 0;
 	}
 
@@ -6425,7 +6460,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNumOuterVars: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNumOuterVars:", object);
 		return 0;
 	}
 
@@ -6439,7 +6474,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectNybbles: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectNybbles:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6448,12 +6483,26 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject ObjectPad (
+	public AvailObject ObjectPad1 (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPad: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPad1:", object);
+		return VoidDescriptor.voidObject();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject ObjectPad2 (
+			final AvailObject object)
+	{
+		//  GENERATED pure (abstract) method.
+
+		subclassResponsibility("ObjectPad2:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6467,7 +6516,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectParent: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectParent:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6481,7 +6530,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPc: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPc:", object);
 		return 0;
 	}
 
@@ -6495,7 +6544,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPrevious: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPrevious:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6509,7 +6558,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPreviousIndex: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPreviousIndex:", object);
 		return 0;
 	}
 
@@ -6523,7 +6572,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPrimitiveNumber: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPrimitiveNumber:", object);
 		return 0;
 	}
 
@@ -6537,7 +6586,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPriority: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPriority:", object);
 		return 0;
 	}
 
@@ -6551,7 +6600,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPrivateNames: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPrivateNames:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6565,7 +6614,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectPrivateTestingTree: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectPrivateTestingTree:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6579,7 +6628,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectProcessGlobals: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectProcessGlobals:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6593,7 +6642,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRawQuad1: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRawQuad1:", object);
 		return 0;
 	}
 
@@ -6607,7 +6656,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRawQuad2: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRawQuad2:", object);
 		return 0;
 	}
 
@@ -6620,7 +6669,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectReleaseVariableOrMakeContentsImmutable: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectReleaseVariableOrMakeContentsImmutable:", object);
 		return;
 	}
 
@@ -6633,7 +6682,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRemoveFromQueue: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRemoveFromQueue:", object);
 		return;
 	}
 
@@ -6646,7 +6695,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRemoveRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRemoveRestrictions:", object);
 		return;
 	}
 
@@ -6660,7 +6709,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRequiresBlock: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRequiresBlock:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6674,7 +6723,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRestrictions: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRestrictions:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6688,7 +6737,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectReturnsBlock: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectReturnsBlock:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6702,7 +6751,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectReturnType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectReturnType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6716,7 +6765,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectRootBin: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectRootBin:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6730,7 +6779,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectSecondTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectSecondTupleType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6744,7 +6793,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectSetSize: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectSetSize:", object);
 		return 0;
 	}
 
@@ -6758,7 +6807,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectSignature: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectSignature:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6772,7 +6821,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectSize: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectSize:", object);
 		return 0;
 	}
 
@@ -6786,7 +6835,21 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectSizeRange: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectSizeRange:", object);
+		return VoidDescriptor.voidObject();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject ObjectSpecialActions (
+			final AvailObject object)
+	{
+		//  GENERATED pure (abstract) method.
+
+		subclassResponsibility("ObjectSpecialActions:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6800,7 +6863,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectStackp: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectStackp:", object);
 		return 0;
 	}
 
@@ -6814,7 +6877,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectStartingChunkIndex: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectStartingChunkIndex:", object);
 		return 0;
 	}
 
@@ -6827,7 +6890,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectStep: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectStep:", object);
 		return;
 	}
 
@@ -6841,7 +6904,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectTestingTree: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectTestingTree:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6854,7 +6917,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectTrimExcessLongs: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectTrimExcessLongs:", object);
 		return;
 	}
 
@@ -6868,7 +6931,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6882,7 +6945,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectTupleSize: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectTupleSize:", object);
 		return 0;
 	}
 
@@ -6896,7 +6959,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectTupleType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6910,7 +6973,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectTypeTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectTypeTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6924,7 +6987,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectUnclassified: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectUnclassified:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6938,7 +7001,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectUpperBound: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectUpperBound:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6952,7 +7015,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectUpperInclusive: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectUpperInclusive:", object);
 		return false;
 	}
 
@@ -6966,7 +7029,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectValidity: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectValidity:", object);
 		return 0;
 	}
 
@@ -6980,7 +7043,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectValue: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectValue:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6994,7 +7057,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectValuesAsTuple: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectValuesAsTuple:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7008,7 +7071,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectValueType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectValueType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7022,7 +7085,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectVariableBindings: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectVariableBindings:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7036,7 +7099,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectVectors: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectVectors:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7049,7 +7112,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectVerify: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectVerify:", object);
 		return;
 	}
 
@@ -7063,7 +7126,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectVisibleNames: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectVisibleNames:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7077,7 +7140,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectWhichOne: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectWhichOne:", object);
 		return 0;
 	}
 
@@ -7091,7 +7154,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		error("Subclass responsibility: ObjectWordcodes: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectWordcodes:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7106,10 +7169,10 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
-		error("Subclass responsibility: Object:equals: in Avail.Descriptor", object);
+		subclassResponsibility("Object:equals:", object);
 		return false;
 	}
 
@@ -7120,7 +7183,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsAnyTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		return false;
@@ -7133,7 +7196,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsByteString (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aString)
 	{
 		return false;
@@ -7146,7 +7209,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsByteTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		return false;
@@ -7159,7 +7222,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsCharacterWithCodePoint (
-			final AvailObject object, 
+			final AvailObject object,
 			final int otherCodePoint)
 	{
 		return false;
@@ -7172,7 +7235,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsClosure (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosure)
 	{
 		return false;
@@ -7185,7 +7248,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosureType)
 	{
 		return false;
@@ -7198,7 +7261,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsCompiledCode (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aCompiledCode)
 	{
 		return false;
@@ -7211,7 +7274,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsContainer (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContainer)
 	{
 		return false;
@@ -7224,7 +7287,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsContainerType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		return false;
@@ -7237,7 +7300,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsContinuation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuation)
 	{
 		return false;
@@ -7250,7 +7313,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7265,7 +7328,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsDouble (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aDoubleObject)
 	{
 		return false;
@@ -7278,7 +7341,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsFloat (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aFloatObject)
 	{
 		return false;
@@ -7291,7 +7354,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsGeneralizedClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
 		return false;
@@ -7304,7 +7367,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsInfinity (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anInfinity)
 	{
 		return false;
@@ -7317,7 +7380,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsInteger (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anAvailInteger)
 	{
 		return false;
@@ -7330,7 +7393,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsIntegerRangeType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return false;
@@ -7343,7 +7406,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsList (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aList)
 	{
 		return false;
@@ -7356,7 +7419,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsListType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aListType)
 	{
 		return false;
@@ -7369,7 +7432,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsMap (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aMap)
 	{
 		return false;
@@ -7382,7 +7445,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsMapType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aMapType)
 	{
 		return false;
@@ -7395,7 +7458,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsNybbleTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		return false;
@@ -7408,7 +7471,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsObject (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObject)
 	{
 		return false;
@@ -7421,7 +7484,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsObjectTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTuple)
 	{
 		return false;
@@ -7434,7 +7497,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsPrimitiveType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		return false;
@@ -7447,7 +7510,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsSet (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSet)
 	{
 		return false;
@@ -7460,7 +7523,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsSetType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aSetType)
 	{
 		return false;
@@ -7473,7 +7536,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		return false;
@@ -7486,7 +7549,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectEqualsTwoByteString (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aString)
 	{
 		return false;
@@ -7499,7 +7562,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectHasObjectInstance (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject potentialInstance)
 	{
 		//  The potentialInstance is a user-defined object.  See if it is an instance of me.
@@ -7514,7 +7577,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsBetterRepresentationThan (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
@@ -7530,7 +7593,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsBetterRepresentationThanTupleType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aTupleType)
 	{
 		//  Given two objects that are known to be equal, the second of which is in the form of
@@ -7539,7 +7602,7 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  Explanation: This must be called with a tuple type as the second argument, but
 		//  the two arguments must also be equal.  All alternative implementations of tuple
 		//  types should reimplement this method.
-		error("Subclass responsibility: Object:isBetterRepresentationThanTupleType: in Avail.Descriptor", object);
+		subclassResponsibility("Object:isBetterRepresentationThanTupleType:", object);
 		return false;
 	}
 
@@ -7550,7 +7613,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
@@ -7642,7 +7705,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		error("Subclass responsibility: ObjectExactType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectExactType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7657,7 +7720,7 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		error("Subclass responsibility: ObjectHash: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHash:", object);
 		return 0;
 	}
 
@@ -7731,7 +7794,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		//  Answer the object's type.
 
-		error("Subclass responsibility: ObjectType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7752,7 +7815,7 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail byte tuple?
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is a byte tuple, {@code false}
 	 *         otherwise.
@@ -7783,7 +7846,7 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail string?
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is an Avail string, {@code false}
 	 *         otherwise.
@@ -7809,7 +7872,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectContainsBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aClosure)
 	{
 		//  Answer true if either I am aClosure or I contain aClosure.  I only follow
@@ -7862,7 +7925,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectTarget (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		//  From IndirectionObjectDescriptor.  Fail if we're not an indirection object.
@@ -7983,10 +8046,10 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectBinAddingElementHashLevelCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
-			final byte myLevel, 
+			final AvailObject object,
+			final AvailObject elementObject,
+			final int elementObjectHash,
+			final byte myLevel,
 			final boolean canDestroy)
 	{
 		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
@@ -8018,8 +8081,8 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectBinHasElementHash (
-			final AvailObject object, 
-			final AvailObject elementObject, 
+			final AvailObject object,
+			final AvailObject elementObject,
 			final int elementObjectHash)
 	{
 		//  Elements are treated as bins to save space, since bins are not
@@ -8037,9 +8100,9 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject ObjectBinRemoveElementHashCanDestroy (
-			final AvailObject object, 
-			final AvailObject elementObject, 
-			final int elementObjectHash, 
+			final AvailObject object,
+			final AvailObject elementObject,
+			final int elementObjectHash,
 			final boolean canDestroy)
 	{
 		//  Remove elementObject from the bin object, if present.  Answer the resulting bin.  The bin
@@ -8065,7 +8128,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectIsBinSubsetOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject potentialSuperset)
 	{
 		//  Sets only use explicit bins for collisions, otherwise they store the element
@@ -8083,8 +8146,8 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public int ObjectPopulateTupleStartingAt (
-			final AvailObject object, 
-			final AvailObject mutableTuple, 
+			final AvailObject object,
+			final AvailObject mutableTuple,
 			final int startingIndex)
 	{
 		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
@@ -8158,7 +8221,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public boolean ObjectTypeEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
@@ -8166,7 +8229,7 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  overidden ObjectCanComputeHashOfType to answer true.
 
 		//  only provide if subclass canComputeHashOfType.
-		error("Subclass responsibility: Object:typeEquals: in Avail.Descriptor", object);
+		subclassResponsibility("Object:typeEquals:", object);
 		return false;
 	}
 
@@ -8185,7 +8248,7 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  this method.
 
 		//  only provide if subclass canComputeHashOfType.
-		error("Subclass responsibility: ObjectHashOfType: in Avail.Descriptor", object);
+		subclassResponsibility("ObjectHashOfType:", object);
 		return 0;
 	}
 
@@ -8287,7 +8350,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void ObjectScanSubobjects (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailSubobjectVisitor visitor)
 	{
 		for (int byteIndex = -4, _end1 = object.objectSlotsCount() * -4; byteIndex >= _end1; byteIndex -= 4)
@@ -8300,7 +8363,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject object} with a Java
 	 * <em>foreach</em> construct.
-	 * 
+	 *
 	 * @param object An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;

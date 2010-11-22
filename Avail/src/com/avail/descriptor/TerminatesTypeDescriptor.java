@@ -38,8 +38,8 @@ import com.avail.descriptor.TupleDescriptor;
 
 @IntegerSlots("hash")
 @ObjectSlots({
-	"name", 
-	"parent", 
+	"name",
+	"parent",
 	"myType"
 })
 public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
@@ -124,7 +124,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeAtIndex (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer what type the given index would have in an object instance of me.  Answer
@@ -136,8 +136,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectUnionOfTypesAtThrough (
-			final AvailObject object, 
-			final int startIndex, 
+			final AvailObject object,
+			final int startIndex,
 			final int endIndex)
 	{
 		//  Answer the union of the types the given indices would have in an object instance of me.
@@ -171,7 +171,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (type terminates) is a subtype of aType (should also be a type).
@@ -182,7 +182,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfPrimitiveType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
 		//  Check if object (terminates) is a supertype of aPrimitiveType (a primitive type).
@@ -193,7 +193,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -205,7 +205,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that still includes both of these.

@@ -48,19 +48,19 @@ extends RuntimeException
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 486558432544374634L;
-	
+
 	/**
 	 * The {@linkplain ModuleName fully-qualified name} of the {@linkplain
 	 * ModuleDescriptor module} undergoing {@linkplain AvailCompiler
 	 * compilation}.
 	 */
 	private final @NotNull ModuleName moduleName;
-	
+
 	/**
 	 * Answer the {@linkplain ModuleName fully-qualified name} of the
 	 * {@linkplain ModuleDescriptor module} undergoing {@linkplain AvailCompiler
 	 * compilation}.
-	 * 
+	 *
 	 * @return A {@linkplain ModuleName module name}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -68,18 +68,18 @@ extends RuntimeException
 	{
 		return moduleName;
 	}
-	
+
 	/**
 	 * The position within the {@linkplain ModuleDescriptor module} undergoing
 	 * {@linkplain AvailCompiler compilation} at which the error was detected.
 	 */
 	private final long position;
-	
+
 	/**
 	 * Answer the position within the {@linkplain ModuleDescriptor module}
 	 * undergoing {@linkplain AvailCompiler compilation} at which the error was
 	 * detected.
-	 * 
+	 *
 	 * @return A {@linkplain File file} position.
 	 */
 	public long position ()

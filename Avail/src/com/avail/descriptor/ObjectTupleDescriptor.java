@@ -49,7 +49,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -59,8 +59,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void ObjectTupleAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
@@ -74,10 +74,10 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anotherObject, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anotherObject,
 			final int startIndex2)
 	{
 		//  Compare sections of two tuples.
@@ -91,10 +91,10 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
-			final AvailObject object, 
-			final int startIndex1, 
-			final int endIndex1, 
-			final AvailObject anObjectTuple, 
+			final AvailObject object,
+			final int startIndex1,
+			final int endIndex1,
+			final AvailObject anObjectTuple,
 			final int startIndex2)
 	{
 		//  Compare sections of two object tuples.
@@ -118,7 +118,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsObjectTuple(object);
@@ -126,7 +126,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean ObjectEqualsObjectTuple (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject anObjectTuple)
 	{
 		//  Compare this object tuple and the given object tuple.
@@ -196,9 +196,9 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectCopyTupleFromToCanDestroy (
-			final AvailObject object, 
-			final int start, 
-			final int end, 
+			final AvailObject object,
+			final int start,
+			final int end,
 			final boolean canDestroy)
 	{
 		//  Make a tuple that only contains the given range of elements of the given tuple.
@@ -297,7 +297,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTruncateTo (
-			final AvailObject object, 
+			final AvailObject object,
 			final int newTupleSize)
 	{
 		//  Private
@@ -324,9 +324,9 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
-			final AvailObject object, 
-			final int index, 
-			final AvailObject newValueObject, 
+			final AvailObject object,
+			final int index,
+			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -348,7 +348,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectTupleIntAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -389,8 +389,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int ObjectComputeHashFromTo (
-			final AvailObject object, 
-			final int start, 
+			final AvailObject object,
+			final int start,
 			final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.

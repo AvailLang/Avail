@@ -43,13 +43,13 @@ import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
 @IntegerSlots({
-	"pc", 
-	"stackp", 
+	"pc",
+	"stackp",
 	"hiLevelTwoChunkLowOffset"
 })
 @ObjectSlots({
-	"caller", 
-	"closure", 
+	"caller",
+	"closure",
 	"localOrArgOrStackAt#"
 })
 public class ContinuationDescriptor extends Descriptor
@@ -63,7 +63,7 @@ public class ContinuationDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectCaller (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -74,7 +74,7 @@ public class ContinuationDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectClosure (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -85,7 +85,7 @@ public class ContinuationDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectHiLevelTwoChunkLowOffset (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(12, value);
@@ -93,7 +93,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectLocalOrArgOrStackAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int index)
 	{
 		//  GENERATED getter method (indexed).
@@ -103,8 +103,8 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public void ObjectLocalOrArgOrStackAtPut (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
@@ -117,7 +117,7 @@ public class ContinuationDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectPc (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(4, value);
@@ -128,7 +128,7 @@ public class ContinuationDescriptor extends Descriptor
 	 */
 	@Override
 	public void ObjectStackp (
-			final AvailObject object, 
+			final AvailObject object,
 			final int value)
 	{
 		object.integerSlotAtByteIndexPut(8, value);
@@ -206,9 +206,9 @@ public class ContinuationDescriptor extends Descriptor
 	// object creation
 
 	public AvailObject newObjectToInvokeCallerLevelTwoChunkIndexArgs (
-			final AvailObject closure, 
-			final AvailObject caller, 
-			final int startingChunkIndex, 
+			final AvailObject closure,
+			final AvailObject caller,
+			final int startingChunkIndex,
 			final List<AvailObject> args)
 	{
 		//  Create a new continuation with the given data.  The continuation should represent
@@ -254,7 +254,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsContinuation(object);
@@ -262,7 +262,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectEqualsContinuation (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuation)
 	{
 		if (object.sameAddressAs(aContinuation))
@@ -363,8 +363,8 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public void ObjectLevelTwoChunkIndexOffset (
-			final AvailObject object, 
-			final int index, 
+			final AvailObject object,
+			final int index,
 			final int offset)
 	{
 		//  Set my chunk index and offset.
@@ -374,7 +374,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public AvailObject ObjectStackAt (
-			final AvailObject object, 
+			final AvailObject object,
 			final int slotIndex)
 	{
 		//  Read from the stack at the given slot index (relative to the object, not the stack area).
@@ -384,8 +384,8 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public void ObjectStackAtPut (
-			final AvailObject object, 
-			final int slotIndex, 
+			final AvailObject object,
+			final int slotIndex,
 			final AvailObject anObject)
 	{
 		//  Write to the stack at the given slot index (relative to the object, not the stack area).

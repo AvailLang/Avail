@@ -85,7 +85,7 @@ public class L2ReturnInstruction extends L2Instruction
 	// initialization
 
 	public L2ReturnInstruction continuationValue (
-			final L2ObjectRegister contReg, 
+			final L2ObjectRegister contReg,
 			final L2ObjectRegister valReg)
 	{
 		_continuationReg = contReg;

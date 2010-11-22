@@ -68,7 +68,7 @@ public final class ModuleNameResolverTest
 
 	/**
 	 * Test: Test basic functionality of {@link RenamesFileParser}.
-	 * 
+	 *
 	 * @throws RenamesFileParserException
 	 *         If {@link RenamesFileParser#parse()} fails for any reason.
 	 */
@@ -102,7 +102,7 @@ public final class ModuleNameResolverTest
 			{
 				"/Kernel/Tier-4/Collection",
 				"Kernel.avail/Tier-4.avail/Collection.avail",
-				libraryPath				
+				libraryPath
 			},
 			{
 				"/Kernel/Tier-4/Tier-3",

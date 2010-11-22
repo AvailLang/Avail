@@ -40,7 +40,7 @@ public abstract class ExtendedNumberDescriptor extends Descriptor
 
 	@Override
 	public boolean ObjectLessOrEqual (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return !another.lessThan(object);

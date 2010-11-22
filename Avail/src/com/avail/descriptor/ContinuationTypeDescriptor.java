@@ -50,7 +50,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public void ObjectClosureType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -72,9 +72,9 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object, 
-			final StringBuilder aStream, 
-			final List<AvailObject> recursionList, 
+			final AvailObject object,
+			final StringBuilder aStream,
+			final List<AvailObject> recursionList,
 			final int indent)
 	{
 		aStream.append('$');
@@ -90,7 +90,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEquals (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		return another.equalsContinuationType(object);
@@ -98,7 +98,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectEqualsContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Continuation types compare for equality by comparing their closureTypes.
@@ -155,7 +155,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSubtypeOf (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
@@ -165,7 +165,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean ObjectIsSupertypeOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  Since the only things that can be done with continuations are to restart them or to exit them,
@@ -196,7 +196,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersection (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -214,7 +214,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeIntersectionOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
@@ -243,7 +243,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnion (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
@@ -261,7 +261,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public AvailObject ObjectTypeUnionOfContinuationType (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
 		//  Answer the most specific type that is still at least as general as these.

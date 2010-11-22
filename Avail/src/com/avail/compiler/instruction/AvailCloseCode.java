@@ -44,7 +44,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	// accessing
 
 	public AvailCloseCode numCopiedVarsCodeIndex (
-			final int anInteger, 
+			final int anInteger,
 			final int codeIndex)
 	{
 		_numCopiedVars = anInteger;

@@ -40,8 +40,8 @@ import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
 @ObjectSlots({
-	"bodyBlock", 
-	"requiresBlock", 
+	"bodyBlock",
+	"requiresBlock",
 	"returnsBlock"
 })
 public class MethodSignatureDescriptor extends SignatureDescriptor
@@ -52,9 +52,9 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public void ObjectBodyBlockRequiresBlockReturnsBlock (
-			final AvailObject object, 
-			final AvailObject bb, 
-			final AvailObject rqb, 
+			final AvailObject object,
+			final AvailObject bb,
+			final AvailObject rqb,
 			final AvailObject rtb)
 	{
 		//  Set my blocks.  Also verify metacovariance and metacontravariance here.
@@ -67,8 +67,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
 	{
 		//  We simply run the 'returns' block, passing in the static argument types from the call site.
@@ -84,8 +84,8 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public boolean ObjectIsValidForArgumentTypesInterpreter (
-			final AvailObject object, 
-			final List<AvailObject> argTypes, 
+			final AvailObject object,
+			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
 	{
 		//  We simply run the 'requires' block, passing in the static arguments types from the call site.  The result of
@@ -114,7 +114,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	 */
 	@Override
 	public void ObjectBodyBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-4, value);
@@ -125,7 +125,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	 */
 	@Override
 	public void ObjectRequiresBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-8, value);
@@ -136,7 +136,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	 */
 	@Override
 	public void ObjectReturnsBlock (
-			final AvailObject object, 
+			final AvailObject object,
 			final AvailObject value)
 	{
 		object.objectSlotAtByteIndexPut(-12, value);

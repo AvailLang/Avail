@@ -49,28 +49,28 @@ extends Exception
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 6654397420941119005L;
-	
+
 	/**
 	 * The path that the {@linkplain AvailBuilder builder} followed to identify
 	 * the dependency recursion.
 	 */
 	private final @NotNull List<ModuleName> recursionPath;
-	
+
 	/**
 	 * Answer the {@linkplain ModuleName module name} of the [@linkplain
 	 * ModuleDescriptor module} that recursively depends upon itself.
-	 * 
+	 *
 	 * @return A {@linkplain ModuleName module name}.
 	 */
 	public @NotNull ModuleName recursiveDependent ()
 	{
 		return recursionPath.get(recursionPath.size() - 1);
 	}
-	
+
 	/**
 	 * Answer the path that the {@linkplain AvailBuilder builder} followed to
 	 * identify the dependency recursion.
-	 * 
+	 *
 	 * @return The path that the {@linkplain AvailBuilder builder} followed to
 	 *         identify the dependency recursion.
 	 */
@@ -78,7 +78,7 @@ extends Exception
 	{
 		return Collections.unmodifiableList(recursionPath);
 	}
-	
+
 	/**
 	 * Construct a new {@link RecursiveDependencyException}.
 	 *

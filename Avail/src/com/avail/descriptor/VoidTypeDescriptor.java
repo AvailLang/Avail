@@ -44,8 +44,8 @@ import com.avail.descriptor.AvailObject;
  */
 @IntegerSlots("hash")
 @ObjectSlots({
-	"name", 
-	"parent", 
+	"name",
+	"parent",
 	"myType"
 })
 public class VoidTypeDescriptor
@@ -54,7 +54,7 @@ extends PrimitiveTypeDescriptor
 	@Override
 	@ThreadSafe
 	public boolean ObjectIsSubtypeOf (
-		final @NotNull AvailObject object, 
+		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		//  Check if object (the type void) is a subtype of aType (may also be
@@ -65,7 +65,7 @@ extends PrimitiveTypeDescriptor
 	@Override
 	@ThreadSafe
 	public boolean ObjectIsSupertypeOfPrimitiveType (
-		final @NotNull AvailObject object, 
+		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
 		//  Check if object (the type void) is a supertype of aPrimitiveType (a
@@ -100,7 +100,7 @@ extends PrimitiveTypeDescriptor
 
 	/**
 	 * Answer a mutable {@link VoidTypeDescriptor}.
-	 * 
+	 *
 	 * @return A mutable {@link VoidTypeDescriptor}.
 	 */
 	@ThreadSafe
@@ -113,7 +113,7 @@ extends PrimitiveTypeDescriptor
 
 	/**
 	 * Answer an immutable {@link VoidTypeDescriptor}.
-	 * 
+	 *
 	 * @return An immutable {@link VoidTypeDescriptor}.
 	 */
 	@ThreadSafe

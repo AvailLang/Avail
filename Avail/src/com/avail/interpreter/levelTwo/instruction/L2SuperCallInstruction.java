@@ -92,8 +92,8 @@ public class L2SuperCallInstruction extends L2Instruction
 	// initialization
 
 	public L2SuperCallInstruction selectorArgsVectorArgTypesVector (
-			final AvailObject theImpSet, 
-			final L2RegisterVector args, 
+			final AvailObject theImpSet,
+			final L2RegisterVector args,
 			final L2RegisterVector argTypes)
 	{
 		_impSet = theImpSet;

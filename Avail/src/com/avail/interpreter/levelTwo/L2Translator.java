@@ -120,7 +120,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	public void registerConstantAtPut (
-			final L2Register register, 
+			final L2Register register,
 			final AvailObject value)
 	{
 		registerConstants.put(register.identity(), value);
@@ -145,7 +145,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	public void registerTypeAtPut (
-			final L2Register register, 
+			final L2Register register,
 			final AvailObject type)
 	{
 		registerTypes.put(register.identity(), type);
@@ -347,7 +347,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	short primitiveToInlineForWithArgumentRegisters (
-			final AvailObject impSet, 
+			final AvailObject impSet,
 			final ArrayList<L2ObjectRegister> args)
 	{
 		//  Only inline monomorphic messages for now.
@@ -365,7 +365,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	short primitiveToInlineForWithArgumentTypeRegisters (
-			final AvailObject impSet, 
+			final AvailObject impSet,
 			final ArrayList<L2ObjectRegister> argTypeRegisters)
 	{
 		ArrayList<AvailObject> argTypes = new ArrayList<AvailObject>(argTypeRegisters.size());
@@ -384,7 +384,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	short primitiveToInlineForWithArgumentTypes (
-			final AvailObject impSet, 
+			final AvailObject impSet,
 			final ArrayList<AvailObject> argTypes)
 	{
 		//  Only inline effectively monomorphic messages for now.
@@ -449,9 +449,9 @@ public class L2Translator implements L1OperationDispatcher
 	// private-inlining
 
 	boolean emitInlinePrimitiveImpSetArgsOnSuccessJumpTo (
-			final short prim, 
-			final AvailObject impSet, 
-			final ArrayList<L2ObjectRegister> args, 
+			final short prim,
+			final AvailObject impSet,
+			final ArrayList<L2ObjectRegister> args,
 			final L2LabelInstruction successLabel)
 	{
 		//  Inline the primitive.  Attempt to fold it if the primitive says it's foldable and
@@ -1233,7 +1233,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * translation creates a counter that the Level Two code decrements each
 	 * time it is invoked.  When it reaches zero, the method will be reoptimized
 	 * with a higher optimization level.
-	 * 
+	 *
 	 * @param aCompiledCodeObject A {@linkplain CompiledCodeDescriptor Level One
 	 *                            CompiledCode object}.
 	 * @param optLevel The optimization level.
@@ -1241,8 +1241,8 @@ public class L2Translator implements L1OperationDispatcher
 	 * @return An {@link L2ChunkDescriptor AvailObject}.
 	 */
 	AvailObject translateOptimizationFor (
-		final @NotNull AvailObject aCompiledCodeObject, 
-		final int optLevel, 
+		final @NotNull AvailObject aCompiledCodeObject,
+		final int optLevel,
 		final @NotNull L2Interpreter anL2Interpreter)
 	{
 		interpreter = anL2Interpreter;
