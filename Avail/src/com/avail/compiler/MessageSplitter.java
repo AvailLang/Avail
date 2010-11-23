@@ -68,7 +68,7 @@ public class MessageSplitter
 
 	final List<AvailObject> messageParts = new ArrayList<AvailObject>(10);
 	int                     messagePartPosition;
-	final List<Integer>     instructions = new ArrayList<Integer>(20);
+	final List<Integer>     instructions = new ArrayList<Integer>(10);
 
 	
 	/**
@@ -80,11 +80,7 @@ public class MessageSplitter
 		public int instructionStart = -1;
 		void emitOn (List<Integer> list)
 		{
-			if (instructionStart == -1)
-			{
-				instructionStart = list.size() + 1;
-			}
-			assert instructionStart == list.size() + 1;
+			instructionStart = list.size() + 1;
 		}
 		
 		final boolean isArgumentOrGroup ()
@@ -92,15 +88,10 @@ public class MessageSplitter
 			return this instanceof Argument || this instanceof Group;
 		}
 		
-		final boolean isDagger ()
-		{
-			return this instanceof Dagger;
-		}
-		
 		@Override
 		public String toString ()
 		{
-			return this.getClass().getSimpleName();
+			return getClass().getSimpleName();
 		}
 	};
 
@@ -124,24 +115,20 @@ public class MessageSplitter
 			super.emitOn(list);
 			list.add(tokenIndex * 4 + 2);  // parseKeyword
 		}
+		
+		@Override
+		public String toString ()
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			builder.append(messageParts.get(tokenIndex - 1).asNativeString());
+			return builder.toString();
+		}
+
 	}
 
 	
-	/**
-	 * A {@linkplain Dagger} is an occurrence of "‡" in a message name.  It's
-	 * only valid between chevrons, and indicates that the left side is
-	 * repeated, but separated by occurrences of the right side.
-	 */
-	final class Dagger extends Expression
-	{
-		@Override
-		void emitOn (List<Integer> list)
-		{
-			assert false : "A dagger should not occur outside chevrons.";
-		}
-	}
-
-
 	/**
 	 * An {@linkplain Argument} is an occurrence of "_" in a message name.  It
 	 * indicates where an argument is expected.
@@ -176,99 +163,158 @@ public class MessageSplitter
 	 * "«_=_;»" will parse "1=2;3=4;5=6;" into <<1,2>,<3,4>,<5,6>> because it
 	 * has two underscores.
 	 * <p>
-	 * The message "«A_‡B_»" parses zero or more occurrences in the text of the
-	 * keyword "A" followed by an argument, separated by the keyword "B" and an
-	 * argument.  "A 1 B 2 A 3 B 4 A 5" is such an expression (and "A 1 B 2" is
+	 * The message "«A_‡x_»" parses zero or more occurrences in the text of the
+	 * keyword "A" followed by an argument, separated by the keyword "x" and an
+	 * argument.  "A 1 x 2 A 3 x 4 A 5" is such an expression (and "A 1 x 2" is
 	 * not).  In this case, the arguments will be grouped in such a way that the
 	 * final element of the list, if any, is missing the post-dagger elements:
 	 * <<1,2>,<3,4>,<5>>.
 	 */
 	final class Group extends Expression
 	{
-		int argumentCount = 0;
-		List<Expression> expressions = new ArrayList<Expression>();
+		boolean hasDagger = false;
+		int argumentsBeforeDagger = 0;
+		int argumentsAfterDagger = 0;
+		List<Expression> expressionsBeforeDagger = new ArrayList<Expression>();
+		List<Expression> expressionsAfterDagger = new ArrayList<Expression>();
+		int loopSkip = -1;
 		int loopExit = -1;
 
+		final void addExpression (Expression e)
+		{
+			if (!hasDagger)
+			{
+				expressionsBeforeDagger.add(e);
+				if (e.isArgumentOrGroup())
+				{
+					argumentsBeforeDagger++;
+				}
+			}
+			else
+			{
+				expressionsAfterDagger.add(e);
+				if (e.isArgumentOrGroup())
+				{
+					argumentsAfterDagger++;
+				}
+			}
+		}
+		
+		
 		@Override
 		void emitOn (List<Integer> list)
 		{
 			super.emitOn(list);
-			if (argumentCount == 1)
+			if (argumentsBeforeDagger == 1 && argumentsAfterDagger == 0)
 			{
 				/* Special case -- one argument case produces a list of
 				 * expressions rather than a list of fixed-length lists of
 				 * expressions.  The generated instructions should look like:
 				 * 
 				 * push empty list
-				 * branch to @loopExit
+				 * branch to @loopSkip
 				 * @loopStart:
-				 * ...Stuff before dagger.  The argument or subgroup must be
-				 * ...followed by "append" instruction.
-				 * branch to @loopExit
+				 * ...Stuff before dagger.
+				 * append  (add solution)
+				 * branch to @loopExit (even if no dagger)
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
 				 * jump to @loopStart
-				 * @loopExit: 
+				 * @loopExit:
+				 * @loopSkip:
 				 */
 				list.add(1);  // push empty list
-				list.add(4 * loopExit);  // branch to @loopExit
+				list.add(4 * loopSkip);  // branch to @loopSkip
 				int loopStart = list.size() + 1;
-				boolean sawDagger = false;
-				for (Expression expression : expressions)
+				for (Expression expression : expressionsBeforeDagger)
 				{
-					if (expression.isArgumentOrGroup())
-					{
-						expression.emitOn(list);
-						list.add(2);  // append
-					}
-					else if (expression.isDagger())
-					{
-						assert !sawDagger
-							: "Multiple daggers encountered in group";
-						sawDagger = true;
-						list.add(4 * loopExit);  // branch to @loopExit
-					}
-					else
-					{
-						expression.emitOn(list);
-					}
+					expression.emitOn(list);
+				}
+				list.add(2);  // append
+				list.add(4 * loopExit);  // branch to @loopExit
+				for (Expression expression : expressionsAfterDagger)
+				{
+					assert !expression.isArgumentOrGroup();
+					expression.emitOn(list);
 				}
 				list.add(loopStart * 4 + 1);  // jump to @loopStart
 				loopExit = list.size() + 1;
+				loopSkip = list.size() + 1;
 			}
 			else
 			{
 				/* General case -- the individual arguments need to be wrapped
 				 * with "append" as for the special case above, but the start
-				 * of each loop has to push an empty tuple and the dagger has to
-				 * branch to a special @loopExitFromDagger that closes the last
-				 * partial group.  Also, the backward jump should be preceded
-				 * by an append to capture a solution.  Here's the code:
+				 * of each loop has to push an empty tuple, the dagger has to
+				 * branch to a special @loopExit that closes the last (partial)
+				 * group, and the backward jump should be preceded by an append
+				 * to capture a solution.  Here's the code:
 				 * 
-				 * push empty list
+				 * push empty list (the list of solutions)
 				 * branch to @loopSkip
 				 * @loopStart:
+				 * push empty list (a compound solution)
 				 * ...Stuff before dagger, where arguments and subgroups must
 				 * ...be followed by "append" instruction.
-				 * branch to @loopExitFromDagger
+				 * branch to @loopExit
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
-				 * append  (to capture a complete pass)
+				 * append  (add complete solution)
 				 * jump @loopStart
-				 * @loopExitFromDagger:
-				 * append  (final partial tuple, just up to the dagger)
 				 * @loopExit:
+				 * append  (add partial solution up to dagger)
+				 * @loopSkip:
 				 */
+				list.add(1);  // push empty list
+				list.add(4 * loopSkip);  // branch to @loopSkip
+				int loopStart = list.size() + 1;
+				list.add(1);  // inner list
+				for (Expression expression : expressionsBeforeDagger)
+				{
+					expression.emitOn(list);
+					if (expression.isArgumentOrGroup())
+					{
+						list.add(2);  // append
+					}
+				}
+				list.add(4 * loopExit);  // branch to @loopExit
+				for (Expression expression : expressionsAfterDagger)
+				{
+					expression.emitOn(list);
+					if (expression.isArgumentOrGroup())
+					{
+						list.add(2);  // append
+					}
+				}
+				list.add(2);  // add inner list to outer
+				list.add(loopStart * 4 + 1);  // jump to @loopStart
+				loopExit = list.size() + 1;
+				list.add(2);  // append partial tuple, up to dagger
+				loopSkip = list.size() + 1;
 			}
 		}
 
 		@Override
 		public String toString ()
 		{
+			List<String> strings = new ArrayList<String>();
+			for (Expression e : expressionsBeforeDagger)
+			{
+				strings.add(e.toString());
+			}
+			if (hasDagger)
+			{
+				strings.add("‡");
+				for (Expression e : expressionsAfterDagger)
+				{
+					strings.add(e.toString());
+				}
+			}
+
 			StringBuilder builder = new StringBuilder();
 			builder.append("Group(");
 			boolean first = true;
-			for (Expression e : expressions)
+			for (String s : strings)
 			{
 				if (first)
 				{
@@ -278,7 +324,7 @@ public class MessageSplitter
 				{
 					builder.append(", ");
 				}
-				builder.append(e.toString());
+				builder.append(s);
 			}
 			builder.append(")");
 			return builder.toString();
@@ -293,18 +339,27 @@ public class MessageSplitter
 		splitMessage();
 		messagePartPosition = 1;
 		Group rootGroup = parseGroup();
-		/* Emit it twice -- once to calculate offsets, and then again to
-		 * generate correct code.  Also treat the outermost group as a plain old
-		 * sequence of instructions for the purpose of generating code. 
+		/* Emit it twice -- once to calculate the branch positions, and then
+		 * again to output using the correct branches.
 		 */
-		for (int i = 1; i <= 2; i++)
+		if (rootGroup.hasDagger)
+		{
+			error("Dagger is not allowed outside chevrons");
+		}
+		if (messagePartPosition != messageParts.size() + 1)
+		{
+			error("Imbalanced chevrons in message: "
+				+ messageName.asNativeString());
+		}
+		for (int i = 1; i <= 3; i++)
 		{
 			instructions.clear();
-			for (Expression expression : rootGroup.expressions)
+			for (Expression expression : rootGroup.expressionsBeforeDagger)
 			{
 				expression.emitOn(instructions);
 			}
 		}
+		assert rootGroup.expressionsAfterDagger.isEmpty();
 
 		// Debug info...
 		List<String> partsList = new ArrayList<String>(messageParts.size());
@@ -421,13 +476,16 @@ public class MessageSplitter
 			}
 			else if (token.equals(TupleDescriptor.underscoreTuple()))
 			{
-				group.expressions.add(new Argument());
-				group.argumentCount++;
+				group.addExpression(new Argument());
 				messagePartPosition++;
 			}
 			else if (token.equals(TupleDescriptor.doubleDaggerTuple()))
 			{
-				group.expressions.add(new Dagger());
+				if (group.hasDagger)
+				{
+					error("Two daggers encountered in group");
+				}
+				group.hasDagger = true;
 				messagePartPosition++;
 			}
 			else if (token.equals(TupleDescriptor.openChevronTuple()))
@@ -440,6 +498,7 @@ public class MessageSplitter
 				{
 					token = messageParts.get(messagePartPosition - 1);
 				}
+				// Otherwise token stays an open chevron, hence not a close...
 				if (!token.equals(TupleDescriptor.closeChevronTuple()))
 				{
 					error(
@@ -447,8 +506,7 @@ public class MessageSplitter
 						messageName);
 				}
 				messagePartPosition++;
-				group.expressions.add(subgroup);
-				group.argumentCount++;
+				group.addExpression(subgroup);
 			}
 			else
 			{
@@ -475,7 +533,7 @@ public class MessageSplitter
 					}
 				}
 				// Parse a regular keyword or operator
-				group.expressions.add(new Simple(messagePartPosition));
+				group.addExpression(new Simple(messagePartPosition));
 				messagePartPosition++;
 			}
 		}
