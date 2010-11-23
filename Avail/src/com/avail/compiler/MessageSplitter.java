@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ByteStringDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 
 /**
@@ -64,11 +66,31 @@ public class MessageSplitter
 	/**
 	 * The Avail string to be parsed. 
 	 */
-	final AvailObject       messageName;
+	final AvailObject messageName;
 
+	/**
+	 * The individual tokens (strings) constituting the message.  Alphanumerics
+	 * are in runs, separated from other alphanumerics by a single space.
+	 * Operator characters are never beside spaces, and are always parsed as
+	 * individual tokens.  Open chevron («), double dagger (‡), and close
+	 * chevron (») are used to indicate repeated/optional substructures.  The
+	 * backquote (`) can precede any operator character to ensure it is not
+	 * used in a special way like chevrons and double dagger.  A backquote may
+	 * also escape another backquote.
+	 */
 	final List<AvailObject> messageParts = new ArrayList<AvailObject>(10);
-	int                     messagePartPosition;
-	final List<Integer>     instructions = new ArrayList<Integer>(10);
+	
+	/**
+	 * The current one-based parsing position in the list of tokens.
+	 */
+	int messagePartPosition;
+	
+	/**
+	 * A list of integers representing parsing instructions.  These instructions
+	 * can parse a specific keyword, recursively parse an argument, branch for
+	 * backtracking, and manipulate a stack of parse nodes.
+	 */
+	final List<Integer> instructions = new ArrayList<Integer>(10);
 
 	
 	/**
@@ -77,15 +99,30 @@ public class MessageSplitter
 	 */
 	abstract class Expression
 	{
+		/**
+		 * The one-based offset of the start of this expression in the
+		 * instruction stream.  Set during code generation and used during
+		 * subsequent code generation (requires two passes).
+		 */
 		public int instructionStart = -1;
+		
+		/**
+		 * Write instructions for parsing me to the given list.
+		 * @param list The list of integers {@link MessageSplitter encoding}
+		 * parsing instructions.
+		 */
 		void emitOn (List<Integer> list)
 		{
 			instructionStart = list.size() + 1;
 		}
 		
-		final boolean isArgumentOrGroup ()
+		/**
+		 * Answer whether or not this an argument or group.
+		 * @return True iff this is an argument or group.
+		 */
+		boolean isArgumentOrGroup ()
 		{
-			return this instanceof Argument || this instanceof Group;
+			return false;
 		}
 		
 		@Override
@@ -102,8 +139,19 @@ public class MessageSplitter
 	 */
 	final class Simple extends Expression
 	{
+		/**
+		 * The one-based index of this token within the {@link
+		 * MessageSplitter#messageParts message parts}. 
+		 */
 		final int tokenIndex;
 
+		/**
+		 * Construct a new {@link Simple} expression representing a specific
+		 * token expected in the input.
+		 *
+		 * @param tokenIndex The one-based index of the token within the {@link
+		 * MessageSplitter#messageParts message parts}.
+		 */
 		Simple (int tokenIndex)
 		{
 			this.tokenIndex = tokenIndex;
@@ -113,7 +161,8 @@ public class MessageSplitter
 		void emitOn (List<Integer> list)
 		{
 			super.emitOn(list);
-			list.add(tokenIndex * 4 + 2);  // parseKeyword
+			// Parse the specific keyword.
+			list.add(tokenIndex * 4 + 2);
 		}
 		
 		@Override
@@ -135,6 +184,12 @@ public class MessageSplitter
 	 */
 	final class Argument extends Expression
 	{
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
 		@Override
 		void emitOn (List<Integer> list)
 		{
@@ -172,14 +227,59 @@ public class MessageSplitter
 	 */
 	final class Group extends Expression
 	{
+		/**
+		 * Whether a double dagger (‡) has been encountered in the tokens for
+		 * this group.
+		 */
 		boolean hasDagger = false;
+		
+		/**
+		 * How many argument tokens (_) were specified prior to the double
+		 * dagger (or the end of the group if no double dagger is present).
+		 */
 		int argumentsBeforeDagger = 0;
+		
+		/**
+		 * How many argument tokens (_) appeared after the double dagger, or
+		 * zero if there was no double dagger. 
+		 */
 		int argumentsAfterDagger = 0;
+		
+		/**
+		 * The expressions that appeared before the double dagger, or in the
+		 * entire subexpression if no double dagger is present. 
+		 */
 		List<Expression> expressionsBeforeDagger = new ArrayList<Expression>();
+		
+		/**
+		 * The expressions that appeared after the double dagger, or an empty
+		 * list if no double dagger is present. 
+		 */
 		List<Expression> expressionsAfterDagger = new ArrayList<Expression>();
+		
+		/**
+		 * The one-based position in the instruction stream to branch to in
+		 * order to parse zero occurrences of this group.  Set during the first
+		 * pass of code generation.
+		 */
 		int loopSkip = -1;
+		
+		/**
+		 * The one-based position in the instruction stream to branch to from
+		 * the dagger's position within the loop for this group.  Depending on
+		 * the number of arguments and subgroups specified within this group,
+		 * this may or may not equal {@link #loopSkip}.  If not equal, the only
+		 * intervening instruction will be an append to add the final partial
+		 * group to the list.
+		 */
 		int loopExit = -1;
 
+		/**
+		 * Add an expression to the group, either before or after the dagger,
+		 * depending on whether hasDagger has been set.
+		 * 
+		 * @param e The expression to add.
+		 */
 		final void addExpression (Expression e)
 		{
 			if (!hasDagger)
@@ -200,6 +300,13 @@ public class MessageSplitter
 			}
 		}
 		
+		
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
 		
 		@Override
 		void emitOn (List<Integer> list)
@@ -332,6 +439,14 @@ public class MessageSplitter
 	}
 	
 	
+	/**
+	 * Construct a new {@link MessageSplitter}, parsing the provided message
+	 * into token strings and generating parsing instructions for parsing
+	 * occurrences of this message.
+	 *
+	 * @param messageName An Avail {@link ByteStringDescriptor string} specifying the keywords and arguments
+	 * of some message being defined.
+	 */
 	public MessageSplitter (AvailObject messageName)
 	{
 		this.messageName = messageName;
@@ -339,9 +454,6 @@ public class MessageSplitter
 		splitMessage();
 		messagePartPosition = 1;
 		Group rootGroup = parseGroup();
-		/* Emit it twice -- once to calculate the branch positions, and then
-		 * again to output using the correct branches.
-		 */
 		if (rootGroup.hasDagger)
 		{
 			error("Dagger is not allowed outside chevrons");
@@ -351,7 +463,9 @@ public class MessageSplitter
 			error("Imbalanced chevrons in message: "
 				+ messageName.asNativeString());
 		}
-		for (int i = 1; i <= 3; i++)
+		// Emit it twice -- once to calculate the branch positions, and then
+		// again to output using the correct branches.
+		for (int i = 1; i <= 2; i++)
 		{
 			instructions.clear();
 			for (Expression expression : rootGroup.expressionsBeforeDagger)
@@ -361,25 +475,32 @@ public class MessageSplitter
 		}
 		assert rootGroup.expressionsAfterDagger.isEmpty();
 
-		// Debug info...
-		List<String> partsList = new ArrayList<String>(messageParts.size());
-		for (AvailObject part : messageParts)
-		{
-			partsList.add(part.asNativeString());
-		}
-		AvailObject instructionsTuple = instructionsTuple();
-		List<Integer> instructionsList = new ArrayList<Integer>();
-		for (AvailObject instruction : instructionsTuple)
-		{
-			instructionsList.add(instruction.extractInt());
-		}
-		System.out.printf(
-			"%s  ->  %s  ->  %s%n",
-			messageName.asNativeString(),
-			partsList.toString(),
-			instructionsList.toString());
+		// Dump debug info...
+		
+//		List<String> partsList = new ArrayList<String>(messageParts.size());
+//		for (AvailObject part : messageParts)
+//		{
+//			partsList.add(part.asNativeString());
+//		}
+//		AvailObject instructionsTuple = instructionsTuple();
+//		List<Integer> instructionsList = new ArrayList<Integer>();
+//		for (AvailObject instruction : instructionsTuple)
+//		{
+//			instructionsList.add(instruction.extractInt());
+//		}
+//		System.out.printf(
+//			"%s  ->  %s  ->  %s%n",
+//			messageName.asNativeString(),
+//			partsList.toString(),
+//			instructionsList.toString());
 	}
 	
+	/**
+	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
+	 * ByteStringDescriptor strings} comprising this message.
+	 * 
+	 * @return A tuple of strings.
+	 */
 	public AvailObject messageParts ()
 	{
 		AvailObject tuple = TupleDescriptor.mutableObjectFromArray(
@@ -388,6 +509,14 @@ public class MessageSplitter
 		return tuple;
 	}
 	
+	/**
+	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
+	 * IntegerDescriptor integers} describing how to parse this message.
+	 * See {@link MessageSplitter} for a description of the parse instructions.
+	 * 
+	 * @return The tuple of integers encoding parse instructions for this
+	 *         message.
+	 */
 	public AvailObject instructionsTuple ()
 	{
 		AvailObject tuple = TupleDescriptor.mutableCompressedFromIntegerArray(
@@ -395,17 +524,17 @@ public class MessageSplitter
 		tuple.makeImmutable();
 		return tuple;
 	}
-
-	AvailObject parserSteps ()
-	{
-		AvailObject tuple = TupleDescriptor.mutableObjectFromArray(
-			messageParts);
-		tuple.makeImmutable();
-		return tuple;
-	}
-
 	
-	void splitMessage ()
+	
+	/**
+	 * Decompose the message name into its constituent token strings.  These
+	 * can be subsequently parsed to generate the actual parse instructions.
+	 * Do not do any semantic analysis here, not even backquote processing --
+	 * that would lead to confusion over whether an operator was supposed to be
+	 * treated as a special token like open-chevron («) rather than like a
+	 * backquote-escaped token).
+	 */
+	private void splitMessage ()
 	{
 		if (messageName.tupleSize() == 0)
 		{
@@ -417,7 +546,7 @@ public class MessageSplitter
 			if (ch == ' ')
 			{
 				if (messageParts.size() == 0
-					|| isCharacterUnderscoreOrSpaceOrOperator(
+					|| isCharacterAnUnderscoreOrSpaceOrOperator(
 						(char) messageName.tupleAt(position - 1).codePoint()))
 				{
 					error(
@@ -427,7 +556,7 @@ public class MessageSplitter
 				//  Skip the space.
 				position++;
 				if (position > messageName.tupleSize()
-						|| isCharacterUnderscoreOrSpaceOrOperator(
+						|| isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char) messageName.tupleAt(position).codePoint()))
 				{
 					error(
@@ -447,7 +576,7 @@ public class MessageSplitter
 			{
 				final int start = position;
 				while (position <= messageName.tupleSize()
-						&& !isCharacterUnderscoreOrSpaceOrOperator(
+						&& !isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char) messageName.tupleAt(position).codePoint()))
 				{
 					position++;
@@ -460,6 +589,22 @@ public class MessageSplitter
 		}
 	}
 	
+	/**
+	 * Create a group from the series of tokens describing it.  This is also
+	 * used to construct the outermost sequence of expressions, with the
+	 * restriction that an occurrence of a double-dagger in the outermost
+	 * pseudo-group is an error.  Expect the {@linkplain #messagePartPosition}
+	 * to point (via a one-based offset) to the first token of the group, or
+	 * just past the end if the group is empty.  Leave the messagePartPosition
+	 * pointing just past the last token of the group.
+	 * <p>
+	 * The caller is responsible for identifying and skipping an open chevron
+	 * prior to this group, and for consuming the close chevron after parsing
+	 * the group.  The outermost caller is also responsible for ensuring the
+	 * entire input was exactly consumed.
+	 * 
+	 * @return A {@link Group} expression parsed from the {@link #messageParts}.
+	 */
 	Group parseGroup ()
 	{
 		Group group = new Group();
@@ -523,8 +668,7 @@ public class MessageSplitter
 					}
 					token = messageParts.get(messagePartPosition - 1);
 					if (token.tupleSize() != 1
-						|| token.tupleAt(1).codePoint() == ' '
-						|| !isCharacterUnderscoreOrSpaceOrOperator(
+						|| !isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char)token.tupleAt(1).codePoint()))
 					{
 						error(
@@ -548,7 +692,7 @@ public class MessageSplitter
 	 * @return {@code true} if the specified character is an operator character,
 	 *          space, or underscore; or {@code false} otherwise.
 	 */
-	private static boolean isCharacterUnderscoreOrSpaceOrOperator (
+	private static boolean isCharacterAnUnderscoreOrSpaceOrOperator (
 		final char aCharacter)
 	{
 		return aCharacter == '_'
