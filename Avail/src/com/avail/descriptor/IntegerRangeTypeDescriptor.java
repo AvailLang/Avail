@@ -582,7 +582,6 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link IntegerRangeTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -592,15 +591,31 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static IntegerRangeTypeDescriptor mutableDescriptor = new IntegerRangeTypeDescriptor(true);
+	/**
+	 * The mutable {@link IntegerRangeTypeDescriptor}.
+	 */
+	private final static IntegerRangeTypeDescriptor mutableDescriptor = new IntegerRangeTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link IntegerRangeTypeDescriptor}.
+	 *
+	 * @return The mutable {@link IntegerRangeTypeDescriptor}.
+	 */
 	public static IntegerRangeTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static IntegerRangeTypeDescriptor immutableDescriptor = new IntegerRangeTypeDescriptor(false);
+	/**
+	 * The immutable {@link IntegerRangeTypeDescriptor}.
+	 */
+	private final static IntegerRangeTypeDescriptor immutableDescriptor = new IntegerRangeTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link IntegerRangeTypeDescriptor}.
+	 *
+	 * @return The immutable {@link IntegerRangeTypeDescriptor}.
+	 */
 	public static IntegerRangeTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

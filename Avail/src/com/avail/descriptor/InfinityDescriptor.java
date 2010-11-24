@@ -445,7 +445,6 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	/**
 	 * Construct a new {@link InfinityDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -455,15 +454,31 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		super(isMutable);
 	}
 
-	final static InfinityDescriptor mutableDescriptor = new InfinityDescriptor(true);
+	/**
+	 * The mutable {@link InfinityDescriptor}.
+	 */
+	private final static InfinityDescriptor mutableDescriptor = new InfinityDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link InfinityDescriptor}.
+	 *
+	 * @return The mutable {@link InfinityDescriptor}.
+	 */
 	public static InfinityDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static InfinityDescriptor immutableDescriptor = new InfinityDescriptor(false);
+	/**
+	 * The immutable {@link InfinityDescriptor}.
+	 */
+	private final static InfinityDescriptor immutableDescriptor = new InfinityDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link InfinityDescriptor}.
+	 *
+	 * @return The immutable {@link InfinityDescriptor}.
+	 */
 	public static InfinityDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

@@ -618,7 +618,6 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ConcatenatedTupleTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -628,15 +627,31 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static ConcatenatedTupleTypeDescriptor mutableDescriptor = new ConcatenatedTupleTypeDescriptor(true);
+	/**
+	 * The mutable {@link ConcatenatedTupleTypeDescriptor}.
+	 */
+	private final static ConcatenatedTupleTypeDescriptor mutableDescriptor = new ConcatenatedTupleTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ConcatenatedTupleTypeDescriptor}.
+	 *
+	 * @return The mutable {@link ConcatenatedTupleTypeDescriptor}.
+	 */
 	public static ConcatenatedTupleTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ConcatenatedTupleTypeDescriptor immutableDescriptor = new ConcatenatedTupleTypeDescriptor(false);
+	/**
+	 * The immutable {@link ConcatenatedTupleTypeDescriptor}.
+	 */
+	private final static ConcatenatedTupleTypeDescriptor immutableDescriptor = new ConcatenatedTupleTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ConcatenatedTupleTypeDescriptor}.
+	 *
+	 * @return The immutable {@link ConcatenatedTupleTypeDescriptor}.
+	 */
 	public static ConcatenatedTupleTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

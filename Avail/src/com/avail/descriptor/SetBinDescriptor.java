@@ -53,7 +53,6 @@ public abstract class SetBinDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link SetBinDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?

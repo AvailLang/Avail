@@ -964,7 +964,6 @@ public class ImplementationSetDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ImplementationSetDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -974,15 +973,31 @@ public class ImplementationSetDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static ImplementationSetDescriptor mutableDescriptor = new ImplementationSetDescriptor(true);
+	/**
+	 * The mutable {@link ImplementationSetDescriptor}.
+	 */
+	private final static ImplementationSetDescriptor mutableDescriptor = new ImplementationSetDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ImplementationSetDescriptor}.
+	 *
+	 * @return The mutable {@link ImplementationSetDescriptor}.
+	 */
 	public static ImplementationSetDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ImplementationSetDescriptor immutableDescriptor = new ImplementationSetDescriptor(false);
+	/**
+	 * The immutable {@link ImplementationSetDescriptor}.
+	 */
+	private final static ImplementationSetDescriptor immutableDescriptor = new ImplementationSetDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ImplementationSetDescriptor}.
+	 *
+	 * @return The immutable {@link ImplementationSetDescriptor}.
+	 */
 	public static ImplementationSetDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

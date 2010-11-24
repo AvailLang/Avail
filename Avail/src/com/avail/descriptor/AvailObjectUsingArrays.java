@@ -192,6 +192,16 @@ public class AvailObjectUsingArrays extends AvailObject
 		_descriptor = aDescriptor;
 	}
 
+	/**
+	 * Set up a freshly created {@link AvailObject} to have the specified
+	 * {@link Descriptor}, and the specified number of object and integer
+	 * slots.
+	 * 
+	 * @param theDescriptor This object's {@link Descriptor}.
+	 * @param objectSlotsSize The number of object slots to allocate.
+	 * @param intSlotsCount The number of integer slots to allocate.
+	 * @return This object.
+	 */
 	public AvailObject descriptorObjectSlotsSizeIntSlotsSize (
 			final AbstractDescriptor theDescriptor,
 			final int objectSlotsSize,
@@ -416,10 +426,12 @@ public class AvailObjectUsingArrays extends AvailObject
 		{
 			integerSlotCount += size;
 		}
-		return new AvailObjectUsingArrays().descriptorObjectSlotsSizeIntSlotsSize(
+		AvailObjectUsingArrays object = new AvailObjectUsingArrays();
+		object.descriptorObjectSlotsSizeIntSlotsSize(
 			descriptor,
 			objectSlotCount,
 			integerSlotCount);
+		return object;
 	};
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
@@ -430,12 +442,12 @@ public class AvailObjectUsingArrays extends AvailObject
 		assert CanAllocateObjects();
 		assert descriptor.hasVariableObjectSlots() || variableObjectSlots == 0;
 		assert descriptor.hasVariableIntegerSlots() || variableIntegerSlots == 0;
-		int objectSlotCount = descriptor.numberOfFixedObjectSlots() + variableObjectSlots;
-		int integerSlotCount = descriptor.numberOfFixedIntegerSlots() + variableIntegerSlots;
-		return new AvailObjectUsingArrays().descriptorObjectSlotsSizeIntSlotsSize(
+		AvailObjectUsingArrays object = new AvailObjectUsingArrays();
+		object.descriptorObjectSlotsSizeIntSlotsSize(
 			descriptor,
-			objectSlotCount,
-			integerSlotCount);
+			descriptor.numberOfFixedObjectSlots() + variableObjectSlots,
+			descriptor.numberOfFixedIntegerSlots() + variableIntegerSlots);
+		return object;
 	};
 
 }

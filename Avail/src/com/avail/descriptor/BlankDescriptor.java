@@ -37,6 +37,13 @@ import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
+/**
+ * My instance is used as a place-holder in {@link MapDescriptor maps} to
+ * indicate where a key has been removed, postponing a rehash of the map until
+ * a sufficient percentage of entries are blank.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class BlankDescriptor extends Descriptor
 {
 
@@ -115,25 +122,38 @@ public class BlankDescriptor extends Descriptor
 
 
 
-	// Startup/shutdown
+	/**
+	 * The sole instance of the (immutable) {@code BlankDescriptor blank
+	 * descriptor}.
+	 */
+	private static AvailObject SoleInstance;
 
-	static AvailObject SoleInstance;
-
+	/**
+	 * Create the sole instance of the immutable {@code BlankDescriptor}.
+	 */
 	static void createWellKnownObjects ()
 	{
-		SoleInstance = AvailObject.newIndexedDescriptor(0, immutableDescriptor());
+		SoleInstance = AvailObject.newIndexedDescriptor(
+			0,
+			immutableDescriptor());
 	}
 
+	/**
+	 * Clear any static references to publicly accessible objects.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		//  Clear the SoleInstance variable as well as the default stuff.
-
 		SoleInstance = null;
 	}
 
 
 
-	/* Object creation */
+	/**
+	 * Answer the sole instance of the (immutable) {@code BlankDescriptor blank
+	 * descriptor}. 
+	 * 
+	 * @return The blank object.
+	 */
 	static AvailObject blank ()
 	{
 		return SoleInstance;
@@ -150,15 +170,31 @@ public class BlankDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static BlankDescriptor mutableDescriptor = new BlankDescriptor(true);
+	/**
+	 * The mutable {@link BlankDescriptor}.
+	 */
+	private final static BlankDescriptor mutableDescriptor = new BlankDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link BlankDescriptor}.
+	 *
+	 * @return The mutable {@link BlankDescriptor}.
+	 */
 	public static BlankDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static BlankDescriptor immutableDescriptor = new BlankDescriptor(false);
+	/**
+	 * The immutable {@link BlankDescriptor}.
+	 */
+	private final static BlankDescriptor immutableDescriptor = new BlankDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link BlankDescriptor}.
+	 *
+	 * @return The immutable {@link BlankDescriptor}.
+	 */
 	public static BlankDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

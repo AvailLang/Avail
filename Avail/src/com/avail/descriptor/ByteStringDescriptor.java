@@ -485,7 +485,6 @@ public class ByteStringDescriptor extends TupleDescriptor
 	/**
 	 * Construct a new {@link ByteStringDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?

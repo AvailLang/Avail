@@ -684,7 +684,6 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link TupleTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -694,15 +693,31 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static TupleTypeDescriptor mutableDescriptor = new TupleTypeDescriptor(true);
+	/**
+	 * The mutable {@link TupleTypeDescriptor}.
+	 */
+	private final static TupleTypeDescriptor mutableDescriptor = new TupleTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link TupleTypeDescriptor}.
+	 *
+	 * @return The mutable {@link TupleTypeDescriptor}.
+	 */
 	public static TupleTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static TupleTypeDescriptor immutableDescriptor = new TupleTypeDescriptor(false);
+	/**
+	 * The immutable {@link TupleTypeDescriptor}.
+	 */
+	private final static TupleTypeDescriptor immutableDescriptor = new TupleTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link TupleTypeDescriptor}.
+	 *
+	 * @return The immutable {@link TupleTypeDescriptor}.
+	 */
 	public static TupleTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

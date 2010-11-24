@@ -238,7 +238,6 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ObjectMetaDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -248,15 +247,31 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static ObjectMetaDescriptor mutableDescriptor = new ObjectMetaDescriptor(true);
+	/**
+	 * The mutable {@link ObjectMetaDescriptor}.
+	 */
+	private final static ObjectMetaDescriptor mutableDescriptor = new ObjectMetaDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ObjectMetaDescriptor}.
+	 *
+	 * @return The mutable {@link ObjectMetaDescriptor}.
+	 */
 	public static ObjectMetaDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ObjectMetaDescriptor immutableDescriptor = new ObjectMetaDescriptor(false);
+	/**
+	 * The immutable {@link ObjectMetaDescriptor}.
+	 */
+	private final static ObjectMetaDescriptor immutableDescriptor = new ObjectMetaDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ObjectMetaDescriptor}.
+	 *
+	 * @return The immutable {@link ObjectMetaDescriptor}.
+	 */
 	public static ObjectMetaDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

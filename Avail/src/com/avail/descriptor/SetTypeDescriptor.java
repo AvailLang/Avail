@@ -331,7 +331,6 @@ public class SetTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link SetTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -341,15 +340,31 @@ public class SetTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static SetTypeDescriptor mutableDescriptor = new SetTypeDescriptor(true);
+	/**
+	 * The mutable {@link SetTypeDescriptor}.
+	 */
+	private final static SetTypeDescriptor mutableDescriptor = new SetTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link SetTypeDescriptor}.
+	 *
+	 * @return The mutable {@link SetTypeDescriptor}.
+	 */
 	public static SetTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static SetTypeDescriptor immutableDescriptor = new SetTypeDescriptor(false);
+	/**
+	 * The immutable {@link SetTypeDescriptor}.
+	 */
+	private final static SetTypeDescriptor immutableDescriptor = new SetTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link SetTypeDescriptor}.
+	 *
+	 * @return The immutable {@link SetTypeDescriptor}.
+	 */
 	public static SetTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

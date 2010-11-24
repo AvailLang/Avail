@@ -256,7 +256,6 @@ public class ListTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ListTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -266,15 +265,31 @@ public class ListTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static ListTypeDescriptor mutableDescriptor = new ListTypeDescriptor(true);
+	/**
+	 * The mutable {@link ListTypeDescriptor}.
+	 */
+	private final static ListTypeDescriptor mutableDescriptor = new ListTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ListTypeDescriptor}.
+	 *
+	 * @return The mutable {@link ListTypeDescriptor}.
+	 */
 	public static ListTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ListTypeDescriptor immutableDescriptor = new ListTypeDescriptor(false);
+	/**
+	 * The immutable {@link ListTypeDescriptor}.
+	 */
+	private final static ListTypeDescriptor immutableDescriptor = new ListTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ListTypeDescriptor}.
+	 *
+	 * @return The immutable {@link ListTypeDescriptor}.
+	 */
 	public static ListTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

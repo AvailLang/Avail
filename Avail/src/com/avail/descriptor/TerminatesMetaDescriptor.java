@@ -146,7 +146,6 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	/**
 	 * Construct a new {@link TerminatesMetaDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -156,15 +155,31 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		super(isMutable);
 	}
 
-	final static TerminatesMetaDescriptor mutableDescriptor = new TerminatesMetaDescriptor(true);
+	/**
+	 * The mutable {@link TerminatesMetaDescriptor}.
+	 */
+	private final static TerminatesMetaDescriptor mutableDescriptor = new TerminatesMetaDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link TerminatesMetaDescriptor}.
+	 *
+	 * @return The mutable {@link TerminatesMetaDescriptor}.
+	 */
 	public static TerminatesMetaDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static TerminatesMetaDescriptor immutableDescriptor = new TerminatesMetaDescriptor(false);
+	/**
+	 * The immutable {@link TerminatesMetaDescriptor}.
+	 */
+	private final static TerminatesMetaDescriptor immutableDescriptor = new TerminatesMetaDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link TerminatesMetaDescriptor}.
+	 *
+	 * @return The immutable {@link TerminatesMetaDescriptor}.
+	 */
 	public static TerminatesMetaDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

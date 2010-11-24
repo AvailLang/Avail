@@ -377,7 +377,6 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	/**
 	 * Construct a new {@link ExpandedMessageBundleTreeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -387,15 +386,31 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		super(isMutable);
 	}
 
-	final static ExpandedMessageBundleTreeDescriptor mutableDescriptor = new ExpandedMessageBundleTreeDescriptor(true);
+	/**
+	 * The mutable {@link ExpandedMessageBundleTreeDescriptor}.
+	 */
+	private final static ExpandedMessageBundleTreeDescriptor mutableDescriptor = new ExpandedMessageBundleTreeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ExpandedMessageBundleTreeDescriptor}.
+	 *
+	 * @return The mutable {@link ExpandedMessageBundleTreeDescriptor}.
+	 */
 	public static ExpandedMessageBundleTreeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ExpandedMessageBundleTreeDescriptor immutableDescriptor = new ExpandedMessageBundleTreeDescriptor(false);
+	/**
+	 * The immutable {@link ExpandedMessageBundleTreeDescriptor}.
+	 */
+	private final static ExpandedMessageBundleTreeDescriptor immutableDescriptor = new ExpandedMessageBundleTreeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ExpandedMessageBundleTreeDescriptor}.
+	 *
+	 * @return The immutable {@link ExpandedMessageBundleTreeDescriptor}.
+	 */
 	public static ExpandedMessageBundleTreeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

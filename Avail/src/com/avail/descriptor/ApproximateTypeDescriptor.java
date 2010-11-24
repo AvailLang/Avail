@@ -40,12 +40,22 @@ import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
+/**
+ * My instances are cheaply constructed type proxies, representing the type of a
+ * particular provided object.  Some type operations are easily translated into
+ * a form that can be fielded directly by the provided object, while others
+ * require an answer that is too difficult for the object to deal with.  For the
+ * latter case we ask the provided object for its {@link AvailObject#exactType()
+ * exactType()} (which must never be an {@code ApproximateTypeDescriptor}), and
+ * then change the {@code ApproximateTypeDescriptor} into an {@linkplain
+ * IndirectionDescriptor indirection} to the exact type.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 @ObjectSlots("instance")
 public class ApproximateTypeDescriptor extends TypeDescriptor
 {
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field instance.
@@ -69,9 +79,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 			final AvailObject object,
@@ -86,9 +93,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			(indent + 1));
 	}
 
-
-
-	// operations
 
 	@Override
 	public boolean ObjectEquals (
@@ -908,7 +912,13 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 
 
-	/* Object creation */
+	/**
+	 * Answer a new instance of this descriptor based on some object whose type
+	 * it will represent.
+	 * 
+	 * @param instance The object whose type to represent.
+	 * @return An {@link AvailObject} representing the type of the argument.
+	 */
 	static AvailObject withInstance (AvailObject instance)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(0, ApproximateTypeDescriptor.mutableDescriptor());
@@ -919,7 +929,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ApproximateTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -929,15 +938,31 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static ApproximateTypeDescriptor mutableDescriptor = new ApproximateTypeDescriptor(true);
+	/**
+	 * The mutable {@link ApproximateTypeDescriptor}.
+	 */
+	private final static ApproximateTypeDescriptor mutableDescriptor = new ApproximateTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ApproximateTypeDescriptor}.
+	 *
+	 * @return The mutable {@link ApproximateTypeDescriptor}.
+	 */
 	public static ApproximateTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ApproximateTypeDescriptor immutableDescriptor = new ApproximateTypeDescriptor(false);
+	/**
+	 * The immutable {@link ApproximateTypeDescriptor}.
+	 */
+	private final static ApproximateTypeDescriptor immutableDescriptor = new ApproximateTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ApproximateTypeDescriptor}.
+	 *
+	 * @return The immutable {@link ApproximateTypeDescriptor}.
+	 */
 	public static ApproximateTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

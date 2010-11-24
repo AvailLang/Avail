@@ -252,7 +252,6 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ContainerTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -263,15 +262,28 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	/* Descriptor lookup */
-	final static ContainerTypeDescriptor mutableDescriptor = new ContainerTypeDescriptor(true);
+	private final static ContainerTypeDescriptor mutableDescriptor = new ContainerTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ContainerTypeDescriptor}.
+	 *
+	 * @return The mutable {@link ContainerTypeDescriptor}.
+	 */
 	public static ContainerTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ContainerTypeDescriptor immutableDescriptor = new ContainerTypeDescriptor(false);
+	/**
+	 * The immutable {@link ContainerTypeDescriptor}.
+	 */
+	private final static ContainerTypeDescriptor immutableDescriptor = new ContainerTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ContainerTypeDescriptor}.
+	 *
+	 * @return The immutable {@link ContainerTypeDescriptor}.
+	 */
 	public static ContainerTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

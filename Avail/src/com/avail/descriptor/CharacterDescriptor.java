@@ -159,8 +159,10 @@ extends Descriptor
 	}
 
 
-	/** The mutable {@link CharacterDescriptor}. */
-	final static CharacterDescriptor mutableDescriptor =
+	/**
+	 * The mutable {@link CharacterDescriptor}.
+	 */
+	final private static CharacterDescriptor mutableDescriptor =
 		new CharacterDescriptor(true);
 
 	/**
@@ -169,12 +171,19 @@ extends Descriptor
 	 * @return A mutable {@link CharacterDescriptor}.
 	 */
 	@ThreadSafe
+	/**
+	 * Answer the mutable {@link CharacterDescriptor}.
+	 *
+	 * @return The mutable {@link CharacterDescriptor}.
+	 */
 	public static CharacterDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	/** The immutable {@link CharacterDescriptor}. */
+	/**
+	 * The immutable {@link CharacterDescriptor}.
+	 */
 	final static CharacterDescriptor immutableDescriptor =
 		new CharacterDescriptor(false);
 
@@ -184,6 +193,11 @@ extends Descriptor
 	 * @return An immutable {@link CharacterDescriptor}.
 	 */
 	@ThreadSafe
+	/**
+	 * Answer the immutable {@link CharacterDescriptor}.
+	 *
+	 * @return The immutable {@link CharacterDescriptor}.
+	 */
 	public static CharacterDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

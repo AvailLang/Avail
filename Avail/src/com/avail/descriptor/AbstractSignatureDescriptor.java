@@ -39,6 +39,12 @@ import com.avail.interpreter.AvailInterpreter;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
+/**
+ * This is a specialization of {@link SignatureDescriptor} that is an abstract
+ * declaration of an Avail method (i.e., no implementation).
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 @ObjectSlots({
 	"signature",
 	"requiresBlock",
@@ -214,7 +220,6 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * Construct a new {@link AbstractSignatureDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -224,15 +229,27 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		super(isMutable);
 	}
 
-	final static AbstractSignatureDescriptor mutableDescriptor = new AbstractSignatureDescriptor(true);
+	/**
+	 * The mutable {@link AbstractSignatureDescriptor}.
+	 */
+	private final static AbstractSignatureDescriptor mutableDescriptor = new AbstractSignatureDescriptor(true);
 
+	/**
+	 * @return The mutable {@link AbstractSignatureDescriptor}.
+	 */
 	public static AbstractSignatureDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static AbstractSignatureDescriptor immutableDescriptor = new AbstractSignatureDescriptor(false);
+	/**
+	 * The immutable {@link AbstractSignatureDescriptor}.
+	 */
+	private final static AbstractSignatureDescriptor immutableDescriptor = new AbstractSignatureDescriptor(false);
 
+	/**
+	 * @return The mutable {@link AbstractSignatureDescriptor}.
+	 */
 	public static AbstractSignatureDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

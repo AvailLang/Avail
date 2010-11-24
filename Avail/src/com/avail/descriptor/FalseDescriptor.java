@@ -112,7 +112,6 @@ public class FalseDescriptor extends BooleanDescriptor
 	/**
 	 * Construct a new {@link FalseDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -122,15 +121,31 @@ public class FalseDescriptor extends BooleanDescriptor
 		super(isMutable);
 	}
 
-	final static FalseDescriptor mutableDescriptor = new FalseDescriptor(true);
+	/**
+	 * The mutable {@link FalseDescriptor}.
+	 */
+	private final static FalseDescriptor mutableDescriptor = new FalseDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link FalseDescriptor}.
+	 *
+	 * @return The mutable {@link FalseDescriptor}.
+	 */
 	public static FalseDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static FalseDescriptor immutableDescriptor = new FalseDescriptor(false);
+	/**
+	 * The immutable {@link FalseDescriptor}.
+	 */
+	private final static FalseDescriptor immutableDescriptor = new FalseDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link FalseDescriptor}.
+	 *
+	 * @return The immutable {@link FalseDescriptor}.
+	 */
 	public static FalseDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

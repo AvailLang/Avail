@@ -225,7 +225,6 @@ extends Descriptor
 	/**
 	 * Construct a new {@link VoidDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -244,6 +243,11 @@ extends Descriptor
 	 * @return A mutable {@link VoidDescriptor}.
 	 */
 	@ThreadSafe
+	/**
+	 * Answer the mutable {@link VoidDescriptor}.
+	 *
+	 * @return The mutable {@link VoidDescriptor}.
+	 */
 	public static VoidDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;

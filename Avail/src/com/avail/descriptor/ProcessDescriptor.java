@@ -414,7 +414,6 @@ public class ProcessDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ProcessDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -424,15 +423,31 @@ public class ProcessDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static ProcessDescriptor mutableDescriptor = new ProcessDescriptor(true);
+	/**
+	 * The mutable {@link ProcessDescriptor}.
+	 */
+	private final static ProcessDescriptor mutableDescriptor = new ProcessDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ProcessDescriptor}.
+	 *
+	 * @return The mutable {@link ProcessDescriptor}.
+	 */
 	public static ProcessDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ProcessDescriptor immutableDescriptor = new ProcessDescriptor(false);
+	/**
+	 * The immutable {@link ProcessDescriptor}.
+	 */
+	private final static ProcessDescriptor immutableDescriptor = new ProcessDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ProcessDescriptor}.
+	 *
+	 * @return The immutable {@link ProcessDescriptor}.
+	 */
 	public static ProcessDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

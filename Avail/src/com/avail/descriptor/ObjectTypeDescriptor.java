@@ -350,7 +350,6 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -360,15 +359,31 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static ObjectTypeDescriptor mutableDescriptor = new ObjectTypeDescriptor(true);
+	/**
+	 * The mutable {@link ObjectTypeDescriptor}.
+	 */
+	private final static ObjectTypeDescriptor mutableDescriptor = new ObjectTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ObjectTypeDescriptor}.
+	 *
+	 * @return The mutable {@link ObjectTypeDescriptor}.
+	 */
 	public static ObjectTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ObjectTypeDescriptor immutableDescriptor = new ObjectTypeDescriptor(false);
+	/**
+	 * The immutable {@link ObjectTypeDescriptor}.
+	 */
+	private final static ObjectTypeDescriptor immutableDescriptor = new ObjectTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ObjectTypeDescriptor}.
+	 *
+	 * @return The immutable {@link ObjectTypeDescriptor}.
+	 */
 	public static ObjectTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

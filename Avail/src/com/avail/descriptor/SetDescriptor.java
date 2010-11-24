@@ -485,7 +485,6 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ObjectMetaMetaDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -495,15 +494,31 @@ public class SetDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static SetDescriptor mutableDescriptor = new SetDescriptor(true);
+	/**
+	 * The mutable {@link SetDescriptor}.
+	 */
+	private final static SetDescriptor mutableDescriptor = new SetDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link SetDescriptor}.
+	 *
+	 * @return The mutable {@link SetDescriptor}.
+	 */
 	public static SetDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static SetDescriptor immutableDescriptor = new SetDescriptor(false);
+	/**
+	 * The immutable {@link SetDescriptor}.
+	 */
+	private final static SetDescriptor immutableDescriptor = new SetDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link SetDescriptor}.
+	 *
+	 * @return The immutable {@link SetDescriptor}.
+	 */
 	public static SetDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

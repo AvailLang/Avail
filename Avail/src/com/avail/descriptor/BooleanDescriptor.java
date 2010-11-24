@@ -41,9 +41,6 @@ import static com.avail.descriptor.AvailObject.*;
 public abstract class BooleanDescriptor extends Descriptor
 {
 
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 			final AvailObject object,
@@ -55,19 +52,11 @@ public abstract class BooleanDescriptor extends Descriptor
 	}
 
 
-
-	// operations-booleans
-
 	@Override
-	public boolean ObjectExtractBoolean (
-			final AvailObject object)
-	{
-		//  Extract a Smalltalk Boolean from object.
+	public abstract boolean ObjectExtractBoolean (
+			final AvailObject object);
 
-		error("Subclass responsibility: ObjectExtractBoolean: in Avail.BooleanDescriptor", object);
-		return false;
-	}
-
+	
 	@Override
 	public boolean ObjectIsBoolean (
 			final AvailObject object)
@@ -108,7 +97,6 @@ public abstract class BooleanDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link BooleanDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?

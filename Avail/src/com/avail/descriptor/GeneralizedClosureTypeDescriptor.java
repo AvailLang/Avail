@@ -286,7 +286,6 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link GeneralizedClosureTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -296,15 +295,31 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static GeneralizedClosureTypeDescriptor mutableDescriptor = new GeneralizedClosureTypeDescriptor(true);
+	/**
+	 * The mutable {@link GeneralizedClosureTypeDescriptor}.
+	 */
+	private final static GeneralizedClosureTypeDescriptor mutableDescriptor = new GeneralizedClosureTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link GeneralizedClosureTypeDescriptor}.
+	 *
+	 * @return The mutable {@link GeneralizedClosureTypeDescriptor}.
+	 */
 	public static GeneralizedClosureTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static GeneralizedClosureTypeDescriptor immutableDescriptor = new GeneralizedClosureTypeDescriptor(false);
+	/**
+	 * The immutable {@link GeneralizedClosureTypeDescriptor}.
+	 */
+	private final static GeneralizedClosureTypeDescriptor immutableDescriptor = new GeneralizedClosureTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link GeneralizedClosureTypeDescriptor}.
+	 *
+	 * @return The immutable {@link GeneralizedClosureTypeDescriptor}.
+	 */
 	public static GeneralizedClosureTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

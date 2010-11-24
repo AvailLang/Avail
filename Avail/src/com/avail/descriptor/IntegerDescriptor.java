@@ -1430,7 +1430,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	/**
 	 * Construct a new {@link IntegerDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -1440,15 +1439,31 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		super(isMutable);
 	}
 
-	final static IntegerDescriptor mutableDescriptor = new IntegerDescriptor(true);
+	/**
+	 * The mutable {@link IntegerDescriptor}.
+	 */
+	private final static IntegerDescriptor mutableDescriptor = new IntegerDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link IntegerDescriptor}.
+	 *
+	 * @return The mutable {@link IntegerDescriptor}.
+	 */
 	public static IntegerDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static IntegerDescriptor immutableDescriptor = new IntegerDescriptor(false);
+	/**
+	 * The immutable {@link IntegerDescriptor}.
+	 */
+	private final static IntegerDescriptor immutableDescriptor = new IntegerDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link IntegerDescriptor}.
+	 *
+	 * @return The immutable {@link IntegerDescriptor}.
+	 */
 	public static IntegerDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

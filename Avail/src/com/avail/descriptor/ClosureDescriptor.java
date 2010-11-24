@@ -350,7 +350,6 @@ public class ClosureDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ClosureDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -360,15 +359,31 @@ public class ClosureDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static ClosureDescriptor mutableDescriptor = new ClosureDescriptor(true);
+	/**
+	 * The mutable {@link ClosureDescriptor}.
+	 */
+	private final static ClosureDescriptor mutableDescriptor = new ClosureDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ClosureDescriptor}.
+	 *
+	 * @return The mutable {@link ClosureDescriptor}.
+	 */
 	public static ClosureDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ClosureDescriptor immutableDescriptor = new ClosureDescriptor(false);
+	/**
+	 * The immutable {@link ClosureDescriptor}.
+	 */
+	private final static ClosureDescriptor immutableDescriptor = new ClosureDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ClosureDescriptor}.
+	 *
+	 * @return The immutable {@link ClosureDescriptor}.
+	 */
 	public static ClosureDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

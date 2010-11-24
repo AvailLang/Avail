@@ -43,7 +43,6 @@ extends Descriptor
 	/**
 	 * Construct a new {@link FillerDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -54,24 +53,30 @@ extends Descriptor
 	}
 
 	/**
+	 * A mutable {@link FillerDescriptor}.
+	 */
+	final private static FillerDescriptor mutableDescriptor = new FillerDescriptor(true);
+
+	/**
 	 * Answer a mutable {@link FillerDescriptor}.
 	 *
 	 * @return A mutable {@link FillerDescriptor}.
 	 */
-	final static FillerDescriptor mutableDescriptor = new FillerDescriptor(true);
-
 	public static FillerDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
 	/**
+	 * An immutable {@link FillerDescriptor}.
+	 */
+	final private static FillerDescriptor immutableDescriptor = new FillerDescriptor(false);
+
+	/**
 	 * Answer an immutable {@link FillerDescriptor}.
 	 *
 	 * @return An immutable {@link FillerDescriptor}.
 	 */
-	final static FillerDescriptor immutableDescriptor = new FillerDescriptor(false);
-
 	public static FillerDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

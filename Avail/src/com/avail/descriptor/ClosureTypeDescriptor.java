@@ -723,7 +723,6 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link ClosureTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -733,15 +732,31 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static ClosureTypeDescriptor mutableDescriptor = new ClosureTypeDescriptor(true);
+	/**
+	 * The mutable {@link ClosureTypeDescriptor}.
+	 */
+	private final static ClosureTypeDescriptor mutableDescriptor = new ClosureTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ClosureTypeDescriptor}.
+	 *
+	 * @return The mutable {@link ClosureTypeDescriptor}.
+	 */
 	public static ClosureTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ClosureTypeDescriptor immutableDescriptor = new ClosureTypeDescriptor(false);
+	/**
+	 * The immutable {@link ClosureTypeDescriptor}.
+	 */
+	private final static ClosureTypeDescriptor immutableDescriptor = new ClosureTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ClosureTypeDescriptor}.
+	 *
+	 * @return The immutable {@link ClosureTypeDescriptor}.
+	 */
 	public static ClosureTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

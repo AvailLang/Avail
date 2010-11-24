@@ -32,11 +32,14 @@
 
 package com.avail.compiler.scanner;
 
+/**
+ * This is a specialization of {@link AvailToken} for tokens that contain a
+ * single operator character, such as "+" or "[".
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailOperatorToken extends AvailToken
 {
-
-
-	// accessing
 
 	@Override
 	public TokenType type ()
@@ -44,18 +47,10 @@ public class AvailOperatorToken extends AvailToken
 		return TokenType.operator;
 	}
 
-
-
-	// java printing
-
 	@Override
 	public String toString ()
 	{
 		return "{" + _string + "}";
 	}
-
-
-
-
 
 }

@@ -705,7 +705,6 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	/**
 	 * Construct a new {@link SpliceTupleDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -715,15 +714,31 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		super(isMutable);
 	}
 
-	final static SpliceTupleDescriptor mutableDescriptor = new SpliceTupleDescriptor(true);
+	/**
+	 * The mutable {@link SpliceTupleDescriptor}.
+	 */
+	private final static SpliceTupleDescriptor mutableDescriptor = new SpliceTupleDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link SpliceTupleDescriptor}.
+	 *
+	 * @return The mutable {@link SpliceTupleDescriptor}.
+	 */
 	public static SpliceTupleDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static SpliceTupleDescriptor immutableDescriptor = new SpliceTupleDescriptor(false);
+	/**
+	 * The immutable {@link SpliceTupleDescriptor}.
+	 */
+	private final static SpliceTupleDescriptor immutableDescriptor = new SpliceTupleDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link SpliceTupleDescriptor}.
+	 *
+	 * @return The immutable {@link SpliceTupleDescriptor}.
+	 */
 	public static SpliceTupleDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

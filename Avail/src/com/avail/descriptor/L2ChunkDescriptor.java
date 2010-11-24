@@ -783,7 +783,6 @@ public class L2ChunkDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link L2ChunkDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -793,15 +792,31 @@ public class L2ChunkDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static L2ChunkDescriptor mutableDescriptor = new L2ChunkDescriptor(true);
+	/**
+	 * The mutable {@link L2ChunkDescriptor}.
+	 */
+	private final static L2ChunkDescriptor mutableDescriptor = new L2ChunkDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link L2ChunkDescriptor}.
+	 *
+	 * @return The mutable {@link L2ChunkDescriptor}.
+	 */
 	public static L2ChunkDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static L2ChunkDescriptor immutableDescriptor = new L2ChunkDescriptor(false);
+	/**
+	 * The immutable {@link L2ChunkDescriptor}.
+	 */
+	private final static L2ChunkDescriptor immutableDescriptor = new L2ChunkDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link L2ChunkDescriptor}.
+	 *
+	 * @return The immutable {@link L2ChunkDescriptor}.
+	 */
 	public static L2ChunkDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

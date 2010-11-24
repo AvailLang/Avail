@@ -3126,18 +3126,22 @@ public enum Primitive
 	},
 
 
+	/**
+	 * Produce a collection of all visible methods that start with the given
+	 * string, and have more than one part.  Answer a map from second part
+	 * (string) to messageBundleTree.
+	 */
 	prim210_IncompleteMessagesStartingWith_leadingPart(210, 1, Flag.CanInline)
 	{
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
-			//  Answer a collection of all visible methods that start with the given
-			//  string, and have more than one part.  Answer a map from second
-			//  part (string) to messageBundleTree.
-
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
-			interpreter.primitiveResult(interpreter.incompleteBundlesStartingWith(leadingPart).makeImmutable());
+			AvailObject bundles =
+				interpreter.incompleteBundlesStartingWith(leadingPart);
+			bundles.makeImmutable();
+			interpreter.primitiveResult(bundles);
 			return Result.SUCCESS;
 		}
 	},

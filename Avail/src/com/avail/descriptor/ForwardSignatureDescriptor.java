@@ -176,7 +176,6 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * Construct a new {@link ForwardSignatureDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -186,15 +185,31 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		super(isMutable);
 	}
 
-	final static ForwardSignatureDescriptor mutableDescriptor = new ForwardSignatureDescriptor(true);
+	/**
+	 * The mutable {@link ForwardSignatureDescriptor}.
+	 */
+	private final static ForwardSignatureDescriptor mutableDescriptor = new ForwardSignatureDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ForwardSignatureDescriptor}.
+	 *
+	 * @return The mutable {@link ForwardSignatureDescriptor}.
+	 */
 	public static ForwardSignatureDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ForwardSignatureDescriptor immutableDescriptor = new ForwardSignatureDescriptor(false);
+	/**
+	 * The immutable {@link ForwardSignatureDescriptor}.
+	 */
+	private final static ForwardSignatureDescriptor immutableDescriptor = new ForwardSignatureDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ForwardSignatureDescriptor}.
+	 *
+	 * @return The immutable {@link ForwardSignatureDescriptor}.
+	 */
 	public static ForwardSignatureDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

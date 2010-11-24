@@ -362,7 +362,6 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	/**
 	 * Construct a new {@link LinearSetBinDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?

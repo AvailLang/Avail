@@ -218,7 +218,6 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * Construct a new {@link MethodSignatureDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -228,15 +227,31 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		super(isMutable);
 	}
 
-	final static MethodSignatureDescriptor mutableDescriptor = new MethodSignatureDescriptor(true);
+	/**
+	 * The mutable {@link MethodSignatureDescriptor}.
+	 */
+	private final static MethodSignatureDescriptor mutableDescriptor = new MethodSignatureDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link MethodSignatureDescriptor}.
+	 *
+	 * @return The mutable {@link MethodSignatureDescriptor}.
+	 */
 	public static MethodSignatureDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static MethodSignatureDescriptor immutableDescriptor = new MethodSignatureDescriptor(false);
+	/**
+	 * The immutable {@link MethodSignatureDescriptor}.
+	 */
+	private final static MethodSignatureDescriptor immutableDescriptor = new MethodSignatureDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link MethodSignatureDescriptor}.
+	 *
+	 * @return The immutable {@link MethodSignatureDescriptor}.
+	 */
 	public static MethodSignatureDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

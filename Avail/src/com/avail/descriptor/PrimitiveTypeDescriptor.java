@@ -397,7 +397,6 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link PrimitiveTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -407,15 +406,32 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static PrimitiveTypeDescriptor mutableDescriptor = new PrimitiveTypeDescriptor(true);
+	/**
+	 * The descriptor instance that describes a mutable primitive type.
+	 */
+	final private static PrimitiveTypeDescriptor mutableDescriptor = new PrimitiveTypeDescriptor(true);
 
+	/**
+	 * Answer the descriptor instance that describes a mutable primitive type.
+	 * 
+	 * @return a PrimitiveTypeDescriptor for mutable objects.
+	 */
 	public static PrimitiveTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static PrimitiveTypeDescriptor immutableDescriptor = new PrimitiveTypeDescriptor(false);
+	/**
+	 * The descriptor instance that describes an immutable primitive type.
+	 */
+	final private static PrimitiveTypeDescriptor immutableDescriptor = new PrimitiveTypeDescriptor(false);
 
+	/**
+	 * Answer the descriptor instance that describes an immutable primitive
+	 * type.
+	 * 
+	 * @return a PrimitiveTypeDescriptor for immutable objects.
+	 */
 	public static PrimitiveTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

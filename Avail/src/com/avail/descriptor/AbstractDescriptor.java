@@ -50,30 +50,49 @@ import com.avail.visitor.AvailSubobjectVisitor;
 public abstract class AbstractDescriptor
 {
 
+	/**
+	 * A unique short, monotonically allocated and set automatically by the
+	 * constructor.  It equals the {@linkplain AbstractDescriptor descriptor's}
+	 * index into {@link #allDescriptors}, which is also populated by the
+	 * constructor.
+	 */
 	final short myId;
+	
+	/**
+	 * A flag indicating whether instances of me can be modified in place.
+	 * Generally, as soon as there are two references from {@link AvailObject
+	 * Avail objects}.
+	 */
 	protected final boolean isMutable;
+	
+	/**
+	 * The minimum number of object slots an {@link AvailObject} can have if it
+	 * uses this descriptor.  Populated automatically by the constructor from
+	 * the {@link ObjectSlots} annotation.
+	 */
 	protected final int numberOfFixedObjectSlots;
+	
+	/**
+	 * The minimum number of integer slots an {@link AvailObject} can have if it
+	 * uses this descriptor.  Populated automatically by the constructor from
+	 * the {@link IntegerSlots} annotation.
+	 */
 	protected final int numberOfFixedIntegerSlots;
+	
+	/**
+	 * Whether an {@link AvailObject} using this descriptor can have more than
+	 * the minimum number of object slots.  Populated automatically by the
+	 * constructor from the {@link ObjectSlots} annotation.
+	 */
 	final boolean hasVariableObjectSlots;
+	
+	/**
+	 * Whether an {@link AvailObject} using this descriptor can have more than
+	 * the minimum number of integer slots.  Populated automatically by the
+	 * constructor from the {@link IntegerSlots} annotation.
+	 */
 	final boolean hasVariableIntegerSlots;
-
-	static void createWellKnownObjects ()
-	{
-		//  Default implementation - subclasses may need more variations.
-		//
-		//  do nothing
-
-
-	}
-
-	static void clearWellKnownObjects ()
-	{
-		//  Default implementation - subclasses may need more variations.
-		//
-		//  do nothing
-
-
-	}
+	
 
 	protected static final List<AbstractDescriptor> allDescriptors =
 		new ArrayList<AbstractDescriptor>(200);

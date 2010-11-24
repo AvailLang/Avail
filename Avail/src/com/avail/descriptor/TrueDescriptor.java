@@ -112,7 +112,6 @@ public class TrueDescriptor extends BooleanDescriptor
 	/**
 	 * Construct a new {@link TrueDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -122,15 +121,31 @@ public class TrueDescriptor extends BooleanDescriptor
 		super(isMutable);
 	}
 
-	final static TrueDescriptor mutableDescriptor = new TrueDescriptor(true);
+	/**
+	 * The mutable {@link TrueDescriptor}.
+	 */
+	private final static TrueDescriptor mutableDescriptor = new TrueDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link TrueDescriptor}.
+	 *
+	 * @return The mutable {@link TrueDescriptor}.
+	 */
 	public static TrueDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static TrueDescriptor immutableDescriptor = new TrueDescriptor(false);
+	/**
+	 * The immutable {@link TrueDescriptor}.
+	 */
+	private final static TrueDescriptor immutableDescriptor = new TrueDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link TrueDescriptor}.
+	 *
+	 * @return The immutable {@link TrueDescriptor}.
+	 */
 	public static TrueDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

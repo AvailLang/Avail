@@ -381,7 +381,6 @@ public class MapTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link MapTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -391,15 +390,31 @@ public class MapTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	final static MapTypeDescriptor mutableDescriptor = new MapTypeDescriptor(true);
+	/**
+	 * The mutable {@link MapTypeDescriptor}.
+	 */
+	private final static MapTypeDescriptor mutableDescriptor = new MapTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link MapTypeDescriptor}.
+	 *
+	 * @return The mutable {@link MapTypeDescriptor}.
+	 */
 	public static MapTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static MapTypeDescriptor immutableDescriptor = new MapTypeDescriptor(false);
+	/**
+	 * The immutable {@link MapTypeDescriptor}.
+	 */
+	private final static MapTypeDescriptor immutableDescriptor = new MapTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link MapTypeDescriptor}.
+	 *
+	 * @return The immutable {@link MapTypeDescriptor}.
+	 */
 	public static MapTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

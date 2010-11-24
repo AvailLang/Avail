@@ -4586,7 +4586,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	/**
 	 * Construct a new {@link IndirectionDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -4596,15 +4595,31 @@ public class IndirectionDescriptor extends AbstractDescriptor
 		super(isMutable);
 	}
 
-	final static IndirectionDescriptor mutableDescriptor = new IndirectionDescriptor(true);
+	/**
+	 * The mutable {@link IndirectionDescriptor}.
+	 */
+	private final static IndirectionDescriptor mutableDescriptor = new IndirectionDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link IndirectionDescriptor}.
+	 *
+	 * @return The mutable {@link IndirectionDescriptor}.
+	 */
 	public static IndirectionDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static IndirectionDescriptor immutableDescriptor = new IndirectionDescriptor(false);
+	/**
+	 * The immutable {@link IndirectionDescriptor}.
+	 */
+	private final static IndirectionDescriptor immutableDescriptor = new IndirectionDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link IndirectionDescriptor}.
+	 *
+	 * @return The immutable {@link IndirectionDescriptor}.
+	 */
 	public static IndirectionDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

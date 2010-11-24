@@ -181,7 +181,6 @@ public abstract class SignatureDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link SignatureDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?

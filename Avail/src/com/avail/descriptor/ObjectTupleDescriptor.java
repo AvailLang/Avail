@@ -407,7 +407,6 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	/**
 	 * Construct a new {@link ObjectTupleDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -417,15 +416,31 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		super(isMutable);
 	}
 
-	final static ObjectTupleDescriptor mutableDescriptor = new ObjectTupleDescriptor(true);
+	/**
+	 * The mutable {@link ObjectTupleDescriptor}.
+	 */
+	private final static ObjectTupleDescriptor mutableDescriptor = new ObjectTupleDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ObjectTupleDescriptor}.
+	 *
+	 * @return The mutable {@link ObjectTupleDescriptor}.
+	 */
 	public static ObjectTupleDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ObjectTupleDescriptor immutableDescriptor = new ObjectTupleDescriptor(false);
+	/**
+	 * The immutable {@link ObjectTupleDescriptor}.
+	 */
+	private final static ObjectTupleDescriptor immutableDescriptor = new ObjectTupleDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ObjectTupleDescriptor}.
+	 *
+	 * @return The immutable {@link ObjectTupleDescriptor}.
+	 */
 	public static ObjectTupleDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

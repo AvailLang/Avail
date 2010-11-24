@@ -486,7 +486,6 @@ public class ContinuationDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ContinuationDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -496,16 +495,31 @@ public class ContinuationDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	/* Descriptor lookup */
-	final static ContinuationDescriptor mutableDescriptor = new ContinuationDescriptor(true);
+	/**
+	 * The mutable {@link ContinuationDescriptor}.
+	 */
+	private final static ContinuationDescriptor mutableDescriptor = new ContinuationDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ContinuationDescriptor}.
+	 *
+	 * @return The mutable {@link ContinuationDescriptor}.
+	 */
 	public static ContinuationDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ContinuationDescriptor immutableDescriptor = new ContinuationDescriptor(false);
+	/**
+	 * The immutable {@link ContinuationDescriptor}.
+	 */
+	private final static ContinuationDescriptor immutableDescriptor = new ContinuationDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ContinuationDescriptor}.
+	 *
+	 * @return The immutable {@link ContinuationDescriptor}.
+	 */
 	public static ContinuationDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

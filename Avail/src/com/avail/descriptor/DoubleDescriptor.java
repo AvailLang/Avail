@@ -226,7 +226,6 @@ public class DoubleDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link DoubleDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -236,15 +235,31 @@ public class DoubleDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static DoubleDescriptor mutableDescriptor = new DoubleDescriptor(true);
+	/**
+	 * The mutable {@link DoubleDescriptor}.
+	 */
+	private final static DoubleDescriptor mutableDescriptor = new DoubleDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link DoubleDescriptor}.
+	 *
+	 * @return The mutable {@link DoubleDescriptor}.
+	 */
 	public static DoubleDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static DoubleDescriptor immutableDescriptor = new DoubleDescriptor(false);
+	/**
+	 * The immutable {@link DoubleDescriptor}.
+	 */
+	private final static DoubleDescriptor immutableDescriptor = new DoubleDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link DoubleDescriptor}.
+	 *
+	 * @return The immutable {@link DoubleDescriptor}.
+	 */
 	public static DoubleDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

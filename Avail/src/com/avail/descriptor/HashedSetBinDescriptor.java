@@ -468,7 +468,6 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	/**
 	 * Construct a new {@link HashedSetBinDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?

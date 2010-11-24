@@ -596,7 +596,6 @@ public class ModuleDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ModuleDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -606,15 +605,31 @@ public class ModuleDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static ModuleDescriptor mutableDescriptor = new ModuleDescriptor(true);
+	/**
+	 * The mutable {@link ModuleDescriptor}.
+	 */
+	private final static ModuleDescriptor mutableDescriptor = new ModuleDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ModuleDescriptor}.
+	 *
+	 * @return The mutable {@link ModuleDescriptor}.
+	 */
 	public static ModuleDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ModuleDescriptor immutableDescriptor = new ModuleDescriptor(false);
+	/**
+	 * The immutable {@link ModuleDescriptor}.
+	 */
+	private final static ModuleDescriptor immutableDescriptor = new ModuleDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ModuleDescriptor}.
+	 *
+	 * @return The immutable {@link ModuleDescriptor}.
+	 */
 	public static ModuleDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

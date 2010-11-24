@@ -194,7 +194,6 @@ public class FloatDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link FloatDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -204,15 +203,31 @@ public class FloatDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static FloatDescriptor mutableDescriptor = new FloatDescriptor(true);
+	/**
+	 * The mutable {@link FloatDescriptor}.
+	 */
+	private final static FloatDescriptor mutableDescriptor = new FloatDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link FloatDescriptor}.
+	 *
+	 * @return The mutable {@link FloatDescriptor}.
+	 */
 	public static FloatDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static FloatDescriptor immutableDescriptor = new FloatDescriptor(false);
+	/**
+	 * The immutable {@link FloatDescriptor}.
+	 */
+	private final static FloatDescriptor immutableDescriptor = new FloatDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link FloatDescriptor}.
+	 *
+	 * @return The immutable {@link FloatDescriptor}.
+	 */
 	public static FloatDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

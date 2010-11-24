@@ -85,7 +85,6 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * Construct a new {@link VoidTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -96,7 +95,10 @@ extends PrimitiveTypeDescriptor
 	}
 
 
-	final static VoidTypeDescriptor mutableDescriptor = new VoidTypeDescriptor(true);
+	/**
+	 * The mutable {@link VoidTypeDescriptor}.
+	 */
+	private final static VoidTypeDescriptor mutableDescriptor = new VoidTypeDescriptor(true);
 
 	/**
 	 * Answer a mutable {@link VoidTypeDescriptor}.
@@ -104,12 +106,20 @@ extends PrimitiveTypeDescriptor
 	 * @return A mutable {@link VoidTypeDescriptor}.
 	 */
 	@ThreadSafe
+	/**
+	 * Answer the mutable {@link VoidTypeDescriptor}.
+	 *
+	 * @return The mutable {@link VoidTypeDescriptor}.
+	 */
 	public static VoidTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static VoidTypeDescriptor immutableDescriptor = new VoidTypeDescriptor(false);
+	/**
+	 * The immutable {@link VoidTypeDescriptor}.
+	 */
+	private final static VoidTypeDescriptor immutableDescriptor = new VoidTypeDescriptor(false);
 
 	/**
 	 * Answer an immutable {@link VoidTypeDescriptor}.
@@ -117,6 +127,11 @@ extends PrimitiveTypeDescriptor
 	 * @return An immutable {@link VoidTypeDescriptor}.
 	 */
 	@ThreadSafe
+	/**
+	 * Answer the immutable {@link VoidTypeDescriptor}.
+	 *
+	 * @return The immutable {@link VoidTypeDescriptor}.
+	 */
 	public static VoidTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

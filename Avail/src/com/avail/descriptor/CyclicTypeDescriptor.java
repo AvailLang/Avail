@@ -303,7 +303,6 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	/**
 	 * Construct a new {@link CyclicTypeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -314,15 +313,28 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	/* Descriptor lookup */
-	final static CyclicTypeDescriptor mutableDescriptor = new CyclicTypeDescriptor(true);
+	private final static CyclicTypeDescriptor mutableDescriptor = new CyclicTypeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link CyclicTypeDescriptor}.
+	 *
+	 * @return The mutable {@link CyclicTypeDescriptor}.
+	 */
 	public static CyclicTypeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static CyclicTypeDescriptor immutableDescriptor = new CyclicTypeDescriptor(false);
+	/**
+	 * The immutable {@link CyclicTypeDescriptor}.
+	 */
+	private final static CyclicTypeDescriptor immutableDescriptor = new CyclicTypeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link CyclicTypeDescriptor}.
+	 *
+	 * @return The immutable {@link CyclicTypeDescriptor}.
+	 */
 	public static CyclicTypeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

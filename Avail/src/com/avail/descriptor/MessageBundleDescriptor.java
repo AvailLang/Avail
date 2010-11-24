@@ -317,7 +317,6 @@ public class MessageBundleDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link MessageBundleDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -327,15 +326,31 @@ public class MessageBundleDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static MessageBundleDescriptor mutableDescriptor = new MessageBundleDescriptor(true);
+	/**
+	 * The mutable {@link MessageBundleDescriptor}.
+	 */
+	private final static MessageBundleDescriptor mutableDescriptor = new MessageBundleDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link MessageBundleDescriptor}.
+	 *
+	 * @return The mutable {@link MessageBundleDescriptor}.
+	 */
 	public static MessageBundleDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static MessageBundleDescriptor immutableDescriptor = new MessageBundleDescriptor(false);
+	/**
+	 * The immutable {@link MessageBundleDescriptor}.
+	 */
+	private final static MessageBundleDescriptor immutableDescriptor = new MessageBundleDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link MessageBundleDescriptor}.
+	 *
+	 * @return The immutable {@link MessageBundleDescriptor}.
+	 */
 	public static MessageBundleDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

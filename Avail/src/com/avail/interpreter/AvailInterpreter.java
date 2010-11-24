@@ -65,6 +65,11 @@ import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
+/**
+ * TODO: Document this type!
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
 public abstract class AvailInterpreter
 {
 	/** An {@link AvailRuntime}. */
@@ -104,10 +109,24 @@ public abstract class AvailInterpreter
 	/** The unresolved forward method declarations. */
 	private @NotNull AvailObject pendingForwards = SetDescriptor.empty();
 
+	/**
+	 * A collection of bit flags indicating the reason for pausing the
+	 * interpreter between nybblecodes.
+	 */
 	protected volatile int interruptRequestFlag;
+	
+	/**
+	 * The {@link ProcessDescriptor} being executed by this interpreter.
+	 */
 	protected AvailObject process;
+	
+	/**
+	 * A place to store the result of a primitive when the primitive
+	 * succeeds by returning {@link Result#SUCCESS}.
+	 */
 	protected AvailObject primitiveResult;
 
+	
 	/**
 	 * Construct a new {@link AvailInterpreter}.
 	 *
@@ -203,7 +222,7 @@ public abstract class AvailInterpreter
 	 * if they're not set already.
 	 * 
 	 * @param methodName The method's name, an Avail string.
-	 * @param method A {@link AvailMethodDescriptor} method.
+	 * @param method A {@link ClosureDescriptor method}.
 	 */
 	public void atAddMethodBody (
 		final AvailObject methodName,
@@ -557,12 +576,17 @@ public abstract class AvailInterpreter
 		}
 	}
 
+	/**
+	 * Answer the map whose sole token-component is firstPiece.  The map is from
+	 * message (cyclicType) to messageBundle.  Filter selectors based on the
+	 * visibility of names in the current module.
+	 * 
+	 * @param firstPiece An Avail {@link ByteStringDescriptor string}. 
+	 * @return A map from 
+	 */
 	public AvailObject completeBundlesStartingWith (
 		final AvailObject firstPiece)
 	{
-		//  Answer the map whose sole token-component is firstPiece.  The map is
-		//  from message (cyclicType) to messageBundle.  Filter selectors based
-		//  on the visibility of names in the current module.
 
 		final AvailObject all = module.filteredBundleTree().incomplete();
 		if (!all.hasKey(firstPiece))
@@ -588,13 +612,18 @@ public abstract class AvailInterpreter
 		return count;
 	}
 
+	/**
+	 * Answer the map whose first (but not only) token-component is firstPiece.
+	 * The map is from the second piece to bundle tree.  Filter selectors based
+	 * on the visibility of names in the current module.
+	 * 
+	 * @param firstPiece The first Avail {@link ByteStringDescriptor string}
+	 *                   token by which to filter messages.
+	 * @return A map from 
+	 */
 	public AvailObject incompleteBundlesStartingWith (
 		final AvailObject firstPiece)
 	{
-		//  Answer the map whose first (but not only) token-component is firstPiece.
-		//  The map is from the second piece to bundle tree.  Filter selectors based
-		//  on the visibility of names in the current module.
-
 		final AvailObject all = module.filteredBundleTree().incomplete();
 		if (!all.hasKey(firstPiece))
 		{

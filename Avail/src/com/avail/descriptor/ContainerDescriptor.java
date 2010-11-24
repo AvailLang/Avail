@@ -288,7 +288,6 @@ public class ContainerDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link ContainerDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -298,15 +297,31 @@ public class ContainerDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static ContainerDescriptor mutableDescriptor = new ContainerDescriptor(true);
+	/**
+	 * The mutable {@link ContainerDescriptor}.
+	 */
+	private final static ContainerDescriptor mutableDescriptor = new ContainerDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link ContainerDescriptor}.
+	 *
+	 * @return The mutable {@link ContainerDescriptor}.
+	 */
 	public static ContainerDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static ContainerDescriptor immutableDescriptor = new ContainerDescriptor(false);
+	/**
+	 * The immutable {@link ContainerDescriptor}.
+	 */
+	private final static ContainerDescriptor immutableDescriptor = new ContainerDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link ContainerDescriptor}.
+	 *
+	 * @return The immutable {@link ContainerDescriptor}.
+	 */
 	public static ContainerDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;

@@ -585,7 +585,6 @@ public class CompiledCodeDescriptor extends Descriptor
 	/**
 	 * Construct a new {@link CompiledCodeDescriptor}.
 	 *
-	 * @param myId The id of the {@linkplain Descriptor descriptor}.
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
@@ -595,15 +594,31 @@ public class CompiledCodeDescriptor extends Descriptor
 		super(isMutable);
 	}
 
-	final static CompiledCodeDescriptor mutableDescriptor = new CompiledCodeDescriptor(true);
+	/**
+	 * The mutable {@link CompiledCodeDescriptor}.
+	 */
+	private final static CompiledCodeDescriptor mutableDescriptor = new CompiledCodeDescriptor(true);
 
+	/**
+	 * Answer the mutable {@link CompiledCodeDescriptor}.
+	 *
+	 * @return The mutable {@link CompiledCodeDescriptor}.
+	 */
 	public static CompiledCodeDescriptor mutableDescriptor ()
 	{
 		return mutableDescriptor;
 	}
 
-	final static CompiledCodeDescriptor immutableDescriptor = new CompiledCodeDescriptor(false);
+	/**
+	 * The immutable {@link CompiledCodeDescriptor}.
+	 */
+	private final static CompiledCodeDescriptor immutableDescriptor = new CompiledCodeDescriptor(false);
 
+	/**
+	 * Answer the immutable {@link CompiledCodeDescriptor}.
+	 *
+	 * @return The immutable {@link CompiledCodeDescriptor}.
+	 */
 	public static CompiledCodeDescriptor immutableDescriptor ()
 	{
 		return immutableDescriptor;
