@@ -103,9 +103,6 @@ public class AvailVariableUseNode extends AvailParseNode
 	}
 
 
-
-	// code generation
-
 	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
@@ -113,9 +110,6 @@ public class AvailVariableUseNode extends AvailParseNode
 		_associatedDeclaration.emitVariableValueOn(codeGenerator);
 	}
 
-
-
-	// java printing
 
 	@Override
 	public void printOnIndent (
@@ -126,9 +120,6 @@ public class AvailVariableUseNode extends AvailParseNode
 	}
 
 
-
-	// testing
-
 	@Override
 	public boolean isVariableUse ()
 	{
@@ -136,24 +127,13 @@ public class AvailVariableUseNode extends AvailParseNode
 	}
 
 
-
-	// validation
-
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent,
 			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the node represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
-		//  Answer the receiver.
-
 		return this;
 	}
-
-
-
-
 
 }

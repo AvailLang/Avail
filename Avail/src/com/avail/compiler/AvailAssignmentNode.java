@@ -145,9 +145,6 @@ public class AvailAssignmentNode extends AvailParseNode
 	}
 
 
-
-	// testing
-
 	@Override
 	public boolean isAssignment ()
 	{
@@ -155,19 +152,12 @@ public class AvailAssignmentNode extends AvailParseNode
 	}
 
 
-
-	// validation
-
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent,
 			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the node represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
-		//  Answer the receiver.
-
 		if (_variable.associatedDeclaration().isArgument())
 		{
 			error("Can't assign to argument");

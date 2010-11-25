@@ -90,22 +90,13 @@ public class AvailReferenceNode extends AvailParseNode
 	}
 
 
-
-	// enumerating
-
 	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		//  Map my children through the (destructive) transformation
-		//  specified by aBlock.  Answer the receiver.
-
 		_variable = ((AvailVariableUseNode)(aBlock.value(_variable)));
 	}
 
-
-
-	// java printing
 
 	@Override
 	public void printOnIndent (
@@ -117,19 +108,12 @@ public class AvailReferenceNode extends AvailParseNode
 	}
 
 
-
-	// validation
-
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
 			final AvailParseNode parent,
 			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the node represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
-		//  Answer the receiver.
-
 		final AvailVariableDeclarationNode decl = _variable.associatedDeclaration();
 		if ((decl.isSyntheticVariableDeclaration() & decl.isConstant()))
 		{
@@ -153,9 +137,5 @@ public class AvailReferenceNode extends AvailParseNode
 		}
 		return this;
 	}
-
-
-
-
 
 }

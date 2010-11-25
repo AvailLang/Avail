@@ -1,22 +1,21 @@
 /**
- * compiler/AvailBlockNode.java
- * Copyright (c) 2010, Mark van Gulik.
- * All rights reserved.
- *
+ * compiler/AvailBlockNode.java Copyright (c) 2010, Mark van Gulik. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
+ * list of conditions and the following disclaimer.
+ * 
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -39,35 +38,77 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ClosureDescriptor;
 import com.avail.descriptor.ClosureTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This represents a syntactic parse of a block of code in Avail. It can be
+ * converted to an actual {@link ClosureDescriptor closure} via
+ * {@link #generateOn(AvailCodeGenerator)}.
+ * 
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailBlockNode extends AvailParseNode
 {
+	/**
+	 * The block's argument declarations.
+	 */
 	List<AvailVariableDeclarationNode> _arguments;
+
+	/**
+	 * The {@link Primitive primitive} number to invoke for this block.
+	 */
 	int _primitive;
+
+	/**
+	 * The list of statements contained in this block.
+	 */
 	List<AvailParseNode> _statements;
+
+	/**
+	 * The type this block is expected to return an instance of.
+	 */
 	AvailObject _resultType;
+
+	/**
+	 * Any variables needed by this block. This is set after the
+	 * {@linkplain AvailBlockNode} has already been created.
+	 */
 	List<AvailVariableDeclarationNode> _neededVariables;
 
-
-	// accessing
-
+	/**
+	 * Answer this block's list of argument declarations.
+	 * 
+	 * @return The list of argument declarations.
+	 */
 	public List<AvailVariableDeclarationNode> arguments ()
 	{
 		return _arguments;
 	}
 
-	public void arguments (
-			final List<AvailVariableDeclarationNode> anArray)
+	/**
+	 * Set this block's list of argument declarations.
+	 * 
+	 * @param anArray
+	 *            The argument declarations.
+	 */
+	public void arguments (final List<AvailVariableDeclarationNode> anArray)
 	{
 		_arguments = anArray;
 	}
 
+	/**
+	 * Answer the labels present in this block's list of statements. There is
+	 * either zero or one label, and it must be the first statement.
+	 * 
+	 * @return A list of between zero and one labels.
+	 */
 	public List<AvailLabelNode> labels ()
 	{
 		List<AvailLabelNode> labels = new ArrayList<AvailLabelNode>(1);
@@ -75,59 +116,92 @@ public class AvailBlockNode extends AvailParseNode
 		{
 			if (maybeLabel.isLabel())
 			{
-				labels.add((AvailLabelNode)maybeLabel);
+				labels.add((AvailLabelNode) maybeLabel);
 			}
 		}
 		return labels;
 	}
 
+	/**
+	 * Answer the declarations of this block's local variables.
+	 * 
+	 * @return This block's local variable declarations.
+	 */
 	public List<AvailVariableDeclarationNode> locals ()
 	{
-		List<AvailVariableDeclarationNode> locals = new ArrayList<AvailVariableDeclarationNode>(5);
+		List<AvailVariableDeclarationNode> locals = new ArrayList<AvailVariableDeclarationNode>(
+			5);
 		for (AvailParseNode maybeLocal : _statements)
 		{
 			if (maybeLocal.isDeclaration() && !maybeLocal.isLabel())
 			{
-				locals.add((AvailVariableDeclarationNode)maybeLocal);
+				locals.add((AvailVariableDeclarationNode) maybeLocal);
 			}
 		}
 		return locals;
 	}
 
+	/**
+	 * Answer the list of declarations of variables that need to be captured
+	 * when this {@linkplain AvailBlockNode} is lexically closed. This is
+	 * computed during validation.
+	 * 
+	 * @return A list of {@link AvailVariableDeclarationNode declarations}.
+	 */
 	public List<AvailVariableDeclarationNode> neededVariables ()
 	{
-		//  Computed during validation, used during code generation to determine what has
-		//  to be pushed to make a closure of me.
-
 		return _neededVariables;
 	}
 
-	public void primitive (
-			final int primitiveNumber)
+	/**
+	 * Set the primitive number associated with this block.
+	 * 
+	 * @param primitiveNumber
+	 *            An integer.
+	 */
+	public void primitive (final int primitiveNumber)
 	{
-
 		_primitive = primitiveNumber;
 	}
 
+	/**
+	 * Answer the type of object returned by this block.
+	 * 
+	 * @return An Avail {@link TypeDescriptor type}.
+	 */
 	public AvailObject resultType ()
 	{
 		return _resultType;
 	}
 
-	public void resultType (
-			final AvailObject aType)
+	/**
+	 * Set the type of objectw returned by this block.
+	 * 
+	 * @param aType
+	 *            An Avail {@link TypeDescriptor type}.
+	 */
+	public void resultType (final AvailObject aType)
 	{
 
 		_resultType = aType;
 	}
 
+	/**
+	 * Answer this block's list of statements.
+	 * 
+	 * @return A list of statements.
+	 */
 	public List<AvailParseNode> statements ()
 	{
 		return _statements;
 	}
 
-	public void statements (
-			final List<AvailParseNode> anArray)
+	/**
+	 * Set this block's list of statements.
+	 * 
+	 * @param anArray A list of statements.
+	 */
+	public void statements (final List<AvailParseNode> anArray)
 	{
 		_statements = anArray;
 	}
@@ -141,44 +215,50 @@ public class AvailBlockNode extends AvailParseNode
 		{
 			argumentTypes.add(arg.declaredType());
 		}
-		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(TupleDescriptor.mutableObjectFromArray(argumentTypes), _resultType);
+		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			TupleDescriptor.mutableObjectFromArray(argumentTypes),
+			_resultType);
 	}
 
-
-
-	// code generation
-
 	@Override
-	public void emitEffectOn (
-			final AvailCodeGenerator codeGenerator)
+	public void emitEffectOn (final AvailCodeGenerator codeGenerator)
 	{
-		//  The expression '[expr]' has no effect, only a value.
+		// The expression '[expr]' has no effect, only a value.
 		return;
 	}
 
 	@Override
-	public void emitValueOn (
-			final AvailCodeGenerator codeGenerator)
+	public void emitValueOn (final AvailCodeGenerator codeGenerator)
 	{
 		final AvailCodeGenerator newGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = generateOn(newGenerator);
 		if (_neededVariables.isEmpty())
 		{
-			final AvailObject closure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(compiledBlock, TupleDescriptor.empty());
+			final AvailObject closure = ClosureDescriptor
+					.newMutableObjectWithCodeAndCopiedTuple(
+						compiledBlock,
+						TupleDescriptor.empty());
 			closure.makeImmutable();
 			codeGenerator.emitPushLiteral(closure);
 		}
 		else
 		{
-			codeGenerator.emitClosedBlockWithCopiedVars(compiledBlock, _neededVariables);
+			codeGenerator.emitClosedBlockWithCopiedVars(
+				compiledBlock,
+				_neededVariables);
 		}
 	}
 
-	public AvailObject generateOn (
-			final AvailCodeGenerator codeGenerator)
+	/**
+	 * Answer an Avail compiled block compiled from this block node, using the
+	 * given {@link AvailCodeGenerator}.
+	 * 
+	 * @param codeGenerator
+	 *            A {@link AvailCodeGenerator code generator}
+	 * @return An {@link AvailObject} of type {@link ClosureDescriptor closure}.
+	 */
+	public AvailObject generateOn (final AvailCodeGenerator codeGenerator)
 	{
-		//  Answer an Avail compiled block compiled from this block node.
-
 		codeGenerator.startBlockWithArgumentsLocalsLabelsOuterVarsResultType(
 			_arguments,
 			locals(),
@@ -199,7 +279,8 @@ public class AvailBlockNode extends AvailParseNode
 				_statements.get(index).emitEffectOn(codeGenerator);
 				codeGenerator.stackShouldBeEmpty();
 			}
-			AvailParseNode lastStatement = _statements.get(_statements.size() - 1);
+			AvailParseNode lastStatement = _statements
+					.get(_statements.size() - 1);
 			if (lastStatement.isLabel() || lastStatement.isAssignment())
 			{
 				lastStatement.emitEffectOn(codeGenerator);
@@ -213,12 +294,15 @@ public class AvailBlockNode extends AvailParseNode
 		return codeGenerator.endBlock();
 	}
 
-
-
-	// enumerating
-
+	/**
+	 * Evaluate the {@link Continuation1 block} for each of my arguments,
+	 * locals, and labels.
+	 * 
+	 * @param aBlock
+	 *            What to do with each variable I define.
+	 */
 	public void allLocallyDefinedVariablesDo (
-			final Continuation1<AvailVariableDeclarationNode> aBlock)
+		final Continuation1<AvailVariableDeclarationNode> aBlock)
 	{
 		for (AvailVariableDeclarationNode arg : _arguments)
 		{
@@ -236,14 +320,16 @@ public class AvailBlockNode extends AvailParseNode
 
 	@Override
 	public void childrenMap (
-			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		//  Map my children through the (destructive) transformation
-		//  specified by aBlock.  Answer the receiver.
+		// Map my children through the (destructive) transformation
+		// specified by aBlock. Answer the receiver.
 
 		for (int i = 0; i < _arguments.size(); i++)
 		{
-			_arguments.set(i, (AvailVariableDeclarationNode)(aBlock.value(_arguments.get(i))));
+			_arguments
+					.set(i, (AvailVariableDeclarationNode) (aBlock
+							.value(_arguments.get(i))));
 		}
 		for (int i = 0; i < _statements.size(); i++)
 		{
@@ -253,53 +339,44 @@ public class AvailBlockNode extends AvailParseNode
 
 	@Override
 	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
-			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
-			final AvailParseNode parent,
-			final List<AvailBlockNode> outerNodes)
+		final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
+		final AvailParseNode parent,
+		final List<AvailBlockNode> outerNodes)
 	{
-		//  Map the tree through the (destructive) transformation specified by aBlock, children
-		//  before parents.  The block takes three arguments; the node, its parent, and the list of
-		//  enclosing block nodes.  Answer the resulting tree.
-
-		final List<AvailBlockNode> outerNodesWithSelf = new ArrayList<AvailBlockNode>(outerNodes.size() + 1);
+		final List<AvailBlockNode> outerNodesWithSelf = new ArrayList<AvailBlockNode>(
+			outerNodes.size() + 1);
 		outerNodesWithSelf.addAll(outerNodes);
 		outerNodesWithSelf.add(this);
-		childrenMap(new Transformer1<AvailParseNode, AvailParseNode> ()
+		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
 		{
 			@Override
-			public AvailParseNode value(AvailParseNode child)
+			public AvailParseNode value (AvailParseNode child)
 			{
-				return child.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
-					aBlock,
-					AvailBlockNode.this,
-					outerNodesWithSelf);
+				return child
+						.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
+							aBlock,
+							AvailBlockNode.this,
+							outerNodesWithSelf);
 			}
 		});
-		return aBlock.value(
-			this,
-			parent,
-			outerNodes);
+		return aBlock.value(this, parent, outerNodes);
 	}
 
 
-
-	// java printing
-
 	@Override
-	public void printOnIndent (
-			final StringBuilder aStream,
-			final int indent)
+	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
-		//  Optimize for one-liners...
-
-		if (((_arguments.size() == 0) && ((_primitive == 0) && (_statements.size() == 1))))
+		// Optimize for one-liners...
+		if (((_arguments.size() == 0) && ((_primitive == 0) && (_statements
+				.size() == 1))))
 		{
 			aStream.append('[');
 			_statements.get(0).printOnIndent(aStream, indent + 1);
 			aStream.append(";]");
 			return;
 		}
-		//  Ok, use multiple lines instead...
+
+		// Use multiple lines instead...
 		aStream.append('[');
 		if ((_arguments.size() > 0))
 		{
@@ -330,7 +407,8 @@ public class AvailBlockNode extends AvailParseNode
 		}
 		for (int statementIndex = 1, _end4 = _statements.size(); statementIndex <= _end4; statementIndex++)
 		{
-			final AvailParseNode statement = _statements.get(statementIndex - 1);
+			final AvailParseNode statement = _statements
+					.get(statementIndex - 1);
 			aStream.append('\t');
 			statement.printOnIndent(aStream, indent + 1);
 			aStream.append(';');
@@ -348,43 +426,38 @@ public class AvailBlockNode extends AvailParseNode
 		}
 	}
 
-
-
-	// testing
-
 	@Override
 	public boolean isBlock ()
 	{
 		return true;
 	}
 
-
-
-	// validation
-
-	public void collectNeededVariablesOfOuterBlocks (
-			final List<AvailBlockNode> outerBlocks)
+	/**
+	 * Figure out what outer variables will need to be captured when a closure
+	 * for me is built.
+	 */
+	public void collectNeededVariablesOfOuterBlocks ()
 	{
-		//  Figure out what outer variables will need to be copied in when a closure for me is built.
 
 		final Set<AvailVariableDeclarationNode> needed = new HashSet<AvailVariableDeclarationNode>();
 		final Set<AvailVariableDeclarationNode> providedByMe = new HashSet<AvailVariableDeclarationNode>();
-		allLocallyDefinedVariablesDo(new Continuation1<AvailVariableDeclarationNode> ()
+		allLocallyDefinedVariablesDo(new Continuation1<AvailVariableDeclarationNode>()
 		{
 			@Override
-			public void value(AvailVariableDeclarationNode declarationNode)
+			public void value (AvailVariableDeclarationNode declarationNode)
 			{
 				providedByMe.add(declarationNode);
 			}
 		});
-		final Transformer1<AvailParseNode, AvailParseNode> forEachBlock = new Transformer1<AvailParseNode, AvailParseNode> ()
+		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
 		{
 			@Override
-			public AvailParseNode value(AvailParseNode node)
+			public AvailParseNode value (AvailParseNode node)
 			{
 				if (node.isBlock())
 				{
-					for (AvailVariableDeclarationNode declaration : ((AvailBlockNode)node).neededVariables())
+					for (AvailVariableDeclarationNode declaration : ((AvailBlockNode) node)
+							.neededVariables())
 					{
 						if (!providedByMe.contains(declaration))
 						{
@@ -397,8 +470,11 @@ public class AvailBlockNode extends AvailParseNode
 					node.childrenMap(this);
 					if (node.isVariableUse())
 					{
-						AvailVariableDeclarationNode declaration = ((AvailVariableUseNode)node).associatedDeclaration();
-						if ((!providedByMe.contains(declaration)) && (!declaration.isSyntheticVariableDeclaration()))
+						AvailVariableDeclarationNode declaration = ((AvailVariableUseNode) node)
+								.associatedDeclaration();
+						if ((!providedByMe.contains(declaration))
+								&& (!declaration
+										.isSyntheticVariableDeclaration()))
 						{
 							needed.add(declaration);
 						}
@@ -406,31 +482,23 @@ public class AvailBlockNode extends AvailParseNode
 				}
 				return node;
 			}
-		};
-		childrenMap(forEachBlock);
+		});
 		_neededVariables = new ArrayList<AvailVariableDeclarationNode>(needed);
 	}
 
+	
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent,
-			final List<AvailBlockNode> outerBlocks,
-			final L2Interpreter anAvailInterpreter)
+		final AvailParseNode parent,
+		final List<AvailBlockNode> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the node represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
-		//  Answer the receiver.
-		//
-		//  Make sure our neededVariables list has up-to-date information about the outer
-		//  variables that are accessed in me, because they have to be copied in when a
-		//  closure is made for me.
+		// Make sure our neededVariables list has up-to-date information about
+		// the outer variables that are accessed in me, because they have to be
+		// captured when a closure is made for me.
 
-		collectNeededVariablesOfOuterBlocks(outerBlocks);
+		collectNeededVariablesOfOuterBlocks();
 		return this;
 	}
-
-
-
-
 
 }

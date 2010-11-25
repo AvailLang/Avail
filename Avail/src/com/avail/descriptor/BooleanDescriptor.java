@@ -36,8 +36,15 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FalseDescriptor;
 import com.avail.descriptor.TrueDescriptor;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
+/**
+ * This abstract class implements the descriptor for the boolean Avail type.
+ * The subclasses {@link TrueDescriptor} and {@link FalseDescriptor} implement
+ * the behavior specific to their special singleton objects, true and false,
+ * which are stored in statics of <em>this</em> class.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class BooleanDescriptor extends Descriptor
 {
 
@@ -65,21 +72,30 @@ public abstract class BooleanDescriptor extends Descriptor
 	}
 
 
-
-
-	// Startup/shutdown
-
+	/**
+	 * The singleton object representing the Avail concept "true".
+	 */
 	static AvailObject TrueBooleanObject;
 
-
+	/**
+	 * The singleton object representing the Avail concept "false".
+	 */
 	static AvailObject FalseBooleanObject;
 
+	/**
+	 * Create the true and false singletons.
+	 */
 	static void createWellKnownObjects ()
 	{
-		TrueBooleanObject = AvailObject.newIndexedDescriptor(0, TrueDescriptor.immutableDescriptor());
-		FalseBooleanObject = AvailObject.newIndexedDescriptor(0, FalseDescriptor.immutableDescriptor());
+		TrueBooleanObject = AvailObject.newIndexedDescriptor(
+			0, TrueDescriptor.immutableDescriptor());
+		FalseBooleanObject = AvailObject.newIndexedDescriptor(
+			0, FalseDescriptor.immutableDescriptor());
 	}
 
+	/**
+	 * Release the true and false singletons.
+	 */
 	static void clearWellKnownObjects ()
 	{
 		TrueBooleanObject = null;
@@ -87,8 +103,12 @@ public abstract class BooleanDescriptor extends Descriptor
 	}
 
 
-
-	/* Object creation */
+	/**
+	 * Convert a Java boolean into an Avail boolean.
+	 * 
+	 * @param b A Java boolean.
+	 * @return An Avail boolean.
+	 */
 	public static AvailObject objectFromBoolean (boolean b)
 	{
 		return b ? TrueBooleanObject : FalseBooleanObject;

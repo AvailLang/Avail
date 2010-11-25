@@ -40,6 +40,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -106,6 +108,7 @@ public class MessageSplitter
 		 */
 		public int instructionStart = -1;
 		
+		
 		/**
 		 * Write instructions for parsing me to the given list.
 		 * @param list The list of integers {@link MessageSplitter encoding}
@@ -116,6 +119,7 @@ public class MessageSplitter
 			instructionStart = list.size() + 1;
 		}
 		
+		
 		/**
 		 * Answer whether or not this an argument or group.
 		 * @return True iff this is an argument or group.
@@ -124,6 +128,38 @@ public class MessageSplitter
 		{
 			return false;
 		}
+		
+
+		/**
+		 * Check that the given type signature is appropriate for this message
+		 * expression.  If not, throw a suitable exception.
+		 * <p>
+		 * This is also called recursively on subcomponents, and it checks that
+		 * group arguments have the correct structure for what will be parsed.
+		 * The method may reject parses based on the number of repetitions of a
+		 * group at a call site, but not the number of arguments actually
+		 * delivered by each repetition.  For example, the message "«_:_‡,»" can
+		 * limit the number of _:_ pairs to at most 5 by declaring the tuple
+		 * type's size to be [5..5].  However, the message "«_:_‡[_]»" will
+		 * always produce a tuple of 3-tuples followed by a 2-tuple (if any
+		 * elements at all occur).  Attempting to add a method implementation
+		 * for this message that only accepted a tuple of 7-tuples would be
+		 * inappropriate (and ineffective).  Instead, it should be required to
+		 * accept a tuple whose size is in the range [2..3].
+		 * <p>
+		 * Note that the outermost (pseudo)group represents the entire message,
+		 * so the caller should synthesize a fixed-length {@link
+		 * TupleTypeDescriptor tuple type} for the outermost check.
+		 * 
+		 * @param argumentType A {@link TupleTypeDescriptor tuple type}
+		 *                     describing the types of arguments that a method
+		 *                     being added will accept.
+		 */
+		public void checkType (AvailObject argumentType)
+		{
+			return;
+		}
+		
 		
 		@Override
 		public String toString ()
@@ -145,6 +181,7 @@ public class MessageSplitter
 		 */
 		final int tokenIndex;
 
+		
 		/**
 		 * Construct a new {@link Simple} expression representing a specific
 		 * token expected in the input.
@@ -157,6 +194,7 @@ public class MessageSplitter
 			this.tokenIndex = tokenIndex;
 		}
 
+		
 		@Override
 		void emitOn (List<Integer> list)
 		{
@@ -164,6 +202,7 @@ public class MessageSplitter
 			// Parse the specific keyword.
 			list.add(tokenIndex * 4 + 2);
 		}
+		
 		
 		@Override
 		public String toString ()
@@ -173,6 +212,14 @@ public class MessageSplitter
 			builder.append("(");
 			builder.append(messageParts.get(tokenIndex - 1).asNativeString());
 			return builder.toString();
+		}
+
+		
+		@Override
+		public void checkType (AvailObject argumentType)
+		{
+			assert false : "checkType() should not be called for Simple" +
+					" expressions";
 		}
 
 	}
@@ -190,11 +237,28 @@ public class MessageSplitter
 			return true;
 		}
 
+		
 		@Override
 		void emitOn (List<Integer> list)
 		{
 			super.emitOn(list);
 			list.add(0);  // parseArgument
+		}
+
+		
+		/**
+		 * A simple underscore can be arbitrarily restricted, other than when
+		 * it is restricted to the uninstantiable type {@link
+		 * TypeDescriptor.Types#terminates terminates}.
+		 */
+		@Override
+		public void checkType (AvailObject argumentType)
+		{
+			if (argumentType.equals(TypeDescriptor.Types.terminates.object()))
+			{
+				error("Method argument type should not be \"terminates\".");
+			}
+			return;
 		}
 	}
 
@@ -306,13 +370,27 @@ public class MessageSplitter
 		{
 			return true;
 		}
+		
+		
+		/**
+		 * Determine if this group should generate a tuple of plain arguments
+		 * or a tuple of fixed-length tuples of plain arguments.
+		 * 
+		 * @return True if this group will generate a tuple of fixed-length
+		 *         tuples, otherwise false (and the group will generate a tuple
+		 *         of individual arguments or subgroups).
+		 */
+		boolean needsDoubleWrapping ()
+		{
+			return argumentsBeforeDagger != 1 || argumentsAfterDagger != 0; 
+		}
 
 		
 		@Override
 		void emitOn (List<Integer> list)
 		{
 			super.emitOn(list);
-			if (argumentsBeforeDagger == 1 && argumentsAfterDagger == 0)
+			if (!needsDoubleWrapping())
 			{
 				/* Special case -- one argument case produces a list of
 				 * expressions rather than a list of fixed-length lists of
@@ -436,6 +514,101 @@ public class MessageSplitter
 			builder.append(")");
 			return builder.toString();
 		}
+
+	
+		/**
+		 * Check if the given type is suitable for holding values geneated by
+		 * this group.
+		 */
+		@Override
+		public void checkType (AvailObject argumentType)
+		{
+			// Always expect a tuple of solutions here.
+			if (argumentType.equals(TypeDescriptor.Types.terminates.object()))
+			{
+				error("Method argument type should not be \"terminates\".");
+			}
+
+			if (!argumentType.isTupleType())
+			{
+				error(
+					"The repeated group \"" + toString() +
+					"\" must accept a tuple, not \"" +
+					argumentType.toString() + "\".");
+			}
+			
+			if (!needsDoubleWrapping())
+			{
+				// Expect a tuple of individual values.  No further checks are
+				// needed.
+			}
+			else
+			{
+				// Expect a tuple of tuples of values, where the inner tuple
+				// size ranges from the number of arguments left of the dagger
+				// up to that plus the number of arguments right of the dagger.
+				assert argumentType.isTupleType();
+				AvailObject expectedLower = IntegerDescriptor.objectFromInt(
+					argumentsBeforeDagger);
+				AvailObject expectedUpper = IntegerDescriptor.objectFromInt(
+					argumentsBeforeDagger + argumentsAfterDagger);
+				for (int i = 1, limit = argumentType.typeTuple().tupleSize();
+					i <= limit;
+					i++)
+				{
+					AvailObject solutionType = argumentType.typeAtIndex(i);
+					if (!solutionType.isTupleType())
+					{
+						error(
+							"The declared type for the subexpression \"" +
+							toString() +
+							"\" is expected to be a tuple type whose " +
+							Integer.toString(i) +
+							"-th element accepts a tuple.");
+					}
+					// Check that the solution that will reside at the current
+					// index accepts either a full group or a group up to the
+					// dagger.
+					AvailObject solutionTypeSizes = solutionType.sizeRange();
+					AvailObject lower = solutionTypeSizes.lowerBound();
+					AvailObject upper = solutionTypeSizes.upperBound();
+					if ((lower != expectedLower && lower != expectedUpper)
+						|| (upper != expectedLower && upper != expectedUpper))
+					{
+						error(
+							"The complex group \"" + toString() +
+							"\" should have elements whose types are " +
+							"tuples restricted to have lower and upper " +
+							"bounds equal to the pre-dagger cardinality (" +
+							expectedLower.toString() +
+							") or the total cardinality (" +
+							expectedUpper.toString() +
+							").  Instead, the " + Integer.toString(i) +
+							"-th element of the outer list has type " +
+							solutionType.toString() + ".");
+					}
+					int j = 1;
+					for (Expression e : expressionsBeforeDagger)
+					{
+						if (e.isArgumentOrGroup())
+						{
+							e.checkType(solutionType.typeAtIndex(j));
+							j++;
+						}
+					}
+					for (Expression e : expressionsAfterDagger)
+					{
+						if (e.isArgumentOrGroup())
+						{
+							e.checkType(solutionType.typeAtIndex(j));
+							j++;
+						}
+					}
+				}
+			}
+			return;
+		}
+
 	}
 	
 	
@@ -475,25 +648,34 @@ public class MessageSplitter
 		}
 		assert rootGroup.expressionsAfterDagger.isEmpty();
 
-		// Dump debug info...
-		
-//		List<String> partsList = new ArrayList<String>(messageParts.size());
-//		for (AvailObject part : messageParts)
-//		{
-//			partsList.add(part.asNativeString());
-//		}
-//		AvailObject instructionsTuple = instructionsTuple();
-//		List<Integer> instructionsList = new ArrayList<Integer>();
-//		for (AvailObject instruction : instructionsTuple)
-//		{
-//			instructionsList.add(instruction.extractInt());
-//		}
-//		System.out.printf(
-//			"%s  ->  %s  ->  %s%n",
-//			messageName.asNativeString(),
-//			partsList.toString(),
-//			instructionsList.toString());
+		// dumpForDebug();
 	}
+	
+	
+	/**
+	 * Dump debugging information about this {@linkplain MessageSplitter} to
+	 * System.out.
+	 */
+	public void dumpForDebug ()
+	{
+		List<String> partsList = new ArrayList<String>(messageParts.size());
+		for (AvailObject part : messageParts)
+		{
+			partsList.add(part.asNativeString());
+		}
+		AvailObject instructionsTuple = instructionsTuple();
+		List<Integer> instructionsList = new ArrayList<Integer>();
+		for (AvailObject instruction : instructionsTuple)
+		{
+			instructionsList.add(instruction.extractInt());
+		}
+		System.out.printf(
+			"%s  ->  %s  ->  %s%n",
+			messageName.asNativeString(),
+			partsList.toString(),
+			instructionsList.toString());
+	}
+	
 	
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
@@ -508,6 +690,7 @@ public class MessageSplitter
 		tuple.makeImmutable();
 		return tuple;
 	}
+	
 	
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
@@ -588,6 +771,7 @@ public class MessageSplitter
 			}
 		}
 	}
+	
 	
 	/**
 	 * Create a group from the series of tokens describing it.  This is also

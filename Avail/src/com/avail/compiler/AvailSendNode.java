@@ -1,22 +1,21 @@
 /**
- * compiler/AvailSendNode.java
- * Copyright (c) 2010, Mark van Gulik.
- * All rights reserved.
- *
+ * compiler/AvailSendNode.java Copyright (c) 2010, Mark van Gulik. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
+ * list of conditions and the following disclaimer.
+ * 
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -47,7 +46,6 @@ public class AvailSendNode extends AvailParseNode
 	List<AvailParseNode> _arguments;
 	AvailObject _returnType;
 
-
 	// accessing
 
 	public List<AvailParseNode> arguments ()
@@ -55,8 +53,7 @@ public class AvailSendNode extends AvailParseNode
 		return _arguments;
 	}
 
-	public void arguments (
-			final List<AvailParseNode> anArray)
+	public void arguments (final List<AvailParseNode> anArray)
 	{
 		_arguments = anArray;
 	}
@@ -66,8 +63,7 @@ public class AvailSendNode extends AvailParseNode
 		return _bundle;
 	}
 
-	public void bundle (
-			final AvailObject aMessageBundle)
+	public void bundle (final AvailObject aMessageBundle)
 	{
 		_bundle = aMessageBundle;
 	}
@@ -77,8 +73,7 @@ public class AvailSendNode extends AvailParseNode
 		return _implementationSet;
 	}
 
-	public void implementationSet (
-			final AvailObject anImplementationSet)
+	public void implementationSet (final AvailObject anImplementationSet)
 	{
 		_implementationSet = anImplementationSet;
 	}
@@ -88,21 +83,20 @@ public class AvailSendNode extends AvailParseNode
 		return _message;
 	}
 
-	public void message (
-			final AvailObject cyclicType)
+	public void message (final AvailObject cyclicType)
 	{
 		_message = cyclicType;
 	}
 
 	public AvailObject returnType ()
 	{
-		//  Make it immutable so multiple requests avoid accidental sharing of a mutable object.
+		// Make it immutable so multiple requests avoid accidental sharing of a
+		// mutable object.
 
 		return _returnType.makeImmutable();
 	}
 
-	public void returnType (
-			final AvailObject aType)
+	public void returnType (final AvailObject aType)
 	{
 		_returnType = aType;
 	}
@@ -113,13 +107,10 @@ public class AvailSendNode extends AvailParseNode
 		return returnType();
 	}
 
-
-
 	// code generation
 
 	@Override
-	public void emitValueOn (
-			final AvailCodeGenerator codeGenerator)
+	public void emitValueOn (final AvailCodeGenerator codeGenerator)
 	{
 		boolean anyCasts;
 		anyCasts = false;
@@ -134,7 +125,7 @@ public class AvailSendNode extends AvailParseNode
 		_message.makeImmutable();
 		if (anyCasts)
 		{
-			for (AvailParseNode arg: _arguments)
+			for (AvailParseNode arg : _arguments)
 			{
 				if (arg.isSuperCast())
 				{
@@ -142,32 +133,37 @@ public class AvailSendNode extends AvailParseNode
 				}
 				else
 				{
-					codeGenerator.emitGetType(_arguments.size()-1);
+					codeGenerator.emitGetType(_arguments.size() - 1);
 				}
 			}
-			//  We've pushed all argument values and all arguments types onto the stack.
-			codeGenerator.emitCallMethodByTypesNumArgsLiteral(_arguments.size(), _implementationSet);
+			// We've pushed all argument values and all arguments types onto the
+			// stack.
+			codeGenerator.emitCallMethodByTypesNumArgsLiteral(
+				_arguments.size(),
+				_implementationSet);
 		}
 		else
 		{
-			codeGenerator.emitCallMethodByValuesNumArgsLiteral(_arguments.size(), _implementationSet);
+			codeGenerator.emitCallMethodByValuesNumArgsLiteral(
+				_arguments.size(),
+				_implementationSet);
 		}
-		//  Ok, now the return result is left on the stack, which is what we want.
-		//  Emit an instruction that will verify the return type is what the method
-		//  and its superimplementations promised at link time.
+		// Ok, now the return result is left on the stack, which is what we
+		// want.
+		// Emit an instruction that will verify the return type is what the
+		// method
+		// and its superimplementations promised at link time.
 		codeGenerator.emitVerifyReturnedTypeToBe(returnType());
 	}
-
-
 
 	// enumerating
 
 	@Override
 	public void childrenMap (
-			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		//  Map my children through the (destructive) transformation
-		//  specified by aBlock.  Answer the receiver.
+		// Map my children through the (destructive) transformation
+		// specified by aBlock. Answer the receiver.
 
 		_arguments = new ArrayList<AvailParseNode>(_arguments);
 		for (int i = 0; i < _arguments.size(); i++)
@@ -176,19 +172,15 @@ public class AvailSendNode extends AvailParseNode
 		}
 	}
 
-
-
 	// java printing
 
 	@Override
-	public void printOnIndent (
-			final StringBuilder aStream,
-			final int indent)
+	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
 		int underscores = 0;
 		for (int charIndex = 1, _end1 = _message.name().tupleSize(); charIndex <= _end1; charIndex++)
 		{
-			if ((((char)(_message.name().tupleAt(charIndex).codePoint())) == '_'))
+			if ((((char) (_message.name().tupleAt(charIndex).codePoint())) == '_'))
 			{
 				underscores++;
 			}
@@ -201,14 +193,15 @@ public class AvailSendNode extends AvailParseNode
 		int argIndex = 1;
 		for (int charIndex = 1, _end2 = _message.name().tupleSize(); charIndex <= _end2; charIndex++)
 		{
-			final char chr = ((char)(_message.name().tupleAt(charIndex).codePoint()));
+			final char chr = ((char) (_message.name().tupleAt(charIndex)
+					.codePoint()));
 			if (chr == '_')
 			{
 				if (charIndex > 1)
 				{
 					aStream.append(' ');
 				}
-				//  No leading space for leading args
+				// No leading space for leading args
 				_arguments.get(argIndex - 1).printOnIndentIn(
 					aStream,
 					indent,
@@ -217,7 +210,7 @@ public class AvailSendNode extends AvailParseNode
 				{
 					aStream.append(' ');
 				}
-				//  No trailing space for trailing args
+				// No trailing space for trailing args
 				argIndex++;
 			}
 			else
@@ -229,18 +222,15 @@ public class AvailSendNode extends AvailParseNode
 
 	@Override
 	public void printOnIndentIn (
-			final StringBuilder aStream,
-			final int indent,
-			final AvailParseNode outerNode)
+		final StringBuilder aStream,
+		final int indent,
+		final AvailParseNode outerNode)
 	{
 		aStream.append('(');
 		printOnIndent(aStream, indent);
 		aStream.append(')');
 	}
 
-
-
-	// testing
 
 	@Override
 	public boolean isSend ()
@@ -249,19 +239,13 @@ public class AvailSendNode extends AvailParseNode
 	}
 
 
-
-	// validation
-
 	@Override
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent,
-			final List<AvailBlockNode> outerBlocks,
-			final L2Interpreter anAvailInterpreter)
+		final AvailParseNode parent,
+		final List<AvailBlockNode> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the node represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
-		//  Answer the receiver.
-		//  Overridden to invoke the requires clauses in bottom-up order.
+		// Invoke the requires clauses in bottom-up order.
 
 		List<AvailObject> argumentTypes;
 		argumentTypes = new ArrayList<AvailObject>(_arguments.size());
@@ -269,12 +253,10 @@ public class AvailSendNode extends AvailParseNode
 		{
 			argumentTypes.add(arg.type());
 		}
-		anAvailInterpreter.validateRequiresClausesOfMessageSendArgumentTypes(message(), argumentTypes);
+		anAvailInterpreter.validateRequiresClausesOfMessageSendArgumentTypes(
+			message(),
+			argumentTypes);
 		return this;
 	}
-
-
-
-
 
 }

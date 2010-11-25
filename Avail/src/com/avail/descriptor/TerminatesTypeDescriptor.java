@@ -151,7 +151,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
-		//  To support the tupleType protcol, I must answer terminates now.
+		//  To support the tupleType protocol, I must answer terminates now.
 
 		return Types.terminates.object();
 	}
@@ -160,7 +160,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
-		//  To support the tupleType protcol, I must answer <> now.
+		//  To support the tupleType protocol, I must answer <> now.
 
 		return TupleDescriptor.empty();
 	}

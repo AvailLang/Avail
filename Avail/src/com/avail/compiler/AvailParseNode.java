@@ -1,22 +1,21 @@
 /**
- * compiler/AvailParseNode.java
- * Copyright (c) 2010, Mark van Gulik.
- * All rights reserved.
- *
+ * compiler/AvailParseNode.java Copyright (c) 2010, Mark van Gulik. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
+ * list of conditions and the following disclaimer.
+ * 
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -37,6 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
 import com.avail.compiler.Transformer1;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodSignatureDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.ArrayList;
@@ -46,7 +46,6 @@ import static com.avail.descriptor.AvailObject.*;
 public class AvailParseNode
 {
 
-
 	// accessing
 
 	public AvailObject type ()
@@ -55,49 +54,43 @@ public class AvailParseNode
 		return VoidDescriptor.voidObject();
 	}
 
-
-
 	// code generation
 
-	public void emitEffectOn (
-			final AvailCodeGenerator codeGenerator)
+	public void emitEffectOn (final AvailCodeGenerator codeGenerator)
 	{
 		emitValueOn(codeGenerator);
 		codeGenerator.emitPop();
 	}
 
-	public void emitValueOn (
-			final AvailCodeGenerator codeGenerator)
+	public void emitValueOn (final AvailCodeGenerator codeGenerator)
 	{
 		error("Subclass responsibility: emitValueOn: in Avail.AvailParseNode");
 		return;
 	}
 
-
-
 	// enumerating
 
 	public void childrenMap (
-			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		//  Map my children through the (destructive) transformation
-		//  specified by aBlock.  Answer the receiver.
+		// Map my children through the (destructive) transformation
+		// specified by aBlock. Answer the receiver.
 		//
-		//  do nothing by default.
-
+		// do nothing by default.
 
 	}
 
 	public AvailParseNode treeMap (
-			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		//  Map the tree through the (destructive) transformation specified by aBlock, children
-		//  before parents.  Answer the resulting tree.
+		// Map the tree through the (destructive) transformation specified by
+		// aBlock, children
+		// before parents. Answer the resulting tree.
 
-		childrenMap(new Transformer1<AvailParseNode, AvailParseNode> ()
+		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
 		{
 			@Override
-			public AvailParseNode value(final AvailParseNode child)
+			public AvailParseNode value (final AvailParseNode child)
 			{
 				return child.treeMap(aBlock);
 			}
@@ -105,48 +98,58 @@ public class AvailParseNode
 		return aBlock.value(this);
 	}
 
+	/**
+	 * Map the tree through the (destructive) transformation specified by
+	 * aBlock, children before parents. The block takes three arguments: the
+	 * node, its parent, and the list of enclosing block nodes. Answer the
+	 * resulting tree.
+	 * 
+	 * @param aBlock What to do with each descendant.
+	 * @param parent This node's parent.
+	 * @param outerNodes The list of blocks surrounding this node, from
+	 *                   outermost to innermost. 
+	 * @return A replacement for this node, possibly this node itself.
+	 */
 	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
-			final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
-			final AvailParseNode parent,
-			final List<AvailBlockNode> outerNodes)
+		final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
+		final AvailParseNode parent,
+		final List<AvailBlockNode> outerNodes)
 	{
-		//  Map the tree through the (destructive) transformation specified by aBlock, children
-		//  before parents.  The block takes three arguments; the node, its parent, and the list of
-		//  enclosing block nodes.  Answer the resulting tree.
 
-		childrenMap(new Transformer1<AvailParseNode, AvailParseNode> ()
+		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
 		{
 			@Override
-			public AvailParseNode value(final AvailParseNode child)
+			public AvailParseNode value (final AvailParseNode child)
 			{
-				return child.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
-					aBlock,
-					AvailParseNode.this,
-					outerNodes);
+				return child
+						.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
+							aBlock,
+							AvailParseNode.this,
+							outerNodes);
 			}
 		});
-		return aBlock.value(
-			this,
-			parent,
-			outerNodes);
+		return aBlock.value(this, parent, outerNodes);
 	}
 
-
-
-	// java printing
-
-	public void printOnIndent (
-			final StringBuilder aStream,
-			final int indent)
+	/**
+	 * @param aStream
+	 * @param indent
+	 */
+	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
 		error("Subclass responsibility: printOn:indent: in Avail.AvailParseNode");
 		return;
 	}
 
+	/**
+	 * @param aStream
+	 * @param indent
+	 * @param outerNode
+	 */
 	public void printOnIndentIn (
-			final StringBuilder aStream,
-			final int indent,
-			final AvailParseNode outerNode)
+		final StringBuilder aStream,
+		final int indent,
+		final AvailParseNode outerNode)
 	{
 		printOnIndent(aStream, indent);
 	}
@@ -159,10 +162,7 @@ public class AvailParseNode
 		return stringBuilder.toString();
 	}
 
-
-
-	// testing
-
+	
 	public boolean isAssignment ()
 	{
 		return false;
@@ -175,7 +175,7 @@ public class AvailParseNode
 
 	public boolean isDeclaration ()
 	{
-		//  Answer whether the receiver is a local variable declaration.
+		// Answer whether the receiver is a local variable declaration.
 
 		return false;
 	}
@@ -206,43 +206,56 @@ public class AvailParseNode
 	}
 
 
-
-	// validation
-
+	/**
+	 * Ensure that the tree represented by this node is valid.  Throw an
+	 * appropriate exception if it is not.
+	 * 
+	 * @param anAvailInterpreter Used to run requires and returns clauses. 
+	 * @return This node or a replacement.
+	 */
 	public AvailParseNode validatedWithInterpreter (
-			final L2Interpreter anAvailInterpreter)
+		final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the tree represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.
-
-		final List<AvailBlockNode> initialBlockNodes = new ArrayList<AvailBlockNode>(3);
+		final List<AvailBlockNode> initialBlockNodes = new ArrayList<AvailBlockNode>(
+			3);
 		return treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
-			new Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> ()
+			new Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode>()
 			{
 				@Override
-				public AvailParseNode value(AvailParseNode node, AvailParseNode parent, List<AvailBlockNode> blockNodes)
+				public AvailParseNode value (
+					AvailParseNode node,
+					AvailParseNode parent,
+					List<AvailBlockNode> blockNodes)
 				{
-					return node.validateLocallyWithParentOuterBlocksInterpreter(parent, blockNodes, anAvailInterpreter);
+					return node
+							.validateLocallyWithParentOuterBlocksInterpreter(
+								parent,
+								blockNodes,
+								anAvailInterpreter);
 				}
-			},
-			null,
-			initialBlockNodes);
+			}, null, initialBlockNodes);
 	}
 
+	/**
+	 * Ensure the parse node represented by the receiver is valid. Throw a
+	 * suitable exception if it is not.
+	 * 
+	 * @param parent
+	 *            This node's parent.
+	 * @param outerBlocks
+	 *            The chain of blocks that this node is in, outermost to
+	 *            innermost.
+	 * @param anAvailInterpreter
+	 *            An interpreter with which to run the requires and returns
+	 *            clauses of {@link MethodSignatureDescriptor methods}.
+	 * @return The receiver.
+	 */
 	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-			final AvailParseNode parent,
-			final List<AvailBlockNode> outerBlocks,
-			final L2Interpreter anAvailInterpreter)
+		final AvailParseNode parent,
+		final List<AvailBlockNode> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
 	{
-		//  Ensure the node represented by the receiver is valid.  Raise an appropriate
-		//  exception if it is not.  outerBlocks is a list of enclosing BlockNodes.
-		//  Answer the receiver.
-
 		return this;
 	}
-
-
-
-
 
 }

@@ -32,11 +32,15 @@
 
 package com.avail.compiler;
 
+/**
+ * An {@linkplain AvailConstantDeclarationNode} is created to represent a
+ * statement that defines and initializes a constant, currently (2010.11.24)
+ * using the "_::=_" syntax.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNode
 {
-
-
-	// accessing
 
 	@Override
 	public boolean isConstant ()
@@ -44,9 +48,6 @@ public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNo
 		return true;
 	}
 
-
-
-	// java printing
 
 	@Override
 	public void printOnIndent (
@@ -60,9 +61,5 @@ public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNo
 		aStream.append(" ::= ");
 		_initializingExpression.printOnIndent(aStream, indent);
 	}
-
-
-
-
 
 }
