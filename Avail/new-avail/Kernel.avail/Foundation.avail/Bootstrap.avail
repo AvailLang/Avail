@@ -42,6 +42,7 @@ Pragma
 	"definingMethod = Method_is_",
 	"definingMacro = Macro_is_",
 	"specialObject = Special Object_",
+	"primitive = Primitive_(«_‡,») or_",
 	"macroStatement = _;",
 	"macroVariableDeclaration = _:_",
 	"macroConstantDeclaration = _::=_",
@@ -49,7 +50,7 @@ Pragma
 	"macroAssignment = _:=_",
 	"macroReference = &_",
 	"macroSuperCast = _::_",
-	"macroBlock = [««_:_‡,»|»«Primitive_(«_‡,»);»«$_:_;»«_»]«:_»",
+	"macroBlock = [««_:_‡,»|»«$_:_;»«_»]«:_»",
 	"macroVariableUse = _",
 Extends
 Uses
