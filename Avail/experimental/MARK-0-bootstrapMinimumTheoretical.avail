@@ -33,6 +33,7 @@
 Module "0-bootstrapMinimumTheoretical"
 Pragma
 	"bootstrapDefiningMethod = Method_is_",
+	"bootstrapDefiningMacro = Macro_is_",
 	"bootstrapSpecialObject = Special Object_",
 
 	"macroStatement = _;",
@@ -44,7 +45,6 @@ Pragma
 	"macroSuperCast = _::_",
 	"macroBlock = [««_:_‡,»|»«Primitive_;»«$_:_;»«_»]«:_»",
 	"macroVariableUse = _",
-
 Extends
 Uses
 Names

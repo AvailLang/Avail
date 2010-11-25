@@ -2693,6 +2693,4 @@ public class AvailCompiler
 	{
 		expected(wrapInGenerator(aString));
 	}
-
-	// TODO: [TLS] Implement module hierarchies!
 }
