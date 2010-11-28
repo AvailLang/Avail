@@ -42,15 +42,21 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-@IntegerSlots("hash")
-@ObjectSlots({
-	"name",
-	"parent",
-	"myType"
-})
 public class VoidTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hash
+	}
+
+	enum ObjectSlots
+	{
+		name,
+		parent,
+		myType
+	}
 	@Override
 	@ThreadSafe
 	public boolean ObjectIsSubtypeOf (

@@ -67,29 +67,27 @@ public abstract class AbstractDescriptor
 	
 	/**
 	 * The minimum number of object slots an {@link AvailObject} can have if it
-	 * uses this descriptor.  Populated automatically by the constructor from
-	 * the {@link ObjectSlots} annotation.
+	 * uses this descriptor.  Populated automatically by the constructor.
 	 */
 	protected final int numberOfFixedObjectSlots;
 	
 	/**
 	 * The minimum number of integer slots an {@link AvailObject} can have if it
-	 * uses this descriptor.  Populated automatically by the constructor from
-	 * the {@link IntegerSlots} annotation.
+	 * uses this descriptor.  Populated automatically by the constructor.
 	 */
 	protected final int numberOfFixedIntegerSlots;
 	
 	/**
 	 * Whether an {@link AvailObject} using this descriptor can have more than
 	 * the minimum number of object slots.  Populated automatically by the
-	 * constructor from the {@link ObjectSlots} annotation.
+	 * constructor.
 	 */
 	final boolean hasVariableObjectSlots;
 	
 	/**
 	 * Whether an {@link AvailObject} using this descriptor can have more than
 	 * the minimum number of integer slots.  Populated automatically by the
-	 * constructor from the {@link IntegerSlots} annotation.
+	 * constructor.
 	 */
 	final boolean hasVariableIntegerSlots;
 	
@@ -112,6 +110,7 @@ public abstract class AbstractDescriptor
 	 * @param isMutable Does the {@linkplain AbstractDescriptor descriptor}
 	 *                  represent a mutable object?
 	 */
+	@SuppressWarnings("unchecked")
 	protected AbstractDescriptor (
 		final boolean isMutable)
 	{
@@ -119,48 +118,46 @@ public abstract class AbstractDescriptor
 		allDescriptors.add(this);
 		this.isMutable = isMutable;
 
-		@SuppressWarnings("unchecked")
 		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
+		final ClassLoader loader = cls.getClassLoader();
+		Class<Enum<?>> enumClass;
+		Enum<?>[] instances;
 
-		final ObjectSlots objectSlots = cls.getAnnotation(ObjectSlots.class);
-		final String[] objectSlotsValue = (objectSlots == null)
-			? new String[0]
-			: objectSlots.value();
-		if (objectSlots == null || objectSlotsValue.length == 0)
+		try
 		{
-			this.numberOfFixedObjectSlots = 0;
-			this.hasVariableObjectSlots = false;
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$ObjectSlots");
 		}
-		else if (objectSlotsValue[objectSlotsValue.length - 1].matches(".*#"))
+		catch (ClassNotFoundException e)
 		{
-			this.numberOfFixedObjectSlots = objectSlotsValue.length - 1;
-			this.hasVariableObjectSlots = true;
+			enumClass = null;
 		}
-		else
-		{
-			this.numberOfFixedObjectSlots = objectSlotsValue.length;
-			this.hasVariableObjectSlots = false;
-		}
+		instances = enumClass != null
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+		this.hasVariableObjectSlots = instances.length > 0
+			&& instances[instances.length-1].name().matches(".*_");
+		this.numberOfFixedObjectSlots = instances.length
+			- (this.hasVariableObjectSlots ? 1 : 0);
 
-		final IntegerSlots integerSlots = cls.getAnnotation(IntegerSlots.class);
-		final String[] integerSlotsValue = (integerSlots == null)
-			? new String[0]
-			: integerSlots.value();
-		if (integerSlots == null || integerSlotsValue.length == 0)
+		try
 		{
-			this.numberOfFixedIntegerSlots = 0;
-			this.hasVariableIntegerSlots = false;
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$IntegerSlots");
 		}
-		else if (integerSlotsValue[integerSlotsValue.length - 1].matches(".*#"))
+		catch (ClassNotFoundException e)
 		{
-			this.numberOfFixedIntegerSlots = integerSlotsValue.length - 1;
-			this.hasVariableIntegerSlots = true;
+			enumClass = null;
 		}
-		else
-		{
-			this.numberOfFixedIntegerSlots = integerSlotsValue.length;
-			this.hasVariableIntegerSlots = false;
-		}
+		instances = enumClass != null
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+		this.hasVariableIntegerSlots = instances.length > 0
+			&& instances[instances.length-1].name().matches(".*_");
+		this.numberOfFixedIntegerSlots = instances.length
+			- (this.hasVariableIntegerSlots ? 1 : 0);
+
+
 	}
 
 	public abstract boolean ObjectAcceptsArgTypesFromClosureType (
@@ -4524,8 +4521,25 @@ public abstract class AbstractDescriptor
 		}
 		builder.append(' ');
 		builder.append(shortenedName);
-		IntegerSlots integerSlotAnnotation =
-			getClass().getAnnotation(IntegerSlots.class);
+
+		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
+		final ClassLoader loader = cls.getClassLoader();
+		Class<Enum<?>> enumClass;
+		Enum<?>[] instances;
+
+		try
+		{
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$IntegerSlots");
+		}
+		catch (ClassNotFoundException e)
+		{
+			enumClass = null;
+		}
+		instances = enumClass != null
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
 		{
 			builder.append('\n');
@@ -4533,13 +4547,13 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			int n = Math.min(i, integerSlotAnnotation.value().length) - 1;
-			String slotName = integerSlotAnnotation.value()[n];
-			if (slotName.charAt(slotName.length() - 1) == '#')
+			int n = Math.min(i, instances.length) - 1;
+			String slotName = instances[n].name();
+			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
-				builder.append(i - integerSlotAnnotation.value().length + 1);
+				builder.append(i - instances.length + 1);
 				builder.append(']');
 			}
 			else
@@ -4549,8 +4563,21 @@ public abstract class AbstractDescriptor
 			builder.append(" = ");
 			builder.append(object.integerSlotAtByteIndex(i << 2));
 		}
-		ObjectSlots objectSlotAnnotation =
-			getClass().getAnnotation(ObjectSlots.class);
+
+		try
+		{
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$ObjectSlots");
+		}
+		catch (ClassNotFoundException e)
+		{
+			enumClass = null;
+		}
+		instances = enumClass != null
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+
+		
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{
 			builder.append('\n');
@@ -4558,13 +4585,13 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			int n = Math.min(i, objectSlotAnnotation.value().length) - 1;
-			String slotName = objectSlotAnnotation.value()[n];
-			if (slotName.charAt(slotName.length() - 1) == '#')
+			int n = Math.min(i, instances.length) - 1;
+			String slotName = instances[n].name();
+			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
-				builder.append(i - objectSlotAnnotation.value().length + 1);
+				builder.append(i - instances.length + 1);
 				builder.append(']');
 			}
 			else

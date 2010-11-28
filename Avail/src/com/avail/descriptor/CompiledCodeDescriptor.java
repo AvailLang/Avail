@@ -38,20 +38,24 @@ import com.avail.descriptor.TypeDescriptor.Types;
 
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots({
-	"hash",
-	"hiPrimitiveLowNumArgsAndLocalsAndStack",
-	"hiNumLocalsLowNumArgs",
-	"hiStartingChunkIndexLowNumOuters",
-	"invocationCount"
-})
-@ObjectSlots({
-	"nybbles",
-	"closureType",
-	"literalAt#"
-})
 public class CompiledCodeDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		hash,
+		hiPrimitiveLowNumArgsAndLocalsAndStack,
+		hiNumLocalsLowNumArgs,
+		hiStartingChunkIndexLowNumOuters,
+		invocationCount
+	}
+
+	enum ObjectSlots
+	{
+		nybbles,
+		closureType,
+		literalAt_
+	}
 
 
 	// GENERATED accessors
@@ -64,7 +68,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.closureType, value);
 	}
 
 	/**
@@ -75,7 +79,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hash, value);
 	}
 
 	/**
@@ -86,7 +90,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(12, value);
+		object.integerSlotPut(IntegerSlots.hiNumLocalsLowNumArgs, value);
 	}
 
 	/**
@@ -97,7 +101,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.hiPrimitiveLowNumArgsAndLocalsAndStack, value);
 	}
 
 	/**
@@ -108,7 +112,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(16, value);
+		object.integerSlotPut(IntegerSlots.hiStartingChunkIndexLowNumOuters, value);
 	}
 
 	/**
@@ -119,7 +123,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(20, value);
+		object.integerSlotPut(IntegerSlots.invocationCount, value);
 	}
 
 	@Override
@@ -151,7 +155,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.nybbles, value);
 	}
 
 	/**
@@ -161,7 +165,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.closureType);
 	}
 
 	/**
@@ -171,7 +175,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hash);
 	}
 
 	/**
@@ -181,7 +185,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(12);
+		return object.integerSlot(IntegerSlots.hiNumLocalsLowNumArgs);
 	}
 
 	/**
@@ -191,7 +195,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.hiPrimitiveLowNumArgsAndLocalsAndStack);
 	}
 
 	/**
@@ -201,7 +205,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(16);
+		return object.integerSlot(IntegerSlots.hiStartingChunkIndexLowNumOuters);
 	}
 
 	/**
@@ -211,7 +215,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectInvocationCount (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(20);
+		return object.integerSlot(IntegerSlots.invocationCount);
 	}
 
 	/**
@@ -221,7 +225,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public AvailObject ObjectNybbles (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.nybbles);
 	}
 
 

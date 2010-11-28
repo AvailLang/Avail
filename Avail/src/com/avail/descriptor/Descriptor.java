@@ -46,6 +46,7 @@ import static com.avail.descriptor.AvailObject.*;
 
 public abstract class Descriptor extends AbstractDescriptor
 {
+	
 	/**
 	 * Construct a new {@link Descriptor}.
 	 *

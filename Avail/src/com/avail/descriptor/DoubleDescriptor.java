@@ -38,12 +38,14 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import java.lang.Double;
 import java.util.List;
 
-@IntegerSlots({
-	"rawQuad1",
-	"rawQuad2"
-})
 public class DoubleDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		rawQuad1,
+		rawQuad2
+	}
 
 
 	// GENERATED accessors
@@ -56,7 +58,7 @@ public class DoubleDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.rawQuad1, value);
 	}
 
 	/**
@@ -67,7 +69,7 @@ public class DoubleDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.rawQuad2, value);
 	}
 
 	/**
@@ -77,7 +79,7 @@ public class DoubleDescriptor extends Descriptor
 	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.rawQuad1);
 	}
 
 	/**
@@ -87,7 +89,7 @@ public class DoubleDescriptor extends Descriptor
 	public int ObjectRawQuad2 (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.rawQuad2);
 	}
 
 

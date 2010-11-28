@@ -39,22 +39,26 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import java.util.Random;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots({
-	"hashOrZero",
-	"priority",
-	"executionMode",
-	"executionState",
-	"interruptRequestFlag"
-})
-@ObjectSlots({
-	"continuation",
-	"breakpointBlock",
-	"processGlobals"
-})
 public class ProcessDescriptor extends Descriptor
 {
 
+	enum IntegerSlots
+	{
+		hashOrZero,
+		priority,
+		executionMode,
+		executionState,
+		interruptRequestFlag
+	}
 
+	enum ObjectSlots
+	{
+		continuation,
+		breakpointBlock,
+		processGlobals
+	}
+
+	
 	// GENERATED accessors
 
 	/**
@@ -65,7 +69,11 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.breakpointBlock, value);
+
+//		object.objectSlotAtByteIndexPut(
+//			-4*ProcessDescriptor.objectSlots.breakpointBlock.ordinal(),
+//			value);
 	}
 
 	/**
@@ -76,7 +84,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.continuation, value);
 	}
 
 	/**
@@ -87,7 +95,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(12, value);
+		object.integerSlotPut(IntegerSlots.executionMode, value);
 	}
 
 	/**
@@ -98,7 +106,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(16, value);
+		object.integerSlotPut(IntegerSlots.executionState, value);
 	}
 
 	/**
@@ -109,7 +117,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hashOrZero, value);
 	}
 
 	/**
@@ -120,7 +128,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(20, value);
+		object.integerSlotPut(IntegerSlots.interruptRequestFlag, value);
 	}
 
 	/**
@@ -131,7 +139,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.priority, value);
 	}
 
 	/**
@@ -142,7 +150,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.processGlobals, value);
 	}
 
 	/**
@@ -152,7 +160,7 @@ public class ProcessDescriptor extends Descriptor
 	public AvailObject ObjectBreakpointBlock (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.breakpointBlock);
 	}
 
 	/**
@@ -162,7 +170,7 @@ public class ProcessDescriptor extends Descriptor
 	public AvailObject ObjectContinuation (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.continuation);
 	}
 
 	/**
@@ -172,7 +180,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectExecutionMode (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(12);
+		return object.integerSlot(IntegerSlots.executionMode);
 	}
 
 	/**
@@ -182,7 +190,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectExecutionState (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(16);
+		return object.integerSlot(IntegerSlots.executionState);
 	}
 
 	/**
@@ -192,7 +200,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hashOrZero);
 	}
 
 	/**
@@ -202,7 +210,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectInterruptRequestFlag (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(20);
+		return object.integerSlot(IntegerSlots.interruptRequestFlag);
 	}
 
 	/**
@@ -212,7 +220,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectPriority (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.priority);
 	}
 
 	/**
@@ -222,7 +230,7 @@ public class ProcessDescriptor extends Descriptor
 	public AvailObject ObjectProcessGlobals (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.processGlobals);
 	}
 
 

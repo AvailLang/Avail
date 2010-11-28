@@ -45,13 +45,15 @@ import static com.avail.descriptor.AvailObject.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-@ObjectSlots({
-	"signature",
-	"requiresBlock",
-	"returnsBlock"
-})
 public class AbstractSignatureDescriptor extends SignatureDescriptor
 {
+
+	enum ObjectSlots
+	{
+		signature,
+		requiresBlock,
+		returnsBlock
+	}
 
 
 	// accessing
@@ -119,7 +121,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.requiresBlock, value);
 	}
 
 	/**
@@ -130,7 +132,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.returnsBlock, value);
 	}
 
 	/**
@@ -141,7 +143,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.signature, value);
 	}
 
 	/**
@@ -151,7 +153,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectRequiresBlock (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.requiresBlock);
 	}
 
 	/**
@@ -161,7 +163,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.returnsBlock);
 	}
 
 	/**
@@ -171,7 +173,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.signature);
 	}
 
 

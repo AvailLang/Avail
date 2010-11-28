@@ -42,18 +42,22 @@ import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots({
-	"pc",
-	"stackp",
-	"hiLevelTwoChunkLowOffset"
-})
-@ObjectSlots({
-	"caller",
-	"closure",
-	"localOrArgOrStackAt#"
-})
 public class ContinuationDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		pc,
+		stackp,
+		hiLevelTwoChunkLowOffset
+	}
+
+	enum ObjectSlots
+	{
+		caller,
+		closure,
+		localOrArgOrStackAt_
+	}
 
 
 	// GENERATED accessors
@@ -66,7 +70,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.caller, value);
 	}
 
 	/**
@@ -77,7 +81,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.closure, value);
 	}
 
 	/**
@@ -88,7 +92,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(12, value);
+		object.integerSlotPut(IntegerSlots.hiLevelTwoChunkLowOffset, value);
 	}
 
 	@Override
@@ -120,7 +124,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.pc, value);
 	}
 
 	/**
@@ -131,7 +135,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.stackp, value);
 	}
 
 	/**
@@ -141,7 +145,7 @@ public class ContinuationDescriptor extends Descriptor
 	public AvailObject ObjectCaller (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.caller);
 	}
 
 	/**
@@ -151,7 +155,7 @@ public class ContinuationDescriptor extends Descriptor
 	public AvailObject ObjectClosure (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.closure);
 	}
 
 	/**
@@ -161,7 +165,7 @@ public class ContinuationDescriptor extends Descriptor
 	public int ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(12);
+		return object.integerSlot(IntegerSlots.hiLevelTwoChunkLowOffset);
 	}
 
 	/**
@@ -171,7 +175,7 @@ public class ContinuationDescriptor extends Descriptor
 	public int ObjectPc (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.pc);
 	}
 
 	/**
@@ -181,7 +185,7 @@ public class ContinuationDescriptor extends Descriptor
 	public int ObjectStackp (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.stackp);
 	}
 
 

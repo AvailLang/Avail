@@ -36,14 +36,20 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.InfinityDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 
-@IntegerSlots("hash")
-@ObjectSlots({
-	"name",
-	"parent",
-	"myType"
-})
 public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hash
+	}
+
+	enum ObjectSlots
+	{
+		name,
+		parent,
+		myType
+	}
 
 
 	// operations-from integer range type

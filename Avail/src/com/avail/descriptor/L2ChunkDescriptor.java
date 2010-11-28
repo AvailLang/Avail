@@ -47,23 +47,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@IntegerSlots({
-	"index",
-	"validity",
-	"numObjects",
-	"numIntegers",
-	"numFloats",
-	"nextIndex",
-	"previousIndex"
-})
-@ObjectSlots({
-	"contingentImpSets",
-	"wordcodes",
-	"vectors",
-	"literalAt#"
-})
 public class L2ChunkDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		index,
+		validity,
+		numObjects,
+		numIntegers,
+		numFloats,
+		nextIndex,
+		previousIndex
+	}
+
+	enum ObjectSlots
+	{
+		contingentImpSets,
+		wordcodes,
+		vectors,
+		literalAt_
+	}
 
 
 	// GENERATED accessors
@@ -76,7 +80,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.contingentImpSets, value);
 	}
 
 	/**
@@ -87,7 +91,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.index, value);
 	}
 
 	@Override
@@ -119,7 +123,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(24, value);
+		object.integerSlotPut(IntegerSlots.nextIndex, value);
 	}
 
 	/**
@@ -130,7 +134,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(20, value);
+		object.integerSlotPut(IntegerSlots.numFloats, value);
 	}
 
 	/**
@@ -141,7 +145,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(16, value);
+		object.integerSlotPut(IntegerSlots.numIntegers, value);
 	}
 
 	/**
@@ -152,7 +156,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(12, value);
+		object.integerSlotPut(IntegerSlots.numObjects, value);
 	}
 
 	/**
@@ -163,7 +167,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(28, value);
+		object.integerSlotPut(IntegerSlots.previousIndex, value);
 	}
 
 	/**
@@ -174,7 +178,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.validity, value);
 	}
 
 	/**
@@ -185,7 +189,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.vectors, value);
 	}
 
 	/**
@@ -196,7 +200,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.wordcodes, value);
 	}
 
 	/**
@@ -206,7 +210,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public AvailObject ObjectContingentImpSets (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.contingentImpSets);
 	}
 
 	/**
@@ -216,7 +220,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectIndex (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.index);
 	}
 
 	/**
@@ -226,7 +230,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNextIndex (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(24);
+		return object.integerSlot(IntegerSlots.nextIndex);
 	}
 
 	/**
@@ -236,7 +240,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNumFloats (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(20);
+		return object.integerSlot(IntegerSlots.numFloats);
 	}
 
 	/**
@@ -246,7 +250,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNumIntegers (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(16);
+		return object.integerSlot(IntegerSlots.numIntegers);
 	}
 
 	/**
@@ -256,7 +260,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNumObjects (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(12);
+		return object.integerSlot(IntegerSlots.numObjects);
 	}
 
 	/**
@@ -266,7 +270,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectPreviousIndex (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(28);
+		return object.integerSlot(IntegerSlots.previousIndex);
 	}
 
 	/**
@@ -276,7 +280,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectValidity (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.validity);
 	}
 
 	/**
@@ -286,7 +290,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public AvailObject ObjectVectors (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.vectors);
 	}
 
 	/**
@@ -296,7 +300,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public AvailObject ObjectWordcodes (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.wordcodes);
 	}
 
 

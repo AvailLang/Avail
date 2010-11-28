@@ -37,10 +37,18 @@ import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 import java.util.Random;
 
-@IntegerSlots("hashOrZero")
-@ObjectSlots("name")
 public class CyclicTypeDescriptor extends TypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hashOrZero
+	}
+
+	enum ObjectSlots
+	{
+		name
+	}
 
 
 	// GENERATED accessors
@@ -53,7 +61,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hashOrZero, value);
 	}
 
 	/**
@@ -64,7 +72,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.name, value);
 	}
 
 	/**
@@ -74,7 +82,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hashOrZero);
 	}
 
 	/**
@@ -84,7 +92,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.name);
 	}
 
 

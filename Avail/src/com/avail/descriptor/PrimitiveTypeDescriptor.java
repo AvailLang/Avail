@@ -36,14 +36,20 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@IntegerSlots("hash")
-@ObjectSlots({
-	"name",
-	"parent",
-	"myType"
-})
 public class PrimitiveTypeDescriptor extends TypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hash
+	}
+
+	enum ObjectSlots
+	{
+		name,
+		parent,
+		myType
+	}
 
 
 	// GENERATED accessors
@@ -56,7 +62,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hash, value);
 	}
 
 	/**
@@ -67,7 +73,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.myType, value);
 	}
 
 	/**
@@ -78,7 +84,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.name, value);
 	}
 
 	/**
@@ -89,7 +95,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.parent, value);
 	}
 
 	/**
@@ -99,7 +105,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hash);
 	}
 
 	/**
@@ -109,7 +115,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectMyType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.myType);
 	}
 
 	/**
@@ -119,7 +125,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.name);
 	}
 
 	/**
@@ -129,7 +135,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectParent (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.parent);
 	}
 
 

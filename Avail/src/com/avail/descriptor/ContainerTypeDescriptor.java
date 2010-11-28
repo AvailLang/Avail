@@ -36,9 +36,13 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@ObjectSlots("innerType")
 public class ContainerTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		innerType
+	}
 
 
 	// GENERATED accessors
@@ -51,7 +55,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.innerType, value);
 	}
 
 	/**
@@ -61,7 +65,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectInnerType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.innerType);
 	}
 
 

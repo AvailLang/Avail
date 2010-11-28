@@ -38,14 +38,20 @@ import com.avail.descriptor.MessageBundleDescriptor;
 import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots("depth")
-@ObjectSlots({
-	"complete",
-	"incomplete",
-	"specialActions"
-})
 public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		depth
+	}
+
+	enum ObjectSlots
+	{
+		complete,
+		incomplete,
+		specialActions
+	}
 
 
 	// GENERATED accessors
@@ -58,7 +64,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.complete, value);
 	}
 
 	/**
@@ -69,7 +75,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.depth, value);
 	}
 
 	/**
@@ -80,7 +86,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.incomplete, value);
 	}
 
 	/**
@@ -91,7 +97,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.specialActions, value);
 	}
 
 	/**
@@ -101,7 +107,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectComplete (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.complete);
 	}
 
 	/**
@@ -111,7 +117,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public int ObjectDepth (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.depth);
 	}
 
 	/**
@@ -121,7 +127,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectIncomplete (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.incomplete);
 	}
 
 	/**
@@ -131,7 +137,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectSpecialActions (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.specialActions);
 	}
 
 
@@ -167,12 +173,13 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.  If I was mutable I have to
-		//  scan my children and make them immutable as well (recursively down to immutable
-		//  descendants).
+		// Make the object immutable so it can be shared safely.  If I was
+		// mutable I have to scan my children and make them immutable as well
+		// (recursively down to immutable descendants).
 
 		object.descriptor(ExpandedMessageBundleTreeDescriptor.immutableDescriptor());
-		//  Don't bother scanning subobjects. They're allowed to be mutable even when object is immutable.
+		// Don't bother scanning subobjects. They're allowed to be mutable even
+		// when object is immutable.
 		return object;
 	}
 

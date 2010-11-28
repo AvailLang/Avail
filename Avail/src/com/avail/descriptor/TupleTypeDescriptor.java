@@ -41,13 +41,15 @@ import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
-@ObjectSlots({
-	"sizeRange",
-	"typeTuple",
-	"defaultType"
-})
 public class TupleTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		sizeRange,
+		typeTuple,
+		defaultType
+	}
 
 
 	// GENERATED accessors
@@ -60,7 +62,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.defaultType, value);
 	}
 
 	/**
@@ -71,7 +73,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.sizeRange, value);
 	}
 
 	/**
@@ -82,7 +84,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.typeTuple, value);
 	}
 
 	/**
@@ -92,7 +94,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.defaultType);
 	}
 
 	/**
@@ -102,7 +104,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.sizeRange);
 	}
 
 	/**
@@ -112,7 +114,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.typeTuple);
 	}
 
 

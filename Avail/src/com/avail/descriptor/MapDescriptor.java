@@ -39,14 +39,20 @@ import java.util.List;
 
 import com.avail.descriptor.TypeDescriptor.Types;
 
-@IntegerSlots({
-	"internalHash",
-	"mapSize",
-	"numBlanks"
-})
-@ObjectSlots("dataAtIndex#")
 public class MapDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		internalHash,
+		mapSize,
+		numBlanks
+	}
+
+	enum ObjectSlots
+	{
+		dataAtIndex_
+	}
 	// GENERATED accessors
 
 	@Override
@@ -78,7 +84,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.internalHash, value);
 	}
 
 	/**
@@ -89,7 +95,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.mapSize, value);
 	}
 
 	/**
@@ -100,7 +106,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int value)
 	{
-		object.integerSlotAtByteIndexPut(12, value);
+		object.integerSlotPut(IntegerSlots.numBlanks, value);
 	}
 
 	/**
@@ -110,7 +116,7 @@ public class MapDescriptor extends Descriptor
 	public int ObjectInternalHash (
 		final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.internalHash);
 	}
 
 	/**
@@ -120,7 +126,7 @@ public class MapDescriptor extends Descriptor
 	public int ObjectMapSize (
 		final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.mapSize);
 	}
 
 	/**
@@ -130,7 +136,7 @@ public class MapDescriptor extends Descriptor
 	public int ObjectNumBlanks (
 		final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(12);
+		return object.integerSlot(IntegerSlots.numBlanks);
 	}
 
 

@@ -47,10 +47,14 @@ import java.util.List;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-@IntegerSlots("codePoint")
 public class CharacterDescriptor
 extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		codePoint
+	}
 	/** The first 256 Unicode characters. */
 	private static AvailObject[] byteCharacters;
 
@@ -207,7 +211,7 @@ extends Descriptor
 	@Override
 	public int ObjectCodePoint (final @NotNull AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.codePoint);
 	}
 
 	@Override
@@ -215,7 +219,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.codePoint, value);
 	}
 
 	@Override

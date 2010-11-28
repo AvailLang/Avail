@@ -37,9 +37,13 @@ import com.avail.descriptor.TypeDescriptor.Types;
 
 import java.util.List;
 
-@IntegerSlots("rawQuad1")
 public class FloatDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		rawQuad1
+	}
 
 
 	// GENERATED accessors
@@ -52,7 +56,7 @@ public class FloatDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.rawQuad1, value);
 	}
 
 	/**
@@ -62,7 +66,7 @@ public class FloatDescriptor extends Descriptor
 	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.rawQuad1);
 	}
 
 

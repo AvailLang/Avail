@@ -5335,8 +5335,8 @@ implements Iterable<AvailObject>
 		return;
 	}
 
-	public int integerSlotAtByteIndex (
-		final int index)
+	public int integerSlot (
+		final Enum<?> e)
 	{
 		//  Extract the (unsigned 32-bit) integer at the given byte-index.
 
@@ -5344,8 +5344,8 @@ implements Iterable<AvailObject>
 		return 0;
 	}
 
-	public void integerSlotAtByteIndexPut (
-		final int index,
+	public void integerSlotPut (
+		final Enum<?> e,
 		final int anInteger)
 	{
 		//  Store the (unsigned 32-bit) integer in the four bytes starting at the given byte-index.
@@ -5366,18 +5366,18 @@ implements Iterable<AvailObject>
 		return descriptorId() == FillerDescriptor.mutableDescriptor().id();
 	}
 
-	public AvailObject objectSlotAtByteIndex (
-		final int index)
+	public AvailObject objectSlot (
+		final Enum<?> e)
 	{
-		//  Extract the object at the given byte-index.  It must be an object.
+		//  Store the object at the given byte-index.
 
 		error("Subclass responsibility: objectSlotAtByteIndex: in Avail.AvailObject");
 		return VoidDescriptor.voidObject();
 	}
 
-	public void objectSlotAtByteIndexPut (
-		final int index,
-		final AvailObject anAvailObject)
+	public void objectSlotPut (
+			final Enum<?> e,
+			final AvailObject anAvailObject)
 	{
 		//  Store the object at the given byte-index.
 
@@ -5389,6 +5389,45 @@ implements Iterable<AvailObject>
 	{
 		error("Subclass responsibility: objectSlotsCount in Avail.AvailObject");
 		return 0;
+	}
+
+	
+	@Deprecated public int integerSlotAtByteIndex (
+		final int index)
+	{
+		//  Extract the (unsigned 32-bit) integer at the given byte-index.
+
+		error("Subclass responsibility: integerSlotAtByteIndex: in Avail.AvailObject");
+		return 0;
+	}
+
+	@Deprecated public void integerSlotAtByteIndexPut (
+		final int index,
+		final int anInteger)
+	{
+		//  Store the (unsigned 32-bit) integer in the four bytes starting at the given byte-index.
+
+		error("Subclass responsibility: integerSlotAtByteIndex:put: in Avail.AvailObject");
+		return;
+	}
+
+	@Deprecated public AvailObject objectSlotAtByteIndex (
+		final int index)
+	{
+		//  Extract the object at the given byte-index.  It must be an object.
+
+		error("Subclass responsibility: objectSlotAtByteIndex: in Avail.AvailObject");
+		return VoidDescriptor.voidObject();
+	}
+
+	@Deprecated public void objectSlotAtByteIndexPut (
+		final int index,
+		final AvailObject anAvailObject)
+	{
+		//  Store the object at the given byte-index.
+
+		error("Subclass responsibility: objectSlotAtByteIndex:put: in Avail.AvailObject");
+		return;
 	}
 
 	public boolean sameAddressAs (

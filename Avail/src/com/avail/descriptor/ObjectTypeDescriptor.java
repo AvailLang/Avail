@@ -38,9 +38,13 @@ import com.avail.descriptor.ObjectMetaDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import static java.lang.Math.*;
 
-@ObjectSlots("fieldTypeMap")
 public class ObjectTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		fieldTypeMap
+	}
 
 
 	// As yet unclassified
@@ -93,7 +97,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.fieldTypeMap, value);
 	}
 
 	/**
@@ -103,7 +107,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.fieldTypeMap);
 	}
 
 

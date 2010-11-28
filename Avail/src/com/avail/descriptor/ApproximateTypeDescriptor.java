@@ -52,9 +52,13 @@ import static java.lang.Math.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-@ObjectSlots("instance")
 public class ApproximateTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		instance
+	}
 
 
 	/**
@@ -65,7 +69,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.instance, value);
 	}
 
 	/**
@@ -75,7 +79,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.instance);
 	}
 
 

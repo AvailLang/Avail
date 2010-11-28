@@ -38,9 +38,13 @@ import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@ObjectSlots("closureType")
 public class ContinuationTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		closureType
+	}
 
 
 	// GENERATED accessors
@@ -53,7 +57,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.closureType, value);
 	}
 
 	/**
@@ -63,7 +67,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.closureType);
 	}
 
 

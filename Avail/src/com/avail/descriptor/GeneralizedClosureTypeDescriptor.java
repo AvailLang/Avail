@@ -37,9 +37,13 @@ import com.avail.descriptor.GeneralizedClosureTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@ObjectSlots("returnType")
 public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		returnType
+	}
 
 
 	// GENERATED accessors
@@ -52,7 +56,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.returnType, value);
 	}
 
 	/**
@@ -62,7 +66,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.returnType);
 	}
 
 

@@ -36,20 +36,22 @@ import static com.avail.descriptor.AvailObject.error;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.AvailInterpreter;
 
-@ObjectSlots({
-	"name",
-	"newNames",
-	"names",
-	"privateNames",
-	"visibleNames",
-	"methods",
-	"restrictions",
-	"variableBindings",
-	"constantBindings",
-	"filteredBundleTree"
-})
 public class ModuleDescriptor extends Descriptor
 {
+
+	enum ObjectSlots
+	{
+		name,
+		newNames,
+		names,
+		privateNames,
+		visibleNames,
+		methods,
+		restrictions,
+		variableBindings,
+		constantBindings,
+		filteredBundleTree
+	}
 
 
 	// accessing
@@ -236,7 +238,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-36, value);
+		object.objectSlotPut(ObjectSlots.constantBindings, value);
 	}
 
 	/**
@@ -247,7 +249,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-40, value);
+		object.objectSlotPut(ObjectSlots.filteredBundleTree, value);
 	}
 
 	/**
@@ -258,7 +260,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-24, value);
+		object.objectSlotPut(ObjectSlots.methods, value);
 	}
 
 	/**
@@ -269,7 +271,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.name, value);
 	}
 
 	/**
@@ -280,7 +282,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.names, value);
 	}
 
 	/**
@@ -291,7 +293,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.newNames, value);
 	}
 
 	/**
@@ -302,7 +304,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-16, value);
+		object.objectSlotPut(ObjectSlots.privateNames, value);
 	}
 
 	/**
@@ -313,7 +315,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-28, value);
+		object.objectSlotPut(ObjectSlots.restrictions, value);
 	}
 
 	/**
@@ -324,7 +326,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-32, value);
+		object.objectSlotPut(ObjectSlots.variableBindings, value);
 	}
 
 	/**
@@ -335,7 +337,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-20, value);
+		object.objectSlotPut(ObjectSlots.visibleNames, value);
 	}
 
 	/**
@@ -345,7 +347,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectConstantBindings (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-36);
+		return object.objectSlot(ObjectSlots.constantBindings);
 	}
 
 	/**
@@ -355,7 +357,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectFilteredBundleTree (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-40);
+		return object.objectSlot(ObjectSlots.filteredBundleTree);
 	}
 
 	/**
@@ -365,7 +367,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectMethods (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-24);
+		return object.objectSlot(ObjectSlots.methods);
 	}
 
 	/**
@@ -375,7 +377,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectName (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.name);
 	}
 
 	/**
@@ -385,7 +387,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectNames (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.names);
 	}
 
 	/**
@@ -395,7 +397,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectNewNames (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.newNames);
 	}
 
 	/**
@@ -405,7 +407,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectPrivateNames (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-16);
+		return object.objectSlot(ObjectSlots.privateNames);
 	}
 
 	/**
@@ -415,7 +417,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectRestrictions (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-28);
+		return object.objectSlot(ObjectSlots.restrictions);
 	}
 
 	/**
@@ -425,7 +427,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectVariableBindings (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-32);
+		return object.objectSlot(ObjectSlots.variableBindings);
 	}
 
 	/**
@@ -435,7 +437,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectVisibleNames (
 		final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-20);
+		return object.objectSlot(ObjectSlots.visibleNames);
 	}
 
 

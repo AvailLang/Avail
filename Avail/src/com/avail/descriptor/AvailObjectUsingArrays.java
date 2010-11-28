@@ -39,10 +39,33 @@ import com.avail.descriptor.VoidDescriptor;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 import java.util.List;
 
-public class AvailObjectUsingArrays extends AvailObject
+/**
+ * I am a concrete representation used for all Avail objects.  In particular,
+ * my representation is to have a reference to my descriptor which controls my
+ * polymorphic behavior, an array of AvailObjects, and an array of ints.  There
+ * are other possible representations, but this one is simplest for Java.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+final public class AvailObjectUsingArrays extends AvailObject
 {
+	/**
+	 * A reference to my descriptor.  Most messages are redirected through the
+	 * descriptor to allow the behavior and representation to change, often
+	 * without changing the observable semantics.  The descriptor essentially
+	 * says how this object should behave, including how its fields are laid
+	 * out in my _objectSlots and _intSlots.
+	 */
 	AbstractDescriptor _descriptor;
+	
+	/**
+	 * An array of all my references to other AvailObjects.
+	 */
 	AvailObject [] _objectSlots;
+	
+	/**
+	 * An int array encoding all of my digital state.
+	 */
 	int [] _intSlots;
 
 
@@ -240,6 +263,7 @@ public class AvailObjectUsingArrays extends AvailObject
 		return _intSlots[(index / 4) - 1];
 	}
 
+	@Deprecated
 	@Override
 	public void integerSlotAtByteIndexPut (
 			final int index,
@@ -262,12 +286,43 @@ public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public AvailObject objectSlotAtByteIndex (
-			final int index)
+	public void integerSlotPut (
+			final Enum<?> e,
+			final int anInteger)
+	{
+		//  Set an int using the given Enum value that identifies the field.
+
+		final int index = e.ordinal() * 4 + 4;
+		checkWriteAtByteIndex(index);
+		verifyToSpaceAddress();
+		assert(index >= 4);
+		assert(index <= integerSlotsCount()*4+3);
+		assert((index & 3) == 0);
+		_intSlots[(index / 4) - 1] = anInteger;
+	}
+
+	@Override
+	public int integerSlot (
+			final Enum<?> e)
+	{
+		//  Extract an int using the given Enum value that identifies the field.
+
+		final int index = e.ordinal() * 4 + 4;
+		verifyToSpaceAddress();
+		assert(index >= 4);
+		assert(index <= integerSlotsCount()*4+3);
+		assert((index & 3) == 0);
+		return _intSlots[(index / 4) - 1];
+	}
+
+	@Override
+	public AvailObject objectSlot (
+			final Enum<?> e)
 	{
 		//  Extract the object at the given byte-index.  It must be an object.
 
 		verifyToSpaceAddress();
+		final int index = e.ordinal() * -4 - 4;
 		assert index <= -4;
 		assert index >= objectSlotsCount() * -4;
 		assert (index & 3) == 0;
@@ -276,6 +331,36 @@ public class AvailObjectUsingArrays extends AvailObject
 		return result;
 	}
 
+	@Override
+	public void objectSlotPut (
+			final Enum<?> e,
+			final AvailObject anAvailObject)
+	{
+		//  Store the object at the given byte-index.
+
+		verifyToSpaceAddress();
+		final int index = e.ordinal() * -4 - 4;
+		assert index <= -4;
+		assert index >= objectSlotsCount() * -4;
+		assert (index & 3) == 0;
+		_objectSlots[(index / -4) - 1] = anAvailObject;
+	}
+
+	@Deprecated
+	@Override
+	public AvailObject objectSlotAtByteIndex (
+			final int index)
+	{
+		//  Extract the object at the given byte-index.
+
+		verifyToSpaceAddress();
+		assert index <= -4;
+		assert index >= objectSlotsCount() * -4;
+		assert (index & 3) == 0;
+		return _objectSlots[(index / -4) - 1];
+	}
+
+	@Deprecated
 	@Override
 	public void objectSlotAtByteIndexPut (
 			final int index,

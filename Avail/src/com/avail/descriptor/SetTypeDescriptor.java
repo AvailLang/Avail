@@ -39,12 +39,14 @@ import com.avail.descriptor.SetTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@ObjectSlots({
-	"sizeRange",
-	"contentType"
-})
 public class SetTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		sizeRange,
+		contentType
+	}
 
 
 	// GENERATED accessors
@@ -57,7 +59,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.contentType, value);
 	}
 
 	/**
@@ -68,7 +70,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.sizeRange, value);
 	}
 
 	/**
@@ -78,7 +80,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectContentType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.contentType);
 	}
 
 	/**
@@ -88,7 +90,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.sizeRange);
 	}
 
 

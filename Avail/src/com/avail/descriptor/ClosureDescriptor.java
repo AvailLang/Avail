@@ -43,12 +43,14 @@ import com.avail.interpreter.levelOne.L1Operation;
 import java.util.List;
 import static java.util.Arrays.*;
 
-@ObjectSlots({
-	"code",
-	"outerVarAt#"
-})
 public class ClosureDescriptor extends Descriptor
 {
+
+	enum ObjectSlots
+	{
+		code,
+		outerVarAt_
+	}
 
 
 	// GENERATED accessors
@@ -61,7 +63,7 @@ public class ClosureDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.code, value);
 	}
 
 	@Override
@@ -92,7 +94,7 @@ public class ClosureDescriptor extends Descriptor
 	public AvailObject ObjectCode (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.code);
 	}
 
 

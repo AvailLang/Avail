@@ -39,9 +39,13 @@ import com.avail.descriptor.ObjectDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 
-@ObjectSlots("fieldMap")
 public class ObjectDescriptor extends Descriptor
 {
+
+	enum ObjectSlots
+	{
+		fieldMap
+	}
 
 
 	// GENERATED accessors
@@ -54,7 +58,7 @@ public class ObjectDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.fieldMap, value);
 	}
 
 	/**
@@ -64,7 +68,7 @@ public class ObjectDescriptor extends Descriptor
 	public AvailObject ObjectFieldMap (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.fieldMap);
 	}
 
 

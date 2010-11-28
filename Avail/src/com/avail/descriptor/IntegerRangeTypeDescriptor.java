@@ -40,13 +40,19 @@ import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots("inclusiveFlags")
-@ObjectSlots({
-	"lowerBound",
-	"upperBound"
-})
 public class IntegerRangeTypeDescriptor extends TypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		inclusiveFlags
+	}
+
+	enum ObjectSlots
+	{
+		lowerBound,
+		upperBound
+	}
 
 
 	// GENERATED accessors
@@ -59,7 +65,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.inclusiveFlags, value);
 	}
 
 	/**
@@ -70,7 +76,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.lowerBound, value);
 	}
 
 	/**
@@ -81,7 +87,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.upperBound, value);
 	}
 
 	/**
@@ -91,7 +97,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public int ObjectInclusiveFlags (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.inclusiveFlags);
 	}
 
 	/**
@@ -101,7 +107,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.lowerBound);
 	}
 
 	/**
@@ -111,7 +117,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.upperBound);
 	}
 
 

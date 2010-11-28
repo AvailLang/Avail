@@ -45,9 +45,13 @@ import java.util.Iterator;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-@ObjectSlots("rootBin")
 public class SetDescriptor extends Descriptor
 {
+
+	enum ObjectSlots
+	{
+		rootBin
+	}
 
 
 	// GENERATED accessors
@@ -60,7 +64,7 @@ public class SetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.rootBin, value);
 	}
 
 	/**
@@ -70,7 +74,7 @@ public class SetDescriptor extends Descriptor
 	public AvailObject ObjectRootBin (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.rootBin);
 	}
 
 

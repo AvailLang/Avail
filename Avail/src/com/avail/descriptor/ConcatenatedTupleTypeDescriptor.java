@@ -41,12 +41,14 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import static java.lang.Math.*;
 
-@ObjectSlots({
-	"firstTupleType",
-	"secondTupleType"
-})
 public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		firstTupleType,
+		secondTupleType
+	}
 
 
 	// GENERATED accessors
@@ -59,7 +61,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.firstTupleType, value);
 	}
 
 	/**
@@ -70,7 +72,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.secondTupleType, value);
 	}
 
 	/**
@@ -80,7 +82,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectFirstTupleType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.firstTupleType);
 	}
 
 	/**
@@ -90,7 +92,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSecondTupleType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.secondTupleType);
 	}
 
 

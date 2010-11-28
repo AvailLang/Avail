@@ -40,9 +40,13 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
 
-@IntegerSlots("rawSignedIntegerAt#")
 public class IntegerDescriptor extends ExtendedNumberDescriptor
 {
+
+	enum IntegerSlots
+	{
+		rawSignedIntegerAt_
+	}
 
 
 	// GENERATED accessors

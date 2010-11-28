@@ -49,14 +49,16 @@ import java.util.ArrayList;
 import java.util.List;
 import static java.lang.Math.*;
 
-@ObjectSlots({
-	"implementationsTuple",
-	"privateTestingTree",
-	"dependentChunks",
-	"name"
-})
 public class ImplementationSetDescriptor extends Descriptor
 {
+
+	enum ObjectSlots
+	{
+		implementationsTuple,
+		privateTestingTree,
+		dependentChunks,
+		name
+	}
 
 
 	// GENERATED accessors
@@ -69,7 +71,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.dependentChunks, value);
 	}
 
 	/**
@@ -80,7 +82,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.implementationsTuple, value);
 	}
 
 	/**
@@ -91,7 +93,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-16, value);
+		object.objectSlotPut(ObjectSlots.name, value);
 	}
 
 	/**
@@ -102,7 +104,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.privateTestingTree, value);
 	}
 
 	/**
@@ -112,7 +114,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectDependentChunks (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.dependentChunks);
 	}
 
 	/**
@@ -122,7 +124,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectImplementationsTuple (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.implementationsTuple);
 	}
 
 	/**
@@ -132,7 +134,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-16);
+		return object.objectSlot(ObjectSlots.name);
 	}
 
 	/**
@@ -142,7 +144,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectPrivateTestingTree (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.privateTestingTree);
 	}
 
 

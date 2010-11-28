@@ -53,9 +53,13 @@ import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 import static java.util.Collections.*;
 
-@IntegerSlots("hashOrZero")
 public abstract class TupleDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		hashOrZero
+	}
 
 
 	// GENERATED accessors
@@ -68,7 +72,7 @@ public abstract class TupleDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hashOrZero, value);
 	}
 
 	/**
@@ -78,7 +82,7 @@ public abstract class TupleDescriptor extends Descriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hashOrZero);
 	}
 
 

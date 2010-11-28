@@ -39,13 +39,15 @@ import com.avail.descriptor.MapTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@ObjectSlots({
-	"sizeRange",
-	"keyType",
-	"valueType"
-})
 public class MapTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		sizeRange,
+		keyType,
+		valueType
+	}
 
 
 	// GENERATED accessors
@@ -58,7 +60,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.keyType, value);
 	}
 
 	/**
@@ -69,7 +71,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.sizeRange, value);
 	}
 
 	/**
@@ -80,7 +82,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.valueType, value);
 	}
 
 	/**
@@ -90,7 +92,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.keyType);
 	}
 
 	/**
@@ -100,7 +102,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.sizeRange);
 	}
 
 	/**
@@ -110,7 +112,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.valueType);
 	}
 
 

@@ -44,12 +44,14 @@ import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 
-@IntegerSlots({
-	"hashOrZero",
-	"rawQuadAt#"
-})
 public class TwoByteStringDescriptor extends TupleDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hashOrZero,
+		rawQuadAt_
+	}
 	int unusedShortsOfLastWord;
 
 

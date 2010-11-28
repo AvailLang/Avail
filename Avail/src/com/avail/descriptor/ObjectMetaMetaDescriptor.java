@@ -35,9 +35,13 @@ package com.avail.descriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 
-@ObjectSlots("myObjectMeta")
 public class ObjectMetaMetaDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		myObjectMeta
+	}
 
 
 	// GENERATED accessors
@@ -50,7 +54,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.myObjectMeta, value);
 	}
 
 	/**
@@ -60,7 +64,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	public AvailObject ObjectMyObjectMeta (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.myObjectMeta);
 	}
 
 

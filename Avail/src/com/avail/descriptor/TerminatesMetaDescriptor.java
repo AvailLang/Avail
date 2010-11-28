@@ -34,14 +34,20 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
 
-@IntegerSlots("hash")
-@ObjectSlots({
-	"name",
-	"parent",
-	"myType"
-})
 public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hash
+	}
+
+	enum ObjectSlots
+	{
+		name,
+		parent,
+		myType
+	}
 
 
 	// operations-types

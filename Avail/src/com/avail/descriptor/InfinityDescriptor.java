@@ -42,9 +42,13 @@ import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots("whichOne")
 public class InfinityDescriptor extends ExtendedNumberDescriptor
 {
+
+	enum IntegerSlots
+	{
+		whichOne
+	}
 
 
 	// GENERATED accessors
@@ -57,7 +61,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.whichOne, value);
 	}
 
 	/**
@@ -67,7 +71,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	public int ObjectWhichOne (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.whichOne);
 	}
 
 

@@ -38,10 +38,18 @@ import com.avail.descriptor.LinearSetBinDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import static java.lang.Integer.*;
 
-@IntegerSlots("binHash")
-@ObjectSlots("binElementAt#")
 public class LinearSetBinDescriptor extends SetBinDescriptor
 {
+
+	enum IntegerSlots
+	{
+		binHash
+	}
+
+	enum ObjectSlots
+	{
+		binElementAt_
+	}
 
 
 	// GENERATED accessors
@@ -75,7 +83,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.binHash, value);
 	}
 
 	/**
@@ -85,7 +93,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.binHash);
 	}
 
 

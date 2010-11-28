@@ -37,9 +37,13 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.AvailInterpreter;
 import java.util.List;
 
-@ObjectSlots("signature")
 public class ForwardSignatureDescriptor extends SignatureDescriptor
 {
+
+	enum ObjectSlots
+	{
+		signature
+	}
 
 
 	// accessing
@@ -102,7 +106,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.signature, value);
 	}
 
 	/**
@@ -112,7 +116,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.signature);
 	}
 
 

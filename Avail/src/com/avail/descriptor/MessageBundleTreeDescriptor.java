@@ -62,10 +62,9 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-		//
-		//  This should never be used as a key, but using it as a map value requires its hash
-		//  value to be available for computing the map's own hash value.
+		// Answer a 32-bit hash value.  This should never be used as a key, but
+		// using it as a map value requires its hash value to be available for
+		// computing the map's own hash value.
 
 		return 0;
 	}

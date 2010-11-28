@@ -43,9 +43,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-@ObjectSlots("target")
 public class IndirectionDescriptor extends AbstractDescriptor
 {
+
+	enum ObjectSlots
+	{
+		target
+	}
 
 
 	// GENERATED accessors
@@ -58,7 +62,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.target, value);
 	}
 
 	/**
@@ -68,7 +72,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public AvailObject ObjectTarget (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.target);
 	}
 
 

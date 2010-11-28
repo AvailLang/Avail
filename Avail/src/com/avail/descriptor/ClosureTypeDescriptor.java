@@ -39,13 +39,19 @@ import com.avail.descriptor.TypeDescriptor;
 import java.util.ArrayList;
 import java.util.List;
 
-@IntegerSlots("hashOrZero")
-@ObjectSlots({
-	"returnType",
-	"argTypeAt#"
-})
 public class ClosureTypeDescriptor extends TypeDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hashOrZero
+	}
+
+	enum ObjectSlots
+	{
+		returnType,
+		argTypeAt_
+	}
 
 
 	// GENERATED accessors
@@ -79,7 +85,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hashOrZero, value);
 	}
 
 	/**
@@ -90,7 +96,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.returnType, value);
 	}
 
 	/**
@@ -100,7 +106,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hashOrZero);
 	}
 
 	/**
@@ -110,7 +116,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.returnType);
 	}
 
 

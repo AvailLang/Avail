@@ -38,17 +38,21 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import static java.lang.Integer.*;
 
-@IntegerSlots({
-	"binHash",
-	"binSize",
-	"bitVector"
-})
-@ObjectSlots({
-	"binUnionType",
-	"binElementAt#"
-})
 public class HashedSetBinDescriptor extends SetBinDescriptor
 {
+
+	enum IntegerSlots
+	{
+		binHash,
+		binSize,
+		bitVector
+	}
+
+	enum ObjectSlots
+	{
+		binUnionType,
+		binElementAt_
+	}
 
 
 	// GENERATED accessors
@@ -82,7 +86,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.binHash, value);
 	}
 
 	/**
@@ -93,7 +97,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(8, value);
+		object.integerSlotPut(IntegerSlots.binSize, value);
 	}
 
 	/**
@@ -104,7 +108,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.binUnionType, value);
 	}
 
 	/**
@@ -115,7 +119,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(12, value);
+		object.integerSlotPut(IntegerSlots.bitVector, value);
 	}
 
 	/**
@@ -125,7 +129,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.binHash);
 	}
 
 	/**
@@ -135,7 +139,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBinSize (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(8);
+		return object.integerSlot(IntegerSlots.binSize);
 	}
 
 	/**
@@ -145,7 +149,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.binUnionType);
 	}
 
 	/**
@@ -155,7 +159,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBitVector (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(12);
+		return object.integerSlot(IntegerSlots.bitVector);
 	}
 
 

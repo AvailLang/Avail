@@ -39,13 +39,15 @@ import com.avail.interpreter.AvailInterpreter;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-@ObjectSlots({
-	"bodyBlock",
-	"requiresBlock",
-	"returnsBlock"
-})
 public class MethodSignatureDescriptor extends SignatureDescriptor
 {
+
+	enum ObjectSlots
+	{
+		bodyBlock,
+		requiresBlock,
+		returnsBlock
+	}
 
 
 	// accessing
@@ -117,7 +119,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.bodyBlock, value);
 	}
 
 	/**
@@ -128,7 +130,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.requiresBlock, value);
 	}
 
 	/**
@@ -139,7 +141,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.returnsBlock, value);
 	}
 
 	/**
@@ -149,7 +151,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectBodyBlock (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.bodyBlock);
 	}
 
 	/**
@@ -159,7 +161,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectRequiresBlock (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.requiresBlock);
 	}
 
 	/**
@@ -169,7 +171,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.returnsBlock);
 	}
 
 

@@ -39,13 +39,19 @@ import com.avail.descriptor.VoidDescriptor;
 import java.util.Random;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots("hashOrZero")
-@ObjectSlots({
-	"value",
-	"type"
-})
 public class ContainerDescriptor extends Descriptor
 {
+
+	enum IntegerSlots
+	{
+		hashOrZero
+	}
+
+	enum ObjectSlots
+	{
+		value,
+		type
+	}
 
 
 	// GENERATED accessors
@@ -58,7 +64,7 @@ public class ContainerDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotAtByteIndexPut(4, value);
+		object.integerSlotPut(IntegerSlots.hashOrZero, value);
 	}
 
 	/**
@@ -69,7 +75,7 @@ public class ContainerDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.type, value);
 	}
 
 	/**
@@ -80,7 +86,7 @@ public class ContainerDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.value, value);
 	}
 
 	/**
@@ -90,7 +96,7 @@ public class ContainerDescriptor extends Descriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlotAtByteIndex(4);
+		return object.integerSlot(IntegerSlots.hashOrZero);
 	}
 
 	/**
@@ -100,7 +106,7 @@ public class ContainerDescriptor extends Descriptor
 	public AvailObject ObjectType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.type);
 	}
 
 	/**
@@ -110,7 +116,7 @@ public class ContainerDescriptor extends Descriptor
 	public AvailObject ObjectValue (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.value);
 	}
 
 

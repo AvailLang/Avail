@@ -39,10 +39,18 @@ import com.avail.descriptor.SpliceTupleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import static com.avail.descriptor.AvailObject.*;
 
-@IntegerSlots("hashOrZero")
-@ObjectSlots("tupleAt#")
 public class ObjectTupleDescriptor extends TupleDescriptor
 {
+
+	enum IntegerSlots
+	{
+		hashOrZero
+	}
+
+	enum ObjectSlots
+	{
+		tupleAt_
+	}
 
 
 	// GENERATED accessors

@@ -39,13 +39,15 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
 import java.util.List;
 
-@ObjectSlots({
-	"message",
-	"messageParts",
-	"myRestrictions"
-})
 public class MessageBundleDescriptor extends Descriptor
 {
+
+	enum ObjectSlots
+	{
+		message,
+		messageParts,
+		myRestrictions
+	}
 
 
 	// accessing
@@ -165,7 +167,7 @@ public class MessageBundleDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.message, value);
 	}
 
 	/**
@@ -176,7 +178,7 @@ public class MessageBundleDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-8, value);
+		object.objectSlotPut(ObjectSlots.messageParts, value);
 	}
 
 	/**
@@ -187,7 +189,7 @@ public class MessageBundleDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-12, value);
+		object.objectSlotPut(ObjectSlots.myRestrictions, value);
 	}
 
 	/**
@@ -197,7 +199,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject ObjectMessage (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.message);
 	}
 
 	/**
@@ -207,7 +209,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject ObjectMessageParts (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-8);
+		return object.objectSlot(ObjectSlots.messageParts);
 	}
 
 	/**
@@ -217,7 +219,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject ObjectMyRestrictions (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-12);
+		return object.objectSlot(ObjectSlots.myRestrictions);
 	}
 
 

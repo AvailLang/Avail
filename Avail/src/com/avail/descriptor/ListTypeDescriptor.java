@@ -37,9 +37,13 @@ import com.avail.descriptor.ListTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
-@ObjectSlots("tupleType")
 public class ListTypeDescriptor extends TypeDescriptor
 {
+
+	enum ObjectSlots
+	{
+		tupleType
+	}
 
 
 	// GENERATED accessors
@@ -52,7 +56,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotAtByteIndexPut(-4, value);
+		object.objectSlotPut(ObjectSlots.tupleType, value);
 	}
 
 	/**
@@ -62,7 +66,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
-		return object.objectSlotAtByteIndex(-4);
+		return object.objectSlot(ObjectSlots.tupleType);
 	}
 
 
