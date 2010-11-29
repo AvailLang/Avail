@@ -45,21 +45,16 @@ import com.avail.visitor.AvailSubobjectVisitor;
 public abstract class AvailObject
 implements Iterable<AvailObject>
 {
-	// gc helpers
-
-	public AvailObject saveOrForward ()
-	{
-		//  The object is in FromSpace.  If its slotsSize is >= 32768, it represents a forwarding
-		//  pointer into ToSpace (and the pointer is in the first slot).  Otherwise, save the
-		//  object as per GCReadBarrierDescriptor class>>documentation.
-
-		error("Subclass responsibility: saveOrForward in Avail.AvailObject");
-		return VoidDescriptor.voidObject();
-	}
+	/**
+	 * Obsolete -- was used by the garbage collector in the Smalltalk version.
+	 * 
+	 * The object is in FromSpace.  If its slotsSize is >= 32768, it represents
+	 * a forwarding pointer into ToSpace (and the pointer is in the first slot).
+	 * Otherwise, save the object as described in GCReadBarrierDescriptor.
+	 */
+	abstract public AvailObject saveOrForward ();
 
 
-
-	// GENERATED methods
 
 	/**
 	 * Dispatch to the descriptor.
@@ -5161,16 +5156,11 @@ implements Iterable<AvailObject>
 	 *               AvailObject} should be printed.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public void printOnAvoidingIndent (
+	abstract public void printOnAvoidingIndent (
 		final @NotNull StringBuilder builder,
 		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		error(
-			"Subclass responsibility: printOnAvoidingIndent() in "
-			+ getClass().getCanonicalName());
-		return;
-	}
+		final int indent);
+
 
 	@Override
 	public String toString ()
@@ -5189,6 +5179,7 @@ implements Iterable<AvailObject>
 		assert recursionList.size() == 0;
 		return stringBuilder.toString();
 	}
+
 
 
 
@@ -5214,13 +5205,6 @@ implements Iterable<AvailObject>
 		return another.descriptor().ObjectLessOrEqual(another, this);
 	}
 
-	public int size ()
-	{
-		//  Catch this because it's defined uselessly in Object.
-
-		return descriptor().ObjectSize(this);
-	}
-
 
 
 	// primitive accessing
@@ -5235,7 +5219,8 @@ implements Iterable<AvailObject>
 	public void assertObjectUnreachableIfMutableExcept (
 		final AvailObject exceptMe)
 	{
-		//  Set up the object to report nice obvious errors if anyone ever accesses it again.
+		// Set up the object to report nice obvious errors if anyone ever
+		// accesses it again.
 
 		checkValidAddress();
 		if (!descriptor().isMutable())
@@ -5258,164 +5243,169 @@ implements Iterable<AvailObject>
 		return;
 	}
 
-	public void becomeIndirectionTo (
-		final AvailObject anotherObject)
-	{
-		//  Turn me into an indirection to anotherObject.  WARNING: This alters my slots and descriptor.
+	/**
+	 * Turn me into an indirection to anotherObject.  WARNING: This alters my
+	 * slots and descriptor.
+	 */
+	abstract public void becomeIndirectionTo (
+		final AvailObject anotherObject);
 
-		error("Subclass responsibility: becomeIndirectionTo: in Avail.AvailObject");
-		return;
-	}
+	
+	abstract public short byteSlotAtByteIndex (
+		final int index);
+	
 
-	public short byteSlotAtByteIndex (
-		final int index)
-	{
-		//  Extract the byte at the given byte-index.
-
-		error("Subclass responsibility: byteSlotAtByteIndex: in Avail.AvailObject");
-		return 0;
-	}
-
-	public void byteSlotAtByteIndexPut (
+	abstract public void byteSlotAtByteIndexPut (
 		final int index,
-		final short aByte)
-	{
-		//  Store the byte at the given byte-index.
+		final short aByte);
 
-		error("Subclass responsibility: byteSlotAtByteIndex:put: in Avail.AvailObject");
-		return;
-	}
 
-	public void checkValidAddress ()
-	{
-		//  Check if my address is valid.  Fail if it's outside all the current pages.
+	/**
+	 * Sanity check the object's address.  Fail if it's outside all the current
+	 * pages.  Does nothing for AvailObjectUsingArrays.
+	 */
+	abstract public void checkValidAddress ();
 
-		error("Subclass responsibility: checkValidAddress in Avail.AvailObject");
-		return;
-	}
 
-	public void checkValidAddressWithByteIndex (
-		final int byteIndex)
-	{
-		//  Check if my address is valid.  Fail if it's outside all the current pages.
+	/**
+	 * Check if my address is valid.  Fail if it's outside all the current
+	 * pages.  Does nothing for AvailObjectUsingArrays.
+	 * 
+	 * @param byteIndex The byte-offset to apply during the check.
+	 */
+	abstract public void checkValidAddressWithByteIndex (
+		final int byteIndex);
 
-		error("Subclass responsibility: checkValidAddressWithByteIndex: in Avail.AvailObject");
-		return;
-	}
-
+	
 	public void checkWriteAtByteIndex (
 		final int index)
 	{
 		descriptor().checkWriteAtByteIndex(index);
 	}
 
-	public AbstractDescriptor descriptor ()
-	{
-		error("Subclass responsibility: descriptor in Avail.AvailObject");
-		return null;
-	}
-
-	public void descriptor (
-		final AbstractDescriptor aDescriptor)
-	{
-		error("Subclass responsibility: descriptor: in Avail.AvailObject");
-		return;
-	}
-
-	public short descriptorId ()
-	{
-		error("Subclass responsibility: descriptorId in Avail.AvailObject");
-		return 0;
-	}
-
-	public void descriptorId (
-		final short anInteger)
-	{
-		error("Subclass responsibility: descriptorId: in Avail.AvailObject");
-		return;
-	}
-
-	public int integerSlot (
-		final Enum<?> e)
-	{
-		//  Extract the (unsigned 32-bit) integer at the given byte-index.
-
-		error("Subclass responsibility: integerSlotAtByteIndex: in Avail.AvailObject");
-		return 0;
-	}
-
-	public void integerSlotPut (
-		final Enum<?> e,
-		final int anInteger)
-	{
-		//  Store the (unsigned 32-bit) integer in the four bytes starting at the given byte-index.
-
-		error("Subclass responsibility: integerSlotAtByteIndex:put: in Avail.AvailObject");
-		return;
-	}
-
-	public int integerSlotsCount ()
-	{
-		error("Subclass responsibility: integerSlotsCount in Avail.AvailObject");
-		return 0;
-	}
-
-	public boolean isDestroyed ()
-	{
-		checkValidAddress();
-		return descriptorId() == FillerDescriptor.mutableDescriptor().id();
-	}
-
-	public AvailObject objectSlot (
-		final Enum<?> e)
-	{
-		//  Store the object at the given byte-index.
-
-		error("Subclass responsibility: objectSlotAtByteIndex: in Avail.AvailObject");
-		return VoidDescriptor.voidObject();
-	}
-
-	public void objectSlotPut (
-			final Enum<?> e,
-			final AvailObject anAvailObject)
-	{
-		//  Store the object at the given byte-index.
-
-		error("Subclass responsibility: objectSlotAtByteIndex:put: in Avail.AvailObject");
-		return;
-	}
-
-	public int objectSlotsCount ()
-	{
-		error("Subclass responsibility: objectSlotsCount in Avail.AvailObject");
-		return 0;
-	}
+	
+	abstract public AbstractDescriptor descriptor ();
 
 	
-	@Deprecated public int integerSlotAtByteIndex (
-		final int index)
-	{
-		//  Extract the (unsigned 32-bit) integer at the given byte-index.
+	abstract public void descriptor (
+		final AbstractDescriptor aDescriptor);
 
-		error("Subclass responsibility: integerSlotAtByteIndex: in Avail.AvailObject");
-		return 0;
-	}
 
-	@Deprecated public void integerSlotAtByteIndexPut (
-		final int index,
-		final int anInteger)
-	{
-		//  Store the (unsigned 32-bit) integer in the four bytes starting at the given byte-index.
+	abstract public short descriptorId ();
 
-		error("Subclass responsibility: integerSlotAtByteIndex:put: in Avail.AvailObject");
-		return;
-	}
+	
+	abstract public void descriptorId (
+		final short anInteger);
 
+
+	abstract public int integerSlotsCount ();
+
+
+
+	/**
+	 * Extract the (signed 32-bit) integer for the given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return An int extracted from this AvailObject.
+	 */
+	abstract public int integerSlot (
+		final Enum<?> e);
+
+
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anInteger An int to store in the indicated slot of the receiver.
+	 */
+	abstract public void integerSlotPut (
+		final Enum<?> e,
+		final int anInteger);
+
+
+	/**
+	 * Extract the (signed 32-bit) integer at the given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return An int extracted from this AvailObject.
+	 */
+	abstract public int integerSlotAt (
+		final Enum<?> e,
+		final int subscript);
+
+
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anInteger An int to store in the indicated slot of the receiver.
+	 */
+	abstract public void integerSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final int anInteger);
+
+
+	abstract public int objectSlotsCount ();
+
+
+
+	/**
+	 * Store the AvailObject in the receiver at the given byte-index.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return The AvailObject found at the specified slot in the receiver. 
+	 */
+	abstract public AvailObject objectSlot (
+		final Enum<?> e);
+
+	
+	/**
+	 * Store the AvailObject in the specified slot of the receiver.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anAvailObject The AvailObject to store at the specified slot.
+	 */
+	abstract public void objectSlotPut (
+			final Enum<?> e,
+			final AvailObject anAvailObject);
+
+	
+	/**
+	 * Extract the AvailObject at the specified slot of the receiver.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return The AvailObject found at the specified slot in the receiver.
+	 */
+	abstract public AvailObject objectSlotAt (
+		final Enum<?> e,
+		final int subscript);
+
+
+	/**
+	 * Store the AvailObject in the specified slot of the receiver.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The AvailObject to store at the specified slot.
+	 */
+	abstract public void objectSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final AvailObject anAvailObject);
+
+
+	
 	@Deprecated public AvailObject objectSlotAtByteIndex (
 		final int index)
 	{
 		//  Extract the object at the given byte-index.  It must be an object.
-
+		//TODO: Delete me when unused
 		error("Subclass responsibility: objectSlotAtByteIndex: in Avail.AvailObject");
 		return VoidDescriptor.voidObject();
 	}
@@ -5425,87 +5415,96 @@ implements Iterable<AvailObject>
 		final AvailObject anAvailObject)
 	{
 		//  Store the object at the given byte-index.
-
+		//TODO: Delete me when unused
 		error("Subclass responsibility: objectSlotAtByteIndex:put: in Avail.AvailObject");
 		return;
 	}
 
-	public boolean sameAddressAs (
-		final AvailObject anotherObject)
+	public boolean isDestroyed ()
 	{
-		//  Answer whether the objects occupy the same memory addresses.
-
-		error("Subclass responsibility: sameAddressAs: in Avail.AvailObject");
-		return false;
+		checkValidAddress();
+		return descriptorId() == FillerDescriptor.mutableDescriptor().id();
 	}
 
+
+
+	/**
+	 * Answer whether the objects occupy the same memory addresses.
+	 * 
+	 * @param anotherObject The object to compare the receiver's address to.
+	 * @return Whether the objects occupy the same storage.
+	 */
+	abstract public boolean sameAddressAs (
+		final AvailObject anotherObject);
+
+	
+	/**
+	 * Replace my descriptor field with a FillerDescriptor.  This blows up for
+	 * most messages, catching incorrect (all, by definition) further
+	 * accidental uses of this object.
+	 */
 	public void setToInvalidDescriptor ()
 	{
-		//  Replace my descriptor field with a FillerDescriptor.  This blows up for most messages, catching
-		//  incorrect (all, by definition) further uses of this object.
-
 		verifyToSpaceAddress();
 		descriptor(FillerDescriptor.mutableDescriptor());
 	}
 
-	public short shortSlotAtByteIndex (
-		final int index)
-	{
-		//  Extract the 16-bit signed integer at the given byte-index.
+	
+	/**
+	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
+	 * 
+	 * @param index The index in bytes (must be even).
+	 * @return The short found at the given byte-index.
+	 */
+	@Deprecated
+	abstract public short shortSlotAtByteIndex (
+		final int index);
 
-		error("Subclass responsibility: shortSlotAtByteIndex: in Avail.AvailObject");
-		return 0;
-	}
-
-	public void shortSlotAtByteIndexPut (
+	/**
+	 * Store the (16-bit signed) short at the given byte-index of the receiver.
+	 * 
+	 * @param index The index in bytes (must be even).
+	 * @param aShort The short to store at the given byte-index.
+	 */
+	@Deprecated
+	abstract public void shortSlotAtByteIndexPut (
 		final int index,
-		final short aShort)
-	{
-		//  Store the byte at the given byte-index.
+		final short aShort);
 
-		error("Subclass responsibility: shortSlotAtByteIndex:put: in Avail.AvailObject");
-		return;
-	}
+	
+	/**
+	 * Slice the current object into two objects, the left one (at the same
+	 * starting address as the input), and the right one (a Filler object that
+	 * nobody should ever create a pointer to).  The new Filler can have zero
+	 * post-header slots (i.e., just the header), but the left object must not,
+	 * since it may turn into an Indirection some day and will require at least
+	 * one slot for the target pointer.
+	 * 
+	 * @param newSlotsCount The number of slots in the left object.
+	 */
+	abstract public void truncateWithFillerForNewIntegerSlotsCount (
+		final int newSlotsCount);
 
-	public void truncateWithFillerForNewIntegerSlotsCount (
-		final int newSlotsCount)
-	{
-		//  Slice the current object into two objects, the left one (at the same starting
-		//  address as the input), and the right one (a Filler object that nobody should
-		//  ever create a pointer to).  The new Filler can have zero post-header slots
-		//  (i.e., just the header), but the left object must not, since it may turn into an
-		//  Indirection some day and will require at least one slot for the target pointer.
+	
+	/**
+	 * Slice the current object into two parts, one of which is a Filler object
+	 * and is never referred to directly (so doesn't need any slots for becoming
+	 * an indirection).
+	 */
+	abstract public void truncateWithFillerForNewObjectSlotsCount (
+		final int newSlotsCount);
 
-		error("Subclass responsibility: truncateWithFillerForNewIntegerSlotsCount: in Avail.AvailObject");
-		return;
-	}
 
-	public void truncateWithFillerForNewObjectSlotsCount (
-		final int newSlotsCount)
-	{
-		//  Slice the current object into two parts, one of which is a Filler object and
-		//  is never refered to directly (so doesn't need any slots for becoming an
-		//  indirection.
+	/**
+	 * Check that my address is a valid pointer to FromSpace.
+	 */
+	abstract public void verifyFromSpaceAddress ();
 
-		error("Subclass responsibility: truncateWithFillerForNewObjectSlotsCount: in Avail.AvailObject");
-		return;
-	}
-
-	public void verifyFromSpaceAddress ()
-	{
-		//  Check that my address is a valid pointer to FromSpace.
-
-		error("Subclass responsibility: verifyFromSpaceAddress in Avail.AvailObject");
-		return;
-	}
-
-	public void verifyToSpaceAddress ()
-	{
-		//  Check that my address is a valid pointer to ToSpace.
-
-		error("Subclass responsibility: verifyToSpaceAddress in Avail.AvailObject");
-		return;
-	}
+	
+	/**
+	 * Check that my address is a valid pointer to ToSpace.
+	 */
+	abstract public void verifyToSpaceAddress ();
 
 
 
@@ -5518,6 +5517,7 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectHash(this);
 	}
 
+	
 	/**
 	 * Dispatch to the descriptor.
 	 */

@@ -140,14 +140,10 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
-		//  GENERATED special mutable slots method.
-
 		if (index == -4)
 		{
 			return true;
@@ -354,17 +350,24 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 
 
-
-	/* Object creation */
+	/**
+	 * Create a new message bundle tree, but don't yet break down the messages
+	 * and categorize them into complete/incomplete.  That will happen on
+	 * demand during parsing.
+	 * 
+	 * @param depth A common index into each eligible message's messageParts.
+	 * @return The new unexpanded, empty message bundle tree.
+	 */
 	public static AvailObject newDepth(int depth)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(
 			0,
-			UnexpandedMessageBundleTreeDescriptor.immutableDescriptor());
+			UnexpandedMessageBundleTreeDescriptor.mutableDescriptor());
 		result.unclassified(MapDescriptor.empty());
 		result.pad1(VoidDescriptor.voidObject());
 		result.pad2(VoidDescriptor.voidObject());
 		result.depth(depth);
+		result.makeImmutable();
 		return result;
 	};
 

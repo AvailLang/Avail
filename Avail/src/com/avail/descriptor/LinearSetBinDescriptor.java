@@ -57,22 +57,20 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	@Override
 	public AvailObject ObjectBinElementAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + 0));
+		return object.objectSlotAt(ObjectSlots.binElementAt_, subscript);
 	}
 
 	@Override
 	public void ObjectBinElementAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
 
-		object.objectSlotAtByteIndexPut(((index * -4) + 0), value);
+		object.objectSlotAtPut(ObjectSlots.binElementAt_, subscript, value);
 	}
 
 	/**

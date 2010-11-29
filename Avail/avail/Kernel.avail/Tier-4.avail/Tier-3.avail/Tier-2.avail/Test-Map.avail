@@ -54,5 +54,6 @@ cat := ["sound"->"meow"]["height"->"1 foot"];
 cat := cat["age"->"one"];
 cat := cat["age"->"two"];
 
-
+Assert cat keys = {"sound", "height", "age"};
+Assert cat values as set = {"meow", "1 foot", "two"};
 

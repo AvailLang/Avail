@@ -40,22 +40,22 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 	final AvailObject _exceptMe;
 
 
-	// iteration
-
+	/**
+	 * This is a visitor call from a subobject iterator running on some object.
+	 * The subobject can be extracted at the given byte of the parent object.
+	 */
 	@Override
-	public void invokeWithParentIndex (
+	public void invoke (
 			final AvailObject parentObject,
 			final int byteIndexInParent)
 	{
-		//  This is a visitor call from a subobject iterator running on some object.  The subobject
-		//  can be extracted at the given byte of the parent object.
-
 		if (!CanDestroyObjects())
 		{
 			error("Don't invoke this if destructions are disallowed");
 			return;
 		}
-		final AvailObject subobject = parentObject.objectSlotAtByteIndex(byteIndexInParent);
+		final AvailObject subobject =
+			parentObject.objectSlotAtByteIndex(byteIndexInParent);
 		if (!subobject.descriptor().isMutable())
 		{
 			return;
@@ -64,15 +64,24 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 		{
 			return;
 		}
-		//  The excluded object was reached.
+		// The excluded object was reached.
 		//
-		//  Recursively invoke the iterator on the subobjects of subobject...
+		// Recursively invoke the iterator on the subobjects of subobject...
 		subobject.scanSubobjects(this);
-		//  Indicate the object is no longer valid and should not ever be used again.
+		// Indicate the object is no longer valid and should not ever be used
+		// again.
 		subobject.setToInvalidDescriptor();
 	}
 
 
+	/**
+	 * Construct a new {@link AvailMarkUnreachableSubobjectVisitor}.
+	 *
+	 * @param excludedObject
+	 *        The object within which to <em>avoid</em> marking subobjects as
+	 *        unreachable.  Use VoidDescriptor.voidObject() if no such object
+	 *        is necessary, as it's always already immutable.
+	 */
 	public AvailMarkUnreachableSubobjectVisitor (AvailObject excludedObject)
 	{
 		_exceptMe = excludedObject;

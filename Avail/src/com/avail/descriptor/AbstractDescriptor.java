@@ -3619,12 +3619,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int ObjectSize (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract AvailObject ObjectSizeRange (final AvailObject object);
 
 	/**
@@ -4469,7 +4463,8 @@ public abstract class AbstractDescriptor
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
 	 */
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (final int index)
+	public boolean allowsImmutableToMutableReferenceAtByteIndex (
+		final int index)
 	{
 		return false;
 	}
@@ -4547,21 +4542,24 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			int n = Math.min(i, instances.length) - 1;
-			String slotName = instances[n].name();
+			int ordinal = Math.min(i, instances.length) - 1;
+			Enum<?> slot = instances[ordinal];
+			String slotName = slot.name();
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
+				int subscript = i - instances.length + 1;
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
-				builder.append(i - instances.length + 1);
-				builder.append(']');
+				builder.append(subscript);
+				builder.append("] = ");
+				builder.append(object.integerSlotAt(slot, subscript));
 			}
 			else
 			{
 				builder.append(slotName);
+				builder.append(" = ");
+				builder.append(object.integerSlot(slot));
 			}
-			builder.append(" = ");
-			builder.append(object.integerSlotAtByteIndex(i << 2));
 		}
 
 		try
@@ -4577,7 +4575,6 @@ public abstract class AbstractDescriptor
 			? enumClass.getEnumConstants()
 			: new Enum<?>[0];
 
-		
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{
 			builder.append('\n');
@@ -4585,26 +4582,34 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			int n = Math.min(i, instances.length) - 1;
-			String slotName = instances[n].name();
+			int ordinal = Math.min(i, instances.length) - 1;
+			Enum<?> slot = instances[ordinal];
+			String slotName = slot.name();
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
+				int subscript = i - instances.length + 1;
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
-				builder.append(i - instances.length + 1);
-				builder.append(']');
+				builder.append(subscript);
+				builder.append("] = ");
+				object.objectSlotAt(slot, subscript).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
 			}
 			else
 			{
 				builder.append(slotName);
+				builder.append(" = ");
+				object.objectSlot(slot).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
 			}
-			builder.append(" = ");
-			(object.objectSlotAtByteIndex(-(i << 2))).printOnAvoidingIndent(
-				builder, recursionList, indent + 1);
 		}
 	}
 
-	public void checkWriteAtByteIndex (final int index)
+	public final void checkWriteAtByteIndex (final int index)
 	{
 		if (isMutable())
 		{

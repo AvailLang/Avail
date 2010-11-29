@@ -6817,20 +6817,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int ObjectSize (
-			final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("ObjectSize:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
@@ -8356,7 +8342,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		for (int byteIndex = -4, _end1 = object.objectSlotsCount() * -4; byteIndex >= _end1; byteIndex -= 4)
 		{
-			visitor.invokeWithParentIndex(object, byteIndex);
+			visitor.invoke(object, byteIndex);
 		}
 	}
 

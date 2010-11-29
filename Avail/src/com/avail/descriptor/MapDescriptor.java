@@ -53,27 +53,23 @@ public class MapDescriptor extends Descriptor
 	{
 		dataAtIndex_
 	}
-	// GENERATED accessors
+
 
 	@Override
 	public AvailObject ObjectDataAtIndex (
 		final AvailObject object,
-		final int index)
+		final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + 0));
+		return object.objectSlotAt(ObjectSlots.dataAtIndex_, subscript);
 	}
 
 	@Override
 	public void ObjectDataAtIndexPut (
 		final AvailObject object,
-		final int index,
+		final int subscript,
 		final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.objectSlotAtByteIndexPut(((index * -4) + 0), value);
+		object.objectSlotAtPut(ObjectSlots.dataAtIndex_, subscript, value);
 	}
 
 	/**
@@ -516,17 +512,20 @@ public class MapDescriptor extends Descriptor
 		return result;
 	}
 
+	/**
+	 * Answer a tuple with all my values.  Mark the values as immutable because
+	 * they'll be shared with the new tuple.
+	 */
 	@Override
 	public AvailObject ObjectValuesAsTuple (
 		final AvailObject object)
 	{
-		//  Answer a tuple with all my values.  Mark the values as immutable because they'll be shared with the new
-		//  tuple.
-
-		final AvailObject result = AvailObject.newIndexedDescriptor(object.size(), ObjectTupleDescriptor.mutableDescriptor());
+		final AvailObject result = AvailObject.newIndexedDescriptor(
+			object.mapSize(),
+			ObjectTupleDescriptor.mutableDescriptor());
 		AvailObject.lock(result);
 		CanAllocateObjects(false);
-		for (int i = 1, _end1 = object.size(); i <= _end1; i++)
+		for (int i = 1, _end1 = object.mapSize(); i <= _end1; i++)
 		{
 			result.tupleAtPut(i, VoidDescriptor.voidObject());
 		}
@@ -537,11 +536,13 @@ public class MapDescriptor extends Descriptor
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
 			if (!eachKeyObject.equalsVoidOrBlank())
 			{
-				result.tupleAtPut(targetIndex, object.valueAtIndex(i).makeImmutable());
+				AvailObject value = object.valueAtIndex(i);
+				value.makeImmutable();
+				result.tupleAtPut(targetIndex, value);
 				targetIndex++;
 			}
 		}
-		assert (targetIndex == (object.size() + 1));
+		assert (targetIndex == (object.mapSize() + 1));
 		CanAllocateObjects(true);
 		AvailObject.unlock(result);
 		return result;

@@ -1399,7 +1399,7 @@ implements L2OperationDispatcher
 		}
 	}
 
-	public void L2L1_doCall()
+	private void L2L1_doCall()
 	{
 		//  [n] - Send the message at index n in the compiledCode's literals.  Pop the arguments for
 		//  this message off the stack (the message itself knows how many to expect).  The first
@@ -1464,7 +1464,7 @@ implements L2OperationDispatcher
 		invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
 	}
 
-	public void L2L1_doVerifyType()
+	private void L2L1_doVerifyType()
 	{
 		//  [n] - Ensure the top of stack's type is a subtype of the type found at
 		//  index n in the current compiledCode.  If this is not the case, raise a
@@ -1480,7 +1480,7 @@ implements L2OperationDispatcher
 		}
 	}
 
-	public void L2L1_doReturn()
+	private void L2L1_doReturn()
 	{
 		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
 		//  Note that the calling continuation has automatically pre-pushed a void object as a
@@ -1505,7 +1505,7 @@ implements L2OperationDispatcher
 		prepareToExecuteContinuation(caller);
 	}
 
-	public void L2L1_doPushLiteral()
+	private void L2L1_doPushLiteral()
 	{
 		//  [n] - Push the literal indexed by n in the current compiledCode.
 
@@ -1519,7 +1519,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, constant);
 	}
 
-	public void L2L1_doPushLastLocal()
+	private void L2L1_doPushLastLocal()
 	{
 		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
 		//  Since this is known to be the last use (nondebugger) of the argument or local, void that
@@ -1534,7 +1534,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(cont.stackp(), variable);
 	}
 
-	public void L2L1_doPushLocal()
+	private void L2L1_doPushLocal()
 	{
 		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
 
@@ -1548,7 +1548,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, variable);
 	}
 
-	public void L2L1_doPushLastOuter()
+	private void L2L1_doPushLastOuter()
 	{
 		//  [n] - Push the outer variable indexed by n in the current closure.  If the variable is
 		//  mutable, clear it (no one will know).  If the variable and closure are both mutable,
@@ -1571,7 +1571,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, variable);
 	}
 
-	public void L2L1_doClose()
+	private void L2L1_doClose()
 	{
 		//  [n,m] - Pop the top n items off the stack, and use them as outer variables in the
 		//  construction of a closure based on the compiledCode that's the literal at index m
@@ -1599,7 +1599,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, newClosure);
 	}
 
-	public void L2L1_doSetLocal()
+	private void L2L1_doSetLocal()
 	{
 		//  [n] - Pop the stack and assign this value to the local variable (not an argument) indexed by n (index 1 is first argument).
 
@@ -1614,7 +1614,7 @@ implements L2OperationDispatcher
 		variable.setValue(value);
 	}
 
-	public void L2L1_doGetLocalClearing()
+	private void L2L1_doGetLocalClearing()
 	{
 		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
 		//  If the variable itself is mutable, clear it now - nobody will know.
@@ -1637,7 +1637,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, value);
 	}
 
-	public void L2L1_doPushOuter()
+	private void L2L1_doPushOuter()
 	{
 		//  [n] - Push the outer variable indexed by n in the current closure.
 
@@ -1655,7 +1655,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, variable);
 	}
 
-	public void L2L1_doPop()
+	private void L2L1_doPop()
 	{
 		//  Remove the top item from the stack.
 
@@ -1665,7 +1665,7 @@ implements L2OperationDispatcher
 		cont.stackp((cont.stackp() + 1));
 	}
 
-	public void L2L1_doGetOuterClearing()
+	private void L2L1_doGetOuterClearing()
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
 		//  If the variable itself is mutable, clear it at this time - nobody will know.
@@ -1688,7 +1688,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, value);
 	}
 
-	public void L2L1_doSetOuter()
+	private void L2L1_doSetOuter()
 	{
 		//  [n] - Pop the stack and assign this value to the outer variable indexed by n in the current closure.
 
@@ -1709,7 +1709,7 @@ implements L2OperationDispatcher
 		variable.setValue(value);
 	}
 
-	public void L2L1_doGetLocal()
+	private void L2L1_doGetLocal()
 	{
 		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
 
@@ -1724,7 +1724,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, value);
 	}
 
-	public void L2L1_doExtension()
+	private void L2L1_doExtension()
 	{
 		//  The extension nybblecode was encountered.  Read another nybble and dispatch it through ExtendedSelectors.
 
@@ -1753,7 +1753,7 @@ implements L2OperationDispatcher
 		}
 	}
 
-	public void L2L1Ext_doGetOuter()
+	private void L2L1Ext_doGetOuter()
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
 
@@ -1768,7 +1768,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, value);
 	}
 
-	public void L2L1Ext_doMakeList()
+	private void L2L1Ext_doMakeList()
 	{
 		//  [n] - Make a list object from n values popped from the stack.  Push the list.
 
@@ -1790,7 +1790,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, list);
 	}
 
-	public void L2L1Ext_doPushLabel()
+	private void L2L1Ext_doPushLabel()
 	{
 		//  Build a continuation which, when restarted, will be just like restarting the current continuation.
 
@@ -1827,7 +1827,7 @@ implements L2OperationDispatcher
 		cont.stackp(stackp);
 	}
 
-	public void L2L1Ext_doGetLiteral()
+	private void L2L1Ext_doGetLiteral()
 	{
 		//  [n] - Push the value of the variable that's literal number n in the current compiledCode.
 
@@ -1841,7 +1841,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, value);
 	}
 
-	public void L2L1Ext_doSetLiteral()
+	private void L2L1Ext_doSetLiteral()
 	{
 		//  [n] - Pop the stack and assign this value to the variable that's the literal
 		//  indexed by n in the current compiledCode.
@@ -1858,7 +1858,7 @@ implements L2OperationDispatcher
 		variable.setValue(value);
 	}
 
-	public void L2L1Ext_doSuperCall()
+	private void L2L1Ext_doSuperCall()
 	{
 		//  [n] - Send the message at index n in the compiledCode's literals.  Like the call instruction,
 		//  the arguments will have been pushed on the stack in order, but unlike call, each argument's
@@ -1932,7 +1932,7 @@ implements L2OperationDispatcher
 		invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
 	}
 
-	public void L2L1Ext_doGetType()
+	private void L2L1Ext_doGetType()
 	{
 		//  [n] - Push the (n+1)st stack element's type.  This is only used by the supercast
 		//  mechanism to produce types for arguments not being cast.  See #doSuperCall.
@@ -1949,7 +1949,7 @@ implements L2OperationDispatcher
 		cont.stackAtPut(stackp, value.type());
 	}
 
-	public void L2L1Ext_doReserved()
+	private void L2L1Ext_doReserved()
 	{
 		//  This shouldn't happen unless the compiler is out of sync with the interpreter.
 

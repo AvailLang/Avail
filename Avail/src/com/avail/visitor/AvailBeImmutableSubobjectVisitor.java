@@ -37,23 +37,19 @@ import com.avail.descriptor.AvailObject;
 public class AvailBeImmutableSubobjectVisitor extends AvailSubobjectVisitor
 {
 
-
-	// iteration
-
+	/**
+	 * This is a visitor call from a subobject iterator running on some object.
+	 * The subobject can be extracted at the given byte of the parent object.
+	 */
 	@Override
-	public void invokeWithParentIndex (
+	public void invoke (
 			final AvailObject parentObject,
 			final int byteIndexInParent)
 	{
-		//  This is a visitor call from a subobject iterator running on some object.  The subobject
-		//  can be extracted at the given byte of the parent object.
-
-		final AvailObject subobject = parentObject.objectSlotAtByteIndex(byteIndexInParent);
+		final AvailObject subobject = parentObject.objectSlotAtByteIndex(
+			byteIndexInParent);
 		subobject.makeImmutable();
 	}
-
-
-
 
 
 }

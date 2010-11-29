@@ -54,27 +54,21 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 
-	// GENERATED accessors
-
 	@Override
 	public AvailObject ObjectArgTypeAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + -4));
+		return object.objectSlotAt(ObjectSlots.argTypeAt_, subscript);
 	}
 
 	@Override
 	public void ObjectArgTypeAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.objectSlotAtByteIndexPut(((index * -4) + -4), value);
+		object.objectSlotAtPut(ObjectSlots.argTypeAt_, subscript, value);
 	}
 
 	/**
@@ -127,8 +121,6 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public boolean allowsImmutableToMutableReferenceAtByteIndex (
 			final int index)
 	{
-		//  GENERATED special mutable slots method.
-
 		if (index == 4)
 		{
 			return true;
@@ -243,8 +235,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			return false;
 		}
 		object.becomeIndirectionTo(aType);
+		// There are at least 2 references now.
 		aType.makeImmutable();
-		//  There are at least 2 references now.
 		return true;
 	}
 
@@ -252,21 +244,21 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return Types.closureType.object();
 	}
 
+	
+	/**
+	 * The hash value is stored raw in the object's hashOrZero slot if it has
+	 * been computed, otherwise that slot is zero.  If a zero is detected,
+	 * compute the hash and store it in hashOrZero.  Note that the hash can
+	 * (extremely rarely) be zero, in which case the hash must be computed on
+	 * demand every time it is requested.  Answer the raw hash value.
+	 */
 	@Override
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		//  The hash value is stored raw in the object's hashOrZero slot if it has been computed,
-		//  otherwise that slot is zero.  If a zero is detected, compute the hash and store it in
-		//  hashOrZero.  Note that the hash can (extremely rarely) be zero, in which case the
-		//  hash must be computed on demand every time it is requested.
-		//  Answer the raw hash value (i.e., a Smalltalk Integer).
-
 		int hash = object.hashOrZero();
 		if (hash == 0)
 		{
@@ -282,45 +274,43 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return hash;
 	}
 
+	
 	@Override
 	public AvailObject ObjectType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return Types.closureType.object();
 	}
 
 
-
-	// operations-accessing
-
+	/**
+	 * Answer the number of arguments object's instances expect.
+	 */
 	@Override
 	public short ObjectNumArgs (
 			final AvailObject object)
 	{
-		//  Answer the number of arguments object's instances expect.
-
-		return ((short)((object.objectSlotsCount() - numberOfFixedObjectSlots)));
+		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
 	}
 
 
 
-	// operations-copying
-
+	/**
+	 * Answer a mutable copy of me.  Always copy me, even if I was already
+	 * mutable.  Make my subobjects immutable because they will be shared
+	 * between the existing and new objects.
+	 */
 	@Override
 	public AvailObject ObjectCopyMutable (
 			final AvailObject object)
 	{
-		//  Answer a mutable copy of me.  Always copy me, even if I was already mutable.
-		//  Make my subobjects immutable because they will be shared between the
-		//  existing and new objects.
-
 		if (isMutable)
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final AvailObject clone = AvailObject.newIndexedDescriptor(object.numArgs(), ClosureTypeDescriptor.mutableDescriptor());
+		final AvailObject clone = AvailObject.newIndexedDescriptor(
+			object.numArgs(),
+			ClosureTypeDescriptor.mutableDescriptor());
 		clone.returnType(object.returnType());
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{

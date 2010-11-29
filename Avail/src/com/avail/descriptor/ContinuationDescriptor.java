@@ -98,22 +98,21 @@ public class ContinuationDescriptor extends Descriptor
 	@Override
 	public AvailObject ObjectLocalOrArgOrStackAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + -8));
+		return object.objectSlotAt(ObjectSlots.localOrArgOrStackAt_, subscript);
 	}
 
 	@Override
 	public void ObjectLocalOrArgOrStackAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.objectSlotAtByteIndexPut(((index * -4) + -8), value);
+		object.objectSlotAtPut(
+			ObjectSlots.localOrArgOrStackAt_,
+			subscript,
+			value);
 	}
 
 	/**
@@ -206,29 +205,35 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 
-
-	// object creation
-
+	/**
+	 * Create a new continuation with the given data.  The continuation should
+	 * represent the state upon entering the new context - i.e., set the pc to
+	 * the first instruction (skipping the primitive indicator if necessary),
+	 * clear the stack, and set up all local variables.
+	 * 
+	 * @param closure The closure being invoked.
+	 * @param caller The calling continuation.
+	 * @param startingChunkIndex The index of the level two chunk to invoke.
+	 * @param args The List of arguments
+	 * @return The new continuation.
+	 */
 	public AvailObject newObjectToInvokeCallerLevelTwoChunkIndexArgs (
 			final AvailObject closure,
 			final AvailObject caller,
 			final int startingChunkIndex,
 			final List<AvailObject> args)
 	{
-		//  Create a new continuation with the given data.  The continuation should represent
-		//  the state upon entering the new context - i.e., set the pc to the first instruction
-		//  (skipping the primitive indicator if necessary), clear the stack, and set up all
-		//  local variables.
-
 		assert isMutable();
 		final AvailObject code = closure.code();
-		final AvailObject cont = AvailObject.newIndexedDescriptor(code.numArgsAndLocalsAndStack(), this);
+		final AvailObject cont = AvailObject.newIndexedDescriptor(
+			code.numArgsAndLocalsAndStack(),
+			this);
 		cont.caller(caller);
 		cont.closure(closure);
 		cont.pc(1);
-		cont.stackp((cont.objectSlotsCount() + 1));
-		cont.hiLevelTwoChunkLowOffset(((startingChunkIndex << 16) + 1));
-		for (int i = 1, _end1 = code.numArgsAndLocalsAndStack(); i <= _end1; i++)
+		cont.stackp(cont.objectSlotsCount() + 1);
+		cont.hiLevelTwoChunkLowOffset((startingChunkIndex << 16) + 1);
+		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			cont.localOrArgOrStackAtPut(i, VoidDescriptor.voidObject());
 		}
@@ -247,7 +252,10 @@ public class ContinuationDescriptor extends Descriptor
 		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
 		{
 			//  non-argument locals
-			cont.localOrArgOrStackAtPut(nArgs + i, ContainerDescriptor.newContainerWithOuterType(code.localTypeAt(i)));
+			cont.localOrArgOrStackAtPut(
+				nArgs + i,
+				ContainerDescriptor.newContainerWithOuterType(
+					code.localTypeAt(i)));
 		}
 		return cont;
 	}
@@ -289,9 +297,10 @@ public class ContinuationDescriptor extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
+		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
 		{
-			if (!object.localOrArgOrStackAt(i).equals(aContinuation.localOrArgOrStackAt(i)))
+			if (!object.localOrArgOrStackAt(i)
+					.equals(aContinuation.localOrArgOrStackAt(i)))
 			{
 				return false;
 			}
@@ -303,22 +312,18 @@ public class ContinuationDescriptor extends Descriptor
 	public AvailObject ObjectExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.
-
-		return ContinuationTypeDescriptor.continuationTypeForClosureType(object.closure().type());
+		return ContinuationTypeDescriptor.continuationTypeForClosureType(
+			object.closure().type());
 	}
 
 	@Override
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		//  Answer a 32-bit long that is always the same for equal objects, but
-		//  statistically different for different objects.
-
 		int h = 0x593599A;
 		h ^= object.caller().hash();
 		h = ((h + object.closure().hash()) + (object.pc() * object.stackp()));
-		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
+		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
 		{
 			h = (((h * 23) + 0x221C9) ^ object.localOrArgOrStackAt(i).hash());
 		}

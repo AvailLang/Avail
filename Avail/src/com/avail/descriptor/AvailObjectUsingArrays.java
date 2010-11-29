@@ -251,38 +251,19 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public int integerSlotAtByteIndex (
-			final int index)
-	{
-		//  Extract the (unsigned 32-bit) integer at the given byte-index.
-
-		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		assert((index & 3) == 0);
-		return _intSlots[(index / 4) - 1];
-	}
-
-	@Deprecated
-	@Override
-	public void integerSlotAtByteIndexPut (
-			final int index,
-			final int anInteger)
-	{
-		//  Store the (signed 32-bit) integer in the four bytes starting at the given byte-index.
-
-		checkWriteAtByteIndex(index);
-		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		assert((index & 3) == 0);
-		_intSlots[(index / 4) - 1] = anInteger;
-	}
-
-	@Override
 	public int integerSlotsCount ()
 	{
 		return _intSlots.length;
+	}
+
+	@Override
+	public int integerSlot (
+			final Enum<?> e)
+	{
+		//  Extract an int using the given Enum value that identifies the field.
+
+		verifyToSpaceAddress();
+		return _intSlots[e.ordinal()];
 	}
 
 	@Override
@@ -292,27 +273,41 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Set an int using the given Enum value that identifies the field.
 
-		final int index = e.ordinal() * 4 + 4;
+		int index = e.ordinal()* 4 + 4;
 		checkWriteAtByteIndex(index);
 		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		assert((index & 3) == 0);
-		_intSlots[(index / 4) - 1] = anInteger;
+		_intSlots[e.ordinal()] = anInteger;
 	}
 
 	@Override
-	public int integerSlot (
-			final Enum<?> e)
+	public int integerSlotAt (
+			final Enum<?> e,
+			final int subscript)
 	{
 		//  Extract an int using the given Enum value that identifies the field.
-
-		final int index = e.ordinal() * 4 + 4;
+	
 		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		assert((index & 3) == 0);
-		return _intSlots[(index / 4) - 1];
+		return _intSlots[e.ordinal() + subscript - 1];
+	}
+
+	@Override
+	public void integerSlotAtPut (
+			final Enum<?> e,
+			final int subscript,
+			final int anInteger)
+	{
+		//  Set an int using the given Enum value that identifies the field.
+
+		final int index = (e.ordinal() + subscript) * 4;
+		checkWriteAtByteIndex(index);
+		verifyToSpaceAddress();
+		_intSlots[e.ordinal() + subscript - 1] = anInteger;
+	}
+
+	@Override
+	public int objectSlotsCount ()
+	{
+		return _objectSlots.length;
 	}
 
 	@Override
@@ -322,11 +317,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		//  Extract the object at the given byte-index.  It must be an object.
 
 		verifyToSpaceAddress();
-		final int index = e.ordinal() * -4 - 4;
-		assert index <= -4;
-		assert index >= objectSlotsCount() * -4;
-		assert (index & 3) == 0;
-		AvailObject result = _objectSlots[(index / -4) - 1];
+		AvailObject result = _objectSlots[e.ordinal()];
 		result.verifyToSpaceAddress();
 		return result;
 	}
@@ -339,11 +330,32 @@ final public class AvailObjectUsingArrays extends AvailObject
 		//  Store the object at the given byte-index.
 
 		verifyToSpaceAddress();
-		final int index = e.ordinal() * -4 - 4;
-		assert index <= -4;
-		assert index >= objectSlotsCount() * -4;
-		assert (index & 3) == 0;
-		_objectSlots[(index / -4) - 1] = anAvailObject;
+		final int index = (e.ordinal() + 1) * -4;
+		checkWriteAtByteIndex(index);
+		_objectSlots[e.ordinal()] = anAvailObject;
+	}
+
+	@Override
+	public AvailObject objectSlotAt (
+			final Enum<?> e,
+			final int subscript)
+	{
+		verifyToSpaceAddress();
+		AvailObject result = _objectSlots[e.ordinal() + subscript - 1];
+		result.verifyToSpaceAddress();
+		return result;
+	}
+
+	@Override
+	public void objectSlotAtPut (
+			final Enum<?> e,
+			final int subscript,
+			final AvailObject anAvailObject)
+	{
+		verifyToSpaceAddress();
+		final int index = (e.ordinal() + subscript) * -4;
+		checkWriteAtByteIndex(index);
+		_objectSlots[e.ordinal() + subscript - 1] = anAvailObject;
 	}
 
 	@Deprecated
@@ -373,12 +385,6 @@ final public class AvailObjectUsingArrays extends AvailObject
 		assert index >= objectSlotsCount() * -4;
 		assert (index & 3) == 0;
 		_objectSlots[(index / -4) - 1] = anAvailObject;
-	}
-
-	@Override
-	public int objectSlotsCount ()
-	{
-		return _objectSlots.length;
 	}
 
 	@Override
@@ -424,19 +430,23 @@ final public class AvailObjectUsingArrays extends AvailObject
 		_intSlots[(index / 4) - 1] = temp;
 	}
 
+
+	/**
+	 * Slice the current object into two parts, one of which is a Filler object
+ 	 * and is never referred to directly (so doesn't need any slots for becoming
+ 	 * an indirection.
+ 	 * <p>
+ 	 * Slice the current object into two objects, the left one (at the same
+ 	 * starting address as the input), and the right one (a Filler object that
+ 	 * nobody should ever create a pointer to).  The new Filler can have zero
+ 	 * post-header slots (i.e., just the header), but the left object must not,
+ 	 * since it may turn into an Indirection some day and will require at least
+ 	 * one slot for the target pointer.
+ 	 */
 	@Override
 	public void truncateWithFillerForNewIntegerSlotsCount (
 			final int newIntegerSlotsCount)
 	{
-		//  Slice the current object into two parts, one of which is a Filler object and
-		//  is never referred to directly (so doesn't need any slots for becoming an
-		//  indirection.
-
-		// Slice the current object into two objects, the left one (at the same starting
-		// address as the input), and the right one (a Filler object that nobody should
-		// ever create a pointer to).  The new Filler can have zero post-header slots
-		// (i.e., just the header), but the left object must not, since it may turn into an
-		// Indirection some day and will require at least one slot for the target pointer.
 		verifyToSpaceAddress();
 		// assert(objectSlotsCount > 0);
 		final int oldIntegerSlotsCount = integerSlotsCount();
@@ -451,19 +461,23 @@ final public class AvailObjectUsingArrays extends AvailObject
 		_intSlots = newIntSlots;
 	}
 
+	/**
+	 * Slice the current object into two parts, one of which is a Filler object
+	 * and is never referred to directly (so doesn't need any slots for becoming
+	 * an indirection.
+	 * <p>
+	 * Slice the current object into two objects, the left one (at the same
+	 * starting address as the input), and the right one (a Filler object that
+	 * nobody should ever create a pointer to).  The new Filler can have zero
+	 * post-header slots (i.e., just the header), but the left object must not,
+	 * since it may turn into an Indirection some day and will require at least
+	 * one slot for the target pointer.
+	 */
 	@Override
 	public void truncateWithFillerForNewObjectSlotsCount (
 			final int newObjectSlotsCount)
 	{
-		//  Slice the current object into two parts, one of which is a Filler object and
-		//  is never referred to directly (so doesn't need any slots for becoming an
-		//  indirection.
-
-		// Slice the current object into two objects, the left one (at the same starting
-		// address as the input), and the right one (a Filler object that nobody should
-		// ever create a pointer to).  The new Filler can have zero post-header slots
-		// (i.e., just the header), but the left object must not, since it may turn into an
-		// Indirection some day and will require at least one slot for the target pointer.
+ 
 		verifyToSpaceAddress();
 		assert(newObjectSlotsCount > 0);
 		final int oldObjectSlotsCount = objectSlotsCount();

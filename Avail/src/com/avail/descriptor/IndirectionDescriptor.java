@@ -4320,13 +4320,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public int ObjectSize (
-			final AvailObject object)
-	{
-		return ObjectTraversed(object).size();
-	}
-
-	@Override
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
@@ -4546,7 +4539,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	{
 		//  Manually constructed scanning method.
 
-		visitor.invokeWithParentIndex(object, -4);
+		visitor.invoke(object, -4);
 	}
 
 	@Override

@@ -55,32 +55,24 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	int unusedShortsOfLastWord;
 
 
-	// GENERATED accessors
-
 	@Override
 	public int ObjectRawQuadAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.integerSlotAtByteIndex(((index * 4) + 4));
+		return object.integerSlotAt(IntegerSlots.rawQuadAt_, subscript);
 	}
 
 	@Override
 	public void ObjectRawQuadAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final int value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.integerSlotAtByteIndexPut(((index * 4) + 4), value);
+		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, subscript, value);
 	}
 
 
-
-	// java printing
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -108,8 +100,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 
 
-	// operations
-
+	/**
+	 * Compare sections of two tuples.  My instance is a two-byte-string.
+	 */
 	@Override
 	public boolean ObjectCompareFromToWithStartingAt (
 			final AvailObject object,
@@ -118,15 +111,16 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject anotherObject,
 			final int startIndex2)
 	{
-		//  Compare sections of two tuples.  My instance is a two-byte-string.
-
 		return anotherObject.compareFromToWithTwoByteStringStartingAt(
 			startIndex2,
-			((startIndex2 + endIndex1) - startIndex1),
+			startIndex2 + endIndex1 - startIndex1,
 			object,
 			startIndex1);
 	}
 
+	/**
+	 * Compare sections of two two-byte strings.
+	 */
 	@Override
 	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
 			final AvailObject object,
@@ -135,17 +129,16 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject aTwoByteString,
 			final int startIndex2)
 	{
-		//  Compare sections of two byte strings.
-
-		if ((object.sameAddressAs(aTwoByteString) && (startIndex1 == startIndex2)))
+		if (object.sameAddressAs(aTwoByteString) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		//  Compare actual bytes.
+		// Compare actual bytes.
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
-			if (object.rawShortForCharacterAt(index1) != aTwoByteString.rawShortForCharacterAt(index2))
+			if (object.rawShortForCharacterAt(index1)
+					!= aTwoByteString.rawShortForCharacterAt(index2))
 			{
 				return false;
 			}
@@ -189,11 +182,12 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		{
 			return false;
 		}
-		//  They're equal (but occupy disjoint storage).  Replace one with an indirection to the other
-		//  to keep down the frequency of byte-wise comparisons.
+		// They're equal (but occupy disjoint storage).  Replace one with an
+		// indirection to the other to keep down the frequency of byte-wise
+		// comparisons.
 		object.becomeIndirectionTo(aTwoByteString);
+		// Make it immutable, now that there are at least two references to it.
 		aTwoByteString.makeImmutable();
-		//  Now that there are at least two references to it
 		return true;
 	}
 
@@ -206,16 +200,18 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
+	/**
+	 * Answer whether object is an instance of a subtype of aType.  Don't
+	 * generate an approximate type and do the comparison, because the
+	 * approximate type will just send this message recursively.  Note that
+	 * because object is a string, it is already known that each element is a
+	 * character.
+	 */
 	@Override
 	public boolean ObjectIsInstanceOfSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
-		//  Answer whether object is an instance of a subtype of aType.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.  Note that because object is a string,
-		//  it is already known that each element is a character.
-
 		if (aType.equals(Types.voidType.object()))
 		{
 			return true;
@@ -232,10 +228,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
 		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
 		{
+			// This tuple's size is out of range.
 			return false;
 		}
-		//  tuple's size is out of range.
-		//
 		//  Make sure the element types accept character, up to my actual size.
 		final AvailObject typeTuple = aType.typeTuple();
 		final int limit = min(object.tupleSize(), (typeTuple.tupleSize() + 1));
@@ -249,31 +244,34 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
+	
+	/**
+	 * Make the object immutable so it can be shared safely.
+	 */
 	@Override
 	public AvailObject ObjectMakeImmutable (
 			final AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.
-
 		if (isMutable)
 		{
-			object.descriptor(TwoByteStringDescriptor.isMutableSize(false, object.tupleSize()));
+			object.descriptor(
+				TwoByteStringDescriptor.isMutableSize(
+					false,
+					object.tupleSize()));
 			object.makeSubobjectsImmutable();
 		}
 		return object;
 	}
 
 
-
-	// operations-tuples
-
+	/**
+	 * Answer the byte that encodes the character at the given index.
+	 */
 	@Override
 	public short ObjectRawShortForCharacterAt (
 			final AvailObject object,
 			final int index)
 	{
-		//  Answer the byte that encodes the character at the given index.
-
 		return object.shortSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2));
 	}
 

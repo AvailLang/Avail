@@ -60,22 +60,18 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	@Override
 	public int ObjectRawQuadAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.integerSlotAtByteIndex(((index * 4) + 4));
+		return object.integerSlotAt(IntegerSlots.rawQuadAt_, subscript);
 	}
 
 	@Override
 	public void ObjectRawQuadAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final int value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.integerSlotAtByteIndexPut(((index * 4) + 4), value);
+		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, subscript, value);
 	}
 
 

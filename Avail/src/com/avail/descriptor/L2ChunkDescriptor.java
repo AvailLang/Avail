@@ -97,22 +97,18 @@ public class L2ChunkDescriptor extends Descriptor
 	@Override
 	public AvailObject ObjectLiteralAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + -12));
+		return object.objectSlotAt(ObjectSlots.literalAt_, subscript);
 	}
 
 	@Override
 	public void ObjectLiteralAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.objectSlotAtByteIndexPut(((index * -4) + -12), value);
+		object.objectSlotAtPut(ObjectSlots.literalAt_, subscript, value);
 	}
 
 	/**

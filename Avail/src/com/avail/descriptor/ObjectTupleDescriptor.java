@@ -53,27 +53,21 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 
-	// GENERATED accessors
-
 	@Override
 	public AvailObject ObjectTupleAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + 0));
+		return object.objectSlotAt(ObjectSlots.tupleAt_, subscript);
 	}
 
 	@Override
 	public void ObjectTupleAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.objectSlotAtByteIndexPut(((index * -4) + 0), value);
+		object.objectSlotAtPut(ObjectSlots.tupleAt_, subscript, value);
 	}
 
 

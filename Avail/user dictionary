@@ -36,3 +36,5 @@ nybblecodes
 uninstantiable
 subobjects
 polymorphic
+subobject
+int

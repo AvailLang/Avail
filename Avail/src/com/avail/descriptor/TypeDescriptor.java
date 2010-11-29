@@ -737,6 +737,9 @@ public abstract class TypeDescriptor extends Descriptor
 						: spec.parent.object);
 			spec.object.myType(
 				Types.valueOf(spec.myTypeName).object);
+		}
+		for (Types spec : Types.values())
+		{
 			spec.object.makeImmutable();
 		}
 		// Sanity check them for metacovariance: a<=b -> a.type<=b.type

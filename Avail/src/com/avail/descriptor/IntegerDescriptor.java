@@ -54,22 +54,27 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	@Override
 	public int ObjectRawSignedIntegerAt (
 		final AvailObject object,
-		final int index)
+		final int subscript)
 	{
 		//  GENERATED getter method (indexed).
 
-		return object.integerSlotAtByteIndex(((index * 4) + 0));
+		return object.integerSlotAt(
+			IntegerSlots.rawSignedIntegerAt_,
+			subscript);
 	}
 
 	@Override
 	public void ObjectRawSignedIntegerAtPut (
 		final AvailObject object,
-		final int index,
+		final int subscript,
 		final int value)
 	{
 		//  GENERATED setter method (indexed).
 
-		object.integerSlotAtByteIndexPut(((index * 4) + 0), value);
+		object.integerSlotAtPut(
+			IntegerSlots.rawSignedIntegerAt_,
+			subscript,
+			value);
 	}
 
 
@@ -492,27 +497,37 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	// private-accessing
 
+	/**
+	 * Manually constructed accessor method.  Access the quad-byte using the
+	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
+	 * least significant quad comes first).
+	 */
 	@Override
 	public long ObjectRawUnsignedIntegerAt (
 		final AvailObject object,
-		final int index)
+		final int subscript)
 	{
-		//  Manually constructed accessor method.  Access the quad-byte using the native byte-ordering,
-		//  but using little endian between quad-bytes (i.e., least significant quad comes first).
-
-		return (object.integerSlotAtByteIndex(index * 4) & 0xFFFFFFFFL);
+		int signedInt = object.integerSlotAt(
+			IntegerSlots.rawSignedIntegerAt_,
+			subscript);
+		return signedInt & 0xFFFFFFFFL;
 	}
 
+	/**
+	 * Manually constructed accessor method.  Overwrite the quad-byte using the
+	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
+	 * least significant quad comes first).
+	 */
 	@Override
 	public void ObjectRawUnsignedIntegerAtPut (
 		final AvailObject object,
-		final int index,
+		final int subscript,
 		final int value)
 	{
-		//  Manually constructed accessor method.  Overwrite the quad-byte using the native byte-ordering,
-		//  but using little endian between quad-bytes (i.e., least significant quad comes first).
-
-		object.integerSlotAtByteIndexPut(index * 4, value);
+		object.integerSlotAtPut(
+			IntegerSlots.rawSignedIntegerAt_,
+			subscript,
+			value);
 	}
 
 	@Override

@@ -129,22 +129,18 @@ public class CompiledCodeDescriptor extends Descriptor
 	@Override
 	public AvailObject ObjectLiteralAt (
 			final AvailObject object,
-			final int index)
+			final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
-		return object.objectSlotAtByteIndex(((index * -4) + -8));
+		return object.objectSlotAt(ObjectSlots.literalAt_, subscript);
 	}
 
 	@Override
 	public void ObjectLiteralAtPut (
 			final AvailObject object,
-			final int index,
+			final int subscript,
 			final AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
-		object.objectSlotAtByteIndexPut(((index * -4) + -8), value);
+		object.objectSlotAtPut(ObjectSlots.literalAt_, subscript, value);
 	}
 
 	/**
@@ -520,11 +516,20 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 
-
-
-
-	/* Object creation */
-
+	/**
+	 * Create a new compiled code object with the given properties.
+	 * 
+	 * @param nybbles The nybblecodes.
+	 * @param numArgs The number of arguments.
+	 * @param locals The number of local variables.
+	 * @param stack The maximum stack depth.
+	 * @param closureType The type that the code's closures will have.
+	 * @param primitive Which primitive to invoke, or zero.
+	 * @param literals A tuple of literals.
+	 * @param localTypes A tuple of types of local variables.
+	 * @param outerTypes A tuple of types of outer (captured) variables.
+	 * @return The new compiled code object.
+	 */
 	public static AvailObject newCompiledCodeWithNybblesNumArgsLocalsStackClosureTypePrimitiveLiteralsLocalTypesOuterTypes (
 			AvailObject nybbles,
 			int numArgs,
@@ -546,7 +551,8 @@ public class CompiledCodeDescriptor extends Descriptor
 
 		CanAllocateObjects(false);
 		code.nybbles(nybbles);
-		code.argsLocalsStackOutersPrimitive(numArgs, locals, stack, outersSize, primitive);
+		code.argsLocalsStackOutersPrimitive(
+			numArgs, locals, stack, outersSize, primitive);
 		code.closureType(closureType);
 		code.startingChunkIndex(L2ChunkDescriptor.indexOfUnoptimizedChunk());
 		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
@@ -564,7 +570,8 @@ public class CompiledCodeDescriptor extends Descriptor
 			code.literalAtPut(dest, localTypes.tupleAt(i));
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
-		int hash = (0x0B085B25 + code.objectSlotsCount() + nybbles.hash()) ^ (numArgs * 4127);
+		int hash = (0x0B085B25 + code.objectSlotsCount() + nybbles.hash())
+			^ (numArgs * 4127);
 		hash += (locals * 1237) + (stack * 9131) + (primitive * 1151);
 		hash ^= closureType.hash();
 		for (int i = 1; i <= literalsSize; i++)

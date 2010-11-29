@@ -300,9 +300,10 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		aTupleObject.makeImmutable();
 		AvailObject cyc = AvailObject.newIndexedDescriptor (
 			0,
-			CyclicTypeDescriptor.immutableDescriptor());
+			CyclicTypeDescriptor.mutableDescriptor());
 		cyc.name(aTupleObject);
 		cyc.hashOrZero(0);
+		cyc.makeImmutable();
 		return cyc;
 	};
 
