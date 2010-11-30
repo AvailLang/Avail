@@ -294,8 +294,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final int index)
 	{
 		//  Answer the byte at the given index.
-
-		return object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + index) + 3));
+		assert index >= 1 && index <= object.tupleSize();
+		return object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
 	}
 
 	@Override
@@ -305,8 +305,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final short anInteger)
 	{
 		//  Set the byte at the given index.
-
-		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots * 4) + index) + 3), anInteger);
+		assert index >= 1 && index <= object.tupleSize();
+		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, anInteger);
 	}
 
 	@Override
@@ -315,13 +315,9 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final int index)
 	{
 		//  Answer the element at the given index in the tuple object.
-
-		if (index < 1 || index > object.tupleSize())
-		{
-			error("index out of bounds", object);
-			return VoidDescriptor.voidObject();
-		}
-		return IntegerDescriptor.objectFromByte(object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + index) + 3)));
+		assert index >= 1 && index <= object.tupleSize();
+		return IntegerDescriptor.objectFromByte(
+			object.byteSlotAt(IntegerSlots.rawQuadAt_, index));
 	}
 
 	@Override
@@ -330,11 +326,11 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final int index,
 			final AvailObject aByteObject)
 	{
-		//  Set the byte at the given index to the given object (which should be an AvailObject that's an integer 0<=n<=255.
-		//
-		//  [index between: 1 and: object tupleSize] assert.
-
-		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots() * 4) + index) + 3), ((byte)(aByteObject.extractByte())));
+		// Set the byte at the given index to the given object (which should be
+		// an AvailObject that's an integer 0<=n<=255.
+		assert index >= 1 && index <= object.tupleSize();
+		short theByte = aByteObject.extractByte();
+		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, theByte);
 	}
 
 	@Override
@@ -344,10 +340,11 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
-		//  Answer a tuple with all the elements of object except at the given index we should
-		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject.  This may destroy the original
+		// tuple if canDestroy is true.
 
-		assert ((index >= 1) && (index <= object.tupleSize()));
+		assert index >= 1 && index <= object.tupleSize();
 		if (!newValueObject.isByte())
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
@@ -362,8 +359,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		//  Ok, clobber the object in place...
-		object.rawByteAtPut(index, ((byte)(newValueObject.extractByte())));
+		// Clobber the object in place...
+		object.rawByteAtPut(index, newValueObject.extractByte());
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
 		return object;
@@ -376,7 +373,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the integer element at the given index in the tuple object.
 
-		return object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots() * 4) + index) + 3));
+		return object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
 	}
 
 

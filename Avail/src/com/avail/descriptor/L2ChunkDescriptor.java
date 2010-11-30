@@ -301,43 +301,39 @@ public class L2ChunkDescriptor extends Descriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == -4)
+		if (e == ObjectSlots.contingentImpSets)
 		{
 			return true;
 		}
-		if (index == -8)
+		if (e == ObjectSlots.wordcodes)
 		{
 			return true;
 		}
-		if (index == -12)
+		if (e == ObjectSlots.vectors)
 		{
 			return true;
 		}
-		if (index <= -16)
+		if (e == ObjectSlots.literalAt_)
 		{
 			return true;
 		}
-		if (index == 4)
+		if (e == IntegerSlots.index)
 		{
 			return true;
 		}
-		if (index == 8)
+		if (e == IntegerSlots.validity)
 		{
 			return true;
 		}
-		if (index == 24)
+		if (e == IntegerSlots.nextIndex)
 		{
 			return true;
 		}
-		if (index == 28)
+		if (e == IntegerSlots.previousIndex)
 		{
 			return true;
 		}

@@ -4459,12 +4459,12 @@ public abstract class AbstractDescriptor
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
 	 *
-	 * @param index The byte offset of the field to check.
+	 * @param e The byte offset of the field to check.
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
 	 */
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-		final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final Enum<?> e)
 	{
 		return false;
 	}
@@ -4609,13 +4609,13 @@ public abstract class AbstractDescriptor
 		}
 	}
 
-	public final void checkWriteAtByteIndex (final int index)
+	public final void checkWriteForField (final Enum<?> e)
 	{
 		if (isMutable())
 		{
 			return;
 		}
-		if (allowsImmutableToMutableReferenceAtByteIndex(index))
+		if (allowsImmutableToMutableReferenceInField(e))
 		{
 			return;
 		}

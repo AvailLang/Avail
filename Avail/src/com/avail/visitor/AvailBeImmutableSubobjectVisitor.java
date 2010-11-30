@@ -34,21 +34,27 @@ package com.avail.visitor;
 
 import com.avail.descriptor.AvailObject;
 
+/**
+ * Provide the ability to iterated over an object's fields, marking each child
+ * object as immutable.  Note that marking a child immutable may involve
+ * creating another visitor of this class and visiting the child's children
+ * in this mutually recursive way.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailBeImmutableSubobjectVisitor extends AvailSubobjectVisitor
 {
 
 	/**
 	 * This is a visitor call from a subobject iterator running on some object.
-	 * The subobject can be extracted at the given byte of the parent object.
+	 * The subobject has already been extracted from the parent.
 	 */
 	@Override
 	public void invoke (
 			final AvailObject parentObject,
-			final int byteIndexInParent)
+			final AvailObject childObject)
 	{
-		final AvailObject subobject = parentObject.objectSlotAtByteIndex(
-			byteIndexInParent);
-		subobject.makeImmutable();
+		childObject.makeImmutable();
 	}
 
 

@@ -38,3 +38,5 @@ subobjects
 polymorphic
 subobject
 int
+endian
+nybble

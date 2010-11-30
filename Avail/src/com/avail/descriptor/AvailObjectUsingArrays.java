@@ -154,36 +154,50 @@ final public class AvailObjectUsingArrays extends AvailObject
 		}
 	}
 
+	/**
+	 * Extract the byte at the given one-based byte subscript within the
+	 * specified field.  Always use little endian encoding.
+	 * 
+	 * @param e An enumeration value representing an integer field.
+	 * @param byteSubscript Which byte to extract.
+	 * @return The unsigned byte as a short.
+	 */
 	@Override
-	public short byteSlotAtByteIndex (
-			final int index)
+	public short byteSlotAt (
+			final Enum<?> e,
+			final int byteSubscript)
 	{
-		//  Extract the byte at the given byte-index.  Always use little endian encoding.
-
 		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		return (short)((_intSlots[(index / 4) - 1] >> ((index & 3) * 8)) & 0xFF);
+		int word = _intSlots[e.ordinal() + (byteSubscript - 1) / 4];
+		return (short) ((word >>> (((byteSubscript - 1) & 0x03) * 8)) & 0xFF);
 	}
 
-	@Override
-	public void byteSlotAtByteIndexPut (
-			final int index,
-			final short aByte)
-	{
-		//  Store the byte at the given byte-index.  Always use little endian encoding.
 
-		checkWriteAtByteIndex(index);
-		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
+	/**
+	 * Replace the byte at the given one-based byte subscript within the
+	 * specified field.  Always use little endian encoding.
+	 * 
+	 * @param e An enumeration value representing an integer field.
+	 * @param byteSubscript Which byte to extract.
+	 * @param aByte The unsigned byte to write, passed as a short.
+	 */
+	@Override
+	public void byteSlotAtPut (
+		final Enum<?> e,
+		final int byteSubscript,
+		final short aByte)
+	{
 		assert aByte == (aByte & 0xFF);
-		int leftShift = (index & 3) * 8;
-		int temp = _intSlots[(index / 4) - 1];
-		temp &= ~(0xFF << leftShift);
-		temp |= aByte << leftShift;
-		_intSlots[(index / 4) - 1] = temp;
+		checkWriteForField(e);
+		verifyToSpaceAddress();
+		int wordIndex = e.ordinal() + (byteSubscript - 1) / 4;
+		int word = _intSlots[wordIndex];
+		int leftShift = ((byteSubscript - 1) & 3) * 8;
+		word &= ~(0xFF << leftShift);
+		word |= aByte << leftShift;
+		_intSlots[wordIndex] = word;
 	}
+
 
 	@Override
 	public void checkValidAddress ()
@@ -273,8 +287,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Set an int using the given Enum value that identifies the field.
 
-		int index = e.ordinal()* 4 + 4;
-		checkWriteAtByteIndex(index);
+		checkWriteForField(e);
 		verifyToSpaceAddress();
 		_intSlots[e.ordinal()] = anInteger;
 	}
@@ -298,8 +311,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Set an int using the given Enum value that identifies the field.
 
-		final int index = (e.ordinal() + subscript) * 4;
-		checkWriteAtByteIndex(index);
+		checkWriteForField(e);
 		verifyToSpaceAddress();
 		_intSlots[e.ordinal() + subscript - 1] = anInteger;
 	}
@@ -314,8 +326,8 @@ final public class AvailObjectUsingArrays extends AvailObject
 	public AvailObject objectSlot (
 			final Enum<?> e)
 	{
-		//  Extract the object at the given byte-index.  It must be an object.
-
+		// Extract the object at the subscript implied by the enumeration
+		// value's ordinal().
 		verifyToSpaceAddress();
 		AvailObject result = _objectSlots[e.ordinal()];
 		result.verifyToSpaceAddress();
@@ -330,8 +342,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		//  Store the object at the given byte-index.
 
 		verifyToSpaceAddress();
-		final int index = (e.ordinal() + 1) * -4;
-		checkWriteAtByteIndex(index);
+		checkWriteForField(e);
 		_objectSlots[e.ordinal()] = anAvailObject;
 	}
 
@@ -353,38 +364,8 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final AvailObject anAvailObject)
 	{
 		verifyToSpaceAddress();
-		final int index = (e.ordinal() + subscript) * -4;
-		checkWriteAtByteIndex(index);
+		checkWriteForField(e);
 		_objectSlots[e.ordinal() + subscript - 1] = anAvailObject;
-	}
-
-	@Deprecated
-	@Override
-	public AvailObject objectSlotAtByteIndex (
-			final int index)
-	{
-		//  Extract the object at the given byte-index.
-
-		verifyToSpaceAddress();
-		assert index <= -4;
-		assert index >= objectSlotsCount() * -4;
-		assert (index & 3) == 0;
-		return _objectSlots[(index / -4) - 1];
-	}
-
-	@Deprecated
-	@Override
-	public void objectSlotAtByteIndexPut (
-			final int index,
-			final AvailObject anAvailObject)
-	{
-		//  Store the object at the given byte-index.
-
-		verifyToSpaceAddress();
-		assert index <= -4;
-		assert index >= objectSlotsCount() * -4;
-		assert (index & 3) == 0;
-		_objectSlots[(index / -4) - 1] = anAvailObject;
 	}
 
 	@Override
@@ -399,35 +380,34 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public short shortSlotAtByteIndex (
-			final int index)
+	public short shortSlotAt (
+		final Enum<?> e,
+		final int shortIndex)
 	{
-		//  Extract the 16-bit integer at the given byte-index.  Use little endian encoding.
+		// Extract the 16-bit signed integer at the given short-index.  Use
+		// little endian encoding.
 
 		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		assert((index & 1) == 0);
-		return (short)(_intSlots[(index / 4) - 1] >> ((index & 2) * 8) & 0xFFFF);
+		int word = _intSlots[e.ordinal() + (shortIndex - 1) / 2];
+		return (short)(word >>> (((shortIndex - 1) & 1) * 16));
 	}
 
 	@Override
-	public void shortSlotAtByteIndexPut (
-			final int index,
-			final short aShort)
+	public void shortSlotAtPut (
+		final Enum<?> e,
+		final int shortIndex,
+		final short aShort)
 	{
 		//  Store the byte at the given byte-index.
 
-		checkWriteAtByteIndex(index);
+		checkWriteForField(e);
 		verifyToSpaceAddress();
-		assert(index >= 4);
-		assert(index <= integerSlotsCount()*4+3);
-		assert((index & 1) == 0);
-		int leftShift = (index & 2) * 8;
-		int temp = _intSlots[(index / 4) - 1];
-		temp &= ~(0xFFFF << leftShift);
-		temp |= aShort << leftShift;
-		_intSlots[(index / 4) - 1] = temp;
+		int shift = ((shortIndex - 1) & 1) * 16;
+		int wordIndex = e.ordinal() + (shortIndex - 1) / 2;
+		int word = _intSlots[wordIndex];
+		word &= ~(0xFFFF << shift);
+		word |= aShort << shift;
+		_intSlots[wordIndex] = word;
 	}
 
 

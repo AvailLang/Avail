@@ -272,7 +272,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int index)
 	{
-		return object.shortSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2));
+		return object.shortSlotAt(IntegerSlots.rawQuadAt_, index);
 	}
 
 	@Override
@@ -281,11 +281,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final int index,
 			final short anInteger)
 	{
-		//  Set the character at the given index based on the given byte.
-		//
-		//  [index between: 1 and: object tupleSize] assert.
-
-		object.shortSlotAtByteIndexPut((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2), anInteger);
+		// Set the character at the given index based on the given byte.
+		object.shortSlotAtPut(IntegerSlots.rawQuadAt_, index, anInteger);
 	}
 
 	@Override
@@ -293,14 +290,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int index)
 	{
-		//  Answer the element at the given index in the tuple object.  It's a one-byte character.
-
-		if (!((index >= 1) && (index <= object.tupleSize())))
-		{
-			error("index out of bounds", object);
-			return VoidDescriptor.voidObject();
-		}
-		return CharacterDescriptor.newImmutableCharacterWithCodePoint(object.shortSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + (index * 2)) + 2)));
+		// Answer the element at the given index in the tuple object.  It's a
+		// two-byte character.
+		assert index >= 1 && index <= object.tupleSize();
+		return CharacterDescriptor.newImmutableCharacterWithCodePoint(
+			object.shortSlotAt(IntegerSlots.rawQuadAt_, index));
 	}
 
 	@Override
@@ -309,11 +303,13 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final int index,
 			final AvailObject aCharacterObject)
 	{
-		//  Set the byte at the given index to the given object (which should be an AvailObject that's a two-byte character).
-		//
-		//  (index between: 1 and: [object tupleSize]) assert.
-
-		object.shortSlotAtByteIndexPut((((numberOfFixedIntegerSlots() * 4) + (index * 2)) + 2), ((short)(aCharacterObject.codePoint())));
+		// Set the short at the given index to the given object (which should be
+		// an AvailObject that's a two-byte character).
+		assert index >= 1 && index <= object.tupleSize();
+		object.shortSlotAtPut(
+			IntegerSlots.rawQuadAt_,
+			index,
+			(short)aCharacterObject.codePoint());
 	}
 
 	@Override
@@ -334,7 +330,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			{
 				if (canDestroy & isMutable)
 				{
-					object.rawShortForCharacterAtPut(index, ((short)(codePoint)));
+					object.rawShortForCharacterAtPut(index, (short)codePoint);
 					object.hashOrZero(0);
 					return object;
 				}

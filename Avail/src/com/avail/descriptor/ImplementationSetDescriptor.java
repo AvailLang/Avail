@@ -149,23 +149,19 @@ public class ImplementationSetDescriptor extends Descriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == -4)
+		if (e == ObjectSlots.implementationsTuple)
 		{
 			return true;
 		}
-		if (index == -8)
+		if (e == ObjectSlots.privateTestingTree)
 		{
 			return true;
 		}
-		if (index == -12)
+		if (e == ObjectSlots.dependentChunks)
 		{
 			return true;
 		}

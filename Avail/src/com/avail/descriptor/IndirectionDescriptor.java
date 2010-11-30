@@ -4496,15 +4496,11 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == -4)
+		if (e == ObjectSlots.target)
 		{
 			return true;
 		}
@@ -4539,7 +4535,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	{
 		//  Manually constructed scanning method.
 
-		visitor.invoke(object, -4);
+		visitor.invoke(object, object.target());
 	}
 
 	@Override

@@ -141,14 +141,14 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		if (index == -4)
+		if (e == ObjectSlots.unclassified)
 		{
 			return true;
 		}
-		if (index == 4)
+		if (e == IntegerSlots.depth)
 		{
 			return true;
 		}

@@ -235,43 +235,39 @@ public class ProcessDescriptor extends Descriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == -4)
+		if (e == ObjectSlots.continuation)
 		{
 			return true;
 		}
-		if (index == -8)
+		if (e == ObjectSlots.breakpointBlock)
 		{
 			return true;
 		}
-		if (index == -12)
+		if (e == ObjectSlots.processGlobals)
 		{
 			return true;
 		}
-		if (index == 4)
+		if (e == IntegerSlots.hashOrZero)
 		{
 			return true;
 		}
-		if (index == 8)
+		if (e == IntegerSlots.priority)
 		{
 			return true;
 		}
-		if (index == 12)
+		if (e == IntegerSlots.executionMode)
 		{
 			return true;
 		}
-		if (index == 16)
+		if (e == IntegerSlots.executionState)
 		{
 			return true;
 		}
-		if (index == 20)
+		if (e == IntegerSlots.interruptRequestFlag)
 		{
 			return true;
 		}

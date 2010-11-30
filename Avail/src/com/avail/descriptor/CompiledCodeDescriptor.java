@@ -226,19 +226,15 @@ public class CompiledCodeDescriptor extends Descriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == 16)
+		if (e == IntegerSlots.hiStartingChunkIndexLowNumOuters)
 		{
 			return true;
 		}
-		if (index == 20)
+		if (e == IntegerSlots.invocationCount)
 		{
 			return true;
 		}

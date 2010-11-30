@@ -264,9 +264,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int index)
 	{
-		//  Answer the byte that encodes the character at the given index.
-
-		return object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + index) + 3));
+		//  Answer the byte that encodes the character at the given index.
+		assert index >= 1 && index <= object.tupleSize();
+		return object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
 	}
 
 	@Override
@@ -276,10 +276,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 			final short anInteger)
 	{
 		//  Set the character at the given index based on the given byte.
-		//
-		//  [index between: 1 and: object tupleSize] assert.
-
-		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots * 4) + index) + 3), anInteger);
+		assert index >= 1 && index <= object.tupleSize();
+		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, anInteger);
 	}
 
 	@Override
@@ -287,14 +285,12 @@ public class ByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int index)
 	{
-		//  Answer the element at the given index in the tuple object.  It's a one-byte character.
-
-		if (index < 1 || index > object.tupleSize())
-		{
-			error("index out of bounds", object);
-			return VoidDescriptor.voidObject();
-		}
-		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots * 4) + index) + 3)));
+		// Answer the element at the given index in the tuple object.  It's a
+		// one-byte character.
+		assert index >= 1 && index <= object.tupleSize();
+		short codePoint = object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
+		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(
+			codePoint);
 	}
 
 	@Override
@@ -303,11 +299,11 @@ public class ByteStringDescriptor extends TupleDescriptor
 			final int index,
 			final AvailObject aCharacterObject)
 	{
-		//  Set the byte at the given index to the given object (which should be an AvailObject that's a one-byte character).
-		//
-		//  (index between: 1 and: [object tupleSize]) assert.
-
-		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots() * 4) + index) + 3), ((byte)(aCharacterObject.codePoint())));
+		// Set the byte at the given index to the given object (which should be
+		// an AvailObject that's a one-byte character).
+		assert index >= 1 && index <= object.tupleSize();
+		short codePoint = (short) aCharacterObject.codePoint();
+		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, codePoint);
 	}
 
 	@Override
@@ -317,18 +313,18 @@ public class ByteStringDescriptor extends TupleDescriptor
 			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
-		//  Answer a tuple with all the elements of object except at the given index we should
-		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
-
-		assert ((index >= 1) && (index <= object.tupleSize()));
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject.  This may destroy the original
+		// tuple if canDestroy is true.
+		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
 			final int codePoint = newValueObject.codePoint();
-			if (((codePoint >= 0) && (codePoint <= 255)))
+			if (codePoint >= 0 && codePoint <= 255)
 			{
 				if (canDestroy & isMutable)
 				{
-					object.rawByteForCharacterAtPut(index, ((byte)(codePoint)));
+					object.rawByteForCharacterAtPut(index, (short)codePoint);
 					object.hashOrZero(0);
 					return object;
 				}
@@ -338,7 +334,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 					newValueObject,
 					true);
 			}
-			if (((codePoint >= 0) && (codePoint <= 0xFFFF)))
+			if (codePoint >= 0 && codePoint <= 0xFFFF)
 			{
 				return copyAsMutableTwoByteString(object).tupleAtPuttingCanDestroy(
 					index,

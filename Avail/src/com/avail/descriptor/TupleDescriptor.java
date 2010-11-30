@@ -87,15 +87,11 @@ public abstract class TupleDescriptor extends Descriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-			final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == 4)
+		if (e == IntegerSlots.hashOrZero)
 		{
 			return true;
 		}

@@ -442,47 +442,43 @@ public class ModuleDescriptor extends Descriptor
 
 
 
-	// GENERATED special mutable slots
-
 	@Override
-	public boolean allowsImmutableToMutableReferenceAtByteIndex (
-		final int index)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (index == -8)
+		if (e == ObjectSlots.newNames)
 		{
 			return true;
 		}
-		if (index == -12)
+		if (e == ObjectSlots.names)
 		{
 			return true;
 		}
-		if (index == -16)
+		if (e == ObjectSlots.privateNames)
 		{
 			return true;
 		}
-		if (index == -20)
+		if (e == ObjectSlots.visibleNames)
 		{
 			return true;
 		}
-		if (index == -24)
+		if (e == ObjectSlots.methods)
 		{
 			return true;
 		}
-		if (index == -28)
+		if (e == ObjectSlots.restrictions)
 		{
 			return true;
 		}
-		if (index == -32)
+		if (e == ObjectSlots.variableBindings)
 		{
 			return true;
 		}
-		if (index == -36)
+		if (e == ObjectSlots.constantBindings)
 		{
 			return true;
 		}
-		if (index == -40)
+		if (e == ObjectSlots.filteredBundleTree)
 		{
 			return true;
 		}

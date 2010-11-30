@@ -35,42 +35,50 @@ package com.avail.visitor;
 import com.avail.descriptor.AvailObject;
 import static com.avail.descriptor.AvailObject.*;
 
+/**
+ * Provide the ability to iterated over an object's fields, marking each child
+ * object as unreachable.  Also recurse into the children, but avoid a specific
+ * object during the recursion.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 {
+	/**
+	 * An object which we should <em>not</em> recurse into if encountered.
+	 */
 	final AvailObject _exceptMe;
 
 
 	/**
 	 * This is a visitor call from a subobject iterator running on some object.
-	 * The subobject can be extracted at the given byte of the parent object.
+	 * The subobject has already been extracted from the parent.
 	 */
 	@Override
 	public void invoke (
 			final AvailObject parentObject,
-			final int byteIndexInParent)
+			final AvailObject childObject)
 	{
 		if (!CanDestroyObjects())
 		{
 			error("Don't invoke this if destructions are disallowed");
 			return;
 		}
-		final AvailObject subobject =
-			parentObject.objectSlotAtByteIndex(byteIndexInParent);
-		if (!subobject.descriptor().isMutable())
+		if (!childObject.descriptor().isMutable())
 		{
 			return;
 		}
-		if (subobject.sameAddressAs(_exceptMe))
+		if (childObject.sameAddressAs(_exceptMe))
 		{
 			return;
 		}
 		// The excluded object was reached.
 		//
 		// Recursively invoke the iterator on the subobjects of subobject...
-		subobject.scanSubobjects(this);
+		childObject.scanSubobjects(this);
 		// Indicate the object is no longer valid and should not ever be used
 		// again.
-		subobject.setToInvalidDescriptor();
+		childObject.setToInvalidDescriptor();
 	}
 
 

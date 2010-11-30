@@ -5251,12 +5251,30 @@ implements Iterable<AvailObject>
 		final AvailObject anotherObject);
 
 	
-	abstract public short byteSlotAtByteIndex (
-		final int index);
-	
+	/**
+	 * Extract the byte at the given one-based byte subscript within the
+	 * specified field.  Always use little endian encoding.
+	 * 
+	 * @param e An enumeration value representing an integer field.
+	 * @param byteSubscript Which byte to extract.
+	 * @return The unsigned byte as a short.
+	 */
+	abstract public short byteSlotAt (
+		final Enum<?> e,
+		final int byteSubscript);
 
-	abstract public void byteSlotAtByteIndexPut (
-		final int index,
+
+	/**
+	 * Replace the byte at the given one-based byte subscript within the
+	 * specified field.  Always use little endian encoding.
+	 * 
+	 * @param e An enumeration value representing an integer field.
+	 * @param byteSubscript Which byte to extract.
+	 * @param aByte The unsigned byte to write, passed as a short.
+	 */
+	abstract public void byteSlotAtPut (
+		final Enum<?> e,
+		final int byteSubscript,
 		final short aByte);
 
 
@@ -5277,10 +5295,10 @@ implements Iterable<AvailObject>
 		final int byteIndex);
 
 	
-	public void checkWriteAtByteIndex (
-		final int index)
+	public void checkWriteForField (
+		final Enum<?> e)
 	{
-		descriptor().checkWriteAtByteIndex(index);
+		descriptor().checkWriteForField(e);
 	}
 
 	
@@ -5401,25 +5419,6 @@ implements Iterable<AvailObject>
 
 
 	
-	@Deprecated public AvailObject objectSlotAtByteIndex (
-		final int index)
-	{
-		//  Extract the object at the given byte-index.  It must be an object.
-		//TODO: Delete me when unused
-		error("Subclass responsibility: objectSlotAtByteIndex: in Avail.AvailObject");
-		return VoidDescriptor.voidObject();
-	}
-
-	@Deprecated public void objectSlotAtByteIndexPut (
-		final int index,
-		final AvailObject anAvailObject)
-	{
-		//  Store the object at the given byte-index.
-		//TODO: Delete me when unused
-		error("Subclass responsibility: objectSlotAtByteIndex:put: in Avail.AvailObject");
-		return;
-	}
-
 	public boolean isDestroyed ()
 	{
 		checkValidAddress();
@@ -5456,9 +5455,9 @@ implements Iterable<AvailObject>
 	 * @param index The index in bytes (must be even).
 	 * @return The short found at the given byte-index.
 	 */
-	@Deprecated
-	abstract public short shortSlotAtByteIndex (
-		final int index);
+	abstract public short shortSlotAt (
+		final Enum<?> e,
+		final int shortIndex);
 
 	/**
 	 * Store the (16-bit signed) short at the given byte-index of the receiver.
@@ -5466,9 +5465,9 @@ implements Iterable<AvailObject>
 	 * @param index The index in bytes (must be even).
 	 * @param aShort The short to store at the given byte-index.
 	 */
-	@Deprecated
-	abstract public void shortSlotAtByteIndexPut (
-		final int index,
+	abstract public void shortSlotAtPut (
+		final Enum<?> e,
+		final int shortIndex,
 		final short aShort);
 
 	

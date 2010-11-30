@@ -8329,20 +8329,27 @@ public abstract class Descriptor extends AbstractDescriptor
 
 
 
-	// scanning
+	enum FakeObjectSlotsForScanning {allObjectSlots_};
 
+	
 	/**
-	 * @param object
-	 * @param visitor
+	 * Visit all of the object's object slots, passing the parent and child
+	 * objects to the provided visitor.
+	 * 
+	 * @param object The object to scan.
+	 * @param visitor The visitor to invoke.
 	 */
 	@Override
 	public void ObjectScanSubobjects (
 			final AvailObject object,
 			final AvailSubobjectVisitor visitor)
 	{
-		for (int byteIndex = -4, _end1 = object.objectSlotsCount() * -4; byteIndex >= _end1; byteIndex -= 4)
+		for (int i = object.objectSlotsCount(); i >= 1; i--)
 		{
-			visitor.invoke(object, byteIndex);
+			AvailObject child = object.objectSlotAt(
+				FakeObjectSlotsForScanning.allObjectSlots_,
+				i);
+			visitor.invoke(object, child);
 		}
 	}
 

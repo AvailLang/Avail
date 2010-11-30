@@ -286,16 +286,20 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	@Override
 	public void ObjectRawNybbleAtPut (
 			final AvailObject object,
-			final int index,
+			final int nybbleIndex,
 			final byte aNybble)
 	{
-		//  Set the nybble at the given index.  Use big Endian.
-
-		int byteIndex = numberOfFixedIntegerSlots * 4 + (index + 7) / 2;
-		int leftShift = (index & 1) * 4;
-		short theByte = object.byteSlotAtByteIndex(byteIndex);
-		theByte = (short)((theByte & ~(15 << leftShift)) + (aNybble << leftShift));
-		object.byteSlotAtByteIndexPut(byteIndex, theByte);
+		//  Set the nybble at the given index.  Use little Endian.
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		assert aNybble >= 0 && aNybble <= 15;
+		object.checkWriteForField(IntegerSlots.rawQuadAt_);
+		object.verifyToSpaceAddress();
+		int wordIndex = (nybbleIndex + 7) / 8;
+		int word = object.integerSlotAt(IntegerSlots.rawQuadAt_, wordIndex);
+		int leftShift = ((nybbleIndex - 1) & 7) * 4;
+		word &= ~(0x0F << leftShift);
+		word |= aNybble << leftShift;
+		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, wordIndex, word);
 	}
 
 	@Override
@@ -319,49 +323,51 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	@Override
 	public byte ObjectExtractNybbleFromTupleAt (
 			final AvailObject object,
-			final int index)
+			final int nybbleIndex)
 	{
-		//  Get the element at the given index in the tuple object, and extract a nybble from it.
-		//  Fail if it's not a nybble.
-		//
-		//  WARNING - optimized to take header information into account for fast access.
-
-		int byteIndex = (index + 15) / 2;      // 15 = self numberOfFixedSlots * 4 * 2 + 7
-		return (byte)((object.byteSlotAtByteIndex(byteIndex) >> ((index & 1) * 4)) & 15);
+		// Get the element at the given index in the tuple object, and extract
+		// a nybble from it.  Fail if it's not a nybble.
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		object.verifyToSpaceAddress();
+		int wordIndex = (nybbleIndex + 7) / 8;
+		int word = object.integerSlotAt(IntegerSlots.rawQuadAt_, wordIndex);
+		int shift = ((nybbleIndex - 1) & 7) * 4;
+		return (byte) ((word>>>shift) & 0x0F);
 	}
 
 	@Override
 	public short ObjectRawByteAt (
 			final AvailObject object,
-			final int index)
+			final int byteIndex)
 	{
-		//  Answer the byte at the given byte-index.  This is actually two nybbles packed together.
-
-		return object.byteSlotAtByteIndex((((numberOfFixedIntegerSlots() * 4) + index) + 3));
+		// Answer the byte at the given byte-index.  This is actually two
+		// nybbles packed together.  Use little endian.
+		return object.byteSlotAt(IntegerSlots.rawQuadAt_, byteIndex);
 	}
 
 	@Override
 	public void ObjectRawByteAtPut (
 			final AvailObject object,
-			final int index,
+			final int byteIndex,
 			final short anInteger)
 	{
-		//  Set the byte at the given byte-index.  This is actually two nybbles packed together.
-		//  Use big endian.
-
-		object.byteSlotAtByteIndexPut((((numberOfFixedIntegerSlots() * 4) + index) + 3), anInteger);
+		// Set the byte at the given byte-index.  This is actually two nybbles
+		// packed together.  Use little endian.
+		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, byteIndex, anInteger);
 	}
 
 	@Override
 	public byte ObjectRawNybbleAt (
 			final AvailObject object,
-			final int index)
+			final int nybbleIndex)
 	{
-		//  Answer the nybble at the given index in the nybble tuple object.
-
-		int byteIndex = numberOfFixedIntegerSlots * 4 + (index + 7) / 2;
-		int rightShift = (index & 1) * 4;
-		return (byte)((object.byteSlotAtByteIndex(byteIndex) >> rightShift) & 15);
+		// Answer the nybble at the given index in the nybble tuple object.
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		object.verifyToSpaceAddress();
+		int wordIndex = (nybbleIndex + 7) / 8;
+		int word = object.integerSlotAt(IntegerSlots.rawQuadAt_, wordIndex);
+		int shift = ((nybbleIndex - 1) & 7) * 4;
+		return (byte) ((word>>>shift) & 0x0F);
 	}
 
 	@Override
@@ -388,37 +394,37 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	@Override
 	public AvailObject ObjectTupleAtPuttingCanDestroy (
 			final AvailObject object,
-			final int index,
+			final int nybbleIndex,
 			final AvailObject newValueObject,
 			final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
-		assert ((index >= 1) && (index <= object.tupleSize()));
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		if (!newValueObject.isNybble())
 		{
 			if (newValueObject.isByte())
 			{
 				return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-					index,
+					nybbleIndex,
 					newValueObject,
 					true);
 			}
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
+				nybbleIndex,
 				newValueObject,
 				true);
 		}
 		if (!canDestroy || !isMutable)
 		{
 			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-				index,
+				nybbleIndex,
 				newValueObject,
 				true);
 		}
 		//  Ok, clobber the object in place...
-		object.rawNybbleAtPut(index, newValueObject.extractNybble());
+		object.rawNybbleAtPut(nybbleIndex, newValueObject.extractNybble());
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.  Probably cheaper than computing the difference or even testing for an actual change.
 		return object;
@@ -456,11 +462,16 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return 4;
 	}
 
+	/**
+	 * Set how many unused nybbles that this descriptor leaves in the last
+	 * word.
+	 * 
+	 * @param anInteger The number of unused nybbles in the last word of all of
+	 *                  this descriptor's objects.
+	 */
 	void unusedNybblesOfLastWord (
 			final int anInteger)
 	{
-		//  Set unusedNybblesOfLastWord in this descriptor instance.
-
 		unusedNybblesOfLastWord = anInteger;
 	}
 
