@@ -3233,9 +3233,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int numFloats ()
+	public int numDoubles ()
 	{
-		return descriptor().ObjectNumFloats(this);
+		return descriptor().ObjectNumDoubles(this);
 	}
 
 	/**

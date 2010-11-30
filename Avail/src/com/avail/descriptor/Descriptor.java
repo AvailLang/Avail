@@ -6358,7 +6358,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int ObjectNumFloats (
+	public int ObjectNumDoubles (
 			final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.

@@ -4075,10 +4075,10 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public int ObjectNumFloats (
+	public int ObjectNumDoubles (
 			final AvailObject object)
 	{
-		return ObjectTraversed(object).numFloats();
+		return ObjectTraversed(object).numDoubles();
 	}
 
 	@Override

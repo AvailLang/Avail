@@ -101,14 +101,7 @@ public class MessageSplitter
 	 */
 	abstract class Expression
 	{
-		/**
-		 * The one-based offset of the start of this expression in the
-		 * instruction stream.  Set during code generation and used during
-		 * subsequent code generation (requires two passes).
-		 */
-		public int instructionStart = -1;
-		
-		
+
 		/**
 		 * Write instructions for parsing me to the given list.
 		 * @param list The list of integers {@link MessageSplitter encoding}
@@ -116,7 +109,7 @@ public class MessageSplitter
 		 */
 		void emitOn (List<Integer> list)
 		{
-			instructionStart = list.size() + 1;
+			// Do nothing.
 		}
 		
 		

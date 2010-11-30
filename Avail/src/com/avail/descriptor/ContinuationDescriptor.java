@@ -231,7 +231,7 @@ public class ContinuationDescriptor extends Descriptor
 		cont.caller(caller);
 		cont.closure(closure);
 		cont.pc(1);
-		cont.stackp(cont.objectSlotsCount() + 1);
+		cont.stackp(cont.objectSlotsCount() + 1 - numberOfFixedObjectSlots);
 		cont.hiLevelTwoChunkLowOffset((startingChunkIndex << 16) + 1);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
@@ -381,25 +381,34 @@ public class ContinuationDescriptor extends Descriptor
 		object.hiLevelTwoChunkLowOffset(((index * 0x10000) + offset));
 	}
 
+	/**
+	 * Read from the stack at the given subscript, which is one-relative and
+	 * based on just the stack area.
+	 */
 	@Override
 	public AvailObject ObjectStackAt (
 			final AvailObject object,
-			final int slotIndex)
+			final int subscript)
 	{
-		//  Read from the stack at the given slot index (relative to the object, not the stack area).
-
-		return object.objectSlotAtByteIndex(slotIndex * -4);
+		return object.objectSlotAt(
+			ObjectSlots.localOrArgOrStackAt_,
+			subscript);
 	}
 
+	/**
+	 * Write to the stack at the given subscript, which is one-relative and
+	 * based on just the stack area.
+	 */
 	@Override
 	public void ObjectStackAtPut (
 			final AvailObject object,
-			final int slotIndex,
+			final int subscript,
 			final AvailObject anObject)
 	{
-		//  Write to the stack at the given slot index (relative to the object, not the stack area).
-
-		object.objectSlotAtByteIndexPut(slotIndex * -4, anObject);
+		object.objectSlotAtPut(
+			ObjectSlots.localOrArgOrStackAt_,
+			subscript,
+			anObject);
 	}
 
 	@Override

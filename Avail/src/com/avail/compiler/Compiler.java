@@ -60,8 +60,8 @@ public class Compiler
 
 	public class AvailObjectStack
 	{
-		public AvailObject node;
-		public AvailObjectStack next;
+		protected AvailObject node;
+		protected AvailObjectStack next;
 		public AvailObjectStack push (AvailObject newNode)
 		{
 			AvailObjectStack newStack = new AvailObjectStack();

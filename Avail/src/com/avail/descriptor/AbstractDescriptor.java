@@ -3423,7 +3423,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int ObjectNumFloats (final AvailObject object);
+	public abstract int ObjectNumDoubles (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4440,14 +4440,14 @@ public abstract class AbstractDescriptor
 		return hasVariableObjectSlots;
 	}
 
-	protected int numberOfFixedIntegerSlots ()
+	public int numberOfFixedIntegerSlots ()
 	{
 		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
 
 		return numberOfFixedIntegerSlots;
 	}
 
-	protected int numberOfFixedObjectSlots ()
+	public int numberOfFixedObjectSlots ()
 	{
 		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
 

@@ -918,8 +918,8 @@ public enum Primitive
 		@Override
 		public Result attempt (List<AvailObject> args, AvailInterpreter interpreter)
 		{
-			//  Create a continuation.  Don't allow anything about level two to be mentioned.
-
+			// Create a continuation.  Don't allow anything about level two to
+			// be mentioned.
 			assert args.size() == 5;
 			final AvailObject callerHolder = args.get(0);
 			final AvailObject closure = args.get(1);
@@ -927,12 +927,16 @@ public enum Primitive
 			final AvailObject stackp = args.get(3);
 			final AvailObject stack = args.get(4);
 			final AvailObject theCode = closure.code();
-			final AvailObject cont = AvailObject.newIndexedDescriptor(theCode.numArgsAndLocalsAndStack(), ContinuationDescriptor.mutableDescriptor());
+			final AvailObject cont = AvailObject.newIndexedDescriptor(
+				theCode.numArgsAndLocalsAndStack(),
+				ContinuationDescriptor.mutableDescriptor());
 			cont.caller(callerHolder.value());
 			cont.closure(closure);
 			cont.pc(pc.extractInt());
 			cont.stackp(stackp.extractInt());
-			cont.levelTwoChunkIndexOffset(L2ChunkDescriptor.indexOfUnoptimizedChunk(), L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+			cont.levelTwoChunkIndexOffset(
+				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
+				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 			for (int i = 1, _end3 = stack.tupleSize(); i <= _end3; i++)
 			{
 				cont.localOrArgOrStackAtPut(i, stack.tupleAt(i));
@@ -1050,9 +1054,11 @@ public enum Primitive
 
 			assert args.size() == 2;
 			final AvailObject con = args.get(0);
+			final AvailObject code = con.closure().code();
 			final AvailObject arguments = args.get(1);
-			assert (con.stackp() == (con.objectSlotsCount() + 1)) : "Outer continuation should have been a label- rather than call- continuation";
-			assert (con.pc() == 1) : "Labels must only occur at the start of a block.  Only restart that kind of continuation.";
+			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
+				: "Outer continuation should have been a label- rather than call-continuation";
+			assert con.pc() == 1 : "Labels must only occur at the start of a block.  Only restart that kind of continuation.";
 			//  The arguments will be referenced by the continuation.
 			//
 			//  No need to make it immutable because current continuation's reference is lost by this.  We go ahead
@@ -1124,8 +1130,10 @@ public enum Primitive
 
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			assert (con.stackp() == (con.objectSlotsCount() + 1)) : "Outer continuation should have been a label- rather than call- continuation";
-			assert (con.pc() == 1) : "Labels must only occur at the start of a block.  Only restart that kind of continuation.";
+			final AvailObject code = con.closure().code();
+			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
+				: "Outer continuation should have been a label- rather than call-continuation";
+			assert con.pc() == 1 : "Labels must only occur at the start of a block.  Only restart that kind of continuation.";
 			//  Funny twist - destroy previous continuation in place of one being restarted
 			//
 			//  No need to make it immutable because current continuation's reference is lost by this.  We go ahead

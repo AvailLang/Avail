@@ -56,7 +56,7 @@ public class L2ChunkDescriptor extends Descriptor
 		validity,
 		numObjects,
 		numIntegers,
-		numFloats,
+		numDoubles,
 		nextIndex,
 		previousIndex
 	}
@@ -130,7 +130,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.numFloats, value);
+		object.integerSlotPut(IntegerSlots.numDoubles, value);
 	}
 
 	/**
@@ -233,10 +233,10 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field numFloats.
 	 */
 	@Override
-	public int ObjectNumFloats (
+	public int ObjectNumDoubles (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.numFloats);
+		return object.integerSlot(IntegerSlots.numDoubles);
 	}
 
 	/**

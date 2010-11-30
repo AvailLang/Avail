@@ -59,39 +59,32 @@ public class AvailBlockNode extends AvailParseNode
 	/**
 	 * The block's argument declarations.
 	 */
-	List<AvailVariableDeclarationNode> _arguments;
+	private List<AvailVariableDeclarationNode> _arguments;
 
 	/**
 	 * The {@link Primitive primitive} number to invoke for this block.
 	 */
-	int _primitive;
+	private int _primitive;
 
 	/**
 	 * The list of statements contained in this block.
 	 */
-	List<AvailParseNode> _statements;
+	private List<AvailParseNode> _statements;
 
 	/**
 	 * The type this block is expected to return an instance of.
 	 */
-	AvailObject _resultType;
+	private AvailObject _resultType;
 
 	/**
 	 * Any variables needed by this block. This is set after the
 	 * {@linkplain AvailBlockNode} has already been created.
 	 */
-	List<AvailVariableDeclarationNode> _neededVariables;
+	private List<AvailVariableDeclarationNode> _neededVariables;
 
-	/**
-	 * Answer this block's list of argument declarations.
-	 * 
-	 * @return The list of argument declarations.
-	 */
-	public List<AvailVariableDeclarationNode> arguments ()
-	{
-		return _arguments;
-	}
 
+	
+	
 	/**
 	 * Set this block's list of argument declarations.
 	 * 
@@ -109,7 +102,7 @@ public class AvailBlockNode extends AvailParseNode
 	 * 
 	 * @return A list of between zero and one labels.
 	 */
-	public List<AvailLabelNode> labels ()
+	private List<AvailLabelNode> labels ()
 	{
 		List<AvailLabelNode> labels = new ArrayList<AvailLabelNode>(1);
 		for (AvailParseNode maybeLabel : _statements)
@@ -127,7 +120,7 @@ public class AvailBlockNode extends AvailParseNode
 	 * 
 	 * @return This block's local variable declarations.
 	 */
-	public List<AvailVariableDeclarationNode> locals ()
+	private List<AvailVariableDeclarationNode> locals ()
 	{
 		List<AvailVariableDeclarationNode> locals = new ArrayList<AvailVariableDeclarationNode>(
 			5);
@@ -148,7 +141,7 @@ public class AvailBlockNode extends AvailParseNode
 	 * 
 	 * @return A list of {@link AvailVariableDeclarationNode declarations}.
 	 */
-	public List<AvailVariableDeclarationNode> neededVariables ()
+	protected List<AvailVariableDeclarationNode> neededVariables ()
 	{
 		return _neededVariables;
 	}
@@ -162,16 +155,6 @@ public class AvailBlockNode extends AvailParseNode
 	public void primitive (final int primitiveNumber)
 	{
 		_primitive = primitiveNumber;
-	}
-
-	/**
-	 * Answer the type of object returned by this block.
-	 * 
-	 * @return An Avail {@link TypeDescriptor type}.
-	 */
-	public AvailObject resultType ()
-	{
-		return _resultType;
 	}
 
 	/**
@@ -257,7 +240,7 @@ public class AvailBlockNode extends AvailParseNode
 	 *            A {@link AvailCodeGenerator code generator}
 	 * @return An {@link AvailObject} of type {@link ClosureDescriptor closure}.
 	 */
-	public AvailObject generateOn (final AvailCodeGenerator codeGenerator)
+	protected AvailObject generateOn (final AvailCodeGenerator codeGenerator)
 	{
 		codeGenerator.startBlockWithArgumentsLocalsLabelsOuterVarsResultType(
 			_arguments,
@@ -301,7 +284,7 @@ public class AvailBlockNode extends AvailParseNode
 	 * @param aBlock
 	 *            What to do with each variable I define.
 	 */
-	public void allLocallyDefinedVariablesDo (
+	private void allLocallyDefinedVariablesDo (
 		final Continuation1<AvailVariableDeclarationNode> aBlock)
 	{
 		for (AvailVariableDeclarationNode arg : _arguments)
@@ -436,7 +419,7 @@ public class AvailBlockNode extends AvailParseNode
 	 * Figure out what outer variables will need to be captured when a closure
 	 * for me is built.
 	 */
-	public void collectNeededVariablesOfOuterBlocks ()
+	private void collectNeededVariablesOfOuterBlocks ()
 	{
 
 		final Set<AvailVariableDeclarationNode> needed = new HashSet<AvailVariableDeclarationNode>();
@@ -456,29 +439,29 @@ public class AvailBlockNode extends AvailParseNode
 			{
 				if (node.isBlock())
 				{
-					for (AvailVariableDeclarationNode declaration : ((AvailBlockNode) node)
-							.neededVariables())
+					AvailBlockNode blockNode = (AvailBlockNode) node;
+					for (AvailVariableDeclarationNode declaration
+							: blockNode.neededVariables())
 					{
 						if (!providedByMe.contains(declaration))
 						{
 							needed.add(declaration);
 						}
 					}
+					return node;
 				}
-				else
+				node.childrenMap(this);
+				if (!node.isVariableUse())
 				{
-					node.childrenMap(this);
-					if (node.isVariableUse())
-					{
-						AvailVariableDeclarationNode declaration = ((AvailVariableUseNode) node)
-								.associatedDeclaration();
-						if ((!providedByMe.contains(declaration))
-								&& (!declaration
-										.isSyntheticVariableDeclaration()))
-						{
-							needed.add(declaration);
-						}
-					}
+					return node;
+				}
+				AvailVariableUseNode use = (AvailVariableUseNode) node;
+				AvailVariableDeclarationNode declaration =
+					use.associatedDeclaration();
+				if (!providedByMe.contains(declaration)
+						&& !declaration.isSyntheticVariableDeclaration())
+				{
+					needed.add(declaration);
 				}
 				return node;
 			}

@@ -404,13 +404,23 @@ public class CompiledCodeDescriptor extends Descriptor
 		assert (tupleOfOuterTypes.tupleSize() == object.numOuters()) : "Wrong number of outer types.";
 		assert (tupleOfLocalContainerTypes.tupleSize() == object.numLocals()) : "Wrong number of local types.";
 		int src = 1;
-		for (int dest = (((object.numLiterals() - object.numLocals()) - object.numOuters()) + 1), _end1 = (object.numLiterals() - object.numLocals()); dest <= _end1; dest++)
+		for (
+				int
+					dest = object.numLiterals() - object.numLocals() - object.numOuters() + 1,
+					_end1 = object.numLiterals() - object.numLocals();
+				dest <= _end1;
+				dest++)
 		{
 			object.literalAtPut(dest, tupleOfOuterTypes.tupleAt(src));
 			src++;
 		}
 		src = 1;
-		for (int dest = ((object.numLiterals() - object.numLocals()) + 1), _end2 = object.numLiterals(); dest <= _end2; dest++)
+		for (
+				int
+					dest = object.numLiterals() - object.numLocals() + 1,
+					_end2 = object.numLiterals();
+				dest <= _end2;
+				dest++)
 		{
 			object.literalAtPut(dest, tupleOfLocalContainerTypes.tupleAt(src));
 			src++;
@@ -422,21 +432,22 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.hiStartingChunkIndexLowNumOuters(((object.hiStartingChunkIndexLowNumOuters() & 0xFFFF) + (value << 16)));
+		object.hiStartingChunkIndexLowNumOuters(
+			(object.hiStartingChunkIndexLowNumOuters() & 0xFFFF) + (value << 16));
 	}
 
 	@Override
 	public short ObjectMaxStackDepth (
 			final AvailObject object)
 	{
-		return ((short)(((object.numArgsAndLocalsAndStack() - object.numArgs()) - object.numLocals())));
+		return (short)(object.numArgsAndLocalsAndStack() - object.numArgs() - object.numLocals());
 	}
 
 	@Override
 	public short ObjectNumArgs (
 			final AvailObject object)
 	{
-		return ((short)((object.hiNumLocalsLowNumArgs() & 0xFFFF)));
+		return (short)(object.hiNumLocalsLowNumArgs() & 0xFFFF);
 	}
 
 	@Override
@@ -445,7 +456,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Answer the number of args + locals + stack slots to reserve in my continuations.
 
-		return ((short)((object.hiPrimitiveLowNumArgsAndLocalsAndStack() & 0xFFFF)));
+		return (short)(object.hiPrimitiveLowNumArgsAndLocalsAndStack() & 0xFFFF);
 	}
 
 	@Override
@@ -454,21 +465,21 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Answer how many literals I have.
 
-		return ((short)((object.objectSlotsCount() - numberOfFixedObjectSlots)));
+		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
 	}
 
 	@Override
 	public short ObjectNumLocals (
 			final AvailObject object)
 	{
-		return ((short)((object.hiNumLocalsLowNumArgs() >>> 16)));
+		return (short)(object.hiNumLocalsLowNumArgs() >>> 16);
 	}
 
 	@Override
 	public short ObjectNumOuters (
 			final AvailObject object)
 	{
-		return ((short)((object.hiStartingChunkIndexLowNumOuters() & 0xFFFF)));
+		return (short)(object.hiStartingChunkIndexLowNumOuters() & 0xFFFF);
 	}
 
 	@Override
@@ -478,7 +489,7 @@ public class CompiledCodeDescriptor extends Descriptor
 		//  Answer the primitive number I should try before falling back on
 		//  the Avail code.  Zero indicates not-a-primitive.
 
-		return ((short)((object.hiPrimitiveLowNumArgsAndLocalsAndStack() >>> 16)));
+		return (short)(object.hiPrimitiveLowNumArgsAndLocalsAndStack() >>> 16);
 	}
 
 	@Override

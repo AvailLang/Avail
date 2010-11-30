@@ -32,6 +32,28 @@
 
 package com.avail.compiler;
 
+/**
+ * Support explicit mutable wrapping of variables.  This is used specifically
+ * for allowing non-final variables to be used by inner classes.  The uses were
+ * generated automatically by the Smalltalk -> Java translator after flow
+ * analysis.
+ * <p>
+ * Say there's a variable called <code>outer</code> of type <code>Foo</code>,
+ * and you want to read and write it from within an inner class's methods.
+ * Simply change its definition from "<code>Foo outer;</code>" to
+ * "<code>Mutable&lt;Foo&gt; outer = new Mutable&lt;Foo&gt;();</code>" and change
+ * all references to <code>outer</code> to be references to
+ * <code>outer.value</code> instead.
+ * <p>
+ * Primitive Java types are accommodated via their boxed counterparts.  For
+ * example, "<code>int x;</code>" becomes
+ * "<code>Mutable&lt;Integer&gt = new Mutable&lt;Integer&gt;();</code>", and
+ * assignments like "<code>x = 5;</code>" become "<code>x.value = 5;</code>".
+ * Java's autoboxing takes care of the rest.
+ *
+ * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ * @param <T> The type of mutable object.
+ */
 public class Mutable<T>
 {
 	/**

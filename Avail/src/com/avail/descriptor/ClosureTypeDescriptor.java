@@ -351,13 +351,14 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject continuation,
 			final int stackp)
 	{
-		//  The arguments have been pushed onto continuation's stack.  Answer whether these
-		//  arguments are acceptable for invoking a closure with this type.
-
+		// The arguments have been pushed onto continuation's stack.  Answer
+		// whether these arguments are acceptable for invoking a closure with
+		// this type.
 		final short numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			if (!continuation.stackAt(stackp + numArgs - i).isInstanceOfSubtypeOf(object.argTypeAt(i)))
+			AvailObject arg = continuation.stackAt(stackp + numArgs - i); 
+			if (!arg.isInstanceOfSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -371,13 +372,15 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject continuation,
 			final int stackp)
 	{
-		//  The argument types have been pushed onto continuation's stack.  Answer whether
-		//  these arguments are acceptable for invoking a closure with this type.
-
+		// The argument types have been pushed onto continuation's stack. 
+		// Answer whether these arguments are acceptable for invoking a closure
+		// with this type.
 		final short numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			if (!continuation.stackAt(stackp + numArgs - i).isSubtypeOf(object.argTypeAt(i)))
+			final AvailObject argType =
+				continuation.stackAt(stackp + numArgs - i); 
+			if (!argType.isSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -390,8 +393,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
-		//  Answer whether these are acceptable argument types for invoking a closure that's an instance of me.
-
+		// Answer whether these are acceptable argument types for invoking a
+		// closure that's an instance of me.
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
 			if (!argTypes.get(i - 1).isSubtypeOf(object.argTypeAt(i)))
@@ -407,11 +410,12 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final List<AvailObject> argValues)
 	{
-		//  Answer whether these are acceptable arguments for invoking a closure that's an instance of me.
-
+		// Answer whether these are acceptable arguments for invoking a closure
+		// that's an instance of me.
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (!argValues.get(i - 1).isInstanceOfSubtypeOf(object.argTypeAt(i)))
+			final AvailObject arg = argValues.get(i - 1);
+			if (!arg.isInstanceOfSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -424,9 +428,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject argTypes)
 	{
-		//  Answer whether these are acceptable argument types for invoking a closure that's an instance of me.
-		//  There may be more entries in the tuple than we are interested in.
-
+		// Answer whether these are acceptable argument types for invoking a
+		// closure that's an instance of me.  There may be more entries in the
+		// tuple than we are interested in.
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(object.argTypeAt(i)))
@@ -442,9 +446,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject arguments)
 	{
-		//  Answer whether these are acceptable arguments for invoking a closure that's an instance of me.
-		//  There may be more entries in the tuple than we are interested in.
-
+		// Answer whether these are acceptable arguments for invoking a closure
+		// that's an instance of me.  There may be more entries in the tuple
+		// than we are interested in.
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
 			if (!arguments.tupleAt(i).isInstanceOfSubtypeOf(object.argTypeAt(i)))
@@ -455,21 +459,26 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
+	/**
+	 * Answer whether this method could ever be invoked with the given argument
+	 * types. Make sure to exclude methods where an argType and corresponding
+	 * method argument type have no common descendant except terminates. In that
+	 * case, no legal object could be passed that would cause the method to be
+	 * invoked. Don't check the number of arguments here.
+	 * <p>
+	 * @see ImplementationSetDescriptor
+	 */
 	@Override
 	public boolean ObjectCouldEverBeInvokedWith (
 			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
-		//  Answer whether this method could ever be invoked with the given argument types.  Make sure
-		//  to exclude methods where an argType and corresponding method argument type have no
-		//  common descendant except terminates.  In that case, no legal object could be passed that
-		//  would cause the method to be invoked.  Don't check the number of arguments here.
-		//
-		//  See AvailMethodImplementationSet>>implementationsAtOrBelow: for more details.
-
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
-			if (object.argTypeAt(i).typeIntersection(argTypes.get(i - 1)).equals(Types.terminates.object()))
+			final AvailObject argType = object.argTypeAt(i);
+			final AvailObject actualType = argTypes.get(i - 1);
+			final AvailObject intersection = argType.typeIntersection(actualType);
+			if (intersection.equals(Types.terminates.object()))
 			{
 				return false;
 			}
