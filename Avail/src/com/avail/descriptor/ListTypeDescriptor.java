@@ -42,7 +42,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		tupleType
+		TUPLE_TYPE
 	}
 
 
@@ -56,7 +56,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.tupleType, value);
+		object.objectSlotPut(ObjectSlots.TUPLE_TYPE, value);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectTupleType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.tupleType);
+		return object.objectSlot(ObjectSlots.TUPLE_TYPE);
 	}
 
 

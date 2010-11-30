@@ -58,7 +58,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero
+		HASH_OR_ZERO
 	}
 
 
@@ -72,7 +72,7 @@ public abstract class TupleDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hashOrZero, value);
+		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public abstract class TupleDescriptor extends Descriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hashOrZero);
+		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 
@@ -91,7 +91,7 @@ public abstract class TupleDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.hashOrZero)
+		if (e == IntegerSlots.HASH_OR_ZERO)
 		{
 			return true;
 		}

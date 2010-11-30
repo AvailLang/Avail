@@ -44,8 +44,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		sizeRange,
-		contentType
+		SIZE_RANGE,
+		CONTENT_TYPE
 	}
 
 
@@ -59,7 +59,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.contentType, value);
+		object.objectSlotPut(ObjectSlots.CONTENT_TYPE, value);
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.sizeRange, value);
+		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectContentType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.contentType);
+		return object.objectSlot(ObjectSlots.CONTENT_TYPE);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.sizeRange);
+		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
 

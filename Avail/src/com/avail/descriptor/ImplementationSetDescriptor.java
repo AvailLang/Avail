@@ -54,10 +54,10 @@ public class ImplementationSetDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		implementationsTuple,
-		privateTestingTree,
-		dependentChunks,
-		name
+		IMPLEMENTATIONS_TUPLE,
+		TESTING_TREE,
+		DEPENDENT_CHUNKS,
+		NAME
 	}
 
 
@@ -71,7 +71,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.dependentChunks, value);
+		object.objectSlotPut(ObjectSlots.DEPENDENT_CHUNKS, value);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.implementationsTuple, value);
+		object.objectSlotPut(ObjectSlots.IMPLEMENTATIONS_TUPLE, value);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.name, value);
+		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.privateTestingTree, value);
+		object.objectSlotPut(ObjectSlots.TESTING_TREE, value);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectDependentChunks (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.dependentChunks);
+		return object.objectSlot(ObjectSlots.DEPENDENT_CHUNKS);
 	}
 
 	/**
@@ -124,7 +124,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectImplementationsTuple (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.implementationsTuple);
+		return object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
 	}
 
 	/**
@@ -134,7 +134,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.name);
+		return object.objectSlot(ObjectSlots.NAME);
 	}
 
 	/**
@@ -144,7 +144,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject ObjectPrivateTestingTree (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.privateTestingTree);
+		return object.objectSlot(ObjectSlots.TESTING_TREE);
 	}
 
 
@@ -153,15 +153,15 @@ public class ImplementationSetDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.implementationsTuple)
+		if (e == ObjectSlots.IMPLEMENTATIONS_TUPLE)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.privateTestingTree)
+		if (e == ObjectSlots.TESTING_TREE)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.dependentChunks)
+		if (e == ObjectSlots.DEPENDENT_CHUNKS)
 		{
 			return true;
 		}

@@ -42,7 +42,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 	enum ObjectSlots
 	{
-		signature
+		SIGNATURE
 	}
 
 
@@ -106,7 +106,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.signature, value);
+		object.objectSlotPut(ObjectSlots.SIGNATURE, value);
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.signature);
+		return object.objectSlot(ObjectSlots.SIGNATURE);
 	}
 
 

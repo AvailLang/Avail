@@ -40,7 +40,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		myObjectMeta
+		MY_OBJECT_META
 	}
 
 
@@ -54,7 +54,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.myObjectMeta, value);
+		object.objectSlotPut(ObjectSlots.MY_OBJECT_META, value);
 	}
 
 	/**
@@ -64,7 +64,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	public AvailObject ObjectMyObjectMeta (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.myObjectMeta);
+		return object.objectSlot(ObjectSlots.MY_OBJECT_META);
 	}
 
 

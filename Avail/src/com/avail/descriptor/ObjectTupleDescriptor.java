@@ -44,12 +44,12 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero
+		HASH_OR_ZERO
 	}
 
 	enum ObjectSlots
 	{
-		tupleAt_
+		TUPLE_AT_
 	}
 
 
@@ -58,7 +58,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.tupleAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.TUPLE_AT_, subscript);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 			final int subscript,
 			final AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.tupleAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.TUPLE_AT_, subscript, value);
 	}
 
 

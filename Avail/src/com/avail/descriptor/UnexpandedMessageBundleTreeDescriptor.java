@@ -44,14 +44,14 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	enum IntegerSlots
 	{
-		depth
+		DEPTH
 	}
 
 	enum ObjectSlots
 	{
-		unclassified,
-		pad1,
-		pad2
+		UNCLASSIFIED,
+		PAD1,
+		PAD2
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.depth, value);
+		object.integerSlotPut(IntegerSlots.DEPTH, value);
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.pad1, value);
+		object.objectSlotPut(ObjectSlots.PAD1, value);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.pad2, value);
+		object.objectSlotPut(ObjectSlots.PAD2, value);
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.unclassified, value);
+		object.objectSlotPut(ObjectSlots.UNCLASSIFIED, value);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	public int ObjectDepth (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.depth);
+		return object.integerSlot(IntegerSlots.DEPTH);
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	public AvailObject ObjectPad1 (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.pad1);
+		return object.objectSlot(ObjectSlots.PAD1);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	public AvailObject ObjectPad2 (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.pad2);
+		return object.objectSlot(ObjectSlots.PAD2);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	public AvailObject ObjectUnclassified (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.unclassified);
+		return object.objectSlot(ObjectSlots.UNCLASSIFIED);
 	}
 
 
@@ -144,11 +144,11 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.unclassified)
+		if (e == ObjectSlots.UNCLASSIFIED)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.depth)
+		if (e == IntegerSlots.DEPTH)
 		{
 			return true;
 		}

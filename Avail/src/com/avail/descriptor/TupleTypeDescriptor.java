@@ -46,9 +46,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		sizeRange,
-		typeTuple,
-		defaultType
+		SIZE_RANGE,
+		TYPE_TUPLE,
+		DEFAULT_TYPE
 	}
 
 
@@ -62,7 +62,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.defaultType, value);
+		object.objectSlotPut(ObjectSlots.DEFAULT_TYPE, value);
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.sizeRange, value);
+		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.typeTuple, value);
+		object.objectSlotPut(ObjectSlots.TYPE_TUPLE, value);
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectDefaultType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.defaultType);
+		return object.objectSlot(ObjectSlots.DEFAULT_TYPE);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.sizeRange);
+		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectTypeTuple (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.typeTuple);
+		return object.objectSlot(ObjectSlots.TYPE_TUPLE);
 	}
 
 

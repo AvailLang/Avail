@@ -41,16 +41,16 @@ public class ModuleDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		name,
-		newNames,
-		names,
-		privateNames,
-		visibleNames,
-		methods,
-		restrictions,
-		variableBindings,
-		constantBindings,
-		filteredBundleTree
+		NAME,
+		NEW_NAMES,
+		NAMES,
+		PRIVATE_NAMES,
+		VISIBLE_NAMES,
+		METHODS,
+		RESTRICTIONS,
+		VARIABLE_BINDINGS,
+		CONSTANT_BINDINGS,
+		FILTERED_BUNDLE_TREE
 	}
 
 
@@ -238,7 +238,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.constantBindings, value);
+		object.objectSlotPut(ObjectSlots.CONSTANT_BINDINGS, value);
 	}
 
 	/**
@@ -249,7 +249,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.filteredBundleTree, value);
+		object.objectSlotPut(ObjectSlots.FILTERED_BUNDLE_TREE, value);
 	}
 
 	/**
@@ -260,7 +260,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.methods, value);
+		object.objectSlotPut(ObjectSlots.METHODS, value);
 	}
 
 	/**
@@ -271,7 +271,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.name, value);
+		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
 	/**
@@ -282,7 +282,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.names, value);
+		object.objectSlotPut(ObjectSlots.NAMES, value);
 	}
 
 	/**
@@ -293,7 +293,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.newNames, value);
+		object.objectSlotPut(ObjectSlots.NEW_NAMES, value);
 	}
 
 	/**
@@ -304,7 +304,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.privateNames, value);
+		object.objectSlotPut(ObjectSlots.PRIVATE_NAMES, value);
 	}
 
 	/**
@@ -315,7 +315,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.restrictions, value);
+		object.objectSlotPut(ObjectSlots.RESTRICTIONS, value);
 	}
 
 	/**
@@ -326,7 +326,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.variableBindings, value);
+		object.objectSlotPut(ObjectSlots.VARIABLE_BINDINGS, value);
 	}
 
 	/**
@@ -337,7 +337,7 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.visibleNames, value);
+		object.objectSlotPut(ObjectSlots.VISIBLE_NAMES, value);
 	}
 
 	/**
@@ -347,7 +347,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectConstantBindings (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.constantBindings);
+		return object.objectSlot(ObjectSlots.CONSTANT_BINDINGS);
 	}
 
 	/**
@@ -357,7 +357,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectFilteredBundleTree (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.filteredBundleTree);
+		return object.objectSlot(ObjectSlots.FILTERED_BUNDLE_TREE);
 	}
 
 	/**
@@ -367,7 +367,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectMethods (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.methods);
+		return object.objectSlot(ObjectSlots.METHODS);
 	}
 
 	/**
@@ -377,7 +377,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectName (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.name);
+		return object.objectSlot(ObjectSlots.NAME);
 	}
 
 	/**
@@ -387,7 +387,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectNames (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.names);
+		return object.objectSlot(ObjectSlots.NAMES);
 	}
 
 	/**
@@ -397,7 +397,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectNewNames (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.newNames);
+		return object.objectSlot(ObjectSlots.NEW_NAMES);
 	}
 
 	/**
@@ -407,7 +407,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectPrivateNames (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.privateNames);
+		return object.objectSlot(ObjectSlots.PRIVATE_NAMES);
 	}
 
 	/**
@@ -417,7 +417,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectRestrictions (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.restrictions);
+		return object.objectSlot(ObjectSlots.RESTRICTIONS);
 	}
 
 	/**
@@ -427,7 +427,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectVariableBindings (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.variableBindings);
+		return object.objectSlot(ObjectSlots.VARIABLE_BINDINGS);
 	}
 
 	/**
@@ -437,7 +437,7 @@ public class ModuleDescriptor extends Descriptor
 	public AvailObject ObjectVisibleNames (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.visibleNames);
+		return object.objectSlot(ObjectSlots.VISIBLE_NAMES);
 	}
 
 
@@ -446,39 +446,39 @@ public class ModuleDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 		final Enum<?> e)
 	{
-		if (e == ObjectSlots.newNames)
+		if (e == ObjectSlots.NEW_NAMES)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.names)
+		if (e == ObjectSlots.NAMES)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.privateNames)
+		if (e == ObjectSlots.PRIVATE_NAMES)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.visibleNames)
+		if (e == ObjectSlots.VISIBLE_NAMES)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.methods)
+		if (e == ObjectSlots.METHODS)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.restrictions)
+		if (e == ObjectSlots.RESTRICTIONS)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.variableBindings)
+		if (e == ObjectSlots.VARIABLE_BINDINGS)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.constantBindings)
+		if (e == ObjectSlots.CONSTANT_BINDINGS)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.filteredBundleTree)
+		if (e == ObjectSlots.FILTERED_BUNDLE_TREE)
 		{
 			return true;
 		}

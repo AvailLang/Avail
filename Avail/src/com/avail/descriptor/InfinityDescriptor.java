@@ -47,7 +47,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	enum IntegerSlots
 	{
-		whichOne
+		WHICH_ONE
 	}
 
 
@@ -61,7 +61,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.whichOne, value);
+		object.integerSlotPut(IntegerSlots.WHICH_ONE, value);
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	public int ObjectWhichOne (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.whichOne);
+		return object.integerSlot(IntegerSlots.WHICH_ONE);
 	}
 
 

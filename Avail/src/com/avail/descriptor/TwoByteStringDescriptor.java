@@ -49,8 +49,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero,
-		rawQuadAt_
+		HASH_OR_ZERO,
+		RAW_QUAD_AT_
 	}
 	int unusedShortsOfLastWord;
 
@@ -60,7 +60,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.integerSlotAt(IntegerSlots.rawQuadAt_, subscript);
+		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final int subscript,
 			final int value)
 	{
-		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, subscript, value);
+		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
 
@@ -272,7 +272,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int index)
 	{
-		return object.shortSlotAt(IntegerSlots.rawQuadAt_, index);
+		return object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
 	@Override
@@ -282,7 +282,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final short anInteger)
 	{
 		// Set the character at the given index based on the given byte.
-		object.shortSlotAtPut(IntegerSlots.rawQuadAt_, index, anInteger);
+		object.shortSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override
@@ -294,7 +294,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		return CharacterDescriptor.newImmutableCharacterWithCodePoint(
-			object.shortSlotAt(IntegerSlots.rawQuadAt_, index));
+			object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index));
 	}
 
 	@Override
@@ -307,7 +307,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		// an AvailObject that's a two-byte character).
 		assert index >= 1 && index <= object.tupleSize();
 		object.shortSlotAtPut(
-			IntegerSlots.rawQuadAt_,
+			IntegerSlots.RAW_QUAD_AT_,
 			index,
 			(short)aCharacterObject.codePoint());
 	}

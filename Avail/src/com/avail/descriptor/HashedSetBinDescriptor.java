@@ -43,15 +43,15 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 	enum IntegerSlots
 	{
-		binHash,
-		binSize,
-		bitVector
+		BIN_HASH,
+		BIN_SIZE,
+		BIT_VECTOR
 	}
 
 	enum ObjectSlots
 	{
-		binUnionType,
-		binElementAt_
+		BIN_UNION_TYPE,
+		BIN_ELEMENT_AT_
 	}
 
 
@@ -60,7 +60,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.binElementAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.objectSlotAtPut(ObjectSlots.binElementAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.binHash, value);
+		object.integerSlotPut(IntegerSlots.BIN_HASH, value);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.binSize, value);
+		object.integerSlotPut(IntegerSlots.BIN_SIZE, value);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.binUnionType, value);
+		object.objectSlotPut(ObjectSlots.BIN_UNION_TYPE, value);
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.bitVector, value);
+		object.integerSlotPut(IntegerSlots.BIT_VECTOR, value);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.binHash);
+		return object.integerSlot(IntegerSlots.BIN_HASH);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBinSize (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.binSize);
+		return object.integerSlot(IntegerSlots.BIN_SIZE);
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public AvailObject ObjectBinUnionType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.binUnionType);
+		return object.objectSlot(ObjectSlots.BIN_UNION_TYPE);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBitVector (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.bitVector);
+		return object.integerSlot(IntegerSlots.BIT_VECTOR);
 	}
 
 

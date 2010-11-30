@@ -43,7 +43,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		closureType
+		CLOSURE_TYPE
 	}
 
 
@@ -57,7 +57,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.closureType, value);
+		object.objectSlotPut(ObjectSlots.CLOSURE_TYPE, value);
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.closureType);
+		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
 	}
 
 

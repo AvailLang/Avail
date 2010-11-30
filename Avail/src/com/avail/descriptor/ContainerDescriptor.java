@@ -44,13 +44,13 @@ public class ContainerDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero
+		HASH_OR_ZERO
 	}
 
 	enum ObjectSlots
 	{
-		value,
-		type
+		VALUE,
+		TYPE
 	}
 
 
@@ -64,7 +64,7 @@ public class ContainerDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hashOrZero, value);
+		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class ContainerDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.type, value);
+		object.objectSlotPut(ObjectSlots.TYPE, value);
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class ContainerDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.value, value);
+		object.objectSlotPut(ObjectSlots.VALUE, value);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class ContainerDescriptor extends Descriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hashOrZero);
+		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class ContainerDescriptor extends Descriptor
 	public AvailObject ObjectType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.type);
+		return object.objectSlot(ObjectSlots.TYPE);
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class ContainerDescriptor extends Descriptor
 	public AvailObject ObjectValue (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.value);
+		return object.objectSlot(ObjectSlots.VALUE);
 	}
 
 
@@ -129,11 +129,11 @@ public class ContainerDescriptor extends Descriptor
 	{
 		//  GENERATED special mutable slots method.
 
-		if (e == ObjectSlots.value)
+		if (e == ObjectSlots.VALUE)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.hashOrZero)
+		if (e == IntegerSlots.HASH_OR_ZERO)
 		{
 			return true;
 		}
@@ -289,6 +289,9 @@ public class ContainerDescriptor extends Descriptor
 		return result;
 	};
 
+	/**
+	 * A random generator used for creating hash values as needed.
+	 */
 	private static Random hashGenerator = new Random();
 
 	/**

@@ -43,8 +43,8 @@ public class DoubleDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		rawQuad1,
-		rawQuad2
+		RAW_QUAD_1,
+		RAW_QUAD_2
 	}
 
 
@@ -58,7 +58,7 @@ public class DoubleDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.rawQuad1, value);
+		object.integerSlotPut(IntegerSlots.RAW_QUAD_1, value);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class DoubleDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.rawQuad2, value);
+		object.integerSlotPut(IntegerSlots.RAW_QUAD_2, value);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class DoubleDescriptor extends Descriptor
 	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.rawQuad1);
+		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class DoubleDescriptor extends Descriptor
 	public int ObjectRawQuad2 (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.rawQuad2);
+		return object.integerSlot(IntegerSlots.RAW_QUAD_2);
 	}
 
 

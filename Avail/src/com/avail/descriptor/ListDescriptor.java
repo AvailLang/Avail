@@ -44,7 +44,7 @@ public class ListDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		tuple
+		TUPLE
 	}
 
 
@@ -58,7 +58,7 @@ public class ListDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.tuple, value);
+		object.objectSlotPut(ObjectSlots.TUPLE, value);
 	}
 
 	/**
@@ -68,7 +68,7 @@ public class ListDescriptor extends Descriptor
 	public AvailObject ObjectTuple (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.tuple);
+		return object.objectSlot(ObjectSlots.TUPLE);
 	}
 
 

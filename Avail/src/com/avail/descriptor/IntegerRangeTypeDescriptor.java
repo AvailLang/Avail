@@ -45,13 +45,13 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	enum IntegerSlots
 	{
-		inclusiveFlags
+		INCLUSIVE_FLAGS
 	}
 
 	enum ObjectSlots
 	{
-		lowerBound,
-		upperBound
+		LOWER_BOUND,
+		UPPER_BOUND
 	}
 
 
@@ -65,7 +65,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.inclusiveFlags, value);
+		object.integerSlotPut(IntegerSlots.INCLUSIVE_FLAGS, value);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.lowerBound, value);
+		object.objectSlotPut(ObjectSlots.LOWER_BOUND, value);
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.upperBound, value);
+		object.objectSlotPut(ObjectSlots.UPPER_BOUND, value);
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public int ObjectInclusiveFlags (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.inclusiveFlags);
+		return object.integerSlot(IntegerSlots.INCLUSIVE_FLAGS);
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectLowerBound (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.lowerBound);
+		return object.objectSlot(ObjectSlots.LOWER_BOUND);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectUpperBound (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.upperBound);
+		return object.objectSlot(ObjectSlots.UPPER_BOUND);
 	}
 
 

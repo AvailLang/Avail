@@ -48,12 +48,10 @@ public class ClosureDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		code,
-		outerVarAt_
+		CODE,
+		OUTER_VAR_AT_
 	}
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field code.
@@ -63,7 +61,7 @@ public class ClosureDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.code, value);
+		object.objectSlotPut(ObjectSlots.CODE, value);
 	}
 
 	@Override
@@ -73,7 +71,7 @@ public class ClosureDescriptor extends Descriptor
 	{
 		//  GENERATED getter method (indexed).
 
-		return object.objectSlotAt(ObjectSlots.outerVarAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.OUTER_VAR_AT_, subscript);
 	}
 
 	@Override
@@ -84,7 +82,7 @@ public class ClosureDescriptor extends Descriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.objectSlotAtPut(ObjectSlots.outerVarAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.OUTER_VAR_AT_, subscript, value);
 	}
 
 	/**
@@ -94,7 +92,7 @@ public class ClosureDescriptor extends Descriptor
 	public AvailObject ObjectCode (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.code);
+		return object.objectSlot(ObjectSlots.CODE);
 	}
 
 

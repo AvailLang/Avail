@@ -44,14 +44,14 @@ public class MapDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		internalHash,
-		mapSize,
-		numBlanks
+		INTERNAL_HASH,
+		MAP_SIZE,
+		NUM_BLANKS
 	}
 
 	enum ObjectSlots
 	{
-		dataAtIndex_
+		DATA_AT_INDEX_
 	}
 
 
@@ -60,7 +60,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.dataAtIndex_, subscript);
+		return object.objectSlotAt(ObjectSlots.DATA_AT_INDEX_, subscript);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class MapDescriptor extends Descriptor
 		final int subscript,
 		final AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.dataAtIndex_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.DATA_AT_INDEX_, subscript, value);
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.internalHash, value);
+		object.integerSlotPut(IntegerSlots.INTERNAL_HASH, value);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.mapSize, value);
+		object.integerSlotPut(IntegerSlots.MAP_SIZE, value);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.numBlanks, value);
+		object.integerSlotPut(IntegerSlots.NUM_BLANKS, value);
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class MapDescriptor extends Descriptor
 	public int ObjectInternalHash (
 		final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.internalHash);
+		return object.integerSlot(IntegerSlots.INTERNAL_HASH);
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class MapDescriptor extends Descriptor
 	public int ObjectMapSize (
 		final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.mapSize);
+		return object.integerSlot(IntegerSlots.MAP_SIZE);
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class MapDescriptor extends Descriptor
 	public int ObjectNumBlanks (
 		final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.numBlanks);
+		return object.integerSlot(IntegerSlots.NUM_BLANKS);
 	}
 
 

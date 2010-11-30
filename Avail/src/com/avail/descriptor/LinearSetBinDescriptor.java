@@ -43,12 +43,12 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	enum IntegerSlots
 	{
-		binHash
+		BIN_HASH
 	}
 
 	enum ObjectSlots
 	{
-		binElementAt_
+		BIN_ELEMENT_AT_
 	}
 
 
@@ -59,7 +59,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.binElementAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.objectSlotAtPut(ObjectSlots.binElementAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.binHash, value);
+		object.integerSlotPut(IntegerSlots.BIN_HASH, value);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	public int ObjectBinHash (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.binHash);
+		return object.integerSlot(IntegerSlots.BIN_HASH);
 	}
 
 

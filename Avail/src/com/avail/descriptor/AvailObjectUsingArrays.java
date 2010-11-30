@@ -208,15 +208,6 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public void checkValidAddressWithByteIndex (
-			final int byteIndex)
-	{
-		//  Check if my address is valid.  Fail if it's outside all the current pages.
-
-		return;
-	}
-
-	@Override
 	public AbstractDescriptor descriptor ()
 	{
 		return _descriptor;

@@ -49,8 +49,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero,
-		rawQuadAt_
+		HASH_OR_ZERO,
+		RAW_QUAD_AT_
 	}
 	int unusedNybblesOfLastWord;
 
@@ -62,7 +62,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.integerSlotAt(IntegerSlots.rawQuadAt_, subscript);
+		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			final int subscript,
 			final int value)
 	{
-		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, subscript, value);
+		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
 
@@ -292,14 +292,14 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		//  Set the nybble at the given index.  Use little Endian.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		assert aNybble >= 0 && aNybble <= 15;
-		object.checkWriteForField(IntegerSlots.rawQuadAt_);
+		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
 		object.verifyToSpaceAddress();
 		int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.integerSlotAt(IntegerSlots.rawQuadAt_, wordIndex);
+		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		int leftShift = ((nybbleIndex - 1) & 7) * 4;
 		word &= ~(0x0F << leftShift);
 		word |= aNybble << leftShift;
-		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, wordIndex, word);
+		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
 	}
 
 	@Override
@@ -330,7 +330,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		object.verifyToSpaceAddress();
 		int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.integerSlotAt(IntegerSlots.rawQuadAt_, wordIndex);
+		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		int shift = ((nybbleIndex - 1) & 7) * 4;
 		return (byte) ((word>>>shift) & 0x0F);
 	}
@@ -342,7 +342,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		// Answer the byte at the given byte-index.  This is actually two
 		// nybbles packed together.  Use little endian.
-		return object.byteSlotAt(IntegerSlots.rawQuadAt_, byteIndex);
+		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, byteIndex);
 	}
 
 	@Override
@@ -353,7 +353,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		// Set the byte at the given byte-index.  This is actually two nybbles
 		// packed together.  Use little endian.
-		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, byteIndex, anInteger);
+		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, byteIndex, anInteger);
 	}
 
 	@Override
@@ -365,7 +365,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		object.verifyToSpaceAddress();
 		int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.integerSlotAt(IntegerSlots.rawQuadAt_, wordIndex);
+		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		int shift = ((nybbleIndex - 1) & 7) * 4;
 		return (byte) ((word>>>shift) & 0x0F);
 	}

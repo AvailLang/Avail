@@ -44,18 +44,18 @@ public class ProcessDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero,
-		priority,
-		executionMode,
-		executionState,
-		interruptRequestFlag
+		HASH_OR_ZERO,
+		PRIORITY,
+		EXECUTION_MODE,
+		EXECUTION_STATE,
+		INTERRUPT_REQUEST_FLAG
 	}
 
 	enum ObjectSlots
 	{
-		continuation,
-		breakpointBlock,
-		processGlobals
+		CONTINUATION,
+		BREAKPOINT_BLOCK,
+		PROCESS_GLOBALS
 	}
 
 	
@@ -69,11 +69,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.breakpointBlock, value);
-
-//		object.objectSlotAtByteIndexPut(
-//			-4*ProcessDescriptor.objectSlots.breakpointBlock.ordinal(),
-//			value);
+		object.objectSlotPut(ObjectSlots.BREAKPOINT_BLOCK, value);
 	}
 
 	/**
@@ -84,7 +80,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.continuation, value);
+		object.objectSlotPut(ObjectSlots.CONTINUATION, value);
 	}
 
 	/**
@@ -95,7 +91,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.executionMode, value);
+		object.integerSlotPut(IntegerSlots.EXECUTION_MODE, value);
 	}
 
 	/**
@@ -106,7 +102,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.executionState, value);
+		object.integerSlotPut(IntegerSlots.EXECUTION_STATE, value);
 	}
 
 	/**
@@ -117,7 +113,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hashOrZero, value);
+		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	/**
@@ -128,7 +124,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.interruptRequestFlag, value);
+		object.integerSlotPut(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
 	}
 
 	/**
@@ -139,7 +135,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.priority, value);
+		object.integerSlotPut(IntegerSlots.PRIORITY, value);
 	}
 
 	/**
@@ -150,7 +146,7 @@ public class ProcessDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.processGlobals, value);
+		object.objectSlotPut(ObjectSlots.PROCESS_GLOBALS, value);
 	}
 
 	/**
@@ -160,7 +156,7 @@ public class ProcessDescriptor extends Descriptor
 	public AvailObject ObjectBreakpointBlock (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.breakpointBlock);
+		return object.objectSlot(ObjectSlots.BREAKPOINT_BLOCK);
 	}
 
 	/**
@@ -170,7 +166,7 @@ public class ProcessDescriptor extends Descriptor
 	public AvailObject ObjectContinuation (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.continuation);
+		return object.objectSlot(ObjectSlots.CONTINUATION);
 	}
 
 	/**
@@ -180,7 +176,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectExecutionMode (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.executionMode);
+		return object.integerSlot(IntegerSlots.EXECUTION_MODE);
 	}
 
 	/**
@@ -190,7 +186,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectExecutionState (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.executionState);
+		return object.integerSlot(IntegerSlots.EXECUTION_STATE);
 	}
 
 	/**
@@ -200,7 +196,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hashOrZero);
+		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	/**
@@ -210,7 +206,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectInterruptRequestFlag (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.interruptRequestFlag);
+		return object.integerSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
 	}
 
 	/**
@@ -220,7 +216,7 @@ public class ProcessDescriptor extends Descriptor
 	public int ObjectPriority (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.priority);
+		return object.integerSlot(IntegerSlots.PRIORITY);
 	}
 
 	/**
@@ -230,7 +226,7 @@ public class ProcessDescriptor extends Descriptor
 	public AvailObject ObjectProcessGlobals (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.processGlobals);
+		return object.objectSlot(ObjectSlots.PROCESS_GLOBALS);
 	}
 
 
@@ -239,35 +235,35 @@ public class ProcessDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.continuation)
+		if (e == ObjectSlots.CONTINUATION)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.breakpointBlock)
+		if (e == ObjectSlots.BREAKPOINT_BLOCK)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.processGlobals)
+		if (e == ObjectSlots.PROCESS_GLOBALS)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.hashOrZero)
+		if (e == IntegerSlots.HASH_OR_ZERO)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.priority)
+		if (e == IntegerSlots.PRIORITY)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.executionMode)
+		if (e == IntegerSlots.EXECUTION_MODE)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.executionState)
+		if (e == IntegerSlots.EXECUTION_STATE)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.interruptRequestFlag)
+		if (e == IntegerSlots.INTERRUPT_REQUEST_FLAG)
 		{
 			return true;
 		}
@@ -335,17 +331,17 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 
-
-	// operations-processes
+	/**
+	 * Answer an integer extracted at the current program counter from the
+	 * continuation.  The program counter will be adjusted to skip over the
+	 * integer.  Use a totally naive implementation for now, with very little
+	 * caching.
+	 */
 
 	@Override
 	public int ObjectGetInteger (
 			final AvailObject object)
 	{
-		//  Answer an integer extracted at the current program counter from the continuation.  The program
-		//  counter will be adjusted to skip over the integer.  Use a totally naive implementation for now, with
-		//  very little caching.
-
 		AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
 		AvailObject nybblesObject = contObject.nybbles();
@@ -366,26 +362,25 @@ public class ProcessDescriptor extends Descriptor
 				pc ++;
 				break;
 			case 10:
-				result = nybblesObject.extractNybbleFromTupleAt(pc+1) + 10;
-				pc += 2;
-				break;
 			case 11:
-				result = nybblesObject.extractNybbleFromTupleAt(pc+1) + 26;
-				pc += 2;
-				break;
 			case 12:
-				result = nybblesObject.extractNybbleFromTupleAt(pc+1) + 42;
+				// (x-10)*16+10+y
+				result = (result << 4)
+					- 150
+					+ nybblesObject.extractNybbleFromTupleAt(pc+1);
 				pc += 2;
 				break;
 			case 13:
-				result = nybblesObject.extractNybbleFromTupleAt(pc+1) * 4 + nybblesObject.extractNybbleFromTupleAt(pc+2) + 58;
+				result = (nybblesObject.extractNybbleFromTupleAt(pc+1) << 4)
+					+ nybblesObject.extractNybbleFromTupleAt(pc+2) + 58;
 				pc += 3;
 				break;
 			case 14:
 				result = 0;
 				{
 					for (int i = 1; i <= 4; ++ i)
-						result = result * 16 + nybblesObject.extractNybbleFromTupleAt(pc+i) + 10;
+						result = result * 16
+							+ nybblesObject.extractNybbleFromTupleAt(pc+i);
 				}
 				pc += 5;
 				break;
@@ -393,7 +388,8 @@ public class ProcessDescriptor extends Descriptor
 				result = 0;
 				{
 					for (int i = 1; i <= 8; ++ i)
-						result = result * 16 + nybblesObject.extractNybbleFromTupleAt(pc+i) + 10;
+						result = result * 16
+							+ nybblesObject.extractNybbleFromTupleAt(pc+i);
 				}
 				pc += 9;
 				break;
@@ -413,6 +409,9 @@ public class ProcessDescriptor extends Descriptor
 		error("Process stepping is not implemented");
 	}
 
+	/**
+	 * A random generator used for creating hash values as needed.
+	 */
 	private static Random hashGenerator = new Random();
 
 	/**

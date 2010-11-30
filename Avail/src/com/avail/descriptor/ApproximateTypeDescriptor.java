@@ -57,7 +57,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		instance
+		INSTANCE
 	}
 
 
@@ -69,7 +69,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.instance, value);
+		object.objectSlotPut(ObjectSlots.INSTANCE, value);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectInstance (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.instance);
+		return object.objectSlot(ObjectSlots.INSTANCE);
 	}
 
 

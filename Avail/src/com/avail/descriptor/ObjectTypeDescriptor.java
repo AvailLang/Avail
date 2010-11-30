@@ -43,7 +43,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		fieldTypeMap
+		FIELD_TYPE_MAP
 	}
 
 
@@ -97,7 +97,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.fieldTypeMap, value);
+		object.objectSlotPut(ObjectSlots.FIELD_TYPE_MAP, value);
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectFieldTypeMap (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.fieldTypeMap);
+		return object.objectSlot(ObjectSlots.FIELD_TYPE_MAP);
 	}
 
 

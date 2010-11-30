@@ -46,8 +46,8 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		firstTupleType,
-		secondTupleType
+		FIRST_TUPLE_TYPE,
+		SECOND_TUPLE_TYPE
 	}
 
 
@@ -61,7 +61,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.firstTupleType, value);
+		object.objectSlotPut(ObjectSlots.FIRST_TUPLE_TYPE, value);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.secondTupleType, value);
+		object.objectSlotPut(ObjectSlots.SECOND_TUPLE_TYPE, value);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectFirstTupleType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.firstTupleType);
+		return object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSecondTupleType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.secondTupleType);
+		return object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE);
 	}
 
 

@@ -53,7 +53,7 @@ extends Descriptor
 
 	enum IntegerSlots
 	{
-		codePoint
+		CODE_POINT
 	}
 	/** The first 256 Unicode characters. */
 	private static AvailObject[] byteCharacters;
@@ -211,7 +211,7 @@ extends Descriptor
 	@Override
 	public int ObjectCodePoint (final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.codePoint);
+		return object.integerSlot(IntegerSlots.CODE_POINT);
 	}
 
 	@Override
@@ -219,7 +219,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.codePoint, value);
+		object.integerSlotPut(IntegerSlots.CODE_POINT, value);
 	}
 
 	@Override

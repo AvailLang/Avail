@@ -44,9 +44,9 @@ public class MapTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		sizeRange,
-		keyType,
-		valueType
+		SIZE_RANGE,
+		KEY_TYPE,
+		VALUE_TYPE
 	}
 
 
@@ -60,7 +60,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.keyType, value);
+		object.objectSlotPut(ObjectSlots.KEY_TYPE, value);
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.sizeRange, value);
+		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.valueType, value);
+		object.objectSlotPut(ObjectSlots.VALUE_TYPE, value);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectKeyType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.keyType);
+		return object.objectSlot(ObjectSlots.KEY_TYPE);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectSizeRange (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.sizeRange);
+		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectValueType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.valueType);
+		return object.objectSlot(ObjectSlots.VALUE_TYPE);
 	}
 
 

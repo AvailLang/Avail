@@ -50,7 +50,7 @@ public class SetDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		rootBin
+		ROOT_BIN
 	}
 
 
@@ -64,7 +64,7 @@ public class SetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.rootBin, value);
+		object.objectSlotPut(ObjectSlots.ROOT_BIN, value);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class SetDescriptor extends Descriptor
 	public AvailObject ObjectRootBin (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.rootBin);
+		return object.objectSlot(ObjectSlots.ROOT_BIN);
 	}
 
 

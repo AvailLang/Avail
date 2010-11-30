@@ -47,20 +47,18 @@ public class ContinuationDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		pc,
-		stackp,
-		hiLevelTwoChunkLowOffset
+		PC,
+		STACK_POINTER,
+		HI_LEVEL_TWO_CHUNK_LOW_OFFSET
 	}
 
 	enum ObjectSlots
 	{
-		caller,
-		closure,
-		localOrArgOrStackAt_
+		CALLER,
+		CLOSURE,
+		FRAME_AT_
 	}
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field caller.
@@ -70,7 +68,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.caller, value);
+		object.objectSlotPut(ObjectSlots.CALLER, value);
 	}
 
 	/**
@@ -81,7 +79,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.closure, value);
+		object.objectSlotPut(ObjectSlots.CLOSURE, value);
 	}
 
 	/**
@@ -92,7 +90,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hiLevelTwoChunkLowOffset, value);
+		object.integerSlotPut(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET, value);
 	}
 
 	@Override
@@ -100,7 +98,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.localOrArgOrStackAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.FRAME_AT_, subscript);
 	}
 
 	@Override
@@ -110,7 +108,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject value)
 	{
 		object.objectSlotAtPut(
-			ObjectSlots.localOrArgOrStackAt_,
+			ObjectSlots.FRAME_AT_,
 			subscript,
 			value);
 	}
@@ -123,7 +121,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.pc, value);
+		object.integerSlotPut(IntegerSlots.PC, value);
 	}
 
 	/**
@@ -134,7 +132,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.stackp, value);
+		object.integerSlotPut(IntegerSlots.STACK_POINTER, value);
 	}
 
 	/**
@@ -144,7 +142,7 @@ public class ContinuationDescriptor extends Descriptor
 	public AvailObject ObjectCaller (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.caller);
+		return object.objectSlot(ObjectSlots.CALLER);
 	}
 
 	/**
@@ -154,7 +152,7 @@ public class ContinuationDescriptor extends Descriptor
 	public AvailObject ObjectClosure (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.closure);
+		return object.objectSlot(ObjectSlots.CLOSURE);
 	}
 
 	/**
@@ -164,7 +162,7 @@ public class ContinuationDescriptor extends Descriptor
 	public int ObjectHiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hiLevelTwoChunkLowOffset);
+		return object.integerSlot(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET);
 	}
 
 	/**
@@ -174,7 +172,7 @@ public class ContinuationDescriptor extends Descriptor
 	public int ObjectPc (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.pc);
+		return object.integerSlot(IntegerSlots.PC);
 	}
 
 	/**
@@ -184,7 +182,7 @@ public class ContinuationDescriptor extends Descriptor
 	public int ObjectStackp (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.stackp);
+		return object.integerSlot(IntegerSlots.STACK_POINTER);
 	}
 
 
@@ -193,7 +191,7 @@ public class ContinuationDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.hiLevelTwoChunkLowOffset)
+		if (e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET)
 		{
 			return true;
 		}
@@ -387,7 +385,7 @@ public class ContinuationDescriptor extends Descriptor
 			final int subscript)
 	{
 		return object.objectSlotAt(
-			ObjectSlots.localOrArgOrStackAt_,
+			ObjectSlots.FRAME_AT_,
 			subscript);
 	}
 
@@ -402,7 +400,7 @@ public class ContinuationDescriptor extends Descriptor
 			final AvailObject anObject)
 	{
 		object.objectSlotAtPut(
-			ObjectSlots.localOrArgOrStackAt_,
+			ObjectSlots.FRAME_AT_,
 			subscript,
 			anObject);
 	}

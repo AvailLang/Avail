@@ -42,16 +42,14 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero
+		HASH_OR_ZERO
 	}
 
 	enum ObjectSlots
 	{
-		name
+		NAME
 	}
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field hashOrZero.
@@ -61,7 +59,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hashOrZero, value);
+		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	/**
@@ -72,7 +70,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.name, value);
+		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
 	/**
@@ -82,7 +80,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hashOrZero);
+		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	/**
@@ -92,7 +90,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.name);
+		return object.objectSlot(ObjectSlots.NAME);
 	}
 
 
@@ -101,7 +99,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.hashOrZero)
+		if (e == IntegerSlots.HASH_OR_ZERO)
 		{
 			return true;
 		}
@@ -303,6 +301,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return cyc;
 	};
 
+	/**
+	 * A random generator used for creating hash values as needed.
+	 */
 	static Random hashGenerator = new Random();
 
 	/**

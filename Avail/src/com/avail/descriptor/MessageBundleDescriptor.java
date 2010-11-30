@@ -44,9 +44,9 @@ public class MessageBundleDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		message,
-		messageParts,
-		myRestrictions
+		MESSAGE,
+		MESSAGE_PARTS,
+		MY_RESTRICTIONS
 	}
 
 
@@ -167,7 +167,7 @@ public class MessageBundleDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.message, value);
+		object.objectSlotPut(ObjectSlots.MESSAGE, value);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class MessageBundleDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.messageParts, value);
+		object.objectSlotPut(ObjectSlots.MESSAGE_PARTS, value);
 	}
 
 	/**
@@ -189,7 +189,7 @@ public class MessageBundleDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.myRestrictions, value);
+		object.objectSlotPut(ObjectSlots.MY_RESTRICTIONS, value);
 	}
 
 	/**
@@ -199,7 +199,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject ObjectMessage (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.message);
+		return object.objectSlot(ObjectSlots.MESSAGE);
 	}
 
 	/**
@@ -209,7 +209,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject ObjectMessageParts (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.messageParts);
+		return object.objectSlot(ObjectSlots.MESSAGE_PARTS);
 	}
 
 	/**
@@ -219,7 +219,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject ObjectMyRestrictions (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.myRestrictions);
+		return object.objectSlot(ObjectSlots.MY_RESTRICTIONS);
 	}
 
 
@@ -228,7 +228,7 @@ public class MessageBundleDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.myRestrictions)
+		if (e == ObjectSlots.MY_RESTRICTIONS)
 		{
 			return true;
 		}

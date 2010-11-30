@@ -48,7 +48,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 	enum ObjectSlots
 	{
-		target
+		TARGET
 	}
 
 
@@ -62,7 +62,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.target, value);
+		object.objectSlotPut(ObjectSlots.TARGET, value);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public AvailObject ObjectTarget (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.target);
+		return object.objectSlot(ObjectSlots.TARGET);
 	}
 
 
@@ -4500,7 +4500,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.target)
+		if (e == ObjectSlots.TARGET)
 		{
 			return true;
 		}

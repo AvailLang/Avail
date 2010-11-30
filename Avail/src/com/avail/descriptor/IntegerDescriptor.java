@@ -45,7 +45,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 
 	enum IntegerSlots
 	{
-		rawSignedIntegerAt_
+		RAW_SIGNED_INT_AT_
 	}
 
 
@@ -59,7 +59,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  GENERATED getter method (indexed).
 
 		return object.integerSlotAt(
-			IntegerSlots.rawSignedIntegerAt_,
+			IntegerSlots.RAW_SIGNED_INT_AT_,
 			subscript);
 	}
 
@@ -72,7 +72,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  GENERATED setter method (indexed).
 
 		object.integerSlotAtPut(
-			IntegerSlots.rawSignedIntegerAt_,
+			IntegerSlots.RAW_SIGNED_INT_AT_,
 			subscript,
 			value);
 	}
@@ -508,7 +508,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		final int subscript)
 	{
 		int signedInt = object.integerSlotAt(
-			IntegerSlots.rawSignedIntegerAt_,
+			IntegerSlots.RAW_SIGNED_INT_AT_,
 			subscript);
 		return signedInt & 0xFFFFFFFFL;
 	}
@@ -525,7 +525,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		final int value)
 	{
 		object.integerSlotAtPut(
-			IntegerSlots.rawSignedIntegerAt_,
+			IntegerSlots.RAW_SIGNED_INT_AT_,
 			subscript,
 			value);
 	}

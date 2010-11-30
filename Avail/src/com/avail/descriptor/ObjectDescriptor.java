@@ -44,7 +44,7 @@ public class ObjectDescriptor extends Descriptor
 
 	enum ObjectSlots
 	{
-		fieldMap
+		FIELD_MAP
 	}
 
 
@@ -58,7 +58,7 @@ public class ObjectDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.fieldMap, value);
+		object.objectSlotPut(ObjectSlots.FIELD_MAP, value);
 	}
 
 	/**
@@ -68,7 +68,7 @@ public class ObjectDescriptor extends Descriptor
 	public AvailObject ObjectFieldMap (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.fieldMap);
+		return object.objectSlot(ObjectSlots.FIELD_MAP);
 	}
 
 

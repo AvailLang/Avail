@@ -50,8 +50,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero,
-		rawQuadAt_
+		HASH_OR_ZERO,
+		RAW_QUAD_AT_
 	}
 	final int _unusedBytesOfLastWord;
 
@@ -65,7 +65,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  GENERATED getter method (indexed).
 
-		return object.integerSlotAt(IntegerSlots.rawQuadAt_, subscript);
+		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, subscript, value);
+		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
 
@@ -266,7 +266,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer the byte that encodes the character at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
+		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
 	@Override
@@ -277,7 +277,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Set the character at the given index based on the given byte.
 		assert index >= 1 && index <= object.tupleSize();
-		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, anInteger);
+		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override
@@ -288,7 +288,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		short codePoint = object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
+		short codePoint = object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(
 			codePoint);
 	}
@@ -303,7 +303,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		// an AvailObject that's a one-byte character).
 		assert index >= 1 && index <= object.tupleSize();
 		short codePoint = (short) aCharacterObject.codePoint();
-		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, codePoint);
+		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, codePoint);
 	}
 
 	@Override

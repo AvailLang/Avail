@@ -42,7 +42,7 @@ public class FloatDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		rawQuad1
+		RAW_QUAD_1
 	}
 
 
@@ -56,7 +56,7 @@ public class FloatDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.rawQuad1, value);
+		object.integerSlotPut(IntegerSlots.RAW_QUAD_1, value);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class FloatDescriptor extends Descriptor
 	public int ObjectRawQuad1 (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.rawQuad1);
+		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
 	}
 
 

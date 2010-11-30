@@ -46,13 +46,13 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero,
-		_DoNotGenerateIntegerAt_
+		HASH_OR_ZERO,
+		INTEGER_ZONE_DATA_AT_
 	}
 
 	enum ObjectSlots
 	{
-		_DoNotGenerateObjectAt_
+		OBJECT_ZONE_DATA_AT_
 	}
 
 
@@ -342,7 +342,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		//  Answer the ending index for the given zone.
 
 		return object.integerSlotAt(
-			IntegerSlots._DoNotGenerateIntegerAt_,
+			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2);
 	}
 
@@ -355,7 +355,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 		return
 			object.integerSlotAt(
-				IntegerSlots._DoNotGenerateIntegerAt_,
+				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2 - 1)
 			+ object.sizeOfZone(zone)
 			- 1;
@@ -376,15 +376,15 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	{
 		assert isMutable;
 		object.objectSlotAtPut(
-			ObjectSlots._DoNotGenerateObjectAt_,
+			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zone,
 			newSubtuple);
 		object.integerSlotAtPut(
-			IntegerSlots._DoNotGenerateIntegerAt_,
+			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2 - 1,
 			startSubtupleIndex);
 		object.integerSlotAtPut(
-			IntegerSlots._DoNotGenerateIntegerAt_,
+			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2,
 			endOfZone);
 		return object;
@@ -403,7 +403,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	{
 		assert isMutable;
 		object.objectSlotAtPut(
-			ObjectSlots._DoNotGenerateObjectAt_,
+			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zoneIndex,
 			newTuple);
 	}
@@ -419,15 +419,15 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		if (zone == 1)
 		{
 			return object.integerSlotAt(
-				IntegerSlots._DoNotGenerateIntegerAt_,
+				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				2);
 		}
 		return
 			object.integerSlotAt(
-				IntegerSlots._DoNotGenerateIntegerAt_,
+				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2)
 			- object.integerSlotAt(
-				IntegerSlots._DoNotGenerateIntegerAt_,
+				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2 - 2);
 	}
 
@@ -445,7 +445,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		}
 		return
 			object.integerSlotAt(
-				IntegerSlots._DoNotGenerateIntegerAt_,
+				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2 - 2)
 			+ 1;
 	}
@@ -459,7 +459,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 			final int zone)
 	{
 		return object.integerSlotAt(
-			IntegerSlots._DoNotGenerateIntegerAt_,
+			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2 - 1);
 	}
 
@@ -473,7 +473,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 			final int zone)
 	{
 		return object.objectSlotAt(
-			ObjectSlots._DoNotGenerateObjectAt_,
+			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zone);
 	}
 
@@ -775,19 +775,19 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 		for (int subscript = 1; subscript <= numberOfZones; subscript++)
 		{
 			result.objectSlotAtPut(
-				ObjectSlots._DoNotGenerateObjectAt_,
+				ObjectSlots.OBJECT_ZONE_DATA_AT_,
 				subscript,
 				object.objectSlotAt(
-					ObjectSlots._DoNotGenerateObjectAt_,
+					ObjectSlots.OBJECT_ZONE_DATA_AT_,
 					subscript));
 		}
 		for (int subscript = 1; subscript <= numberOfZones * 2; subscript++)
 		{
 			result.integerSlotAtPut(
-				IntegerSlots._DoNotGenerateIntegerAt_,
+				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				subscript,
 				object.integerSlotAt(
-					IntegerSlots._DoNotGenerateIntegerAt_,
+					IntegerSlots.INTEGER_ZONE_DATA_AT_,
 					subscript));
 		}
 		result.hashOrZero(object.hashOrZero());

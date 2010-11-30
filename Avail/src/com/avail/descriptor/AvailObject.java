@@ -5285,16 +5285,6 @@ implements Iterable<AvailObject>
 	abstract public void checkValidAddress ();
 
 
-	/**
-	 * Check if my address is valid.  Fail if it's outside all the current
-	 * pages.  Does nothing for AvailObjectUsingArrays.
-	 * 
-	 * @param byteIndex The byte-offset to apply during the check.
-	 */
-	abstract public void checkValidAddressWithByteIndex (
-		final int byteIndex);
-
-	
 	public void checkWriteForField (
 		final Enum<?> e)
 	{
@@ -5452,7 +5442,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
 	 * 
-	 * @param index The index in bytes (must be even).
+	 * @param INDEX The index in bytes (must be even).
 	 * @return The short found at the given byte-index.
 	 */
 	abstract public short shortSlotAt (
@@ -5462,7 +5452,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Store the (16-bit signed) short at the given byte-index of the receiver.
 	 * 
-	 * @param index The index in bytes (must be even).
+	 * @param INDEX The index in bytes (must be even).
 	 * @param aShort The short to store at the given byte-index.
 	 */
 	abstract public void shortSlotAtPut (

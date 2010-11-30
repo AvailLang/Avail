@@ -39,14 +39,14 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	enum IntegerSlots
 	{
-		hash
+		HASH
 	}
 
 	enum ObjectSlots
 	{
-		name,
-		parent,
-		myType
+		NAME,
+		PARENT,
+		MY_TYPE
 	}
 
 

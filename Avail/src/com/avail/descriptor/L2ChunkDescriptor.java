@@ -52,21 +52,21 @@ public class L2ChunkDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		index,
-		validity,
-		numObjects,
-		numIntegers,
-		numDoubles,
-		nextIndex,
-		previousIndex
+		INDEX,
+		VALIDITY,
+		NUM_OBJECTS,
+		NUM_INTEGERS,
+		NUM_DOUBLES,
+		NEXT_INDEX,
+		PREVIOUS_INDEX
 	}
 
 	enum ObjectSlots
 	{
-		contingentImpSets,
-		wordcodes,
-		vectors,
-		literalAt_
+		CONTINGENT_IMP_SETS,
+		WORDCODES,
+		VECTORS,
+		LITERAL_AT_
 	}
 
 
@@ -80,7 +80,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.contingentImpSets, value);
+		object.objectSlotPut(ObjectSlots.CONTINGENT_IMP_SETS, value);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.index, value);
+		object.integerSlotPut(IntegerSlots.INDEX, value);
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.literalAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final int subscript,
 			final AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.literalAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.LITERAL_AT_, subscript, value);
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.nextIndex, value);
+		object.integerSlotPut(IntegerSlots.NEXT_INDEX, value);
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.numDoubles, value);
+		object.integerSlotPut(IntegerSlots.NUM_DOUBLES, value);
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.numIntegers, value);
+		object.integerSlotPut(IntegerSlots.NUM_INTEGERS, value);
 	}
 
 	/**
@@ -152,7 +152,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.numObjects, value);
+		object.integerSlotPut(IntegerSlots.NUM_OBJECTS, value);
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.previousIndex, value);
+		object.integerSlotPut(IntegerSlots.PREVIOUS_INDEX, value);
 	}
 
 	/**
@@ -174,7 +174,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.validity, value);
+		object.integerSlotPut(IntegerSlots.VALIDITY, value);
 	}
 
 	/**
@@ -185,7 +185,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.vectors, value);
+		object.objectSlotPut(ObjectSlots.VECTORS, value);
 	}
 
 	/**
@@ -196,7 +196,7 @@ public class L2ChunkDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.wordcodes, value);
+		object.objectSlotPut(ObjectSlots.WORDCODES, value);
 	}
 
 	/**
@@ -206,7 +206,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public AvailObject ObjectContingentImpSets (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.contingentImpSets);
+		return object.objectSlot(ObjectSlots.CONTINGENT_IMP_SETS);
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectIndex (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.index);
+		return object.integerSlot(IntegerSlots.INDEX);
 	}
 
 	/**
@@ -226,7 +226,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNextIndex (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.nextIndex);
+		return object.integerSlot(IntegerSlots.NEXT_INDEX);
 	}
 
 	/**
@@ -236,7 +236,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNumDoubles (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.numDoubles);
+		return object.integerSlot(IntegerSlots.NUM_DOUBLES);
 	}
 
 	/**
@@ -246,7 +246,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNumIntegers (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.numIntegers);
+		return object.integerSlot(IntegerSlots.NUM_INTEGERS);
 	}
 
 	/**
@@ -256,7 +256,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectNumObjects (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.numObjects);
+		return object.integerSlot(IntegerSlots.NUM_OBJECTS);
 	}
 
 	/**
@@ -266,7 +266,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectPreviousIndex (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.previousIndex);
+		return object.integerSlot(IntegerSlots.PREVIOUS_INDEX);
 	}
 
 	/**
@@ -276,7 +276,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public int ObjectValidity (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.validity);
+		return object.integerSlot(IntegerSlots.VALIDITY);
 	}
 
 	/**
@@ -286,7 +286,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public AvailObject ObjectVectors (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.vectors);
+		return object.objectSlot(ObjectSlots.VECTORS);
 	}
 
 	/**
@@ -296,7 +296,7 @@ public class L2ChunkDescriptor extends Descriptor
 	public AvailObject ObjectWordcodes (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.wordcodes);
+		return object.objectSlot(ObjectSlots.WORDCODES);
 	}
 
 
@@ -305,35 +305,35 @@ public class L2ChunkDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.contingentImpSets)
+		if (e == ObjectSlots.CONTINGENT_IMP_SETS)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.wordcodes)
+		if (e == ObjectSlots.WORDCODES)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.vectors)
+		if (e == ObjectSlots.VECTORS)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.literalAt_)
+		if (e == ObjectSlots.LITERAL_AT_)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.index)
+		if (e == IntegerSlots.INDEX)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.validity)
+		if (e == IntegerSlots.VALIDITY)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.nextIndex)
+		if (e == IntegerSlots.NEXT_INDEX)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.previousIndex)
+		if (e == IntegerSlots.PREVIOUS_INDEX)
 		{
 			return true;
 		}
@@ -499,9 +499,9 @@ public class L2ChunkDescriptor extends Descriptor
 		object.vectors(VoidDescriptor.voidObject());
 		object.removeFromQueue();
 		//  Make sure LRU queue doesn't refer to it.
-		object.index(-0x29A);
-		object.nextIndex(-0x29A);
-		object.previousIndex(-0x29A);
+		object.index(-666);
+		object.nextIndex(-666);
+		object.previousIndex(-666);
 	}
 
 	@Override

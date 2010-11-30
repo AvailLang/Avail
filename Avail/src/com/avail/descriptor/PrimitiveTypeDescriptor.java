@@ -41,14 +41,14 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	enum IntegerSlots
 	{
-		hash
+		HASH
 	}
 
 	enum ObjectSlots
 	{
-		name,
-		parent,
-		myType
+		NAME,
+		PARENT,
+		MY_TYPE
 	}
 
 
@@ -62,7 +62,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hash, value);
+		object.integerSlotPut(IntegerSlots.HASH, value);
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.myType, value);
+		object.objectSlotPut(ObjectSlots.MY_TYPE, value);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.name, value);
+		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.parent, value);
+		object.objectSlotPut(ObjectSlots.PARENT, value);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hash);
+		return object.integerSlot(IntegerSlots.HASH);
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectMyType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.myType);
+		return object.objectSlot(ObjectSlots.MY_TYPE);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectName (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.name);
+		return object.objectSlot(ObjectSlots.NAME);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectParent (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.parent);
+		return object.objectSlot(ObjectSlots.PARENT);
 	}
 
 

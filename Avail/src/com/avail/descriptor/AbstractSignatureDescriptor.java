@@ -50,9 +50,9 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	enum ObjectSlots
 	{
-		signature,
-		requiresBlock,
-		returnsBlock
+		SIGNATURE,
+		REQUIRES_BLOCK,
+		RETURNS_BLOCK
 	}
 
 
@@ -121,7 +121,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.requiresBlock, value);
+		object.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, value);
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.returnsBlock, value);
+		object.objectSlotPut(ObjectSlots.RETURNS_BLOCK, value);
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.signature, value);
+		object.objectSlotPut(ObjectSlots.SIGNATURE, value);
 	}
 
 	/**
@@ -153,7 +153,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectRequiresBlock (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.requiresBlock);
+		return object.objectSlot(ObjectSlots.REQUIRES_BLOCK);
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectReturnsBlock (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.returnsBlock);
+		return object.objectSlot(ObjectSlots.RETURNS_BLOCK);
 	}
 
 	/**
@@ -173,7 +173,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject ObjectSignature (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.signature);
+		return object.objectSlot(ObjectSlots.SIGNATURE);
 	}
 
 

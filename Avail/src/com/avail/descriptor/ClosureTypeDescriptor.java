@@ -44,13 +44,13 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero
+		HASH_OR_ZERO
 	}
 
 	enum ObjectSlots
 	{
-		returnType,
-		argTypeAt_
+		RETURN_TYPE,
+		ARG_TYPE_AT_
 	}
 
 
@@ -59,7 +59,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.argTypeAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.ARG_TYPE_AT_, subscript);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final int subscript,
 			final AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.argTypeAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.ARG_TYPE_AT_, subscript, value);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hashOrZero, value);
+		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.returnType, value);
+		object.objectSlotPut(ObjectSlots.RETURN_TYPE, value);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public int ObjectHashOrZero (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hashOrZero);
+		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.returnType);
+		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
 
 
@@ -121,7 +121,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.hashOrZero)
+		if (e == IntegerSlots.HASH_OR_ZERO)
 		{
 			return true;
 		}

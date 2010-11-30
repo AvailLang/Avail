@@ -49,8 +49,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 	enum IntegerSlots
 	{
-		hashOrZero,
-		rawQuadAt_
+		HASH_OR_ZERO,
+		RAW_QUAD_AT_
 	}
 	final int _unusedBytesOfLastWord;
 
@@ -62,7 +62,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.integerSlotAt(IntegerSlots.rawQuadAt_, subscript);
+		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			final int subscript,
 			final int value)
 	{
-		object.integerSlotAtPut(IntegerSlots.rawQuadAt_, subscript, value);
+		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
 
@@ -295,7 +295,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
+		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
 	@Override
@@ -306,7 +306,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Set the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, anInteger);
+		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override
@@ -317,7 +317,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		//  Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
 		return IntegerDescriptor.objectFromByte(
-			object.byteSlotAt(IntegerSlots.rawQuadAt_, index));
+			object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index));
 	}
 
 	@Override
@@ -330,7 +330,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		// an AvailObject that's an integer 0<=n<=255.
 		assert index >= 1 && index <= object.tupleSize();
 		short theByte = aByteObject.extractByte();
-		object.byteSlotAtPut(IntegerSlots.rawQuadAt_, index, theByte);
+		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, theByte);
 	}
 
 	@Override
@@ -373,7 +373,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the integer element at the given index in the tuple object.
 
-		return object.byteSlotAt(IntegerSlots.rawQuadAt_, index);
+		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
 

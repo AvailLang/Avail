@@ -41,7 +41,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		innerType
+		INNER_TYPE
 	}
 
 
@@ -55,7 +55,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.innerType, value);
+		object.objectSlotPut(ObjectSlots.INNER_TYPE, value);
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectInnerType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.innerType);
+		return object.objectSlot(ObjectSlots.INNER_TYPE);
 	}
 
 

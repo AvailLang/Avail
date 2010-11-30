@@ -43,18 +43,18 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	enum IntegerSlots
 	{
-		hash,
-		hiPrimitiveLowNumArgsAndLocalsAndStack,
-		hiNumLocalsLowNumArgs,
-		hiStartingChunkIndexLowNumOuters,
-		invocationCount
+		HASH,
+		HI_PRIM_LOW_FRAME_SLOTS,
+		HI_NUM_LOCALS_LOW_NUM_ARGS,
+		HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+		INVOCATION_COUNT
 	}
 
 	enum ObjectSlots
 	{
-		nybbles,
-		closureType,
-		literalAt_
+		NYBBLES,
+		CLOSURE_TYPE,
+		LITERAL_AT_
 	}
 
 
@@ -68,7 +68,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.closureType, value);
+		object.objectSlotPut(ObjectSlots.CLOSURE_TYPE, value);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hash, value);
+		object.integerSlotPut(IntegerSlots.HASH, value);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hiNumLocalsLowNumArgs, value);
+		object.integerSlotPut(IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS, value);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hiPrimitiveLowNumArgsAndLocalsAndStack, value);
+		object.integerSlotPut(IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS, value);
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.hiStartingChunkIndexLowNumOuters, value);
+		object.integerSlotPut(IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS, value);
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.invocationCount, value);
+		object.integerSlotPut(IntegerSlots.INVOCATION_COUNT, value);
 	}
 
 	@Override
@@ -131,7 +131,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.literalAt_, subscript);
+		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final int subscript,
 			final AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.literalAt_, subscript, value);
+		object.objectSlotAtPut(ObjectSlots.LITERAL_AT_, subscript, value);
 	}
 
 	/**
@@ -151,7 +151,7 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.nybbles, value);
+		object.objectSlotPut(ObjectSlots.NYBBLES, value);
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public AvailObject ObjectClosureType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.closureType);
+		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
 	}
 
 	/**
@@ -171,7 +171,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHash (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hash);
+		return object.integerSlot(IntegerSlots.HASH);
 	}
 
 	/**
@@ -181,7 +181,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hiNumLocalsLowNumArgs);
+		return object.integerSlot(IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS);
 	}
 
 	/**
@@ -191,7 +191,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hiPrimitiveLowNumArgsAndLocalsAndStack);
+		return object.integerSlot(IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS);
 	}
 
 	/**
@@ -201,7 +201,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectHiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.hiStartingChunkIndexLowNumOuters);
+		return object.integerSlot(IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS);
 	}
 
 	/**
@@ -211,7 +211,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int ObjectInvocationCount (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.invocationCount);
+		return object.integerSlot(IntegerSlots.INVOCATION_COUNT);
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public AvailObject ObjectNybbles (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.nybbles);
+		return object.objectSlot(ObjectSlots.NYBBLES);
 	}
 
 
@@ -230,11 +230,11 @@ public class CompiledCodeDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.hiStartingChunkIndexLowNumOuters)
+		if (e == IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.invocationCount)
+		if (e == IntegerSlots.INVOCATION_COUNT)
 		{
 			return true;
 		}

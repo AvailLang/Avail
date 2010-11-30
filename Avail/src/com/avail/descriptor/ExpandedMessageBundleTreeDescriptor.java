@@ -43,14 +43,14 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	enum IntegerSlots
 	{
-		depth
+		DEPTH
 	}
 
 	enum ObjectSlots
 	{
-		complete,
-		incomplete,
-		specialActions
+		COMPLETE,
+		INCOMPLETE,
+		SPECIAL_ACTIONS
 	}
 
 
@@ -64,7 +64,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.complete, value);
+		object.objectSlotPut(ObjectSlots.COMPLETE, value);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.depth, value);
+		object.integerSlotPut(IntegerSlots.DEPTH, value);
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.incomplete, value);
+		object.objectSlotPut(ObjectSlots.INCOMPLETE, value);
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.specialActions, value);
+		object.objectSlotPut(ObjectSlots.SPECIAL_ACTIONS, value);
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectComplete (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.complete);
+		return object.objectSlot(ObjectSlots.COMPLETE);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public int ObjectDepth (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.depth);
+		return object.integerSlot(IntegerSlots.DEPTH);
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectIncomplete (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.incomplete);
+		return object.objectSlot(ObjectSlots.INCOMPLETE);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public AvailObject ObjectSpecialActions (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.specialActions);
+		return object.objectSlot(ObjectSlots.SPECIAL_ACTIONS);
 	}
 
 
@@ -146,15 +146,15 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.complete)
+		if (e == ObjectSlots.COMPLETE)
 		{
 			return true;
 		}
-		if (e == ObjectSlots.incomplete)
+		if (e == ObjectSlots.INCOMPLETE)
 		{
 			return true;
 		}
-		if (e == IntegerSlots.depth)
+		if (e == IntegerSlots.DEPTH)
 		{
 			return true;
 		}

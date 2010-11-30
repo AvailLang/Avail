@@ -42,7 +42,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	enum ObjectSlots
 	{
-		returnType
+		RETURN_TYPE
 	}
 
 
@@ -56,7 +56,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.returnType, value);
+		object.objectSlotPut(ObjectSlots.RETURN_TYPE, value);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject ObjectReturnType (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.returnType);
+		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
 
 
