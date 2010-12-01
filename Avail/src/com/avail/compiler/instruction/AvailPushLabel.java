@@ -34,6 +34,7 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -49,8 +50,7 @@ public class AvailPushLabel extends AvailInstruction
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.extensionNybble());
-		aStream.write(AvailInstruction.pushLabelExtendedNybble());
+		L1Operation.L1Ext_doPushLabel.writeTo(aStream);
 	}
 
 

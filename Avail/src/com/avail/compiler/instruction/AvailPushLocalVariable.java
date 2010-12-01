@@ -33,8 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -54,11 +54,11 @@ public class AvailPushLocalVariable extends AvailPushVariable
 
 		if (_isLastAccess)
 		{
-			aStream.write(AvailInstruction.pushLastLocalNybble());
+			L1Operation.L1_doPushLastLocal.writeTo(aStream);
 		}
 		else
 		{
-			aStream.write(AvailInstruction.pushLocalNybble());
+			L1Operation.L1_doPushLocal.writeTo(aStream);
 		}
 		writeIntegerOn(_index, aStream);
 	}

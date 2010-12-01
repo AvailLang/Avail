@@ -48,6 +48,7 @@ import com.avail.compiler.Transformer1;
 import com.avail.compiler.scanner.AvailKeywordToken;
 import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -73,17 +74,25 @@ public class AvailDecompiler implements L1OperationDispatcher
 	int _primitive;
 
 
-	// parsing
 
+	/**
+	 * Parse the given compiled code object.  Its outer vars map to the given
+	 * Array of expressions, and temp names are allocated via tempBlock.  The
+	 * tempBlock takes a prefix string which can thereby distinguish arguments,
+	 * locals, and labels.  Answer the resulting AvailBlockNode.
+	 * 
+	 * @param aCodeObject The {@link CompiledCodeDescriptor code} to decompile. 
+	 * @param outerVars The list of outer variable declarations and literal
+	 *                  nodes.
+	 * @param tempBlock A {@link Transformer1 transformer} that takes a prefix
+	 *                  and generates a suitably unique temporary variable name.
+	 * @return The {@link AvailBlockNode} that is the decompilation of the code. 
+	 */
 	public AvailBlockNode parseWithOuterVarsTempGenerator (
 			final AvailObject aCodeObject,
 			final List<? extends AvailParseNode> outerVars,
 			final Transformer1<String, String> tempBlock)
 	{
-		//  Parse the given compiled code object.  Its outer vars map to the given Array of
-		//  expressions, and temp names are allocated via tempBlock.  The tempBlock takes
-		//  a prefix string which can thereby distinguish arguments, locals, and labels.  Answer
-		//  the resulting AvailBlockNode.
 
 		_code = aCodeObject;
 		_primitive = _code.primitiveNumber();
@@ -115,13 +124,17 @@ public class AvailDecompiler implements L1OperationDispatcher
 
 
 
-	// private-helper
-
+	/**
+	 * Extract an encoded integer from the nybblecode instruction stream.  The
+	 * encoding uses only a nybble for very small operands, and can still
+	 * represent up to {@link Integer#MAX_VALUE} if necessary.
+	 * <p>
+	 * Adjust the {@link #_pc program counter} to skip the integer.
+	 * 
+	 * @return The integer extracted from the nybblecode stream.
+	 */
 	public int getInteger ()
 	{
-		//  Answer an integer extracted at the current program counter.  The program
-		//  counter will be adjusted to skip over the integer.
-
 		final int tag = _nybbles.extractNybbleFromTupleAt(_pc);
 		if (tag < 10)
 		{
@@ -131,13 +144,15 @@ public class AvailDecompiler implements L1OperationDispatcher
 		int integer;
 		if (tag <= 12)
 		{
-			integer = (((tag * 16) - 150) + _nybbles.extractNybbleFromTupleAt(_pc + 1));
+			integer = (tag * 16 - 150) + _nybbles.extractNybbleFromTupleAt(_pc + 1);
 			_pc += 2;
 			return integer;
 		}
 		if (tag == 13)
 		{
-			integer = (((_nybbles.extractNybbleFromTupleAt(_pc + 1) << 4) + _nybbles.extractNybbleFromTupleAt(_pc + 2)) + 58);
+			integer = (_nybbles.extractNybbleFromTupleAt(_pc + 1) << 4)
+					+ _nybbles.extractNybbleFromTupleAt(_pc + 2)
+					+ 58;
 			_pc += 3;
 			return integer;
 		}
@@ -146,7 +161,8 @@ public class AvailDecompiler implements L1OperationDispatcher
 			integer = 0;
 			for (int _count1 = 1; _count1 <= 4; _count1++)
 			{
-				integer = ((integer << 4) + _nybbles.extractNybbleFromTupleAt(++_pc));
+				integer <<= 4;
+				integer += _nybbles.extractNybbleFromTupleAt(++_pc);
 			}
 			//  making 5 nybbles total
 			_pc++;
@@ -157,7 +173,8 @@ public class AvailDecompiler implements L1OperationDispatcher
 			integer = 0;
 			for (int _count2 = 1; _count2 <= 8; _count2++)
 			{
-				integer = ((integer << 4) + _nybbles.extractNybbleFromTupleAt(++_pc));
+				integer <<= 4;
+				integer += _nybbles.extractNybbleFromTupleAt(++_pc);
 			}
 			//  making 9 nybbles total
 			_pc++;
@@ -167,11 +184,25 @@ public class AvailDecompiler implements L1OperationDispatcher
 		return 0;
 	}
 
+	/**
+	 * Pop one {@link AvailParseNode parse node} off the expression stack and
+	 * return it.
+	 * 
+	 * @return The {@link AvailParseNode parse node} popped off the stack.
+	 */
 	AvailParseNode popExpression ()
 	{
 		return _expressionStack.remove(_expressionStack.size() - 1);
 	}
 
+	/**
+	 * Pop some {@link AvailParseNode parse nodes} off the expression stack and
+	 * return them in a {@link List list}.
+	 * 
+	 * @param count The number of parse nodes to pop.
+	 * @return The list of {@code #count} parse nodes, in the order they were
+	 *         added to the stack.
+	 */
 	List<AvailParseNode> popExpressions (
 			final int count)
 	{
@@ -183,6 +214,12 @@ public class AvailDecompiler implements L1OperationDispatcher
 		return result;
 	}
 
+	/**
+	 * Push the given {@link AvailParseNode parse node} onto the expression
+	 * stack.
+	 * 
+	 * @param expression The expression to push.
+	 */
 	void pushExpression (
 			final AvailParseNode expression)
 	{
@@ -256,17 +293,6 @@ public class AvailDecompiler implements L1OperationDispatcher
 
 		getInteger();
 		pushExpression(null);
-	}
-
-	@Override
-	public void L1Ext_doMakeList ()
-	{
-		//  [n] - Make a list object from n values popped from the stack.  Push the list.
-
-		final int count = getInteger();
-		final AvailListNode listNode = new AvailListNode();
-		listNode.expressions(popExpressions(count));
-		pushExpression(listNode);
 	}
 
 	@Override
@@ -372,6 +398,20 @@ public class AvailDecompiler implements L1OperationDispatcher
 		sendNode.returnType(Types.voidType.object());
 		pushExpression(sendNode);
 	}
+
+	@Override
+	public void L1Implied_doReturn ()
+	{
+		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
+		//  Note that the calling continuation has automatically pre-pushed a void object as a
+		//  sentinel, which should simply be replaced by this value (to avoid manipulating the stackp).
+	
+		assert (_pc == (_nybbles.tupleSize() + 1));
+		_statements.add(popExpression());
+		assert (_expressionStack.size() == 0) : "There should be nothing on the stack after a return";
+	}
+
+
 
 	@Override
 	public void L1_doCall ()
@@ -500,6 +540,19 @@ public class AvailDecompiler implements L1OperationDispatcher
 	}
 
 	@Override
+	public void L1_doMakeList ()
+	{
+		//  [n] - Make a list object from n values popped from the stack.  Push the list.
+	
+		final int count = getInteger();
+		final AvailListNode listNode = new AvailListNode();
+		listNode.expressions(popExpressions(count));
+		pushExpression(listNode);
+	}
+
+
+
+	@Override
 	public void L1_doPop ()
 	{
 		//  Remove the top item from the stack.
@@ -614,18 +667,6 @@ public class AvailDecompiler implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1_doReturn ()
-	{
-		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
-		//  Note that the calling continuation has automatically pre-pushed a void object as a
-		//  sentinel, which should simply be replaced by this value (to avoid manipulating the stackp).
-
-		assert (_pc == (_nybbles.tupleSize() + 1));
-		_statements.add(popExpression());
-		assert (_expressionStack.size() == 0) : "There should be nothing on the stack after a return";
-	}
-
-	@Override
 	public void L1_doSetLocal ()
 	{
 		//  [n] - Pop the stack and assign this value to the local variable (not an argument) indexed by n (index 1 is first argument).
@@ -695,12 +736,11 @@ public class AvailDecompiler implements L1OperationDispatcher
 
 
 
-	// private-variables
-
+	/**
+	 * Create any necessary variable declaration nodes.
+	 */
 	void buildArgsAndLocals ()
 	{
-		//  Create the appropriate variable declaration nodes.
-
 		_args = new ArrayList<AvailVariableDeclarationNode>(_code.numArgs());
 		_locals = new ArrayList<AvailVariableDeclarationNode>(_code.numLocals());
 		for (int i = 1, _end1 = _code.numArgs(); i <= _end1; i++)
@@ -731,10 +771,17 @@ public class AvailDecompiler implements L1OperationDispatcher
 
 
 
+	/**
+	 * Parse the given statically constructed closure.  It treats outer vars as
+	 * literals.  Answer the resulting {@link AvailBlockNode}.
+	 * 
+	 * @param aClosure The closure to decompile.
+	 * @return The {@link AvailBlockNode} that is the decompilation of the
+	 *         provided closure.
+	 */
 	public static AvailBlockNode parse (AvailObject aClosure)
 	{
-		// Parse the given statically constructed closure.  It treats outer vars as literals.
-		// Answer the resulting AvailBlockNode.
+		// 
 
 		final Map<String, Integer> counts = new HashMap<String, Integer>();
 		Transformer1<String, String> generator = new Transformer1<String, String>()

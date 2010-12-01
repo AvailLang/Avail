@@ -47,6 +47,8 @@ import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelOne.L1OperationDispatcher;
 
 /**
  * This class is used to execute level two code.  It mostly exposes the
@@ -58,27 +60,28 @@ final public class L2Interpreter extends AvailInterpreter implements
 		L2OperationDispatcher
 {
 	/**
-	 * 
+	 * The {@link L2ChunkDescriptor} being executed.
 	 */
 	AvailObject _chunk;
 	
 	/**
-	 * 
+	 * The L2 instruction stream as a tuple of integers. 
 	 */
 	AvailObject _chunkWords;
 	
 	/**
-	 * 
+	 * This chunk's register vectors.  A register vector is a tuple of integers
+	 * that represent {@link #_pointers Avail object registers}.
 	 */
 	AvailObject _chunkVectors;
 	
 	/**
-	 * 
+	 * The registers that hold {@link AvailObject Avail objects}.
 	 */
 	AvailObject[] _pointers = new AvailObject[10];
 	
 	/**
-	 * 
+	 * The 32-bit signed integer registers.
 	 */
 	int[] _integers = new int[10];
 	
@@ -110,6 +113,647 @@ final public class L2Interpreter extends AvailInterpreter implements
 	 */
 	AvailObject _exitValue;
 
+	/**
+	 * The dispatcher used to simulate level one instructions via {@link
+	 * #L2_doInterpretOneInstruction()}.
+	 */
+	L1OperationDispatcher levelOneDispatcher =
+		new L1OperationDispatcher()
+	{
+		/**
+		 * [n] - Send the message at index n in the compiledCode's literals. Pop the
+		 * arguments for this message off the stack (the message itself knows how
+		 * many to expect). The first argument was pushed first, and is the deepest
+		 * on the stack. Use these arguments to look up the method dynamically.
+		 * Before invoking the method, push the void object onto the stack. Its
+		 * presence will help distinguish continuations produced by the pushLabel
+		 * instruction from their senders. When the call completes (if ever) by
+		 * using an implicit return instruction, it will replace this void object
+		 * with the result of the call.
+		 */
+		@Override
+		public void L1_doCall()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			// Look up the method implementations.  They all know numArgs.
+			final AvailObject implementations =
+				cont.closure().code().literalAt(getInteger());
+			final AvailObject matching =
+				implementations.lookupByValuesFromContinuationStackp(
+					cont,
+					cont.stackp());
+			if (matching.equalsVoid())
+			{
+				error("Ambiguous or invalid lookup");
+				return;
+			}
+			if (matching.isForward())
+			{
+				error("Attempted to execute forward method before it was defined.");
+				return;
+			}
+			if (matching.isAbstract())
+			{
+				error("Attempted to execute an abstract method.");
+				return;
+			}
+			final AvailObject theClosure = matching.bodyBlock();
+			final AvailObject theCode = theClosure.code();
+			// Call the method...
+			final short nArgs = matching.bodySignature().numArgs();
+			_argsBuffer.clear();
+			for (int i = 1; i <= nArgs; i++)
+			{
+				// Reverse order - i.e., _argsBuffer.get(0) was pushed first.
+				int stackIndex = cont.stackp() + nArgs - i;
+				_argsBuffer.add(cont.stackAt(stackIndex));
+				cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
+			}
+			cont.stackp(cont.stackp() + nArgs - 1);
+			// Leave one (void) slot on stack to distinguish label continuations
+			// from call continuations.
+			final short primNum = theCode.primitiveNumber();
+			if (primNum != 0)
+			{
+				assert _chunk ==
+					L2ChunkDescriptor.chunkFromId (
+						_pointers[callerRegister()].levelTwoChunkIndex());
+				Result primResult = attemptPrimitive(primNum, _argsBuffer);
+				if (primResult == Result.CONTINUATION_CHANGED)
+				{
+					return;
+				}
+				if (primResult == Result.SUCCESS)
+				{
+					AvailObject callerCont = _pointers[callerRegister()];
+					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
+					return;
+				}
+			}
+			// Either not a primitive or else a failed primitive.
+			invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
+		}
+
+		/**
+		 * [n] - Ensure the top of stack's type is a subtype of the type found at
+		 * index n in the current compiledCode. If this is not the case, raise a
+		 * special runtime error or exception.
+		 */
+		@Override
+		public void L1_doVerifyType ()
+		{
+
+			final AvailObject cont = pointerAt(callerRegister());
+			final AvailObject value = cont.stackAt(cont.stackp());
+			final AvailObject literalType = cont.closure().code()
+					.literalAt(getInteger());
+			if (!value.isInstanceOfSubtypeOf(literalType))
+			{
+				error("A method has not met its \"returns\" clause's criterion (or a supermethod's) at runtime.");
+				return;
+			}
+		}
+		
+		/**
+		 * [n] - Push the literal indexed by n in the current compiledCode.
+		 */
+		@Override
+		public void L1_doPushLiteral ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject constant = cont.closure().code().literalAt(index);
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			// We don't need to make constant beImmutable because *code objects* are
+			// always immutable.
+			cont.stackAtPut(stackp, constant);
+		}
+		
+		/**
+		 * [n] - Push the argument (actual value) or local variable (the variable
+		 * itself) indexed by n. Since this is known to be the last use
+		 * (nondebugger) of the argument or local, void that slot of the current
+		 * continuation.
+		 */
+		@Override
+		public void L1_doPushLastLocal ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.localOrArgOrStackAt(index);
+			cont.localOrArgOrStackAtPut(index, VoidDescriptor.voidObject());
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, variable);
+		}
+		
+		/**
+		 * [n] - Push the argument (actual value) or local variable (the variable
+		 * itself) indexed by n.
+		 */
+		@Override
+		public void L1_doPushLocal ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.localOrArgOrStackAt(index);
+			variable.makeImmutable();
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, variable);
+		}
+		
+		/**
+		 * [n] - Push the outer variable indexed by n in the current closure. If the
+		 * variable is mutable, clear it (no one will know). If the variable and
+		 * closure are both mutable, remove the variable from the closure by voiding
+		 * it.
+		 */
+		@Override
+		public void L1_doPushLastOuter ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.closure().outerVarAt(index);
+			if (variable.equalsVoid())
+			{
+				error("Someone prematurely erased this outer var");
+				return;
+			}
+			if (!cont.closure().optionallyNilOuterVar(index))
+			{
+				variable.makeImmutable();
+			}
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, variable);
+		}
+		
+		/**
+		 * [n,m] - Pop the top n items off the stack, and use them as outer
+		 * variables in the construction of a closure based on the compiledCode
+		 * that's the literal at index m of the current compiledCode.
+		 */
+		@Override
+		public void L1_doClose ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int numCopiedVars = getInteger();
+			final AvailObject codeToClose = cont.closure().code()
+					.literalAt(getInteger());
+			int stackp = cont.stackp() + numCopiedVars - 1;
+			cont.stackp(stackp);
+			final AvailObject newClosure = AvailObject.newIndexedDescriptor(
+				numCopiedVars,
+				ClosureDescriptor.mutableDescriptor());
+			newClosure.code(codeToClose);
+			int stackIndex = stackp;
+			for (int i = 1; i <= numCopiedVars; i++)
+			{
+				newClosure.outerVarAtPut(i, cont.stackAt(stackIndex));
+				cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
+				stackIndex--;
+			}
+			/*
+			 * We don't assert assertObjectUnreachableIfMutable: on the popped
+			 * copied vars because each copied var's new reference from the closure
+			 * balances the lost reference from the wiped stack. Likewise we don't
+			 * tell them makeImmutable(). The closure itself should remain mutable
+			 * at this point, otherwise the copied vars would have to
+			 * makeImmutable() to be referenced by an immutable closure.
+			 */
+			cont.stackAtPut(stackp, newClosure);
+		}
+		
+		/**
+		 * [n] - Pop the stack and assign this value to the local variable (not an
+		 * argument) indexed by n (index 1 is first argument).
+		 */
+		@Override
+		public void L1_doSetLocal ()
+		{
+		
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.localOrArgOrStackAt(index);
+			final AvailObject value = cont.stackAt(cont.stackp());
+			final int stackp = cont.stackp();
+			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
+			cont.stackp(stackp + 1);
+			// The value's reference from the stack is now from the variable.
+			variable.setValue(value);
+		}
+		
+		/**
+		 * [n] - Push the value of the local variable (not an argument) indexed by n
+		 * (index 1 is first argument). If the variable itself is mutable, clear it
+		 * now - nobody will know.
+		 */
+		@Override
+		public void L1_doGetLocalClearing ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.localOrArgOrStackAt(index);
+			final AvailObject value = variable.getValue();
+			if (variable.traversed().descriptor().isMutable())
+			{
+				variable.clearValue();
+			}
+			else
+			{
+				value.makeImmutable();
+			}
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, value);
+		}
+		
+		/**
+		 * [n] - Push the outer variable indexed by n in the current closure.
+		 */
+		@Override
+		public void L1_doPushOuter ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.closure().outerVarAt(index);
+			if (variable.equalsVoid())
+			{
+				error("Someone prematurely erased this outer var");
+				return;
+			}
+			variable.makeImmutable();
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, variable);
+		}
+		
+		/**
+		 * Remove the top item from the stack.
+		 */
+		@Override
+		public void L1_doPop ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			cont.stackAt(cont.stackp()).assertObjectUnreachableIfMutable();
+			cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
+			final int stackp = cont.stackp() + 1;
+			cont.stackp(stackp);
+		}
+		
+		/**
+		 * [n] - Push the value of the outer variable indexed by n in the current
+		 * closure. If the variable itself is mutable, clear it at this time -
+		 * nobody will know.
+		 */
+		@Override
+		public void L1_doGetOuterClearing ()
+		{
+		
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.closure().outerVarAt(index);
+			final AvailObject value = variable.getValue();
+			if (variable.traversed().descriptor().isMutable())
+			{
+				variable.clearValue();
+			}
+			else
+			{
+				value.makeImmutable();
+			}
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, value);
+		}
+		
+		/**
+		 * [n] - Pop the stack and assign this value to the outer variable indexed
+		 * by n in the current closure.
+		 */
+		@Override
+		public void L1_doSetOuter ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.closure().outerVarAt(index);
+			if (variable.equalsVoid())
+			{
+				error("Someone prematurely erased this outer var");
+				return;
+			}
+			final int stackp = cont.stackp();
+			final AvailObject value = cont.stackAt(stackp);
+			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
+			cont.stackp(stackp + 1);
+			// The value's reference from the stack is now from the variable.
+			variable.setValue(value);
+		}
+		
+		/**
+		 * [n] - Push the value of the local variable (not an argument) indexed by n
+		 * (index 1 is first argument).
+		 */
+		@Override
+		public void L1_doGetLocal ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.localOrArgOrStackAt(index);
+			final AvailObject value = variable.getValue();
+			value.makeImmutable();
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, value);
+		}
+		
+		/**
+		 * [n] - Make a list object from n values popped from the stack. Push the
+		 * list.
+		 */
+		@Override
+		public void L1_doMakeList ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int count = getInteger();
+			final AvailObject tuple = AvailObject.newIndexedDescriptor(
+				count,
+				ObjectTupleDescriptor.mutableDescriptor());
+			int stackp = cont.stackp();
+			for (int i = count; i >= 1; i--)
+			{
+				tuple.tupleAtPut(i, cont.stackAt(stackp));
+				cont.stackAtPut(stackp, VoidDescriptor.voidObject());
+				stackp++;
+			}
+			tuple.hashOrZero(0);
+			final AvailObject list = AvailObject.newIndexedDescriptor(
+				0,
+				ListDescriptor.mutableDescriptor());
+			list.tuple(tuple);
+			stackp--;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, list);
+		}
+
+		/**
+		 * The extension nybblecode was encountered. Read another nybble and
+		 * dispatch it through ExtendedSelectors.
+		 */
+		@Override
+		public void L1_doExtension ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final byte nextNybble = cont.closure().code().nybbles()
+					.extractNybbleFromTupleAt(cont.pc());
+			cont.pc(cont.pc() + 1);
+			L1Operation.values()[nextNybble + 16].dispatch(levelOneDispatcher);
+		}
+		
+		/**
+		 * [n] - Push the value of the outer variable indexed by n in the current
+		 * closure.
+		 */
+		@Override
+		public void L1Ext_doGetOuter ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.closure().outerVarAt(index);
+			final AvailObject value = variable.getValue();
+			value.makeImmutable();
+			int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, value);
+		}
+		
+		/**
+		 * Build a continuation which, when restarted, will be just like restarting
+		 * the current continuation.
+		 */
+		@Override
+		public void L1Ext_doPushLabel ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final AvailObject code = cont.closure().code();
+			int stackp = cont.stackp();
+			// Always copy it.
+			final AvailObject newContinuation = cont.copyAsMutableContinuation();
+			/*
+			 * Fix up this new continuation. It needs to have its pc set, its stackp
+			 * reset, its stack area and non-argument locals cleared, and its
+			 * caller, closure, and args made immutable.
+			 */
+		
+			// Set the new continuation's pc to the first instruction...
+			newContinuation.pc(1);
+		
+			// Reset the new continuation's stack pointer...
+			newContinuation.stackp(code.numArgsAndLocalsAndStack() + 1);
+			for (int i = code.numArgsAndLocalsAndStack(); i >= stackp; i--)
+			{
+				newContinuation.stackAtPut(i, VoidDescriptor.voidObject());
+			}
+			int limit = code.numArgs() + code.numLocals();
+			for (int i = code.numArgs() + 1; i <= limit; i++)
+			{
+				newContinuation.localOrArgOrStackAtPut(
+					i,
+					VoidDescriptor.voidObject());
+			}
+			// Freeze all fields of the new object, including its caller, closure,
+			// and args.
+			newContinuation.makeSubobjectsImmutable();
+			// ...always a fresh copy, always mutable (uniquely owned).
+			assert newContinuation.caller().equalsVoid()
+					|| !newContinuation.caller().descriptor().isMutable()
+				: "Caller should freeze because two continuations can see it";
+			assert cont.descriptor().isMutable()
+				: "The CURRENT continuation can't POSSIBLY be seen by anyone!";
+			stackp--;
+			cont.stackAtPut(stackp, newContinuation);
+			cont.stackp(stackp);
+		}
+		
+		/**
+		 * [n] - Push the value of the variable that's literal number n in the
+		 * current compiledCode.
+		 */
+		@Override
+		public void L1Ext_doGetLiteral ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject constant = cont.closure().code().literalAt(index);
+			final AvailObject value = constant.getValue().makeImmutable();
+			final int stackp = cont.stackp() - 1;
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, value);
+		}
+		
+		/**
+		 * [n] - Pop the stack and assign this value to the variable that's the
+		 * literal indexed by n in the current compiledCode.
+		 */
+		@Override
+		public void L1Ext_doSetLiteral ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			final AvailObject variable = cont.closure().code().literalAt(index);
+			final int stackp = cont.stackp();
+			final AvailObject value = cont.stackAt(stackp);
+			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
+			cont.stackp(stackp + 1);
+			// The value's reference from the stack is now from the variable.
+			variable.setValue(value);
+		}
+		
+		/**
+		 * [n] - Send the message at index n in the compiledCode's literals. Like
+		 * the call instruction, the arguments will have been pushed on the stack in
+		 * order, but unlike call, each argument's type will also have been pushed
+		 * (all arguments are pushed, then all argument types). These are either the
+		 * arguments' exact types, or constant types (that must be supertypes of the
+		 * arguments' types), or any mixture of the two. These types will be used
+		 * for method lookup, rather than the argument types. This supports a
+		 * 'super'-like mechanism in the presence of multimethods. Like the call
+		 * instruction, all arguments (and types) are popped, then a sentinel void
+		 * object is pushed, and the looked up method is started. When the invoked
+		 * method returns (via an implicit return instruction), this sentinel will
+		 * be replaced by the result of the call.
+		 */
+		@Override
+		public void L1Ext_doSuperCall ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int stackp = cont.stackp();
+			// Look up the method implementations.
+			final int litIndex = getInteger();
+			final AvailObject implementations = cont.closure().code()
+					.literalAt(litIndex);
+			final AvailObject matching = implementations
+					.lookupByTypesFromContinuationStackp(cont, stackp);
+			if (matching.equalsVoid())
+			{
+				error("Ambiguous or invalid lookup");
+				return;
+			}
+			if (matching.isForward())
+			{
+				error("Attempted to execute forward method before it was defined.");
+				return;
+			}
+			if (matching.isAbstract())
+			{
+				error("Attempted to execute an abstract method.");
+				return;
+			}
+			final AvailObject theClosure = matching.bodyBlock();
+			final AvailObject theCode = theClosure.traversed().code();
+			// Clear the argument types off the stack...
+			final short nArgs = theCode.numArgs();
+			for (int i = 1; i <= nArgs; i++)
+			{
+				cont.stackAtPut(stackp + i - 1, VoidDescriptor.voidObject());
+			}
+			_argsBuffer.clear();
+			int base = stackp + nArgs + nArgs;
+			for (int i = 1; i <= nArgs; i++)
+			{
+				_argsBuffer.add(cont.stackAt(base - i));
+				cont.stackAtPut(base - i, VoidDescriptor.voidObject());
+			}
+			// Remove types and arguments, but then leave one (void) slot on stack
+			// to distinguish label/call continuations.
+			cont.stackp(base - 1);
+			final short primNum = theCode.primitiveNumber();
+			if (primNum != 0)
+			{
+				assert (_chunk == L2ChunkDescriptor
+						.chunkFromId(_pointers[callerRegister()]
+								.levelTwoChunkIndex()));
+				Result primResult = attemptPrimitive(primNum, _argsBuffer);
+				if (primResult == Result.CONTINUATION_CHANGED)
+				{
+					return;
+				}
+				if (primResult == Result.SUCCESS)
+				{
+					AvailObject callerCont = _pointers[callerRegister()];
+					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
+					return;
+				}
+			}
+			// Either not a primitive or else a failed primitive.
+			invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
+		}
+		
+		/**
+		 * [n] - Push the (n+1)st stack element's type. This is only used by the
+		 * supercast mechanism to produce types for arguments not being cast. See
+		 * #doSuperCall. This implies the type will be used for a lookup and then
+		 * discarded. We therefore don't treat the type as acquiring a new reference
+		 * from the stack, so it doesn't have to become immutable. This could be a
+		 * sticky point with the garbage collector if it finds only one reference to
+		 * the type, but I think it's ok still.
+		 */
+		@Override
+		public void L1Ext_doGetType ()
+		{
+		
+			final AvailObject cont = pointerAt(callerRegister());
+			final int index = getInteger();
+			int stackp = cont.stackp() - 1;
+			final AvailObject value = cont.stackAt(stackp + index + 1);
+			cont.stackp(stackp);
+			cont.stackAtPut(stackp, value.type());
+		}
+		
+		/**
+		 * This shouldn't happen unless the compiler is out of sync with the interpreter.
+		 */
+		@Override
+		public  void L1Ext_doReserved ()
+		{
+		
+			error("That nybblecode is not supported");
+			return;
+		}
+
+		/**
+		 * Return to the calling continuation with top of stack. Must be the last
+		 * instruction in block. Note that the calling continuation has
+		 * automatically pre-pushed a void object as a sentinel, which should simply
+		 * be replaced by this value (to avoid manipulating the stackp).
+		 */
+		@Override
+		public void L1Implied_doReturn ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final AvailObject value = cont.stackAt(cont.stackp());
+			assert value.isInstanceOfSubtypeOf(cont.closure().code().closureType()
+					.returnType()) : "Return type from method disagrees with declaration";
+			// Necessary to avoid accidental destruction.
+			cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
+			AvailObject caller = cont.caller();
+			if (caller.equalsVoid())
+			{
+				process.executionState(ExecutionState.terminated);
+				process.continuation(VoidDescriptor.voidObject());
+				_exitNow = true;
+				_exitValue = value;
+				return;
+			}
+			caller = caller.ensureMutable();
+			caller.stackAtPut(caller.stackp(), value);
+			prepareToExecuteContinuation(caller);
+		}
+	};
+
+	
 	/**
 	 * Construct a new {@link L2Interpreter}.
 	 * 
@@ -391,12 +1035,13 @@ final public class L2Interpreter extends AvailInterpreter implements
 			/**
 			 * This loop is only exited by a return off the end of the outermost
 			 * context, a suspend or terminate of the current process, or by an
-			 * interbytecode interrupt. For now there are no interbytecode
+			 * inter-nybblecode interrupt. For now there are no inter-nybblecode
 			 * interrupts, but these can be added later. They will probably
-			 * happen on nonprimitive method invocations, returns, and backward
-			 * jumps. At the time of an interbytecode interrupt the continuation
-			 * must be a reflection of the current continuation, not* the
-			 * caller. That is, only the callerRegister()'s content is valid.
+			 * happen on non-primitive method invocations, returns, and backward
+			 * jumps. At the time of an inter-nybblecode interrupt, the
+			 * continuation must be a reflection of the current continuation,
+			 * <em>not</em> the caller. That is, only the callerRegister()'s
+			 * content is valid.
 			 */
 			int wordCode = nextWord();
 			L2Operation operation = L2Operation.values()[wordCode];
@@ -541,72 +1186,21 @@ final public class L2Interpreter extends AvailInterpreter implements
 		// L1_doReturn.
 		if (pc > nybbles.tupleSize())
 		{
-			L2L1_doReturn();
+			levelOneDispatcher.L1Implied_doReturn();
 			return;
 		}
 
-		final byte nybble = nybbles.extractNybbleFromTupleAt(pc++);
+		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
 		continutation.pc(pc);
-		switch (nybble)
-		{
-			case 0:
-				L2L1_doCall();
-				break;
-			case 1:
-				L2L1_doVerifyType();
-				break;
-			case 2:
-				error("Illegal nybblecode (return is synthetic only)");
-				break;
-			case 3:
-				L2L1_doPushLiteral();
-				break;
-			case 4:
-				L2L1_doPushLastLocal();
-				break;
-			case 5:
-				L2L1_doPushLocal();
-				break;
-			case 6:
-				L2L1_doPushLastOuter();
-				break;
-			case 7:
-				L2L1_doClose();
-				break;
-			case 8:
-				L2L1_doSetLocal();
-				break;
-			case 9:
-				L2L1_doGetLocalClearing();
-				break;
-			case 10:
-				L2L1_doPushOuter();
-				break;
-			case 11:
-				L2L1_doPop();
-				break;
-			case 12:
-				L2L1_doGetOuterClearing();
-				break;
-			case 13:
-				L2L1_doSetOuter();
-				break;
-			case 14:
-				L2L1_doGetLocal();
-				break;
-			case 15:
-				L2L1_doExtension();
-				break;
-			default:
-				error("Illegal nybblecode");
-		}
+		L1Operation.values()[nybble].dispatch(levelOneDispatcher);
 	}
 
 	@Override
 	public void L2_doDecrementCounterAndReoptimizeOnZero ()
 	{
 		// Decrement the counter in the current code object. If it reaches zero,
-		// reoptimize the current code.
+		// re-optimize the current code.
 
 		final AvailObject theClosure = pointerAt(closureRegister());
 		final AvailObject theCode = theClosure.code();
@@ -1730,667 +2324,6 @@ final public class L2Interpreter extends AvailInterpreter implements
 		{
 			error("Unrecognized return type from attemptPrimitive()");
 		}
-	}
-
-	/**
-	 * [n] - Send the message at index n in the compiledCode's literals. Pop the
-	 * arguments for this message off the stack (the message itself knows how
-	 * many to expect). The first argument was pushed first, and is the deepest
-	 * on the stack. Use these arguments to look up the method dynamically.
-	 * Before invoking the method, push the void object onto the stack. Its
-	 * presence will help distinguish continuations produced by the pushLabel
-	 * instruction from their senders. When the call completes (if ever) by
-	 * using an implicit return instruction, it will replace this void object
-	 * with the result of the call.
-	 */
-	private void L2L1_doCall()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		// Look up the method implementations.  They all know numArgs.
-		final AvailObject implementations =
-			cont.closure().code().literalAt(getInteger());
-		final AvailObject matching =
-			implementations.lookupByValuesFromContinuationStackp(
-				cont,
-				cont.stackp());
-		if (matching.equalsVoid())
-		{
-			error("Ambiguous or invalid lookup");
-			return;
-		}
-		if (matching.isForward())
-		{
-			error("Attempted to execute forward method before it was defined.");
-			return;
-		}
-		if (matching.isAbstract())
-		{
-			error("Attempted to execute an abstract method.");
-			return;
-		}
-		final AvailObject theClosure = matching.bodyBlock();
-		final AvailObject theCode = theClosure.code();
-		// Call the method...
-		final short nArgs = matching.bodySignature().numArgs();
-		_argsBuffer.clear();
-		for (int i = 1; i <= nArgs; i++)
-		{
-			// Reverse order - i.e., _argsBuffer.get(0) was pushed first.
-			int stackIndex = cont.stackp() + nArgs - i;
-			_argsBuffer.add(cont.stackAt(stackIndex));
-			cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
-		}
-		cont.stackp(cont.stackp() + nArgs - 1);
-		// Leave one (void) slot on stack to distinguish label continuations
-		// from call continuations.
-		final short primNum = theCode.primitiveNumber();
-		if (primNum != 0)
-		{
-			assert _chunk ==
-				L2ChunkDescriptor.chunkFromId (
-					_pointers[callerRegister()].levelTwoChunkIndex());
-			Result primResult = attemptPrimitive(primNum, _argsBuffer);
-			if (primResult == Result.CONTINUATION_CHANGED)
-			{
-				return;
-			}
-			if (primResult == Result.SUCCESS)
-			{
-				AvailObject callerCont = _pointers[callerRegister()];
-				callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
-				return;
-			}
-		}
-		// Either not a primitive or else a failed primitive.
-		invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
-	}
-
-	/**
-	 * [n] - Ensure the top of stack's type is a subtype of the type found at
-	 * index n in the current compiledCode. If this is not the case, raise a
-	 * special runtime error or exception.
-	 */
-	private void L2L1_doVerifyType ()
-	{
-
-		final AvailObject cont = pointerAt(callerRegister());
-		final AvailObject value = cont.stackAt(cont.stackp());
-		final AvailObject literalType = cont.closure().code()
-				.literalAt(getInteger());
-		if (!value.isInstanceOfSubtypeOf(literalType))
-		{
-			error("A method has not met its \"returns\" clause's criterion (or a supermethod's) at runtime.");
-			return;
-		}
-	}
-
-	/**
-	 * Return to the calling continuation with top of stack. Must be the last
-	 * instruction in block. Note that the calling continuation has
-	 * automatically pre-pushed a void object as a sentinel, which should simply
-	 * be replaced by this value (to avoid manipulating the stackp).
-	 */
-	@Deprecated
-	private void L2L1_doReturn ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final AvailObject value = cont.stackAt(cont.stackp());
-		assert value.isInstanceOfSubtypeOf(cont.closure().code().closureType()
-				.returnType()) : "Return type from method disagrees with declaration";
-		// Necessary to avoid accidental destruction.
-		cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
-		AvailObject caller = cont.caller();
-		if (caller.equalsVoid())
-		{
-			process.executionState(ExecutionState.terminated);
-			process.continuation(VoidDescriptor.voidObject());
-			_exitNow = true;
-			_exitValue = value;
-			return;
-		}
-		caller = caller.ensureMutable();
-		caller.stackAtPut(caller.stackp(), value);
-		prepareToExecuteContinuation(caller);
-	}
-
-	/**
-	 * [n] - Push the literal indexed by n in the current compiledCode.
-	 */
-	private void L2L1_doPushLiteral ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject constant = cont.closure().code().literalAt(index);
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		// We don't need to make constant beImmutable because *code objects* are
-		// always immutable.
-		cont.stackAtPut(stackp, constant);
-	}
-
-	/**
-	 * [n] - Push the argument (actual value) or local variable (the variable
-	 * itself) indexed by n. Since this is known to be the last use
-	 * (nondebugger) of the argument or local, void that slot of the current
-	 * continuation.
-	 */
-	private void L2L1_doPushLastLocal ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.localOrArgOrStackAt(index);
-		cont.localOrArgOrStackAtPut(index, VoidDescriptor.voidObject());
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, variable);
-	}
-
-	/**
-	 * [n] - Push the argument (actual value) or local variable (the variable
-	 * itself) indexed by n.
-	 */
-	private void L2L1_doPushLocal ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.localOrArgOrStackAt(index);
-		variable.makeImmutable();
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, variable);
-	}
-
-	/**
-	 * [n] - Push the outer variable indexed by n in the current closure. If the
-	 * variable is mutable, clear it (no one will know). If the variable and
-	 * closure are both mutable, remove the variable from the closure by voiding
-	 * it.
-	 */
-	private void L2L1_doPushLastOuter ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.closure().outerVarAt(index);
-		if (variable.equalsVoid())
-		{
-			error("Someone prematurely erased this outer var");
-			return;
-		}
-		if (!cont.closure().optionallyNilOuterVar(index))
-		{
-			variable.makeImmutable();
-		}
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, variable);
-	}
-
-	/**
-	 * [n,m] - Pop the top n items off the stack, and use them as outer
-	 * variables in the construction of a closure based on the compiledCode
-	 * that's the literal at index m of the current compiledCode.
-	 */
-	private void L2L1_doClose ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int numCopiedVars = getInteger();
-		final AvailObject codeToClose = cont.closure().code()
-				.literalAt(getInteger());
-		int stackp = cont.stackp() + numCopiedVars - 1;
-		cont.stackp(stackp);
-		final AvailObject newClosure = AvailObject.newIndexedDescriptor(
-			numCopiedVars,
-			ClosureDescriptor.mutableDescriptor());
-		newClosure.code(codeToClose);
-		int stackIndex = stackp;
-		for (int i = 1; i <= numCopiedVars; i++)
-		{
-			newClosure.outerVarAtPut(i, cont.stackAt(stackIndex));
-			cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
-			stackIndex--;
-		}
-		/*
-		 * We don't assert assertObjectUnreachableIfMutable: on the popped
-		 * copied vars because each copied var's new reference from the closure
-		 * balances the lost reference from the wiped stack. Likewise we don't
-		 * tell them makeImmutable(). The closure itself should remain mutable
-		 * at this point, otherwise the copied vars would have to
-		 * makeImmutable() to be referenced by an immutable closure.
-		 */
-		cont.stackAtPut(stackp, newClosure);
-	}
-
-	/**
-	 * [n] - Pop the stack and assign this value to the local variable (not an
-	 * argument) indexed by n (index 1 is first argument).
-	 */
-	private void L2L1_doSetLocal ()
-	{
-
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.localOrArgOrStackAt(index);
-		final AvailObject value = cont.stackAt(cont.stackp());
-		final int stackp = cont.stackp();
-		cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-		cont.stackp(stackp + 1);
-		// The value's reference from the stack is now from the variable.
-		variable.setValue(value);
-	}
-
-	/**
-	 * [n] - Push the value of the local variable (not an argument) indexed by n
-	 * (index 1 is first argument). If the variable itself is mutable, clear it
-	 * now - nobody will know.
-	 */
-	private void L2L1_doGetLocalClearing ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.localOrArgOrStackAt(index);
-		final AvailObject value = variable.getValue();
-		if (variable.traversed().descriptor().isMutable())
-		{
-			variable.clearValue();
-		}
-		else
-		{
-			value.makeImmutable();
-		}
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, value);
-	}
-
-	/**
-	 * [n] - Push the outer variable indexed by n in the current closure.
-	 */
-	private void L2L1_doPushOuter ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.closure().outerVarAt(index);
-		if (variable.equalsVoid())
-		{
-			error("Someone prematurely erased this outer var");
-			return;
-		}
-		variable.makeImmutable();
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, variable);
-	}
-
-	/**
-	 * Remove the top item from the stack.
-	 */
-	private void L2L1_doPop ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		cont.stackAt(cont.stackp()).assertObjectUnreachableIfMutable();
-		cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
-		final int stackp = cont.stackp() + 1;
-		cont.stackp(stackp);
-	}
-
-	/**
-	 * [n] - Push the value of the outer variable indexed by n in the current
-	 * closure. If the variable itself is mutable, clear it at this time -
-	 * nobody will know.
-	 */
-	private void L2L1_doGetOuterClearing ()
-	{
-
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.closure().outerVarAt(index);
-		final AvailObject value = variable.getValue();
-		if (variable.traversed().descriptor().isMutable())
-		{
-			variable.clearValue();
-		}
-		else
-		{
-			value.makeImmutable();
-		}
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, value);
-	}
-
-	/**
-	 * [n] - Pop the stack and assign this value to the outer variable indexed
-	 * by n in the current closure.
-	 */
-	private void L2L1_doSetOuter ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.closure().outerVarAt(index);
-		if (variable.equalsVoid())
-		{
-			error("Someone prematurely erased this outer var");
-			return;
-		}
-		final int stackp = cont.stackp();
-		final AvailObject value = cont.stackAt(stackp);
-		cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-		cont.stackp(stackp + 1);
-		// The value's reference from the stack is now from the variable.
-		variable.setValue(value);
-	}
-
-	/**
-	 * [n] - Push the value of the local variable (not an argument) indexed by n
-	 * (index 1 is first argument).
-	 */
-	private void L2L1_doGetLocal ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.localOrArgOrStackAt(index);
-		final AvailObject value = variable.getValue();
-		value.makeImmutable();
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, value);
-	}
-
-	/**
-	 * The extension nybblecode was encountered. Read another nybble and
-	 * dispatch it through ExtendedSelectors.
-	 */
-	private void L2L1_doExtension ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final byte nextNybble = cont.closure().code().nybbles()
-				.extractNybbleFromTupleAt(cont.pc());
-		cont.pc((cont.pc() + 1));
-		switch (nextNybble)
-		{
-			case 0:
-				L2L1Ext_doGetOuter();
-				break;
-			case 1:
-				L2L1Ext_doMakeList();
-				break;
-			case 2:
-				L2L1Ext_doPushLabel();
-				break;
-			case 3:
-				L2L1Ext_doGetLiteral();
-				break;
-			case 4:
-				L2L1Ext_doSetLiteral();
-				break;
-			case 5:
-				L2L1Ext_doSuperCall();
-				break;
-			case 6:
-				L2L1Ext_doGetType();
-				break;
-			case 7:
-				L2L1Ext_doReserved();
-				break;
-			case 8:
-				L2L1Ext_doReserved();
-				break;
-			case 9:
-				L2L1Ext_doReserved();
-				break;
-			case 10:
-				L2L1Ext_doReserved();
-				break;
-			case 11:
-				L2L1Ext_doReserved();
-				break;
-			case 12:
-				L2L1Ext_doReserved();
-				break;
-			case 13:
-				L2L1Ext_doReserved();
-				break;
-			case 14:
-				L2L1Ext_doReserved();
-				break;
-			case 15:
-				L2L1Ext_doReserved();
-				break;
-			default:
-				error("Illegal nybblecode");
-		}
-	}
-
-	/**
-	 * [n] - Push the value of the outer variable indexed by n in the current
-	 * closure.
-	 */
-	private void L2L1Ext_doGetOuter ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.closure().outerVarAt(index);
-		final AvailObject value = variable.getValue();
-		value.makeImmutable();
-		int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, value);
-	}
-
-	/**
-	 * [n] - Make a list object from n values popped from the stack. Push the
-	 * list.
-	 */
-	private void L2L1Ext_doMakeList ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int count = getInteger();
-		final AvailObject tuple = AvailObject.newIndexedDescriptor(
-			count,
-			ObjectTupleDescriptor.mutableDescriptor());
-		int stackp = cont.stackp();
-		for (int i = count; i >= 1; i--)
-		{
-			tuple.tupleAtPut(i, cont.stackAt(stackp));
-			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-			stackp++;
-		}
-		tuple.hashOrZero(0);
-		final AvailObject list = AvailObject.newIndexedDescriptor(
-			0,
-			ListDescriptor.mutableDescriptor());
-		list.tuple(tuple);
-		stackp--;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, list);
-	}
-
-	/**
-	 * Build a continuation which, when restarted, will be just like restarting
-	 * the current continuation.
-	 */
-	private void L2L1Ext_doPushLabel ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final AvailObject code = cont.closure().code();
-		int stackp = cont.stackp();
-		// Always copy it.
-		final AvailObject newContinuation = cont.copyAsMutableContinuation();
-		/*
-		 * Fix up this new continuation. It needs to have its pc set, its stackp
-		 * reset, its stack area and non-argument locals cleared, and its
-		 * caller, closure, and args made immutable.
-		 */
-
-		// Set the new continuation's pc to the first instruction...
-		newContinuation.pc(1);
-
-		// Reset the new continuation's stack pointer...
-		newContinuation.stackp(code.numArgsAndLocalsAndStack() + 1);
-		for (int i = code.numArgsAndLocalsAndStack(); i >= stackp; i--)
-		{
-			newContinuation.stackAtPut(i, VoidDescriptor.voidObject());
-		}
-		int limit = code.numArgs() + code.numLocals();
-		for (int i = code.numArgs() + 1; i <= limit; i++)
-		{
-			newContinuation.localOrArgOrStackAtPut(
-				i,
-				VoidDescriptor.voidObject());
-		}
-		// Freeze all fields of the new object, including its caller, closure,
-		// and args.
-		newContinuation.makeSubobjectsImmutable();
-		// ...always a fresh copy, always mutable (uniquely owned).
-		assert newContinuation.caller().equalsVoid()
-				|| !newContinuation.caller().descriptor().isMutable()
-			: "Caller should freeze because two continuations can see it";
-		assert cont.descriptor().isMutable()
-			: "The CURRENT continuation can't POSSIBLY be seen by anyone!";
-		stackp--;
-		cont.stackAtPut(stackp, newContinuation);
-		cont.stackp(stackp);
-	}
-
-	/**
-	 * [n] - Push the value of the variable that's literal number n in the
-	 * current compiledCode.
-	 */
-	private void L2L1Ext_doGetLiteral ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject constant = cont.closure().code().literalAt(index);
-		final AvailObject value = constant.getValue().makeImmutable();
-		final int stackp = cont.stackp() - 1;
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, value);
-	}
-
-	/**
-	 * [n] - Pop the stack and assign this value to the variable that's the
-	 * literal indexed by n in the current compiledCode.
-	 */
-	private void L2L1Ext_doSetLiteral ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		final AvailObject variable = cont.closure().code().literalAt(index);
-		final int stackp = cont.stackp();
-		final AvailObject value = cont.stackAt(stackp);
-		cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-		cont.stackp(stackp + 1);
-		// The value's reference from the stack is now from the variable.
-		variable.setValue(value);
-	}
-
-	/**
-	 * [n] - Send the message at index n in the compiledCode's literals. Like
-	 * the call instruction, the arguments will have been pushed on the stack in
-	 * order, but unlike call, each argument's type will also have been pushed
-	 * (all arguments are pushed, then all argument types). These are either the
-	 * arguments' exact types, or constant types (that must be supertypes of the
-	 * arguments' types), or any mixture of the two. These types will be used
-	 * for method lookup, rather than the argument types. This supports a
-	 * 'super'-like mechanism in the presence of multimethods. Like the call
-	 * instruction, all arguments (and types) are popped, then a sentinel void
-	 * object is pushed, and the looked up method is started. When the invoked
-	 * method returns (via an implicit return instruction), this sentinel will
-	 * be replaced by the result of the call.
-	 */
-	private void L2L1Ext_doSuperCall ()
-	{
-		final AvailObject cont = pointerAt(callerRegister());
-		final int stackp = cont.stackp();
-		// Look up the method implementations.
-		final int litIndex = getInteger();
-		final AvailObject implementations = cont.closure().code()
-				.literalAt(litIndex);
-		final AvailObject matching = implementations
-				.lookupByTypesFromContinuationStackp(cont, stackp);
-		if (matching.equalsVoid())
-		{
-			error("Ambiguous or invalid lookup");
-			return;
-		}
-		if (matching.isForward())
-		{
-			error("Attempted to execute forward method before it was defined.");
-			return;
-		}
-		if (matching.isAbstract())
-		{
-			error("Attempted to execute an abstract method.");
-			return;
-		}
-		final AvailObject theClosure = matching.bodyBlock();
-		final AvailObject theCode = theClosure.traversed().code();
-		// Clear the argument types off the stack...
-		final short nArgs = theCode.numArgs();
-		for (int i = 1; i <= nArgs; i++)
-		{
-			cont.stackAtPut(stackp + i - 1, VoidDescriptor.voidObject());
-		}
-		_argsBuffer.clear();
-		int base = stackp + nArgs + nArgs;
-		for (int i = 1; i <= nArgs; i++)
-		{
-			_argsBuffer.add(cont.stackAt(base - i));
-			cont.stackAtPut(base - i, VoidDescriptor.voidObject());
-		}
-		// Remove types and arguments, but then leave one (void) slot on stack
-		// to distinguish label/call continuations.
-		cont.stackp(base - 1);
-		final short primNum = theCode.primitiveNumber();
-		if (primNum != 0)
-		{
-			assert (_chunk == L2ChunkDescriptor
-					.chunkFromId(_pointers[callerRegister()]
-							.levelTwoChunkIndex()));
-			Result primResult = attemptPrimitive(primNum, _argsBuffer);
-			if (primResult == Result.CONTINUATION_CHANGED)
-			{
-				return;
-			}
-			if (primResult == Result.SUCCESS)
-			{
-				AvailObject callerCont = _pointers[callerRegister()];
-				callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
-				return;
-			}
-		}
-		// Either not a primitive or else a failed primitive.
-		invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
-	}
-
-	/**
-	 * [n] - Push the (n+1)st stack element's type. This is only used by the
-	 * supercast mechanism to produce types for arguments not being cast. See
-	 * #doSuperCall. This implies the type will be used for a lookup and then
-	 * discarded. We therefore don't treat the type as acquiring a new reference
-	 * from the stack, so it doesn't have to become immutable. This could be a
-	 * sticky point with the garbage collector if it finds only one reference to
-	 * the type, but I think it's ok still.
-	 */
-	private void L2L1Ext_doGetType ()
-	{
-
-		final AvailObject cont = pointerAt(callerRegister());
-		final int index = getInteger();
-		int stackp = cont.stackp() - 1;
-		final AvailObject value = cont.stackAt(stackp + index + 1);
-		cont.stackp(stackp);
-		cont.stackAtPut(stackp, value.type());
-	}
-
-	/**
-	 * This shouldn't happen unless the compiler is out of sync with the interpreter.
-	 */
-	private void L2L1Ext_doReserved ()
-	{
-
-		error("That nybblecode is not supported");
-		return;
 	}
 
 	/**

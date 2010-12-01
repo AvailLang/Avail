@@ -554,24 +554,6 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1Ext_doMakeList ()
-	{
-		//  [n] - Make a list object from n values popped from the stack.  Push the list.
-
-		int count = getInteger();
-		ArrayList<L2ObjectRegister> vector = new ArrayList<L2ObjectRegister>(count);
-		for (int i = 1; i<= count; i++)
-		{
-			vector.add(stackRegister(stackp + count - i));
-		}
-		stackp += count - 1;
-		addInstruction(new L2CreateTupleInstruction()
-			.sourceVectorDestination(createVector(vector), topOfStackRegister()));
-		addInstruction(new L2ConvertTupleToListInstruction()
-			.sourceDestination(topOfStackRegister(), topOfStackRegister()));
-	}
-
-	@Override
 	public void L1Ext_doPushLabel ()
 	{
 		//  Build a continuation which, when restarted, will be just like restarting the current continuation.
@@ -978,6 +960,24 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	@Override
+	public void L1_doMakeList ()
+	{
+		//  [n] - Make a list object from n values popped from the stack.  Push the list.
+	
+		int count = getInteger();
+		ArrayList<L2ObjectRegister> vector = new ArrayList<L2ObjectRegister>(count);
+		for (int i = 1; i<= count; i++)
+		{
+			vector.add(stackRegister(stackp + count - i));
+		}
+		stackp += count - 1;
+		addInstruction(new L2CreateTupleInstruction()
+			.sourceVectorDestination(createVector(vector), topOfStackRegister()));
+		addInstruction(new L2ConvertTupleToListInstruction()
+			.sourceDestination(topOfStackRegister(), topOfStackRegister()));
+	}
+
+	@Override
 	public void L1_doPop ()
 	{
 		//  Remove the top item from the stack.
@@ -1065,7 +1065,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1_doReturn ()
+	public void L1Implied_doReturn ()
 	{
 		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
 		//  Note that the calling continuation has automatically pre-pushed a void object as a
@@ -1300,7 +1300,7 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		// Translate the implicit L1_doReturn instruction that terminates the
 		// instruction sequence.
-		L1Operation.L1_doReturn.dispatch(this);
+		L1Operation.L1Implied_Return.dispatch(this);
 		assert (pc == (nybbles.tupleSize() + 1));
 		assert (stackp == -0x29A);
 		optimize();

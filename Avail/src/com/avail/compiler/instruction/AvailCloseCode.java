@@ -33,7 +33,7 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailCloseCode;
-import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 public class AvailCloseCode extends AvailInstructionWithIndex
@@ -62,7 +62,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.closeNybble());
+		L1Operation.L1_doClose.writeTo(aStream);
 		writeIntegerOn(_numCopiedVars, aStream);
 		writeIntegerOn(_index, aStream);
 	}

@@ -35,7 +35,7 @@ package com.avail.compiler.instruction;
 import com.avail.compiler.instruction.AvailInstruction;
 import static com.avail.descriptor.AvailObject.*;
 
-public class AvailInstructionWithIndex extends AvailInstruction
+public abstract class AvailInstructionWithIndex extends AvailInstruction
 {
 	int _index;
 

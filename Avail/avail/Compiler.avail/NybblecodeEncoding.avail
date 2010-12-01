@@ -59,30 +59,32 @@ Names
 Body
 
 
-/* Named nybblecodes... These values and layouts are known by the virtual machine,
-   so don't change them unless you know what you're doing.  These are listed in
-   numerical order, which (roughly) corresponds to their static frequency. */
+/*
+ * Named nybblecodes... These values and layouts are known by the virtual
+ * machine, so don't change them unless you know what you're doing.  These are
+ * listed in numerical order, which (roughly) corresponds to their static
+ * frequency.
+ */
 
 Method "callNybbles" is [<0>;];
 Method "verifyTypeNybbles" is [<1>;];
-/* Used to be returnNybbles. */
-Method "pushLiteralNybbles" is [<3>;];
-Method "pushLocalLastNybbles" is [<4>;];
-Method "pushLocalNybbles" is [<5>;];
-Method "pushOuterLastNybbles" is [<6>;];
-Method "closeNybbles" is [<7>;];
-Method "setLocalNybbles" is [<8>;];
-Method "getLocalClearingNybbles" is [<9>;];
-Method "pushOuterNybbles" is [<10>;];
-Method "popNybbles" is [<11>;];
-Method "getOuterClearingNybbles" is [<12>;];
-Method "setOuterNybbles" is [<13>;];
-Method "getLocalNybbles" is [<14>;];
+Method "pushLiteralNybbles" is [<2>;];
+Method "pushLocalLastNybbles" is [<3>;];
+Method "pushLocalNybbles" is [<4>;];
+Method "pushOuterLastNybbles" is [<5>;];
+Method "closeNybbles" is [<6>;];
+Method "setLocalNybbles" is [<7>;];
+Method "getLocalClearingNybbles" is [<8>;];
+Method "pushOuterNybbles" is [<9>;];
+Method "popNybbles" is [<10>;];
+Method "getOuterClearingNybbles" is [<11>;];
+Method "setOuterNybbles" is [<12>;];
+Method "getLocalNybbles" is [<13>;];
+Method "makeListNybbles" is [<14>;];
 Method "getOuterNybbles" is [<15,0>;];
-Method "makeListNybbles" is [<15,1>;];
-Method "pushLabelNybbles" is [<15,2>;];
-Method "getLiteralNybbles" is [<15,3>;];
-Method "setLiteralNybbles" is [<15,4>;];
-Method "superCallNybbles" is [<15,5>;];
-Method "getTypeNybbles" is [<15,6>;];
+Method "pushLabelNybbles" is [<15,1>;];
+Method "getLiteralNybbles" is [<15,2>;];
+Method "setLiteralNybbles" is [<15,3>;];
+Method "superCallNybbles" is [<15,4>;];
+Method "getTypeNybbles" is [<15,5>;];
 

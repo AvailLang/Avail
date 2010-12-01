@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-public class AvailGetVariable extends AvailInstructionWithIndex
+public abstract class AvailGetVariable extends AvailInstructionWithIndex
 {
 	boolean _canClear;
 

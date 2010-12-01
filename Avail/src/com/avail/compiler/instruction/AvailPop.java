@@ -33,6 +33,7 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 public class AvailPop extends AvailInstruction
@@ -47,7 +48,7 @@ public class AvailPop extends AvailInstruction
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.popNybble());
+		L1Operation.L1_doPop.writeTo(aStream);
 	}
 
 

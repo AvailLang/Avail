@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 public class AvailSetLiteralVariable extends AvailInstructionWithIndex
@@ -47,8 +47,7 @@ public class AvailSetLiteralVariable extends AvailInstructionWithIndex
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.extensionNybble());
-		aStream.write(AvailInstruction.setLiteralExtendedNybble());
+		L1Operation.L1Ext_doSetLiteral.writeTo(aStream);
 		writeIntegerOn(_index, aStream);
 	}
 

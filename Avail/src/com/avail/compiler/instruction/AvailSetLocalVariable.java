@@ -33,8 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.setLocalNybble());
+		L1Operation.L1_doSetLocal.writeTo(aStream);
 		writeIntegerOn(_index, aStream);
 	}
 

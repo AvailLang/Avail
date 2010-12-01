@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 public class AvailSuperCall extends AvailInstructionWithIndex
@@ -47,12 +47,9 @@ public class AvailSuperCall extends AvailInstructionWithIndex
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.extensionNybble());
-		aStream.write(AvailInstruction.superCallExtendedNybble());
+		L1Operation.L1Ext_doSuperCall.writeTo(aStream);
 		writeIntegerOn(_index, aStream);
 	}
-
-
 
 
 

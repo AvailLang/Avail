@@ -90,13 +90,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		assert currentDepth > 0;
 	}
 
-	@Override public void L1_doReturn ()
-	{
-		assert currentDepth == 1;
-		currentDepth = 0;
-		reachable = false;
-	}
-
 	@Override public void L1_doPushLiteral ()
 	{
 		currentDepth += 1;
@@ -157,6 +150,11 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		currentDepth += 1;
 	}
 
+	@Override public void L1_doMakeList ()
+	{
+		currentDepth += 1 - currentOperands[0];
+	}
+
 	@Override public void L1_doExtension ()
 	{
 		error("The extension nybblecode should not be dispatched.");
@@ -165,11 +163,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	@Override public void L1Ext_doGetOuter ()
 	{
 		currentDepth += 1;
-	}
-
-	@Override public void L1Ext_doMakeList ()
-	{
-		currentDepth += 1 - currentOperands[0];
 	}
 
 	@Override public void L1Ext_doPushLabel ()
@@ -201,5 +194,13 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	{
 		error("Reserved nybblecode");
 	}
+
+	@Override public void L1Implied_doReturn ()
+	{
+		assert currentDepth == 1;
+		currentDepth = 0;
+		reachable = false;
+	}
+
 
 }

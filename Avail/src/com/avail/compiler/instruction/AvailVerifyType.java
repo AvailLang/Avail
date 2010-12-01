@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 public class AvailVerifyType extends AvailInstructionWithIndex
@@ -47,7 +47,7 @@ public class AvailVerifyType extends AvailInstructionWithIndex
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.verifyTypeNybble());
+		L1Operation.L1_doVerifyType.writeTo(aStream);
 		writeIntegerOn(_index, aStream);
 	}
 

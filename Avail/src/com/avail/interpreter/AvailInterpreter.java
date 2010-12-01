@@ -118,13 +118,13 @@ public abstract class AvailInterpreter
 	/**
 	 * The {@link ProcessDescriptor} being executed by this interpreter.
 	 */
-	protected AvailObject process;
+	public AvailObject process;
 	
 	/**
 	 * A place to store the result of a primitive when the primitive
 	 * succeeds by returning {@link Result#SUCCESS}.
 	 */
-	protected AvailObject primitiveResult;
+	public AvailObject primitiveResult;
 
 	
 	/**
@@ -268,7 +268,9 @@ public abstract class AvailInterpreter
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
 
-		final int numArgs = countUnderscoresIn(methodName.name());
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject messageParts = splitter.messageParts();
+		final int numArgs = splitter.numberOfArguments();
 		assert (bodyBlock.code().numArgs() == numArgs)
 		: "Wrong number of arguments in method definition";
 		assert (requiresBlock.code().numArgs() == numArgs)
@@ -339,8 +341,6 @@ public abstract class AvailInterpreter
 		}
 		imps.addImplementation(newImp);
 		assert methodName.isCyclicType();
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject messageParts = splitter.messageParts();
 		module.filteredBundleTree().includeBundleAtMessageParts(
 			methodName, messageParts);
 	}
@@ -371,7 +371,9 @@ public abstract class AvailInterpreter
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
 
-		final int numArgs = countUnderscoresIn(methodName.name());
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject messageParts = splitter.messageParts();
+		final int numArgs = splitter.numberOfArguments();
 		assert (bodySignature.numArgs() == numArgs)
 		: "Wrong number of arguments in abstract method signature";
 		assert (requiresBlock.code().numArgs() == numArgs)
@@ -441,8 +443,6 @@ public abstract class AvailInterpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		imps.addImplementation(newImp);
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject messageParts = splitter.messageParts();
 		module.filteredBundleTree().includeBundleAtMessageParts(
 			methodName, messageParts);
 	}
@@ -465,12 +465,12 @@ public abstract class AvailInterpreter
 		//  So we can safely hold onto it in the VM
 		illegalArgMsgs.makeImmutable();
 		//  So we can safely hold this data in the VM
-		final int numArgs = countUnderscoresIn(methodName.name());
+		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final AvailObject parts = splitter.messageParts();
+		final int numArgs = splitter.numberOfArguments();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
 		assert methodName.isCyclicType();
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject parts = splitter.messageParts();
 		//  Fix precedence.
 		AvailObject bundle =
 			module.filteredBundleTree().includeBundleAtMessageParts(
@@ -596,22 +596,6 @@ public abstract class AvailInterpreter
 		return all.mapAt(firstPiece).complete();
 	}
 
-	public int countUnderscoresIn (
-		final AvailObject anAvailString)
-	{
-		//  Answer how many underscore characters are in the given Avail string.
-
-		int count = 0;
-		for (int i = 1, _end1 = anAvailString.tupleSize(); i <= _end1; i++)
-		{
-			if ((((char)(anAvailString.tupleAt(i).codePoint())) == '_'))
-			{
-				count++;
-			}
-		}
-		return count;
-	}
-
 	/**
 	 * Answer the map whose first (but not only) token-component is firstPiece.
 	 * The map is from the second piece to bundle tree.  Filter selectors based
@@ -666,6 +650,11 @@ public abstract class AvailInterpreter
 		return VoidDescriptor.voidObject();
 	}
 
+	/**
+	 * Return the current {@link ProcessDescriptor process}.
+	 * 
+	 * @return The current executing process.
+	 */
 	public AvailObject process ()
 	{
 		return process;

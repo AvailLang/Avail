@@ -38,38 +38,27 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
-public class AvailInstruction
+public abstract class AvailInstruction
 {
-
-
-	// initialize-release
 
 	public void initialize ()
 	{
 		//  Do nothing
-
-
 	}
 
 
-
-	// nybblecodes
-
-	public int sizeInNybbles ()
-	{
-		//  Answer how many nybbles writeNybblesOn: will take.
-
-		ByteArrayOutputStream out = new ByteArrayOutputStream(8);
-		writeNybblesOn(out);
-		return out.size();
-	}
-
+	/**
+	 * Write a nybble-coded int in a variable-sized format to the {@link
+	 * ByteArrayOutputStream stream}.  Small values take only one nybble,
+	 * and we can represent any int up to {@link Integer#MAX_VALUE}.
+	 * 
+	 * @param anInteger The integer to write.
+	 * @param aStream The stream on which to write the integer.
+	 */
 	public void writeIntegerOn (
 			final int anInteger,
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write a nybble-coded integer (in variable-sized format) to the stream (a WriteStream on a ByteArray).
-
 		if (anInteger < 0)
 		{
 			error("Only positive integers, please");
@@ -82,23 +71,23 @@ public class AvailInstruction
 		}
 		if (anInteger < 58)
 		{
-			aStream.write((((anInteger - 10) >>> 4) + 10));
-			aStream.write(((anInteger - 10) & 15));
+			aStream.write((anInteger + 150) >>> 4);
+			aStream.write((anInteger + 150) & 15);
 			return;
 		}
 		if (anInteger < 0x13A)
 		{
 			aStream.write(13);
-			aStream.write(((anInteger - 58) >>> 4));
-			aStream.write(((anInteger - 58) & 15));
+			aStream.write((anInteger - 58) >>> 4);
+			aStream.write((anInteger - 58) & 15);
 			return;
 		}
 		if (anInteger < 0x10000)
 		{
 			aStream.write(14);
 			aStream.write(anInteger >>> 12);
-			aStream.write(((anInteger >>> 8) & 15));
-			aStream.write(((anInteger >>> 4) & 15));
+			aStream.write((anInteger >>> 8) & 15);
+			aStream.write((anInteger >>> 4) & 15);
 			aStream.write(anInteger & 15);
 			return;
 		}
@@ -106,12 +95,12 @@ public class AvailInstruction
 		{
 			aStream.write(15);
 			aStream.write(anInteger >>> 28);
-			aStream.write(((anInteger >>> 24) & 15));
-			aStream.write(((anInteger >>> 20) & 15));
-			aStream.write(((anInteger >>> 16) & 15));
-			aStream.write(((anInteger >>> 12) & 15));
-			aStream.write(((anInteger >>> 8) & 15));
-			aStream.write(((anInteger >>> 4) & 15));
+			aStream.write((anInteger >>> 24) & 15);
+			aStream.write((anInteger >>> 20) & 15);
+			aStream.write((anInteger >>> 16) & 15);
+			aStream.write((anInteger >>> 12) & 15);
+			aStream.write((anInteger >>> 8) & 15);
+			aStream.write((anInteger >>> 4) & 15);
 			aStream.write(anInteger & 15);
 			return;
 		}
@@ -119,170 +108,71 @@ public class AvailInstruction
 		return;
 	}
 
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
-	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
+	/**
+	 * Write nybbles representing this instruction to the {@link
+	 * ByteArrayOutputStream stream}.
+	 * 
+	 * @param aStream Where to write the nybbles.
+	 */
+	public abstract void writeNybblesOn (
+		final ByteArrayOutputStream aStream);
 
-		error("Subclass responsibility: writeNybblesOn: in Avail.AvailInstruction");
-		return;
-	}
 
-
-
-	// optimization
-
+	/**
+	 * The instructions of a block are being iterated over.  Coordinate
+	 * optimizations between instructions using localData and outerData, two
+	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * instruction as though it is the last one in the block, and save enough
+	 * information in the lists to be able to undo consequences of this
+	 * assumption when a later instruction shows it to be unwarranted.
+	 * <p>
+	 * The data lists are keyed by local or outer index.  Each entry is an
+	 * {@link AvailVariableAccessNote}, which keeps track of the immediately
+	 * previous use of the variable.
+	 * 
+	 * @param localData A list of {@linkplain AvailVariableAccessNote}s, one for
+	 *                  each local variable.
+	 * @param outerData A list of {@linkplain AvailVariableAccessNote}s, one for
+	 *                  each outer variable.
+	 * @param codeGenerator The code generator.
+	 */
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData,
 			final List<AvailVariableAccessNote> outerData,
 			final AvailCodeGenerator codeGenerator)
 	{
-		//  The instructions of a block are being iterated over.  Coordinate optimizations
-		//  between instructions using localData and outerData, two Arrays manipulated by
-		//  overrides of this method.  Treat each instruction as though it is the last one in the
-		//  block, and save enough information in the Arrays to be able to undo consequences
-		//  of this assumption when a later instruction shows it to be unwarranted.
-		//
-		//  The data Arrays are keyed by local or outer index.  Each entry is either nil or a
-		//  Dictionary.  The Dictionary has the (optional) keys #previousGet and #previousPush,
-		//  and the values are the previously encountered instructions.
-
-
+		// Do nothing here in the general case.
 	}
 
 
-
-	// testing
-
+	/**
+	 * Answer whether this instruction is a use of a local variable.
+	 * 
+	 * @return False for this class, possibly true in a subclass.
+	 */
 	public boolean isLocalUse ()
 	{
 		return false;
 	}
 
+	/**
+	 * Answer whether this instruction is a use of an outer variable.
+	 * 
+	 * @return False for this class, possibly true in a subclass.
+	 */
 	public boolean isOuterUse ()
 	{
 		return false;
 	}
 
+	/**
+	 * Answer whether this instruction is a use of a label variable.
+	 * 
+	 * @return False for this class, possibly true in a subclass.
+	 */
 	public boolean isPushLabel ()
 	{
 		return false;
 	}
-
-
-
-	// Nybble encodings
-
-	public static byte callNybble ()
-	{
-		return 0;
-	}
-
-	public static byte closeNybble ()
-	{
-		return 7;
-	}
-
-	public static byte extensionNybble ()
-	{
-		return 15;
-	}
-
-	public static byte getLocalClearingNybble ()
-	{
-		return 9;
-	}
-
-	public static byte getLocalNybble ()
-	{
-		return 14;
-	}
-
-	public static byte getOuterClearingNybble ()
-	{
-		return 12;
-	}
-
-	public static byte popNybble ()
-	{
-		return 11;
-	}
-
-	public static byte pushLastLocalNybble ()
-	{
-		return 4;
-	}
-
-	public static byte pushLastOuterNybble ()
-	{
-		return 6;
-	}
-
-	public static byte pushLiteralNybble ()
-	{
-		return 3;
-	}
-
-	public static byte pushLocalNybble ()
-	{
-		return 5;
-	}
-
-	public static byte pushOuterNybble ()
-	{
-		return 10;
-	}
-
-	public static byte setLocalNybble ()
-	{
-		return 8;
-	}
-
-	public static byte setOuterNybble ()
-	{
-		return 13;
-	}
-
-	public static byte verifyTypeNybble ()
-	{
-		return 1;
-	}
-
-	public static byte getLiteralExtendedNybble ()
-	{
-		return 3;
-	}
-
-	public static byte getOuterExtendedNybble ()
-	{
-		return 0;
-	}
-
-	public static byte getTypeExtendedNybble ()
-	{
-		return 6;
-	}
-
-	public static byte makeListExtendedNybble ()
-	{
-		return 1;
-	}
-
-	public static byte pushLabelExtendedNybble ()
-	{
-		return 2;
-	}
-
-	public static byte setLiteralExtendedNybble ()
-	{
-		return 4;
-	}
-
-	public static byte superCallExtendedNybble ()
-	{
-		return 5;
-	}
-
-
 
 }

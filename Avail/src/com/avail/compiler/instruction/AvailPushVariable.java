@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-public class AvailPushVariable extends AvailInstructionWithIndex
+public abstract class AvailPushVariable extends AvailInstructionWithIndex
 {
 	boolean _isLastAccess;
 

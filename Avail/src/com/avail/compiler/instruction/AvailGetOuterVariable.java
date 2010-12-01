@@ -33,8 +33,8 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -52,12 +52,11 @@ public class AvailGetOuterVariable extends AvailGetVariable
 
 		if (_canClear)
 		{
-			aStream.write(AvailInstruction.getOuterClearingNybble());
+			L1Operation.L1_doGetOuterClearing.writeTo(aStream);
 		}
 		else
 		{
-			aStream.write(AvailInstruction.extensionNybble());
-			aStream.write(AvailInstruction.getOuterExtendedNybble());
+			L1Operation.L1Ext_doGetOuter.writeTo(aStream);
 		}
 		writeIntegerOn(_index, aStream);
 	}

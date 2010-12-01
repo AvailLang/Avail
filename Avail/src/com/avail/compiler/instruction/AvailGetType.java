@@ -34,6 +34,7 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailGetType;
 import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 public class AvailGetType extends AvailInstruction
@@ -62,8 +63,7 @@ public class AvailGetType extends AvailInstruction
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
-		aStream.write(AvailInstruction.extensionNybble());
-		aStream.write(AvailInstruction.getTypeExtendedNybble());
+		L1Operation.L1Ext_doGetType.writeTo(aStream);
 		writeIntegerOn(_depth, aStream);
 	}
 

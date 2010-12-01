@@ -37,7 +37,6 @@ public interface L1OperationDispatcher
 {
 	void L1_doCall();
 	void L1_doVerifyType();
-	void L1_doReturn();
 	void L1_doPushLiteral();
 	void L1_doPushLastLocal();
 	void L1_doPushLocal();
@@ -50,14 +49,14 @@ public interface L1OperationDispatcher
 	void L1_doGetOuterClearing();
 	void L1_doSetOuter();
 	void L1_doGetLocal();
+	void L1_doMakeList();
 	void L1_doExtension();
 	void L1Ext_doGetOuter();
-	void L1Ext_doMakeList();
 	void L1Ext_doPushLabel();
 	void L1Ext_doGetLiteral();
 	void L1Ext_doSetLiteral();
 	void L1Ext_doSuperCall();
 	void L1Ext_doGetType();
 	void L1Ext_doReserved();
-
+	void L1Implied_doReturn();
 }
