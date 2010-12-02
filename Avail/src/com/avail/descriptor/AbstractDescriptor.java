@@ -57,40 +57,40 @@ public abstract class AbstractDescriptor
 	 * constructor.
 	 */
 	final short myId;
-	
+
 	/**
 	 * A flag indicating whether instances of me can be modified in place.
 	 * Generally, as soon as there are two references from {@link AvailObject
 	 * Avail objects}.
 	 */
 	protected final boolean isMutable;
-	
+
 	/**
 	 * The minimum number of object slots an {@link AvailObject} can have if it
 	 * uses this descriptor.  Populated automatically by the constructor.
 	 */
 	protected final int numberOfFixedObjectSlots;
-	
+
 	/**
 	 * The minimum number of integer slots an {@link AvailObject} can have if it
 	 * uses this descriptor.  Populated automatically by the constructor.
 	 */
 	protected final int numberOfFixedIntegerSlots;
-	
+
 	/**
 	 * Whether an {@link AvailObject} using this descriptor can have more than
 	 * the minimum number of object slots.  Populated automatically by the
 	 * constructor.
 	 */
 	final boolean hasVariableObjectSlots;
-	
+
 	/**
 	 * Whether an {@link AvailObject} using this descriptor can have more than
 	 * the minimum number of integer slots.  Populated automatically by the
 	 * constructor.
 	 */
 	final boolean hasVariableIntegerSlots;
-	
+
 
 	protected static final List<AbstractDescriptor> allDescriptors =
 		new ArrayList<AbstractDescriptor>(200);
@@ -133,12 +133,12 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		? enumClass.getEnumConstants()
+				: new Enum<?>[0];
 		this.hasVariableObjectSlots = instances.length > 0
-			&& instances[instances.length-1].name().matches(".*_");
+		&& instances[instances.length-1].name().matches(".*_");
 		this.numberOfFixedObjectSlots = instances.length
-			- (this.hasVariableObjectSlots ? 1 : 0);
+		- (this.hasVariableObjectSlots ? 1 : 0);
 
 		try
 		{
@@ -150,12 +150,12 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		? enumClass.getEnumConstants()
+				: new Enum<?>[0];
 		this.hasVariableIntegerSlots = instances.length > 0
-			&& instances[instances.length-1].name().matches(".*_");
+		&& instances[instances.length-1].name().matches(".*_");
 		this.numberOfFixedIntegerSlots = instances.length
-			- (this.hasVariableIntegerSlots ? 1 : 0);
+		- (this.hasVariableIntegerSlots ? 1 : 0);
 
 
 	}
@@ -1318,6 +1318,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param value
+	 */
+	public abstract void ObjectLiteral (
+		final AvailObject object,
+		final AvailObject value);
+
+	/**
+	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -2200,6 +2208,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
+	public abstract void ObjectStart (
+		final AvailObject object,
+		final int value);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
 	public abstract void ObjectStartingChunkIndex (
 		final AvailObject object,
 		final int value);
@@ -2219,6 +2235,14 @@ public abstract class AbstractDescriptor
 	public abstract int ObjectStartSubtupleIndexInZone (
 		final AvailObject object,
 		final int zone);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void ObjectString (
+		final AvailObject object,
+		final AvailObject value);
 
 	/**
 	 * @param object
@@ -2261,6 +2285,15 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param value
+	 * @return
+	 */
+	public abstract void ObjectTokenTypeCode (
+		final AvailObject object,
+		final int value);
 
 	/**
 	 * @param object
@@ -3298,6 +3331,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	public abstract AvailObject ObjectLiteral (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	public abstract AvailObject ObjectLowerBound (final AvailObject object);
 
 	/**
@@ -3637,6 +3676,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	public abstract int ObjectStart (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	public abstract int ObjectStartingChunkIndex (final AvailObject object);
 
 	/**
@@ -3648,7 +3693,18 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	public abstract AvailObject ObjectString (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	public abstract AvailObject ObjectTestingTree (final AvailObject object);
+
+	/**
+	 * @param object
+	 */
+	public abstract int ObjectTokenTypeCode (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4532,8 +4588,8 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		? enumClass.getEnumConstants()
+				: new Enum<?>[0];
 
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
 		{
@@ -4572,8 +4628,8 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		? enumClass.getEnumConstants()
+				: new Enum<?>[0];
 
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{

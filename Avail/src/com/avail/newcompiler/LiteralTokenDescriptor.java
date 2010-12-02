@@ -1,5 +1,5 @@
 /**
- * compiler/scanner/AvailToken.java
+ * com.avail.newcompiler/LiteralTokenDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,14 +33,20 @@
 package com.avail.newcompiler;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.newcompiler.ParseNodeDescriptor.ObjectSlots;
+import com.avail.descriptor.Descriptor;
 
-public class AvailTokenDescriptor
+/**
+ * TODO: Document this type!
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class LiteralTokenDescriptor
+extends TokenDescriptor
 {
-
 	enum ObjectSlots
 	{
-		STRING
+		STRING,
+		LITERAL
 	}
 
 	enum IntegerSlots
@@ -54,70 +60,65 @@ public class AvailTokenDescriptor
 	 * Setter for field string.
 	 */
 	@Override
-	public void ObjectString (
-			final AvailObject object,
-			final AvailObject value)
+	public void ObjectLiteral (
+		final AvailObject object,
+		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.STRING, value);
+		object.objectSlotPut(ObjectSlots.LITERAL, value);
 	}
 
 	/**
 	 * Getter for field string.
 	 */
 	@Override
-	public AvailObject ObjectString (
-			final AvailObject object)
+	public AvailObject ObjectLiteral (
+		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.STRING);
+		return object.objectSlot(ObjectSlots.LITERAL);
+	}
+
+
+	/**
+	 * Construct a new {@link LiteralTokenDescriptor}.
+	 *
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 */
+	protected LiteralTokenDescriptor (final boolean isMutable)
+	{
+		super(isMutable);
 	}
 
 	/**
-	 * Setter for field start.
+	 * The mutable {@link LiteralTokenDescriptor}.
 	 */
-	@Override
-	public void ObjectStart (
-			final AvailObject object,
-			final AvailObject value)
+	private final static LiteralTokenDescriptor mutableDescriptor = new LiteralTokenDescriptor(true);
+
+	/**
+	 * Answer the mutable {@link LiteralTokenDescriptor}.
+	 *
+	 * @return The mutable {@link LiteralTokenDescriptor}.
+	 */
+	public static LiteralTokenDescriptor mutableDescriptor ()
 	{
-		object.integerSlotPut(IntegerSlots.START, value);
+		return mutableDescriptor;
 	}
 
 	/**
-	 * Getter for field start.
+	 * The immutable {@link LiteralTokenDescriptor}.
 	 */
-	@Override
-	public AvailObject ObjectStart (
-			final AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.START);
-	}
+	private final static LiteralTokenDescriptor immutableDescriptor = new LiteralTokenDescriptor(false);
 
 	/**
-	 * Setter for field tokenTypeCode.
+	 * Answer the immutable {@link LiteralTokenDescriptor}.
+	 *
+	 * @return The immutable {@link LiteralTokenDescriptor}.
 	 */
-	@Override
-	public void ObjectTokenTypeCode (
-			final AvailObject object,
-			final AvailObject value)
+	public static LiteralTokenDescriptor immutableDescriptor ()
 	{
-		object.integerSlotPut(IntegerSlots.TOKEN_TYPE_CODE, value);
+		return immutableDescriptor;
 	}
 
-	/**
-	 * Getter for field tokenTypeCode.
-	 */
-	@Override
-	public AvailObject ObjectTokenTypeCode (
-			final AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
-	}
-
-
-
-	public enum TokenType
-	{
-		END_OF_FILE, END_OF_STATEMENT, KEYWORD, LITERAL, OPERATOR;
-	}
 
 }

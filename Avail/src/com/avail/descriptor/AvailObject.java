@@ -2692,6 +2692,23 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	public AvailObject literal ()
+	{
+		return descriptor().ObjectLiteral(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void literal (
+		final AvailObject value)
+	{
+		descriptor().ObjectLiteral(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject literalAt (
 		final int index)
 	{
@@ -4264,6 +4281,23 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	public int start ()
+	{
+		return descriptor().ObjectStart(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void start (
+		final int value)
+	{
+		descriptor().ObjectStart(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public int startingChunkIndex ()
 	{
 		return descriptor().ObjectStartingChunkIndex(this);
@@ -4302,6 +4336,23 @@ implements Iterable<AvailObject>
 	public void step ()
 	{
 		descriptor().ObjectStep(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public AvailObject string ()
+	{
+		return descriptor().ObjectString(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void string (
+		final AvailObject value)
+	{
+		descriptor().ObjectString(this, value);
 	}
 
 	/**
@@ -4375,6 +4426,23 @@ implements Iterable<AvailObject>
 			this,
 			aNumber,
 			canDestroy);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public int tokenTypeCode ()
+	{
+		return descriptor().ObjectTokenTypeCode(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void tokenTypeCode (
+		final int value)
+	{
+		descriptor().ObjectTokenTypeCode(this, value);
 	}
 
 	/**
@@ -5250,7 +5318,7 @@ implements Iterable<AvailObject>
 	abstract public void becomeIndirectionTo (
 		final AvailObject anotherObject);
 
-	
+
 	/**
 	 * Extract the byte at the given one-based byte subscript within the
 	 * specified field.  Always use little endian encoding.
@@ -5291,17 +5359,17 @@ implements Iterable<AvailObject>
 		descriptor().checkWriteForField(e);
 	}
 
-	
+
 	abstract public AbstractDescriptor descriptor ();
 
-	
+
 	abstract public void descriptor (
 		final AbstractDescriptor aDescriptor);
 
 
 	abstract public short descriptorId ();
 
-	
+
 	abstract public void descriptorId (
 		final short anInteger);
 
@@ -5366,12 +5434,12 @@ implements Iterable<AvailObject>
 	 * Store the AvailObject in the receiver at the given byte-index.
 	 * 
 	 * @param e An enumeration value that defines the field ordering.
-	 * @return The AvailObject found at the specified slot in the receiver. 
+	 * @return The AvailObject found at the specified slot in the receiver.
 	 */
 	abstract public AvailObject objectSlot (
 		final Enum<?> e);
 
-	
+
 	/**
 	 * Store the AvailObject in the specified slot of the receiver.
 	 * 
@@ -5379,10 +5447,10 @@ implements Iterable<AvailObject>
 	 * @param anAvailObject The AvailObject to store at the specified slot.
 	 */
 	abstract public void objectSlotPut (
-			final Enum<?> e,
-			final AvailObject anAvailObject);
+		final Enum<?> e,
+		final AvailObject anAvailObject);
 
-	
+
 	/**
 	 * Extract the AvailObject at the specified slot of the receiver.
 	 * 
@@ -5408,7 +5476,7 @@ implements Iterable<AvailObject>
 		final AvailObject anAvailObject);
 
 
-	
+
 	public boolean isDestroyed ()
 	{
 		checkValidAddress();
@@ -5426,7 +5494,7 @@ implements Iterable<AvailObject>
 	abstract public boolean sameAddressAs (
 		final AvailObject anotherObject);
 
-	
+
 	/**
 	 * Replace my descriptor field with a FillerDescriptor.  This blows up for
 	 * most messages, catching incorrect (all, by definition) further
@@ -5438,7 +5506,7 @@ implements Iterable<AvailObject>
 		descriptor(FillerDescriptor.mutableDescriptor());
 	}
 
-	
+
 	/**
 	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
 	 * 
@@ -5460,7 +5528,7 @@ implements Iterable<AvailObject>
 		final int shortIndex,
 		final short aShort);
 
-	
+
 	/**
 	 * Slice the current object into two objects, the left one (at the same
 	 * starting address as the input), and the right one (a Filler object that
@@ -5474,7 +5542,7 @@ implements Iterable<AvailObject>
 	abstract public void truncateWithFillerForNewIntegerSlotsCount (
 		final int newSlotsCount);
 
-	
+
 	/**
 	 * Slice the current object into two parts, one of which is a Filler object
 	 * and is never referred to directly (so doesn't need any slots for becoming
@@ -5489,7 +5557,7 @@ implements Iterable<AvailObject>
 	 */
 	abstract public void verifyFromSpaceAddress ();
 
-	
+
 	/**
 	 * Check that my address is a valid pointer to ToSpace.
 	 */
@@ -5506,7 +5574,7 @@ implements Iterable<AvailObject>
 		return descriptor().ObjectHash(this);
 	}
 
-	
+
 	/**
 	 * Dispatch to the descriptor.
 	 */
