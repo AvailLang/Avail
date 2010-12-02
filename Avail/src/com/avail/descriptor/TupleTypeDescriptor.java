@@ -58,7 +58,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * Setter for field defaultType.
 	 */
 	@Override
-	public void ObjectDefaultType (
+	public void o_DefaultType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -69,7 +69,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * Setter for field sizeRange.
 	 */
 	@Override
-	public void ObjectSizeRange (
+	public void o_SizeRange (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -80,7 +80,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * Setter for field typeTuple.
 	 */
 	@Override
-	public void ObjectTypeTuple (
+	public void o_TypeTuple (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -91,7 +91,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * Getter for field defaultType.
 	 */
 	@Override
-	public AvailObject ObjectDefaultType (
+	public AvailObject o_DefaultType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DEFAULT_TYPE);
@@ -101,7 +101,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * Getter for field sizeRange.
 	 */
 	@Override
-	public AvailObject ObjectSizeRange (
+	public AvailObject o_SizeRange (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
@@ -111,7 +111,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	 * Getter for field typeTuple.
 	 */
 	@Override
-	public AvailObject ObjectTypeTuple (
+	public AvailObject o_TypeTuple (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE_TUPLE);
@@ -197,7 +197,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -205,7 +205,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsTupleType (
+	public boolean o_EqualsTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -227,7 +227,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsBetterRepresentationThan (
+	public boolean o_IsBetterRepresentationThan (
 			final AvailObject object,
 			final AvailObject anotherObject)
 	{
@@ -238,7 +238,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsBetterRepresentationThanTupleType (
+	public boolean o_IsBetterRepresentationThanTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -250,7 +250,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -259,7 +259,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -272,7 +272,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -296,7 +296,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -309,7 +309,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	// operations-tuple types
 
 	@Override
-	public AvailObject ObjectTypeAtIndex (
+	public AvailObject o_TypeAtIndex (
 			final AvailObject object,
 			final int index)
 	{
@@ -334,7 +334,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectUnionOfTypesAtThrough (
+	public AvailObject o_UnionOfTypesAtThrough (
 			final AvailObject object,
 			final int startIndex,
 			final int endIndex)
@@ -374,7 +374,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -384,7 +384,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfTupleType (
+	public boolean o_IsSupertypeOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -435,7 +435,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -453,7 +453,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfTupleType (
+	public AvailObject o_TypeIntersectionOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -514,7 +514,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -532,7 +532,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfTupleType (
+	public AvailObject o_TypeUnionOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -573,7 +573,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsTupleType (
+	public boolean o_IsTupleType (
 			final AvailObject object)
 	{
 		//  I am a tupleType, so answer true.

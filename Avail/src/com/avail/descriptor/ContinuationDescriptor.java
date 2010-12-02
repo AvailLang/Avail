@@ -64,7 +64,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Setter for field caller.
 	 */
 	@Override
-	public void ObjectCaller (
+	public void o_Caller (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -75,7 +75,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Setter for field closure.
 	 */
 	@Override
-	public void ObjectClosure (
+	public void o_Closure (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -86,7 +86,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Setter for field hiLevelTwoChunkLowOffset.
 	 */
 	@Override
-	public void ObjectHiLevelTwoChunkLowOffset (
+	public void o_HiLevelTwoChunkLowOffset (
 			final AvailObject object,
 			final int value)
 	{
@@ -94,7 +94,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLocalOrArgOrStackAt (
+	public AvailObject o_LocalOrArgOrStackAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -102,7 +102,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectLocalOrArgOrStackAtPut (
+	public void o_LocalOrArgOrStackAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject value)
@@ -117,7 +117,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Setter for field pc.
 	 */
 	@Override
-	public void ObjectPc (
+	public void o_Pc (
 			final AvailObject object,
 			final int value)
 	{
@@ -128,7 +128,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Setter for field stackp.
 	 */
 	@Override
-	public void ObjectStackp (
+	public void o_Stackp (
 			final AvailObject object,
 			final int value)
 	{
@@ -139,7 +139,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Getter for field caller.
 	 */
 	@Override
-	public AvailObject ObjectCaller (
+	public AvailObject o_Caller (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CALLER);
@@ -149,7 +149,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Getter for field closure.
 	 */
 	@Override
-	public AvailObject ObjectClosure (
+	public AvailObject o_Closure (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CLOSURE);
@@ -159,7 +159,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Getter for field hiLevelTwoChunkLowOffset.
 	 */
 	@Override
-	public int ObjectHiLevelTwoChunkLowOffset (
+	public int o_HiLevelTwoChunkLowOffset (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET);
@@ -169,7 +169,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Getter for field pc.
 	 */
 	@Override
-	public int ObjectPc (
+	public int o_Pc (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PC);
@@ -179,7 +179,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * Getter for field stackp.
 	 */
 	@Override
-	public int ObjectStackp (
+	public int o_Stackp (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.STACK_POINTER);
@@ -259,7 +259,7 @@ public class ContinuationDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -267,7 +267,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsContinuation (
+	public boolean o_EqualsContinuation (
 			final AvailObject object,
 			final AvailObject aContinuation)
 	{
@@ -303,7 +303,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		return ContinuationTypeDescriptor.continuationTypeForClosureType(
@@ -311,7 +311,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		int h = 0x593599A;
@@ -325,7 +325,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -352,7 +352,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -365,7 +365,7 @@ public class ContinuationDescriptor extends Descriptor
 	// operations-continuations
 
 	@Override
-	public void ObjectLevelTwoChunkIndexOffset (
+	public void o_LevelTwoChunkIndexOffset (
 			final AvailObject object,
 			final int index,
 			final int offset)
@@ -380,7 +380,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override
-	public AvailObject ObjectStackAt (
+	public AvailObject o_StackAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -394,7 +394,7 @@ public class ContinuationDescriptor extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override
-	public void ObjectStackAtPut (
+	public void o_StackAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject anObject)
@@ -406,7 +406,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectEnsureMutable (
+	public AvailObject o_EnsureMutable (
 			final AvailObject object)
 	{
 		//  If immutable, copy the object as mutable, otherwise answer the original mutable.
@@ -415,7 +415,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectLevelTwoChunkIndex (
+	public int o_LevelTwoChunkIndex (
 			final AvailObject object)
 	{
 		//  Answer the chunk index (without the offset).
@@ -424,7 +424,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectLevelTwoOffset (
+	public int o_LevelTwoOffset (
 			final AvailObject object)
 	{
 		//  Answer the wordcode offset into the chunk.
@@ -433,7 +433,7 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectNumLocalsOrArgsOrStack (
+	public int o_NumLocalsOrArgsOrStack (
 			final AvailObject object)
 	{
 		//  Answer the number of slots allocated for locals, arguments, and stack entries.
@@ -446,7 +446,7 @@ public class ContinuationDescriptor extends Descriptor
 	// operations-faulting
 
 	@Override
-	public void ObjectPostFault (
+	public void o_PostFault (
 			final AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
@@ -472,7 +472,7 @@ public class ContinuationDescriptor extends Descriptor
 	// private-copying
 
 	@Override
-	public AvailObject ObjectCopyAsMutableContinuation (
+	public AvailObject o_CopyAsMutableContinuation (
 			final AvailObject object)
 	{
 		//  Answer a fresh mutable copy of the given continuation object.

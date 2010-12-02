@@ -52,7 +52,7 @@ public class FloatDescriptor extends Descriptor
 	 * Setter for field rawQuad1.
 	 */
 	@Override
-	public void ObjectRawQuad1 (
+	public void o_RawQuad1 (
 			final AvailObject object,
 			final int value)
 	{
@@ -63,7 +63,7 @@ public class FloatDescriptor extends Descriptor
 	 * Getter for field rawQuad1.
 	 */
 	@Override
-	public int ObjectRawQuad1 (
+	public int o_RawQuad1 (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
@@ -88,7 +88,7 @@ public class FloatDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -96,7 +96,7 @@ public class FloatDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsFloat (
+	public boolean o_EqualsFloat (
 			final AvailObject object,
 			final AvailObject aFloatObject)
 	{
@@ -109,14 +109,14 @@ public class FloatDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		return Types.floatObject.object();
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
@@ -126,7 +126,7 @@ public class FloatDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		return Types.floatObject.object();
@@ -137,7 +137,7 @@ public class FloatDescriptor extends Descriptor
 	// operations-floats
 
 	@Override
-	public float ObjectExtractFloat (
+	public float o_ExtractFloat (
 			final AvailObject object)
 	{
 		//  Extract a Smalltalk Float from object.

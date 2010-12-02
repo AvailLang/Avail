@@ -53,7 +53,7 @@ public class MessageBundleDescriptor extends Descriptor
 	// accessing
 
 	@Override
-	public void ObjectAddRestrictions (
+	public void o_AddRestrictions (
 			final AvailObject object,
 			final AvailObject restrictions)
 	{
@@ -76,7 +76,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectRemoveRestrictions (
+	public void o_RemoveRestrictions (
 			final AvailObject object,
 			final AvailObject obsoleteRestrictions)
 	{
@@ -98,7 +98,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectHasRestrictions (
+	public boolean o_HasRestrictions (
 			final AvailObject object)
 	{
 		if (object.myRestrictions().equalsVoid())
@@ -116,14 +116,14 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectRemoveRestrictions (
+	public void o_RemoveRestrictions (
 			final AvailObject object)
 	{
 		object.myRestrictions(VoidDescriptor.voidObject());
 	}
 
 	@Override
-	public AvailObject ObjectRestrictions (
+	public AvailObject o_Restrictions (
 			final AvailObject object)
 	{
 		AvailObject restrictions = object.myRestrictions();
@@ -163,7 +163,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Setter for field message.
 	 */
 	@Override
-	public void ObjectMessage (
+	public void o_Message (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -174,7 +174,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Setter for field messageParts.
 	 */
 	@Override
-	public void ObjectMessageParts (
+	public void o_MessageParts (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -185,7 +185,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Setter for field myRestrictions.
 	 */
 	@Override
-	public void ObjectMyRestrictions (
+	public void o_MyRestrictions (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -196,7 +196,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Getter for field message.
 	 */
 	@Override
-	public AvailObject ObjectMessage (
+	public AvailObject o_Message (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MESSAGE);
@@ -206,7 +206,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Getter for field messageParts.
 	 */
 	@Override
-	public AvailObject ObjectMessageParts (
+	public AvailObject o_MessageParts (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MESSAGE_PARTS);
@@ -216,7 +216,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Getter for field myRestrictions.
 	 */
 	@Override
-	public AvailObject ObjectMyRestrictions (
+	public AvailObject o_MyRestrictions (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_RESTRICTIONS);
@@ -263,7 +263,7 @@ public class MessageBundleDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -271,7 +271,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -280,7 +280,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -289,7 +289,7 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

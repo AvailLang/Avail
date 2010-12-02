@@ -59,7 +59,7 @@ extends PrimitiveTypeDescriptor
 	}
 	@Override
 	@ThreadSafe
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -70,7 +70,7 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@ThreadSafe
-	public boolean ObjectIsSupertypeOfPrimitiveType (
+	public boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
@@ -81,7 +81,7 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@ThreadSafe
-	public boolean ObjectIsSupertypeOfVoid (final @NotNull AvailObject object)
+	public boolean o_IsSupertypeOfVoid (final @NotNull AvailObject object)
 	{
 		//  Only void is a supertype of void.
 		return true;

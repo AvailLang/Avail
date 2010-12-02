@@ -76,7 +76,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field contingentImpSets.
 	 */
 	@Override
-	public void ObjectContingentImpSets (
+	public void o_ContingentImpSets (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -87,7 +87,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field index.
 	 */
 	@Override
-	public void ObjectIndex (
+	public void o_Index (
 			final AvailObject object,
 			final int value)
 	{
@@ -95,7 +95,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLiteralAt (
+	public AvailObject o_LiteralAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -103,7 +103,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectLiteralAtPut (
+	public void o_LiteralAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject value)
@@ -115,7 +115,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field nextIndex.
 	 */
 	@Override
-	public void ObjectNextIndex (
+	public void o_NextIndex (
 			final AvailObject object,
 			final int value)
 	{
@@ -126,7 +126,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field numFloats.
 	 */
 	@Override
-	public void ObjectNumFloats (
+	public void o_NumFloats (
 			final AvailObject object,
 			final int value)
 	{
@@ -137,7 +137,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field numIntegers.
 	 */
 	@Override
-	public void ObjectNumIntegers (
+	public void o_NumIntegers (
 			final AvailObject object,
 			final int value)
 	{
@@ -148,7 +148,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field numObjects.
 	 */
 	@Override
-	public void ObjectNumObjects (
+	public void o_NumObjects (
 			final AvailObject object,
 			final int value)
 	{
@@ -159,7 +159,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field previousIndex.
 	 */
 	@Override
-	public void ObjectPreviousIndex (
+	public void o_PreviousIndex (
 			final AvailObject object,
 			final int value)
 	{
@@ -170,7 +170,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field validity.
 	 */
 	@Override
-	public void ObjectValidity (
+	public void o_Validity (
 			final AvailObject object,
 			final int value)
 	{
@@ -181,7 +181,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field vectors.
 	 */
 	@Override
-	public void ObjectVectors (
+	public void o_Vectors (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -192,7 +192,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Setter for field wordcodes.
 	 */
 	@Override
-	public void ObjectWordcodes (
+	public void o_Wordcodes (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -203,7 +203,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field contingentImpSets.
 	 */
 	@Override
-	public AvailObject ObjectContingentImpSets (
+	public AvailObject o_ContingentImpSets (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTINGENT_IMP_SETS);
@@ -213,7 +213,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field index.
 	 */
 	@Override
-	public int ObjectIndex (
+	public int o_Index (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INDEX);
@@ -223,7 +223,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field nextIndex.
 	 */
 	@Override
-	public int ObjectNextIndex (
+	public int o_NextIndex (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NEXT_INDEX);
@@ -233,7 +233,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field numFloats.
 	 */
 	@Override
-	public int ObjectNumDoubles (
+	public int o_NumDoubles (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_DOUBLES);
@@ -243,7 +243,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field numIntegers.
 	 */
 	@Override
-	public int ObjectNumIntegers (
+	public int o_NumIntegers (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_INTEGERS);
@@ -253,7 +253,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field numObjects.
 	 */
 	@Override
-	public int ObjectNumObjects (
+	public int o_NumObjects (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_OBJECTS);
@@ -263,7 +263,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field previousIndex.
 	 */
 	@Override
-	public int ObjectPreviousIndex (
+	public int o_PreviousIndex (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PREVIOUS_INDEX);
@@ -273,7 +273,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field validity.
 	 */
 	@Override
-	public int ObjectValidity (
+	public int o_Validity (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.VALIDITY);
@@ -283,7 +283,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field vectors.
 	 */
 	@Override
-	public AvailObject ObjectVectors (
+	public AvailObject o_Vectors (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VECTORS);
@@ -293,7 +293,7 @@ public class L2ChunkDescriptor extends Descriptor
 	 * Getter for field wordcodes.
 	 */
 	@Override
-	public AvailObject ObjectWordcodes (
+	public AvailObject o_Wordcodes (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.WORDCODES);
@@ -391,7 +391,7 @@ public class L2ChunkDescriptor extends Descriptor
 	// operations-L2Chunk
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -399,7 +399,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectIsSaved (
+	public void o_IsSaved (
 			final AvailObject object,
 			final boolean aBoolean)
 	{
@@ -407,7 +407,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectIsValid (
+	public void o_IsValid (
 			final AvailObject object,
 			final boolean aBoolean)
 	{
@@ -415,7 +415,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectNecessaryImplementationSetChanged (
+	public void o_NecessaryImplementationSetChanged (
 			final AvailObject object,
 			final AvailObject anImplementationSet)
 	{
@@ -455,7 +455,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectNext (
+	public void o_Next (
 			final AvailObject object,
 			final AvailObject nextChunk)
 	{
@@ -465,7 +465,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectPrevious (
+	public void o_Previous (
 			final AvailObject object,
 			final AvailObject previousChunk)
 	{
@@ -475,7 +475,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectEvictedByGarbageCollector (
+	public void o_EvictedByGarbageCollector (
 			final AvailObject object)
 	{
 		//  The garbage collector has evicted me.  Since it is supposed to ensure I will never be
@@ -505,7 +505,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -515,21 +515,21 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsSaved (
+	public boolean o_IsSaved (
 			final AvailObject object)
 	{
 		return ((object.validity() & 2) == 2);
 	}
 
 	@Override
-	public boolean ObjectIsValid (
+	public boolean o_IsValid (
 			final AvailObject object)
 	{
 		return ((object.validity() & 1) == 1);
 	}
 
 	@Override
-	public void ObjectMoveToHead (
+	public void o_MoveToHead (
 			final AvailObject object)
 	{
 		//  Maintain the LRU queue so that some percentage of the most recently used chunks
@@ -547,7 +547,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectNext (
+	public AvailObject o_Next (
 			final AvailObject object)
 	{
 		//  Answer my successor in whatever ring I'm in.
@@ -557,7 +557,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectPrevious (
+	public AvailObject o_Previous (
 			final AvailObject object)
 	{
 		//  Answer my predecessor in whatever ring I'm in.
@@ -567,7 +567,7 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectRemoveFromQueue (
+	public void o_RemoveFromQueue (
 			final AvailObject object)
 	{
 		//  Unlink this no longer valid entry from the LRU queue.

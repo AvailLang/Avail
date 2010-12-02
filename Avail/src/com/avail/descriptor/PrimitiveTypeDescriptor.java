@@ -58,7 +58,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Setter for field hash.
 	 */
 	@Override
-	public void ObjectHash (
+	public void o_Hash (
 			final AvailObject object,
 			final int value)
 	{
@@ -69,7 +69,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Setter for field myType.
 	 */
 	@Override
-	public void ObjectMyType (
+	public void o_MyType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -80,7 +80,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Setter for field name.
 	 */
 	@Override
-	public void ObjectName (
+	public void o_Name (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -91,7 +91,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Setter for field parent.
 	 */
 	@Override
-	public void ObjectParent (
+	public void o_Parent (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -102,7 +102,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Getter for field hash.
 	 */
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH);
@@ -112,7 +112,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Getter for field myType.
 	 */
 	@Override
-	public AvailObject ObjectMyType (
+	public AvailObject o_MyType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_TYPE);
@@ -122,7 +122,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Getter for field name.
 	 */
 	@Override
-	public AvailObject ObjectName (
+	public AvailObject o_Name (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
@@ -132,7 +132,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 * Getter for field parent.
 	 */
 	@Override
-	public AvailObject ObjectParent (
+	public AvailObject o_Parent (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PARENT);
@@ -157,7 +157,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -165,7 +165,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsPrimitiveType (
+	public boolean o_EqualsPrimitiveType (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -179,7 +179,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -189,7 +189,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -200,7 +200,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfContainerType (
+	public boolean o_IsSupertypeOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -210,7 +210,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfContinuationType (
+	public boolean o_IsSupertypeOfContinuationType (
 			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
@@ -220,7 +220,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfCyclicType (
+	public boolean o_IsSupertypeOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -230,7 +230,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	public boolean o_IsSupertypeOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -241,7 +241,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfIntegerRangeType (
+	public boolean o_IsSupertypeOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
@@ -251,7 +251,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfListType (
+	public boolean o_IsSupertypeOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -263,7 +263,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfMapType (
+	public boolean o_IsSupertypeOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -274,7 +274,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectMeta (
+	public boolean o_IsSupertypeOfObjectMeta (
 			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
@@ -285,7 +285,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectMetaMeta (
+	public boolean o_IsSupertypeOfObjectMetaMeta (
 			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
@@ -296,7 +296,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectType (
+	public boolean o_IsSupertypeOfObjectType (
 			final AvailObject object,
 			final AvailObject anEagerObjectType)
 	{
@@ -307,7 +307,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfPrimitiveType (
+	public boolean o_IsSupertypeOfPrimitiveType (
 			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
@@ -321,7 +321,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfSetType (
+	public boolean o_IsSupertypeOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -332,7 +332,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfTupleType (
+	public boolean o_IsSupertypeOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -343,7 +343,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -365,7 +365,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -383,7 +383,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -392,7 +392,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer object's type.

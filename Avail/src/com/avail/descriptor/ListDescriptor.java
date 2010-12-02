@@ -54,7 +54,7 @@ public class ListDescriptor extends Descriptor
 	 * Setter for field tuple.
 	 */
 	@Override
-	public void ObjectTuple (
+	public void o_Tuple (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -65,7 +65,7 @@ public class ListDescriptor extends Descriptor
 	 * Getter for field tuple.
 	 */
 	@Override
-	public AvailObject ObjectTuple (
+	public AvailObject o_Tuple (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TUPLE);
@@ -95,7 +95,7 @@ public class ListDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -103,7 +103,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsList (
+	public boolean o_EqualsList (
 			final AvailObject object,
 			final AvailObject aList)
 	{
@@ -116,7 +116,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -136,7 +136,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -145,7 +145,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash.
@@ -154,7 +154,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -166,7 +166,7 @@ public class ListDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -179,7 +179,7 @@ public class ListDescriptor extends Descriptor
 	// operations-lists
 
 	@Override
-	public boolean ObjectIsList (
+	public boolean o_IsList (
 			final AvailObject object)
 	{
 		return true;

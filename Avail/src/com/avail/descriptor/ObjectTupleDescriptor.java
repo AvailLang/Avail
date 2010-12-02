@@ -54,7 +54,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 
 	@Override
-	public AvailObject ObjectTupleAt (
+	public AvailObject o_TupleAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -62,7 +62,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectTupleAtPut (
+	public void o_TupleAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject value)
@@ -75,7 +75,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectCompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -92,7 +92,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
+	public boolean o_CompareFromToWithObjectTupleStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -119,7 +119,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -127,7 +127,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsObjectTuple (
+	public boolean o_EqualsObjectTuple (
 			final AvailObject object,
 			final AvailObject anObjectTuple)
 	{
@@ -139,11 +139,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		if (ObjectTupleSize(object) != anObjectTuple.tupleSize())
+		if (o_TupleSize(object) != anObjectTuple.tupleSize())
 		{
 			return false;
 		}
-		if (ObjectHash(object) != anObjectTuple.hash())
+		if (o_Hash(object) != anObjectTuple.hash())
 		{
 			return false;
 		}
@@ -170,7 +170,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -197,7 +197,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	// operations-tuples
 
 	@Override
-	public AvailObject ObjectCopyTupleFromToCanDestroy (
+	public AvailObject o_CopyTupleFromToCanDestroy (
 			final AvailObject object,
 			final int start,
 			final int end,
@@ -298,7 +298,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTruncateTo (
+	public AvailObject o_TruncateTo (
 			final AvailObject object,
 			final int newTupleSize)
 	{
@@ -306,7 +306,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//
 		//  Shrink the current object on the right.  Assumes that elements beyond the new end
 		//  have already been released if necessary.  Since my representation no longer varies
-		//  with tupleSize (I used to have different descriptors for different ObjectTuple sizes),
+		//  with tupleSize (I used to have different descriptors for different o_Tuple sizes),
 		//  I can simply compute the delta for the number of slots.  I must pad the unused space
 		//  on the right with a dummy descriptor and slotsSize for the garbage collector.
 
@@ -325,7 +325,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTupleAtPuttingCanDestroy (
+	public AvailObject o_TupleAtPuttingCanDestroy (
 			final AvailObject object,
 			final int index,
 			final AvailObject newValueObject,
@@ -349,7 +349,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public int ObjectTupleIntAt (
+	public int o_TupleIntAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -357,14 +357,14 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 		if (((index < 1) || (index > object.tupleSize())))
 		{
-			error("Out of bounds access to ObjectTuple", object);
+			error("Out of bounds access to o_Tuple", object);
 			return 0;
 		}
 		return object.tupleAt(index).extractInt();
 	}
 
 	@Override
-	public int ObjectTupleSize (
+	public int o_TupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
@@ -377,7 +377,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	// private-accessing
 
 	@Override
-	public int ObjectBitsPerEntry (
+	public int o_BitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -390,7 +390,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	// private-computation
 
 	@Override
-	public int ObjectComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 			final AvailObject object,
 			final int start,
 			final int end)

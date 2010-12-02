@@ -60,7 +60,7 @@ public class SetDescriptor extends Descriptor
 	 * Setter for field rootBin.
 	 */
 	@Override
-	public void ObjectRootBin (
+	public void o_RootBin (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -71,7 +71,7 @@ public class SetDescriptor extends Descriptor
 	 * Getter for field rootBin.
 	 */
 	@Override
-	public AvailObject ObjectRootBin (
+	public AvailObject o_RootBin (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ROOT_BIN);
@@ -106,7 +106,7 @@ public class SetDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -114,7 +114,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsSet (
+	public boolean o_EqualsSet (
 			final AvailObject object,
 			final AvailObject aSet)
 	{
@@ -137,7 +137,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfSubtypeOf (
 			final AvailObject object,
 			final AvailObject aTypeObject)
 	{
@@ -168,7 +168,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Not very efficient - usually optimized out via '_type<=_'.
@@ -181,7 +181,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  A set's hash is a simple function of its rootBin's binHash, which is always the sum
@@ -191,14 +191,14 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsSet (
+	public boolean o_IsSet (
 			final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -211,7 +211,7 @@ public class SetDescriptor extends Descriptor
 	// operations-set
 
 	@Override
-	public boolean ObjectHasElement (
+	public boolean o_HasElement (
 			final AvailObject object,
 			final AvailObject elementObject)
 	{
@@ -219,7 +219,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsSubsetOf (
+	public boolean o_IsSubsetOf (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -233,7 +233,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectSetIntersectionCanDestroy (
+	public AvailObject o_SetIntersectionCanDestroy (
 			final AvailObject object,
 			final AvailObject otherSet,
 			final boolean canDestroy)
@@ -272,7 +272,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectSetMinusCanDestroy (
+	public AvailObject o_SetMinusCanDestroy (
 			final AvailObject object,
 			final AvailObject otherSet,
 			final boolean canDestroy)
@@ -300,7 +300,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectSetUnionCanDestroy (
+	public AvailObject o_SetUnionCanDestroy (
 			final AvailObject object,
 			final AvailObject otherSet,
 			final boolean canDestroy)
@@ -350,7 +350,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectSetWithElementCanDestroy (
+	public AvailObject o_SetWithElementCanDestroy (
 			final AvailObject object,
 			final AvailObject newElementObject,
 			final boolean canDestroy)
@@ -388,7 +388,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectSetWithoutElementCanDestroy (
+	public AvailObject o_SetWithoutElementCanDestroy (
 			final AvailObject object,
 			final AvailObject elementObjectToExclude,
 			final boolean canDestroy)
@@ -427,14 +427,14 @@ public class SetDescriptor extends Descriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	public @NotNull Iterator<AvailObject> ObjectIterator (
+	public @NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
 		return object.asTuple().iterator();
 	}
 
 	@Override
-	public AvailObject ObjectAsTuple (
+	public AvailObject o_AsTuple (
 			final AvailObject object)
 	{
 		//  Convert me to a tuple.  The ordering will be arbitrary and unstable.
@@ -450,7 +450,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectSetSize (
+	public int o_SetSize (
 			final AvailObject object)
 	{
 		//  Answer how many elements are in the set.  Delegate to the rootBin.

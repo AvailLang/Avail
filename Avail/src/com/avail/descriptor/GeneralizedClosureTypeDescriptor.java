@@ -52,7 +52,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	 * Setter for field returnType.
 	 */
 	@Override
-	public void ObjectReturnType (
+	public void o_ReturnType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -63,7 +63,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	 * Getter for field returnType.
 	 */
 	@Override
-	public AvailObject ObjectReturnType (
+	public AvailObject o_ReturnType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
@@ -92,7 +92,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -100,7 +100,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsGeneralizedClosureType (
+	public boolean o_EqualsGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -122,7 +122,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -131,7 +131,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  The hash value is always recomputed from the argTypeTuple and returnType.
@@ -140,7 +140,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -153,7 +153,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -163,7 +163,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -175,7 +175,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	public boolean o_IsSupertypeOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -189,7 +189,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -207,7 +207,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfClosureType (
+	public AvailObject o_TypeIntersectionOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -222,7 +222,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -233,7 +233,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -251,7 +251,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfClosureType (
+	public AvailObject o_TypeUnionOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -264,7 +264,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	public AvailObject o_TypeUnionOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{

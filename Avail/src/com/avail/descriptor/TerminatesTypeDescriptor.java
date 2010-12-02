@@ -55,7 +55,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	// operations-from integer range type
 
 	@Override
-	public AvailObject ObjectLowerBound (
+	public AvailObject o_LowerBound (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -64,7 +64,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectLowerInclusive (
+	public boolean o_LowerInclusive (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -73,7 +73,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectUpperBound (
+	public AvailObject o_UpperBound (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -82,7 +82,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectUpperInclusive (
+	public boolean o_UpperInclusive (
 			final AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
@@ -95,7 +95,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	// operations-from map type
 
 	@Override
-	public AvailObject ObjectKeyType (
+	public AvailObject o_KeyType (
 			final AvailObject object)
 	{
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
@@ -105,7 +105,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectSizeRange (
+	public AvailObject o_SizeRange (
 			final AvailObject object)
 	{
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
@@ -115,7 +115,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectValueType (
+	public AvailObject o_ValueType (
 			final AvailObject object)
 	{
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
@@ -129,7 +129,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	// operations-from tuple type
 
 	@Override
-	public AvailObject ObjectTypeAtIndex (
+	public AvailObject o_TypeAtIndex (
 			final AvailObject object,
 			final int index)
 	{
@@ -141,7 +141,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectUnionOfTypesAtThrough (
+	public AvailObject o_UnionOfTypesAtThrough (
 			final AvailObject object,
 			final int startIndex,
 			final int endIndex)
@@ -154,7 +154,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectDefaultType (
+	public AvailObject o_DefaultType (
 			final AvailObject object)
 	{
 		//  To support the tupleType protocol, I must answer terminates now.
@@ -163,7 +163,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeTuple (
+	public AvailObject o_TypeTuple (
 			final AvailObject object)
 	{
 		//  To support the tupleType protocol, I must answer <> now.
@@ -176,7 +176,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -187,7 +187,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfPrimitiveType (
+	public boolean o_IsSupertypeOfPrimitiveType (
 			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
@@ -198,7 +198,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -210,7 +210,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -222,7 +222,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsCyclicType (
+	public boolean o_IsCyclicType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -233,7 +233,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsIntegerRangeType (
+	public boolean o_IsIntegerRangeType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -243,7 +243,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsListType (
+	public boolean o_IsListType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -254,7 +254,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsMapType (
+	public boolean o_IsMapType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
@@ -265,7 +265,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsTupleType (
+	public boolean o_IsTupleType (
 			final AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered

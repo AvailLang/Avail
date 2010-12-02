@@ -64,7 +64,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field closureType.
 	 */
 	@Override
-	public void ObjectClosureType (
+	public void o_ClosureType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -75,7 +75,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field hash.
 	 */
 	@Override
-	public void ObjectHash (
+	public void o_Hash (
 			final AvailObject object,
 			final int value)
 	{
@@ -86,7 +86,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field hiNumLocalsLowNumArgs.
 	 */
 	@Override
-	public void ObjectHiNumLocalsLowNumArgs (
+	public void o_HiNumLocalsLowNumArgs (
 			final AvailObject object,
 			final int value)
 	{
@@ -97,7 +97,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field hiPrimitiveLowNumArgsAndLocalsAndStack.
 	 */
 	@Override
-	public void ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	public void o_HiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object,
 			final int value)
 	{
@@ -108,7 +108,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field hiStartingChunkIndexLowNumOuters.
 	 */
 	@Override
-	public void ObjectHiStartingChunkIndexLowNumOuters (
+	public void o_HiStartingChunkIndexLowNumOuters (
 			final AvailObject object,
 			final int value)
 	{
@@ -119,7 +119,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field invocationCount.
 	 */
 	@Override
-	public void ObjectInvocationCount (
+	public void o_InvocationCount (
 			final AvailObject object,
 			final int value)
 	{
@@ -127,7 +127,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLiteralAt (
+	public AvailObject o_LiteralAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -135,7 +135,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectLiteralAtPut (
+	public void o_LiteralAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject value)
@@ -147,7 +147,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Setter for field nybbles.
 	 */
 	@Override
-	public void ObjectNybbles (
+	public void o_Nybbles (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -158,7 +158,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field closureType.
 	 */
 	@Override
-	public AvailObject ObjectClosureType (
+	public AvailObject o_ClosureType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
@@ -168,7 +168,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field hash.
 	 */
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH);
@@ -178,7 +178,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field hiNumLocalsLowNumArgs.
 	 */
 	@Override
-	public int ObjectHiNumLocalsLowNumArgs (
+	public int o_HiNumLocalsLowNumArgs (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS);
@@ -188,7 +188,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field hiPrimitiveLowNumArgsAndLocalsAndStack.
 	 */
 	@Override
-	public int ObjectHiPrimitiveLowNumArgsAndLocalsAndStack (
+	public int o_HiPrimitiveLowNumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS);
@@ -198,7 +198,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field hiStartingChunkIndexLowNumOuters.
 	 */
 	@Override
-	public int ObjectHiStartingChunkIndexLowNumOuters (
+	public int o_HiStartingChunkIndexLowNumOuters (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS);
@@ -208,7 +208,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field invocationCount.
 	 */
 	@Override
-	public int ObjectInvocationCount (
+	public int o_InvocationCount (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INVOCATION_COUNT);
@@ -218,7 +218,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * Getter for field nybbles.
 	 */
 	@Override
-	public AvailObject ObjectNybbles (
+	public AvailObject o_Nybbles (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NYBBLES);
@@ -246,7 +246,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -254,7 +254,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsCompiledCode (
+	public boolean o_EqualsCompiledCode (
 			final AvailObject object,
 			final AvailObject aCompiledCode)
 	{
@@ -302,7 +302,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -311,7 +311,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -324,7 +324,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	// operations-closure
 
 	@Override
-	public boolean ObjectContainsBlock (
+	public boolean o_ContainsBlock (
 			final AvailObject object,
 			final AvailObject aClosure)
 	{
@@ -349,7 +349,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	// operations-code
 
 	@Override
-	public void ObjectArgsLocalsStackOutersPrimitive (
+	public void o_ArgsLocalsStackOutersPrimitive (
 			final AvailObject object,
 			final int args,
 			final int locals,
@@ -371,7 +371,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLocalTypeAt (
+	public AvailObject o_LocalTypeAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -380,7 +380,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectOuterTypeAt (
+	public AvailObject o_OuterTypeAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -389,7 +389,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectOuterTypesLocalTypes (
+	public void o_OuterTypesLocalTypes (
 			final AvailObject object,
 			final AvailObject tupleOfOuterTypes,
 			final AvailObject tupleOfLocalContainerTypes)
@@ -424,7 +424,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectStartingChunkIndex (
+	public void o_StartingChunkIndex (
 			final AvailObject object,
 			final int value)
 	{
@@ -433,21 +433,21 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public short ObjectMaxStackDepth (
+	public short o_MaxStackDepth (
 			final AvailObject object)
 	{
 		return (short)(object.numArgsAndLocalsAndStack() - object.numArgs() - object.numLocals());
 	}
 
 	@Override
-	public short ObjectNumArgs (
+	public short o_NumArgs (
 			final AvailObject object)
 	{
 		return (short)(object.hiNumLocalsLowNumArgs() & 0xFFFF);
 	}
 
 	@Override
-	public short ObjectNumArgsAndLocalsAndStack (
+	public short o_NumArgsAndLocalsAndStack (
 			final AvailObject object)
 	{
 		//  Answer the number of args + locals + stack slots to reserve in my continuations.
@@ -456,7 +456,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public short ObjectNumLiterals (
+	public short o_NumLiterals (
 			final AvailObject object)
 	{
 		//  Answer how many literals I have.
@@ -465,21 +465,21 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public short ObjectNumLocals (
+	public short o_NumLocals (
 			final AvailObject object)
 	{
 		return (short)(object.hiNumLocalsLowNumArgs() >>> 16);
 	}
 
 	@Override
-	public short ObjectNumOuters (
+	public short o_NumOuters (
 			final AvailObject object)
 	{
 		return (short)(object.hiStartingChunkIndexLowNumOuters() & 0xFFFF);
 	}
 
 	@Override
-	public short ObjectPrimitiveNumber (
+	public short o_PrimitiveNumber (
 			final AvailObject object)
 	{
 		//  Answer the primitive number I should try before falling back on
@@ -489,7 +489,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectStartingChunkIndex (
+	public int o_StartingChunkIndex (
 			final AvailObject object)
 	{
 		return (object.hiStartingChunkIndexLowNumOuters() >>> 16);
@@ -500,7 +500,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	// operations-faulting
 
 	@Override
-	public void ObjectPostFault (
+	public void o_PostFault (
 			final AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.

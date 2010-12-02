@@ -46,7 +46,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	// accessing
 
 	@Override
-	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
@@ -59,7 +59,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsValidForArgumentTypesInterpreter (
+	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
@@ -71,7 +71,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectBodySignature (
+	public AvailObject o_BodySignature (
 			final AvailObject object)
 	{
 		//  Answer a closureType whose argument types reflect the position in the
@@ -79,7 +79,7 @@ public abstract class SignatureDescriptor extends Descriptor
 		//  return type is the return type promised when invoking this method with
 		//  matching arguments.
 
-		error("Subclass responsibility: ObjectBodySignature: in Avail.SignatureDescriptor", object);
+		error("Subclass responsibility: o_BodySignature: in Avail.SignatureDescriptor", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -88,7 +88,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -98,24 +98,24 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
 		//  should designate their own types.
 
-		error("Subclass responsibility: ObjectExactType: in Avail.SignatureDescriptor", object);
+		error("Subclass responsibility: o_ExactType: in Avail.SignatureDescriptor", object);
 		return VoidDescriptor.voidObject();
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
 		//  should designate their own types.
 
-		error("Subclass responsibility: ObjectType: in Avail.SignatureDescriptor", object);
+		error("Subclass responsibility: o_Type: in Avail.SignatureDescriptor", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -124,21 +124,21 @@ public abstract class SignatureDescriptor extends Descriptor
 	// testing
 
 	@Override
-	public boolean ObjectIsAbstract (
+	public boolean o_IsAbstract (
 			final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean ObjectIsForward (
+	public boolean o_IsForward (
 			final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean ObjectIsImplementation (
+	public boolean o_IsImplementation (
 			final AvailObject object)
 	{
 		return false;
@@ -149,7 +149,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	// validation
 
 	@Override
-	public void ObjectEnsureMetacovariant (
+	public void o_EnsureMetacovariant (
 			final AvailObject object)
 	{
 		//  Make sure my requires clauses and returns clauses are expecting the

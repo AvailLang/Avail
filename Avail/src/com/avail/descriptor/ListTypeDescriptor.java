@@ -52,7 +52,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	 * Setter for field tupleType.
 	 */
 	@Override
-	public void ObjectTupleType (
+	public void o_TupleType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -63,7 +63,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	 * Getter for field tupleType.
 	 */
 	@Override
-	public AvailObject ObjectTupleType (
+	public AvailObject o_TupleType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TUPLE_TYPE);
@@ -93,7 +93,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -101,7 +101,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsListType (
+	public boolean o_EqualsListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -114,7 +114,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -123,7 +123,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -132,7 +132,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -144,7 +144,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -157,7 +157,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -167,7 +167,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfListType (
+	public boolean o_IsSupertypeOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -177,7 +177,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -195,7 +195,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfListType (
+	public AvailObject o_TypeIntersectionOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -205,7 +205,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -223,7 +223,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfListType (
+	public AvailObject o_TypeUnionOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -233,7 +233,7 @@ public class ListTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsListType (
+	public boolean o_IsListType (
 			final AvailObject object)
 	{
 		return true;

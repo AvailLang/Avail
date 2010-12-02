@@ -55,7 +55,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	 * Setter for field contentType.
 	 */
 	@Override
-	public void ObjectContentType (
+	public void o_ContentType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -66,7 +66,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	 * Setter for field sizeRange.
 	 */
 	@Override
-	public void ObjectSizeRange (
+	public void o_SizeRange (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -77,7 +77,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	 * Getter for field contentType.
 	 */
 	@Override
-	public AvailObject ObjectContentType (
+	public AvailObject o_ContentType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTENT_TYPE);
@@ -87,7 +87,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	 * Getter for field sizeRange.
 	 */
 	@Override
-	public AvailObject ObjectSizeRange (
+	public AvailObject o_SizeRange (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
@@ -125,7 +125,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -133,7 +133,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsSetType (
+	public boolean o_EqualsSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -147,7 +147,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -156,7 +156,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -166,7 +166,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -186,7 +186,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -199,7 +199,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -209,7 +209,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfSetType (
+	public boolean o_IsSupertypeOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -220,7 +220,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -238,7 +238,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfSetType (
+	public AvailObject o_TypeIntersectionOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -248,7 +248,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -270,7 +270,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfSetType (
+	public AvailObject o_TypeUnionOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -280,7 +280,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSetType (
+	public boolean o_IsSetType (
 			final AvailObject object)
 	{
 		return true;

@@ -50,7 +50,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	// As yet unclassified
 
 	@Override
-	public boolean ObjectHasObjectInstance (
+	public boolean o_HasObjectInstance (
 			final AvailObject object,
 			final AvailObject potentialInstance)
 	{
@@ -93,7 +93,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	 * Setter for field fieldTypeMap.
 	 */
 	@Override
-	public void ObjectFieldTypeMap (
+	public void o_FieldTypeMap (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -104,7 +104,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	 * Getter for field fieldTypeMap.
 	 */
 	@Override
-	public AvailObject ObjectFieldTypeMap (
+	public AvailObject o_FieldTypeMap (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FIELD_TYPE_MAP);
@@ -115,7 +115,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer this object type's type.
@@ -125,7 +125,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Use the hash of the map (of field keys and field types), multiplied by 11.
@@ -134,7 +134,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -146,7 +146,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer this object type's type.
@@ -160,7 +160,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -170,7 +170,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectType (
+	public boolean o_IsSupertypeOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
@@ -206,7 +206,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -224,7 +224,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfObjectType (
+	public AvailObject o_TypeIntersectionOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
@@ -275,7 +275,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -293,7 +293,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfObjectType (
+	public AvailObject o_TypeUnionOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{

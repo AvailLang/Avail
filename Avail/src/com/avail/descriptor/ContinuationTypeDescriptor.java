@@ -53,7 +53,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	 * Setter for field closureType.
 	 */
 	@Override
-	public void ObjectClosureType (
+	public void o_ClosureType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -64,7 +64,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	 * Getter for field closureType.
 	 */
 	@Override
-	public AvailObject ObjectClosureType (
+	public AvailObject o_ClosureType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
@@ -93,7 +93,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -101,7 +101,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsContinuationType (
+	public boolean o_EqualsContinuationType (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -115,7 +115,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -124,7 +124,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -133,7 +133,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -145,7 +145,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -158,7 +158,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -168,7 +168,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfContinuationType (
+	public boolean o_IsSupertypeOfContinuationType (
 			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
@@ -199,7 +199,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -217,7 +217,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfContinuationType (
+	public AvailObject o_TypeIntersectionOfContinuationType (
 			final AvailObject object,
 			final AvailObject aContinuationType)
 	{
@@ -246,7 +246,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -264,7 +264,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfContinuationType (
+	public AvailObject o_TypeUnionOfContinuationType (
 			final AvailObject object,
 			final AvailObject aContinuationType)
 	{

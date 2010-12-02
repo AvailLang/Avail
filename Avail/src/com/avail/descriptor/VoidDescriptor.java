@@ -81,7 +81,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -90,7 +90,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public boolean ObjectEqualsVoid (final @NotNull AvailObject object)
+	public boolean o_EqualsVoid (final @NotNull AvailObject object)
 	{
 		//  There is only one void.
 		return true;
@@ -98,7 +98,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public boolean ObjectEqualsVoidOrBlank (final @NotNull AvailObject object)
+	public boolean o_EqualsVoidOrBlank (final @NotNull AvailObject object)
 	{
 		// There is only one void.
 		return true;
@@ -106,7 +106,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject ObjectExactType (
+	public @NotNull AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
 		return Types.voidType.object();
@@ -114,7 +114,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public int ObjectHash (final @NotNull AvailObject object)
+	public int o_Hash (final @NotNull AvailObject object)
 	{
 		// The void object should hash to zero, because the only place it can
 		// appear in a data structure is as a filler object.  This currently
@@ -125,13 +125,13 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject ObjectType (final @NotNull AvailObject object)
+	public @NotNull AvailObject o_Type (final @NotNull AvailObject object)
 	{
 		return Types.voidType.object();
 	}
 
 	@Override
-	public @NotNull AvailObject ObjectBinAddingElementHashLevelCanDestroy (
+	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -151,7 +151,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public boolean ObjectIsBinSubsetOf (
+	public boolean o_IsBinSubsetOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialSuperset)
 	{
@@ -163,7 +163,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject ObjectBinRemoveElementHashCanDestroy (
+	public @NotNull AvailObject o_BinRemoveElementHashCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -176,7 +176,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public int ObjectPopulateTupleStartingAt (
+	public int o_PopulateTupleStartingAt (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject mutableTuple,
 		final int startingIndex)
@@ -188,7 +188,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public int ObjectBinHash (final @NotNull AvailObject object)
+	public int o_BinHash (final @NotNull AvailObject object)
 	{
 		// The void object acting as a size-zero bin has a bin hash which is the
 		// sum of the elements' hashes, which in this case is zero.
@@ -197,7 +197,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public int ObjectBinSize (final @NotNull AvailObject object)
+	public int o_BinSize (final @NotNull AvailObject object)
 	{
 		// The void object acts as an empty bin.
 		return 0;
@@ -205,7 +205,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject ObjectBinUnionType (final @NotNull AvailObject object)
+	public @NotNull AvailObject o_BinUnionType (final @NotNull AvailObject object)
 	{
 		// The void object acts as an empty bin.
 		return Types.terminates.object();

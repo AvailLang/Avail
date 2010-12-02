@@ -42,7 +42,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -50,7 +50,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsTrue (
+	public boolean o_EqualsTrue (
 			final AvailObject object)
 	{
 		//  Answer true if this is the Avail true object, which it is.
@@ -59,7 +59,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -68,7 +68,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -78,7 +78,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -91,7 +91,7 @@ public class TrueDescriptor extends BooleanDescriptor
 	// operations-booleans
 
 	@Override
-	public boolean ObjectExtractBoolean (
+	public boolean o_ExtractBoolean (
 			final AvailObject object)
 	{
 		//  Extract a Smalltalk Boolean from object.

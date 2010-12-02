@@ -51,7 +51,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	 * Setter for field innerType.
 	 */
 	@Override
-	public void ObjectInnerType (
+	public void o_InnerType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -62,7 +62,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	 * Getter for field innerType.
 	 */
 	@Override
-	public AvailObject ObjectInnerType (
+	public AvailObject o_InnerType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_TYPE);
@@ -91,7 +91,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -99,7 +99,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsContainerType (
+	public boolean o_EqualsContainerType (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -113,7 +113,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -122,7 +122,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -131,7 +131,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -143,7 +143,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -156,7 +156,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -166,7 +166,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfContainerType (
+	public boolean o_IsSupertypeOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -177,7 +177,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -195,7 +195,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfContainerType (
+	public AvailObject o_TypeIntersectionOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -209,7 +209,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -227,7 +227,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfContainerType (
+	public AvailObject o_TypeUnionOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{

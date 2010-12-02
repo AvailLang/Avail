@@ -52,7 +52,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	// GENERATED accessors
 
 	@Override
-	public int ObjectRawSignedIntegerAt (
+	public int o_RawSignedIntegerAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -64,7 +64,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public void ObjectRawSignedIntegerAtPut (
+	public void o_RawSignedIntegerAtPut (
 		final AvailObject object,
 		final int subscript,
 		final int value)
@@ -120,7 +120,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -128,7 +128,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsInteger (
+	public boolean o_EqualsInteger (
 		final AvailObject object,
 		final AvailObject anAvailInteger)
 	{
@@ -149,7 +149,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectGreaterThanInteger (
+	public boolean o_GreaterThanInteger (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -217,7 +217,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectGreaterThanSignedInfinity (
+	public boolean o_GreaterThanSignedInfinity (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -225,7 +225,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfSubtypeOf (
 		final AvailObject object,
 		final AvailObject aType)
 	{
@@ -271,7 +271,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectLessThan (
+	public boolean o_LessThan (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -279,12 +279,12 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectTypeEquals (
+	public boolean o_TypeEquals (
 		final AvailObject object,
 		final AvailObject aType)
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
-		//  Since my implementation of ObjectCanComputeHashOfType: answers
+		//  Since my implementation of o_CanComputeHashOfType: answers
 		//  true, I'm not allowed to allocate objects to figure this out.
 
 		if (!aType.isIntegerRangeType())
@@ -312,7 +312,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectCanComputeHashOfType (
+	public boolean o_CanComputeHashOfType (
 		final AvailObject object)
 	{
 		//  Answer whether object supports the #hashOfType protocol.
@@ -321,7 +321,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -331,7 +331,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 		final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -344,7 +344,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public int ObjectHashOfType (
+	public int o_HashOfType (
 		final AvailObject object)
 	{
 		//  Answer my type's hash value (without creating any objects).
@@ -358,14 +358,14 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsFinite (
+	public boolean o_IsFinite (
 		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -378,7 +378,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	// operations-numbers
 
 	@Override
-	public AvailObject ObjectDivideCanDestroy (
+	public AvailObject o_DivideCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -389,7 +389,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectMinusCanDestroy (
+	public AvailObject o_MinusCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -400,7 +400,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectPlusCanDestroy (
+	public AvailObject o_PlusCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -411,7 +411,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTimesCanDestroy (
+	public AvailObject o_TimesCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -422,7 +422,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public short ObjectExtractByte (
+	public short o_ExtractByte (
 		final AvailObject object)
 	{
 		assert (object.integerSlotsCount() == 1);
@@ -432,7 +432,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public int ObjectExtractInt (
+	public int o_ExtractInt (
 		final AvailObject object)
 	{
 		assert (object.integerSlotsCount() == 1) : "Integer value out of bounds";
@@ -443,7 +443,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	public long ObjectExtractLong (final @NotNull AvailObject object)
+	public long o_ExtractLong (final @NotNull AvailObject object)
 	{
 		assert
 			(object.integerSlotsCount() >= 1 && object.integerSlotsCount() <= 2)
@@ -460,7 +460,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public byte ObjectExtractNybble (
+	public byte o_ExtractNybble (
 		final AvailObject object)
 	{
 		assert (object.integerSlotsCount() == 1);
@@ -470,7 +470,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsByte (
+	public boolean o_IsByte (
 		final AvailObject object)
 	{
 		if ((object.integerSlotsCount() > 1))
@@ -482,7 +482,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsNybble (
+	public boolean o_IsNybble (
 		final AvailObject object)
 	{
 		if ((object.integerSlotsCount() > 1))
@@ -503,7 +503,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	 * least significant quad comes first).
 	 */
 	@Override
-	public long ObjectRawUnsignedIntegerAt (
+	public long o_RawUnsignedIntegerAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -519,7 +519,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	 * least significant quad comes first).
 	 */
 	@Override
-	public void ObjectRawUnsignedIntegerAtPut (
+	public void o_RawUnsignedIntegerAtPut (
 		final AvailObject object,
 		final int subscript,
 		final int value)
@@ -531,7 +531,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public void ObjectTrimExcessLongs (
+	public void o_TrimExcessLongs (
 		final AvailObject object)
 	{
 		//  Remove any redundant longs from my end.  Since I'm stored in little endian order, just
@@ -563,7 +563,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	// private-arithmetic
 
 	@Override
-	public AvailObject ObjectAddToInfinityCanDestroy (
+	public AvailObject o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -572,7 +572,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectAddToIntegerCanDestroy (
+	public AvailObject o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -671,7 +671,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectDivideIntoInfinityCanDestroy (
+	public AvailObject o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -685,7 +685,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectDivideIntoIntegerCanDestroy (
+	public AvailObject o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -845,7 +845,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectMultiplyByInfinityCanDestroy (
+	public AvailObject o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -859,7 +859,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectMultiplyByIntegerCanDestroy (
+	public AvailObject o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -955,7 +955,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectSubtractFromInfinityCanDestroy (
+	public AvailObject o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -964,7 +964,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectSubtractFromIntegerCanDestroy (
+	public AvailObject o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)

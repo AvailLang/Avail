@@ -65,7 +65,7 @@ public class BlankDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -73,7 +73,7 @@ public class BlankDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsBlank (
+	public boolean o_EqualsBlank (
 			final AvailObject object)
 	{
 		//  There is only one blank.
@@ -82,14 +82,14 @@ public class BlankDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsVoidOrBlank (
+	public boolean o_EqualsVoidOrBlank (
 			final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -99,7 +99,7 @@ public class BlankDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash.  The blank object should hash to zero, because the
@@ -110,7 +110,7 @@ public class BlankDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

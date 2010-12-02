@@ -42,7 +42,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -50,7 +50,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -59,7 +59,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		// Answer a 32-bit hash value.  This should never be used as a key, but
@@ -70,7 +70,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

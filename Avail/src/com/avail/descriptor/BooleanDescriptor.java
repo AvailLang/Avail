@@ -60,12 +60,12 @@ public abstract class BooleanDescriptor extends Descriptor
 
 
 	@Override
-	public abstract boolean ObjectExtractBoolean (
+	public abstract boolean o_ExtractBoolean (
 			final AvailObject object);
 
 	
 	@Override
-	public boolean ObjectIsBoolean (
+	public boolean o_IsBoolean (
 			final AvailObject object)
 	{
 		return true;

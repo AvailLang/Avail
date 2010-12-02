@@ -54,7 +54,7 @@ public class ObjectDescriptor extends Descriptor
 	 * Setter for field fieldMap.
 	 */
 	@Override
-	public void ObjectFieldMap (
+	public void o_FieldMap (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -65,7 +65,7 @@ public class ObjectDescriptor extends Descriptor
 	 * Getter for field fieldMap.
 	 */
 	@Override
-	public AvailObject ObjectFieldMap (
+	public AvailObject o_FieldMap (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FIELD_MAP);
@@ -76,7 +76,7 @@ public class ObjectDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -84,7 +84,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsObject (
+	public boolean o_EqualsObject (
 			final AvailObject object,
 			final AvailObject anObject)
 	{
@@ -96,7 +96,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfSubtypeOf (
 			final AvailObject object,
 			final AvailObject aTypeObject)
 	{
@@ -116,7 +116,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -144,7 +144,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.
@@ -153,7 +153,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -165,7 +165,7 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.

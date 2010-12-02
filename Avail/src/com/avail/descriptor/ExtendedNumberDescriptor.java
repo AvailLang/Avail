@@ -39,7 +39,7 @@ public abstract class ExtendedNumberDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectLessOrEqual (
+	public boolean o_LessOrEqual (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -47,7 +47,7 @@ public abstract class ExtendedNumberDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsExtendedInteger (
+	public boolean o_IsExtendedInteger (
 			final AvailObject object)
 	{
 		return true;

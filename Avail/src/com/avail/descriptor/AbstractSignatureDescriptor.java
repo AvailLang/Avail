@@ -59,7 +59,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	// accessing
 
 	@Override
-	public void ObjectBodySignatureRequiresBlockReturnsBlock (
+	public void o_BodySignatureRequiresBlockReturnsBlock (
 			final AvailObject object,
 			final AvailObject bs,
 			final AvailObject rqb,
@@ -72,7 +72,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
@@ -89,7 +89,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsValidForArgumentTypesInterpreter (
+	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
@@ -103,7 +103,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectBodySignature (
+	public AvailObject o_BodySignature (
 			final AvailObject object)
 	{
 		return object.signature();
@@ -117,7 +117,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * Setter for field requiresBlock.
 	 */
 	@Override
-	public void ObjectRequiresBlock (
+	public void o_RequiresBlock (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -128,7 +128,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * Setter for field returnsBlock.
 	 */
 	@Override
-	public void ObjectReturnsBlock (
+	public void o_ReturnsBlock (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -139,7 +139,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * Setter for field signature.
 	 */
 	@Override
-	public void ObjectSignature (
+	public void o_Signature (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -150,7 +150,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * Getter for field requiresBlock.
 	 */
 	@Override
-	public AvailObject ObjectRequiresBlock (
+	public AvailObject o_RequiresBlock (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.REQUIRES_BLOCK);
@@ -160,7 +160,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * Getter for field returnsBlock.
 	 */
 	@Override
-	public AvailObject ObjectReturnsBlock (
+	public AvailObject o_ReturnsBlock (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURNS_BLOCK);
@@ -170,7 +170,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * Getter for field signature.
 	 */
 	@Override
-	public AvailObject ObjectSignature (
+	public AvailObject o_Signature (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIGNATURE);
@@ -181,7 +181,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	// operations
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -190,7 +190,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -200,7 +200,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -213,7 +213,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	// testing
 
 	@Override
-	public boolean ObjectIsAbstract (
+	public boolean o_IsAbstract (
 			final AvailObject object)
 	{
 		return true;

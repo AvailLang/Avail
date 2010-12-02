@@ -61,7 +61,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 * Setter for field inclusiveFlags.
 	 */
 	@Override
-	public void ObjectInclusiveFlags (
+	public void o_InclusiveFlags (
 			final AvailObject object,
 			final int value)
 	{
@@ -72,7 +72,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 * Setter for field lowerBound.
 	 */
 	@Override
-	public void ObjectLowerBound (
+	public void o_LowerBound (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -83,7 +83,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 * Setter for field upperBound.
 	 */
 	@Override
-	public void ObjectUpperBound (
+	public void o_UpperBound (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -94,7 +94,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 * Getter for field inclusiveFlags.
 	 */
 	@Override
-	public int ObjectInclusiveFlags (
+	public int o_InclusiveFlags (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INCLUSIVE_FLAGS);
@@ -104,7 +104,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 * Getter for field lowerBound.
 	 */
 	@Override
-	public AvailObject ObjectLowerBound (
+	public AvailObject o_LowerBound (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LOWER_BOUND);
@@ -114,7 +114,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	 * Getter for field upperBound.
 	 */
 	@Override
-	public AvailObject ObjectUpperBound (
+	public AvailObject o_UpperBound (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.UPPER_BOUND);
@@ -143,7 +143,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -151,7 +151,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsIntegerRangeType (
+	public boolean o_EqualsIntegerRangeType (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -177,7 +177,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -186,7 +186,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer the object's hash value.  Be careful, as the range (10..20) is the same type
@@ -204,7 +204,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -217,7 +217,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	// operations-integer range
 
 	@Override
-	public void ObjectLowerInclusiveUpperInclusive (
+	public void o_LowerInclusiveUpperInclusive (
 			final AvailObject object,
 			final boolean lowInc,
 			final boolean highInc)
@@ -228,14 +228,14 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectLowerInclusive (
+	public boolean o_LowerInclusive (
 			final AvailObject object)
 	{
 		return ((object.inclusiveFlags() & 1) == 1);
 	}
 
 	@Override
-	public boolean ObjectUpperInclusive (
+	public boolean o_UpperInclusive (
 			final AvailObject object)
 	{
 		return ((object.inclusiveFlags() & 256) == 256);
@@ -246,7 +246,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -256,7 +256,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfIntegerRangeType (
+	public boolean o_IsSupertypeOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject possibleSub)
 	{
@@ -292,7 +292,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -310,7 +310,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	public AvailObject o_TypeIntersectionOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -349,7 +349,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -367,7 +367,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfIntegerRangeType (
+	public AvailObject o_TypeUnionOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -403,7 +403,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsIntegerRangeType (
+	public boolean o_IsIntegerRangeType (
 			final AvailObject object)
 	{
 		return true;

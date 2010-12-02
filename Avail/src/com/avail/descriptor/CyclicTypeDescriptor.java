@@ -55,7 +55,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 * Setter for field hashOrZero.
 	 */
 	@Override
-	public void ObjectHashOrZero (
+	public void o_HashOrZero (
 			final AvailObject object,
 			final int value)
 	{
@@ -66,7 +66,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 * Setter for field name.
 	 */
 	@Override
-	public void ObjectName (
+	public void o_Name (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -77,7 +77,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 * Getter for field hashOrZero.
 	 */
 	@Override
-	public int ObjectHashOrZero (
+	public int o_HashOrZero (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -87,7 +87,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 * Getter for field name.
 	 */
 	@Override
-	public AvailObject ObjectName (
+	public AvailObject o_Name (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
@@ -136,7 +136,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  The neat thing about cyclic types is that they're their own types.  The
@@ -147,7 +147,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -162,7 +162,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  The neat thing about cyclic types is that they're their own types.  The
@@ -177,7 +177,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -187,7 +187,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfCyclicType (
+	public boolean o_IsSupertypeOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -200,7 +200,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -218,7 +218,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfCyclicType (
+	public AvailObject o_TypeIntersectionOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -232,7 +232,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfMeta (
+	public AvailObject o_TypeIntersectionOfMeta (
 			final AvailObject object,
 			final AvailObject someMeta)
 	{
@@ -246,7 +246,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -264,7 +264,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfCyclicType (
+	public AvailObject o_TypeUnionOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -278,7 +278,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsCyclicType (
+	public boolean o_IsCyclicType (
 			final AvailObject object)
 	{
 		return true;

@@ -65,7 +65,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field breakpointBlock.
 	 */
 	@Override
-	public void ObjectBreakpointBlock (
+	public void o_BreakpointBlock (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -76,7 +76,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field continuation.
 	 */
 	@Override
-	public void ObjectContinuation (
+	public void o_Continuation (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -87,7 +87,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field executionMode.
 	 */
 	@Override
-	public void ObjectExecutionMode (
+	public void o_ExecutionMode (
 			final AvailObject object,
 			final int value)
 	{
@@ -98,7 +98,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field executionState.
 	 */
 	@Override
-	public void ObjectExecutionState (
+	public void o_ExecutionState (
 			final AvailObject object,
 			final int value)
 	{
@@ -109,7 +109,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field hashOrZero.
 	 */
 	@Override
-	public void ObjectHashOrZero (
+	public void o_HashOrZero (
 			final AvailObject object,
 			final int value)
 	{
@@ -120,7 +120,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field interruptRequestFlag.
 	 */
 	@Override
-	public void ObjectInterruptRequestFlag (
+	public void o_InterruptRequestFlag (
 			final AvailObject object,
 			final int value)
 	{
@@ -131,7 +131,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field priority.
 	 */
 	@Override
-	public void ObjectPriority (
+	public void o_Priority (
 			final AvailObject object,
 			final int value)
 	{
@@ -142,7 +142,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Setter for field processGlobals.
 	 */
 	@Override
-	public void ObjectProcessGlobals (
+	public void o_ProcessGlobals (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -153,7 +153,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field breakpointBlock.
 	 */
 	@Override
-	public AvailObject ObjectBreakpointBlock (
+	public AvailObject o_BreakpointBlock (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BREAKPOINT_BLOCK);
@@ -163,7 +163,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field continuation.
 	 */
 	@Override
-	public AvailObject ObjectContinuation (
+	public AvailObject o_Continuation (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTINUATION);
@@ -173,7 +173,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field executionMode.
 	 */
 	@Override
-	public int ObjectExecutionMode (
+	public int o_ExecutionMode (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.EXECUTION_MODE);
@@ -183,7 +183,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field executionState.
 	 */
 	@Override
-	public int ObjectExecutionState (
+	public int o_ExecutionState (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.EXECUTION_STATE);
@@ -193,7 +193,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field hashOrZero.
 	 */
 	@Override
-	public int ObjectHashOrZero (
+	public int o_HashOrZero (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -203,7 +203,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field interruptRequestFlag.
 	 */
 	@Override
-	public int ObjectInterruptRequestFlag (
+	public int o_InterruptRequestFlag (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
@@ -213,7 +213,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field priority.
 	 */
 	@Override
-	public int ObjectPriority (
+	public int o_Priority (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PRIORITY);
@@ -223,7 +223,7 @@ public class ProcessDescriptor extends Descriptor
 	 * Getter for field processGlobals.
 	 */
 	@Override
-	public AvailObject ObjectProcessGlobals (
+	public AvailObject o_ProcessGlobals (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PROCESS_GLOBALS);
@@ -275,7 +275,7 @@ public class ProcessDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -285,7 +285,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -294,7 +294,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -309,7 +309,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectMakeImmutable (
+	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
@@ -322,7 +322,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -339,7 +339,7 @@ public class ProcessDescriptor extends Descriptor
 	 */
 
 	@Override
-	public int ObjectGetInteger (
+	public int o_GetInteger (
 			final AvailObject object)
 	{
 		AvailObject contObject = object.continuation();
@@ -401,7 +401,7 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectStep (
+	public void o_Step (
 			final AvailObject object)
 	{
 		//  Execute one step of the process.

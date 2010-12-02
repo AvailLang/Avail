@@ -57,7 +57,7 @@ public class ModuleDescriptor extends Descriptor
 	// accessing
 
 	@Override
-	public void ObjectAtAddMessageRestrictions (
+	public void o_AtAddMessageRestrictions (
 		final AvailObject object,
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
@@ -70,7 +70,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectAtAddMethodImplementation (
+	public void o_AtAddMethodImplementation (
 		final AvailObject object,
 		final AvailObject methodName,
 		final AvailObject implementation)
@@ -92,7 +92,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectAtNameAdd (
+	public void o_AtNameAdd (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -117,7 +117,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectAtNewNamePut (
+	public void o_AtNewNamePut (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -137,7 +137,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectAtPrivateNameAdd (
+	public void o_AtPrivateNameAdd (
 		final AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
@@ -162,7 +162,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectNameVisible (
+	public boolean o_NameVisible (
 		final AvailObject object,
 		final AvailObject trueName)
 	{
@@ -172,7 +172,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectResolvedForwardWithName (
+	public void o_ResolvedForwardWithName (
 		final AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
@@ -194,7 +194,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectTrueNamesForStringName (
+	public AvailObject o_TrueNamesForStringName (
 		final AvailObject object,
 		final AvailObject stringName)
 	{
@@ -234,7 +234,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field constantBindings.
 	 */
 	@Override
-	public void ObjectConstantBindings (
+	public void o_ConstantBindings (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -245,7 +245,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field filteredBundleTree.
 	 */
 	@Override
-	public void ObjectFilteredBundleTree (
+	public void o_FilteredBundleTree (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -256,7 +256,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field methods.
 	 */
 	@Override
-	public void ObjectMethods (
+	public void o_Methods (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -267,7 +267,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field name.
 	 */
 	@Override
-	public void ObjectName (
+	public void o_Name (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -278,7 +278,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field names.
 	 */
 	@Override
-	public void ObjectNames (
+	public void o_Names (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -289,7 +289,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field newNames.
 	 */
 	@Override
-	public void ObjectNewNames (
+	public void o_NewNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -300,7 +300,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field privateNames.
 	 */
 	@Override
-	public void ObjectPrivateNames (
+	public void o_PrivateNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -311,7 +311,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field restrictions.
 	 */
 	@Override
-	public void ObjectRestrictions (
+	public void o_Restrictions (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -322,7 +322,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field variableBindings.
 	 */
 	@Override
-	public void ObjectVariableBindings (
+	public void o_VariableBindings (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -333,7 +333,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Setter for field visibleNames.
 	 */
 	@Override
-	public void ObjectVisibleNames (
+	public void o_VisibleNames (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -344,7 +344,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field constantBindings.
 	 */
 	@Override
-	public AvailObject ObjectConstantBindings (
+	public AvailObject o_ConstantBindings (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONSTANT_BINDINGS);
@@ -354,7 +354,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field filteredBundleTree.
 	 */
 	@Override
-	public AvailObject ObjectFilteredBundleTree (
+	public AvailObject o_FilteredBundleTree (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FILTERED_BUNDLE_TREE);
@@ -364,7 +364,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field methods.
 	 */
 	@Override
-	public AvailObject ObjectMethods (
+	public AvailObject o_Methods (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.METHODS);
@@ -374,7 +374,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field name.
 	 */
 	@Override
-	public AvailObject ObjectName (
+	public AvailObject o_Name (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
@@ -384,7 +384,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field names.
 	 */
 	@Override
-	public AvailObject ObjectNames (
+	public AvailObject o_Names (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAMES);
@@ -394,7 +394,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field newNames.
 	 */
 	@Override
-	public AvailObject ObjectNewNames (
+	public AvailObject o_NewNames (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NEW_NAMES);
@@ -404,7 +404,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field privateNames.
 	 */
 	@Override
-	public AvailObject ObjectPrivateNames (
+	public AvailObject o_PrivateNames (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PRIVATE_NAMES);
@@ -414,7 +414,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field restrictions.
 	 */
 	@Override
-	public AvailObject ObjectRestrictions (
+	public AvailObject o_Restrictions (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RESTRICTIONS);
@@ -424,7 +424,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field variableBindings.
 	 */
 	@Override
-	public AvailObject ObjectVariableBindings (
+	public AvailObject o_VariableBindings (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE_BINDINGS);
@@ -434,7 +434,7 @@ public class ModuleDescriptor extends Descriptor
 	 * Getter for field visibleNames.
 	 */
 	@Override
-	public AvailObject ObjectVisibleNames (
+	public AvailObject o_VisibleNames (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VISIBLE_NAMES);
@@ -490,7 +490,7 @@ public class ModuleDescriptor extends Descriptor
 	// initialization
 
 	@Override
-	public void ObjectBuildFilteredBundleTreeFrom (
+	public void o_BuildFilteredBundleTreeFrom (
 		final AvailObject object,
 		final AvailObject bundleTree)
 	{
@@ -502,7 +502,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectCleanUpAfterCompile (
+	public void o_CleanUpAfterCompile (
 		final AvailObject object)
 	{
 		object.variableBindings(VoidDescriptor.voidObject());
@@ -511,7 +511,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectClearModule (
+	public void o_ClearModule (
 		final AvailObject object)
 	{
 		object.newNames(MapDescriptor.empty());
@@ -530,7 +530,7 @@ public class ModuleDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -540,7 +540,7 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 		final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -553,7 +553,7 @@ public class ModuleDescriptor extends Descriptor
 	// removing
 
 	@Override
-	public void ObjectRemoveFrom (
+	public void o_RemoveFrom (
 		final @NotNull AvailObject object,
 		final @NotNull AvailInterpreter anInterpreter)
 	{

@@ -57,7 +57,7 @@ public class ClosureDescriptor extends Descriptor
 	 * Setter for field code.
 	 */
 	@Override
-	public void ObjectCode (
+	public void o_Code (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -65,7 +65,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectOuterVarAt (
+	public AvailObject o_OuterVarAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -75,7 +75,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectOuterVarAtPut (
+	public void o_OuterVarAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject value)
@@ -89,7 +89,7 @@ public class ClosureDescriptor extends Descriptor
 	 * Getter for field code.
 	 */
 	@Override
-	public AvailObject ObjectCode (
+	public AvailObject o_Code (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CODE);
@@ -122,7 +122,7 @@ public class ClosureDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -130,7 +130,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsClosure (
+	public boolean o_EqualsClosure (
 			final AvailObject object,
 			final AvailObject aClosure)
 	{
@@ -158,7 +158,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Simply asks the compiled code for the closureType.
@@ -167,7 +167,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.  If outer vars of mutable
@@ -185,7 +185,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIsClosure (
+	public boolean o_IsClosure (
 			final AvailObject object)
 	{
 		return true;
@@ -198,7 +198,7 @@ public class ClosureDescriptor extends Descriptor
 	 * hash values to find objects that likely can be coalesced together.
 	 */
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		if (!object.code().isHashAvailable())
@@ -220,7 +220,7 @@ public class ClosureDescriptor extends Descriptor
 	 * closureType.
 	 */
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		return object.code().closureType();
@@ -231,7 +231,7 @@ public class ClosureDescriptor extends Descriptor
 	// operations-closure
 
 	@Override
-	public boolean ObjectContainsBlock (
+	public boolean o_ContainsBlock (
 			final AvailObject object,
 			final AvailObject aClosure)
 	{
@@ -245,7 +245,7 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectOptionallyNilOuterVar (
+	public boolean o_OptionallyNilOuterVar (
 			final AvailObject object,
 			final int index)
 	{
@@ -268,7 +268,7 @@ public class ClosureDescriptor extends Descriptor
 	 * Answer how many outer vars I've copied.
 	 */
 	@Override
-	public int ObjectNumOuterVars (
+	public int o_NumOuterVars (
 			final AvailObject object)
 	{
 		return object.objectSlotsCount() - numberOfFixedObjectSlots();

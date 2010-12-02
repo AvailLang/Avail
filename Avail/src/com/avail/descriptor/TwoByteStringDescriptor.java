@@ -56,7 +56,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 
 	@Override
-	public int ObjectRawQuadAt (
+	public int o_RawQuadAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -64,7 +64,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectRawQuadAtPut (
+	public void o_RawQuadAtPut (
 			final AvailObject object,
 			final int subscript,
 			final int value)
@@ -104,7 +104,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * Compare sections of two tuples.  My instance is a two-byte-string.
 	 */
 	@Override
-	public boolean ObjectCompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -122,7 +122,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * Compare sections of two two-byte strings.
 	 */
 	@Override
-	public boolean ObjectCompareFromToWithTwoByteStringStartingAt (
+	public boolean o_CompareFromToWithTwoByteStringStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -148,7 +148,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -156,7 +156,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsTwoByteString (
+	public boolean o_EqualsTwoByteString (
 			final AvailObject object,
 			final AvailObject aTwoByteString)
 	{
@@ -195,7 +195,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	public boolean ObjectIsString (final @NotNull AvailObject object)
+	public boolean o_IsString (final @NotNull AvailObject object)
 	{
 		return true;
 	}
@@ -208,7 +208,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * character.
 	 */
 	@Override
-	public boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -249,7 +249,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * Make the object immutable so it can be shared safely.
 	 */
 	@Override
-	public AvailObject ObjectMakeImmutable (
+	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
 		if (isMutable)
@@ -268,7 +268,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 * Answer the byte that encodes the character at the given index.
 	 */
 	@Override
-	public short ObjectRawShortForCharacterAt (
+	public short o_RawShortForCharacterAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -276,7 +276,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectRawShortForCharacterAtPut (
+	public void o_RawShortForCharacterAtPut (
 			final AvailObject object,
 			final int index,
 			final short anInteger)
@@ -286,7 +286,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTupleAt (
+	public AvailObject o_TupleAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -298,7 +298,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectTupleAtPut (
+	public void o_TupleAtPut (
 			final AvailObject object,
 			final int index,
 			final AvailObject aCharacterObject)
@@ -313,7 +313,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTupleAtPuttingCanDestroy (
+	public AvailObject o_TupleAtPuttingCanDestroy (
 			final AvailObject object,
 			final int index,
 			final AvailObject newValueObject,
@@ -349,7 +349,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public int ObjectTupleIntAt (
+	public int o_TupleIntAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -360,7 +360,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public int ObjectTupleSize (
+	public int o_TupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object.
@@ -373,7 +373,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	// private-accessing
 
 	@Override
-	public int ObjectBitsPerEntry (
+	public int o_BitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -394,7 +394,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	// private-computation
 
 	@Override
-	public int ObjectComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 			final AvailObject object,
 			final int start,
 			final int end)

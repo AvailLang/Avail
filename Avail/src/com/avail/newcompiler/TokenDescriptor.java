@@ -56,7 +56,7 @@ extends Descriptor
 	 * Setter for field string.
 	 */
 	@Override
-	public void ObjectString (
+	public void o_String (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -67,7 +67,7 @@ extends Descriptor
 	 * Getter for field string.
 	 */
 	@Override
-	public AvailObject ObjectString (
+	public AvailObject o_String (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STRING);
@@ -77,7 +77,7 @@ extends Descriptor
 	 * Setter for field start.
 	 */
 	@Override
-	public void ObjectStart (
+	public void o_Start (
 		final AvailObject object,
 		final int value)
 	{
@@ -88,7 +88,7 @@ extends Descriptor
 	 * Getter for field start.
 	 */
 	@Override
-	public int ObjectStart (
+	public int o_Start (
 		final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.START);
@@ -98,7 +98,7 @@ extends Descriptor
 	 * Setter for field tokenTypeCode.
 	 */
 	@Override
-	public void ObjectTokenTypeCode (
+	public void o_TokenTypeCode (
 		final AvailObject object,
 		final int value)
 	{
@@ -109,7 +109,7 @@ extends Descriptor
 	 * Getter for field tokenTypeCode.
 	 */
 	@Override
-	public int ObjectTokenTypeCode (
+	public int o_TokenTypeCode (
 		final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);

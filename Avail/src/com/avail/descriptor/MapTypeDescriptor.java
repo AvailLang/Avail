@@ -56,7 +56,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	 * Setter for field keyType.
 	 */
 	@Override
-	public void ObjectKeyType (
+	public void o_KeyType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -67,7 +67,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	 * Setter for field sizeRange.
 	 */
 	@Override
-	public void ObjectSizeRange (
+	public void o_SizeRange (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -78,7 +78,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	 * Setter for field valueType.
 	 */
 	@Override
-	public void ObjectValueType (
+	public void o_ValueType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -89,7 +89,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	 * Getter for field keyType.
 	 */
 	@Override
-	public AvailObject ObjectKeyType (
+	public AvailObject o_KeyType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.KEY_TYPE);
@@ -99,7 +99,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	 * Getter for field sizeRange.
 	 */
 	@Override
-	public AvailObject ObjectSizeRange (
+	public AvailObject o_SizeRange (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
@@ -109,7 +109,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	 * Getter for field valueType.
 	 */
 	@Override
-	public AvailObject ObjectValueType (
+	public AvailObject o_ValueType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VALUE_TYPE);
@@ -148,7 +148,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -156,7 +156,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsMapType (
+	public boolean o_EqualsMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -170,7 +170,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -179,7 +179,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -192,7 +192,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -216,14 +216,14 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsMapType (
+	public boolean o_IsMapType (
 			final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -236,7 +236,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -246,7 +246,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfMapType (
+	public boolean o_IsSupertypeOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -257,7 +257,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -275,7 +275,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfMapType (
+	public AvailObject o_TypeIntersectionOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -292,7 +292,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -314,7 +314,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfMapType (
+	public AvailObject o_TypeUnionOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{

@@ -49,7 +49,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	// accessing
 
 	@Override
-	public void ObjectBodySignature (
+	public void o_BodySignature (
 			final AvailObject object,
 			final AvailObject signature)
 	{
@@ -58,7 +58,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectComputeReturnTypeFromArgumentTypesInterpreter (
+	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter)
@@ -73,7 +73,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsValidForArgumentTypesInterpreter (
+	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter interpreter)
@@ -88,7 +88,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectBodySignature (
+	public AvailObject o_BodySignature (
 			final AvailObject object)
 	{
 		return object.signature();
@@ -102,7 +102,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	 * Setter for field signature.
 	 */
 	@Override
-	public void ObjectSignature (
+	public void o_Signature (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -113,7 +113,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	 * Getter for field signature.
 	 */
 	@Override
-	public AvailObject ObjectSignature (
+	public AvailObject o_Signature (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIGNATURE);
@@ -124,7 +124,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	// operations
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -133,7 +133,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -143,7 +143,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -156,7 +156,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	// testing
 
 	@Override
-	public boolean ObjectIsForward (
+	public boolean o_IsForward (
 			final AvailObject object)
 	{
 		return true;
@@ -167,7 +167,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	// validation
 
 	@Override
-	public void ObjectEnsureMetacovariant (
+	public void o_EnsureMetacovariant (
 			final AvailObject object)
 	{
 		//  Make sure my requires clauses and returns clauses are expecting the

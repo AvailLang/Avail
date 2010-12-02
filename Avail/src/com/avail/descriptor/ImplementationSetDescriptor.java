@@ -67,7 +67,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Setter for field dependentChunks.
 	 */
 	@Override
-	public void ObjectDependentChunks (
+	public void o_DependentChunks (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -78,7 +78,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Setter for field implementationsTuple.
 	 */
 	@Override
-	public void ObjectImplementationsTuple (
+	public void o_ImplementationsTuple (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -89,7 +89,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Setter for field name.
 	 */
 	@Override
-	public void ObjectName (
+	public void o_Name (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -100,7 +100,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Setter for field privateTestingTree.
 	 */
 	@Override
-	public void ObjectPrivateTestingTree (
+	public void o_PrivateTestingTree (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -111,7 +111,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Getter for field dependentChunks.
 	 */
 	@Override
-	public AvailObject ObjectDependentChunks (
+	public AvailObject o_DependentChunks (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DEPENDENT_CHUNKS);
@@ -121,7 +121,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Getter for field implementationsTuple.
 	 */
 	@Override
-	public AvailObject ObjectImplementationsTuple (
+	public AvailObject o_ImplementationsTuple (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
@@ -131,7 +131,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Getter for field name.
 	 */
 	@Override
-	public AvailObject ObjectName (
+	public AvailObject o_Name (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
@@ -141,7 +141,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Getter for field privateTestingTree.
 	 */
 	@Override
-	public AvailObject ObjectPrivateTestingTree (
+	public AvailObject o_PrivateTestingTree (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TESTING_TREE);
@@ -190,7 +190,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -200,7 +200,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -209,7 +209,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.  The hash can just depend on
@@ -220,7 +220,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectMakeImmutable (
+	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to
@@ -236,7 +236,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -249,7 +249,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	// operations-implementation sets
 
 	@Override
-	public void ObjectAddDependentChunkId (
+	public void o_AddDependentChunkId (
 			final AvailObject object,
 			final int aChunkIndex)
 	{
@@ -260,7 +260,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectAddImplementation (
+	public void o_AddImplementation (
 			final AvailObject object,
 			final AvailObject implementation)
 	{
@@ -284,7 +284,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectCreateTestingTreeWithPositiveMatchesRemainingPossibilities (
+	public AvailObject o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object,
 			final AvailObject positiveTuple,
 			final AvailObject possibilities)
@@ -474,7 +474,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public List<AvailObject> ObjectFilterByTypes (
+	public List<AvailObject> o_FilterByTypes (
 			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
@@ -496,7 +496,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public ArrayList<AvailObject> ObjectImplementationsAtOrBelow (
+	public ArrayList<AvailObject> o_ImplementationsAtOrBelow (
 			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
@@ -526,7 +526,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectIncludes (
+	public boolean o_Includes (
 			final AvailObject object,
 			final AvailObject imp)
 	{
@@ -544,7 +544,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLookupByTypesFromArray (
+	public AvailObject o_LookupByTypesFromArray (
 			final AvailObject object,
 			final List<AvailObject> argumentTypeArray)
 	{
@@ -575,7 +575,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLookupByTypesFromContinuationStackp (
+	public AvailObject o_LookupByTypesFromContinuationStackp (
 			final AvailObject object,
 			final AvailObject continuation,
 			final int stackp)
@@ -608,7 +608,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLookupByTypesFromTuple (
+	public AvailObject o_LookupByTypesFromTuple (
 			final AvailObject object,
 			final AvailObject argumentTypeTuple)
 	{
@@ -640,7 +640,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLookupByValuesFromArray (
+	public AvailObject o_LookupByValuesFromArray (
 			final AvailObject object,
 			final List<AvailObject> argumentArray)
 	{
@@ -671,7 +671,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLookupByValuesFromContinuationStackp (
+	public AvailObject o_LookupByValuesFromContinuationStackp (
 			final AvailObject object,
 			final AvailObject continuation,
 			final int stackp)
@@ -704,7 +704,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectLookupByValuesFromTuple (
+	public AvailObject o_LookupByValuesFromTuple (
 			final AvailObject object,
 			final AvailObject argumentTuple)
 	{
@@ -737,7 +737,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectRemoveDependentChunkId (
+	public void o_RemoveDependentChunkId (
 			final AvailObject object,
 			final int aChunkIndex)
 	{
@@ -750,7 +750,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectRemoveImplementation (
+	public void o_RemoveImplementation (
 			final AvailObject object,
 			final AvailObject implementation)
 	{
@@ -774,7 +774,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectValidateArgumentTypesInterpreterIfFail (
+	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final AvailInterpreter anAvailInterpreter,
@@ -892,7 +892,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public short ObjectNumArgs (
+	public short o_NumArgs (
 			final AvailObject object)
 	{
 		//  Answer how many arguments my implementations require.
@@ -902,7 +902,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectTestingTree (
+	public AvailObject o_TestingTree (
 			final AvailObject object)
 	{
 		//  Answer the cached privateTestingTree.  If there's a voidObject in that slot,

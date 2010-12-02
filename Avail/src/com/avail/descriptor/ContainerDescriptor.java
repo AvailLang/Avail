@@ -60,7 +60,7 @@ public class ContainerDescriptor extends Descriptor
 	 * Setter for field hashOrZero.
 	 */
 	@Override
-	public void ObjectHashOrZero (
+	public void o_HashOrZero (
 			final AvailObject object,
 			final int value)
 	{
@@ -71,7 +71,7 @@ public class ContainerDescriptor extends Descriptor
 	 * Setter for field type.
 	 */
 	@Override
-	public void ObjectType (
+	public void o_Type (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -82,7 +82,7 @@ public class ContainerDescriptor extends Descriptor
 	 * Setter for field value.
 	 */
 	@Override
-	public void ObjectValue (
+	public void o_Value (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -93,7 +93,7 @@ public class ContainerDescriptor extends Descriptor
 	 * Getter for field hashOrZero.
 	 */
 	@Override
-	public int ObjectHashOrZero (
+	public int o_HashOrZero (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -103,7 +103,7 @@ public class ContainerDescriptor extends Descriptor
 	 * Getter for field type.
 	 */
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE);
@@ -113,7 +113,7 @@ public class ContainerDescriptor extends Descriptor
 	 * Getter for field value.
 	 */
 	@Override
-	public AvailObject ObjectValue (
+	public AvailObject o_Value (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VALUE);
@@ -145,7 +145,7 @@ public class ContainerDescriptor extends Descriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -153,7 +153,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsContainer (
+	public boolean o_EqualsContainer (
 			final AvailObject object,
 			final AvailObject aContainer)
 	{
@@ -165,7 +165,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -174,7 +174,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
@@ -189,7 +189,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectMakeImmutable (
+	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
@@ -205,7 +205,7 @@ public class ContainerDescriptor extends Descriptor
 	// operations-containers
 
 	@Override
-	public void ObjectInnerType (
+	public void o_InnerType (
 			final AvailObject object,
 			final AvailObject innerType)
 	{
@@ -215,7 +215,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectSetValue (
+	public void o_SetValue (
 			final AvailObject object,
 			final AvailObject newValue)
 	{
@@ -224,7 +224,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectClearValue (
+	public void o_ClearValue (
 			final AvailObject object)
 	{
 		//  Clears the container (makes it have no current value).
@@ -234,7 +234,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject ObjectGetValue (
+	public AvailObject o_GetValue (
 			final AvailObject object)
 	{
 		//  Answer the current value of the container.  Fail if no value assigned.
@@ -249,7 +249,7 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public void ObjectReleaseVariableOrMakeContentsImmutable (
+	public void o_ReleaseVariableOrMakeContentsImmutable (
 			final AvailObject object)
 	{
 		//  If I'm mutable, release me.  Otherwise make my contents immutable.  This

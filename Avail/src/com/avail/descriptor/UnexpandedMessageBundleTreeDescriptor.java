@@ -58,7 +58,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Setter for field depth.
 	 */
 	@Override
-	public void ObjectDepth (
+	public void o_Depth (
 			final AvailObject object,
 			final int value)
 	{
@@ -69,7 +69,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Setter for field pad1.
 	 */
 	@Override
-	public void ObjectPad1 (
+	public void o_Pad1 (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -80,7 +80,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Setter for field pad2.
 	 */
 	@Override
-	public void ObjectPad2 (
+	public void o_Pad2 (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -91,7 +91,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Setter for field unclassified.
 	 */
 	@Override
-	public void ObjectUnclassified (
+	public void o_Unclassified (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -102,7 +102,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Getter for field depth.
 	 */
 	@Override
-	public int ObjectDepth (
+	public int o_Depth (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.DEPTH);
@@ -112,7 +112,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Getter for field pad1.
 	 */
 	@Override
-	public AvailObject ObjectPad1 (
+	public AvailObject o_Pad1 (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PAD1);
@@ -122,7 +122,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Getter for field pad2.
 	 */
 	@Override
-	public AvailObject ObjectPad2 (
+	public AvailObject o_Pad2 (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PAD2);
@@ -132,7 +132,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Getter for field unclassified.
 	 */
 	@Override
-	public AvailObject ObjectUnclassified (
+	public AvailObject o_Unclassified (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.UNCLASSIFIED);
@@ -160,7 +160,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	// operations
 
 	@Override
-	public AvailObject ObjectMakeImmutable (
+	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
 		// Make the object immutable so it can be shared safely.  If I was
@@ -178,7 +178,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	// operations-bundleTree
 
 	@Override
-	public void ObjectAtMessageAddBundle (
+	public void o_AtMessageAddBundle (
 			final AvailObject object,
 			final AvailObject message,
 			final AvailObject bundle)
@@ -199,7 +199,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public AvailObject ObjectBundleAtMessageParts (
+	public AvailObject o_BundleAtMessageParts (
 			final AvailObject object,
 			final AvailObject message,
 			final AvailObject parts)
@@ -212,7 +212,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public void ObjectCopyToRestrictedTo (
+	public void o_CopyToRestrictedTo (
 			final AvailObject object,
 			final AvailObject filteredBundleTree,
 			final AvailObject visibleNames)
@@ -239,7 +239,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public AvailObject ObjectIncludeBundleAtMessageParts (
+	public AvailObject o_IncludeBundleAtMessageParts (
 			final AvailObject object,
 			final AvailObject message,
 			final AvailObject parts)
@@ -262,7 +262,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public boolean ObjectRemoveMessageParts (
+	public boolean o_RemoveMessageParts (
 			final AvailObject object,
 			final AvailObject message,
 			final AvailObject parts)
@@ -277,14 +277,14 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public AvailObject ObjectComplete (
+	public AvailObject o_Complete (
 			final AvailObject object)
 	{
 		return object.expand().complete();
 	}
 
 	@Override
-	public AvailObject ObjectExpand (
+	public AvailObject o_Expand (
 			final AvailObject object)
 	{
 		//  Expand the bundleTree.  Answer the resulting expanded tree.
@@ -341,7 +341,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public AvailObject ObjectIncomplete (
+	public AvailObject o_Incomplete (
 			final AvailObject object)
 	{
 		return object.expand().incomplete();

@@ -53,7 +53,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -71,7 +71,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfPrimitiveType (
+	public boolean o_IsSupertypeOfPrimitiveType (
 			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
@@ -83,7 +83,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -105,7 +105,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfMeta (
+	public AvailObject o_TypeIntersectionOfMeta (
 			final AvailObject object,
 			final AvailObject someMeta)
 	{
@@ -119,7 +119,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -140,7 +140,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsCyclicType (
+	public boolean o_IsCyclicType (
 			final AvailObject object)
 	{
 		//  Because terminatesType is a subtype of all other metatypes, it is even considered

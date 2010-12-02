@@ -55,7 +55,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 
 	@Override
-	public AvailObject ObjectArgTypeAt (
+	public AvailObject o_ArgTypeAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -63,7 +63,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public void ObjectArgTypeAtPut (
+	public void o_ArgTypeAtPut (
 			final AvailObject object,
 			final int subscript,
 			final AvailObject value)
@@ -75,7 +75,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * Setter for field hashOrZero.
 	 */
 	@Override
-	public void ObjectHashOrZero (
+	public void o_HashOrZero (
 			final AvailObject object,
 			final int value)
 	{
@@ -86,7 +86,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * Setter for field returnType.
 	 */
 	@Override
-	public void ObjectReturnType (
+	public void o_ReturnType (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -97,7 +97,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * Getter for field hashOrZero.
 	 */
 	@Override
-	public int ObjectHashOrZero (
+	public int o_HashOrZero (
 			final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -107,7 +107,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * Getter for field returnType.
 	 */
 	@Override
-	public AvailObject ObjectReturnType (
+	public AvailObject o_ReturnType (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
@@ -195,7 +195,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -203,7 +203,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsClosureType (
+	public boolean o_EqualsClosureType (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -241,7 +241,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		return Types.closureType.object();
@@ -256,7 +256,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * demand every time it is requested.  Answer the raw hash value.
 	 */
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		int hash = object.hashOrZero();
@@ -276,7 +276,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		return Types.closureType.object();
@@ -287,7 +287,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * Answer the number of arguments object's instances expect.
 	 */
 	@Override
-	public short ObjectNumArgs (
+	public short o_NumArgs (
 			final AvailObject object)
 	{
 		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
@@ -301,7 +301,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * between the existing and new objects.
 	 */
 	@Override
-	public AvailObject ObjectCopyMutable (
+	public AvailObject o_CopyMutable (
 			final AvailObject object)
 	{
 		if (isMutable)
@@ -325,7 +325,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	// operations-type checking
 
 	@Override
-	public boolean ObjectAcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromClosureType (
 			final AvailObject object,
 			final AvailObject closureType)
 	{
@@ -346,7 +346,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectAcceptsArgumentsFromContinuationStackp (
+	public boolean o_AcceptsArgumentsFromContinuationStackp (
 			final AvailObject object,
 			final AvailObject continuation,
 			final int stackp)
@@ -367,7 +367,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectAcceptsArgumentTypesFromContinuationStackp (
+	public boolean o_AcceptsArgumentTypesFromContinuationStackp (
 			final AvailObject object,
 			final AvailObject continuation,
 			final int stackp)
@@ -389,7 +389,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectAcceptsArrayOfArgTypes (
+	public boolean o_AcceptsArrayOfArgTypes (
 			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
@@ -406,7 +406,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectAcceptsArrayOfArgValues (
+	public boolean o_AcceptsArrayOfArgValues (
 			final AvailObject object,
 			final List<AvailObject> argValues)
 	{
@@ -424,7 +424,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectAcceptsTupleOfArgTypes (
+	public boolean o_AcceptsTupleOfArgTypes (
 			final AvailObject object,
 			final AvailObject argTypes)
 	{
@@ -442,7 +442,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectAcceptsTupleOfArguments (
+	public boolean o_AcceptsTupleOfArguments (
 			final AvailObject object,
 			final AvailObject arguments)
 	{
@@ -469,7 +469,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * @see ImplementationSetDescriptor
 	 */
 	@Override
-	public boolean ObjectCouldEverBeInvokedWith (
+	public boolean o_CouldEverBeInvokedWith (
 			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
@@ -491,7 +491,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -501,7 +501,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -531,7 +531,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	public boolean o_IsSupertypeOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -543,7 +543,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -561,7 +561,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfClosureType (
+	public AvailObject o_TypeIntersectionOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -571,7 +571,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfClosureTypeCanDestroy (
+	public AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
 			final AvailObject object,
 			final AvailObject aClosureType,
 			final boolean canDestroy)
@@ -600,7 +600,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -612,7 +612,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureTypeCanDestroy (
+	public AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType,
 			final boolean canDestroy)
@@ -634,7 +634,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -652,7 +652,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfClosureType (
+	public AvailObject o_TypeUnionOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -662,7 +662,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfClosureTypeCanDestroy (
+	public AvailObject o_TypeUnionOfClosureTypeCanDestroy (
 			final AvailObject object,
 			final AvailObject aClosureType,
 			final boolean canDestroy)
@@ -691,7 +691,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	public AvailObject o_TypeUnionOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{

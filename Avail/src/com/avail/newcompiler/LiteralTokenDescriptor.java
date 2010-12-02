@@ -60,7 +60,7 @@ extends TokenDescriptor
 	 * Setter for field string.
 	 */
 	@Override
-	public void ObjectLiteral (
+	public void o_Literal (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -71,7 +71,7 @@ extends TokenDescriptor
 	 * Getter for field string.
 	 */
 	@Override
-	public AvailObject ObjectLiteral (
+	public AvailObject o_Literal (
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LITERAL);

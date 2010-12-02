@@ -50,7 +50,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	 * Setter for field myObjectMeta.
 	 */
 	@Override
-	public void ObjectMyObjectMeta (
+	public void o_MyObjectMeta (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -61,7 +61,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	 * Getter for field myObjectMeta.
 	 */
 	@Override
-	public AvailObject ObjectMyObjectMeta (
+	public AvailObject o_MyObjectMeta (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_OBJECT_META);
@@ -72,7 +72,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	// operations
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer this object type's type's type's type.
@@ -81,7 +81,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  The hash value is always recomputed from the objectMetaMeta's instance (an objectMeta).
@@ -90,7 +90,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -102,7 +102,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer this object type's type's type's type.
@@ -115,7 +115,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	// operations-meta
 
 	@Override
-	public AvailObject ObjectInstance (
+	public AvailObject o_Instance (
 			final AvailObject object)
 	{
 		//  Answer this object meta meta's sole instance, an object meta.  Object metas parallel the
@@ -134,7 +134,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -144,7 +144,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectMetaMeta (
+	public boolean o_IsSupertypeOfObjectMetaMeta (
 			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
@@ -155,7 +155,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -173,7 +173,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfMeta (
+	public AvailObject o_TypeIntersectionOfMeta (
 			final AvailObject object,
 			final AvailObject someMeta)
 	{
@@ -187,7 +187,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	public AvailObject o_TypeIntersectionOfObjectMetaMeta (
 			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
@@ -199,7 +199,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -217,7 +217,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfObjectMetaMeta (
+	public AvailObject o_TypeUnionOfObjectMetaMeta (
 			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{

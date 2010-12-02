@@ -58,7 +58,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	// GENERATED accessors
 
 	@Override
-	public int ObjectRawQuadAt (
+	public int o_RawQuadAt (
 			final AvailObject object,
 			final int subscript)
 	{
@@ -66,7 +66,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectRawQuadAtPut (
+	public void o_RawQuadAtPut (
 			final AvailObject object,
 			final int subscript,
 			final int value)
@@ -126,7 +126,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectCompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -143,7 +143,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectCompareFromToWithByteTupleStartingAt (
+	public boolean o_CompareFromToWithByteTupleStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -170,7 +170,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -178,7 +178,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsByteTuple (
+	public boolean o_EqualsByteTuple (
 			final AvailObject object,
 			final AvailObject aByteTuple)
 	{
@@ -213,13 +213,13 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsByteTuple (final @NotNull AvailObject object)
+	public boolean o_IsByteTuple (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	public boolean ObjectIsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -271,7 +271,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectMakeImmutable (
+	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
@@ -289,7 +289,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	// operations-tuples
 
 	@Override
-	public short ObjectRawByteAt (
+	public short o_RawByteAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -299,7 +299,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectRawByteAtPut (
+	public void o_RawByteAtPut (
 			final AvailObject object,
 			final int index,
 			final short anInteger)
@@ -310,7 +310,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTupleAt (
+	public AvailObject o_TupleAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -321,7 +321,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public void ObjectTupleAtPut (
+	public void o_TupleAtPut (
 			final AvailObject object,
 			final int index,
 			final AvailObject aByteObject)
@@ -334,7 +334,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTupleAtPuttingCanDestroy (
+	public AvailObject o_TupleAtPuttingCanDestroy (
 			final AvailObject object,
 			final int index,
 			final AvailObject newValueObject,
@@ -367,7 +367,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public int ObjectTupleIntAt (
+	public int o_TupleIntAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -381,7 +381,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	// private-accessing
 
 	@Override
-	public int ObjectBitsPerEntry (
+	public int o_BitsPerEntry (
 			final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -393,7 +393,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	// private-computation
 
 	@Override
-	public int ObjectComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 			final AvailObject object,
 			final int start,
 			final int end)
@@ -429,7 +429,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public int ObjectTupleSize (
+	public int o_TupleSize (
 			final AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).

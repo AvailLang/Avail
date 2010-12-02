@@ -105,7 +105,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	// operations
 
 	@Override
-	public boolean ObjectCompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -136,7 +136,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectCompareFromToWithByteStringStartingAt (
+	public boolean o_CompareFromToWithByteStringStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -163,7 +163,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectCompareFromToWithByteTupleStartingAt (
+	public boolean o_CompareFromToWithByteTupleStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -190,7 +190,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectCompareFromToWithNybbleTupleStartingAt (
+	public boolean o_CompareFromToWithNybbleTupleStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -221,7 +221,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectCompareFromToWithObjectTupleStartingAt (
+	public boolean o_CompareFromToWithObjectTupleStartingAt (
 			final AvailObject object,
 			final int startIndex1,
 			final int endIndex1,
@@ -252,7 +252,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -262,7 +262,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsAnyTuple (
+	public boolean o_EqualsAnyTuple (
 			final AvailObject object,
 			final AvailObject anotherTuple)
 	{
@@ -307,7 +307,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -335,7 +335,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	// operations-splice tuples
 
 	@Override
-	public int ObjectEndOfZone (
+	public int o_EndOfZone (
 			final AvailObject object,
 			final int zone)
 	{
@@ -347,7 +347,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public int ObjectEndSubtupleIndexInZone (
+	public int o_EndSubtupleIndexInZone (
 		final AvailObject object,
 		final int zone)
 	{
@@ -367,7 +367,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * true.
 	 */
 	@Override
-	public AvailObject ObjectForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+	public AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 			final AvailObject object,
 			final int zone,
 			final AvailObject newSubtuple,
@@ -396,7 +396,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * 'unclipped'.  Should only be valid if isMutable is true.
 	 */
 	@Override
-	public void ObjectSetSubtupleForZoneTo (
+	public void o_SetSubtupleForZoneTo (
 			final AvailObject object,
 			final int zoneIndex,
 			final AvailObject newTuple)
@@ -412,7 +412,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the size of the given zone.
 	 */
 	@Override
-	public int ObjectSizeOfZone (
+	public int o_SizeOfZone (
 			final AvailObject object,
 			final int zone)
 	{
@@ -435,7 +435,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the starting index for the given zone.
 	 */
 	@Override
-	public int ObjectStartOfZone (
+	public int o_StartOfZone (
 			final AvailObject object,
 			final int zone)
 	{
@@ -454,7 +454,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the starting index into the subtuple for the given zone.
 	 */
 	@Override
-	public int ObjectStartSubtupleIndexInZone (
+	public int o_StartSubtupleIndexInZone (
 			final AvailObject object,
 			final int zone)
 	{
@@ -468,7 +468,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * 'unclipped'.
 	 */
 	@Override
-	public AvailObject ObjectSubtupleForZone (
+	public AvailObject o_SubtupleForZone (
 			final AvailObject object,
 			final int zone)
 	{
@@ -482,7 +482,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * the given zone.
 	 */
 	@Override
-	public int ObjectTranslateToZone (
+	public int o_TranslateToZone (
 			final AvailObject object,
 			final int tupleIndex,
 			final int zoneIndex)
@@ -497,7 +497,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the zone number that contains the given index.
 	 */
 	@Override
-	public int ObjectZoneForIndex (
+	public int o_ZoneForIndex (
 			final AvailObject object,
 			final int index)
 	{
@@ -522,7 +522,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the number of zones in the splice tuple.
 	 */
 	@Override
-	public int ObjectNumberOfZones (
+	public int o_NumberOfZones (
 			final AvailObject object)
 	{
 		return (object.objectSlotsCount() - numberOfFixedObjectSlots);
@@ -539,7 +539,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * other optimizations hold).
 	 */
 	@Override
-	public AvailObject ObjectCopyTupleFromToCanDestroy (
+	public AvailObject o_CopyTupleFromToCanDestroy (
 			final AvailObject object,
 			final int start,
 			final int end,
@@ -598,7 +598,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the element at the given index in the tuple object.
 	 */
 	@Override
-	public AvailObject ObjectTupleAt (
+	public AvailObject o_TupleAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -618,7 +618,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * sensible variation for SpliceTuples.
 	 */
 	@Override
-	public void ObjectTupleAtPut (
+	public void o_TupleAtPut (
 			final AvailObject object,
 			final int index,
 			final AvailObject anObject)
@@ -633,7 +633,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * canDestroy is true.
 	 */
 	@Override
-	public AvailObject ObjectTupleAtPuttingCanDestroy (
+	public AvailObject o_TupleAtPuttingCanDestroy (
 			final AvailObject object,
 			final int index,
 			final AvailObject newValueObject,
@@ -664,7 +664,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the integer element at the given index in the tuple object.
 	 */
 	@Override
-	public int ObjectTupleIntAt (
+	public int o_TupleIntAt (
 			final AvailObject object,
 			final int index)
 	{
@@ -682,7 +682,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer the number of elements in the object as an int.
 	 */
 	@Override
-	public int ObjectTupleSize (
+	public int o_TupleSize (
 			final AvailObject object)
 	{
 		return object.endOfZone(object.numberOfZones());
@@ -696,7 +696,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * representations
 	 */
 	@Override
-	public int ObjectBitsPerEntry (
+	public int o_BitsPerEntry (
 			final AvailObject object)
 	{
 		return 33;
@@ -704,7 +704,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 
 	
 	@Override
-	public boolean ObjectIsSplice (
+	public boolean o_IsSplice (
 			final AvailObject object)
 	{
 		return true;
@@ -716,7 +716,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Hash part of the tuple object.
 	 */
 	@Override
-	public int ObjectComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 			final AvailObject object,
 			final int startIndex,
 			final int endIndex)
@@ -757,7 +757,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Answer a mutable copy of object that is also a splice tuple.
 	 */
 	@Override
-	public AvailObject ObjectCopyAsMutableSpliceTuple (
+	public AvailObject o_CopyAsMutableSpliceTuple (
 			final AvailObject object)
 	{
 		if (isMutable)
@@ -800,7 +800,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 * Make sure the object contains no empty zones.
 	 */
 	@Override
-	public void ObjectVerify (
+	public void o_Verify (
 			final AvailObject object)
 	{
 		assert object.tupleSize() > 0;

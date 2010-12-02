@@ -65,7 +65,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	 * Setter for field instance.
 	 */
 	@Override
-	public void ObjectInstance (
+	public void o_Instance (
 			final AvailObject object,
 			final AvailObject value)
 	{
@@ -76,7 +76,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	 * Getter for field instance.
 	 */
 	@Override
-	public AvailObject ObjectInstance (
+	public AvailObject o_Instance (
 			final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INSTANCE);
@@ -99,7 +99,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 
 	@Override
-	public boolean ObjectEquals (
+	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -114,7 +114,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectHasObjectInstance (
+	public boolean o_HasObjectInstance (
 			final AvailObject object,
 			final AvailObject potentialInstance)
 	{
@@ -124,7 +124,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsBetterRepresentationThan (
+	public boolean o_IsBetterRepresentationThan (
 			final AvailObject object,
 			final AvailObject anotherObject)
 	{
@@ -136,7 +136,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsBetterRepresentationThanTupleType (
+	public boolean o_IsBetterRepresentationThanTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -148,7 +148,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectBecomeExactType (
+	public AvailObject o_BecomeExactType (
 			final AvailObject object)
 	{
 		//  Transform object into an indirection to its exact equivalent.
@@ -159,7 +159,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectExactType (
+	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
 		//  Answer this object's type (which will be a meta).
@@ -168,7 +168,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public int ObjectHash (
+	public int o_Hash (
 			final AvailObject object)
 	{
 		//  Answer a 32-bit hash value that is always the same for equal objects, but
@@ -179,7 +179,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsHashAvailable (
+	public boolean o_IsHashAvailable (
 			final AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
@@ -192,7 +192,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectType (
+	public AvailObject o_Type (
 			final AvailObject object)
 	{
 		//  Answer this object's type (which will be a meta).
@@ -205,7 +205,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// operations-faulting
 
 	@Override
-	public boolean ObjectEqualsClosureType (
+	public boolean o_EqualsClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -213,7 +213,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsContainerType (
+	public boolean o_EqualsContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -221,7 +221,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsContinuationType (
+	public boolean o_EqualsContinuationType (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -235,7 +235,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsGeneralizedClosureType (
+	public boolean o_EqualsGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -245,7 +245,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsIntegerRangeType (
+	public boolean o_EqualsIntegerRangeType (
 			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
@@ -253,7 +253,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsListType (
+	public boolean o_EqualsListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -265,7 +265,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsMapType (
+	public boolean o_EqualsMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -273,7 +273,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsPrimitiveType (
+	public boolean o_EqualsPrimitiveType (
 			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
@@ -281,7 +281,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsSetType (
+	public boolean o_EqualsSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -289,7 +289,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectEqualsTupleType (
+	public boolean o_EqualsTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -297,7 +297,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -307,7 +307,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfContainerType (
+	public boolean o_IsSupertypeOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -317,7 +317,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfCyclicType (
+	public boolean o_IsSupertypeOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -327,7 +327,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfGeneralizedClosureType (
+	public boolean o_IsSupertypeOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -337,7 +337,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfIntegerRangeType (
+	public boolean o_IsSupertypeOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
@@ -351,7 +351,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfListType (
+	public boolean o_IsSupertypeOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -365,7 +365,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfMapType (
+	public boolean o_IsSupertypeOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -375,7 +375,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectMeta (
+	public boolean o_IsSupertypeOfObjectMeta (
 			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
@@ -385,7 +385,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectMetaMeta (
+	public boolean o_IsSupertypeOfObjectMetaMeta (
 			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
@@ -395,7 +395,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfObjectType (
+	public boolean o_IsSupertypeOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
@@ -405,7 +405,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfPrimitiveType (
+	public boolean o_IsSupertypeOfPrimitiveType (
 			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
@@ -415,7 +415,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfSetType (
+	public boolean o_IsSupertypeOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -425,7 +425,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsSupertypeOfTupleType (
+	public boolean o_IsSupertypeOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -435,7 +435,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersection (
+	public AvailObject o_TypeIntersection (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -445,7 +445,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfClosureType (
+	public AvailObject o_TypeIntersectionOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -455,7 +455,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfContainerType (
+	public AvailObject o_TypeIntersectionOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -465,7 +465,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfCyclicType (
+	public AvailObject o_TypeIntersectionOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -475,7 +475,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfGeneralizedClosureType (
+	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -485,7 +485,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfIntegerRangeType (
+	public AvailObject o_TypeIntersectionOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
@@ -495,7 +495,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfListType (
+	public AvailObject o_TypeIntersectionOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -505,7 +505,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfMapType (
+	public AvailObject o_TypeIntersectionOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -515,7 +515,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfMeta (
+	public AvailObject o_TypeIntersectionOfMeta (
 			final AvailObject object,
 			final AvailObject someMeta)
 	{
@@ -527,7 +527,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfObjectMeta (
+	public AvailObject o_TypeIntersectionOfObjectMeta (
 			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
@@ -537,7 +537,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfObjectMetaMeta (
+	public AvailObject o_TypeIntersectionOfObjectMetaMeta (
 			final AvailObject object,
 			final AvailObject anObjectMetaMeta)
 	{
@@ -547,7 +547,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfObjectType (
+	public AvailObject o_TypeIntersectionOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
@@ -557,7 +557,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfSetType (
+	public AvailObject o_TypeIntersectionOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -567,7 +567,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeIntersectionOfTupleType (
+	public AvailObject o_TypeIntersectionOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -577,7 +577,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnion (
+	public AvailObject o_TypeUnion (
 			final AvailObject object,
 			final AvailObject another)
 	{
@@ -587,7 +587,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfClosureType (
+	public AvailObject o_TypeUnionOfClosureType (
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
@@ -597,7 +597,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfContainerType (
+	public AvailObject o_TypeUnionOfContainerType (
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
@@ -607,7 +607,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfCyclicType (
+	public AvailObject o_TypeUnionOfCyclicType (
 			final AvailObject object,
 			final AvailObject aCyclicType)
 	{
@@ -617,7 +617,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfGeneralizedClosureType (
+	public AvailObject o_TypeUnionOfGeneralizedClosureType (
 			final AvailObject object,
 			final AvailObject aGeneralizedClosureType)
 	{
@@ -627,7 +627,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfIntegerRangeType (
+	public AvailObject o_TypeUnionOfIntegerRangeType (
 			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
@@ -637,7 +637,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfListType (
+	public AvailObject o_TypeUnionOfListType (
 			final AvailObject object,
 			final AvailObject aListType)
 	{
@@ -647,7 +647,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfMapType (
+	public AvailObject o_TypeUnionOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
@@ -657,7 +657,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfObjectMeta (
+	public AvailObject o_TypeUnionOfObjectMeta (
 			final AvailObject object,
 			final AvailObject anObjectMeta)
 	{
@@ -667,7 +667,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfObjectType (
+	public AvailObject o_TypeUnionOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
@@ -677,7 +677,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfSetType (
+	public AvailObject o_TypeUnionOfSetType (
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
@@ -687,7 +687,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeUnionOfTupleType (
+	public AvailObject o_TypeUnionOfTupleType (
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
@@ -697,7 +697,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectFieldTypeMap (
+	public AvailObject o_FieldTypeMap (
 			final AvailObject object)
 	{
 		return object.becomeExactType().fieldTypeMap();
@@ -708,7 +708,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// operations-integer range
 
 	@Override
-	public AvailObject ObjectLowerBound (
+	public AvailObject o_LowerBound (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -719,7 +719,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectLowerInclusive (
+	public boolean o_LowerInclusive (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -730,7 +730,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectUpperBound (
+	public AvailObject o_UpperBound (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -741,7 +741,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectUpperInclusive (
+	public boolean o_UpperInclusive (
 			final AvailObject object)
 	{
 		if (object.instance().isExtendedInteger())
@@ -756,7 +756,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// operations-lists
 
 	@Override
-	public AvailObject ObjectTupleType (
+	public AvailObject o_TupleType (
 			final AvailObject object)
 	{
 		//  I must support this in case I represent a listType.  I simply go to my
@@ -770,7 +770,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// operations-tupleType
 
 	@Override
-	public AvailObject ObjectTypeAtIndex (
+	public AvailObject o_TypeAtIndex (
 			final AvailObject object,
 			final int index)
 	{
@@ -792,7 +792,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectUnionOfTypesAtThrough (
+	public AvailObject o_UnionOfTypesAtThrough (
 			final AvailObject object,
 			final int startIndex,
 			final int endIndex)
@@ -826,7 +826,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectDefaultType (
+	public AvailObject o_DefaultType (
 			final AvailObject object)
 	{
 		if (!object.isTupleType())
@@ -842,7 +842,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectSizeRange (
+	public AvailObject o_SizeRange (
 			final AvailObject object)
 	{
 		if (!object.isTupleType())
@@ -854,7 +854,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject ObjectTypeTuple (
+	public AvailObject o_TypeTuple (
 			final AvailObject object)
 	{
 		//  I can't keep pretending forever.  The encapsulation of tupleType has leaked enough
@@ -868,7 +868,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	// operations-types
 
 	@Override
-	public boolean ObjectIsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 			final AvailObject object,
 			final AvailObject aType)
 	{
@@ -878,35 +878,35 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean ObjectIsIntegerRangeType (
+	public boolean o_IsIntegerRangeType (
 			final AvailObject object)
 	{
 		return object.instance().isExtendedInteger();
 	}
 
 	@Override
-	public boolean ObjectIsListType (
+	public boolean o_IsListType (
 			final AvailObject object)
 	{
 		return object.instance().isList();
 	}
 
 	@Override
-	public boolean ObjectIsMapType (
+	public boolean o_IsMapType (
 			final AvailObject object)
 	{
 		return object.instance().isMap();
 	}
 
 	@Override
-	public boolean ObjectIsSetType (
+	public boolean o_IsSetType (
 			final AvailObject object)
 	{
 		return object.instance().isSet();
 	}
 
 	@Override
-	public boolean ObjectIsTupleType (
+	public boolean o_IsTupleType (
 			final AvailObject object)
 	{
 		return object.instance().isTuple();
