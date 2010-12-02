@@ -42,6 +42,18 @@ import com.avail.interpreter.AvailInterpreter;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
+/**
+ * This is the base type for all Objects in Avail.  An AvailObject must keep
+ * track of its {@link Descriptor}, its integer data, and its references to
+ * other AvailObjects.  It specifies the complete complement of messages that
+ * can be sent to an {@code AvailObject}, and delegates most of those to its
+ * {@code Descriptor}, passing the AvailObject as an additional first argument.
+ * The redirected messages in {@code Descriptor} have the prefix "o_", both to
+ * make them stand out better and to indicate the additional first argument.
+ * 
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @param <DescriptorType>
+ */
 public abstract class AvailObject
 implements Iterable<AvailObject>
 {
