@@ -34,7 +34,21 @@ package com.avail.compiler;
 
 import com.avail.compiler.Continuation2;
 
-public interface Continuation2 <X,Y>
+/**
+ * Implementors of {@code Continuation2} provide a single arbitrary operation
+ * that accepts two arguments.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @param <X> The type of the first argument.
+ * @param <Y> The type of the second argument.
+ */
+public interface Continuation2<X, Y>
 {
+	/**
+	 * Perform the operation.
+	 *
+	 * @param arg1 The first argument.
+	 * @param arg2 The second argument.
+	 */
 	public void value (X arg1, Y arg2);
 }

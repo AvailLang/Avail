@@ -34,7 +34,16 @@ package com.avail.compiler;
 
 import com.avail.compiler.Continuation0;
 
+/**
+ * Implementors of {@code Continuation0} provide a single arbitrary operation
+ * that accepts zero arguments.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public interface Continuation0
 {
+	/**
+	 * Perform the operation.
+	 */
 	public void value ();
 }

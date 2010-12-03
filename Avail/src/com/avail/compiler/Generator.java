@@ -34,7 +34,19 @@ package com.avail.compiler;
 
 import com.avail.compiler.Generator;
 
+/**
+ * I represent the ability to generate something in the future, when my {@link
+ * #value()} operation is invoked.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @param <X> The kind of thing to generate.
+ */
 public abstract class Generator <X>
 {
+	/**
+	 * Request that the value be produced.
+	 * 
+	 * @return The generated value.
+	 */
 	public abstract X value ();
 }

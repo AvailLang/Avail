@@ -33,14 +33,13 @@
 package com.avail.compiler;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.scanner.AvailToken;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VoidDescriptor;
 import static com.avail.descriptor.AvailObject.*;
 
 public class AvailVariableDeclarationNode extends AvailParseNode
 {
-	AvailToken _name;
+	AvailObject _name;
 	boolean _isArgument;
 	AvailObject _declaredType;
 
@@ -80,13 +79,13 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 		return false;
 	}
 
-	public AvailToken name ()
+	public AvailObject name ()
 	{
 		return _name;
 	}
 
 	public void name (
-			final AvailToken token)
+			final AvailObject token)
 	{
 
 		_name = token;

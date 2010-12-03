@@ -57,9 +57,7 @@ import com.avail.compiler.Continuation0;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.compiler.Mutable;
-import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.compiler.scanner.AvailScanner;
-import com.avail.compiler.scanner.AvailToken;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
@@ -69,9 +67,11 @@ import com.avail.descriptor.CyclicTypeDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.newcompiler.LiteralTokenDescriptor;
+import com.avail.newcompiler.TokenDescriptor;
+import com.avail.newcompiler.TokenDescriptor.TokenType;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -101,7 +101,7 @@ public class AvailCompiler
 		this.interpreter = interpreter;
 	}
 
-	private List<AvailToken> tokens;
+	private List<AvailObject> tokens;
 	private int position;
 
 	AvailCompilerScopeStack scopeStack;
@@ -164,7 +164,7 @@ public class AvailCompiler
 		}
 		//  It's a declaration...
 		final AvailVariableDeclarationNode declarationExpression = ((AvailVariableDeclarationNode)(expressionNode));
-		final AvailObject name = ByteStringDescriptor.mutableObjectFromNativeString(declarationExpression.name().string()).makeImmutable();
+		final AvailObject name = declarationExpression.name().string();
 		if (declarationExpression.isConstant())
 		{
 			AvailObject val = evaluate(((AvailInitializingDeclarationNode)(declarationExpression)).initializingExpression());
@@ -286,7 +286,7 @@ public class AvailCompiler
 			rollbackModuleTransaction();
 			throw e;
 		}
-		assert peekToken().type() == AvailToken.TokenType.end
+		assert peekToken().tokenType() == TokenType.END_OF_FILE
 			: "Expected end of text, not " + peekToken().string();
 		commitModuleTransaction();
 	}
@@ -317,7 +317,7 @@ public class AvailCompiler
 			reportError(resolvedName);
 			assert false;
 		}
-		assert peekToken().type() == AvailToken.TokenType.end
+		assert peekToken().tokenType() == TokenType.END_OF_FILE
 			: "Expected end of text, not " + peekToken().string();
 	}
 
@@ -373,7 +373,7 @@ public class AvailCompiler
 		//  is required after the arguments if there are any (which there are if we're here).
 
 		parseTokenTypeStringErrorContinue(
-			AvailToken.TokenType.operator,
+			TokenType.OPERATOR,
 			",",
 			"comma and more block arguments",
 			new Continuation0 ()
@@ -394,7 +394,7 @@ public class AvailCompiler
 				}
 			});
 		parseTokenTypeStringErrorContinue(
-			AvailToken.TokenType.operator,
+			TokenType.OPERATOR,
 			"|",
 			"comma and more block arguments or a vertical bar",
 			new Continuation0 ()
@@ -497,7 +497,7 @@ public class AvailCompiler
 		//  a special rule about rightmost parse anymore (it must be followed by a
 		//  semicolon).
 
-		if ((peekToken().type() == AvailToken.TokenType.keyword))
+		if ((peekToken().tokenType() == TokenType.KEYWORD))
 		{
 			parseVariableUseWithExplanationThen("for an assignment", new Continuation1<AvailVariableUseNode> ()
 			{
@@ -505,7 +505,7 @@ public class AvailCompiler
 				public void value(final AvailVariableUseNode varUse)
 				{
 					parseTokenTypeStringErrorContinue(
-						AvailToken.TokenType.operator,
+						TokenType.OPERATOR,
 						":",
 						":= for assignment",
 						new Continuation0 ()
@@ -514,7 +514,7 @@ public class AvailCompiler
 							public void value()
 							{
 								parseTokenTypeStringErrorContinue(
-									AvailToken.TokenType.operator,
+									TokenType.OPERATOR,
 									"=",
 									"= part of := for assignment",
 									new Continuation0 ()
@@ -560,7 +560,7 @@ public class AvailCompiler
 													@Override
 													public void value(final AvailParseNode expr)
 													{
-														if ((peekToken().type() == AvailToken.TokenType.endOfStatement))
+														if ((peekToken().tokenType() == TokenType.END_OF_STATEMENT))
 														{
 															if (expr.type().isSubtypeOf(varType.value))
 															{
@@ -622,12 +622,12 @@ public class AvailCompiler
 	{
 		//  Requires block arguments to be named.
 
-		final AvailToken localName = peekToken();
-		if ((localName.type() == AvailToken.TokenType.keyword))
+		final AvailObject localName = peekToken();
+		if ((localName.tokenType() == TokenType.KEYWORD))
 		{
 			nextToken();
 			parseTokenTypeStringErrorContinue(
-				AvailToken.TokenType.operator,
+				TokenType.OPERATOR,
 				":",
 				": then argument type",
 				new Continuation0 ()
@@ -677,7 +677,7 @@ public class AvailCompiler
 	{
 		//  Parse a block from the token stream.
 
-		if (peekTokenIsTypeString(AvailToken.TokenType.operator, "["))
+		if (peekTokenIsTypeString(TokenType.OPERATOR, "["))
 		{
 			final AvailCompilerScopeStack scopeOutsideBlock = scopeStack;
 			nextToken();
@@ -703,7 +703,7 @@ public class AvailCompiler
 									else
 									{
 										parseTokenTypeStringErrorContinue(
-											AvailToken.TokenType.operator,
+											TokenType.OPERATOR,
 											"]",
 											"close bracket to end block",
 											new Continuation0 ()
@@ -731,7 +731,7 @@ public class AvailCompiler
 													final AvailCompilerScopeStack scopeInBlock = scopeStack;
 													scopeStack = scopeOutsideBlock;
 													parseTokenTypeStringErrorContinue(
-														AvailToken.TokenType.operator,
+														TokenType.OPERATOR,
 														":",
 														"optional block return type declaration",
 														new Continuation0 ()
@@ -853,12 +853,12 @@ public class AvailCompiler
 
 		final int where = position();
 		final AvailCompilerScopeStack oldScope = scopeStack;
-		final AvailToken localName = peekToken();
-		if ((localName.type() == AvailToken.TokenType.keyword))
+		final AvailObject localName = peekToken();
+		if (localName.tokenType() == TokenType.KEYWORD)
 		{
 			nextToken();
 			parseTokenTypeStringErrorContinue(
-				AvailToken.TokenType.operator,
+				TokenType.OPERATOR,
 				":",
 				": or ::= for simple / constant / initializing declaration",
 				new Continuation0 ()
@@ -867,7 +867,7 @@ public class AvailCompiler
 					public void value()
 					{
 						parseTokenTypeStringErrorContinue(
-							AvailToken.TokenType.operator,
+							TokenType.OPERATOR,
 							":",
 							"second colon for constant declaration (a ::= expr)",
 							new Continuation0 ()
@@ -876,7 +876,7 @@ public class AvailCompiler
 								public void value()
 								{
 									parseTokenTypeStringErrorContinue(
-										AvailToken.TokenType.operator,
+										TokenType.OPERATOR,
 										"=",
 										"= part of ::= in constant declaration",
 										new Continuation0 ()
@@ -915,7 +915,7 @@ public class AvailCompiler
 								else
 								{
 									parseTokenTypeStringContinue(
-										AvailToken.TokenType.operator,
+										TokenType.OPERATOR,
 										":",
 										new Continuation0 ()
 										{
@@ -923,7 +923,7 @@ public class AvailCompiler
 											public void value()
 											{
 												parseTokenTypeStringContinue(
-													AvailToken.TokenType.operator,
+													TokenType.OPERATOR,
 													"=",
 													new Continuation0 ()
 													{
@@ -985,10 +985,10 @@ public class AvailCompiler
 		//  collection by parsing comma and another item.  If successful, try that
 		//  answer and then look for more items.
 
-		if (peekTokenIsTypeString(AvailToken.TokenType.operator, ","))
+		if (peekTokenIsTypeString(TokenType.OPERATOR, ","))
 		{
 			parseTokenTypeStringErrorContinue(
-				AvailToken.TokenType.operator,
+				TokenType.OPERATOR,
 				",",
 				"comma for a list",
 				new Continuation0 ()
@@ -1178,10 +1178,11 @@ public class AvailCompiler
 		}
 		if (incompleteMapSize != 0)
 		{
-			final AvailToken keywordToken = peekToken();
-			if (((keywordToken.type() == AvailToken.TokenType.keyword) || (keywordToken.type() == AvailToken.TokenType.operator)))
+			final AvailObject keywordToken = peekToken();
+			if (keywordToken.tokenType() == TokenType.KEYWORD
+					|| keywordToken.tokenType() == TokenType.OPERATOR)
 			{
-				final AvailObject keywordString = ByteStringDescriptor.mutableObjectFromNativeString(keywordToken.string());
+				final AvailObject keywordString = keywordToken.string();
 				if (incomplete.hasKey(keywordString))
 				{
 					nextToken();
@@ -1279,7 +1280,7 @@ public class AvailCompiler
 		//  Parse a label declaration.
 
 		parseTokenTypeStringErrorContinue(
-			AvailToken.TokenType.operator,
+			TokenType.OPERATOR,
 			"$",
 			"label statement starting with \"$\"",
 			new Continuation0 ()
@@ -1287,12 +1288,12 @@ public class AvailCompiler
 				@Override
 				public void value()
 				{
-					final AvailToken token = peekToken();
-					if ((token.type() == AvailToken.TokenType.keyword))
+					final AvailObject token = peekToken();
+					if ((token.tokenType() == TokenType.KEYWORD))
 					{
 						nextToken();
 						parseTokenTypeStringErrorContinue(
-							AvailToken.TokenType.operator,
+							TokenType.OPERATOR,
 							":",
 							"colon for label's type declaration",
 							new Continuation0 ()
@@ -1384,10 +1385,12 @@ public class AvailCompiler
 		//  Parse a send node.  To prevent infinite left-recursion and false ambiguity, we only
 		//  allow a send with a leading keyword to be parsed from here.
 
-		final AvailToken peekToken = peekToken();
-		if (((peekToken.type() == AvailToken.TokenType.keyword) || (peekToken.type() == AvailToken.TokenType.operator)))
+		final AvailObject peekToken = peekToken();
+		TokenType tokenType = peekToken.tokenType(); 
+		if (tokenType == TokenType.KEYWORD
+				|| tokenType == TokenType.OPERATOR)
 		{
-			final AvailObject start = ByteStringDescriptor.mutableObjectFromNativeString(nextToken().string());
+			final AvailObject start = nextToken().string();
 			final AvailObject complete = interpreter.completeBundlesStartingWith(start);
 			final AvailObject incomplete = interpreter.incompleteBundlesStartingWith(start);
 			ArrayList<AvailParseNode> argsSoFar;
@@ -1446,7 +1449,7 @@ public class AvailCompiler
 		final Mutable<Short> num = new Mutable<Short>();
 		num.value = 0;
 		parseTokenTypeStringErrorContinue(
-			AvailToken.TokenType.keyword,
+			TokenType.KEYWORD,
 			"Primitive",
 			"primitive declaration",
 			new Continuation0 ()
@@ -1454,17 +1457,19 @@ public class AvailCompiler
 				@Override
 				public void value()
 				{
-					final AvailToken token = peekToken();
-					if (((token.type() == AvailToken.TokenType.literal) && ((AvailLiteralToken)(token)).literal().isInstanceOfSubtypeOf(IntegerRangeTypeDescriptor.integers())))
+					final AvailObject token = peekToken();
+					if (token.tokenType() == TokenType.LITERAL
+							&& token.literal().isInstanceOfSubtypeOf(
+								IntegerRangeTypeDescriptor.integers()))
 					{
 						nextToken();
-						num.value = ((short)(((AvailLiteralToken)(token)).literal().extractInt()));
+						num.value = (short)(token.literal().extractInt());
 						if (interpreter.supportsPrimitive(num.value))
 						{
 							if ((interpreter.argCountForPrimitive(num.value) == argCount))
 							{
 								parseTokenTypeStringContinue(
-									AvailToken.TokenType.endOfStatement,
+									TokenType.END_OF_STATEMENT,
 									";",
 									new Continuation0 ()
 									{
@@ -1508,11 +1513,11 @@ public class AvailCompiler
 		//  follow it to make a supercast node.
 
 		continuation.value(expr);
-		if (peekTokenIsTypeString(AvailToken.TokenType.operator, ":"))
+		if (peekTokenIsTypeString(TokenType.OPERATOR, ":"))
 		{
 			nextToken();
 			parseTokenTypeStringErrorGeneratorContinue(
-				AvailToken.TokenType.operator,
+				TokenType.OPERATOR,
 				":",
 				new Generator<String> ()
 				{
@@ -1580,14 +1585,14 @@ public class AvailCompiler
 
 		final int originalPosition = position;
 		parseVariableUseWithExplanationThen("", continuation);
-		if ((peekToken().type() == AvailToken.TokenType.literal))
+		if ((peekToken().tokenType() == TokenType.LITERAL))
 		{
 			final AvailLiteralNode literalNode = new AvailLiteralNode();
-			literalNode.token(((AvailLiteralToken)(nextToken())));
+			literalNode.token(nextToken());
 			continuation.value(literalNode);
 			backupToken();
 		}
-		if (peekTokenIsTypeString(AvailToken.TokenType.operator, "&"))
+		if (peekTokenIsTypeString(TokenType.OPERATOR, "&"))
 		{
 			nextToken();
 			parseVariableUseWithExplanationThen("in reference expression", new Continuation1<AvailVariableUseNode> ()
@@ -1646,7 +1651,7 @@ public class AvailCompiler
 						public void value(final AvailLabelNode label)
 						{
 							parseTokenTypeStringErrorContinue(
-								AvailToken.TokenType.endOfStatement,
+								TokenType.END_OF_STATEMENT,
 								";",
 								"; to end label statement",
 								new Continuation0 ()
@@ -1666,7 +1671,7 @@ public class AvailCompiler
 					public void value(final AvailVariableDeclarationNode declaration)
 					{
 						parseTokenTypeStringErrorContinue(
-							AvailToken.TokenType.endOfStatement,
+							TokenType.END_OF_STATEMENT,
 							";",
 							"; to end declaration statement",
 							new Continuation0 ()
@@ -1685,7 +1690,7 @@ public class AvailCompiler
 					public void value(final AvailAssignmentNode assignment)
 					{
 						parseTokenTypeStringErrorContinue(
-							AvailToken.TokenType.endOfStatement,
+							TokenType.END_OF_STATEMENT,
 							";",
 							"; to end assignment statement",
 							new Continuation0 ()
@@ -1704,7 +1709,7 @@ public class AvailCompiler
 					public void value(final AvailParseNode expr)
 					{
 						parseTokenTypeStringErrorContinue(
-							AvailToken.TokenType.endOfStatement,
+							TokenType.END_OF_STATEMENT,
 							";",
 							"; to end statement",
 							new Continuation0 ()
@@ -1810,79 +1815,96 @@ public class AvailCompiler
 		scopeStack = oldScope;
 	}
 
+	/**
+	 * Parse a string literal.  Answer the Avail {@link ByteStringDescriptor
+	 * string} itself if found, otherwise answer null.
+	 * 
+	 * @return The actual Avail {@link ByteStringDescriptor string} or null.
+	 */
 	AvailObject parseStringLiteral ()
 	{
-		//  Parse a string literal.  Report an error if one isn't present.
-
-		final AvailToken token = peekToken();
-		final AvailObject stringObject = token.stringLiteralOrNil();
-		if (stringObject == null)
+		final AvailObject token = peekToken();
+		if (!(token.descriptor() instanceof LiteralTokenDescriptor))
 		{
-			error("expected string literal");
-			return VoidDescriptor.voidObject();
+			return null;
+		}
+		final AvailObject stringObject = token.literal();
+		if (!stringObject.isString())
+		{
+			return null;
 		}
 		nextToken();
 		return stringObject;
 	}
 
+	/**
+	 * Parse one or more string literals separated by commas.  This parse isn't
+	 * backtracking like the rest of the grammar - it's greedy.  It considers a
+	 * comma followed by something other than a string literal to be an
+	 * unrecoverable parsing error (not a backtrack).
+	 * 
+	 * @return The list of {@link ByteStringDescriptor strings}.
+	 */
 	List<AvailObject> parseStrings ()
 	{
-		//  Parse one or more string literals separated by commas.  This parse isn't
-		//  backtracking like the rest of the grammar - it's greedy.  It considers a
-		//  comma followed by something other than a string literal to be an
-		//  unrecoverable parsing error (not a backtrack).
-
-		final AvailToken firstString = peekToken();
-		AvailObject stringLiteral = firstString.stringLiteralOrNil();
 		List<AvailObject> list;
 		list = new ArrayList<AvailObject>();
-		if (stringLiteral == null)
+		AvailObject string = parseStringLiteral();
+		if (string == null)
 		{
 			return list;
 		}
-		list.add(stringLiteral);
-		nextToken();
-		while (parseTokenIsTypeString(AvailToken.TokenType.operator, ",")) {
-			stringLiteral = peekToken().stringLiteralOrNil();
-			if (stringLiteral == null)
+		list.add(string);
+		while (parseTokenIsTypeString(TokenType.OPERATOR, ",")) {
+			string = parseStringLiteral();
+			if (string == null)
 			{
 				error("Problem parsing literal strings");
 				return null;
 			}
-			list.add(stringLiteral);
-			nextToken();
+			list.add(string);
 		}
 		return list;
 	}
 
+	/**
+	 * Parse one or more string literals separated by commas.  This parse isn't
+	 * like the rest of the grammar - it's greedy.  It considers a comma
+	 * followed by something other than a string literal to be an unrecoverable
+	 * parsing error (not a backtrack).
+	 * 
+	 * @param continuation What to do after parsing the strings.
+	 */
 	void parseStringsThen (
 			final Continuation1<List<AvailObject>> continuation)
 	{
-		//  Parse one or more string literals separated by commas.  This parse isn't
-		//  like the rest of the grammar - it's greedy.  It considers a comma followed
-		//  by something other than a string literal to be an unrecoverable parsing
-		//  error (not a backtrack).
-
 		final int where = position();
 		final List<AvailObject> strings = parseStrings();
 		continuation.value(strings);
 		position(where);
 	}
 
+	/**
+	 * Parse the use of a variable.
+	 * 
+	 * @param explanation The string explaining why we were parsing a use of a
+	 *                    variable.
+	 * @param continuation What to do after parsing the variable use.
+	 */
 	private void parseVariableUseWithExplanationThen (
-			final String exp,
+			final String explanation,
 			final Continuation1<? super AvailVariableUseNode> continuation)
 	{
-		//  Parse the use of a variable.
 
-		if (peekToken().type() != AvailToken.TokenType.keyword)
+		if (peekToken().tokenType() != TokenType.KEYWORD)
 		{
 			return;
 		}
-		final AvailToken token = nextToken();
-		assert (token.type() == AvailToken.TokenType.keyword) : "Supposed to be a keyword here";
+		final AvailObject token = nextToken();
+		assert (token.tokenType() == TokenType.KEYWORD) : "Supposed to be a keyword here";
 		//  First check if it's in a block scope...
-		final AvailVariableDeclarationNode localDecl = lookupDeclaration(token.string());
+		final AvailVariableDeclarationNode localDecl = lookupDeclaration(
+			token.string());
 		if (localDecl != null)
 		{
 			AvailVariableUseNode varUse = new AvailVariableUseNode();
@@ -1893,7 +1915,7 @@ public class AvailCompiler
 			return;
 		}
 		//  Not in a block scope.  See if it's a module variable or module constant...
-		final AvailObject varName = ByteStringDescriptor.mutableObjectFromNativeString(token.string());
+		final AvailObject varName = token.string();
 		if (module.variableBindings().hasKey(varName))
 		{
 			final AvailObject variableObject = module.variableBindings().mapAt(varName);
@@ -1929,7 +1951,7 @@ public class AvailCompiler
 			@Override
 			public String value()
 			{
-				return "variable \"" + token.string() + "\" to have been declared before use " + exp;
+				return "variable \"" + token.string() + "\" to have been declared before use " + explanation;
 			}
 		});
 		backupToken();
@@ -1953,7 +1975,7 @@ public class AvailCompiler
 		exportedNames = new ArrayList<AvailObject>();
 		ok.value = false;
 		parseTokenTypeStringErrorContinue(
-			AvailToken.TokenType.keyword,
+			TokenType.KEYWORD,
 			"Module",
 			"initial Module keyword",
 			new Continuation0 ()
@@ -1963,6 +1985,7 @@ public class AvailCompiler
 				{
 					final int savePosition = position();
 					final AvailObject localName = parseStringLiteral();
+					assert localName != null : "Expected string literal";
 					final String nativeLocalName = localName.asNativeString();
 					expected(
 						"declared local module name to agree with "
@@ -1975,7 +1998,7 @@ public class AvailCompiler
 					module.name(
 						ByteStringDescriptor.mutableObjectFromNativeString(
 							qualifiedName.qualifiedName()));
-					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
+					if (parseTokenIsTypeString(TokenType.KEYWORD, "Pragma"))
 					{
 						for (final AvailObject pragmaString : parseStrings())
 						{
@@ -2000,7 +2023,7 @@ public class AvailCompiler
 						}
 					}
 					parseTokenTypeStringErrorContinue(
-						AvailToken.TokenType.keyword,
+						TokenType.KEYWORD,
 						"Extends",
 						"Extends keyword",
 						new Continuation0 ()
@@ -2015,7 +2038,7 @@ public class AvailCompiler
 									{
 										extendedModules = extendsStrings;
 										parseTokenTypeStringErrorContinue(
-											AvailToken.TokenType.keyword,
+											TokenType.KEYWORD,
 											"Uses",
 											"Uses keyword",
 											new Continuation0 ()
@@ -2030,7 +2053,7 @@ public class AvailCompiler
 														{
 															usedModules = usesStrings;
 															parseTokenTypeStringErrorContinue(
-																AvailToken.TokenType.keyword,
+																TokenType.KEYWORD,
 																"Names",
 																"Names keyword",
 																new Continuation0 ()
@@ -2045,7 +2068,7 @@ public class AvailCompiler
 																			{
 																				exportedNames = namesStrings;
 																				parseTokenTypeStringErrorContinue(
-																					AvailToken.TokenType.keyword,
+																					TokenType.KEYWORD,
 																					"Body",
 																					"Body keyword",
 																					new Continuation0 ()
@@ -2082,7 +2105,7 @@ public class AvailCompiler
 
 	/**
 	 * Parse the header of the module up to the <em>Names</em> token (inclusive)
-	 * from the (truncated) {@linkplain AvailToken token} stream. Populate
+	 * from the (truncated) {@linkplain TokenDescriptor token} stream. Populate
 	 * {@link #extendedModules} and {@link #usedModules}.
 	 *
 	 * @param qualifiedName
@@ -2103,7 +2126,7 @@ public class AvailCompiler
 		exportedNames = new ArrayList<AvailObject>();
 		ok.value = false;
 		parseTokenTypeStringErrorContinue(
-			AvailToken.TokenType.keyword,
+			TokenType.KEYWORD,
 			"Module",
 			"initial Module keyword",
 			new Continuation0 ()
@@ -2113,6 +2136,7 @@ public class AvailCompiler
 				{
 					final int savePosition = position();
 					final AvailObject localName = parseStringLiteral();
+					assert localName != null : "Expected string literal";
 					final String nativeLocalName = localName.asNativeString();
 					expected(
 						"declared local module name to agree with "
@@ -2122,12 +2146,12 @@ public class AvailCompiler
 						position(savePosition);
 						return;
 					}
-					if (parseTokenIsTypeString(AvailToken.TokenType.keyword, "Pragma"))
+					if (parseTokenIsTypeString(TokenType.KEYWORD, "Pragma"))
 					{
 						parseStrings();
 					}
 					parseTokenTypeStringErrorContinue(
-						AvailToken.TokenType.keyword,
+						TokenType.KEYWORD,
 						"Extends",
 						"Extends keyword",
 						new Continuation0 ()
@@ -2142,7 +2166,7 @@ public class AvailCompiler
 									{
 										extendedModules = extendsStrings;
 										parseTokenTypeStringErrorContinue(
-											AvailToken.TokenType.keyword,
+											TokenType.KEYWORD,
 											"Uses",
 											"Uses keyword",
 											new Continuation0 ()
@@ -2157,7 +2181,7 @@ public class AvailCompiler
 														{
 															usedModules = usesStrings;
 															parseTokenTypeStringErrorContinue(
-																AvailToken.TokenType.keyword,
+																TokenType.KEYWORD,
 																"Names",
 																"Names keyword",
 																new Continuation0 ()
@@ -2191,7 +2215,7 @@ public class AvailCompiler
 	/**
 	 * Parse the {@linkplain ModuleDescriptor module} with the specified
 	 * fully-qualified {@linkplain ModuleName module name} from the {@linkplain
-	 * AvailToken token} stream.
+	 * TokenDescriptor token} stream.
 	 *
 	 * @param qualifiedName
 	 *        The {@linkplain ResolvedModuleName resolved name} of the
@@ -2223,7 +2247,7 @@ public class AvailCompiler
 		{
 			progressBlock.value(
 				qualifiedName,
-				peekToken().start(),
+				(long) peekToken().start(),
 				sourceLength);
 		}
 		for (final AvailObject modName : extendedModules)
@@ -2293,7 +2317,7 @@ public class AvailCompiler
 		module.buildFilteredBundleTreeFrom(
 			interpreter.runtime().rootBundleTree());
 		fragmentCache = new AvailCompilerFragmentCache();
-		while (peekToken().type() != AvailToken.TokenType.end)
+		while (peekToken().tokenType() != TokenType.END_OF_FILE)
 		{
 			greatestGuess = 0;
 			greatExpectations = new ArrayList<Generator<String>>();
@@ -2331,7 +2355,7 @@ public class AvailCompiler
 				backupToken();
 				progressBlock.value(
 					qualifiedName,
-					(nextToken().start() + 2),
+					(long) (nextToken().start() + 2),
 					sourceLength);
 			}
 		}
@@ -2340,15 +2364,19 @@ public class AvailCompiler
 
 
 
-	// private - parsing utilities
-
+	/**
+	 * A statement was parsed correctly in two different ways (there may be more
+	 * ways, but we stop after two as it's already an error).
+	 * 
+	 * @param interpretation1 The first interpretation as a
+	 *                        {@link AvailParseNode}.
+	 * @param interpretation2 The second interpretation as a
+	 *                        {@link AvailParseNode}.
+	 */
 	private void ambiguousInterpretationsAnd (
 			final AvailParseNode interpretation1,
 			final AvailParseNode interpretation2)
 	{
-		//  A statement was parsed correctly in two different ways (there may be more ways,
-		//  but we stop after two as it's already an error).
-
 		expected(new Generator<String> ()
 		{
 			@Override
@@ -2366,11 +2394,19 @@ public class AvailCompiler
 		});
 	}
 
+	/**
+	 * Answer whether we're at the end of the token stream.
+	 * 
+	 * @return True if we've read to the end of the tokens.
+	 */
 	private boolean atEnd ()
 	{
 		return (position == tokens.size());
 	}
 
+	/**
+	 * Step one token backwards.
+	 */
 	void backupToken ()
 	{
 		if (position == 0)
@@ -2381,23 +2417,40 @@ public class AvailCompiler
 		position--;
 	}
 
+	/**
+	 * Record an expectation at the current parse position.  The expectations
+	 * captured at the rightmost parse position constitute the error message in
+	 * case the parse fails.
+	 * <p>
+	 * The expectation is a {@link Generator Generator<String>}, in case
+	 * constructing a {@link String} would be prohibitive.  There is also
+	 * {@link #expected(String) another} version of this method that accepts a
+	 * String directly.
+	 * 
+	 * @param stringGenerator The {@code Generator<String>} to capture.
+	 */
 	void expected (
-			final Generator<String> stringBlock)
+			final Generator<String> stringGenerator)
 	{
 		// System.out.println(Integer.toString(position) + " expected " + stringBlock.value());
-		if ((position() == greatestGuess))
+		if (position() == greatestGuess)
 		{
-			greatExpectations.add(stringBlock);
+			greatExpectations.add(stringGenerator);
 		}
-		if ((position() > greatestGuess))
+		if (position() > greatestGuess)
 		{
 			greatestGuess = position();
 			greatExpectations = new ArrayList<Generator<String>>(2);
-			greatExpectations.add(stringBlock);
+			greatExpectations.add(stringGenerator);
 		}
 	}
 
-	AvailToken nextToken ()
+	/**
+	 * Return and consume the next {@link TokenDescriptor token}.
+	 * 
+	 * @return The consumed token.
+	 */
+	AvailObject nextToken ()
 	{
 		assert !atEnd();
 		// System.out.println(Integer.toString(position) + " next = " + tokens.get(position));
@@ -2405,12 +2458,21 @@ public class AvailCompiler
 		return tokens.get(position - 1);
 	}
 
+	/**
+	 * If the next token has the specified type and content then consume it and
+	 * return true, otherwise leave the position unchanged and return false.
+	 *  
+	 * @param tokenType The {@link TokenType type} of token to look for.
+	 * @param string The exact token content to look for.
+	 * @return Whether the specified token was found and consumed.
+	 */
 	boolean parseTokenIsTypeString (
-			final AvailToken.TokenType tokenType,
+			final TokenType tokenType,
 			final String string)
 	{
-		final AvailToken token = peekToken();
-		if (((token.type() == tokenType) && token.string().equals(string)))
+		final AvailObject token = peekToken();
+		if (token.tokenType() == tokenType
+				&& token.string().asNativeString().equals(string))
 		{
 			nextToken();
 			return true;
@@ -2418,15 +2480,25 @@ public class AvailCompiler
 		return false;
 	}
 
+	/**
+	 * Parse a token with the specified type and content, then invoke the
+	 * continuation.  If the current token does not have the specified type and
+	 * content then do nothing.
+	 * 
+	 * @param tokenType The {@link TokenType type} of token to look for.
+	 * @param string The exact token content to look for.
+	 * @param continuationNoArgs What to do if the token was found and consumed.
+	 */
 	void parseTokenTypeStringContinue (
-			final AvailToken.TokenType tokenType,
+			final TokenType tokenType,
 			final String string,
 			final Continuation0 continuationNoArgs)
 	{
 		final int where = position();
 		final AvailCompilerScopeStack oldScope = scopeStack;
-		final AvailToken token = peekToken();
-		if (((token.type() == tokenType) && token.string().equals(string)))
+		final AvailObject token = peekToken();
+		if (token.tokenType() == tokenType
+				&& token.string().asNativeString().equals(string))
 		{
 			nextToken();
 			continuationNoArgs.value();
@@ -2447,8 +2519,16 @@ public class AvailCompiler
 		assert (oldScope == scopeStack);
 	}
 
+	/**
+	 * Parse a token with a specific
+	 * 
+	 * @param tokenType
+	 * @param string
+	 * @param error
+	 * @param continuationNoArgs
+	 */
 	void parseTokenTypeStringErrorContinue (
-			final AvailToken.TokenType tokenType,
+			final TokenType tokenType,
 			final String string,
 			final String error,
 			final Continuation0 continuationNoArgs)
@@ -2461,15 +2541,16 @@ public class AvailCompiler
 	}
 
 	private void parseTokenTypeStringErrorGeneratorContinue (
-			final AvailToken.TokenType tokenType,
+			final TokenType tokenType,
 			final String string,
 			final Generator<String> errorGenerator,
 			final Continuation0 continuationNoArgs)
 	{
 		final int where = position();
 		final AvailCompilerScopeStack oldScope = scopeStack;
-		final AvailToken token = peekToken();
-		if (((token.type() == tokenType) && token.string().equals(string)))
+		final AvailObject token = peekToken();
+		if (token.tokenType() == tokenType
+				&& token.string().asNativeString().equals(string))
 		{
 			nextToken();
 			continuationNoArgs.value();
@@ -2486,7 +2567,7 @@ public class AvailCompiler
 		}
 	}
 
-	AvailToken peekToken ()
+	AvailObject peekToken ()
 	{
 		assert !atEnd();
 		// System.out.println(Integer.toString(position) + " peek = " + tokens.get(position));
@@ -2494,11 +2575,12 @@ public class AvailCompiler
 	}
 
 	private boolean peekTokenIsTypeString (
-			final AvailToken.TokenType tokenType,
+			final TokenType tokenType,
 			final String string)
 	{
-		final AvailToken token = peekToken();
-		return ((token.type() == tokenType) && token.string().equals(string));
+		final AvailObject token = peekToken();
+		return ((token.tokenType() == tokenType)
+				&& token.string().asNativeString().equals(string));
 	}
 
 	int position ()
@@ -2600,7 +2682,7 @@ public class AvailCompiler
 	// scope
 
 	private AvailVariableDeclarationNode lookupDeclaration (
-			final String name)
+			final AvailObject name)
 	{
 		AvailCompilerScopeStack scope = scopeStack;
 		while (scope.name() != null) {

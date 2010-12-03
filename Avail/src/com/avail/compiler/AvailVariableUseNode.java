@@ -35,14 +35,13 @@ package com.avail.compiler;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
 import com.avail.compiler.AvailVariableDeclarationNode;
-import com.avail.compiler.scanner.AvailToken;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.List;
 
 public class AvailVariableUseNode extends AvailParseNode
 {
-	AvailToken _name;
+	AvailObject _nameToken;
 	AvailVariableDeclarationNode _associatedDeclaration;
 	boolean _isLastUse;
 
@@ -84,16 +83,15 @@ public class AvailVariableUseNode extends AvailParseNode
 		_isLastUse = aBoolean;
 	}
 
-	public AvailToken name ()
+	public AvailObject name ()
 	{
-		return _name;
+		return _nameToken;
 	}
 
 	public void name (
-			final AvailToken aToken)
+		final AvailObject aToken)
 	{
-
-		_name = aToken;
+		_nameToken = aToken;
 	}
 
 	@Override
@@ -116,7 +114,7 @@ public class AvailVariableUseNode extends AvailParseNode
 			final StringBuilder aStream,
 			final int indent)
 	{
-		aStream.append(_name.string());
+		aStream.append(_nameToken.string());
 	}
 
 

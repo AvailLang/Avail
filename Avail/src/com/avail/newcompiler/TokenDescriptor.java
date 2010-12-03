@@ -33,21 +33,47 @@
 package com.avail.newcompiler;
 
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.Descriptor;
 
 
+/**
+ * I represent a token scanned from Avail source code.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class TokenDescriptor
 extends Descriptor
 {
 
+	/**
+	 * My class's slots of type AvailObject.
+	 */
 	enum ObjectSlots
 	{
+		/**
+		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
+		 * source. 
+		 */
 		STRING
 	}
 
+	/**
+	 * My class's slots of type int.
+	 */
 	enum IntegerSlots
 	{
+		/**
+		 * The starting position in the source file.  Currently signed 32 bits,
+		 * but this will change at some point -- not that we really need to
+		 * parse 2GB of <em>Avail</em> source, with its flexible syntax.
+		 */
 		START,
+		
+		/**
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
+		 */
 		TOKEN_TYPE_CODE
 	}
 
@@ -98,21 +124,22 @@ extends Descriptor
 	 * Setter for field tokenTypeCode.
 	 */
 	@Override
-	public void o_TokenTypeCode (
+	public void o_TokenType (
 		final AvailObject object,
-		final int value)
+		final TokenDescriptor.TokenType value)
 	{
-		object.integerSlotPut(IntegerSlots.TOKEN_TYPE_CODE, value);
+		object.integerSlotPut(IntegerSlots.TOKEN_TYPE_CODE, value.ordinal());
 	}
 
 	/**
 	 * Getter for field tokenTypeCode.
 	 */
 	@Override
-	public int o_TokenTypeCode (
+	public TokenDescriptor.TokenType o_TokenType (
 		final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
+		int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
+		return TokenDescriptor.TokenType.values()[index];
 	}
 
 

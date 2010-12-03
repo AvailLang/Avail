@@ -42,3 +42,5 @@ endian
 nybble
 decompilation
 bytecode
+deprecated
+enum

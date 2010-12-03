@@ -33,31 +33,63 @@
 package com.avail.compiler;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.scanner.AvailLiteralToken;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.newcompiler.TokenDescriptor;
 
+/**
+ * I represent a literal occurring in the text of an Avail program.  At the
+ * moment I must be a positive integer, float or double, or a string.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailLiteralNode extends AvailParseNode
 {
-	AvailLiteralToken _token;
+	/**
+	 * The token I'm based on.
+	 */
+	AvailObject _token;
+	
+	/**
+	 * The actual value I enclose. 
+	 */
 	AvailObject _availValue;
+	
+	/**
+	 * The {@link TypeDescriptor type} of the value I enclose.
+	 */
 	AvailObject _availType;
 
 
-	// accessing
-
+	/**
+	 * Answer the literal value I hold.
+	 * 
+	 * @return The literal's value.
+	 */
 	public AvailObject availValue ()
 	{
 		assert _availValue != null;
 		return _availValue;
 	}
 
-	public AvailLiteralToken token ()
+	/**
+	 * Answer the token I'm based on.
+	 * 
+	 * @return The {@link TokenDescriptor token}.
+	 */
+	public AvailObject token ()
 	{
 		return _token;
 	}
 
+	
+	/**
+	 * Set the token I'm based on.
+	 * 
+	 * @param aToken The {@link TokenDescriptor token}.
+	 */
 	public void token (
-			final AvailLiteralToken aToken)
+			final AvailObject aToken)
 	{
 		_token = aToken;
 		_availValue = _token.literal();
@@ -65,6 +97,7 @@ public class AvailLiteralNode extends AvailParseNode
 		_availType = null;
 	}
 
+	
 	@Override
 	public AvailObject type ()
 	{
@@ -77,9 +110,6 @@ public class AvailLiteralNode extends AvailParseNode
 	}
 
 
-
-	// code generation
-
 	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
@@ -88,9 +118,6 @@ public class AvailLiteralNode extends AvailParseNode
 		codeGenerator.emitPushLiteral(_availValue);
 	}
 
-
-
-	// java printing
 
 	@Override
 	public void printOnIndent (
@@ -101,17 +128,10 @@ public class AvailLiteralNode extends AvailParseNode
 	}
 
 
-
-	// testing
-
 	@Override
 	public boolean isLiteralNode ()
 	{
 		return true;
 	}
-
-
-
-
 
 }

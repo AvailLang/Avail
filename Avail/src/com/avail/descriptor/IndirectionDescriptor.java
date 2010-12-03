@@ -39,6 +39,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
+import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 public class IndirectionDescriptor extends AbstractDescriptor
@@ -2605,9 +2606,11 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_TokenTypeCode (AvailObject object, int value)
+	public void o_TokenType (
+		AvailObject object,
+		TokenDescriptor.TokenType value)
 	{
-		o_Traversed(object).tokenTypeCode(value);
+		o_Traversed(object).tokenType(value);
 	}
 
 	@Override
@@ -4404,9 +4407,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	 }
 
 	 @Override
-	 public int o_TokenTypeCode (AvailObject object)
+	 public TokenDescriptor.TokenType o_TokenType (AvailObject object)
 	 {
-		 return o_Traversed(object).tokenTypeCode();
+		 return o_Traversed(object).tokenType();
 	 }
 
 	 @Override

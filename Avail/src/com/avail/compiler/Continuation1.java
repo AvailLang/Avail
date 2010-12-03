@@ -34,7 +34,19 @@ package com.avail.compiler;
 
 import com.avail.compiler.Continuation1;
 
-public interface Continuation1 <X>
+/**
+ * Implementors of {@code Continuation3} provide a single arbitrary operation
+ * that accepts one argument.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @param <X> The type of the argument.
+ */
+public interface Continuation1<X>
 {
+	/**
+	 * Perform the operation.
+	 *
+	 * @param arg The first argument.
+	 */
 	public void value (X arg);
 }

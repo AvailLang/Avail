@@ -40,6 +40,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
+import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailBeImmutableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -3979,9 +3980,9 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public void o_TokenTypeCode (
+	public void o_TokenType (
 		final AvailObject object,
-		final int value)
+		final TokenDescriptor.TokenType value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -7002,13 +7003,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_TokenTypeCode (
+	public TokenDescriptor.TokenType o_TokenType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_TokenTypeCode:", object);
-		return 0;
+		return null;
 	}
 
 	/**

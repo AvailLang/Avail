@@ -33,25 +33,57 @@
 package com.avail.newcompiler;
 
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.Descriptor;
+import com.avail.newcompiler.TokenDescriptor.TokenType;
 
 /**
- * TODO: Document this type!
+ * I represent a token that's a literal representation of some object.
+ * <p>
+ * In addition to the state inherited from {@link TokenDescriptor}, I add a
+ * field to hold the literal value itself.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class LiteralTokenDescriptor
 extends TokenDescriptor
 {
+	/**
+	 * My slots of type {@link AvailObject}.  Note that they have to start the
+	 * same as in my superclass {@link TokenDescriptor}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
 	enum ObjectSlots
 	{
+		/**
+		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
+		 * source. 
+		 */
 		STRING,
+		
+		/**
+		 * The actual {@link AvailObject} wrapped by this token.
+		 */
 		LITERAL
 	}
 
+	/**
+	 * My class's slots of type int.
+	 */
 	enum IntegerSlots
 	{
+		/**
+		 * The starting position in the source file.  Currently signed 32 bits,
+		 * but this will change at some point -- not that we really need to
+		 * parse 2GB of <em>Avail</em> source, with its flexible syntax.
+		 */
 		START,
+		
+		/**
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
+		 */
 		TOKEN_TYPE_CODE
 	}
 

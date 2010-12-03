@@ -39,6 +39,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
+import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -1237,7 +1238,30 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * This comparison operation takes an {@link Object} as its argument to
+	 * avoid accidentally calling this with, say, a {@link String} literal.
+	 * We mark it as deprecated to ensure we don't accidentally invoke
+	 * this method when we really mean the version that takes an {@code
+	 * AvailObject} as an argument.  That's a convenient warning for the
+	 * programmer, but we also fail if this method actually gets invoked AND
+	 * the argument is not an {@code AvailObject}.  We have to still allow this
+	 * to run for things like looking up an {@code AvailObject} in a {@code
+	 * List}, but we can fail fast if we discover the receiver is being compared
+	 * to something other than an {@code AvailObject}.
+	 */
+	@Override
+	@Deprecated
+	public boolean equals (
+		final Object another)
+	{
+		assert another instanceof AvailObject;
+		return descriptor().o_Equals(this, (AvailObject)another);
+	}
+
+	/**
+	 * Dispatch to the descriptor.  Note that its argument is of type {@link
+	 * Object} to ensure we don't accidentally invoke the version defined in
+	 * {@code Object}.
 	 */
 	public boolean equals (
 		final AvailObject another)
@@ -4443,18 +4467,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int tokenTypeCode ()
+	public TokenDescriptor.TokenType tokenType ()
 	{
-		return descriptor().o_TokenTypeCode(this);
+		return descriptor().o_TokenType(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void tokenTypeCode (
-		final int value)
+	public void tokenType (
+		final TokenDescriptor.TokenType value)
 	{
-		descriptor().o_TokenTypeCode(this, value);
+		descriptor().o_TokenType(this, value);
 	}
 
 	/**

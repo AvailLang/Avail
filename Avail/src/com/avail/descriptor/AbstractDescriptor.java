@@ -40,6 +40,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
+import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 /**
@@ -2291,9 +2292,9 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 * @return
 	 */
-	public abstract void o_TokenTypeCode (
+	public abstract void o_TokenType (
 		final AvailObject object,
-		final int value);
+		final TokenDescriptor.TokenType value);
 
 	/**
 	 * @param object
@@ -3704,7 +3705,8 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 */
-	public abstract int o_TokenTypeCode (final AvailObject object);
+	public abstract TokenDescriptor.TokenType o_TokenType (
+		final AvailObject object);
 
 	/**
 	 * @param object

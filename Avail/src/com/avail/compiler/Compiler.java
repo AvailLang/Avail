@@ -35,21 +35,18 @@ package com.avail.compiler;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.AvailCompilerScopeStack;
 import com.avail.compiler.Generator;
-import com.avail.compiler.scanner.AvailToken;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import java.util.List;
 
 public class Compiler
 {
-	List<AvailToken> tokens;
+	List<AvailObject> tokens;
 	int position;
-	AvailToken currentToken;
+	AvailObject currentToken;
 	List<ParserState> alternativeStates;
-
 	int greatestGuess;
 	List<Generator<String>> greatExpectations;
-
 	L2Interpreter interpreter;
 	AvailObject module;
 	AvailCompilerFragmentCache fragmentCache;
@@ -57,6 +54,7 @@ public class Compiler
 	List<AvailObject> usedModules;
 	List<AvailObject> exportedNames;
 	Continuation2<Integer, Integer> progressBlock;
+
 
 	public class AvailObjectStack
 	{
