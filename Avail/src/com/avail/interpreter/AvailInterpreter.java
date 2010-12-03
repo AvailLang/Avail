@@ -211,9 +211,10 @@ public abstract class AvailInterpreter
 			newImp, true);
 		assert methodName.isCyclicType();
 		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject messageParts = splitter.messageParts();
 		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName, messageParts);
+			methodName,
+			splitter.messageParts(),
+			splitter.instructionsTuple());
 	}
 
 	/**
@@ -269,7 +270,6 @@ public abstract class AvailInterpreter
 		assert returnsBlock.isClosure();
 
 		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject messageParts = splitter.messageParts();
 		final int numArgs = splitter.numberOfArguments();
 		assert (bodyBlock.code().numArgs() == numArgs)
 		: "Wrong number of arguments in method definition";
@@ -342,7 +342,9 @@ public abstract class AvailInterpreter
 		imps.addImplementation(newImp);
 		assert methodName.isCyclicType();
 		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName, messageParts);
+			methodName,
+			splitter.messageParts(),
+			splitter.instructionsTuple());
 	}
 
 	/**
@@ -372,7 +374,6 @@ public abstract class AvailInterpreter
 		assert returnsBlock.isClosure();
 
 		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject messageParts = splitter.messageParts();
 		final int numArgs = splitter.numberOfArguments();
 		assert (bodySignature.numArgs() == numArgs)
 		: "Wrong number of arguments in abstract method signature";
@@ -444,7 +445,9 @@ public abstract class AvailInterpreter
 		}
 		imps.addImplementation(newImp);
 		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName, messageParts);
+			methodName,
+			splitter.messageParts(),
+			splitter.instructionsTuple());
 	}
 
 	/**
@@ -466,7 +469,6 @@ public abstract class AvailInterpreter
 		illegalArgMsgs.makeImmutable();
 		//  So we can safely hold this data in the VM
 		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final AvailObject parts = splitter.messageParts();
 		final int numArgs = splitter.numberOfArguments();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
@@ -474,7 +476,9 @@ public abstract class AvailInterpreter
 		//  Fix precedence.
 		AvailObject bundle =
 			module.filteredBundleTree().includeBundleAtMessageParts(
-				methodName, parts);
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple());
 		bundle.addRestrictions(illegalArgMsgs);
 		module.atAddMessageRestrictions(methodName, illegalArgMsgs);
 	}

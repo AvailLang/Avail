@@ -49,19 +49,31 @@ import java.util.ArrayList;
 import java.util.List;
 import static java.lang.Math.*;
 
+/**
+ * An {@code ImplementationSetDescriptor implementation set} maintains all
+ * methods that have the same name.  At compile time a name is looked up and the
+ * corresponding implementation set is stored as a literal in the object code.
+ * At runtime the actual method is located within the implementation set and
+ * then invoked.  The implementation sets also keep track of bidirectional
+ * dependencies, so that a change of membership causes an immediate invalidation
+ * of optimized level two code that depends on the previous membership.
+ * 
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ImplementationSetDescriptor extends Descriptor
 {
 
+	/**
+	 * The fields that are of type {@code AvailObject}.
+	 */
 	enum ObjectSlots
 	{
-		IMPLEMENTATIONS_TUPLE,
-		TESTING_TREE,
 		DEPENDENT_CHUNKS,
-		NAME
+		IMPLEMENTATIONS_TUPLE,
+		NAME,
+		PRIVATE_TESTING_TREE
 	}
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field dependentChunks.
@@ -104,7 +116,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.TESTING_TREE, value);
+		object.objectSlotPut(ObjectSlots.PRIVATE_TESTING_TREE, value);
 	}
 
 	/**
@@ -137,14 +149,11 @@ public class ImplementationSetDescriptor extends Descriptor
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
-	/**
-	 * Getter for field privateTestingTree.
-	 */
 	@Override
 	public AvailObject o_PrivateTestingTree (
 			final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TESTING_TREE);
+		return object.objectSlot(ObjectSlots.PRIVATE_TESTING_TREE);
 	}
 
 
@@ -157,7 +166,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		{
 			return true;
 		}
-		if (e == ObjectSlots.TESTING_TREE)
+		if (e == ObjectSlots.PRIVATE_TESTING_TREE)
 		{
 			return true;
 		}
@@ -169,8 +178,6 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 
-
-	// java printing
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -185,9 +192,6 @@ public class ImplementationSetDescriptor extends Descriptor
 		aStream.append(object.name().name().asNativeString());
 	}
 
-
-
-	// operations
 
 	@Override
 	public boolean o_Equals (
@@ -283,25 +287,27 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
+	/**
+	 * Create the testing tree for computing which implementation to invoke when
+	 * given a list of arguments.  The tree is flattened into a tuple of
+	 * integers.  Testing begins with the first element of the tuple.  If it's
+	 * odd, divide by two to get the index into implementationsTuple (a zero
+	 * index indicates an ambiguous lookup).  If it's even, divide by two to get
+	 * an index into implementationsTuple, then test the list of arguments
+	 * against it.  If the arguments agree with the signature, add 2 to the
+	 * current position (to skip the test number and an offset) and continue.
+	 * If the arguments did not agree with the signature, add 2 + the value in
+	 * the next slot of the tuple to the current position, then continue.  We
+	 * use a simple one-layer MinMax algorithm to produce a reasonable testing
+	 * tree, where the choice of signature to test for is the one that minimizes
+	 * the maximum number of remaining possible solutions after a test.
+	 */
 	@Override
 	public AvailObject o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object,
 			final AvailObject positiveTuple,
 			final AvailObject possibilities)
 	{
-		//  Create the testing tree for computing which implementation to invoke when given
-		//  a list of arguments.  The tree is flattened into a tuple of integers.  Testing begins
-		//  with the first element of the tuple.  If it's odd, divide by two to get the index into
-		//  implementationsTuple (a zero index indicates an ambiguous lookup).  If it's even,
-		//  divide by two to get an index into implementationsTuple, then test the list of
-		//  arguments against it.  If the arguments agree with the signature, add 2 to the
-		//  current position (to skip the test number and an offset) and continue.  If the
-		//  arguments did not agree with the signature, add 2 + the value in the next slot of
-		//  the tuple to the current position, then continue.
-		//  We use a simple one-layer MinMax algorithm to produce a reasonable testing
-		//  tree, where the choice of signature to test for is the one that minimizes the
-		//  maximum number of remaining possible solutions after a test.
-
 		final AvailObject imps = object.implementationsTuple();
 		AvailObject result;
 		if ((possibilities.tupleSize() == 0))
@@ -473,14 +479,16 @@ public class ImplementationSetDescriptor extends Descriptor
 		return result;
 	}
 
+	/**
+	 * Look up all method implementations that could match the given argument
+	 * types.  Answer a {@link List list} of {@link
+	 * MethodSignatureDescriptor method signatures}.
+	 */
 	@Override
 	public List<AvailObject> o_FilterByTypes (
 			final AvailObject object,
 			final List<AvailObject> argTypes)
 	{
-		//  Look up all method implementations that could match the given argument types.
-		//  Answer an OrderedCollection (for now).
-
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
 		final AvailObject impsTuple = object.implementationsTuple();
@@ -495,22 +503,26 @@ public class ImplementationSetDescriptor extends Descriptor
 		return result;
 	}
 
+	/**
+	 * Look up all method implementations that could match arguments with the
+	 * given types, or anything more specific.  This should return the
+	 * implementations that could be invoked at runtime at a call site with the
+	 * given static types.  This set is subject to change as new methods and
+	 * types are created.  If an argType and the corresponding argument type of
+	 * an implementation have no possible descendant except terminates, then
+	 * disallow the implementation (it could never actually be invoked because
+	 * terminates is uninstantiable).  Answer a {@link List list} of {@link
+	 * MethodSignatureDescriptor method signatures}.
+	 * <p>
+	 * Don't do coverage analysis yet (i.e., determining if one method would
+	 * always override a strictly more abstract method).  We can do that some
+	 * other day.
+	 */
 	@Override
 	public ArrayList<AvailObject> o_ImplementationsAtOrBelow (
 			final AvailObject object,
 			final ArrayList<AvailObject> argTypes)
 	{
-		//  Look up all method implementations that could match arguments with the given types,
-		//  or anything more specific.  This should return the implementations that could be invoked
-		//  at runtime at a call site with the given static types.  This set is subject to change as new
-		//  methods and types are created.  If an argType and the corresponding argument type of
-		//  an implementation have no possible descendant except terminates, then disallow the
-		//  implementation (it could never actually be invoked because terminates is uninstantiable).
-		//  Answer an OrderedCollection (for now).
-		//
-		//  Don't do coverage analysis yet (i.e., determining if one method would always override
-		//  a strictly more abstract method).  We can do that some other day.
-
 		ArrayList<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
 		final AvailObject impsTuple = object.implementationsTuple();
@@ -525,17 +537,17 @@ public class ImplementationSetDescriptor extends Descriptor
 		return result;
 	}
 
+	/**
+	 * Test if the implementation is present.
+	 */
 	@Override
 	public boolean o_Includes (
 			final AvailObject object,
 			final AvailObject imp)
 	{
-		//  Test if the implementation is present.
-
-		final AvailObject tuple = object.implementationsTuple();
-		for (int i = 1, _end1 = tuple.tupleSize(); i <= _end1; i++)
+		for (AvailObject signature : object.implementationsTuple())
 		{
-			if (tuple.tupleAt(i).equals(imp))
+			if (signature.equals(imp))
 			{
 				return true;
 			}
@@ -543,15 +555,16 @@ public class ImplementationSetDescriptor extends Descriptor
 		return false;
 	}
 
+	/**
+	 * Look up the implementation to invoke, given an array of argument types.
+	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * a lookup error occurs).
+	 */
 	@Override
 	public AvailObject o_LookupByTypesFromArray (
 			final AvailObject object,
 			final List<AvailObject> argumentTypeArray)
 	{
-		//  Look up the implementation to invoke, given an array of argument types.
-		//  Use the testingTree to find the implementation to invoke (answer void
-		//  if a lookup error occurs).
-
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
@@ -574,17 +587,18 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
+	/**
+	 * Assume the argument types have been pushed in the continuation.  The
+	 * object at {@code stackp} is the last argument, and the object at {@code
+	 * stackp + numArgs - 1} is the first.  Use the testingTree to find the
+	 * implementation to invoke (answer void if a lookup error occurs).
+	 */
 	@Override
 	public AvailObject o_LookupByTypesFromContinuationStackp (
 			final AvailObject object,
 			final AvailObject continuation,
 			final int stackp)
 	{
-		//  Assume the argument types have been pushed in the continuation.  The object
-		//  at stackp is the last argument, and the object at stackp + numArgs - 1 is the
-		//  first.  Use the testingTree to find the implementation to invoke (answer void
-		//  if a lookup error occurs).
-
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
@@ -607,16 +621,17 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
+	/**
+	 * Look up the implementation to invoke, given an array of argument types.
+	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * a lookup error occurs).  There may be more entries in the tuple of
+	 * argument types than we need, to allow the tuple to be a reusable buffer.
+	 */
 	@Override
 	public AvailObject o_LookupByTypesFromTuple (
 			final AvailObject object,
 			final AvailObject argumentTypeTuple)
 	{
-		//  Look up the implementation to invoke, given an array of argument types.
-		//  Use the testingTree to find the implementation to invoke (answer void
-		//  if a lookup error occurs).  There may be more entries in the tuple of
-		//  argument types than we need, to allow the tuple to be a reuseable buffer.
-
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
@@ -639,15 +654,17 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
+	
+	/**
+	 * Look up the implementation to invoke, given an array of argument values.
+	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * a lookup error occurs).
+	 */
 	@Override
 	public AvailObject o_LookupByValuesFromArray (
 			final AvailObject object,
 			final List<AvailObject> argumentArray)
 	{
-		//  Look up the implementation to invoke, given an array of argument values.
-		//  Use the testingTree to find the implementation to invoke (answer void
-		//  if a lookup error occurs).
-
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
@@ -670,17 +687,18 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
+	/**
+	 * Assume the arguments have been pushed in the continuation.  The object at
+	 * {@code stackp} is the last argument, and the object at {@code stackp +
+	 * numArgs - 1} is the first.  Use the testingTree to find the
+	 * implementation to invoke (answer void if a lookup error occurs).
+	 */
 	@Override
 	public AvailObject o_LookupByValuesFromContinuationStackp (
 			final AvailObject object,
 			final AvailObject continuation,
 			final int stackp)
 	{
-		//  Assume the arguments have been pushed in the continuation.  The object at
-		//  stackp is the last argument, and the object at stackp + numArgs - 1 is the
-		//  first.  Use the testingTree to find the implementation to invoke (answer void
-		//  if a lookup error occurs).
-
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
@@ -703,17 +721,18 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
+	/**
+	 * Look up the implementation to invoke, given a tuple of argument values.
+	 * Use the testingTree to find the implementation to invoke (answer void if
+	 * a lookup error occurs).  There may be more entries in the tuple of
+	 * arguments than we're interested in (to allow the tuple to be a reusable
+	 * buffer).
+	 */
 	@Override
 	public AvailObject o_LookupByValuesFromTuple (
 			final AvailObject object,
 			final AvailObject argumentTuple)
 	{
-		//  Look up the implementation to invoke, given a tuple of argument values.
-		//  Use the testingTree to find the implementation to invoke (answer void
-		//  if a lookup error occurs).  There may be more entries in the tuple of
-		//  arguments than we're interested in (to allow the tuple to be a reuseable
-		//  buffer).
-
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
@@ -736,26 +755,29 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
+	/**
+	 * Remove the chunk from my set of dependent chunks.  This is probably
+	 * because the chunk has been (A) removed by the garbage collector, or (B)
+	 * invalidated by a new implementation in either me or another
+	 * implementation set that the chunk is contingent on.
+	 */
 	@Override
 	public void o_RemoveDependentChunkId (
 			final AvailObject object,
 			final int aChunkIndex)
 	{
-		//  Remove the chunk from my set of dependent chunks.  This is probably because
-		//  the chunk has been (A) removed by the garbage collector, or (B) invalidated by a
-		//  new implementation in either me or another implementation set that the chunk is
-		//  contingent on.
-
 		object.dependentChunks(object.dependentChunks().setWithoutElementCanDestroy(IntegerDescriptor.objectFromInt(aChunkIndex), true));
 	}
 
+	/**
+	 * Remove the implementation from me.  Causes dependent chunks to be
+	 * invalidated.
+	 */
 	@Override
 	public void o_RemoveImplementation (
 			final AvailObject object,
 			final AvailObject implementation)
 	{
-		//  Remove the implementation from me.  Causes dependent chunks to be invalidated.
-
 		object.implementationsTuple(object.implementationsTuple().asSet().setWithoutElementCanDestroy(implementation, true).asTuple());
 		final AvailObject chunks = object.dependentChunks();
 		if ((chunks.setSize() > 0))
@@ -773,6 +795,10 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
+	
+	/**
+	 * Answers the return type.  Fails if no (or >1) applicable implementation.
+	 */
 	@Override
 	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object,
@@ -780,8 +806,6 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailInterpreter anAvailInterpreter,
 			final Continuation1<Generator<String>> failBlock)
 	{
-		//  Answers the return type.  Fails if no (or >1) applicable implementation.
-
 		final Mutable<List<AvailObject>> mostSpecific = new Mutable<List<AvailObject>>();
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
@@ -891,33 +915,37 @@ public class ImplementationSetDescriptor extends Descriptor
 		return mostSpecific.value.get(0).computeReturnTypeFromArgumentTypesInterpreter(argTypes, anAvailInterpreter);
 	}
 
+	/**
+	 * Answer how many arguments my implementations require.
+	 */
 	@Override
 	public short o_NumArgs (
 			final AvailObject object)
 	{
-		//  Answer how many arguments my implementations require.
-
 		assert (object.implementationsTuple().tupleSize() >= 1);
 		return object.implementationsTuple().tupleAt(1).bodySignature().numArgs();
 	}
 
+	
+	/**
+	 * Answer the cached privateTestingTree.  If there's a voidObject in that slot,
+	 * compute the testing tree based on implementationsSet.  The tree is flattened
+	 * into a tuple of integers.  Testing begins with the first element of the
+	 * tuple.  If it's odd, divide by two to get the index into implementationsTuple
+	 * (a zero index indicates an ambiguous lookup).  If it's even, divide by two to
+	 * get an index into implementationsTuple, then test the list of arguments
+	 * against it.  If the arguments agree with the signature, add 2 to the current
+	 * position (to skip the test number and an offset) and continue.  If the
+	 * arguments did not agree with the signature, add 2 + the value in the next
+	 * slot of the tuple to the current position, then continue.  We use a simple
+	 * one-layer MinMax algorithm to produce a reasonable testing tree, where the
+	 * choice of signature to test for is the one that minimizes the maximum number
+	 * of remaining possible solutions after a test.
+	 */
 	@Override
 	public AvailObject o_TestingTree (
 			final AvailObject object)
 	{
-		//  Answer the cached privateTestingTree.  If there's a voidObject in that slot,
-		//  compute the testing tree based on implementationsSet.  The tree is flattened
-		//  into a tuple of integers.  Testing begins with the first element of the tuple.  If
-		//  it's odd, divide by two to get the index into implementationsTuple (a zero index
-		//  indicates an ambiguous lookup).  If it's even, divide by two to get an index into
-		//  implementationsTuple, then test the list of arguments against it.  If the arguments
-		//  agree with the signature, add 2 to the current position (to skip the test number
-		//  and an offset) and continue.  If the arguments did not agree with the signature,
-		//  add 2 + the value in the next slot of the tuple to the current position, then continue.
-		//  We use a simple one-layer MinMax algorithm to produce a reasonable testing
-		//  tree, where the choice of signature to test for is the one that minimizes the
-		//  maximum number of remaining possible solutions after a test.
-
 		AvailObject result = object.privateTestingTree();
 		if (!result.equalsVoid())
 		{
@@ -939,22 +967,26 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 
-
-
-
-	/* Object creation */
-	public static AvailObject newImplementationSetWithName (AvailObject methodName)
+	/**
+	 * Answer a new implementation set.  Use the passed cyclicType as its name.
+	 * An implementation set is always immutable, but its implementationsTuple,
+	 * privateTestingTree, and dependentsChunks can all be assigned to.
+	 * 
+	 * @param messageName The {@link CyclicTypeDescriptor cyclic type}
+	 *                    acting as the message name.
+	 * @return A new {@link ImplementationSetDescriptor implementation set}.
+	 */
+	public static AvailObject newImplementationSetWithName (
+		AvailObject messageName)
 	{
-		// Answer a new implementation set.  Use the passed cyclicType as its name.
-		// An implementation set is always immutable, but its implementationsTuple,
-		// privateTestingTree, and dependentsChunks can can all be assigned to.
-
-		assert methodName.isCyclicType();
-		AvailObject result = AvailObject.newIndexedDescriptor(0, mutableDescriptor());
+		assert messageName.isCyclicType();
+		AvailObject result = AvailObject.newIndexedDescriptor(
+			0,
+			mutableDescriptor());
 		result.implementationsTuple(TupleDescriptor.empty());
 		result.privateTestingTree(TupleDescriptor.empty());
 		result.dependentChunks(SetDescriptor.empty());
-		result.name(methodName);
+		result.name(messageName);
 		result.makeImmutable();
 		return result;
 	};

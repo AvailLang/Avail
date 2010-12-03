@@ -63,6 +63,33 @@ public abstract class Descriptor extends AbstractDescriptor
 		error(args);
 	}
 
+	enum FakeObjectSlotsForScanning {
+		ALL_OBJECT_SLOTS_
+	}
+
+
+	/**
+	 * Visit all of the object's object slots, passing the parent and child
+	 * objects to the provided visitor.
+	 * 
+	 * @param object The object to scan.
+	 * @param visitor The visitor to invoke.
+	 */
+	@Override
+	public void o_ScanSubobjects (
+		final AvailObject object,
+		final AvailSubobjectVisitor visitor)
+	{
+		for (int i = object.objectSlotsCount(); i >= 1; i--)
+		{
+			AvailObject child = object.objectSlotAt(
+				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
+				i);
+			visitor.invoke(object, child);
+		}
+	}
+
+
 	@Override
 	public boolean o_AcceptsArgTypesFromClosureType (
 		final AvailObject object,
@@ -1597,13 +1624,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @param object
 	 * @param message
 	 * @param parts
+	 * @param instructions
 	 * @return
 	 */
 	@Override
 	public AvailObject o_IncludeBundleAtMessageParts (
 		final AvailObject object,
 		final AvailObject message,
-		final AvailObject parts)
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -8446,30 +8475,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 
 
-	enum FakeObjectSlotsForScanning {allObjectSlots_};
-
-
-	/**
-	 * Visit all of the object's object slots, passing the parent and child
-	 * objects to the provided visitor.
-	 * 
-	 * @param object The object to scan.
-	 * @param visitor The visitor to invoke.
-	 */
-	@Override
-	public void o_ScanSubobjects (
-		final AvailObject object,
-		final AvailSubobjectVisitor visitor)
-	{
-		for (int i = object.objectSlotsCount(); i >= 1; i--)
-		{
-			AvailObject child = object.objectSlotAt(
-				FakeObjectSlotsForScanning.allObjectSlots_,
-				i);
-			visitor.invoke(object, child);
-		}
-	}
-
 	/**
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
 	 * elements of the {@linkplain AvailObject object} with a Java
@@ -8493,4 +8498,29 @@ public abstract class Descriptor extends AbstractDescriptor
 			object);
 		return null;
 		}
+
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	@Override
+	public void o_ParsingInstructions (
+		AvailObject object,
+		AvailObject instructionsTuple)
+	{
+		subclassResponsibility("o_ParsingInstructions", object);
+	}
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	@Override
+	public AvailObject o_ParsingInstructions (AvailObject object)
+	{
+		subclassResponsibility("o_ParsingInstructions", object);
+		return null;
+	}
+
 }

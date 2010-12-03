@@ -66,7 +66,8 @@ extends Descriptor
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,
 		 * but this will change at some point -- not that we really need to
-		 * parse 2GB of <em>Avail</em> source, with its flexible syntax.
+		 * parse 2GB of <em>Avail</em> source in one file, due to its deeply
+		 * flexible syntax.
 		 */
 		START,
 		

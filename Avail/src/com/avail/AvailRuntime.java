@@ -253,14 +253,18 @@ public final class AvailRuntime
 			{
 				assert name.isCyclicType();
 				MessageSplitter splitter = new MessageSplitter(name.name());
-				final AvailObject messageParts =
-					splitter.messageParts();
+				final AvailObject messageParts = splitter.messageParts();
+				final AvailObject instructions = splitter.instructionsTuple();
 				final AvailObject rootBundle =
 					rootBundleTree.includeBundleAtMessageParts(
-						name, messageParts);
+						name,
+						messageParts,
+						instructions);
 				final AvailObject bundle =
 					aModule.filteredBundleTree().includeBundleAtMessageParts(
-						name, messageParts);
+						name,
+						messageParts,
+						instructions);
 				rootBundle.addRestrictions(bundle.restrictions());
 			}
 

@@ -59,13 +59,491 @@ public abstract class AvailObject
 implements Iterable<AvailObject>
 {
 	/**
-	 * Obsolete -- was used by the garbage collector in the Smalltalk version.
-	 * 
-	 * The object is in FromSpace.  If its slotsSize is >= 32768, it represents
-	 * a forwarding pointer into ToSpace (and the pointer is in the first slot).
-	 * Otherwise, save the object as described in GCReadBarrierDescriptor.
+	 * Recursively print the {@linkplain AvailObject receiver} to the {@link
+	 * StringBuilder} unless it is already present in the {@linkplain List
+	 * recursion list}. Printing will begin at the specified indent level,
+	 * measured in horizontal tab characters.
+	 *
+	 * <p>This operation exists primarily to provide useful representations of
+	 * {@code AvailObject}s for Java-side debugging.</p>
+	 *
+	 * @param builder A {@link StringBuilder}.
+	 * @param recursionList A {@linkplain List list} containing {@link
+	 *                      AvailObject}s already visited during the recursive
+	 *                      print.
+	 * @param indent The indent level, in horizontal tabs, at which the {@link
+	 *               AvailObject} should be printed.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	abstract public AvailObject saveOrForward ();
+	abstract public void printOnAvoidingIndent (
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent);
+
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder(100);
+		final List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
+		try
+		{
+			printOnAvoidingIndent(stringBuilder, recursionList, 1);
+		}
+		catch (final Throwable e)
+		{
+			stringBuilder.insert(
+				0, "EXCEPTION while printing: " + e.toString() + "\n");
+		}
+		assert recursionList.size() == 0;
+		return stringBuilder.toString();
+	}
+
+
+
+
+	// message redirection - translate
+
+	public boolean greaterThan (
+		final AvailObject another)
+	{
+		//  Translate >= into an inverted lessThan:.  This manual method simplifies renaming rules
+		//  greatly, and avoids the need for an Object:greaterThan: in the Descriptors.
+
+		// Reverse the arguments and dispatch to the argument's descriptor.
+		return another.descriptor().o_LessThan(another, this);
+	}
+
+	public boolean greaterOrEqual (
+		final AvailObject another)
+	{
+		//  Translate >= into an inverted lessOrEqual:.  This manual method simplifies renaming rules
+		//  greatly, and avoids the need for an Object:greaterOrEqual: in the Descriptors.
+
+		// Reverse the arguments and dispatch to the argument's descriptor.
+		return another.descriptor().o_LessOrEqual(another, this);
+	}
+
+
+
+	// primitive accessing
+
+	public void assertObjectUnreachableIfMutable ()
+	{
+		//  Set up the object to report nice obvious errors if anyone ever accesses it again.
+
+		assertObjectUnreachableIfMutableExcept(VoidDescriptor.voidObject());
+	}
+
+	public void assertObjectUnreachableIfMutableExcept (
+		final AvailObject exceptMe)
+	{
+		// Set up the object to report nice obvious errors if anyone ever
+		// accesses it again.
+
+		checkValidAddress();
+		if (!descriptor().isMutable())
+		{
+			return;
+		}
+		if (!CanDestroyObjects)
+		{
+			error("Don't invoke this if destructions are disallowed");
+		}
+		if (sameAddressAs(exceptMe))
+		{
+			error("What happened?  This object is also the excluded one.");
+		}
+
+		// Recursively invoke the iterator on the subobjects of self...
+		AvailSubobjectVisitor vis = new AvailMarkUnreachableSubobjectVisitor(exceptMe);
+		scanSubobjects(vis);
+		setToInvalidDescriptor();
+		return;
+	}
+
+	/**
+	 * Turn me into an indirection to anotherObject.  WARNING: This alters my
+	 * slots and descriptor.
+	 */
+	abstract public void becomeIndirectionTo (
+		final AvailObject anotherObject);
+
+
+	/**
+	 * Extract the byte at the given one-based byte subscript within the
+	 * specified field.  Always use little endian encoding.
+	 * 
+	 * @param e An enumeration value representing an integer field.
+	 * @param byteSubscript Which byte to extract.
+	 * @return The unsigned byte as a short.
+	 */
+	abstract public short byteSlotAt (
+		final Enum<?> e,
+		final int byteSubscript);
+
+
+	/**
+	 * Replace the byte at the given one-based byte subscript within the
+	 * specified field.  Always use little endian encoding.
+	 * 
+	 * @param e An enumeration value representing an integer field.
+	 * @param byteSubscript Which byte to extract.
+	 * @param aByte The unsigned byte to write, passed as a short.
+	 */
+	abstract public void byteSlotAtPut (
+		final Enum<?> e,
+		final int byteSubscript,
+		final short aByte);
+
+
+	/**
+	 * Sanity check the object's address.  Fail if it's outside all the current
+	 * pages.  Does nothing for AvailObjectUsingArrays.
+	 */
+	abstract public void checkValidAddress ();
+
+
+	public void checkWriteForField (
+		final Enum<?> e)
+	{
+		descriptor().checkWriteForField(e);
+	}
+
+
+	abstract public AbstractDescriptor descriptor ();
+
+
+	abstract public void descriptor (
+		final AbstractDescriptor aDescriptor);
+
+
+	abstract public short descriptorId ();
+
+
+	abstract public void descriptorId (
+		final short anInteger);
+
+
+	abstract public int integerSlotsCount ();
+
+
+
+	/**
+	 * Extract the (signed 32-bit) integer for the given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return An int extracted from this AvailObject.
+	 */
+	abstract public int integerSlot (
+		final Enum<?> e);
+
+
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anInteger An int to store in the indicated slot of the receiver.
+	 */
+	abstract public void integerSlotPut (
+		final Enum<?> e,
+		final int anInteger);
+
+
+	/**
+	 * Extract the (signed 32-bit) integer at the given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return An int extracted from this AvailObject.
+	 */
+	abstract public int integerSlotAt (
+		final Enum<?> e,
+		final int subscript);
+
+
+	/**
+	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * given field enum value.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anInteger An int to store in the indicated slot of the receiver.
+	 */
+	abstract public void integerSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final int anInteger);
+
+
+	abstract public int objectSlotsCount ();
+
+
+
+	/**
+	 * Store the AvailObject in the receiver at the given byte-index.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return The AvailObject found at the specified slot in the receiver.
+	 */
+	abstract public AvailObject objectSlot (
+		final Enum<?> e);
+
+
+	/**
+	 * Store the AvailObject in the specified slot of the receiver.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anAvailObject The AvailObject to store at the specified slot.
+	 */
+	abstract public void objectSlotPut (
+		final Enum<?> e,
+		final AvailObject anAvailObject);
+
+
+	/**
+	 * Extract the AvailObject at the specified slot of the receiver.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return The AvailObject found at the specified slot in the receiver.
+	 */
+	abstract public AvailObject objectSlotAt (
+		final Enum<?> e,
+		final int subscript);
+
+
+	/**
+	 * Store the AvailObject in the specified slot of the receiver.
+	 * 
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The AvailObject to store at the specified slot.
+	 */
+	abstract public void objectSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final AvailObject anAvailObject);
+
+
+
+	public boolean isDestroyed ()
+	{
+		checkValidAddress();
+		return descriptorId() == FillerDescriptor.mutableDescriptor().id();
+	}
+
+
+
+	/**
+	 * Answer whether the objects occupy the same memory addresses.
+	 * 
+	 * @param anotherObject The object to compare the receiver's address to.
+	 * @return Whether the objects occupy the same storage.
+	 */
+	abstract public boolean sameAddressAs (
+		final AvailObject anotherObject);
+
+
+	/**
+	 * Replace my descriptor field with a FillerDescriptor.  This blows up for
+	 * most messages, catching incorrect (all, by definition) further
+	 * accidental uses of this object.
+	 */
+	public void setToInvalidDescriptor ()
+	{
+		verifyToSpaceAddress();
+		descriptor(FillerDescriptor.mutableDescriptor());
+	}
+
+
+	/**
+	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
+	 * 
+	 * @param INDEX The index in bytes (must be even).
+	 * @return The short found at the given byte-index.
+	 */
+	abstract public short shortSlotAt (
+		final Enum<?> e,
+		final int shortIndex);
+
+	/**
+	 * Store the (16-bit signed) short at the given byte-index of the receiver.
+	 * 
+	 * @param INDEX The index in bytes (must be even).
+	 * @param aShort The short to store at the given byte-index.
+	 */
+	abstract public void shortSlotAtPut (
+		final Enum<?> e,
+		final int shortIndex,
+		final short aShort);
+
+
+	/**
+	 * Slice the current object into two objects, the left one (at the same
+	 * starting address as the input), and the right one (a Filler object that
+	 * nobody should ever create a pointer to).  The new Filler can have zero
+	 * post-header slots (i.e., just the header), but the left object must not,
+	 * since it may turn into an Indirection some day and will require at least
+	 * one slot for the target pointer.
+	 * 
+	 * @param newSlotsCount The number of slots in the left object.
+	 */
+	abstract public void truncateWithFillerForNewIntegerSlotsCount (
+		final int newSlotsCount);
+
+
+	/**
+	 * Slice the current object into two parts, one of which is a Filler object
+	 * and is never referred to directly (so doesn't need any slots for becoming
+	 * an indirection).
+	 */
+	abstract public void truncateWithFillerForNewObjectSlotsCount (
+		final int newSlotsCount);
+
+
+	/**
+	 * Check that my address is a valid pointer to FromSpace.
+	 */
+	abstract public void verifyFromSpaceAddress ();
+
+
+	/**
+	 * Check that my address is a valid pointer to ToSpace.
+	 */
+	abstract public void verifyToSpaceAddress ();
+
+
+
+	// special methods
+
+	public int hash ()
+	{
+		//  Object also implements hash.
+
+		return descriptor().o_Hash(this);
+	}
+
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void hash (
+		final int value)
+	{
+		descriptor().o_Hash(this, value);
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		//  Implemented so Java can use AvailObjects in Sets and Maps.
+
+		return descriptor().o_Hash(this);
+	}
+
+
+
+	public static void clearAllWellKnownObjects ()
+	{
+		VoidDescriptor.clearWellKnownObjects();
+		TupleDescriptor.clearWellKnownObjects();
+		BlankDescriptor.clearWellKnownObjects();
+		TypeDescriptor.clearWellKnownObjects();
+		BooleanDescriptor.clearWellKnownObjects();
+		MapDescriptor.clearWellKnownObjects();
+		CharacterDescriptor.clearWellKnownObjects();
+		SetDescriptor.clearWellKnownObjects();
+		InfinityDescriptor.clearWellKnownObjects();
+		IntegerDescriptor.clearWellKnownObjects();
+		IntegerRangeTypeDescriptor.clearWellKnownObjects();
+		L2ChunkDescriptor.clearWellKnownObjects();
+	}
+
+	public static void createAllWellKnownObjects ()
+	{
+		VoidDescriptor.createWellKnownObjects();
+		TupleDescriptor.createWellKnownObjects();
+		BlankDescriptor.createWellKnownObjects();
+		TypeDescriptor.createWellKnownObjects();
+		BooleanDescriptor.createWellKnownObjects();
+		MapDescriptor.createWellKnownObjects();
+		CharacterDescriptor.createWellKnownObjects();
+		SetDescriptor.createWellKnownObjects();
+		InfinityDescriptor.createWellKnownObjects();
+		IntegerDescriptor.createWellKnownObjects();
+		IntegerRangeTypeDescriptor.createWellKnownObjects();
+		L2ChunkDescriptor.createWellKnownObjects();
+	}
+
+	public static void error(Object... args)
+	{
+		throw new RuntimeException((String)args[0]);
+	};
+
+	public static AvailObject newIndexedDescriptor(int size, AbstractDescriptor descriptor)
+	{
+		return AvailObjectUsingArrays.newIndexedDescriptor(size, descriptor);
+	};
+
+	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
+		int variableObjectSlots,
+		int variableIntegerSlots,
+		AbstractDescriptor descriptor)
+	{
+		return AvailObjectUsingArrays.newObjectIndexedIntegerIndexedDescriptor(
+			variableObjectSlots,
+			variableIntegerSlots,
+			descriptor);
+	};
+
+	static int scanAnObject()
+	{
+		// Scan the next object, saving its subobjects and removing its barrier.
+		return 0;   // AvailObjectUsingArrays.scanAnObject();
+	};
+
+
+	/* Synchronization with GC.  Locked objects can be moved, but not coalesced. */
+
+	private static AvailObject [] LockedObjects = new AvailObject [1000];
+
+	private static int NumLockedObjects = 0;
+
+	public static void lock (AvailObject obj)
+	{
+		LockedObjects [NumLockedObjects] = obj;
+		NumLockedObjects++;
+	};
+	public static void unlock (AvailObject obj)
+	{
+		NumLockedObjects--;
+		LockedObjects [NumLockedObjects] = null;
+	};
+
+	private static boolean CanAllocateObjects = true;
+	private static boolean CanDestroyObjects = true;
+
+	public static void CanAllocateObjects (boolean flag)
+	{
+		CanAllocateObjects = flag;
+	}
+
+	public static boolean CanAllocateObjects ()
+	{
+		return CanAllocateObjects;
+	}
+
+	public static void CanDestroyObjects (boolean flag)
+	{
+		CanDestroyObjects = flag;
+	}
+
+	public static boolean CanDestroyObjects ()
+	{
+		return CanDestroyObjects;
+	}
 
 
 
@@ -1997,12 +2475,14 @@ implements Iterable<AvailObject>
 	 */
 	public AvailObject includeBundleAtMessageParts (
 		final AvailObject message,
-		final AvailObject parts)
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		return descriptor().o_IncludeBundleAtMessageParts(
 			this,
 			message,
-			parts);
+			parts,
+			instructions);
 	}
 
 	/**
@@ -5244,489 +5724,20 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Recursively print the {@linkplain AvailObject receiver} to the {@link
-	 * StringBuilder} unless it is already present in the {@linkplain List
-	 * recursion list}. Printing will begin at the specified indent level,
-	 * measured in horizontal tab characters.
-	 *
-	 * <p>This operation exists primarily to provide useful representations of
-	 * {@code AvailObject}s for Java-side debugging.</p>
-	 *
-	 * @param builder A {@link StringBuilder}.
-	 * @param recursionList A {@linkplain List list} containing {@link
-	 *                      AvailObject}s already visited during the recursive
-	 *                      print.
-	 * @param indent The indent level, in horizontal tabs, at which the {@link
-	 *               AvailObject} should be printed.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * Dispatch to the descriptor.
 	 */
-	abstract public void printOnAvoidingIndent (
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent);
-
-
-	@Override
-	public String toString ()
+	public void parsingInstructions (
+		final AvailObject instructionsTuple)
 	{
-		final StringBuilder stringBuilder = new StringBuilder(100);
-		final List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
-		try
-		{
-			printOnAvoidingIndent(stringBuilder, recursionList, 1);
-		}
-		catch (final Throwable e)
-		{
-			stringBuilder.insert(
-				0, "EXCEPTION while printing: " + e.toString() + "\n");
-		}
-		assert recursionList.size() == 0;
-		return stringBuilder.toString();
+		descriptor().o_ParsingInstructions(this, instructionsTuple);
 	}
-
-
-
-
-	// message redirection - translate
-
-	public boolean greaterThan (
-		final AvailObject another)
-	{
-		//  Translate >= into an inverted lessThan:.  This manual method simplifies renaming rules
-		//  greatly, and avoids the need for an Object:greaterThan: in the Descriptors.
-
-		// Reverse the arguments and dispatch to the argument's descriptor.
-		return another.descriptor().o_LessThan(another, this);
-	}
-
-	public boolean greaterOrEqual (
-		final AvailObject another)
-	{
-		//  Translate >= into an inverted lessOrEqual:.  This manual method simplifies renaming rules
-		//  greatly, and avoids the need for an Object:greaterOrEqual: in the Descriptors.
-
-		// Reverse the arguments and dispatch to the argument's descriptor.
-		return another.descriptor().o_LessOrEqual(another, this);
-	}
-
-
-
-	// primitive accessing
-
-	public void assertObjectUnreachableIfMutable ()
-	{
-		//  Set up the object to report nice obvious errors if anyone ever accesses it again.
-
-		assertObjectUnreachableIfMutableExcept(VoidDescriptor.voidObject());
-	}
-
-	public void assertObjectUnreachableIfMutableExcept (
-		final AvailObject exceptMe)
-	{
-		// Set up the object to report nice obvious errors if anyone ever
-		// accesses it again.
-
-		checkValidAddress();
-		if (!descriptor().isMutable())
-		{
-			return;
-		}
-		if (!CanDestroyObjects)
-		{
-			error("Don't invoke this if destructions are disallowed");
-		}
-		if (sameAddressAs(exceptMe))
-		{
-			error("What happened?  This object is also the excluded one.");
-		}
-
-		// Recursively invoke the iterator on the subobjects of self...
-		AvailSubobjectVisitor vis = new AvailMarkUnreachableSubobjectVisitor(exceptMe);
-		scanSubobjects(vis);
-		setToInvalidDescriptor();
-		return;
-	}
-
-	/**
-	 * Turn me into an indirection to anotherObject.  WARNING: This alters my
-	 * slots and descriptor.
-	 */
-	abstract public void becomeIndirectionTo (
-		final AvailObject anotherObject);
-
-
-	/**
-	 * Extract the byte at the given one-based byte subscript within the
-	 * specified field.  Always use little endian encoding.
-	 * 
-	 * @param e An enumeration value representing an integer field.
-	 * @param byteSubscript Which byte to extract.
-	 * @return The unsigned byte as a short.
-	 */
-	abstract public short byteSlotAt (
-		final Enum<?> e,
-		final int byteSubscript);
-
-
-	/**
-	 * Replace the byte at the given one-based byte subscript within the
-	 * specified field.  Always use little endian encoding.
-	 * 
-	 * @param e An enumeration value representing an integer field.
-	 * @param byteSubscript Which byte to extract.
-	 * @param aByte The unsigned byte to write, passed as a short.
-	 */
-	abstract public void byteSlotAtPut (
-		final Enum<?> e,
-		final int byteSubscript,
-		final short aByte);
-
-
-	/**
-	 * Sanity check the object's address.  Fail if it's outside all the current
-	 * pages.  Does nothing for AvailObjectUsingArrays.
-	 */
-	abstract public void checkValidAddress ();
-
-
-	public void checkWriteForField (
-		final Enum<?> e)
-	{
-		descriptor().checkWriteForField(e);
-	}
-
-
-	abstract public AbstractDescriptor descriptor ();
-
-
-	abstract public void descriptor (
-		final AbstractDescriptor aDescriptor);
-
-
-	abstract public short descriptorId ();
-
-
-	abstract public void descriptorId (
-		final short anInteger);
-
-
-	abstract public int integerSlotsCount ();
-
-
-
-	/**
-	 * Extract the (signed 32-bit) integer for the given field enum value.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @return An int extracted from this AvailObject.
-	 */
-	abstract public int integerSlot (
-		final Enum<?> e);
-
-
-	/**
-	 * Store the (signed 32-bit) integer in the four bytes starting at the
-	 * given field enum value.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param anInteger An int to store in the indicated slot of the receiver.
-	 */
-	abstract public void integerSlotPut (
-		final Enum<?> e,
-		final int anInteger);
-
-
-	/**
-	 * Extract the (signed 32-bit) integer at the given field enum value.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return An int extracted from this AvailObject.
-	 */
-	abstract public int integerSlotAt (
-		final Enum<?> e,
-		final int subscript);
-
-
-	/**
-	 * Store the (signed 32-bit) integer in the four bytes starting at the
-	 * given field enum value.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anInteger An int to store in the indicated slot of the receiver.
-	 */
-	abstract public void integerSlotAtPut (
-		final Enum<?> e,
-		final int subscript,
-		final int anInteger);
-
-
-	abstract public int objectSlotsCount ();
-
-
-
-	/**
-	 * Store the AvailObject in the receiver at the given byte-index.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @return The AvailObject found at the specified slot in the receiver.
-	 */
-	abstract public AvailObject objectSlot (
-		final Enum<?> e);
-
-
-	/**
-	 * Store the AvailObject in the specified slot of the receiver.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param anAvailObject The AvailObject to store at the specified slot.
-	 */
-	abstract public void objectSlotPut (
-		final Enum<?> e,
-		final AvailObject anAvailObject);
-
-
-	/**
-	 * Extract the AvailObject at the specified slot of the receiver.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return The AvailObject found at the specified slot in the receiver.
-	 */
-	abstract public AvailObject objectSlotAt (
-		final Enum<?> e,
-		final int subscript);
-
-
-	/**
-	 * Store the AvailObject in the specified slot of the receiver.
-	 * 
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anAvailObject The AvailObject to store at the specified slot.
-	 */
-	abstract public void objectSlotAtPut (
-		final Enum<?> e,
-		final int subscript,
-		final AvailObject anAvailObject);
-
-
-
-	public boolean isDestroyed ()
-	{
-		checkValidAddress();
-		return descriptorId() == FillerDescriptor.mutableDescriptor().id();
-	}
-
-
-
-	/**
-	 * Answer whether the objects occupy the same memory addresses.
-	 * 
-	 * @param anotherObject The object to compare the receiver's address to.
-	 * @return Whether the objects occupy the same storage.
-	 */
-	abstract public boolean sameAddressAs (
-		final AvailObject anotherObject);
-
-
-	/**
-	 * Replace my descriptor field with a FillerDescriptor.  This blows up for
-	 * most messages, catching incorrect (all, by definition) further
-	 * accidental uses of this object.
-	 */
-	public void setToInvalidDescriptor ()
-	{
-		verifyToSpaceAddress();
-		descriptor(FillerDescriptor.mutableDescriptor());
-	}
-
-
-	/**
-	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
-	 * 
-	 * @param INDEX The index in bytes (must be even).
-	 * @return The short found at the given byte-index.
-	 */
-	abstract public short shortSlotAt (
-		final Enum<?> e,
-		final int shortIndex);
-
-	/**
-	 * Store the (16-bit signed) short at the given byte-index of the receiver.
-	 * 
-	 * @param INDEX The index in bytes (must be even).
-	 * @param aShort The short to store at the given byte-index.
-	 */
-	abstract public void shortSlotAtPut (
-		final Enum<?> e,
-		final int shortIndex,
-		final short aShort);
-
-
-	/**
-	 * Slice the current object into two objects, the left one (at the same
-	 * starting address as the input), and the right one (a Filler object that
-	 * nobody should ever create a pointer to).  The new Filler can have zero
-	 * post-header slots (i.e., just the header), but the left object must not,
-	 * since it may turn into an Indirection some day and will require at least
-	 * one slot for the target pointer.
-	 * 
-	 * @param newSlotsCount The number of slots in the left object.
-	 */
-	abstract public void truncateWithFillerForNewIntegerSlotsCount (
-		final int newSlotsCount);
-
-
-	/**
-	 * Slice the current object into two parts, one of which is a Filler object
-	 * and is never referred to directly (so doesn't need any slots for becoming
-	 * an indirection).
-	 */
-	abstract public void truncateWithFillerForNewObjectSlotsCount (
-		final int newSlotsCount);
-
-
-	/**
-	 * Check that my address is a valid pointer to FromSpace.
-	 */
-	abstract public void verifyFromSpaceAddress ();
-
-
-	/**
-	 * Check that my address is a valid pointer to ToSpace.
-	 */
-	abstract public void verifyToSpaceAddress ();
-
-
-
-	// special methods
-
-	public int hash ()
-	{
-		//  Object also implements hash.
-
-		return descriptor().o_Hash(this);
-	}
-
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void hash (
-		final int value)
+	public AvailObject parsingInstructions ()
 	{
-		descriptor().o_Hash(this, value);
+		return descriptor().o_ParsingInstructions(this);
 	}
 
-	@Override
-	public int hashCode ()
-	{
-		//  Implemented so Java can use AvailObjects in Sets and Maps.
-
-		return descriptor().o_Hash(this);
-	}
-
-
-
-	public static void clearAllWellKnownObjects ()
-	{
-		VoidDescriptor.clearWellKnownObjects();
-		TupleDescriptor.clearWellKnownObjects();
-		BlankDescriptor.clearWellKnownObjects();
-		TypeDescriptor.clearWellKnownObjects();
-		BooleanDescriptor.clearWellKnownObjects();
-		MapDescriptor.clearWellKnownObjects();
-		CharacterDescriptor.clearWellKnownObjects();
-		SetDescriptor.clearWellKnownObjects();
-		InfinityDescriptor.clearWellKnownObjects();
-		IntegerDescriptor.clearWellKnownObjects();
-		IntegerRangeTypeDescriptor.clearWellKnownObjects();
-		L2ChunkDescriptor.clearWellKnownObjects();
-	}
-
-	public static void createAllWellKnownObjects ()
-	{
-		VoidDescriptor.createWellKnownObjects();
-		TupleDescriptor.createWellKnownObjects();
-		BlankDescriptor.createWellKnownObjects();
-		TypeDescriptor.createWellKnownObjects();
-		BooleanDescriptor.createWellKnownObjects();
-		MapDescriptor.createWellKnownObjects();
-		CharacterDescriptor.createWellKnownObjects();
-		SetDescriptor.createWellKnownObjects();
-		InfinityDescriptor.createWellKnownObjects();
-		IntegerDescriptor.createWellKnownObjects();
-		IntegerRangeTypeDescriptor.createWellKnownObjects();
-		L2ChunkDescriptor.createWellKnownObjects();
-	}
-
-	public static void error(Object... args)
-	{
-		throw new RuntimeException((String)args[0]);
-	};
-
-	public static AvailObject newIndexedDescriptor(int size, AbstractDescriptor descriptor)
-	{
-		return AvailObjectUsingArrays.newIndexedDescriptor(size, descriptor);
-	};
-
-	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
-		int variableObjectSlots,
-		int variableIntegerSlots,
-		AbstractDescriptor descriptor)
-	{
-		return AvailObjectUsingArrays.newObjectIndexedIntegerIndexedDescriptor(
-			variableObjectSlots,
-			variableIntegerSlots,
-			descriptor);
-	};
-
-	static int scanAnObject()
-	{
-		// Scan the next object, saving its subobjects and removing its barrier.
-		return 0;   // AvailObjectUsingArrays.scanAnObject();
-	};
-
-
-	/* Synchronization with GC.  Locked objects can be moved, but not coalesced. */
-
-	private static AvailObject [] LockedObjects = new AvailObject [1000];
-
-	private static int NumLockedObjects = 0;
-
-	public static void lock (AvailObject obj)
-	{
-		LockedObjects [NumLockedObjects] = obj;
-		NumLockedObjects++;
-	};
-	public static void unlock (AvailObject obj)
-	{
-		NumLockedObjects--;
-		LockedObjects [NumLockedObjects] = null;
-	};
-
-	private static boolean CanAllocateObjects = true;
-	private static boolean CanDestroyObjects = true;
-
-	public static void CanAllocateObjects (boolean flag)
-	{
-		CanAllocateObjects = flag;
-	}
-
-	public static boolean CanAllocateObjects ()
-	{
-		return CanAllocateObjects;
-	}
-
-	public static void CanDestroyObjects (boolean flag)
-	{
-		CanDestroyObjects = flag;
-	}
-
-	public static boolean CanDestroyObjects ()
-	{
-		return CanDestroyObjects;
-	}
 }

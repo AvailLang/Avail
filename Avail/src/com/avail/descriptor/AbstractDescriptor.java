@@ -161,6 +161,214 @@ public abstract class AbstractDescriptor
 
 	}
 
+	public final short id ()
+	{
+		return myId;
+	}
+
+	public final boolean isMutable ()
+	{
+		return isMutable;
+	}
+
+	protected boolean hasVariableIntegerSlots ()
+	{
+		//  Answer whether I have a variable number of integer slots.
+	
+		return hasVariableIntegerSlots;
+	}
+
+	protected boolean hasVariableObjectSlots ()
+	{
+		//  Answer whether I have a variable number of object slots.
+	
+		return hasVariableObjectSlots;
+	}
+
+	public int numberOfFixedIntegerSlots ()
+	{
+		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
+	
+		return numberOfFixedIntegerSlots;
+	}
+
+	public int numberOfFixedObjectSlots ()
+	{
+		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
+	
+		return numberOfFixedObjectSlots;
+	}
+
+	/**
+	 * Answer whether the field at the given offset is allowed to be modified
+	 * even in an immutable object.
+	 *
+	 * @param e The byte offset of the field to check.
+	 * @return Whether the specified field can be written even in an immutable
+	 *         object.
+	 */
+	public boolean allowsImmutableToMutableReferenceInField (
+		final Enum<?> e)
+	{
+		return false;
+	}
+
+	/**
+	 * Answer how many levels of printing to allow before elision.
+	 *
+	 * @return The number of levels.
+	 */
+	public int maximumIndent ()
+	{
+		//  Answer the deepest a recursive print can go before summarizing.
+	
+		return 5;
+	}
+	
+	/**
+	 * Print the object to the {@link StringBuilder}.  By default show it as the
+	 * descriptor name and a line-by-line list of fields.  If the indent is
+	 * beyond maximumIndent, indicate it's too deep without recursing.  If the
+	 * object is in recursionList, indicate a recursive print and return.
+	 *
+	 * @param object The object to print (its descriptor is me).
+	 * @param builder Where to print the object.
+	 * @param recursionList Which ancestor objects are currently being printed.
+	 * @param indent What level to indent subsequent lines.
+	 */
+	@ThreadSafe
+	public void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append('a');
+		String className = getClass().getSimpleName();
+		String shortenedName = className.substring(0, className.length() - 10);
+		switch (shortenedName.codePointAt(0))
+		{
+			case 'A':
+			case 'E':
+			case 'I':
+			case 'O':
+			case 'U':
+				builder.append('n');
+				break;
+			default:
+				// Do nothing.
+		}
+		builder.append(' ');
+		builder.append(shortenedName);
+	
+		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
+		final ClassLoader loader = cls.getClassLoader();
+		Class<Enum<?>> enumClass;
+		Enum<?>[] instances;
+	
+		try
+		{
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$IntegerSlots");
+		}
+		catch (ClassNotFoundException e)
+		{
+			enumClass = null;
+		}
+		instances = enumClass != null
+		? enumClass.getEnumConstants()
+				: new Enum<?>[0];
+	
+		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
+		{
+			builder.append('\n');
+			for (int tab = 0; tab < indent; tab++)
+			{
+				builder.append('\t');
+			}
+			int ordinal = Math.min(i, instances.length) - 1;
+			Enum<?> slot = instances[ordinal];
+			String slotName = slot.name();
+			if (slotName.charAt(slotName.length() - 1) == '_')
+			{
+				int subscript = i - instances.length + 1;
+				builder.append(slotName, 0, slotName.length() - 1);
+				builder.append('[');
+				builder.append(subscript);
+				builder.append("] = ");
+				builder.append(object.integerSlotAt(slot, subscript));
+			}
+			else
+			{
+				builder.append(slotName);
+				builder.append(" = ");
+				builder.append(object.integerSlot(slot));
+			}
+		}
+	
+		try
+		{
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$ObjectSlots");
+		}
+		catch (ClassNotFoundException e)
+		{
+			enumClass = null;
+		}
+		instances = enumClass != null
+		? enumClass.getEnumConstants()
+				: new Enum<?>[0];
+	
+		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
+		{
+			builder.append('\n');
+			for (int tab = 0; tab < indent; tab++)
+			{
+				builder.append('\t');
+			}
+			int ordinal = Math.min(i, instances.length) - 1;
+			Enum<?> slot = instances[ordinal];
+			String slotName = slot.name();
+			if (slotName.charAt(slotName.length() - 1) == '_')
+			{
+				int subscript = i - instances.length + 1;
+				builder.append(slotName, 0, slotName.length() - 1);
+				builder.append('[');
+				builder.append(subscript);
+				builder.append("] = ");
+				object.objectSlotAt(slot, subscript).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+			else
+			{
+				builder.append(slotName);
+				builder.append(" = ");
+				object.objectSlot(slot).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		}
+	}
+
+	public final void checkWriteForField (final Enum<?> e)
+	{
+		if (isMutable())
+		{
+			return;
+		}
+		if (allowsImmutableToMutableReferenceInField(e))
+		{
+			return;
+		}
+		error("Illegal write into immutable object");
+		return;
+	}
+
+	
+	
 	public abstract boolean o_AcceptsArgTypesFromClosureType (
 		final AvailObject object,
 		final AvailObject closureType);
@@ -1025,12 +1233,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param message
 	 * @param parts
+	 * @param instructions
 	 * @return
 	 */
 	public abstract AvailObject o_IncludeBundleAtMessageParts (
 		final AvailObject object,
 		final AvailObject message,
-		final AvailObject parts);
+		final AvailObject parts,
+		final AvailObject instructions);
 
 	/**
 	 * @param object
@@ -4474,211 +4684,19 @@ public abstract class AbstractDescriptor
 	public abstract @NotNull
 	Iterator<AvailObject> o_Iterator (final @NotNull AvailObject object);
 
-	public final short id ()
-	{
-		return myId;
-	}
-
-	public final boolean isMutable ()
-	{
-		return isMutable;
-	}
-
-	protected boolean hasVariableIntegerSlots ()
-	{
-		//  Answer whether I have a variable number of integer slots.
-
-		return hasVariableIntegerSlots;
-	}
-
-	protected boolean hasVariableObjectSlots ()
-	{
-		//  Answer whether I have a variable number of object slots.
-
-		return hasVariableObjectSlots;
-	}
-
-	public int numberOfFixedIntegerSlots ()
-	{
-		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
-
-		return numberOfFixedIntegerSlots;
-	}
-
-	public int numberOfFixedObjectSlots ()
-	{
-		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
-
-		return numberOfFixedObjectSlots;
-	}
-
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_ParsingInstructions (
+		AvailObject object,
+		AvailObject instructionsTuple);
 
 	/**
-	 * Answer whether the field at the given offset is allowed to be modified
-	 * even in an immutable object.
-	 *
-	 * @param e The byte offset of the field to check.
-	 * @return Whether the specified field can be written even in an immutable
-	 *         object.
+	 * @param object
+	 * @param value
 	 */
-	public boolean allowsImmutableToMutableReferenceInField (
-		final Enum<?> e)
-	{
-		return false;
-	}
-
-	/**
-	 * Answer how many levels of printing to allow before elision.
-	 *
-	 * @return The number of levels.
-	 */
-	public int maximumIndent ()
-	{
-		//  Answer the deepest a recursive print can go before summarizing.
-
-		return 5;
-	}
-
-	/**
-	 * Print the object to the {@link StringBuilder}.  By default show it as the
-	 * descriptor name and a line-by-line list of fields.  If the indent is
-	 * beyond maximumIndent, indicate it's too deep without recursing.  If the
-	 * object is in recursionList, indicate a recursive print and return.
-	 *
-	 * @param object The object to print (its descriptor is me).
-	 * @param builder Where to print the object.
-	 * @param recursionList Which ancestor objects are currently being printed.
-	 * @param indent What level to indent subsequent lines.
-	 */
-	@ThreadSafe
-	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		builder.append('a');
-		String className = getClass().getSimpleName();
-		String shortenedName = className.substring(0, className.length() - 10);
-		switch (shortenedName.codePointAt(0))
-		{
-			case 'A':
-			case 'E':
-			case 'I':
-			case 'O':
-			case 'U':
-				builder.append('n');
-				break;
-			default:
-				// Do nothing.
-		}
-		builder.append(' ');
-		builder.append(shortenedName);
-
-		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
-		final ClassLoader loader = cls.getClassLoader();
-		Class<Enum<?>> enumClass;
-		Enum<?>[] instances;
-
-		try
-		{
-			enumClass = (Class<Enum<?>>) loader.loadClass(
-				cls.getCanonicalName() + "$IntegerSlots");
-		}
-		catch (ClassNotFoundException e)
-		{
-			enumClass = null;
-		}
-		instances = enumClass != null
-		? enumClass.getEnumConstants()
-				: new Enum<?>[0];
-
-		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
-		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
-			int ordinal = Math.min(i, instances.length) - 1;
-			Enum<?> slot = instances[ordinal];
-			String slotName = slot.name();
-			if (slotName.charAt(slotName.length() - 1) == '_')
-			{
-				int subscript = i - instances.length + 1;
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(subscript);
-				builder.append("] = ");
-				builder.append(object.integerSlotAt(slot, subscript));
-			}
-			else
-			{
-				builder.append(slotName);
-				builder.append(" = ");
-				builder.append(object.integerSlot(slot));
-			}
-		}
-
-		try
-		{
-			enumClass = (Class<Enum<?>>) loader.loadClass(
-				cls.getCanonicalName() + "$ObjectSlots");
-		}
-		catch (ClassNotFoundException e)
-		{
-			enumClass = null;
-		}
-		instances = enumClass != null
-		? enumClass.getEnumConstants()
-				: new Enum<?>[0];
-
-		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
-		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
-			int ordinal = Math.min(i, instances.length) - 1;
-			Enum<?> slot = instances[ordinal];
-			String slotName = slot.name();
-			if (slotName.charAt(slotName.length() - 1) == '_')
-			{
-				int subscript = i - instances.length + 1;
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(subscript);
-				builder.append("] = ");
-				object.objectSlotAt(slot, subscript).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 1);
-			}
-			else
-			{
-				builder.append(slotName);
-				builder.append(" = ");
-				object.objectSlot(slot).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 1);
-			}
-		}
-	}
-
-	public final void checkWriteForField (final Enum<?> e)
-	{
-		if (isMutable())
-		{
-			return;
-		}
-		if (allowsImmutableToMutableReferenceInField(e))
-		{
-			return;
-		}
-		error("Illegal write into immutable object");
-		return;
-	}
+	public abstract AvailObject o_ParsingInstructions (
+		AvailObject object);
 
 }

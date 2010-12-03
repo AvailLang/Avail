@@ -69,19 +69,6 @@ final public class AvailObjectUsingArrays extends AvailObject
 	int [] _intSlots;
 
 
-	// gc helpers
-
-	@Override
-	public AvailObject saveOrForward ()
-	{
-		//  The object is in FromSpace.  If its slotsSize is >= 32768, it represents a forwarding
-		//  pointer into ToSpace (and the pointer is in the first slot).  Otherwise, save the
-		//  object as per GCReadBarrierDescriptor class>>documentation.
-
-		error("The array-based AvailObject representation should not do this.");
-		return VoidDescriptor.voidObject();
-	}
-
 	@Override
 	public void printOnAvoidingIndent (
 		final @NotNull StringBuilder builder,

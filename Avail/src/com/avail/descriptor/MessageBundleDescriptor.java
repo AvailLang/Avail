@@ -46,7 +46,8 @@ public class MessageBundleDescriptor extends Descriptor
 	{
 		MESSAGE,
 		MESSAGE_PARTS,
-		MY_RESTRICTIONS
+		MY_RESTRICTIONS,
+		PARSING_INSTRUCTIONS
 	}
 
 
@@ -65,7 +66,7 @@ public class MessageBundleDescriptor extends Descriptor
 			object.myRestrictions(restrictions);
 			return;
 		}
-		for (int i = 1, _end1 = merged.tupleSize(); i <= _end1; i++)
+		for (int i = merged.tupleSize(); i >= 1; i--)
 		{
 			merged = merged.tupleAtPuttingCanDestroy(
 				i,
@@ -223,7 +224,30 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 
+	/**
+	 * Setter for field parsingInstructions.
+	 */
+	@Override
+	public void o_ParsingInstructions (
+			final AvailObject object,
+			final AvailObject instructionsTuple)
+	{
+		object.objectSlotPut(
+			ObjectSlots.PARSING_INSTRUCTIONS,
+			instructionsTuple);
+	}
 
+	/**
+	 * Getter for field parsingInstructions.
+	 */
+	@Override
+	public AvailObject o_ParsingInstructions (
+			final AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.PARSING_INSTRUCTIONS);
+	}
+
+	
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
@@ -299,15 +323,28 @@ public class MessageBundleDescriptor extends Descriptor
 
 
 
-
-
-	/* Object creation */
-	static AvailObject newMessageParts(AvailObject message, AvailObject parts)
+	/**
+	 * Create a new {@link MessageBundleDescriptor message bundle} for the
+	 * given message.  Also use the provided tuple of message parts and
+	 * parsing instructions.
+	 * 
+	 * @param message The message name, an Avail string.
+	 * @param parts A tuple of strings constituting the message name.
+	 * @param instructions A tuple of integers encoding parsing instructions.
+	 * @return A new {@link MessageBundleDescriptor message bundle}.
+	 */
+	static AvailObject newBundle(
+		AvailObject message,
+		AvailObject parts,
+		AvailObject instructions)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, MessageBundleDescriptor.mutableDescriptor());
+		AvailObject result = AvailObject.newIndexedDescriptor(
+			0,
+			MessageBundleDescriptor.mutableDescriptor());
 		result.message(message);
 		result.messageParts(parts);
 		result.myRestrictions(VoidDescriptor.voidObject());
+		result.parsingInstructions(instructions);
 		result.makeImmutable();
 		return result;
 	};

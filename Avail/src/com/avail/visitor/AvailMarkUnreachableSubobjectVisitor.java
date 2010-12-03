@@ -36,7 +36,7 @@ import com.avail.descriptor.AvailObject;
 import static com.avail.descriptor.AvailObject.*;
 
 /**
- * Provide the ability to iterated over an object's fields, marking each child
+ * Provide the ability to iterate over an object's fields, marking each child
  * object as unreachable.  Also recurse into the children, but avoid a specific
  * object during the recursion.
  *

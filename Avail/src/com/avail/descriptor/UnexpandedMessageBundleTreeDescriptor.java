@@ -240,9 +240,10 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public AvailObject o_IncludeBundleAtMessageParts (
-			final AvailObject object,
-			final AvailObject message,
-			final AvailObject parts)
+		final AvailObject object,
+		final AvailObject message,
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		//  If there isn't one already, add a bundle to correspond to the given message.
 		//  Answer the new or existing bundle.
@@ -252,7 +253,10 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		{
 			return unclassified.mapAt(message);
 		}
-		final AvailObject bundle = MessageBundleDescriptor.newMessageParts(message, parts);
+		final AvailObject bundle = MessageBundleDescriptor.newBundle(
+			message,
+			parts,
+			instructions);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
 			message,
 			bundle,

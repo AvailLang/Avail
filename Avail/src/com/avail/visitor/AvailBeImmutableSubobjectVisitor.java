@@ -35,7 +35,7 @@ package com.avail.visitor;
 import com.avail.descriptor.AvailObject;
 
 /**
- * Provide the ability to iterated over an object's fields, marking each child
+ * Provide the ability to iterate over an object's fields, marking each child
  * object as immutable.  Note that marking a child immutable may involve
  * creating another visitor of this class and visiting the child's children
  * in this mutually recursive way.

@@ -1,4 +1,3 @@
-package com.avail.newcompiler;
 /**
  * com.avail.descriptor.parser/ListOfNodesDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
@@ -31,52 +30,28 @@ package com.avail.newcompiler;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+package com.avail.newcompiler;
 
 import com.avail.descriptor.Descriptor;
 
-public class ParseNodeDescriptor extends Descriptor
+/**
+ * I'm used to implement the abstract notion of parse nodes.  All concrete parse
+ * nodes are below me in the hierarchy.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public abstract class ParseNodeDescriptor extends Descriptor
 {
-
 
 	/**
 	 * Construct a new {@link ParseNodeDescriptor}.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * @param isMutable Whether the descriptor being constructed represents
+	 *                  mutable objects or not.
 	 */
-	protected ParseNodeDescriptor (final boolean isMutable)
+	public ParseNodeDescriptor (boolean isMutable)
 	{
 		super(isMutable);
 	}
 
-	/**
-	 * The mutable {@link ParseNodeDescriptor}.
-	 */
-	private final static ParseNodeDescriptor mutableDescriptor = new ParseNodeDescriptor(true);
-
-	/**
-	 * Answer the mutable {@link ParseNodeDescriptor}.
-	 *
-	 * @return The mutable {@link ParseNodeDescriptor}.
-	 */
-	public static ParseNodeDescriptor mutableDescriptor ()
-	{
-		return mutableDescriptor;
-	}
-
-	/**
-	 * The immutable {@link ParseNodeDescriptor}.
-	 */
-	private final static ParseNodeDescriptor immutableDescriptor = new ParseNodeDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link ParseNodeDescriptor}.
-	 *
-	 * @return The immutable {@link ParseNodeDescriptor}.
-	 */
-	public static ParseNodeDescriptor immutableDescriptor ()
-	{
-		return immutableDescriptor;
-	}
 }

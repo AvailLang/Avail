@@ -291,22 +291,26 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 
 	@Override
 	public AvailObject o_IncludeBundleAtMessageParts (
-			final AvailObject object,
-			final AvailObject message,
-			final AvailObject parts)
+		final AvailObject object,
+		final AvailObject message,
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		//  If there isn't one already, add a bundle to correspond to the given message.
 		//  Answer the new or existing bundle.
 
 		final int depth = object.depth();
-		if ((depth == (parts.tupleSize() + 1)))
+		if (depth == parts.tupleSize() + 1)
 		{
 			AvailObject complete = object.complete();
 			if (complete.hasKey(message))
 			{
 				return complete.mapAt(message);
 			}
-			final AvailObject bundle = MessageBundleDescriptor.newMessageParts(message, parts);
+			final AvailObject bundle = MessageBundleDescriptor.newBundle(
+				message,
+				parts,
+				instructions);
 			complete = complete.mapAtPuttingCanDestroy(
 				message,
 				bundle,
@@ -331,7 +335,10 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 				true);
 			object.incomplete(incomplete);
 		}
-		return subtree.includeBundleAtMessageParts(message, parts);
+		return subtree.includeBundleAtMessageParts(
+			message,
+			parts,
+			instructions);
 	}
 
 	@Override
