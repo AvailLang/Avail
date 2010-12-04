@@ -47,19 +47,25 @@ Names
 	"string"
 Body
 
+/** The compiler needs this in order to specify "character". */
+privateCharacter ::= Special Object 3;
+
 /**
  * @return The type {@code character}.
  */
 Method "character" is
 [
-	Special Object 3;
+	privateCharacter;
 ] : primitive type;
+
+/** The compiler needs this in order to specify "string". */
+privateString ::= Special Object 30;
 
 /**
  * @return The type {@code string}.
  */
 Method "string" is
 [
-	Special Object 30;
+	privateString;
 ] : tuple type;
 

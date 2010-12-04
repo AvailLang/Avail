@@ -39,18 +39,18 @@
 Module
 	"Bootstrap"
 Pragma
-	"definingMethod = Method_is_",
-	"definingMacro = Macro_is_",
-	"specialObject = Special Object_",
-	"primitive = Primitive_(«_‡,») or_",
+	"definingMethod = Method _ is _ ",
+	"definingMacro = Macro _ is _",
+	"specialObject = Special Object _",
+	"primitive = Primitive _ («_‡, »)« or _»",
 	"macroStatement = _;",
-	"macroVariableDeclaration = _:_",
-	"macroConstantDeclaration = _::=_",
-	"macroInitializingDeclaration = _:_:=",
-	"macroAssignment = _:=_",
+	"macroVariableDeclaration = _ : _",
+	"macroConstantDeclaration = _ ::= _",
+	"macroInitializingDeclaration = _ : _ := _",
+	"macroAssignment = _ := _",
 	"macroReference = &_",
-	"macroSuperCast = _::_",
-	"macroBlock = [««_:_‡,»|»«$_:_;»«_»]«:_»",
+	"macroSuperCast = _ :: _",
+	"macroBlock = [««_ : _‡, »|»«$_ : _;»«_»]« : _»",
 	"macroVariableUse = _",
 Extends
 Uses

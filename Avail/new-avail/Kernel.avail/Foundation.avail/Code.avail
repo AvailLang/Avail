@@ -52,59 +52,80 @@ Names
 	"process"
 Body
 
+/** The compiler needs this in order to specify "generalized closure type". */
+privateGeneralizedClosureType ::= Special Object 16;
+
 /**
  * @returns The type of a closure with unspecified arguments and covariant
  *          return type.
  */
 Method "generalized closure type" is
 [
-	Special Object 16;
+	privateGeneralizedClosureType;
 ] : meta;
 
+/** The compiler needs this in order to specify "closure type". */
+privateClosureType ::= Special Object 5;
+
 /**
- * @return The type of type {@code closure}.
+ * @return The type of {@code closure}.
  */
 Method "closure type" is
 [
-	Special Object 5;
+	privateClosureType;
 ] : meta;
+
+/** The compiler needs this in order to specify "closure". */
+privateClosure ::= Special Object 4;
 
 /**
  * @return The supertype of every specific closure type.
  */
 Method "closure" is
 [
-	Special Object 4;
+	privateClosure;
 ] : closure type;
 
+/** The compiler needs this in order to specify "continuation type". */
+privateContinuationType ::= Special Object 10;
+
 /**
- * @return The type of type {@code continuation}.
+ * @return The type of {@code continuation}.
  */
 Method "continuation type" is
 [
-	Special Object 10;
+	privateContinuationType;
 ] : meta;
+
+/** The compiler needs this in order to specify "continuation". */
+privateContinuation ::= Special Object 9;
 
 /**
  * @return The supertype of every specific continuation. 
  */
 Method "continuation" is
 [
-	Special Object 9;
+	privateContinuation;
 ] : continuation type;
+
+/** The compiler needs this in order to specify "compiled code". */
+privateCompiledCode ::= Special Object 6;
 
 /**
  * @return The type of compiled code.
  */
 Method "compiled code" is
 [
-	Special Object 6;
+	privateCompiledCode;
 ] : primitive type;
+
+/** The compiler needs this in order to specify "process". */
+privateProcess ::= Special Object 27;
 
 /**
  * @return The type of a process.
  */
 Method "process" is
 [
-	Special Object 27;
+	privateProcess;
 ] : primitive type;

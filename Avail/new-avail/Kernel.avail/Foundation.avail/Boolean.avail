@@ -51,29 +51,40 @@ Names
 	"_<=_"
 Body
 
+/** The compiler needs this in order to specify "boolean". */
+privateBoolean ::= Special Object 2;
+
 /**
  * @returns The type {@code boolean}.
  */
 Method "boolean" is
 [
-	Special Object 2;
+	privateBoolean;
 ] : primitive type;
+
+/** The compiler needs this in order to specify "false". */
+privateFalseType ::= Special Object 14;
+privateFalse ::= Special Object 71;
 
 /**
  * @returns {@code false}.
  */
 Method "false" is
 [
-	Special Object 71;
-] : Special Object 14;
+	privateFalse;
+] : privateFalseType;
+
+/** The compiler needs this in order to specify "true". */
+privateTrueType ::= Special Object 33;
+privateTrue ::= Special Object 70;
 
 /**
  * @returns {@code true}.
  */
 Method "true" is
 [
-	Special Object 70;
-] : Special Object 33;
+	privateTrue;
+] : privateTrueType;
 
 /*
  * TODO: [TLS] Move "_=_" and "_<=_" out of here. They need to occur after

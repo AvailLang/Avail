@@ -55,6 +55,9 @@ Name
 	"Primitive failed"
 Body
 
+/** The compiler needs this in order to specify "meta". */
+privateMeta ::= Special Object 22;
+
 /**
  * Answer {@code meta}, the ultimate type of every type, including itself.
  *
@@ -62,27 +65,36 @@ Body
  */
 Method "meta" is
 [
-	Special Object 22;
-] : Special Object 22;
+	privateMeta;
+] : privateMeta;
+
+/** The compiler needs this in order to specify "type". */
+privateType ::= Special Object 36;
 
 /**
  * @returns The meta-type {@code type}.
  */
 Method "type" is
 [
-	Special Object 36;
+	privateType;
 ] : meta;
+
+/** The compiler needs this in order to specify "void". */
+privateVoid ::= Special Object 37;
 
 /**
  * Answer the most general type. {@code void} as the return type of a block
- * indicates that the block does not return a vaue.
+ * indicates that the block does not return a value.
  *
  * @returns The type {@code void}.
  */
 Method "void" is
 [
-	Special Object 37;
+	privateVoid;
 ] : type;
+
+/** The compiler needs this in order to specify "all". */
+privateAll ::= Special Object 1;
 
 /**
  * Answer the most general type of all instances.
@@ -91,8 +103,11 @@ Method "void" is
  */
 Method "all" is
 [
-	Special Object 1;
+	privateAll;
 ] : type;
+
+/** The compiler needs this in order to specify "terminates type". */
+privateTerminatesType ::= Special Object 32;
 
 /**
  * Answer the ultimate subtype of {@code type}.
@@ -101,8 +116,11 @@ Method "all" is
  */
 Method "terminates type" is
 [
-	Special Object 32;
+	privateTerminatesType;
 ] : meta;
+
+/** The compiler needs this in order to specify "terminates". */
+privateTerminatesType ::= Special Object 31;
 
 /**
  * Answer the most specific type. {@code terminates} as the return type of a
@@ -112,39 +130,51 @@ Method "terminates type" is
  */
 Method "terminates" is
 [
-	Special Object 31;
+	privateTerminatesType;
 ] : terminates type;
+
+/** The compiler needs this in order to specify "primitive type". */
+privatePrimitiveType ::= Special Object 26;
 
 /**
  * @returns The type of most primitive types.
  */
 Method "primitive type" is
 [
-	Special Object 26;
+	privatePrimitiveType;
 ] : meta;
+
+/** The compiler needs this in order to specify "cyclic type". */
+privateCyclicType ::= Special Object 11;
 
 /**
  * @returns The type of every {@code cyclic type}.
  */
 Method "cyclic type" is
 [
-	Special Object 11;
-] : Special Object 11;
+	privateCyclicType;
+] : privateCyclicType;
+
+/** The compiler needs this in order to specify "container type". */
+privateContainerType ::= Special Object 8;
 
 /**
- * @returns The supertype of {@code container}.
+ * @returns The type of {@code container}.
  */
 Method "container type" is
 [
-	Special Object 8;
+	privateContainerType;
 ] : meta;
+
+/** The compiler needs this in order to specify "container". */
+privateContainer ::= Special Object 7;
 
 /**
  * @returns The supertype of every specific container type.
  */
 Method "container" is
 [
-	Special Object 7;
+	privateContainer;
 ] : container type;
 
 /*

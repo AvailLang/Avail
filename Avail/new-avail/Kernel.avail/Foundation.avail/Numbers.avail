@@ -49,42 +49,57 @@ Names
 	"integer type",
 Body
 
+/** The compiler needs this in order to specify "integer type". */
+privateIntegerType ::= Special Object 18;
+
 /**
  * @returns The type of an integral type.
  */
 Method "integer type" is
 [
-	Special Object 18;
+	privateIntegerType;
 ] : meta;
+
+/** The compiler needs this in order to specify "extended integer". */
+privateExtendedInteger ::= Special Object 13;
 
 /**
  * @returns The type of an integer in the range [-∞..∞].
  */
 Method "extended integer" is
 [
-	Special Object 13;
+	privateExtendedInteger;
 ] : integer type;
+
+/** The compiler needs this in order to specify "integer". */
+privateInteger ::= Special Object 17;
 
 /**
  * @returns The type of an integer in the range (-∞..∞).
  */
 Method "integer" is
 [
-	Special Object 17;
+	privateInteger;
 ] : integer type;
+
+/** The compiler needs this in order to specify "float". */
+privateFloat ::= Special Object 15;
 
 /**
  * @returns The type of a single-precision floating-point number.
  */
 Method "float" is
 [
-	Special Object 15;
+	privateFloat;
 ] : primitive type;
+
+/** The compiler needs this in order to specify "double". */
+privateDouble ::= Special Object 12;
 
 /**
  * @returns The type of a double-precision floating-point number.
  */
 Method "double" is
 [
-	Special Object 12;
+	privateDouble;
 ] : primitive type;
