@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.Continuation2;
+import com.avail.compiler.Mutable;
 import com.avail.descriptor.ApproximateTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
@@ -123,24 +125,22 @@ public class ObjectDescriptor extends Descriptor
 
 		object.makeImmutable();
 		final AvailObject valueMap = object.fieldMap();
-		AvailObject typeMap = MapDescriptor.newWithCapacity(valueMap.capacity());
-		AvailObject.lock(valueMap);
-		//  Locked because it's being traversed.
-		AvailObject.lock(typeMap);
-		for (int i = 1, _end1 = typeMap.capacity(); i <= _end1; i++)
+		final Mutable<AvailObject> typeMap = new Mutable<AvailObject>(
+				MapDescriptor.newWithCapacity(valueMap.capacity()));
+		AvailObject.lock(typeMap.value);
+		valueMap.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
-			final AvailObject keyObject = valueMap.keyAtIndex(i);
-			if (!keyObject.equalsVoidOrBlank())
+			@Override
+			public void value (AvailObject key, AvailObject value)
 			{
-				typeMap = typeMap.mapAtPuttingCanDestroy(
-					keyObject,
-					valueMap.valueAtIndex(i).type(),
+				typeMap.value = typeMap.value.mapAtPuttingCanDestroy(
+					key,
+					value.type(),
 					true);
 			}
-		}
-		AvailObject.unlock(typeMap);
-		AvailObject.unlock(valueMap);
-		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
+		});
+		AvailObject.unlock(typeMap.value);
+		return ObjectTypeDescriptor.objectTypeFromMap(typeMap.value);
 	}
 
 	@Override

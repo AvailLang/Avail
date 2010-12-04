@@ -70,7 +70,9 @@ public class MessageBundleDescriptor extends Descriptor
 		{
 			merged = merged.tupleAtPuttingCanDestroy(
 				i,
-				merged.tupleAt(i).setUnionCanDestroy(restrictions.tupleAt(i), true),
+				merged.tupleAt(i).setUnionCanDestroy(
+					restrictions.tupleAt(i),
+					true),
 				true);
 		}
 		object.myRestrictions(merged);
@@ -88,11 +90,13 @@ public class MessageBundleDescriptor extends Descriptor
 			object.myRestrictions(VoidDescriptor.voidObject());
 			return;
 		}
-		for (int i = 1, _end1 = reduced.tupleSize(); i <= _end1; i++)
+		for (int i = reduced.tupleSize(); i >= 1; i--)
 		{
 			reduced = reduced.tupleAtPuttingCanDestroy(
 				i,
-				reduced.tupleAt(i).setMinusCanDestroy(obsoleteRestrictions.tupleAt(i), true),
+				reduced.tupleAt(i).setMinusCanDestroy(
+					obsoleteRestrictions.tupleAt(i),
+					true),
 				true);
 		}
 		object.myRestrictions(reduced);
@@ -106,9 +110,9 @@ public class MessageBundleDescriptor extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.myRestrictions().tupleSize(); i <= _end1; i++)
+		for (AvailObject setForArgument : object.myRestrictions())
 		{
-			if ((object.myRestrictions().tupleAt(i).setSize() > 0))
+			if (setForArgument.setSize() > 0)
 			{
 				return true;
 			}
@@ -132,9 +136,8 @@ public class MessageBundleDescriptor extends Descriptor
 		{
 			final AvailObject parts = object.messageParts();
 			int count = 0;
-			for (int partIndex = 1, _end1 = parts.tupleSize(); partIndex <= _end1; partIndex++)
+			for (AvailObject part : parts)
 			{
-				final AvailObject part = parts.tupleAt(partIndex);
 				if (part.equals(TupleDescriptor.underscoreTuple()))
 				{
 					count++;
@@ -157,8 +160,6 @@ public class MessageBundleDescriptor extends Descriptor
 	}
 
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field message.
@@ -261,8 +262,6 @@ public class MessageBundleDescriptor extends Descriptor
 
 
 
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 			final AvailObject object,
@@ -270,9 +269,9 @@ public class MessageBundleDescriptor extends Descriptor
 			final List<AvailObject> recursionList,
 			final int indent)
 	{
-		//  The existing implementations are also printed in parentheses to help distinguish
-		//  polymorphism from occurrences of non-polymorphic homonyms.
-
+		// The existing implementations are also printed in parentheses to help
+		// distinguish polymorphism from occurrences of non-polymorphic
+		// homonyms.
 		if (isMutable)
 		{
 			aStream.append("(mut)");
@@ -284,8 +283,6 @@ public class MessageBundleDescriptor extends Descriptor
 
 
 
-	// operations
-
 	@Override
 	public boolean o_Equals (
 			final AvailObject object,
@@ -294,12 +291,13 @@ public class MessageBundleDescriptor extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
+	/**
+	 * Answer the object's type.  Don't answer an ApproximateType.
+	 */
 	@Override
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
 		return Types.messageBundle.object();
 	}
 
@@ -307,8 +305,6 @@ public class MessageBundleDescriptor extends Descriptor
 	public int o_Hash (
 			final AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-
 		return (object.message().hash() ^ 0x312CAB9);
 	}
 
@@ -316,8 +312,6 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return Types.messageBundle.object();
 	}
 
@@ -325,15 +319,16 @@ public class MessageBundleDescriptor extends Descriptor
 
 	/**
 	 * Create a new {@link MessageBundleDescriptor message bundle} for the
-	 * given message.  Also use the provided tuple of message parts and
-	 * parsing instructions.
+	 * given message.  Also use the provided tuple of message parts and parsing
+	 * instructions.
 	 * 
-	 * @param message The message name, an Avail string.
+	 * @param message The message name, a {@link CyclicTypeDescriptor cyclic
+	 *                type}.
 	 * @param parts A tuple of strings constituting the message name.
 	 * @param instructions A tuple of integers encoding parsing instructions.
 	 * @return A new {@link MessageBundleDescriptor message bundle}.
 	 */
-	static AvailObject newBundle(
+	public static AvailObject newBundle (
 		AvailObject message,
 		AvailObject parts,
 		AvailObject instructions)
@@ -341,13 +336,14 @@ public class MessageBundleDescriptor extends Descriptor
 		AvailObject result = AvailObject.newIndexedDescriptor(
 			0,
 			MessageBundleDescriptor.mutableDescriptor());
+		assert message.isCyclicType();	
 		result.message(message);
 		result.messageParts(parts);
 		result.myRestrictions(VoidDescriptor.voidObject());
 		result.parsingInstructions(instructions);
 		result.makeImmutable();
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link MessageBundleDescriptor}.

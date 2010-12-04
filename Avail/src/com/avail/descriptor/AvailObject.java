@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
+import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.newcompiler.TokenDescriptor;
@@ -507,19 +508,17 @@ implements Iterable<AvailObject>
 
 	/* Synchronization with GC.  Locked objects can be moved, but not coalesced. */
 
-	private static AvailObject [] LockedObjects = new AvailObject [1000];
-
-	private static int NumLockedObjects = 0;
+	private final static List<AvailObject> LockedObjects =
+		new ArrayList<AvailObject>(10);
 
 	public static void lock (AvailObject obj)
 	{
-		LockedObjects [NumLockedObjects] = obj;
-		NumLockedObjects++;
+		LockedObjects.add(obj);
 	};
 	public static void unlock (AvailObject obj)
 	{
-		NumLockedObjects--;
-		LockedObjects [NumLockedObjects] = null;
+		AvailObject popped = LockedObjects.remove(LockedObjects.size() - 1);
+		assert popped == obj;
 	};
 
 	private static boolean CanAllocateObjects = true;
@@ -1076,12 +1075,14 @@ implements Iterable<AvailObject>
 	 */
 	public AvailObject bundleAtMessageParts (
 		final AvailObject message,
-		final AvailObject parts)
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		return descriptor().o_BundleAtMessageParts(
 			this,
 			message,
-			parts);
+			parts,
+			instructions);
 	}
 
 	/**
@@ -1598,18 +1599,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int depth ()
+	public int parsingPc ()
 	{
-		return descriptor().o_Depth(this);
+		return descriptor().o_ParsingPc(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void depth (
+	public void parsingPc (
 		final int value)
 	{
-		descriptor().o_Depth(this, value);
+		descriptor().o_ParsingPc(this, value);
 	}
 
 	/**
@@ -2473,16 +2474,12 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject includeBundleAtMessageParts (
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
+	public AvailObject includeBundle (
+		final AvailObject messageBundle)
 	{
-		return descriptor().o_IncludeBundleAtMessageParts(
+		return descriptor().o_IncludeBundle(
 			this,
-			message,
-			parts,
-			instructions);
+			messageBundle);
 	}
 
 	/**
@@ -4431,14 +4428,12 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean removeMessageParts (
-		final AvailObject message,
-		final AvailObject parts)
+	public boolean removeBundle (
+		final AvailObject bundle)
 	{
-		return descriptor().o_RemoveMessageParts(
+		return descriptor().o_RemoveBundle(
 			this,
-			message,
-			parts);
+			bundle);
 	}
 
 	/**
@@ -5738,6 +5733,15 @@ implements Iterable<AvailObject>
 	public AvailObject parsingInstructions ()
 	{
 		return descriptor().o_ParsingInstructions(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void mapDo (
+		final Continuation2<AvailObject, AvailObject> continuation)
+	{
+		descriptor().o_mapDo(this,continuation);
 	}
 
 }

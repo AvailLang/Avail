@@ -497,7 +497,7 @@ public class ModuleDescriptor extends Descriptor
 		//  Construct a bundle tree that has been prefiltered to contain just method bundles
 		//  that are visible to the current module.
 
-		object.filteredBundleTree(UnexpandedMessageBundleTreeDescriptor.newDepth(1));
+		object.filteredBundleTree(UnexpandedMessageBundleTreeDescriptor.newPc(1));
 		bundleTree.copyToRestrictedTo(object.filteredBundleTree(), object.visibleNames());
 	}
 
@@ -522,7 +522,7 @@ public class ModuleDescriptor extends Descriptor
 		object.restrictions(MapDescriptor.empty());
 		object.variableBindings(MapDescriptor.empty());
 		object.constantBindings(MapDescriptor.empty());
-		object.filteredBundleTree(UnexpandedMessageBundleTreeDescriptor.newDepth(1));
+		object.filteredBundleTree(UnexpandedMessageBundleTreeDescriptor.newPc(1));
 	}
 
 
@@ -577,7 +577,7 @@ public class ModuleDescriptor extends Descriptor
 	public static AvailObject newModule ()
 	{
 		AvailObject emptyMap = MapDescriptor.empty();
-		AvailObject unexpanded = UnexpandedMessageBundleTreeDescriptor.newDepth(1);
+		AvailObject unexpanded = UnexpandedMessageBundleTreeDescriptor.newPc(1);
 		AvailObject object = AvailObject.newIndexedDescriptor(0, ModuleDescriptor.mutableDescriptor());
 		object.newNames(emptyMap);
 		object.names(emptyMap);

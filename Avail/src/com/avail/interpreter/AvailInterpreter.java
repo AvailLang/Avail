@@ -41,6 +41,7 @@ import com.avail.compiler.Continuation1;
 import com.avail.compiler.Generator;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.AbstractSignatureDescriptor;
+import com.avail.descriptor.MessageBundleDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BooleanDescriptor;
@@ -66,7 +67,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * TODO: Document this type!
+ * This is the abstraction for execution Avail code.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
@@ -208,13 +209,16 @@ public abstract class AvailInterpreter
 		}
 		imps.addImplementation(newImp);
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
-			newImp, true);
+			newImp,
+			true);
 		assert methodName.isCyclicType();
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
-		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName,
-			splitter.messageParts(),
-			splitter.instructionsTuple());
+		AvailObject message = methodName.name();
+		MessageSplitter splitter = new MessageSplitter(message);
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
 	}
 
 	/**
@@ -222,7 +226,8 @@ public abstract class AvailInterpreter
 	 * the first implementation is encountered, so set them to 'no restrictions'
 	 * if they're not set already.
 	 * 
-	 * @param methodName The method's name, an Avail string.
+	 * @param methodName The method's name, a {@link CyclicTypeDescriptor cyclic
+	 *                   type}.
 	 * @param method A {@link ClosureDescriptor method}.
 	 */
 	public void atAddMethodBody (
@@ -341,10 +346,11 @@ public abstract class AvailInterpreter
 		}
 		imps.addImplementation(newImp);
 		assert methodName.isCyclicType();
-		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName,
-			splitter.messageParts(),
-			splitter.instructionsTuple());
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
 	}
 
 	/**
@@ -444,10 +450,11 @@ public abstract class AvailInterpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		imps.addImplementation(newImp);
-		module.filteredBundleTree().includeBundleAtMessageParts(
-			methodName,
-			splitter.messageParts(),
-			splitter.instructionsTuple());
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
 	}
 
 	/**
@@ -475,10 +482,11 @@ public abstract class AvailInterpreter
 		assert methodName.isCyclicType();
 		//  Fix precedence.
 		AvailObject bundle =
-			module.filteredBundleTree().includeBundleAtMessageParts(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple());
+			module.filteredBundleTree().includeBundle(
+				MessageBundleDescriptor.newBundle(
+					methodName,
+					splitter.messageParts(),
+					splitter.instructionsTuple()));
 		bundle.addRestrictions(illegalArgMsgs);
 		module.atAddMessageRestrictions(methodName, illegalArgMsgs);
 	}
@@ -620,6 +628,44 @@ public abstract class AvailInterpreter
 		return all.mapAt(firstPiece).incomplete();
 	}
 
+	/**
+	 * Answer the map whose first (but not only) token-component is firstPiece.
+	 * The map is from the second piece to bundle tree.  Filter selectors based
+	 * on the visibility of names in the current module.
+	 * 
+	 * @param firstPiece The first Avail {@link ByteStringDescriptor string}
+	 *                   token by which to filter messages.
+	 * @return A map from 
+	 */
+	public AvailObject specialBundlesStartingWith (
+		final AvailObject firstPiece)
+	{
+		//TODO: Implement this for real.  This is where we'll need to rewrite
+		// the parser as a shift-reduce with an argument read-ahead.  The idea
+		// is that one parses an expression then attempts to wrap it repeatedly
+		// with leading-underscore interpretations.  It doesn't work quite the
+		// same way with repetitions, so allow the shift-reduce engine to abort
+		// the operation along all paths where it happens to get to a leading
+		// keyword before an argument.
+		final AvailObject all = module.filteredBundleTree().specialActions();
+		if (!all.hasKey(firstPiece))
+		{
+			return MapDescriptor.empty();
+		}
+		return all.mapAt(firstPiece).incomplete();
+	}
+
+	/**
+	 * Answer the current module's filtered bundle tree used for parsing.  It
+	 * only includes bundles visible in the current module.
+	 * 
+	 * @return The filtered root bundle tree.
+	 */
+	public AvailObject rootBundleTree ()
+	{
+		return module.filteredBundleTree();
+	}
+	
 	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
 	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the

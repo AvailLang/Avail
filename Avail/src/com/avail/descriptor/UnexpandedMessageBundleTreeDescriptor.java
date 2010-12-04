@@ -32,10 +32,14 @@
 
 package com.avail.descriptor;
 
+import java.util.ArrayList;
+import java.util.List;
+import com.avail.compiler.Continuation2;
+import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.Mutable;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ExpandedMessageBundleTreeDescriptor;
 import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MessageBundleDescriptor;
 import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 import static com.avail.descriptor.AvailObject.*;
 
@@ -44,7 +48,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	enum IntegerSlots
 	{
-		DEPTH
+		PARSING_PC
 	}
 
 	enum ObjectSlots
@@ -55,14 +59,14 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Setter for field depth.
+	 * Setter for field parsingPc.
 	 */
 	@Override
-	public void o_Depth (
+	public void o_ParsingPc (
 			final AvailObject object,
 			final int value)
 	{
-		object.integerSlotPut(IntegerSlots.DEPTH, value);
+		object.integerSlotPut(IntegerSlots.PARSING_PC, value);
 	}
 
 	/**
@@ -99,13 +103,13 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * Getter for field depth.
+	 * Getter for field parsingPc.
 	 */
 	@Override
-	public int o_Depth (
+	public int o_ParsingPc (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.DEPTH);
+		return object.integerSlot(IntegerSlots.PARSING_PC);
 	}
 
 	/**
@@ -148,7 +152,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		{
 			return true;
 		}
-		if (e == IntegerSlots.DEPTH)
+		if (e == IntegerSlots.PARSING_PC)
 		{
 			return true;
 		}
@@ -157,34 +161,32 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 
 
-	// operations
-
+	/**
+	 * Make the object immutable so it can be shared safely.  If I was mutable I
+	 * have to scan my children and make them immutable as well (recursively
+	 * down to immutable descendants).
+	 */
 	@Override
 	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
-		// Make the object immutable so it can be shared safely.  If I was
-		// mutable I have to scan my children and make them immutable as well
-		// (recursively down to immutable descendants).
-
-		object.descriptor(UnexpandedMessageBundleTreeDescriptor.immutableDescriptor());
+		object.descriptor(
+			UnexpandedMessageBundleTreeDescriptor.immutableDescriptor());
 		// Don't bother scanning subobjects. They're allowed to be mutable even
 		// when object is immutable.
 		return object;
 	}
 
 
-
-	// operations-bundleTree
-
+	/**
+	 * Add the given message/bundle pair.
+	 */
 	@Override
 	public void o_AtMessageAddBundle (
 			final AvailObject object,
 			final AvailObject message,
 			final AvailObject bundle)
 	{
-		//  Add the given message/bundle pair.
-
 		AvailObject unclassified = object.unclassified();
 		if (unclassified.hasKey(message))
 		{
@@ -198,16 +200,19 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		object.unclassified(unclassified);
 	}
 
+	/**
+	 * Answer the bundle with the given message (also split into parts).
+	 */
 	@Override
 	public AvailObject o_BundleAtMessageParts (
 			final AvailObject object,
 			final AvailObject message,
-			final AvailObject parts)
+			final AvailObject parts,
+			final AvailObject instructions)
 	{
-		//  Answer the bundle with the given message (also split into parts).
-
 		final AvailObject unclassified = object.unclassified();
-		assert unclassified.hasKey(message) : "That message is not in the bundle tree";
+		assert unclassified.hasKey(message)
+		: "That message is not in the bundle tree";
 		return unclassified.mapAt(message);
 	}
 
@@ -221,63 +226,57 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		//  of visible names (cyclicTypes) is in visibleNames.
 
 		final AvailObject unclassified = object.unclassified();
-		AvailObject.lock(unclassified);
-		for (int mapIndex = 1, _end1 = unclassified.capacity(); mapIndex <= _end1; mapIndex++)
+		unclassified.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
-			final AvailObject message = unclassified.keyAtIndex(mapIndex);
-			AvailObject bundle;
-			if (!message.equalsVoidOrBlank())
+			@Override
+			public void value (AvailObject message, AvailObject bundle)
 			{
 				if (visibleNames.hasElement(message))
 				{
-					bundle = unclassified.valueAtIndex(mapIndex);
 					filteredBundleTree.atMessageAddBundle(message, bundle);
 				}
 			}
-		}
-		AvailObject.unlock(unclassified);
+		});
 	}
 
 	@Override
-	public AvailObject o_IncludeBundleAtMessageParts (
+	public AvailObject o_IncludeBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
+		final AvailObject messageBundle)
 	{
 		//  If there isn't one already, add a bundle to correspond to the given message.
 		//  Answer the new or existing bundle.
 
 		AvailObject unclassified = object.unclassified();
+		final AvailObject message = messageBundle.message(); 
 		if (unclassified.hasKey(message))
 		{
 			return unclassified.mapAt(message);
 		}
-		final AvailObject bundle = MessageBundleDescriptor.newBundle(
-			message,
-			parts,
-			instructions);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
 			message,
-			bundle,
+			messageBundle,
 			true);
 		object.unclassified(unclassified);
-		return bundle;
+		return messageBundle;
 	}
 
+	
+	/**
+	 * Remove the bundle with the given message name (expanded as parts).
+	 * Answer true if this tree is now empty and should be removed.
+	 */
 	@Override
-	public boolean o_RemoveMessageParts (
+	public boolean o_RemoveBundle (
 			final AvailObject object,
-			final AvailObject message,
-			final AvailObject parts)
+			AvailObject bundle)
 	{
-		//  Remove the bundle with the given message name (expanded as parts).
-		//  Answer true if this tree is now empty and should be removed.
-
 		AvailObject unclassified = object.unclassified();
-		unclassified = unclassified.mapWithoutKeyCanDestroy(message, true);
+		unclassified = unclassified.mapWithoutKeyCanDestroy(
+			bundle.message(),
+			true);
 		object.unclassified(unclassified);
-		return (unclassified.mapSize() == 0);
+		return unclassified.mapSize() == 0;
 	}
 
 	@Override
@@ -287,60 +286,107 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		return object.expand().complete();
 	}
 
+	
+	/**
+	 * Expand the bundleTree.  Answer the resulting expanded tree.
+	 */
 	@Override
 	public AvailObject o_Expand (
 			final AvailObject object)
 	{
-		//  Expand the bundleTree.  Answer the resulting expanded tree.
-
 		final AvailObject unclassified = object.unclassified();
-		final int depth = object.depth();
-		AvailObject complete = MapDescriptor.empty();
-		AvailObject incomplete = MapDescriptor.empty();
-		AvailObject.lock(unclassified);
-		for (int mapIndex = 1, _end1 = unclassified.capacity(); mapIndex <= _end1; mapIndex++)
+		final Mutable<AvailObject> complete = new Mutable<AvailObject>(
+			MapDescriptor.empty());
+		final Mutable<AvailObject> incomplete = new Mutable<AvailObject>(
+				MapDescriptor.empty());
+		final Mutable<AvailObject> specialMap = new Mutable<AvailObject>(
+				MapDescriptor.empty());
+		final int pc = object.parsingPc();
+		unclassified.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
-			final AvailObject message = unclassified.keyAtIndex(mapIndex);
-			AvailObject part;
-			AvailObject subtree;
-			AvailObject bundle;
-			AvailObject parts;
-			if (!message.equalsVoidOrBlank())
+			@Override
+			public void value (AvailObject message, AvailObject bundle)
 			{
-				bundle = unclassified.valueAtIndex(mapIndex);
-				parts = bundle.messageParts();
-				if ((depth == (parts.tupleSize() + 1)))
+				final AvailObject instructions = bundle.parsingInstructions();
+				if (pc == instructions.tupleSize() + 1)
 				{
-					complete = complete.mapAtPuttingCanDestroy(
+					complete.value = complete.value.mapAtPuttingCanDestroy(
 						message,
 						bundle,
 						true);
 				}
 				else
 				{
-					part = parts.tupleAt(depth);
-					if (incomplete.hasKey(part))
+					int instruction = instructions.tupleIntAt(pc);
+					int keywordIndex =
+						MessageSplitter.keywordIndexFromInstruction(
+							instruction);
+					if (keywordIndex != 0)
 					{
-						subtree = incomplete.mapAt(part);
+						// It's a parseKeyword instruction.
+						AvailObject subtree;
+						final AvailObject part =
+							bundle.messageParts().tupleAt(pc);
+						if (incomplete.value.hasKey(part))
+						{
+							subtree = incomplete.value.mapAt(part);
+						}
+						else
+						{
+							subtree = newPc(pc + 1);
+							incomplete.value =
+								incomplete.value.mapAtPuttingCanDestroy(
+									part,
+									subtree,
+									true);
+						}
+						subtree.includeBundle(bundle);
 					}
 					else
 					{
-						subtree = UnexpandedMessageBundleTreeDescriptor.newDepth(depth + 1);
-						incomplete = incomplete.mapAtPuttingCanDestroy(
-							part,
-							subtree,
-							true);
+						// It's a special instruction.
+						AvailObject successors;
+						AvailObject instructionObject =
+							IntegerDescriptor.objectFromInt(instruction);
+						List<Integer> nextPcs =
+							MessageSplitter.successorPcs(instruction, pc);
+						if (specialMap.value.hasKey(instructionObject))
+						{
+							successors = specialMap.value.mapAt(
+								instructionObject);
+						}
+						else
+						{
+							List<AvailObject> successorsList =
+								new ArrayList<AvailObject>(nextPcs.size());
+							for (int nextPc : nextPcs)
+							{
+								successorsList.add(newPc(nextPc));
+							}
+							successors = TupleDescriptor.mutableObjectFromArray(
+								successorsList);
+							specialMap.value =
+								specialMap.value.mapAtPuttingCanDestroy(
+									instructionObject,
+									successors,
+									true);
+						}
+						assert successors.tupleSize() == nextPcs.size();
+						for (AvailObject successor : successors)
+						{
+							successor.includeBundle(bundle);
+						}
 					}
-					subtree.atMessageAddBundle(message, bundle);
 				}
 			}
-		}
-		AvailObject.unlock(unclassified);
+		});
 		assert (numberOfFixedObjectSlots() == ExpandedMessageBundleTreeDescriptor.immutableDescriptor().numberOfFixedObjectSlots());
-		object.descriptor(ExpandedMessageBundleTreeDescriptor.immutableDescriptor());
-		object.complete(complete);
-		object.incomplete(incomplete);
-		object.depth(depth);
+		object.descriptor(
+			ExpandedMessageBundleTreeDescriptor.immutableDescriptor());
+		object.complete(complete.value);
+		object.incomplete(incomplete.value);
+		object.parsingPc(pc);
+		object.specialActions(specialMap.value);
 		return object;
 	}
 
@@ -352,17 +398,15 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 
-
-
 	/**
 	 * Create a new message bundle tree, but don't yet break down the messages
 	 * and categorize them into complete/incomplete.  That will happen on
 	 * demand during parsing.
 	 * 
-	 * @param depth A common index into each eligible message's messageParts.
+	 * @param pc A common index into each eligible message's instructions.
 	 * @return The new unexpanded, empty message bundle tree.
 	 */
-	public static AvailObject newDepth(int depth)
+	public static AvailObject newPc(int pc)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(
 			0,
@@ -370,7 +414,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		result.unclassified(MapDescriptor.empty());
 		result.pad1(VoidDescriptor.voidObject());
 		result.pad2(VoidDescriptor.voidObject());
-		result.depth(depth);
+		result.parsingPc(pc);
 		result.makeImmutable();
 		return result;
 	};

@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.AvailObject;
@@ -616,8 +617,9 @@ public class MessageSplitter
 	 * into token strings and generating parsing instructions for parsing
 	 * occurrences of this message.
 	 *
-	 * @param messageName An Avail {@link ByteStringDescriptor string} specifying the keywords and arguments
-	 * of some message being defined.
+	 * @param messageName An Avail {@link ByteStringDescriptor string}
+	 *                    specifying the keywords and arguments of some message
+	 *                    being defined.
 	 */
 	public MessageSplitter (AvailObject messageName)
 	{
@@ -894,4 +896,51 @@ public class MessageSplitter
 			|| AvailScanner.isOperatorCharacter(aCharacter);
 	}
 
+	
+	/**
+	 * If the argument is an encoding of a parseKeyword instruction, answer the
+	 * index of the keyword into the message parts, otherwise answer zero.
+	 *  
+	 * @param instruction The encoded parsing instruction.
+	 * @return The keyword index or zero. 
+	 */
+	public static int keywordIndexFromInstruction (int instruction)
+	{
+		if (instruction >= 4 && instruction % 4 == 2)
+		{
+			return instruction >> 2;
+		}
+		return 0;
+	}
+
+	
+	/**
+	 * Given an instruction and program counter, answer the list of successor
+	 * program counters that should be explored.  For example, a branch
+	 * instruction will need to visit both the program counter plus one
+	 * <em>and</em> the branch target.
+	 *  
+	 * @param instruction The encoded parsing instruction at the specified
+	 *                    program counter.
+	 * @param currentPc The current program counter.
+	 * @return The list of successor program counters.
+	 */
+	public static List<Integer> successorPcs (
+		final int instruction,
+		final int currentPc)
+	{
+		if (instruction >= 4)
+		{
+			if ((instruction & 3) == 1)
+			{
+				// Branch -- return the next pc *and* the branch target.
+				return Arrays.asList(currentPc + 1, instruction >> 2);
+			}
+			if ((instruction & 3) == 2)
+			{
+				return Arrays.asList(instruction >> 2);
+			}
+		}
+		return Arrays.asList(currentPc + 1);
+	}
 }

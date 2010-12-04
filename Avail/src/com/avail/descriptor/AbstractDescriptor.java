@@ -38,6 +38,7 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.Continuation1;
+import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.newcompiler.TokenDescriptor;
@@ -236,6 +237,7 @@ public abstract class AbstractDescriptor
 	 * @param recursionList Which ancestor objects are currently being printed.
 	 * @param indent What level to indent subsequent lines.
 	 */
+	@SuppressWarnings("unchecked")
 	@ThreadSafe
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
@@ -256,7 +258,7 @@ public abstract class AbstractDescriptor
 				builder.append('n');
 				break;
 			default:
-				// Do nothing.
+				break;
 		}
 		builder.append(' ');
 		builder.append(shortenedName);
@@ -677,12 +679,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param message
 	 * @param parts
+	 * @param instructions
 	 * @return
 	 */
 	public abstract AvailObject o_BundleAtMessageParts (
 		final AvailObject object,
 		final AvailObject message,
-		final AvailObject parts);
+		final AvailObject parts,
+		final AvailObject instructions);
 
 	/**
 	 * @param object
@@ -974,7 +978,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Depth (final AvailObject object, final int value);
+	public abstract void o_ParsingPc (final AvailObject object, final int value);
 
 	/**
 	 * @param object
@@ -1231,16 +1235,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @param parts
-	 * @param instructions
+	 * @param messageBundle
 	 * @return
 	 */
-	public abstract AvailObject o_IncludeBundleAtMessageParts (
+	public abstract AvailObject o_IncludeBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions);
+		final AvailObject bundleToFind);
 
 	/**
 	 * @param object
@@ -2201,14 +2201,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @param parts
+	 * @param bundle
 	 * @return
 	 */
-	public abstract boolean o_RemoveMessageParts (
+	public abstract boolean o_RemoveBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts);
+		AvailObject bundle);
 
 	/**
 	 * @param object
@@ -3230,7 +3228,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Depth (final AvailObject object);
+	public abstract int o_ParsingPc (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4698,5 +4696,13 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract AvailObject o_ParsingInstructions (
 		AvailObject object);
+
+	/**
+	 * @param object
+	 * @param continuation
+	 */
+	public abstract void o_mapDo (
+		final AvailObject object,
+		final Continuation2<AvailObject, AvailObject> continuation);
 
 }

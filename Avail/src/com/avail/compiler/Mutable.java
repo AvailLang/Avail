@@ -63,6 +63,24 @@ public class Mutable<T>
 	 */
 	public T value;
 
+	/**
+	 * Zero-argument constructor.
+	 */
+	public Mutable()
+	{
+		super();
+	}
+	
+	/**
+	 * Constructor that takes an initial value.
+	 * 
+	 * @param value The initial value.
+	 */
+	public Mutable(T value)
+	{
+		this.value = value;
+	}
+	
 	@Override
 	public String toString ()
 	{

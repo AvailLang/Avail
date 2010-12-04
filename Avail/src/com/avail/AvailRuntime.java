@@ -255,16 +255,17 @@ public final class AvailRuntime
 				MessageSplitter splitter = new MessageSplitter(name.name());
 				final AvailObject messageParts = splitter.messageParts();
 				final AvailObject instructions = splitter.instructionsTuple();
-				final AvailObject rootBundle =
-					rootBundleTree.includeBundleAtMessageParts(
+				final AvailObject rootBundle = rootBundleTree.includeBundle(
+					MessageBundleDescriptor.newBundle(
 						name,
 						messageParts,
-						instructions);
+						instructions));
 				final AvailObject bundle =
-					aModule.filteredBundleTree().includeBundleAtMessageParts(
-						name,
-						messageParts,
-						instructions);
+					aModule.filteredBundleTree().includeBundle(
+						MessageBundleDescriptor.newBundle(
+							name,
+							messageParts,
+							instructions));
 				rootBundle.addRestrictions(bundle.restrictions());
 			}
 
@@ -446,8 +447,11 @@ public final class AvailRuntime
 			{
 				methods = methods.mapWithoutKeyCanDestroy(selector, true);
 				MessageSplitter splitter = new MessageSplitter(selector.name());
-				final AvailObject messageParts = splitter.messageParts();
-				rootBundleTree.removeMessageParts(selector, messageParts);
+				rootBundleTree.removeBundle(
+					MessageBundleDescriptor.newBundle(
+						selector,
+						splitter.messageParts(),
+						splitter.instructionsTuple()));
 			}
 		}
 		finally
@@ -462,7 +466,7 @@ public final class AvailRuntime
 	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull AvailObject rootBundleTree =
-		UnexpandedMessageBundleTreeDescriptor.newDepth(1);
+		UnexpandedMessageBundleTreeDescriptor.newPc(1);
 
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
@@ -480,7 +484,7 @@ public final class AvailRuntime
 		try
 		{
 			final AvailObject copy =
-				UnexpandedMessageBundleTreeDescriptor.newDepth(1);
+				UnexpandedMessageBundleTreeDescriptor.newPc(1);
 			rootBundleTree.copyToRestrictedTo(copy, methods.keysAsSet());
 			return copy;
 		}

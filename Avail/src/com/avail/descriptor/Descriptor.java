@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
+import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.newcompiler.TokenDescriptor;
@@ -635,13 +636,15 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @param object
 	 * @param message
 	 * @param parts
+	 * @param instructions
 	 * @return
 	 */
 	@Override
 	public AvailObject o_BundleAtMessageParts (
 		final AvailObject object,
 		final AvailObject message,
-		final AvailObject parts)
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -1144,7 +1147,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_Depth (
+	public void o_ParsingPc (
 		final AvailObject object,
 		final int value)
 	{
@@ -1622,21 +1625,17 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @param parts
-	 * @param instructions
+	 * @param messageBundle
 	 * @return
 	 */
 	@Override
-	public AvailObject o_IncludeBundleAtMessageParts (
+	public AvailObject o_IncludeBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
+		final AvailObject messageBundle)
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:includeBundleAtMessage:parts:", object);
+		subclassResponsibility("Object:includeBundle:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3457,15 +3456,12 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @param parts
 	 * @return
 	 */
 	@Override
-	public boolean o_RemoveMessageParts (
+	public boolean o_RemoveBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts)
+		AvailObject bundle)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -5437,7 +5433,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_Depth (
+	public int o_ParsingPc (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -8521,6 +8517,18 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		subclassResponsibility("o_ParsingInstructions", object);
 		return null;
+	}
+
+	/**
+	 * @param object
+	 * @param continuation
+	 */
+	@Override
+	public void o_mapDo (
+		final AvailObject object,
+		final Continuation2<AvailObject, AvailObject> continuation)
+	{
+		subclassResponsibility("o_KeysAndValuesDo", object);
 	}
 
 }

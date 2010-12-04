@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.Continuation2;
+import com.avail.compiler.Mutable;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.ObjectMetaDescriptor;
@@ -223,55 +225,56 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfObjectType(object);
 	}
 
+	/**
+	 * Answer the most general type that is still at least as specific as these.
+	 * Here we're finding the nearest common descendant of two eager object
+	 * types.
+	 */
 	@Override
 	public AvailObject o_TypeIntersectionOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Here we're finding
-		//  the nearest common descendant of two eager object types.
-
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		AvailObject resultMap = MapDescriptor.newWithCapacity((map1.capacity() + map2.capacity()));
+		final Mutable<AvailObject> resultMap = new Mutable<AvailObject>(
+			MapDescriptor.newWithCapacity(map1.capacity() + map2.capacity()));
 		AvailObject.lock(map1);
-		for (int i = 1, _end1 = map1.capacity(); i <= _end1; i++)
+		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
-			AvailObject keyObject = map1.keyAtIndex(i);
-			if (!keyObject.equalsVoidOrBlank())
+			@Override
+			public void value (AvailObject key, AvailObject type)
 			{
-				AvailObject typeObject = map1.valueAtIndex(i);
-				if (map2.hasKey(keyObject))
+				if (map2.hasKey(key))
 				{
-					typeObject = typeObject.typeIntersection(map2.mapAt(keyObject));
+					type = type.typeIntersection(map2.mapAt(key));
 				}
-				resultMap = resultMap.mapAtPuttingCanDestroy(
-					keyObject,
-					typeObject,
+				resultMap.value = resultMap.value.mapAtPuttingCanDestroy(
+					key,
+					type,
 					true);
 			}
-		}
+		});
+		// We're done iterating over map1.
 		AvailObject.unlock(map1);
-		//  We're done iterating over map1.
 		AvailObject.lock(map2);
-		for (int i = 1, _end2 = map2.capacity(); i <= _end2; i++)
+		map2.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
-			AvailObject keyObject = map2.keyAtIndex(i);
-			if (!keyObject.equalsVoidOrBlank())
+			@Override
+			public void value (AvailObject key, AvailObject type)
 			{
-				if (!map1.hasKey(keyObject))
+				if (!map1.hasKey(key))
 				{
-					AvailObject typeObject = map2.valueAtIndex(i);
-					resultMap = resultMap.mapAtPuttingCanDestroy(
-						keyObject,
-						typeObject,
+					resultMap.value = resultMap.value.mapAtPuttingCanDestroy(
+						key,
+						type,
 						true);
 				}
 			}
-		}
+		});
+		// We're done iterating over the second map.
 		AvailObject.unlock(map2);
-		//  We're done iterating over the second map.
-		return ObjectTypeDescriptor.objectTypeFromMap(resultMap);
+		return ObjectTypeDescriptor.objectTypeFromMap(resultMap.value);
 	}
 
 	@Override
@@ -292,37 +295,35 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return another.typeUnionOfObjectType(object);
 	}
 
+	/**
+	 * Answer the most specific type that is still at least as general as these.
+	 * Here we're finding the nearest common ancestor of two eager object types.
+	 */
 	@Override
 	public AvailObject o_TypeUnionOfObjectType (
 			final AvailObject object,
 			final AvailObject anObjectType)
 	{
-		//  Answer the most specific type that is still at least as general as these.  Here we're finding
-		//  the nearest common ancestor of two eager object types.
-
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		AvailObject resultMap = MapDescriptor.newWithCapacity(min(map1.capacity(), map2.capacity()));
-		AvailObject.lock(map1);
-		for (int i = 1, _end1 = map1.capacity(); i <= _end1; i++)
+		final Mutable<AvailObject> resultMap = new Mutable<AvailObject>(
+			MapDescriptor.newWithCapacity(
+				min(map1.capacity(), map2.capacity())));
+		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
-			final AvailObject keyObject = map1.keyAtIndex(i);
-			AvailObject typeObject;
-			if (!keyObject.equalsVoidOrBlank())
+			@Override
+			public void value (AvailObject key, AvailObject valueType)
 			{
-				if (map2.hasKey(keyObject))
+				if (map2.hasKey(key))
 				{
-					typeObject = map1.valueAtIndex(i).typeUnion(map2.mapAt(keyObject));
-					resultMap = resultMap.mapAtPuttingCanDestroy(
-						keyObject,
-						typeObject,
+					resultMap.value = resultMap.value.mapAtPuttingCanDestroy(
+						key,
+						valueType.typeUnion(map2.mapAt(key)),
 						true);
 				}
 			}
-		}
-		AvailObject.unlock(map1);
-		//  We're done iterating.
-		return ObjectTypeDescriptor.objectTypeFromMap(resultMap);
+		});
+		return ObjectTypeDescriptor.objectTypeFromMap(resultMap.value);
 	}
 
 

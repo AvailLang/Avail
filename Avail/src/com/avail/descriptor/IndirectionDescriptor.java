@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
+import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.newcompiler.TokenDescriptor;
@@ -560,9 +561,13 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public AvailObject o_BundleAtMessageParts (
 		final AvailObject object,
 		final AvailObject message,
-		final AvailObject parts)
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
-		return o_Traversed(object).bundleAtMessageParts(message, parts);
+		return o_Traversed(object).bundleAtMessageParts(
+			message,
+			parts,
+			instructions);
 	}
 
 	@Override
@@ -846,9 +851,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Depth (final AvailObject object, final int value)
+	public void o_ParsingPc (final AvailObject object, final int value)
 	{
-		o_Traversed(object).depth(value);
+		o_Traversed(object).parsingPc(value);
 	}
 
 	@Override
@@ -1329,16 +1334,12 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_IncludeBundleAtMessageParts (
+	public AvailObject o_IncludeBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
+		final AvailObject messageBundle)
 	{
-		return o_Traversed(object).includeBundleAtMessageParts(
-			message,
-			parts,
-			instructions);
+		return o_Traversed(object).includeBundle(
+			messageBundle);
 	}
 
 	@Override
@@ -2260,12 +2261,12 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_RemoveMessageParts (
+	public boolean o_RemoveBundle (
 		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts)
+		AvailObject bundle)
 	{
-		return o_Traversed(object).removeMessageParts(message, parts);
+		return o_Traversed(object).removeBundle(
+			bundle);
 	}
 
 	@Override
@@ -3239,9 +3240,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_Depth (final AvailObject object)
+	public int o_ParsingPc (final AvailObject object)
 	{
-		return o_Traversed(object).depth();
+		return o_Traversed(object).parsingPc();
 	}
 
 	@Override
@@ -4251,6 +4252,14 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public AvailObject o_ParsingInstructions (AvailObject object)
 	{
 		return o_Traversed(object).parsingInstructions();
+	}
+
+	@Override
+	public void o_mapDo (
+		AvailObject object,
+		Continuation2<AvailObject, AvailObject> continuation)
+	{
+		o_Traversed(object).mapDo(continuation);
 	}
 
 }
