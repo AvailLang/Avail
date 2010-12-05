@@ -35,6 +35,7 @@ package com.avail.compiler;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.AvailObject;
@@ -931,16 +932,16 @@ public class MessageSplitter
 	{
 		if (instruction >= 4)
 		{
-			if ((instruction & 3) == 1)
+			if ((instruction & 3) == 0)
 			{
 				// Branch -- return the next pc *and* the branch target.
 				return Arrays.asList(currentPc + 1, instruction >> 2);
 			}
-			if ((instruction & 3) == 2)
+			if ((instruction & 3) == 1)
 			{
-				return Arrays.asList(instruction >> 2);
+				return Collections.singletonList(instruction >> 2);
 			}
 		}
-		return Arrays.asList(currentPc + 1);
+		return Collections.singletonList(currentPc + 1);
 	}
 }

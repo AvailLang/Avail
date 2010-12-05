@@ -79,6 +79,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -1109,7 +1110,8 @@ public class AvailCompiler
 		//  effect of eliminating each 'local' misparsing exactly once.  I'm not sure
 		//  what happens to the order of the algorithm, but it might go from
 		//  exponential to small polynomial.
-		final List<AvailCompilerCachedSolution> solutions = fragmentCache.atTokenPositionScopeStack(start, originalScope);
+		final List<AvailCompilerCachedSolution> solutions =
+			fragmentCache.atTokenPositionScopeStack(start, originalScope);
 		for (final AvailCompilerCachedSolution solution : solutions)
 		{
 			position(solution.endPosition());
@@ -1122,8 +1124,6 @@ public class AvailCompiler
 
 	/**
 	 * We've parsed part of a send.  Try to finish the job.
-	 * 
-	 * @param currentPc The position of the current parsing instruction.
 	 * @param bundleTree The bundle tree used to parse at this position.
 	 * @param firstArgOrNull Either null or an argument that must be consumed
 	 *                       before any keywords (or completion of a send).
@@ -1136,24 +1136,21 @@ public class AvailCompiler
 	 * @param continuation What to do with a fully parsed send node.
 	 */
 	void parseRestOfSendNode (
-			final int currentPc,
 			final AvailObject bundleTree,
 			final AvailParseNode firstArgOrNull,
 			final int initialTokenPosition,
 			final List<AvailParseNode> argsSoFar,
 			final Continuation1<AvailSendNode> continuation)
 	{
+		final int start = position();
 		final AvailObject complete = bundleTree.complete();
 		final AvailObject incomplete = bundleTree.incomplete();
 		final AvailObject special = bundleTree.specialActions();
 		final int completeMapSize = complete.mapSize();
 		final int incompleteMapSize = incomplete.mapSize();
 		final int specialSize = special.mapSize();
-		if (completeMapSize + incompleteMapSize + specialSize == 0)
-		{
-			error("Expected a nonempty list of possible messages");
-			return;
-		}
+		assert completeMapSize + incompleteMapSize + specialSize > 0
+		: "Expected a nonempty list of possible messages";
 		if (completeMapSize != 0 && firstArgOrNull == null)
 		{
 			complete.mapDo(new Continuation2<AvailObject, AvailObject>()
@@ -1214,7 +1211,6 @@ public class AvailCompiler
 					nextToken();
 					final AvailObject subtree = incomplete.mapAt(keywordString);
 					parseRestOfSendNode(
-						currentPc + 1,
 						subtree,
 						null,
 						initialTokenPosition,
@@ -1226,6 +1222,10 @@ public class AvailCompiler
 				{
 					expectedKeywordsOf(incomplete);
 				}
+			}
+			else
+			{
+				expectedKeywordsOf(incomplete);
 			}
 		}
 		if (specialSize != 0)
@@ -1242,7 +1242,8 @@ public class AvailCompiler
 					switch (instruction)
 					{
 						case 0:
-							// parse an argument and recurse.
+						{
+							// Parse an argument and recurse.
 							assert successorTrees.tupleSize() == 1;
 							final AvailObject successorTree = successorTrees.tupleAt(1);
 							parseSendArgumentWithExplanationThen(
@@ -1284,39 +1285,90 @@ public class AvailCompiler
 										List<AvailParseNode> newArgsSoFar = new ArrayList<AvailParseNode>(argsSoFar);
 										newArgsSoFar.add(newArg);
 										parseRestOfSendNode(
-											currentPc + 1,
 											successorTree,
 											null,
 											initialTokenPosition,
-											newArgsSoFar, continueAfterFiltering);
+											newArgsSoFar,
+											continueAfterFiltering);
 									}
 								});
 							break;
+						}
 						case 1:
-							// push empty list
-							error("Repeated arguments not yet implemented");
+						{
+							// Push an empty list node.
+							assert successorTrees.tupleSize() == 1;
+							List<AvailParseNode> newArgsSoFar =
+								new ArrayList<AvailParseNode>(argsSoFar); 
+							AvailListNode newListNode = new AvailListNode();
+							newListNode.expressions(
+								Collections.<AvailParseNode>emptyList());
+							newArgsSoFar.add(newListNode);
+							parseRestOfSendNode(
+								successorTrees.tupleAt(1),
+								null,
+								initialTokenPosition,
+								newArgsSoFar,
+								continuation);
 							break;
+						}
 						case 2:
-							// append to list
-							error("Repeated arguments not yet implemented");
+						{
+							// Append the item that's the last thing to the
+							// list that's the second last thing.  Pop both and
+							// push the new list (the original list must not
+							// change).
+							assert successorTrees.tupleSize() == 1;
+							List<AvailParseNode> newArgsSoFar =
+								new ArrayList<AvailParseNode>(argsSoFar);
+							AvailParseNode value =
+								newArgsSoFar.remove(newArgsSoFar.size() - 1);
+							AvailListNode oldListNode =
+								(AvailListNode)newArgsSoFar.remove(
+									newArgsSoFar.size() - 1);
+							AvailParseNode newListNode =
+								oldListNode.copyWith(value);
+							newArgsSoFar.add(newListNode);
+							parseRestOfSendNode(
+								successorTrees.tupleAt(1),
+								null,
+								initialTokenPosition,
+								newArgsSoFar,
+								continuation);
 							break;
+						}
 						case 3:
-							// reserved
+						{
+							// Reserved
 							error("Illegal parsing instruction");
 							break;
+						}
 						default:
-							// branch or jump, or else we shouldn't be here.
+						{
+							// Branch or jump, or else we shouldn't be here.
 							assert (instruction & 3) <= 1;
-							// do nothing special.
+							for (AvailObject successorTree : successorTrees)
+							{
+								parseRestOfSendNode(
+									successorTree,
+									null,
+									initialTokenPosition,
+									argsSoFar,
+									continuation);
+								assert start == position();
+							}
+						}
 					}
 				}
 			});
 		}
+		assert start == position();
 	}
 
 	/**
 	 * Report that the parser was expecting one of several keywords.  The
-	 * keywords are keys of a the {@link MapDescriptor map} {@code #incomplete}.
+	 * keywords are keys of the {@link MapDescriptor map} argument {@code
+	 * incomplete}.
 	 * 
 	 * @param incomplete A map of partially parsed keywords, where the keys are
 	 *                   the strings that were expected at this position.
@@ -1331,19 +1383,26 @@ public class AvailCompiler
 			{
 				final StringBuilder builder = new StringBuilder(200);
 				builder.append("one of the following internal keywords: ");
-				if (incomplete.mapSize() > 10)
-				{
-					builder.append("\n\t\t");
-				}
+				final List<String> sorted = new ArrayList<String>(
+					incomplete.mapSize());
 				incomplete.mapDo(new Continuation2<AvailObject, AvailObject>()
-				{
-					@Override
-					public void value (AvailObject key, AvailObject value)
 					{
-						builder.append(key.asNativeString());
-						builder.append("  ");
-					}
-				});
+						@Override
+						public void value (AvailObject key, AvailObject value)
+						{
+							sorted.add(key.asNativeString());
+						}
+					});
+				Collections.sort(sorted);
+				if (incomplete.mapSize() > 5)
+				{
+					builder.append("\n\t");
+				}
+				for (String s : sorted)
+				{
+					builder.append(s);
+					builder.append("  ");
+				}
 				return builder.toString();
 			}
 		});
@@ -1417,7 +1476,6 @@ public class AvailCompiler
 			final Continuation1<AvailSendNode> continuation)
 	{
 		parseRestOfSendNode(
-			1,
 			interpreter.rootBundleTree(),
 			leadingArgument,
 			position,
@@ -1438,7 +1496,6 @@ public class AvailCompiler
 			final Continuation1<AvailSendNode> continuation)
 	{
 		parseRestOfSendNode(
-			1,
 			interpreter.rootBundleTree(),
 			null,
 			position,

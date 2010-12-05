@@ -127,7 +127,6 @@ public class ObjectDescriptor extends Descriptor
 		final AvailObject valueMap = object.fieldMap();
 		final Mutable<AvailObject> typeMap = new Mutable<AvailObject>(
 				MapDescriptor.newWithCapacity(valueMap.capacity()));
-		AvailObject.lock(typeMap.value);
 		valueMap.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
@@ -139,7 +138,6 @@ public class ObjectDescriptor extends Descriptor
 					true);
 			}
 		});
-		AvailObject.unlock(typeMap.value);
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap.value);
 	}
 

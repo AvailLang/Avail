@@ -465,26 +465,30 @@ public class AvailCodeGenerator
 
 
 
-	// private
-
+	/**
+	 * Figure out which uses of local and outer variables are final uses.  This
+	 * interferes with the concept of labels in the following way.  We now only
+	 * allow labels as the first statement in a block, so you can only restart
+	 * or exit a continuation (not counting the debugger usage, which shouldn't
+	 * affect us).  Restarting requires only the arguments and outers to be
+	 * preserved, as all local variables are recreated (unassigned) on restart.
+	 * Exiting doesn't require anything of any non-argument locals, so no
+	 * problem there.  Note that after the last place in the code where the
+	 * continuation is constructed we don't even need any arguments or outers
+	 * unless the code after this point actually uses the arguments.  We'll be a
+	 * bit conservative here and simply clean up those arguments and outers
+	 * which are used after the last continuation construction point, at their
+	 * final use points, while always cleaning up final uses of local
+	 * non-argument variables.
+	 */
 	public void fixFinalUses ()
 	{
-		//  Figure out which uses of local and outer variables are final uses.  This interferes with the
-		//  concept of labels in the following way.  We now only allow labels as the first statement in
-		//  a block, so you can only restart or exit a continuation (not counting the debugger usage,
-		//  which shouldn't affect us).  Restarting requires only the arguments and outers to be
-		//  preserved, as all local variables are recreated (unassigned) on restart.  Exiting doesn't
-		//  require anything of any nonargument locals, so no problem there.  Note that after the last
-		//  place in the code where the continuation is constructed we don't even need any arguments
-		//  or outers unless the code after this point actually uses the arguments.  We'll be a bit
-		//  conservative here and simply clean up those arguments and outers which are used after
-		//  the last continuation construction point, at their final use points, while always cleaning up
-		//  final uses of local nonargument variables.
-
 		List<AvailVariableAccessNote> localData;
 		List<AvailVariableAccessNote> outerData;
-		localData = new ArrayList<AvailVariableAccessNote>(Arrays.asList(new AvailVariableAccessNote[_varMap.size()]));
-		outerData = new ArrayList<AvailVariableAccessNote>(Arrays.asList(new AvailVariableAccessNote[_outerMap.size()]));
+		localData = new ArrayList<AvailVariableAccessNote>(
+				Arrays.asList(new AvailVariableAccessNote[_varMap.size()]));
+		outerData = new ArrayList<AvailVariableAccessNote>(
+				Arrays.asList(new AvailVariableAccessNote[_outerMap.size()]));
 		for (int index = 1, _end1 = _instructions.size(); index <= _end1; index++)
 		{
 			final AvailInstruction instruction = _instructions.get(index - 1);
@@ -494,9 +498,5 @@ public class AvailCodeGenerator
 				this);
 		}
 	}
-
-
-
-
 
 }

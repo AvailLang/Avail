@@ -326,7 +326,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 						// It's a parseKeyword instruction.
 						AvailObject subtree;
 						final AvailObject part =
-							bundle.messageParts().tupleAt(pc);
+							bundle.messageParts().tupleAt(keywordIndex);
 						if (incomplete.value.hasKey(part))
 						{
 							subtree = incomplete.value.mapAt(part);

@@ -239,7 +239,6 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		final AvailObject map2 = anObjectType.fieldTypeMap();
 		final Mutable<AvailObject> resultMap = new Mutable<AvailObject>(
 			MapDescriptor.newWithCapacity(map1.capacity() + map2.capacity()));
-		AvailObject.lock(map1);
 		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
@@ -255,9 +254,6 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 					true);
 			}
 		});
-		// We're done iterating over map1.
-		AvailObject.unlock(map1);
-		AvailObject.lock(map2);
 		map2.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
@@ -272,8 +268,6 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 				}
 			}
 		});
-		// We're done iterating over the second map.
-		AvailObject.unlock(map2);
 		return ObjectTypeDescriptor.objectTypeFromMap(resultMap.value);
 	}
 

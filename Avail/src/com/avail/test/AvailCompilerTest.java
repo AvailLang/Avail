@@ -207,73 +207,12 @@ public class AvailCompilerTest
 	}
 
 	/**
-	 * Test: Compile the Tier-0 modules.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
-	 */
-	@Test
-	public void tier0 () throws Exception
-	{
-		long startTime = System.currentTimeMillis();
-		compile(new ModuleName(
-			"/avail/Kernel/Tier-4/Tier-3/Tier-2/Tier-1/Tier-0"));
-		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-	}
-
-	/**
-	 * Test: Compile the Tier-1 modules.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
-	 */
-	@Test
-	public void tier1 () throws Exception
-	{
-		long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Kernel/Tier-4/Tier-3/Tier-2/Tier-1"));
-		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-	}
-
-	/**
-	 * Test: Compile the Tier-2 modules.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
-	 */
-	@Test
-	public void tier2 () throws Exception
-	{
-		long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Kernel/Tier-4/Tier-3/Tier-2"));
-		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-	}
-
-	/**
-	 * Test: Compile the Tier-3 modules.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
-	 */
-	@Test
-	public void tier3 () throws Exception
-	{
-		long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Kernel/Tier-4/Tier-3"));
-		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-	}
-
-	/**
 	 * Test: Compile the Tier-4 modules.
 	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
-	@Test
+//	@Test
 	public void tier4 () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
@@ -282,17 +221,32 @@ public class AvailCompilerTest
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
+//	/**
+//	 * Test: Compile all non-experimental modules.
+//	 *
+//	 * @throws Exception
+//	 *         If an {@linkplain Exception exception} occurs.
+//	 */
+//	@Test
+//	public void everything () throws Exception
+//	{
+//		long startTime = System.currentTimeMillis();
+//		compile(new ModuleName("/avail/Test-Everything"));
+//		System.err.printf(
+//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+//	}
+
 	/**
-	 * Test: Compile all non-experimental modules.
+	 * Test: Compile the Chevron-Test module.
 	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
 	@Test
-	public void everything () throws Exception
+	public void chevronTest () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Test-Everything"));
+		compile(new ModuleName("/avail/Chevron-Test"));
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}

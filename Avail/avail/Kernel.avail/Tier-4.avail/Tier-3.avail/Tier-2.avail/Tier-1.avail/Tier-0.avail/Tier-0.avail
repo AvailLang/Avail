@@ -194,7 +194,7 @@ Method "_can't have_" is [names : set, except : tuple |
 
 
 Method "Print_" is [something : all |
-	Primitive 256;
+	Primitive 258;
 	Failed;
 ] : void;
 

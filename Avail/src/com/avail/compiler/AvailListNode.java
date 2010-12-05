@@ -35,6 +35,7 @@ package com.avail.compiler;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ConcatenatedTupleTypeDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListTypeDescriptor;
@@ -47,25 +48,23 @@ import java.util.List;
 
 public class AvailListNode extends AvailParseNode
 {
-	List<AvailParseNode> _expressions;
-	AvailObject _listType;
+	List<AvailParseNode> parseNodes;
 
+	AvailObject listType;
 
-	// accessing
 
 	public List<AvailParseNode> expressions ()
 	{
-		return _expressions;
+		return parseNodes;
 	}
 
 	public void expressions (
-			final List<AvailParseNode> arrayOfExpressions)
+		final List<AvailParseNode> arrayOfExpressions)
 	{
-
-		_expressions = arrayOfExpressions;
+		parseNodes = arrayOfExpressions;
 		List<AvailObject> types;
-		types = new ArrayList<AvailObject>(_expressions.size());
-		for (AvailParseNode expr : _expressions)
+		types = new ArrayList<AvailObject>(parseNodes.size());
+		for (AvailParseNode expr : parseNodes)
 		{
 			types.add(expr.type());
 		}
@@ -73,74 +72,82 @@ public class AvailListNode extends AvailParseNode
 			IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.objectFromInt(types.size())),
 			TupleDescriptor.mutableObjectFromArray(types),
 			Types.terminates.object());
-		_listType = ListTypeDescriptor.listTypeForTupleType(tupleType);
+		listType = ListTypeDescriptor.listTypeForTupleType(tupleType);
 		//  The problem isn't really here, but this Avail compiler is only a bootstrapper.
-		_listType.makeImmutable();
+		listType.makeImmutable();
 	}
 
 	@Override
 	public AvailObject type ()
 	{
-		return _listType;
+		return listType;
 	}
 
-
-
-	// code generation
 
 	@Override
 	public void emitValueOn (
 			final AvailCodeGenerator codeGenerator)
 	{
-		for (AvailParseNode expr : _expressions)
+		for (AvailParseNode expr : parseNodes)
 		{
 			expr.emitValueOn(codeGenerator);
 		}
-		codeGenerator.emitMakeList(_expressions.size());
+		codeGenerator.emitMakeList(parseNodes.size());
 	}
 
+	
+	/**
+	 * Create a new {@code AvailListNode} with one more parse node added to the
+	 * end of the list.
+	 * 
+	 * @param newParseNode The parse node to append.
+	 * @return A new {@code AvailListNode} with the parse node appended.
+	 */
+	public AvailListNode copyWith (
+		AvailParseNode newParseNode)
+	{
+		List<AvailParseNode> newNodes =
+			new ArrayList<AvailParseNode>(parseNodes.size() + 1);
+		newNodes.addAll(parseNodes);
+		newNodes.add(newParseNode);
+		AvailListNode newListNode = new AvailListNode();
+		newListNode.expressions(newNodes);
+		return newListNode;
+	}
 
-
-	// enumerating
-
+	
+	/**
+	 * Map my children through the (destructive) transformation specified by
+	 * aBlock.  Answer the receiver.
+	 */
 	@Override
 	public void childrenMap (
 			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		//  Map my children through the (destructive) transformation
-		//  specified by aBlock.  Answer the receiver.
-
-		_expressions = new ArrayList<AvailParseNode>(_expressions);
-		for (int i = 0; i < _expressions.size(); i++)
+		parseNodes = new ArrayList<AvailParseNode>(parseNodes);
+		for (int i = 0; i < parseNodes.size(); i++)
 		{
-			_expressions.set(i, aBlock.value(_expressions.get(i)));
+			parseNodes.set(i, aBlock.value(parseNodes.get(i)));
 		}
 	}
 
-
-
-	// java printing
 
 	@Override
 	public void printOnIndent (
 			final StringBuilder aStream,
 			final int indent)
 	{
-		for (int i = 1, _end1 = _expressions.size(); i <= _end1; i++)
+		for (int i = 1, _end1 = parseNodes.size(); i <= _end1; i++)
 		{
 			if (i > 1)
 			{
 				aStream.append(", ");
 			}
-			_expressions.get(i - 1).printOnIndentIn(
+			parseNodes.get(i - 1).printOnIndentIn(
 				aStream,
 				(indent + 1),
 				this);
 		}
 	}
-
-
-
-
 
 }

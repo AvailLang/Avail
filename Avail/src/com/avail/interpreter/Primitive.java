@@ -3579,6 +3579,26 @@ public enum Primitive
 	},
 
 
+	/**
+	 * <strong>Primitive 258:</strong> Print an object to System.out.
+	 */
+	prim258_Print_value(258, 1, Flag.Unknown)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull AvailInterpreter interpreter)
+		{
+			assert args.size() == 1;
+
+			final AvailObject objectToPrint = args.get(0);
+			System.out.println(objectToPrint);
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return Result.SUCCESS;
+		}
+	},
+
+
 	prim260_CreateLibrarySpec(260, 0, Flag.CanInline, Flag.HasSideEffect)
 	{
 		@Override
@@ -4443,6 +4463,7 @@ public enum Primitive
 		byPrimitiveNumber = new Primitive[PrimitiveCounter.maxPrimitiveNumber];
 		for (Primitive prim : values())
 		{
+			assert byPrimitiveNumber[prim.primitiveNumber - 1] == null;
 			byPrimitiveNumber[prim.primitiveNumber - 1] = prim;
 		}
 	}
