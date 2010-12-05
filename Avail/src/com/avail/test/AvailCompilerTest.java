@@ -281,4 +281,20 @@ public class AvailCompilerTest
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
+
+	/**
+	 * Test: Compile all non-experimental modules.
+	 *
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void everything () throws Exception
+	{
+		long startTime = System.currentTimeMillis();
+		compile(new ModuleName("/avail/Test-Everything"));
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+	}
+
 }
