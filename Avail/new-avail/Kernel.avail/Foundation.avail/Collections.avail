@@ -41,13 +41,15 @@ Module
 Extends
 Uses
 	"Bootstrap",
+	"Code",
 	"Types"
 Names
 	"map type",
 	"set",
 	"set type",
 	"tuple",
-	"tuple type"
+	"tuple type",
+	"<>"
 Body
 
 /** The compiler needs this in order to specify "tuple type". */
@@ -71,6 +73,22 @@ Method "tuple" is
 [
 	privateTuple;
 ] : tuple type;
+
+/**
+ * @return An empty tuple whose static type is merely {@code tuple}.
+ */
+Method "private <>" is
+[
+	Primitive 134;
+] : tuple;
+
+/**
+ * @return An empty tuple.
+ */
+Method "<>" is
+[
+	Primitive 134;
+] : type of private <>;
 
 /** The compiler needs this in order to specify "set type". */
 privateSetType ::= Special Object 29;

@@ -43,12 +43,63 @@ Uses
 	"Collections",
 	"Types"
 Names
-	"Primitive method_:^(_:_)««_»‡(_:_)»{«_»}",
-	"Primitive method_:««_»‡(_:_)»{«_»}",
+	"expression",
+	"parse node",
+	"statement",
+	"token",
+	"variable name",
+	"Macro:^(_:_)««_»‡(_:_)»{«_»}",
 	"Method:^(_:_)««_»‡(_:_)»{«_»}",
 	"Method:««_»‡(_:_)»{«_»}",
-	"Macro:«^(_:_)»««_»‡(_:_)»{«_»}"
+	"Primitive method_:^(_:_)««_»‡(_:_)»{«_»}",
+	"Primitive method_:««_»‡(_:_)»{«_»}"
 Body
+
+/** The compiler needs this in order to specify "parse node". */
+privateParseNode ::= Special Object 57;
+
+/**
+ * @return The root of the parse node hierarchy.
+ */
+Method "parse node" is
+[
+	privateParseNode;
+] : primitive type;
+
+/** The compiler needs this in order to specify "token". */
+privateToken ::= Special Object ???;
+
+/**
+ * @return The type of a raw token.
+ */
+Method "token" is
+[
+	privateToken;
+] : primitive type;
+
+/**
+ * @return The type of a variable name.
+ */
+Method "variable name" is
+[
+	privateToken;
+] : primitive type;
+
+/**
+ * Define a block whose return type is inferred from the type of the block's
+ * final expression.
+ *
+ * @param parameters The block's parameters.
+ * @param statements The block body.
+ * @return An expression.
+ */
+Macro "«(«_:_‡,»)»{«_»}" is
+[
+	parameters : tuple of tuple [1..2] like <variable name, expression>,
+	statements : tuple of statement
+|
+	/** TODO: Implement this! */
+] : expression;
 
 /**
  * Define a primitive method definer that may be used to define a

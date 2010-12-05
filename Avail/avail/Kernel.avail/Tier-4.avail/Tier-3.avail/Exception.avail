@@ -133,7 +133,7 @@ Method "handleTuple_do_" is [
 Method "handleTuple_do_" is [
 		handlers : tuple of [terminates]->all,
 		body : []->all |
-	/* Treat the last one as innermost.  This is an overide for the case
+	/* Treat the last one as innermost.  This is an override for the case
 	   where the body and all handlers produce a result. */
 	if handlers = <> then
 		body
