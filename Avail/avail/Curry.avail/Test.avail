@@ -34,7 +34,7 @@ Module "Test"
 Extends
 Uses
 	"Kernel",
-	"Curry"
+	"Partial"
 Names
 Body
 

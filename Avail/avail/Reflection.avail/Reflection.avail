@@ -34,7 +34,7 @@ Module "Reflection"
 Extends
 	"Modules",
 	"Methods",
-	"Method validation",
+	"MethodValidation",
 	"ParseNodes"
 Uses
 Names

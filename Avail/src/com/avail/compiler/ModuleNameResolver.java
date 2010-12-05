@@ -193,7 +193,7 @@ public final class ModuleNameResolver
 
 		// First attempt to lookup the fully-qualified name in the map of
 		// renaming rules. Apply the rule if it exists.
-		final ModuleName canonicalName = canonicalNameFor(qualifiedName);
+		ModuleName canonicalName = canonicalNameFor(qualifiedName);
 
 		// Really resolve the local name. Start by splitting the module
 		// group into its components.
@@ -204,10 +204,15 @@ public final class ModuleNameResolver
 		// Build a search stack of trials at ascending tiers of enclosing
 		// module groups.
 		final Deque<File> searchStack = new LinkedList<File>();
+		final Deque<String> canonicalNames = new LinkedList<String>();
 		final String enclosingRoot = canonicalName.moduleRoot();
+		canonicalNames.push("/" + enclosingRoot);
 		searchStack.push(moduleRoots.rootDirectoryFor(enclosingRoot));
 		for (int index = 2; index < components.length; index++)
 		{
+			assert !components[index].isEmpty();
+			canonicalNames.push(String.format(
+				"%s/%s", canonicalNames.peekFirst(), components[index]));
 			searchStack.push(new File(
 				searchStack.peekFirst(),
 				components[index] + availExtension));
@@ -217,6 +222,8 @@ public final class ModuleNameResolver
 		// least enclosing.
 		while (!searchStack.isEmpty())
 		{
+			canonicalName = new ModuleName(
+				canonicalNames.pop(), canonicalName.localName());
 			final File trial = new File(filenameFor(
 				searchStack.pop().getPath(), canonicalName.localName()));
 			if (trial.exists())
@@ -234,6 +241,8 @@ public final class ModuleNameResolver
 			{
 				if (!root.equals(enclosingRoot))
 				{
+					canonicalName = new ModuleName(String.format(
+						"/%s/%s", root, canonicalName.localName()));
 					final File trial = new File(
 						moduleRoots.rootDirectoryFor(root),
 						canonicalName.localName() + availExtension);
@@ -264,7 +273,7 @@ public final class ModuleNameResolver
 			}
 
 			return new ResolvedModuleName(
-				qualifiedName, isModuleGroup, resolution);
+				canonicalName, isModuleGroup, resolution);
 		}
 
 		// Resolution failed.

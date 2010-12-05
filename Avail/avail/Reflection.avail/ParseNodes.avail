@@ -33,7 +33,7 @@
 Module "ParseNodes"
 Extends
 Uses
-	"0-bootstrapRaw"
+	"Kernel"
 Names
 	"parseNode",
 		"assignmentNode",

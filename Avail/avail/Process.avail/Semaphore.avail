@@ -34,7 +34,7 @@ Module "Semaphore"
 Extends
 Uses
 	"Kernel",
-	"Process"
+	"Thread"
 Names
 	"Semaphore",
 	"signal_",
