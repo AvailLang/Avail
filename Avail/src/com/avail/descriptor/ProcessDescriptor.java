@@ -42,7 +42,7 @@ import static com.avail.descriptor.AvailObject.*;
 public class ProcessDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO,
 		PRIORITY,
@@ -51,7 +51,7 @@ public class ProcessDescriptor extends Descriptor
 		INTERRUPT_REQUEST_FLAG
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		CONTINUATION,
 		BREAKPOINT_BLOCK,

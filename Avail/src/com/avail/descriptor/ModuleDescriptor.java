@@ -39,7 +39,7 @@ import com.avail.interpreter.AvailInterpreter;
 public class ModuleDescriptor extends Descriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		NAME,
 		NEW_NAMES,

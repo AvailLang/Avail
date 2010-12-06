@@ -51,7 +51,7 @@ public class CharacterDescriptor
 extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		CODE_POINT
 	}

@@ -42,12 +42,12 @@ import static com.avail.descriptor.AvailObject.*;
 public class ObjectTupleDescriptor extends TupleDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		TUPLE_AT_
 	}

@@ -192,7 +192,7 @@ public class AvailBlockNode extends AvailParseNode
 	@Override
 	public AvailObject type ()
 	{
-		ArrayList<AvailObject> argumentTypes;
+		List<AvailObject> argumentTypes;
 		argumentTypes = new ArrayList<AvailObject>(_arguments.size());
 		for (AvailVariableDeclarationNode arg : _arguments)
 		{
@@ -226,7 +226,7 @@ public class AvailBlockNode extends AvailParseNode
 		}
 		else
 		{
-			codeGenerator.emitClosedBlockWithCopiedVars(
+			codeGenerator.emitCloseCode(
 				compiledBlock,
 				_neededVariables);
 		}

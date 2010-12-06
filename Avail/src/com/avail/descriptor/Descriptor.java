@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -1053,7 +1052,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final ArrayList<AvailObject> argTypes)
+		final List<AvailObject> argTypes)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -1598,9 +1597,9 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public ArrayList<AvailObject> o_ImplementationsAtOrBelow (
+	public List<AvailObject> o_ImplementationsAtOrBelow (
 		final AvailObject object,
-		final ArrayList<AvailObject> argTypes)
+		final List<AvailObject> argTypes)
 		{
 		//  GENERATED pure (abstract) method.
 

@@ -32,23 +32,49 @@
 
 package com.avail.compiler.instruction;
 
+
+/**
+ * Push the value of a variable of some sort.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class AvailGetVariable extends AvailInstructionWithIndex
 {
-	boolean _canClear;
+	/**
+	 * Whether this instruction should be the clearing form of get or the
+	 * non-clearing form.  The clearing form is used only when this is the last
+	 * use of the variable before the next write.
+	 * 
+	 */
+	boolean canClear;
 
 
-	// accessing
-
-	public void canClear (
-			final boolean aBoolean)
+	/**
+	 * Construct a new {@link AvailGetVariable}.
+	 *
+	 * @param variableIndex The index of the variable in some unspecified
+	 *                      coordinate system.
+	 */
+	public AvailGetVariable (int variableIndex)
 	{
-		//  This must be set one way or the other before final code generation.
-
-		_canClear = aBoolean;
+		super(variableIndex);
 	}
 
 
-
-
+	/**
+	 * Set whether this is a clearing get (true) or a regular duplicating get
+	 * (false).  A clearing get is the last use of the variable until the next
+	 * write, so it's safe to clear the variable's contents.  This avoids
+	 * increasing the value's reference count unnecessarily.
+	 * <p>
+	 * This must be set correctly prior to final code generation.
+	 *   
+	 * @param newFlag The new value of the flag.
+	 */
+	public void canClear (
+			final boolean newFlag)
+	{
+		canClear = newFlag;
+	}
 
 }

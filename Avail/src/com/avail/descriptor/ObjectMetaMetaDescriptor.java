@@ -38,7 +38,7 @@ import com.avail.descriptor.TypeDescriptor;
 public class ObjectMetaMetaDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		MY_OBJECT_META
 	}

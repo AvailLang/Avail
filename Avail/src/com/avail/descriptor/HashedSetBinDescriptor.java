@@ -41,14 +41,14 @@ import static java.lang.Integer.*;
 public class HashedSetBinDescriptor extends SetBinDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		BIN_HASH,
 		BIN_SIZE,
 		BIT_VECTOR
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		BIN_UNION_TYPE,
 		BIN_ELEMENT_AT_

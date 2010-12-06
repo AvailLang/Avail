@@ -36,7 +36,6 @@ package com.avail.interpreter.levelOne;
 public interface L1OperationDispatcher
 {
 	void L1_doCall();
-	void L1_doVerifyType();
 	void L1_doPushLiteral();
 	void L1_doPushLastLocal();
 	void L1_doPushLocal();
@@ -50,8 +49,8 @@ public interface L1OperationDispatcher
 	void L1_doSetOuter();
 	void L1_doGetLocal();
 	void L1_doMakeList();
+	void L1_doGetOuter();
 	void L1_doExtension();
-	void L1Ext_doGetOuter();
 	void L1Ext_doPushLabel();
 	void L1Ext_doGetLiteral();
 	void L1Ext_doSetLiteral();

@@ -66,7 +66,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		DEPENDENT_CHUNKS,
 		IMPLEMENTATIONS_TUPLE,
@@ -519,11 +519,11 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * other day.
 	 */
 	@Override
-	public ArrayList<AvailObject> o_ImplementationsAtOrBelow (
+	public List<AvailObject> o_ImplementationsAtOrBelow (
 			final AvailObject object,
-			final ArrayList<AvailObject> argTypes)
+			final List<AvailObject> argTypes)
 	{
-		ArrayList<AvailObject> result;
+		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
 		final AvailObject impsTuple = object.implementationsTuple();
 		for (int i = 1, _end1 = impsTuple.tupleSize(); i <= _end1; i++)
@@ -912,7 +912,10 @@ public class ImplementationSetDescriptor extends Descriptor
 			return VoidDescriptor.voidObject();
 		}
 		//  The requires clauses are only checked after a top-level statement has been parsed and is being validated.
-		return mostSpecific.value.get(0).computeReturnTypeFromArgumentTypesInterpreter(argTypes, anAvailInterpreter);
+		return mostSpecific.value.get(0)
+			.computeReturnTypeFromArgumentTypesInterpreter(
+				argTypes,
+				anAvailInterpreter);
 	}
 
 	/**

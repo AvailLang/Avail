@@ -114,7 +114,7 @@ public class AvailVariableUseNode extends AvailParseNode
 			final StringBuilder aStream,
 			final int indent)
 	{
-		aStream.append(_nameToken.string());
+		aStream.append(_nameToken.string().asNativeString());
 	}
 
 

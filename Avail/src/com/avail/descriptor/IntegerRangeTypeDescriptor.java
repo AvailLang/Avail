@@ -43,12 +43,12 @@ import static com.avail.descriptor.AvailObject.*;
 public class IntegerRangeTypeDescriptor extends TypeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		INCLUSIVE_FLAGS
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		LOWER_BOUND,
 		UPPER_BOUND

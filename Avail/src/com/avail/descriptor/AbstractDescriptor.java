@@ -926,7 +926,7 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final ArrayList<AvailObject> argTypes);
+		final List<AvailObject> argTypes);
 
 	/**
 	 * @param object
@@ -1221,9 +1221,9 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract ArrayList<AvailObject> o_ImplementationsAtOrBelow (
+	public abstract List<AvailObject> o_ImplementationsAtOrBelow (
 		final AvailObject object,
-		final ArrayList<AvailObject> argTypes);
+		final List<AvailObject> argTypes);
 
 	/**
 	 * @param object

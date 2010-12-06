@@ -33,11 +33,11 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.interpreter.levelTwo.L2Translator;
-import java.util.ArrayList;
+import java.util.List;
 
 public class L2RegisterVector
 {
-	final ArrayList<L2ObjectRegister> _registers;
+	final List<L2ObjectRegister> _registers;
 
 	/**
 	 *
@@ -46,7 +46,7 @@ public class L2RegisterVector
 	 * @param objectRegisters the registers to put in the new vector.
 	 */
 	public L2RegisterVector (
-		final ArrayList<L2ObjectRegister> objectRegisters)
+		final List<L2ObjectRegister> objectRegisters)
 	{
 		_registers = objectRegisters;
 	}
@@ -54,7 +54,7 @@ public class L2RegisterVector
 
 	// accessing
 
-	public ArrayList<L2ObjectRegister> registers ()
+	public List<L2ObjectRegister> registers ()
 	{
 		//  Answer the collection of object registers.
 

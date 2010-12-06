@@ -33,42 +33,50 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailCloseCode;
+import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * This instruction build a {@link ClosureDescriptor closure} from {@link
+ * CompiledCodeDescriptor compiled code} and some pushed variables.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailCloseCode extends AvailInstructionWithIndex
 {
-	int _numCopiedVars;
+	/**
+	 * The number of variables that have been pushed on the stack to be
+	 * captured as outer variables of the resulting {@link ClosureDescriptor
+	 * closure}.  
+	 */
+	int numCopiedVars;
 
 
-	// accessing
-
-	public AvailCloseCode numCopiedVarsCodeIndex (
-			final int anInteger,
+	/**
+	 * Construct a new {@link AvailCloseCode}.
+	 *
+	 * @param numCopiedVars The number of already-pushed variables to capture
+	 *                      in the closure as outer variables.
+	 * @param codeIndex The index of the compiled code in the literals.
+	 */
+	public AvailCloseCode (
+			final int numCopiedVars,
 			final int codeIndex)
 	{
-		_numCopiedVars = anInteger;
-		_index = codeIndex;
-		return this;
+		super(codeIndex);
+		this.numCopiedVars = numCopiedVars;
 	}
 
-
-
-	// nybblecodes
 
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1_doClose.writeTo(aStream);
-		writeIntegerOn(_numCopiedVars, aStream);
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(numCopiedVars, aStream);
+		writeIntegerOn(index, aStream);
 	}
-
-
-
-
-
+	
 }

@@ -41,7 +41,7 @@ import java.util.List;
 public class DoubleDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		RAW_QUAD_1,
 		RAW_QUAD_2

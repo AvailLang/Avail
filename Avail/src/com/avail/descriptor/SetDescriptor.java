@@ -48,7 +48,7 @@ import static com.avail.descriptor.AvailObject.*;
 public class SetDescriptor extends Descriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		ROOT_BIN
 	}

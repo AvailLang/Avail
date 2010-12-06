@@ -42,12 +42,12 @@ import static com.avail.descriptor.AvailObject.*;
 public class ContainerDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		VALUE,
 		TYPE

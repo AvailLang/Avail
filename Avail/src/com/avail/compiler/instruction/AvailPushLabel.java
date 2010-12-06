@@ -34,50 +34,62 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+/**
+ * I represent the use of a label.  When a label is used, it causes the current
+ * {@link ContinuationDescriptor continuation} to be copied.  The copy is then
+ * reset to the state that existed when the current {@link ClosureDescriptor
+ * closure} started running, resetting the program counter, stack pointer, and
+ * stack slots, and creating new local variables.
+ * <p>
+ * The new continuation can subsequently be {@link
+ * Primitive#prim56_RestartContinuationWithArguments_con_arguments restarted} or
+ * {@link Primitive#prim57_ExitContinuationWithResult_con_result exited}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailPushLabel extends AvailInstruction
 {
-
-
-	// nybblecodes
 
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1Ext_doPushLabel.writeTo(aStream);
 	}
 
 
-
-	// optimization
-
+	/**
+	 * The instructions of a block are being iterated over.  Coordinate
+	 * optimizations between instructions using localData and outerData, two
+	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * instruction as though it is the last one in the block, and save enough
+	 * information in the lists to be able to undo consequences of this
+	 * assumption when a later instruction shows it to be unwarranted.
+	 * <p>
+	 * The data lists are keyed by local or outer index.  Each entry is either
+	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
+	 * previous time a get or push happened.
+	 * <p>
+	 * I push a label, which is a {@link ContinuationDescriptor continuation}.
+	 * Since the label can be restarted (which constructs new locals while
+	 * reusing the arguments), or exited (which has no static effect on
+	 * optimizations), I only have an effect on arguments and outer variables.
+	 * Scan all arguments and outer variables and ensure the most recent pushes
+	 * are reset so that isLastAccess is false.
+	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData,
 			final List<AvailVariableAccessNote> outerData,
 			final AvailCodeGenerator codeGenerator)
 	{
-		//  The instructions of a block are being iterated over.  Coordinate optimizations
-		//  between instructions using localData and outerData, two Arrays manipulated by
-		//  overrides of this method.  Treat each instruction as though it is the last one in the
-		//  block, and save enough information in the Arrays to be able to undo consequences
-		//  of this assumption when a later instruction shows it to be unwarranted.
-		//
-		//  The data Arrays are keyed by local or outer index.  Each entry is either nil or a
-		//  Dictionary.  The Dictionary has the (optional) keys #previousGet and #previousPush,
-		//  and the values are the previously encountered instructions.
-		//
-		//  I push a label.  Since the label can be restarted (which constructs new locals while reusing
-		//  the arguments), or exited (which has no static effect on optimizations), I only have an effect
-		//  on arguments and outers.  Scan all arguments and outers and ensure the most recent pushes
-		//  are reset so that isLastAccess is false.
-
 		for (int index = 0; index < codeGenerator.numArgs(); index++)
 		{
 			AvailVariableAccessNote note = localData.get(index);
@@ -86,9 +98,9 @@ public class AvailPushLabel extends AvailInstruction
 				note = new AvailVariableAccessNote();
 				localData.set(index, note);
 			}
-
-			// If any argument was pushed before this pushLabel, set its isLastAccess
-			// to false, as a restart will need to have these arguments intact.
+			// If any argument was pushed before this pushLabel, set its
+			// isLastAccess to false, as a restart will need to have these
+			// arguments intact.
 			AvailPushVariable previousPush = note.previousPush();
 			if (previousPush != null)
 			{
@@ -103,7 +115,8 @@ public class AvailPushLabel extends AvailInstruction
 				AvailPushVariable previousPush = outerNote.previousPush();
 				if (previousPush != null)
 				{
-					// Make sure the previous outer push is not considered the last access.
+					// Make sure the previous outer push is not considered the
+					// last access.
 					previousPush.isLastAccess(false);
 				}
 			}
@@ -111,17 +124,10 @@ public class AvailPushLabel extends AvailInstruction
 	}
 
 
-
-	// testing
-
 	@Override
 	public boolean isPushLabel ()
 	{
 		return true;
 	}
-
-
-
-
 
 }

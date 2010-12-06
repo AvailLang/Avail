@@ -56,7 +56,7 @@ import static java.util.Collections.*;
 public abstract class TupleDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO
 	}

@@ -38,21 +38,23 @@ import java.io.ByteArrayOutputStream;
 public class AvailPushLiteral extends AvailInstructionWithIndex
 {
 
+	/**
+	 * Construct a new {@link AvailPushLiteral}.
+	 * 
+	 * @param literalIndex The index of the literal being pushed.
+	 */
+	public AvailPushLiteral (int literalIndex)
+	{
+		super(literalIndex);
+	}
 
-	// nybblecodes
-
+	
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1_doPushLiteral.writeTo(aStream);
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(index, aStream);
 	}
-
-
-
-
 
 }

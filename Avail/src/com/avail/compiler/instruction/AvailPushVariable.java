@@ -32,32 +32,50 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+
+/**
+ * Push a variable of some sort.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class AvailPushVariable extends AvailInstructionWithIndex
 {
-	boolean _isLastAccess;
 
+	/**
+	 * Whether this instruction is the last use of its variable. 
+	 */
+	protected boolean isLastAccess = false;
 
-	// accessing
-
+	
+	/**
+	 * Set the flag indicating whether this instruction is the last use of its
+	 * variable.
+	 * 
+	 * @param newFlag The new value for {@link #isLastAccess}.
+	 */
 	public void isLastAccess (
-			final boolean aBoolean)
+		final boolean newFlag)
 	{
-		_isLastAccess = aBoolean;
+		this.isLastAccess = newFlag;
 	}
-
-
-
-	// initialize-release
-
-	@Override
-	public void initialize ()
+	
+	
+	/**
+	 * Construct a new {@link AvailPushVariable}.
+	 *
+	 * @param variableIndex
+	 *        The index that the variable will occupy at runtime, either within
+	 *        a {@link ContinuationDescriptor continuation} for arguments and
+	 *        locals, or in the outer variables of a {@link ClosureDescriptor
+	 *        closure}, or as a literal stored directly in {@link
+	 *        CompiledCodeDescriptor compiled code}.
+	 */
+	public AvailPushVariable (int variableIndex)
 	{
-		super.initialize();
-		_isLastAccess = false;
+		super(variableIndex);
 	}
-
-
-
-
 
 }

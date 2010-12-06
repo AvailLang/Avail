@@ -39,12 +39,12 @@ import java.util.List;
 public class PrimitiveTypeDescriptor extends TypeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		NAME,
 		PARENT,

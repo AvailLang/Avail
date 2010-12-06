@@ -36,6 +36,7 @@ import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.L2Translator;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import java.util.ArrayList;
+import java.util.List;
 import static com.avail.interpreter.levelTwo.L2Operation.*;
 
 public class L2InterpretOneInstruction extends L2Instruction
@@ -45,7 +46,7 @@ public class L2InterpretOneInstruction extends L2Instruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.  Skip the callerRegister, which is implicit.
 
@@ -53,7 +54,7 @@ public class L2InterpretOneInstruction extends L2Instruction
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.  But this should never be
 		//  produced by the optimizer, as its purpose is limited to within the default chunk.

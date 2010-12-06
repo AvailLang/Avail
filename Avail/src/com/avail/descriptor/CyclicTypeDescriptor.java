@@ -40,12 +40,12 @@ import java.util.Random;
 public class CyclicTypeDescriptor extends TypeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		NAME
 	}

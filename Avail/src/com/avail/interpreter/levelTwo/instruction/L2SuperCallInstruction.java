@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.instruction.L2SuperCallInstruction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import java.util.ArrayList;
+import java.util.List;
 import static com.avail.interpreter.levelTwo.L2Operation.*;
 
 public class L2SuperCallInstruction extends L2Instruction
@@ -51,7 +52,7 @@ public class L2SuperCallInstruction extends L2Instruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.  Since a call can clear all registers,
 		//  we could try to list all registers as destinations.  Instead, we treat calls as the ends of the basic
@@ -61,11 +62,11 @@ public class L2SuperCallInstruction extends L2Instruction
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 
-		ArrayList<L2Register> result = new ArrayList<L2Register>(_argsVector.registers().size() * 2);
+		List<L2Register> result = new ArrayList<L2Register>(_argsVector.registers().size() * 2);
 		result.addAll(_argsVector.registers());
 		result.addAll(_argTypesVector.registers());
 		return result;

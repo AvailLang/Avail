@@ -45,14 +45,14 @@ import static com.avail.descriptor.AvailObject.*;
 public class ContinuationDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		PC,
 		STACK_POINTER,
 		HI_LEVEL_TWO_CHUNK_LOW_OFFSET
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		CALLER,
 		CLOSURE,

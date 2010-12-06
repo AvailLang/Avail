@@ -40,7 +40,7 @@ import java.util.List;
 public class ForwardSignatureDescriptor extends SignatureDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		SIGNATURE
 	}

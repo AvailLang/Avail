@@ -45,7 +45,7 @@ import static com.avail.descriptor.AvailObject.*;
 public class InfinityDescriptor extends ExtendedNumberDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		WHICH_ONE
 	}

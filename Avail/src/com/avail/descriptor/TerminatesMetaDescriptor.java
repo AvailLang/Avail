@@ -37,12 +37,12 @@ import com.avail.descriptor.AvailObject;
 public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		NAME,
 		PARENT,

@@ -44,6 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import java.util.ArrayList;
+import java.util.List;
 import static com.avail.interpreter.levelTwo.L2Operation.*;
 
 public class L2CreateTupleInstruction extends L2Instruction
@@ -55,21 +56,21 @@ public class L2CreateTupleInstruction extends L2Instruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
 
-		ArrayList<L2Register> result = new ArrayList<L2Register>(1);
+		List<L2Register> result = new ArrayList<L2Register>(1);
 		result.add(_dest);
 		return result;
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 
-		ArrayList<L2Register> result = new ArrayList<L2Register>(_sourceVector.registers().size());
+		List<L2Register> result = new ArrayList<L2Register>(_sourceVector.registers().size());
 		result.addAll(_sourceVector.registers());
 		return result;
 	}
@@ -115,7 +116,7 @@ public class L2CreateTupleInstruction extends L2Instruction
 
 		final int size = _sourceVector.registers().size();
 		final AvailObject sizeRange = IntegerDescriptor.objectFromInt(size).type();
-		ArrayList<AvailObject> types;
+		List<AvailObject> types;
 		types = new ArrayList<AvailObject>(_sourceVector.registers().size());
 		for (L2Register reg : _sourceVector.registers())
 		{
@@ -136,7 +137,7 @@ public class L2CreateTupleInstruction extends L2Instruction
 		anL2Translator.registerTypeAtPut(_dest, tupleType);
 		if (_sourceVector.allRegistersAreConstantsIn(anL2Translator))
 		{
-			ArrayList<AvailObject> constants = new ArrayList<AvailObject>(_sourceVector.registers().size());
+			List<AvailObject> constants = new ArrayList<AvailObject>(_sourceVector.registers().size());
 			for (L2Register reg : _sourceVector.registers())
 			{
 				constants.add(anL2Translator.registerConstantAt(reg));

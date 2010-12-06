@@ -46,7 +46,7 @@ import static java.util.Arrays.*;
 public class ClosureDescriptor extends Descriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		CODE,
 		OUTER_VAR_AT_
@@ -296,12 +296,14 @@ public class ClosureDescriptor extends Descriptor
 		writer.argumentTypes(argTypes);
 		writer.returnType(constantResult.type());
 
-		writer.write(new L1Instruction(L1Operation.L1_doPushLiteral, writer.addLiteral(constantResult)));
+		writer.write(new L1Instruction(
+			L1Operation.L1_doPushLiteral, writer.addLiteral(constantResult)));
 
 		AvailObject code = writer.compiledCode();
-		AvailObject closure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
-			code,
-			TupleDescriptor.empty());
+		AvailObject closure =
+			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
+				code,
+				TupleDescriptor.empty());
 		closure.makeImmutable();
 		return closure;
 	};
@@ -352,10 +354,7 @@ public class ClosureDescriptor extends Descriptor
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(implementationSet)));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doVerifyType,
+				writer.addLiteral(implementationSet),
 				writer.addLiteral(resultType)));
 
 		AvailObject code = writer.compiledCode();

@@ -40,7 +40,7 @@ import java.util.List;
 public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		RETURN_TYPE
 	}

@@ -48,7 +48,7 @@ import static com.avail.descriptor.AvailObject.*;
 public class AbstractSignatureDescriptor extends SignatureDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		SIGNATURE,
 		REQUIRES_BLOCK,

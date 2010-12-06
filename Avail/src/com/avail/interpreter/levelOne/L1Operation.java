@@ -67,7 +67,7 @@ public enum L1Operation
 	 * method eventually returns, this void entry is replaced with the method's
 	 * return value.
 	 */
-	L1_doCall(0, L1OperandType.LITERAL)
+	L1_doCall(0, L1OperandType.LITERAL, L1OperandType.LITERAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -78,29 +78,9 @@ public enum L1Operation
 
 
 	/**
-	 * Verify that the value on top of the stack has a type that agrees with the
-	 * literal {@link TypeDescriptor type} specified in the operand.
-	 * <p>
-	 * This instruction is usually generated after a {@link #L1_doCall} to
-	 * ensure the call's return value agrees with what the method declared.
-	 * Fail (i.e., exit the VM) if it does not agree.  Better responses exist,
-	 * such as raising a primitive exception.  Something like this will be
-	 * implemented in the future.
-	 */
-	L1_doVerifyType(1, L1OperandType.LITERAL)
-	{
-		@Override
-		public void dispatch(L1OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L1_doVerifyType();
-		}
-	},
-
-
-	/**
 	 * Push the literal whose index is specified by the operand. 
 	 */
-	L1_doPushLiteral(2, L1OperandType.LITERAL)
+	L1_doPushLiteral(1, L1OperandType.LITERAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -123,7 +103,7 @@ public enum L1Operation
 	 * is no actual {@link ContainerDescriptor variable} to operate on.  Clear
 	 * the slot of the continuation reserved for the argument or constant.
 	 */
-	L1_doPushLastLocal(3, L1OperandType.LOCAL)
+	L1_doPushLastLocal(2, L1OperandType.LOCAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -138,7 +118,7 @@ public enum L1Operation
 	 * argument or constant is specified then push the value, since there is no
 	 * actual {@link ContainerDescriptor variable} to operate on.
 	 */
-	L1_doPushLocal(4, L1OperandType.LOCAL)
+	L1_doPushLocal(3, L1OperandType.LOCAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -153,7 +133,7 @@ public enum L1Operation
 	 * closure.  This should be the last use of the variable, so clear it from
 	 * the closure if the closure is still mutable. 
 	 */
-	L1_doPushLastOuter(5, L1OperandType.OUTER)
+	L1_doPushLastOuter(4, L1OperandType.OUTER)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -163,7 +143,7 @@ public enum L1Operation
 	},
 
 
-	L1_doClose(6, L1OperandType.IMMEDIATE, L1OperandType.LITERAL)
+	L1_doClose(5, L1OperandType.IMMEDIATE, L1OperandType.LITERAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -173,7 +153,7 @@ public enum L1Operation
 	},
 
 
-	L1_doSetLocal(7, L1OperandType.LOCAL)
+	L1_doSetLocal(6, L1OperandType.LOCAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -183,7 +163,7 @@ public enum L1Operation
 	},
 
 
-	L1_doGetLocalClearing(8, L1OperandType.LOCAL)
+	L1_doGetLocalClearing(7, L1OperandType.LOCAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -193,7 +173,7 @@ public enum L1Operation
 	},
 
 
-	L1_doPushOuter(9, L1OperandType.OUTER)
+	L1_doPushOuter(8, L1OperandType.OUTER)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -203,7 +183,7 @@ public enum L1Operation
 	},
 
 
-	L1_doPop(10)
+	L1_doPop(9)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -213,7 +193,7 @@ public enum L1Operation
 	},
 
 
-	L1_doGetOuterClearing(11, L1OperandType.OUTER)
+	L1_doGetOuterClearing(10, L1OperandType.OUTER)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -223,7 +203,7 @@ public enum L1Operation
 	},
 
 
-	L1_doSetOuter(12, L1OperandType.OUTER)
+	L1_doSetOuter(11, L1OperandType.OUTER)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -233,7 +213,7 @@ public enum L1Operation
 	},
 
 
-	L1_doGetLocal(13, L1OperandType.LOCAL)
+	L1_doGetLocal(12, L1OperandType.LOCAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -243,12 +223,22 @@ public enum L1Operation
 	},
 
 
-	L1_doMakeList(14, L1OperandType.IMMEDIATE)
+	L1_doMakeList(13, L1OperandType.IMMEDIATE)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L1_doMakeList();
+		}
+	},
+
+
+	L1_doGetOuter(14, L1OperandType.OUTER)
+	{
+		@Override
+		public void dispatch(L1OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L1_doGetOuter();
 		}
 	},
 
@@ -263,17 +253,7 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doGetOuter(16, L1OperandType.OUTER)
-	{
-		@Override
-		public void dispatch(L1OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L1Ext_doGetOuter();
-		}
-	},
-
-
-	L1Ext_doPushLabel(17)
+	L1Ext_doPushLabel(16)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -283,7 +263,7 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doGetLiteral(18, L1OperandType.LITERAL)
+	L1Ext_doGetLiteral(17, L1OperandType.LITERAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -293,7 +273,7 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doSetLiteral(19, L1OperandType.LITERAL)
+	L1Ext_doSetLiteral(18, L1OperandType.LITERAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -303,7 +283,7 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doSuperCall(20, L1OperandType.LITERAL)
+	L1Ext_doSuperCall(19, L1OperandType.LITERAL, L1OperandType.LITERAL)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -313,7 +293,7 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doGetType(21, L1OperandType.IMMEDIATE)
+	L1Ext_doGetType(20, L1OperandType.IMMEDIATE)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -323,7 +303,7 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doReserved(22)
+	L1Ext_doReserved(21)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
@@ -333,7 +313,7 @@ public enum L1Operation
 	},
 	
 
-	L1Implied_Return(23)
+	L1Implied_Return(22)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)

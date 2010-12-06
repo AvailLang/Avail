@@ -40,7 +40,7 @@ import java.util.List;
 public class ListTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		TUPLE_TYPE
 	}

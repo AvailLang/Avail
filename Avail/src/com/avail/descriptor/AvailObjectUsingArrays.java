@@ -32,17 +32,15 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IndirectionDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
-import java.util.List;
 
 /**
  * I am a concrete representation used for all Avail objects.  In particular,
  * my representation is to have a reference to my descriptor which controls my
- * polymorphic behavior, an array of AvailObjects, and an array of ints.  There
+ * polymorphic behavior, an array of AvailObject, and an array of int.  There
  * are other possible representations, but this one is simplest for Java.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -68,43 +66,6 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 */
 	int [] _intSlots;
 
-
-	@Override
-	public void printOnAvoidingIndent (
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		if (isDestroyed())
-		{
-			builder.append("*** A DESTROYED OBJECT ***");
-			return;
-		}
-
-		if (indent > descriptor().maximumIndent())
-		{
-			builder.append("*** DEPTH ***");
-			return;
-		}
-
-		for (final AvailObject candidate : recursionList)
-		{
-			if (candidate == this)
-			{
-				builder.append("**RECURSION**");
-				return;
-			}
-		}
-
-		recursionList.add(this);
-		descriptor().printObjectOnAvoidingIndent(
-			this, builder, recursionList, indent);
-		recursionList.remove(recursionList.size() - 1);
-	}
-
-
-
-	// primitive accessing
 
 	@Override
 	public void becomeIndirectionTo (

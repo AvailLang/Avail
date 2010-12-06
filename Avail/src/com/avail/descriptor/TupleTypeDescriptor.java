@@ -44,7 +44,7 @@ import static java.lang.Math.*;
 public class TupleTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		SIZE_RANGE,
 		TYPE_TUPLE,

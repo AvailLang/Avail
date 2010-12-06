@@ -42,12 +42,12 @@ import java.util.List;
 public class ClosureTypeDescriptor extends TypeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		RETURN_TYPE,
 		ARG_TYPE_AT_
@@ -471,7 +471,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
 			final AvailObject object,
-			final ArrayList<AvailObject> argTypes)
+			final List<AvailObject> argTypes)
 	{
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{

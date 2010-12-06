@@ -50,7 +50,7 @@ import java.util.List;
 public class L2ChunkDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		INDEX,
 		VALIDITY,
@@ -61,7 +61,7 @@ public class L2ChunkDescriptor extends Descriptor
 		PREVIOUS_INDEX
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		CONTINGENT_IMP_SETS,
 		WORDCODES,
@@ -598,7 +598,7 @@ public class L2ChunkDescriptor extends Descriptor
 			false,
 			VoidDescriptor.voidObject(),
 			Collections.<AvailObject>emptyList(),
-			Collections.<ArrayList<Integer>>emptyList(),
+			Collections.<List<Integer>>emptyList(),
 			0,
 			0,
 			0,
@@ -678,15 +678,15 @@ public class L2ChunkDescriptor extends Descriptor
 		boolean allocateIndex,
 		AvailObject code,
 		List<AvailObject> arrayOfLiterals,
-		List<ArrayList<Integer>> arrayOfVectors,
+		List<List<Integer>> arrayOfVectors,
 		int nObjs,
 		int nInts,
 		int nFloats,
 		List<Integer> theWordcodes,
 		AvailObject contingentSets)
 	{
-		ArrayList<AvailObject> vectorTuples = new ArrayList<AvailObject>(arrayOfVectors.size());
-		for (ArrayList<Integer> vector : arrayOfVectors)
+		List<AvailObject> vectorTuples = new ArrayList<AvailObject>(arrayOfVectors.size());
+		for (List<Integer> vector : arrayOfVectors)
 		{
 			AvailObject vectorTuple = TupleDescriptor.mutableCompressedFromIntegerArray(vector);
 			vectorTuple.makeImmutable();

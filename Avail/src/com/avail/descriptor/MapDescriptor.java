@@ -44,14 +44,14 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public class MapDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		INTERNAL_HASH,
 		MAP_SIZE,
 		NUM_BLANKS
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		DATA_AT_INDEX_
 	}

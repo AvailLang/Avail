@@ -42,7 +42,7 @@ import java.util.List;
 public class SetTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		SIZE_RANGE,
 		CONTENT_TYPE

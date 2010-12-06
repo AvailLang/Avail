@@ -39,12 +39,12 @@ import com.avail.descriptor.TupleDescriptor;
 public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		NAME,
 		PARENT,

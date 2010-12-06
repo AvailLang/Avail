@@ -42,7 +42,7 @@ Names
 	"Instruction Generator",
 	"_for arguments_primitive_locals_labels_outers_result type_",
 
-	"_call_arg count_",
+	"_call_arg count_type_",
 	"_close code_with outers_",
 	"_get literal_",
 	"_get local_",
@@ -57,8 +57,7 @@ Names
 	"_set literal_",
 	"_set local_",
 	"_set outer_",
-	"_super call_arg count_",
-	"_verify type_",
+	"_super call_arg count_type_",
 
 	"_reference variable_",
 	"_use variable_",
@@ -181,13 +180,15 @@ Method "_increase stack by_" is [gen : Instruction Generator, count : whole numb
 
 /* Public instruction emission... */
 
-Method "_call_arg count_" is [
+Method "_call_arg count_type_" is [
 		gen : Instruction Generator,
 		msgName : cyclicType,
-		count : whole number |
+		count : whole number
+		resultType : type |
 	gen add instruction
-		new Call Instruction literal index
-			gen index of literal msgName implementation set;
+		new Call Instruction
+			literal index gen index of literal msgName implementation set
+			type resultType;
 	gen decrease stack by count;   /* pop arguments */
 	gen increase stack by 1;   /* push result */
 ];
@@ -310,22 +311,14 @@ Method "_set outer_" is [
 Method "_super call_arg count_" is [
 		gen : Instruction Generator,
 		msgName : cyclicType,
-		count : whole number |
+		count : whole number,
+		resultType : type |
 	gen add instruction
-		new Call Instruction literal index
-			gen index of literal msgName implementation set;
+		new Super Call Instruction
+			literal index gen index of literal msgName implementation set
+			type resultType;
 	gen decrease stack by count * 2;   /* pop arguments and their types */
 	gen increase stack by 1;   /* push result */
-];
-
-Method "_verify type_" is [
-		gen : Instruction Generator,
-		typeLiteral : type |
-	gen add instruction
-		new Verify Type Instruction type index
-			gen index of literal typeLiteral;
-	gen decrease stack by 1;   /* make sure value is on stack */
-	gen increase stack by 1;   /* and leave it there */
 ];
 
 

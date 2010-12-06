@@ -39,7 +39,7 @@ import java.util.List;
 public class ContainerTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		INNER_TYPE
 	}

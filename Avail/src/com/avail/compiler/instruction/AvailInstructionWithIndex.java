@@ -33,34 +33,41 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailInstruction;
-import static com.avail.descriptor.AvailObject.*;
 
+/**
+ * This abstract subclass of {@link AvailInstruction} introduces a generic
+ * index whose interpretation is left to subclasses.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class AvailInstructionWithIndex extends AvailInstruction
 {
-	int _index;
+	/**
+	 * A generic index to be interpreted by subclasses.  Must be non-negative.
+	 */
+	int index;
 
 
-	// accessing
-
+	/**
+	 * Answer the generic index recorded at construction time.
+	 * 
+	 * @return The index.
+	 */
 	public int index ()
 	{
-		return _index;
+		return index;
 	}
 
-	public AvailInstruction index (
-			final int anInteger)
+	
+	/**
+	 * Construct a new {@link AvailInstructionWithIndex}.
+	 *
+	 * @param index A generic, non-negative index to record.  Subclasses
+	 *              interpret this value however they need.
+	 */
+	public AvailInstructionWithIndex (final int index)
 	{
-		if (anInteger < 0)
-		{
-			error("anInteger (" + anInteger + ") must be >= 0");
-			return null;
-		}
-		_index = anInteger;
-		return this;
+		this.index = index;
 	}
-
-
-
-
-
+	
 }

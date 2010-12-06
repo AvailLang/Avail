@@ -35,7 +35,6 @@ package com.avail.compiler;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ConcatenatedTupleTypeDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListTypeDescriptor;

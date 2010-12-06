@@ -42,7 +42,7 @@ import java.util.List;
 public class ListDescriptor extends Descriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		TUPLE
 	}

@@ -32,14 +32,44 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.ImplementationSetDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * This instruction calls a multi-method, but it can invoke methods that are
+ * more general than the one that the arguments would select.  In particular,
+ * the arguments are pushed on the stack, then the types to be used for lookup
+ * (one for each argument), then this instruction is invoked.
+ * <p>
+ * The super call instruction is followed by an index to the literal holding
+ * the message (an {@link ImplementationSetDescriptor implementation set}), then
+ * the index of the literal holding the return type for this call site.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailSuperCall extends AvailInstructionWithIndex
 {
 
+	/**
+	 * The index of the literal that holds the call-site specific return type. 
+	 */
+	int verifyIndex;
 
-	// nybblecodes
+
+	/**
+	 * Construct a new {@link AvailSuperCall}.
+	 *
+	 * @param messageIndex The index of the literal that holds the message (an
+	 *                     {@link ImplementationSetDescriptor implementation
+	 *                     set}.
+	 * @param verifyIndex The index of the literal that holds the return type.
+	 */
+	public AvailSuperCall (int messageIndex, int verifyIndex)
+	{
+		super(messageIndex);
+		this.verifyIndex = verifyIndex;
+	}
 
 	@Override
 	public void writeNybblesOn (
@@ -48,9 +78,8 @@ public class AvailSuperCall extends AvailInstructionWithIndex
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 
 		L1Operation.L1Ext_doSuperCall.writeTo(aStream);
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(index, aStream);
+		writeIntegerOn(verifyIndex, aStream);
 	}
-
-
 
 }

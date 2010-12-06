@@ -47,7 +47,7 @@ import static java.lang.Math.*;
 public class ByteTupleDescriptor extends TupleDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO,
 		RAW_QUAD_AT_

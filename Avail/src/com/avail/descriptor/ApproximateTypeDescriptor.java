@@ -55,7 +55,7 @@ import static java.lang.Math.*;
 public class ApproximateTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		INSTANCE
 	}

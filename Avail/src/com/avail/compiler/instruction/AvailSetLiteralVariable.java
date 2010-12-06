@@ -35,24 +35,30 @@ package com.avail.compiler.instruction;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * Assign to a variable that's captured as a literal in the code.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailSetLiteralVariable extends AvailInstructionWithIndex
 {
 
-
-	// nybblecodes
+	/**
+	 * Construct a new {@link AvailSetLiteralVariable}.
+	 *
+	 * @param variableLiteralIndex The index of the literal variable.
+	 */
+	public AvailSetLiteralVariable (int variableLiteralIndex)
+	{
+		super(variableLiteralIndex);
+	}
 
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1Ext_doSetLiteral.writeTo(aStream);
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(index, aStream);
 	}
-
-
-
-
 
 }

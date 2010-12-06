@@ -44,7 +44,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public class ObjectDescriptor extends Descriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		FIELD_MAP
 	}

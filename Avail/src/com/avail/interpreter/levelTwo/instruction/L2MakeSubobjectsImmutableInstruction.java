@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.instruction.L2MakeSubobjectsImmutableInstr
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import java.util.ArrayList;
+import java.util.List;
 import static com.avail.interpreter.levelTwo.L2Operation.*;
 
 public class L2MakeSubobjectsImmutableInstruction extends L2Instruction
@@ -47,7 +48,7 @@ public class L2MakeSubobjectsImmutableInstruction extends L2Instruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
 
@@ -55,11 +56,11 @@ public class L2MakeSubobjectsImmutableInstruction extends L2Instruction
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 
-		ArrayList<L2Register> result = new ArrayList<L2Register>(1);
+		List<L2Register> result = new ArrayList<L2Register>(1);
 		result.add(_register);
 		return result;
 	}

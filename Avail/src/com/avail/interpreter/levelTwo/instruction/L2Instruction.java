@@ -35,7 +35,7 @@ package com.avail.interpreter.levelTwo.instruction;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.L2Translator;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
+import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
 public class L2Instruction
@@ -45,7 +45,7 @@ public class L2Instruction
 
 	// accessing
 
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
 
@@ -66,7 +66,7 @@ public class L2Instruction
 		_offset = anInteger;
 	}
 
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 

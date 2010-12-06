@@ -46,7 +46,6 @@ public class AvailSendNode extends AvailParseNode
 	List<AvailParseNode> _arguments;
 	AvailObject _returnType;
 
-	// accessing
 
 	public List<AvailParseNode> arguments ()
 	{
@@ -88,14 +87,22 @@ public class AvailSendNode extends AvailParseNode
 		_message = cyclicType;
 	}
 
+	/**
+	 * Answer this message send's expected return type.  Make it immutable so
+	 * that multiple requests avoid accidental sharing.
+	 * 
+	 * @return The type of this message send.
+	 */
 	public AvailObject returnType ()
 	{
-		// Make it immutable so multiple requests avoid accidental sharing of a
-		// mutable object.
-
 		return _returnType.makeImmutable();
 	}
 
+	/**
+	 * Set this message send's expected return type.
+	 * 
+	 * @param aType The type this message send should return.
+	 */
 	public void returnType (final AvailObject aType)
 	{
 		_returnType = aType;
@@ -106,8 +113,6 @@ public class AvailSendNode extends AvailParseNode
 	{
 		return returnType();
 	}
-
-	// code generation
 
 	@Override
 	public void emitValueOn (final AvailCodeGenerator codeGenerator)
@@ -138,33 +143,24 @@ public class AvailSendNode extends AvailParseNode
 			}
 			// We've pushed all argument values and all arguments types onto the
 			// stack.
-			codeGenerator.emitCallMethodByTypesNumArgsLiteral(
+			codeGenerator.emitSuperCall(
 				_arguments.size(),
-				_implementationSet);
+				_implementationSet,
+				returnType());
 		}
 		else
 		{
-			codeGenerator.emitCallMethodByValuesNumArgsLiteral(
+			codeGenerator.emitCall(
 				_arguments.size(),
-				_implementationSet);
+				_implementationSet,
+				returnType());
 		}
-		// Ok, now the return result is left on the stack, which is what we
-		// want.
-		// Emit an instruction that will verify the return type is what the
-		// method
-		// and its superimplementations promised at link time.
-		codeGenerator.emitVerifyReturnedTypeToBe(returnType());
 	}
-
-	// enumerating
 
 	@Override
 	public void childrenMap (
 		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		// Map my children through the (destructive) transformation
-		// specified by aBlock. Answer the receiver.
-
 		_arguments = new ArrayList<AvailParseNode>(_arguments);
 		for (int i = 0; i < _arguments.size(); i++)
 		{
@@ -172,11 +168,11 @@ public class AvailSendNode extends AvailParseNode
 		}
 	}
 
-	// java printing
-
 	@Override
 	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
+		//TODO: Update this for repeated arguments.
+		//@see MessageSplitter.
 		int underscores = 0;
 		for (int charIndex = 1, _end1 = _message.name().tupleSize(); charIndex <= _end1; charIndex++)
 		{
@@ -201,7 +197,7 @@ public class AvailSendNode extends AvailParseNode
 				{
 					aStream.append(' ');
 				}
-				// No leading space for leading args
+				// No leading space for leading arguments
 				_arguments.get(argIndex - 1).printOnIndentIn(
 					aStream,
 					indent,
@@ -210,7 +206,7 @@ public class AvailSendNode extends AvailParseNode
 				{
 					aStream.append(' ');
 				}
-				// No trailing space for trailing args
+				// No trailing space for trailing arguments
 				argIndex++;
 			}
 			else

@@ -44,13 +44,13 @@ import static java.lang.Math.*;
 public class SpliceTupleDescriptor extends TupleDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH_OR_ZERO,
 		INTEGER_ZONE_DATA_AT_
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		OBJECT_ZONE_DATA_AT_
 	}

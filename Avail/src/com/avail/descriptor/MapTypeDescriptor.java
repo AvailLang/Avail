@@ -42,7 +42,7 @@ import java.util.List;
 public class MapTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		SIZE_RANGE,
 		KEY_TYPE,

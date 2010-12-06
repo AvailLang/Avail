@@ -85,11 +85,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		currentDepth += 1 - literalAt(currentOperands[0]).numArgs();
 	}
 
-	@Override public void L1_doVerifyType ()
-	{
-		assert currentDepth > 0;
-	}
-
 	@Override public void L1_doPushLiteral ()
 	{
 		currentDepth += 1;
@@ -155,14 +150,14 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		currentDepth += 1 - currentOperands[0];
 	}
 
+	@Override public void L1_doGetOuter ()
+	{
+		currentDepth += 1;
+	}
+
 	@Override public void L1_doExtension ()
 	{
 		error("The extension nybblecode should not be dispatched.");
-	}
-
-	@Override public void L1Ext_doGetOuter ()
-	{
-		currentDepth += 1;
 	}
 
 	@Override public void L1Ext_doPushLabel ()

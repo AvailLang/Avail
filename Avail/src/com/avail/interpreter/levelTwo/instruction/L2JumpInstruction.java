@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.instruction.L2Instruction;
 import com.avail.interpreter.levelTwo.instruction.L2JumpInstruction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import java.util.ArrayList;
+import java.util.List;
 import static com.avail.interpreter.levelTwo.L2Operation.*;
 
 public class L2JumpInstruction extends L2AbstractJumpInstruction
@@ -46,7 +47,7 @@ public class L2JumpInstruction extends L2AbstractJumpInstruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
 
@@ -54,7 +55,7 @@ public class L2JumpInstruction extends L2AbstractJumpInstruction
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 

@@ -41,12 +41,12 @@ import static java.lang.Integer.*;
 public class LinearSetBinDescriptor extends SetBinDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		BIN_HASH
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		BIN_ELEMENT_AT_
 	}

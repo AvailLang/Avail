@@ -71,7 +71,6 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.AvailInterpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.LiteralTokenDescriptor;
-import com.avail.newcompiler.ParseNodeDescriptor;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor.TokenType;
 import java.io.BufferedReader;
@@ -79,13 +78,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import static com.avail.descriptor.AvailObject.*;
 
+
+/**
+ * I parse a source file to create a {@link ModuleDescriptor module}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailCompiler
 {
 	/**
@@ -107,7 +111,6 @@ public class AvailCompiler
 
 	private List<AvailObject> tokens;
 	private int position;
-
 	AvailCompilerScopeStack scopeStack;
 	private int greatestGuess;
 	private List<Generator<String>> greatExpectations;
@@ -136,7 +139,7 @@ public class AvailCompiler
 		AvailBlockNode block = new AvailBlockNode();
 		block.arguments(new ArrayList<AvailVariableDeclarationNode>());
 		block.primitive(0);
-		ArrayList<AvailParseNode> statements;
+		List<AvailParseNode> statements;
 		statements = new ArrayList<AvailParseNode>(1);
 		statements.add(expressionNode);
 		block.statements(statements);
@@ -148,7 +151,7 @@ public class AvailCompiler
 		//  directly as constants in the generated code), so build a closure with no copied data.
 		final AvailObject closure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(compiledBlock, TupleDescriptor.empty());
 		closure.makeImmutable();
-		ArrayList<AvailObject> args;
+		List<AvailObject> args;
 		args = new ArrayList<AvailObject>();
 		final AvailObject result = interpreter.runClosureArguments(closure, args);
 		// System.out.println(Integer.toString(position) + " evaluated (" + expressionNode.toString() + ") = " + result.toString());
@@ -613,7 +616,7 @@ public class AvailCompiler
 			@Override
 			public void value(final AvailVariableDeclarationNode firstArg)
 			{
-				ArrayList<AvailVariableDeclarationNode> argsList;
+				List<AvailVariableDeclarationNode> argsList;
 				argsList = new ArrayList<AvailVariableDeclarationNode>(1);
 				argsList.add(firstArg);
 				parseAdditionalBlockArgumentsAfterThen(argsList, continuation);
@@ -1006,7 +1009,7 @@ public class AvailCompiler
 							@Override
 							public void value(final AvailParseNode newItem)
 							{
-								ArrayList<AvailParseNode> newItems;
+								List<AvailParseNode> newItems;
 								newItems = new ArrayList<AvailParseNode>(itemsSoFar);
 								newItems.add(newItem);
 								//  Answer this list.
@@ -1091,7 +1094,7 @@ public class AvailCompiler
 				public void value(final AvailParseNode firstItem)
 				{
 					justRecord.value(firstItem);
-					ArrayList<AvailParseNode> itemList;
+					List<AvailParseNode> itemList;
 					itemList = new ArrayList<AvailParseNode>(1);
 					itemList.add(firstItem);
 					parseExpressionListItemsBeyondThen(itemList, justRecord);
@@ -1884,7 +1887,7 @@ public class AvailCompiler
 		final Mutable<AvailParseNode> theStatement = new Mutable<AvailParseNode>();
 		final int where = position();
 		final AvailCompilerScopeStack oldScope = scopeStack;
-		ArrayList<AvailParseNode> statements;
+		List<AvailParseNode> statements;
 		statements = new ArrayList<AvailParseNode>(10);
 		while (true)
 		{

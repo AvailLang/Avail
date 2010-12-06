@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import java.io.CharArrayWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -76,10 +78,54 @@ implements Iterable<AvailObject>
 	 *               AvailObject} should be printed.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	abstract public void printOnAvoidingIndent (
+	public void printOnAvoidingIndent (
 		final @NotNull StringBuilder builder,
 		final @NotNull List<AvailObject> recursionList,
-		final int indent);
+		final int indent)
+	{
+		try
+		{
+			if (isDestroyed())
+			{
+				builder.append("*** A DESTROYED OBJECT ***");
+				return;
+			}
+			if (indent > descriptor().maximumIndent())
+			{
+				builder.append("*** DEPTH ***");
+				return;
+			}
+			for (final AvailObject candidate : recursionList)
+			{
+				if (candidate == this)
+				{
+					builder.append("**RECURSION**");
+					return;
+				}
+			}
+			recursionList.add(this);
+			try
+			{
+				descriptor().printObjectOnAvoidingIndent(
+					this,
+					builder,
+					recursionList,
+					indent);
+			}
+			finally
+			{
+				recursionList.remove(recursionList.size() - 1);
+			}
+		}
+		catch (Exception e)
+		{
+			builder.append("EXCEPTION while printing.");
+			CharArrayWriter inner = new CharArrayWriter();
+			PrintWriter outer = new PrintWriter(inner);
+			e.printStackTrace(outer);
+			builder.append(inner);
+		}
+	}
 
 
 	@Override
@@ -87,16 +133,8 @@ implements Iterable<AvailObject>
 	{
 		final StringBuilder stringBuilder = new StringBuilder(100);
 		final List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
-		try
-		{
-			printOnAvoidingIndent(stringBuilder, recursionList, 1);
-		}
-		catch (final Throwable e)
-		{
-			stringBuilder.insert(
-				0, "EXCEPTION while printing: " + e.toString() + "\n");
-		}
-		assert recursionList.size() == 0;
+		printOnAvoidingIndent(stringBuilder, recursionList, 1);
+		// assert recursionList.size() == 0;
 		return stringBuilder.toString();
 	}
 
@@ -1522,7 +1560,7 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public boolean couldEverBeInvokedWith (
-		final ArrayList<AvailObject> argTypes)
+		final List<AvailObject> argTypes)
 	{
 		return descriptor().o_CouldEverBeInvokedWith(this, argTypes);
 	}
@@ -2448,8 +2486,8 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public ArrayList<AvailObject> implementationsAtOrBelow (
-		final ArrayList<AvailObject> argTypes)
+	public List<AvailObject> implementationsAtOrBelow (
+		final List<AvailObject> argTypes)
 		{
 		return descriptor().o_ImplementationsAtOrBelow(this, argTypes);
 		}

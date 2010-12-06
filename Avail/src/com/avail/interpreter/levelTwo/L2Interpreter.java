@@ -138,6 +138,8 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// Look up the method implementations.  They all know numArgs.
 			final AvailObject implementations =
 				cont.closure().code().literalAt(getInteger());
+			final AvailObject expectedReturnType =
+				cont.closure().code().literalAt(getInteger());
 			final AvailObject matching =
 				implementations.lookupByValuesFromContinuationStackp(
 					cont,
@@ -170,8 +172,10 @@ final public class L2Interpreter extends AvailInterpreter implements
 				cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
 			}
 			cont.stackp(cont.stackp() + nArgs - 1);
-			// Leave one (void) slot on stack to distinguish label continuations
-			// from call continuations.
+			cont.stackAtPut(cont.stackp(), expectedReturnType);
+			// Leave the expected return type pushed on the stack.  This will be
+			// used when the method returns, and it also helps distinguish label
+			// continuations from call continuations.
 			final short primNum = theCode.primitiveNumber();
 			if (primNum != 0)
 			{
@@ -185,6 +189,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 				}
 				if (primResult == Result.SUCCESS)
 				{
+					if (!primitiveResult.isInstanceOfSubtypeOf(
+						expectedReturnType))
+					{
+						error("Primitive result did not agree with expected type");
+					}
 					AvailObject callerCont = _pointers[callerRegister()];
 					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
 					return;
@@ -194,26 +203,6 @@ final public class L2Interpreter extends AvailInterpreter implements
 			invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
 		}
 
-		/**
-		 * [n] - Ensure the top of stack's type is a subtype of the type found at
-		 * index n in the current compiledCode. If this is not the case, raise a
-		 * special runtime error or exception.
-		 */
-		@Override
-		public void L1_doVerifyType ()
-		{
-
-			final AvailObject cont = pointerAt(callerRegister());
-			final AvailObject value = cont.stackAt(cont.stackp());
-			final AvailObject literalType = cont.closure().code()
-					.literalAt(getInteger());
-			if (!value.isInstanceOfSubtypeOf(literalType))
-			{
-				error("A method has not met its \"returns\" clause's criterion (or a supermethod's) at runtime.");
-				return;
-			}
-		}
-		
 		/**
 		 * [n] - Push the literal indexed by n in the current compiledCode.
 		 */
@@ -497,27 +486,13 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, list);
 		}
-
-		/**
-		 * The extension nybblecode was encountered. Read another nybble and
-		 * dispatch it through ExtendedSelectors.
-		 */
-		@Override
-		public void L1_doExtension ()
-		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final byte nextNybble = cont.closure().code().nybbles()
-					.extractNybbleFromTupleAt(cont.pc());
-			cont.pc(cont.pc() + 1);
-			L1Operation.values()[nextNybble + 16].dispatch(levelOneDispatcher);
-		}
 		
 		/**
 		 * [n] - Push the value of the outer variable indexed by n in the current
 		 * closure.
 		 */
 		@Override
-		public void L1Ext_doGetOuter ()
+		public void L1_doGetOuter ()
 		{
 			final AvailObject cont = pointerAt(callerRegister());
 			final int index = getInteger();
@@ -527,6 +502,20 @@ final public class L2Interpreter extends AvailInterpreter implements
 			int stackp = cont.stackp() - 1;
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value);
+		}
+
+		/**
+		 * The extension nybblecode was encountered. Read another nybble and
+		 * dispatch it as an extended instruction.
+		 */
+		@Override
+		public void L1_doExtension ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final byte nextNybble = cont.closure().code().nybbles()
+					.extractNybbleFromTupleAt(cont.pc());
+			cont.pc(cont.pc() + 1);
+			L1Operation.values()[nextNybble + 16].dispatch(levelOneDispatcher);
 		}
 		
 		/**
@@ -629,11 +618,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 		public void L1Ext_doSuperCall ()
 		{
 			final AvailObject cont = pointerAt(callerRegister());
+			final AvailObject code = cont.closure().code();
 			final int stackp = cont.stackp();
 			// Look up the method implementations.
-			final int litIndex = getInteger();
-			final AvailObject implementations = cont.closure().code()
-					.literalAt(litIndex);
+			final AvailObject implementations = code.literalAt(getInteger());
+			final AvailObject expectedReturnType = code.literalAt(getInteger());
 			final AvailObject matching = implementations
 					.lookupByTypesFromContinuationStackp(cont, stackp);
 			if (matching.equalsVoid())
@@ -669,6 +658,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// Remove types and arguments, but then leave one (void) slot on stack
 			// to distinguish label/call continuations.
 			cont.stackp(base - 1);
+			cont.stackAtPut(base - 1, expectedReturnType);
 			final short primNum = theCode.primitiveNumber();
 			if (primNum != 0)
 			{
@@ -682,6 +672,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 				}
 				if (primResult == Result.SUCCESS)
 				{
+					if (!primitiveResult.isInstanceOfSubtypeOf(
+						expectedReturnType))
+					{
+						error("Primitive result did not agree with expected type");
+					}
 					AvailObject callerCont = _pointers[callerRegister()];
 					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
 					return;
@@ -724,18 +719,21 @@ final public class L2Interpreter extends AvailInterpreter implements
 		}
 
 		/**
-		 * Return to the calling continuation with top of stack. Must be the last
-		 * instruction in block. Note that the calling continuation has
-		 * automatically pre-pushed a void object as a sentinel, which should simply
-		 * be replaced by this value (to avoid manipulating the stackp).
+		 * Return to the calling continuation with top of stack.  This isn't an
+		 * actual instruction (any more), but it's implied after every block.
+		 * Note that the calling continuation has automatically pre-pushed the
+		 * expected return type, which after being used to check the return
+		 * value should simply be replaced by this value.  This avoids
+		 * manipulating the stack depth.
 		 */
 		@Override
 		public void L1Implied_doReturn ()
 		{
 			final AvailObject cont = pointerAt(callerRegister());
-			final AvailObject value = cont.stackAt(cont.stackp());
-			assert value.isInstanceOfSubtypeOf(cont.closure().code().closureType()
-					.returnType()) : "Return type from method disagrees with declaration";
+			final AvailObject valueObject = cont.stackAt(cont.stackp());
+			final AvailObject closureType = cont.closure().code().closureType();
+			assert valueObject.isInstanceOfSubtypeOf(closureType.returnType())
+			: "Return type from method disagrees with declaration";
 			// Necessary to avoid accidental destruction.
 			cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
 			AvailObject caller = cont.caller();
@@ -744,11 +742,17 @@ final public class L2Interpreter extends AvailInterpreter implements
 				process.executionState(ExecutionState.terminated);
 				process.continuation(VoidDescriptor.voidObject());
 				_exitNow = true;
-				_exitValue = value;
+				_exitValue = valueObject;
 				return;
 			}
 			caller = caller.ensureMutable();
-			caller.stackAtPut(caller.stackp(), value);
+			final int callerStackp = caller.stackp();
+			final AvailObject expectedType = caller.stackAt(callerStackp);
+			if (!valueObject.isInstanceOfSubtypeOf(expectedType))
+			{
+				error("Return value does not agree with expected type");
+			}
+			caller.stackAtPut(callerStackp, valueObject);
 			prepareToExecuteContinuation(caller);
 		}
 	};
@@ -1183,7 +1187,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 
 		// Before we extract the nybblecode, may sure that the PC hasn't passed
 		// the end of the instruction sequence. If we have, then execute an
-		// L1_doReturn.
+		// {@code L1Implied_doReturn}.
 		if (pc > nybbles.tupleSize())
 		{
 			levelOneDispatcher.L1Implied_doReturn();
@@ -2223,9 +2227,10 @@ final public class L2Interpreter extends AvailInterpreter implements
 
 		int continuationIndex = nextWord();
 		int valueIndex = nextWord();
-		assert (continuationIndex == callerRegister());
-		AvailObject caller = pointerAt(continuationIndex);
+		assert continuationIndex == callerRegister();
+
 		final AvailObject valueObject = pointerAt(valueIndex);
+		AvailObject caller = pointerAt(continuationIndex);
 		if (caller.equalsVoid())
 		{
 			process.executionState(ExecutionState.terminated);
@@ -2233,10 +2238,16 @@ final public class L2Interpreter extends AvailInterpreter implements
 			_exitValue = valueObject;
 			_exitNow = true;
 		}
-		// Store the value on the calling continuation's stack (which had void
-		// pre-pushed).
+		// Check that the return value matches the expected type which was
+		// stored on the caller's stack, then replace it.
 		caller = caller.ensureMutable();
-		caller.stackAtPut(caller.stackp(), valueObject);
+		final int callerStackp = caller.stackp();
+		final AvailObject expectedType = caller.stackAt(callerStackp);
+		if (!valueObject.isInstanceOfSubtypeOf(expectedType))
+		{
+			error("Return value does not agree with expected type");
+		}
+		caller.stackAtPut(callerStackp, valueObject);
 		prepareToExecuteContinuation(caller);
 	}
 

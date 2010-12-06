@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.instruction;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import java.util.ArrayList;
+import java.util.List;
 
 public class L2LabelInstruction extends L2Instruction
 {
@@ -43,7 +44,7 @@ public class L2LabelInstruction extends L2Instruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
 
@@ -51,7 +52,7 @@ public class L2LabelInstruction extends L2Instruction
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 

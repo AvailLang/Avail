@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.instruction.L2ProcessInterruptNowInstructi
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import java.util.ArrayList;
+import java.util.List;
 import static com.avail.interpreter.levelTwo.L2Operation.*;
 
 public class L2ProcessInterruptNowInstruction extends L2Instruction
@@ -47,7 +48,7 @@ public class L2ProcessInterruptNowInstruction extends L2Instruction
 	// accessing
 
 	@Override
-	public ArrayList<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		//  Answer a collection of registers written to by this instruction.
 
@@ -55,7 +56,7 @@ public class L2ProcessInterruptNowInstruction extends L2Instruction
 	}
 
 	@Override
-	public ArrayList<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		//  Answer a collection of registers read by this instruction.
 

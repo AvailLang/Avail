@@ -46,12 +46,12 @@ import static com.avail.descriptor.AvailObject.*;
 public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		PARSING_PC
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		UNCLASSIFIED,
 		PAD1,

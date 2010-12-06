@@ -41,7 +41,7 @@ import static com.avail.descriptor.AvailObject.*;
 public class CompiledCodeDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		HASH,
 		HI_PRIM_LOW_FRAME_SLOTS,
@@ -50,7 +50,7 @@ public class CompiledCodeDescriptor extends Descriptor
 		INVOCATION_COUNT
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		NYBBLES,
 		CLOSURE_TYPE,

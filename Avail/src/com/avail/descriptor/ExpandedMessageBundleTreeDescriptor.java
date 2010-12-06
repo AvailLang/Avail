@@ -43,12 +43,12 @@ import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
 public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		PARSING_PC
 	}
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		COMPLETE,
 		INCOMPLETE,

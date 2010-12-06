@@ -43,7 +43,7 @@ import static java.lang.Math.*;
 public class ObjectTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		FIELD_TYPE_MAP
 	}

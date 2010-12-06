@@ -126,7 +126,7 @@ public class AvailLabelNode extends AvailVariableDeclarationNode
 			final int indent)
 	{
 		aStream.append('$');
-		aStream.append(_name.string());
+		aStream.append(_name.string().asNativeString());
 		aStream.append(" : ");
 		aStream.append(_declaredType.toString());
 	}

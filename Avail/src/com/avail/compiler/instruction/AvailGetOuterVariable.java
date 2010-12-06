@@ -34,60 +34,73 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
+import com.avail.descriptor.ClosureDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+/**
+ * Push the value of an outer (lexically captured) variable.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailGetOuterVariable extends AvailGetVariable
 {
 
+	/**
+	 * Construct a new {@link AvailGetOuterVariable}.
+	 *
+	 * @param outerIndex The index of the variable in a {@link ClosureDescriptor
+	 *                   closure's} list of outer variables.
+	 */
+	public AvailGetOuterVariable (int outerIndex)
+	{
+		super(outerIndex);
+	}
 
-	// nybblecodes
 
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
-		if (_canClear)
+		if (canClear)
 		{
 			L1Operation.L1_doGetOuterClearing.writeTo(aStream);
 		}
 		else
 		{
-			L1Operation.L1Ext_doGetOuter.writeTo(aStream);
+			L1Operation.L1_doGetOuter.writeTo(aStream);
 		}
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(index, aStream);
 	}
 
-
-
-	// optimization
-
+	
+	/**
+	 * The instructions of a block are being iterated over.  Coordinate
+	 * optimizations between instructions using localData and outerData, two
+	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * instruction as though it is the last one in the block, and save enough
+	 * information in the lists to be able to undo consequences of this
+	 * assumption when a later instruction shows it to be unwarranted.
+	 * <p>
+	 * The data lists are keyed by local or outer index.  Each entry is either
+	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
+	 * previous time a get or push happened.
+	 * <p>
+	 * I get the value of an outer, so it can't be an outer reference to an
+	 * argument (they aren't wrapped in a variable).
+	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
 			final List<AvailVariableAccessNote> localData,
 			final List<AvailVariableAccessNote> outerData,
 			final AvailCodeGenerator codeGenerator)
 	{
-		//  The instructions of a block are being iterated over.  Coordinate optimizations
-		//  between instructions using localData and outerData, two Arrays manipulated by
-		//  overrides of this method.  Treat each instruction as though it is the last one in the
-		//  block, and save enough information in the Arrays to be able to undo consequences
-		//  of this assumption when a later instruction shows it to be unwarranted.
-		//
-		//  The data Arrays are keyed by local or outer index.  Each entry is either nil or a
-		//  Dictionary.  The Dictionary has the (optional) keys #previousGet and #previousPush,
-		//  and the values are the previously encountered instructions.
-		//
-		//  I get the value of an outer, so it can't be an outer reference to an argument (they aren't wrapped in a variable).
-
-		AvailVariableAccessNote note = outerData.get(_index - 1);
+		AvailVariableAccessNote note = outerData.get(index - 1);
 		if (note == null)
 		{
 			note = new AvailVariableAccessNote();
-			outerData.set(_index - 1, note);
+			outerData.set(index - 1, note);
 		}
 		final AvailGetVariable previousGet = note.previousGet();
 		if (previousGet != null)
@@ -103,9 +116,5 @@ public class AvailGetOuterVariable extends AvailGetVariable
 			previousPush.isLastAccess(false);
 		}
 	}
-
-
-
-
 
 }

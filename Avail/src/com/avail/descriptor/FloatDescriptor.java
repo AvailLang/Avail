@@ -40,7 +40,7 @@ import java.util.List;
 public class FloatDescriptor extends Descriptor
 {
 
-	enum IntegerSlots
+	public enum IntegerSlots
 	{
 		RAW_QUAD_1
 	}

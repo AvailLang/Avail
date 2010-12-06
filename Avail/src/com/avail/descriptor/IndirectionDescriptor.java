@@ -31,7 +31,6 @@
 
 package com.avail.descriptor;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -83,7 +82,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		/**
 		 * The target {@link AvailObject object} to which my instance is
@@ -804,7 +803,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final ArrayList<AvailObject> argTypes)
+		final List<AvailObject> argTypes)
 	{
 		return o_Traversed(object).couldEverBeInvokedWith(argTypes);
 	}
@@ -1318,9 +1317,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public ArrayList<AvailObject> o_ImplementationsAtOrBelow (
+	public List<AvailObject> o_ImplementationsAtOrBelow (
 		final AvailObject object,
-		final ArrayList<AvailObject> argTypes)
+		final List<AvailObject> argTypes)
 	{
 		return o_Traversed(object).implementationsAtOrBelow(argTypes);
 	}

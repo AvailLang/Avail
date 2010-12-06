@@ -42,7 +42,7 @@ import java.util.List;
 public class MessageBundleDescriptor extends Descriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		MESSAGE,
 		MESSAGE_PARTS,

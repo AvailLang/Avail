@@ -57,9 +57,8 @@ Names
 		"Set Local Instruction",
 		"Set Outer Instruction",
 	"Super Call Instruction",
-	"Verify Type Instruction",
 
-	"new Call Instruction literal index_",
+	"new Call Instruction literal index_type_",
 	"new Close Instruction literal index_number of outers_",
 	"new Get Literal Instruction literal index_",
 	"new Get Local Instruction local index_",
@@ -76,7 +75,6 @@ Names
 	"new Set Local Instruction local index_",
 	"new Set Outer Instruction outer index_",
 	"new Super Call Instruction literal index_",
-	"new Verify Type Instruction type index_",
 
 	"_index",
 	"_canClear",
@@ -90,6 +88,7 @@ Body
 
 /* First, some field names... */
 index ::= lookup "index";
+typeIndex ::= lookup "typeIndex";
 numCopied ::= lookup "numCopied";
 canClear ::= lookup "canClear";
 depth ::= lookup "depth";
@@ -99,7 +98,9 @@ label ::= lookup "label";
 
 "Instruction" is explicit subtype of Object;
 	"Call Instruction" is explicit subtype of Instruction with
-			[index -> natural number];
+			[index -> natural number]
+			[typeIndex -> natural number];
+		"Super Call Instruction" is explicit subtype of Call Instruction;
 	"Close Instruction" is explicit subtype of Instruction with
 			[numCopied -> whole number]
 			[index -> natural number];
@@ -133,13 +134,10 @@ label ::= lookup "label";
 			[index -> natural number];
 		"Set Outer Instruction" is explicit subtype of Set Variable Instruction with
 			[index -> natural number];
-	"Super Call Instruction" is explicit subtype of Instruction with
-			[index -> natural number];
-	"Verify Type Instruction" is explicit subtype of Instruction with
-			[index -> natural number];
 
 
 (Instruction altered with <<index, integer>>) has fields <"index">;
+Call Instruction has fields <"typeIndex">;
 Get Variable Instruction has fields <"canClear">;
 Push Variable Instruction has fields <"isLast">;
 
@@ -147,9 +145,12 @@ Push Variable Instruction has fields <"isLast">;
 
 /* Instruction creation... */
 
-Method "new Call Instruction literal index_" is [litIndex : natural number |
+Method "new Call Instruction literal index_type_" is [
+		messageIndex : natural number,
+		returnTypeIndex : natural number|
 	Call Instruction new with <
-		<index, litIndex>
+		<index, messageIndex>,
+		<typeIndex, returnTypeIndex>
 	>;
 ];
 
@@ -252,18 +253,14 @@ Method "new Set Outer Instruction outer index_" is [outerIndex : natural number 
 	>;
 ];
 
-Method "new Super Call Instruction literal index_" is [litIndex : natural number |
+Method "new Super Call Instruction literal index_type_" is [
+		messageIndex : natural number,
+		theTypeIndex : natural number |
 	Super Call Instruction new with <
-		<index, litIndex>
+		<index, messageIndex>,
+		<typeIndex, theTypeIndex>
 	>;
 ];
-
-Method "new Verify Type Instruction type index_" is [typeIndex : natural number |
-	Verify Type Instruction new with <
-		<index, typeIndex>
-	>;
-];
-
 
 
 
@@ -272,7 +269,7 @@ Method "new Verify Type Instruction type index_" is [typeIndex : natural number 
 Abstract method "_emit instruction_" for [Nybblecode Generator, Instruction]->void;
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Call Instruction |
-	cg call instr->index;
+	cg call instr->index type instr->typeIndex;
 ];
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Close Instruction |
@@ -336,11 +333,7 @@ Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Set Outer Ins
 ];
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Super Call Instruction |
-	cg super call instr->index;
-];
-
-Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Verify Type Instruction |
-	cg verify type instr->index;
+	cg super call instr->index type instr->typeIndexx;
 ];
 
 

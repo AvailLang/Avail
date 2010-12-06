@@ -41,7 +41,7 @@ import java.util.List;
 public class ContinuationTypeDescriptor extends TypeDescriptor
 {
 
-	enum ObjectSlots
+	public enum ObjectSlots
 	{
 		CLOSURE_TYPE
 	}

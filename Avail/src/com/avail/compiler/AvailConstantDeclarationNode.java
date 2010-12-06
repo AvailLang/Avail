@@ -56,7 +56,7 @@ public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNo
 	{
 		if (_name != null)
 		{
-			aStream.append(_name.string());
+			aStream.append(_name.string().asNativeString());
 		}
 		aStream.append(" ::= ");
 		_initializingExpression.printOnIndent(aStream, indent);

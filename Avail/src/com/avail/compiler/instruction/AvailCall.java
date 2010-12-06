@@ -32,27 +32,48 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.ImplementationSetDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * This is a multi-method call instruction.  The opcode is followed by the index
+ * of the message (an {@link ImplementationSetDescriptor implementation set}),
+ * then the index of the literal that holds the return type for this call site. 
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailCall extends AvailInstructionWithIndex
 {
 
+	/**
+	 * The index of the literal that holds the call-site specific return type. 
+	 */
+	int verifyIndex;
 
-	// nybblecodes
-
+	
+	/**
+	 * Construct a new {@link AvailCall}.
+	 *
+	 * @param messageIndex The index of the literal that holds the message (an
+	 *                     {@link ImplementationSetDescriptor implementation
+	 *                     set}.
+	 * @param verifyIndex The index of the literal that holds the return type.
+	 */
+	public AvailCall (int messageIndex, int verifyIndex)
+	{
+		super(messageIndex);
+		this.verifyIndex = verifyIndex;
+	}
+	
+	
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1_doCall.writeTo(aStream);
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(index, aStream);
+		writeIntegerOn(verifyIndex, aStream);
 	}
-
-
-
-
 
 }

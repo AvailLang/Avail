@@ -50,7 +50,6 @@ import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.AvailDecompiler;
 import com.avail.newcompiler.LiteralTokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor;
@@ -112,6 +111,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 			_pc++;
 			L1Operation.values()[nybble].dispatch(this);
 		}
+		L1Implied_doReturn();
 		assert (_expressionStack.size() == 0) : "There should be nothing on the stack after the final return";
 		final AvailBlockNode blockNode = new AvailBlockNode();
 		blockNode.arguments(_args);
@@ -258,43 +258,6 @@ public class AvailDecompiler implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1Ext_doGetOuter ()
-	{
-		//  [n] - Push the value of the outer variable indexed by n in the current closure.
-
-		final AvailVariableUseNode use = new AvailVariableUseNode();
-		final AvailParseNode outer = _outers.get((getInteger() - 1));
-		if (outer.isLiteralNode())
-		{
-			final AvailLiteralNode outerLiteral = ((AvailLiteralNode)(outer));
-			final AvailObject synthToken = AvailObject.newIndexedDescriptor(
-				0,
-				TokenDescriptor.mutableDescriptor());
-			synthToken.tokenType(TokenType.KEYWORD);
-			synthToken.string(outerLiteral.token().string());
-			synthToken.start(0);
-			final AvailVariableSyntheticDeclarationNode synthDecl =
-				new AvailVariableSyntheticDeclarationNode();
-			synthDecl.name(synthToken);
-			synthDecl.declaredType(outerLiteral.availValue().type().innerType());
-			synthDecl.isArgument(false);
-			synthDecl.availVariable(outerLiteral.availValue());
-			use.associatedDeclaration(synthDecl);
-			use.name(synthToken);
-		}
-		else
-		{
-			final AvailReferenceNode refNode = (AvailReferenceNode)outer;
-			final AvailVariableDeclarationNode outerDecl =
-				refNode.variable().associatedDeclaration();
-			use.associatedDeclaration(outerDecl);
-			use.name(outerDecl.name());
-		}
-		use.isLastUse(false);
-		pushExpression(use);
-	}
-
-	@Override
 	public void L1Ext_doGetType ()
 	{
 		//  [n] - Push the (n+1)st stack element's type.  This is only used by the supercast
@@ -380,21 +343,26 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(assignmentNode);
 	}
 
+	/**
+	 * [n] - Send the message at index n in the compiledCode's literals.  Like
+	 * the call instruction, the arguments will have been pushed on the stack in
+	 * order, but unlike call, each argument's type will also have been pushed
+	 * (all arguments are pushed, then all argument types).  These are either
+	 * the arguments' exact types, or constant types (that must be supertypes of
+	 * the arguments' types), or any mixture of the two.  These types will be
+	 * used for method lookup, rather than the argument types.  This supports a
+	 * 'super'-like mechanism in the presence of multi-methods.  Like the call
+	 * instruction, all arguments (and types) are popped, then the expected
+	 * return type is pushed, and the looked up method is started.  When the
+	 * invoked method returns via an implied return instruction, the value will
+	 * be checked against this type, and the type's slot on the stack will be
+	 * replaced by the actual return value.
+	 */
 	@Override
 	public void L1Ext_doSuperCall ()
 	{
-		//  [n] - Send the message at index n in the compiledCode's literals.  Like the call instruction,
-		//  the arguments will have been pushed on the stack in order, but unlike call, each argument's
-		//  type will also have been pushed (all arguments are pushed, then all argument types).
-		//  These are either the arguments' exact types, or constant types (that must be supertypes
-		//  of the arguments' types), or any mixture of the two.  These types will be used for method
-		//  lookup, rather than the argument types.  This supports a 'super'-like mechanism in the
-		//  presence of multimethods.  Like the call instruction, all arguments (and types) are popped,
-		//  then a sentinel void object is pushed, and the looked up method is started.  When the
-		//  invoked method returns (via a return instruction), this sentinel will be replaced by the
-		//  result of the call.
-
 		final AvailObject impSet = _code.literalAt(getInteger());
+		final AvailObject type = _code.literalAt(getInteger());
 		final AvailObject cyclicType = impSet.name();
 		int nArgs = 0;
 		final AvailObject str = cyclicType.name();
@@ -414,7 +382,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 			{
 				final AvailSuperCastNode superCast = new AvailSuperCastNode();
 				superCast.expression(callArgs.get(i - 1));
-				superCast.type(((AvailLiteralNode)(types.get(i - 1))).availValue());
+				superCast.type(((AvailLiteralNode)types.get(i - 1)).availValue());
 				callArgs.set(i - 1, superCast);
 			}
 		}
@@ -422,7 +390,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		sendNode.message(cyclicType);
 		sendNode.bundle(null);
 		sendNode.arguments(callArgs);
-		sendNode.returnType(Types.voidType.object());
+		sendNode.returnType(type);
 		pushExpression(sendNode);
 	}
 
@@ -438,21 +406,24 @@ public class AvailDecompiler implements L1OperationDispatcher
 		assert (_expressionStack.size() == 0) : "There should be nothing on the stack after a return";
 	}
 
-
-
+	/**
+	 * [n] - Send the message at index n in the compiledCode's literals.  Pop
+	 * the arguments for this message off the stack (the message itself knows
+	 * how many to expect).  The first argument was pushed first, and is the
+	 * deepest on the stack.  Use these arguments to look up the method
+	 * dynamically.  Before invoking the method, push the expected return type
+	 * onto the stack.  Its presence will help distinguish continuations
+	 * produced by the pushLabel instruction from their senders.  When the call
+	 * completes (if ever), it will use the implied return instruction, which
+	 * will have the effect of checking the proposed return value against the
+	 * type, then replacing the stack slot containing the type with the actual
+	 * result of the call.
+	 */
 	@Override
 	public void L1_doCall ()
 	{
-		//  [n] - Send the message at index n in the compiledCode's literals.  Pop the arguments for
-		//  this message off the stack (the message itself knows how many to expect).  The first
-		//  argument was pushed first, and is the deepest on the stack.  Use these arguments to
-		//  look up the method dynamically.  Before invoking the method, push the void object
-		//  onto the stack.  Its presence will help distinguish continuations produced by the
-		//  pushLabel instruction from their senders.  When the call completes (if ever), it will use
-		//  the return instruction, which will have the effect of replacing this void object with the
-		//  result of the call.
-
 		final AvailObject impSet = _code.literalAt(getInteger());
+		final AvailObject type = _code.literalAt(getInteger());
 		final AvailObject cyclicType = impSet.name();
 		int nArgs = 0;
 		final AvailObject str = cyclicType.name();
@@ -469,8 +440,9 @@ public class AvailDecompiler implements L1OperationDispatcher
 		sendNode.message(cyclicType);
 		sendNode.bundle(null);
 		sendNode.arguments(callArgs);
-		sendNode.returnType(Types.voidType.object());
+		sendNode.returnType(type);
 		pushExpression(sendNode);
+
 	}
 
 	@Override
@@ -533,6 +505,45 @@ public class AvailDecompiler implements L1OperationDispatcher
 		useNode.isLastUse(true);
 		pushExpression(useNode);
 	}
+
+	@Override
+	public void L1_doGetOuter ()
+	{
+		//  [n] - Push the value of the outer variable indexed by n in the current closure.
+	
+		final AvailVariableUseNode use = new AvailVariableUseNode();
+		final AvailParseNode outer = _outers.get((getInteger() - 1));
+		if (outer.isLiteralNode())
+		{
+			final AvailLiteralNode outerLiteral = ((AvailLiteralNode)(outer));
+			final AvailObject synthToken = AvailObject.newIndexedDescriptor(
+				0,
+				TokenDescriptor.mutableDescriptor());
+			synthToken.tokenType(TokenType.KEYWORD);
+			synthToken.string(outerLiteral.token().string());
+			synthToken.start(0);
+			final AvailVariableSyntheticDeclarationNode synthDecl =
+				new AvailVariableSyntheticDeclarationNode();
+			synthDecl.name(synthToken);
+			synthDecl.declaredType(outerLiteral.availValue().type().innerType());
+			synthDecl.isArgument(false);
+			synthDecl.availVariable(outerLiteral.availValue());
+			use.associatedDeclaration(synthDecl);
+			use.name(synthToken);
+		}
+		else
+		{
+			final AvailReferenceNode refNode = (AvailReferenceNode)outer;
+			final AvailVariableDeclarationNode outerDecl =
+				refNode.variable().associatedDeclaration();
+			use.associatedDeclaration(outerDecl);
+			use.name(outerDecl.name());
+		}
+		use.isLastUse(false);
+		pushExpression(use);
+	}
+
+
 
 	@Override
 	public void L1_doGetOuterClearing ()
@@ -767,23 +778,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(assignment);
 	}
 
-	@Override
-	public void L1_doVerifyType ()
-	{
-		// [n] - Ensure the top of stack's type is a subtype of the type found
-		// at index n in the current compiledCode.  If this is not the case,
-		// raise a special runtime error or exception.
-		//
-		// This nybblecode is only supposed to be used for verifying return
-		// types after method calls.
-
-		final AvailParseNode top = popExpression();
-		assert top.isSend();
-		((AvailSendNode)(top)).returnType(_code.literalAt(getInteger()));
-		pushExpression(top);
-	}
-
-
+	
 
 	/**
 	 * Create any necessary variable declaration nodes.

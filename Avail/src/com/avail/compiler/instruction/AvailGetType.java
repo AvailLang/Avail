@@ -37,38 +37,40 @@ import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * Push the type of the value that's N levels deep on the stack.  This is only
+ * used to assist in the implementation of multimethod {@link AvailSuperCall
+ * super calls}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailGetType extends AvailInstruction
 {
-	int _depth;
+	/**
+	 * The depth in the stack at which to find the object whose type to extract.
+	 * Zero means top-of-stack, etc.
+	 */
+	int stackDepth;
 
 
-	// accessing
-
-	public AvailGetType depth (
-			final int anInteger)
+	/**
+	 * Construct a new {@link AvailGetType}.
+	 *
+	 * @param stackDepth The depth in the stack at which to find the object
+	 *                   whose type to extract.
+	 */
+	public AvailGetType (int stackDepth)
 	{
-		//  Specify which element (0=tos, 1=next-to-tos, etc) to push the type of.
-
-		_depth = anInteger;
-		return this;
+		this.stackDepth = stackDepth;
 	}
 
-
-
-	// nybblecodes
 
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1Ext_doGetType.writeTo(aStream);
-		writeIntegerOn(_depth, aStream);
+		writeIntegerOn(stackDepth, aStream);
 	}
-
-
-
-
 
 }

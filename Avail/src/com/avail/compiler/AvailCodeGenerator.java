@@ -53,13 +53,14 @@ import com.avail.compiler.instruction.AvailSetLocalVariable;
 import com.avail.compiler.instruction.AvailSetOuterVariable;
 import com.avail.compiler.instruction.AvailSuperCall;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
-import com.avail.compiler.instruction.AvailVerifyType;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ClosureTypeDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContainerDescriptor;
 import com.avail.descriptor.ContainerTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Primitive;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -250,74 +251,113 @@ public class AvailCodeGenerator
 
 
 
-	// emitting instructions
-
-	public void emitCallMethodByTypesNumArgsLiteral (
+	/**
+	 * Write a multimethod super-call.  I expect the arguments to have been
+	 * pushed, as well as the types that those arguments should be considered
+	 * for the purpose of lookup.
+	 * 
+	 * @param nArgs The number of arguments that the method accepts.
+	 * @param implementationSet The implementation set in which to look up the
+	 *                          method being invoked.
+	 * @param returnType The expected return type of the call.
+	 */
+	public void emitSuperCall (
 			final int nArgs,
-			final AvailObject aLiteral)
+			final AvailObject implementationSet,
+			final AvailObject returnType)
 	{
-		final int index = indexOfLiteral(aLiteral);
-		_instructions.add(new AvailSuperCall().index(index));
+		final int messageIndex = indexOfLiteral(implementationSet);
+		final int returnIndex = indexOfLiteral(returnType);
+		_instructions.add(new AvailSuperCall(messageIndex, returnIndex));
+		// Pops off all types then all values.
 		decreaseDepth(nArgs + nArgs);
-		//  Pops off all types then all values.
-		//
-		//  Leaves room for result
+		// Pushes expected return type, to be overwritten by return value.
 		increaseDepth(1);
 	}
 
-	public void emitCallMethodByValuesNumArgsLiteral (
+	/**
+	 * Write a multimethod call.  I expect my arguments to have been pushed.
+	 * 
+	 * @param nArgs The number of arguments that the method accepts.
+	 * @param implementationSet The implementation set in which to look up the
+	 *                          method being invoked.
+	 * @param returnType The expected return type of the call.
+	 */
+	public void emitCall (
 			final int nArgs,
-			final AvailObject aLiteral)
+			final AvailObject implementationSet,
+			final AvailObject returnType)
 	{
-		final int index = indexOfLiteral(aLiteral);
-		_instructions.add(new AvailCall().index(index));
+		final int messageIndex = indexOfLiteral(implementationSet);
+		final int returnIndex = indexOfLiteral(returnType);
+		_instructions.add(new AvailCall(messageIndex, returnIndex));
+		// Pops off arguments.
 		decreaseDepth(nArgs);
-		//  Pops off arguments
-		//
-		//  Leaves room for result.
+		// Pushes expected return type, to be overwritten by return value.
 		increaseDepth(1);
 	}
 
-	public void emitClosedBlockWithCopiedVars (
-			final AvailObject anAvailCompiledBlock,
+	/**
+	 * Create a closure from {@code CompiledCodeDescriptor compiled code} and
+	 * the pushed outer (lexically bound) variables.
+	 * 
+	 * @param compiledCode The code from which to make a closure.
+	 * @param copiedVars A {@link List} of {@link AvailVariableDeclarationNode
+	 *                   declarations} of variables that the code needs to
+	 *                   access.
+	 */
+	public void emitCloseCode (
+			final AvailObject compiledCode,
 			final List<AvailVariableDeclarationNode> copiedVars)
 	{
 		for (int i = 1, _end1 = copiedVars.size(); i <= _end1; i++)
 		{
 			emitPushLocalOrOuter(copiedVars.get(i - 1));
 		}
-		final int index = indexOfLiteral(anAvailCompiledBlock);
-		_instructions.add(new AvailCloseCode().numCopiedVarsCodeIndex(copiedVars.size(), index));
+		final int codeIndex = indexOfLiteral(compiledCode);
+		_instructions.add(new AvailCloseCode(copiedVars.size(), codeIndex));
+		// Copied variables are popped.
 		decreaseDepth(copiedVars.size());
-		//  Copied vars get popped.
-		//
-		//  Closure is pushed.
+		// Closure is pushed.
 		increaseDepth(1);
 	}
 
+	/**
+	 * Get the value of a literal variable.
+	 * 
+	 * @param aLiteral The {@link ContainerDescriptor variable} that should have
+	 *                 its value extracted.
+	 */
 	public void emitGetLiteral (
 			final AvailObject aLiteral)
 	{
+		// Push one thing.
 		increaseDepth(1);
-		//  Push one thing.
 		final int index = indexOfLiteral(aLiteral);
-		_instructions.add(new AvailGetLiteralVariable().index(index));
+		_instructions.add(new AvailGetLiteralVariable(index));
 	}
 
+	/**
+	 * Get the value of a local or outer (captured) variable.
+	 * 
+	 * @param localOrOuter The {@link AvailVariableDeclarationNode declaration}
+	 *                     of the variable that should have its value extracted.
+	 */
 	public void emitGetLocalOrOuter (
 			final AvailVariableDeclarationNode localOrOuter)
 	{
-		//  Get the value of a variable.
-
+		// Push one thing.
 		increaseDepth(1);
 		if (_varMap.containsKey(localOrOuter))
 		{
-			_instructions.add(new AvailGetLocalVariable().index(_varMap.get(localOrOuter)));
+			_instructions.add(new AvailGetLocalVariable(
+				_varMap.get(localOrOuter)));
 			return;
 		}
 		if (_outerMap.containsKey(localOrOuter))
 		{
-			_instructions.add(new AvailGetOuterVariable().index(_outerMap.get(localOrOuter)));
+			_instructions.add(new AvailGetOuterVariable(
+				_outerMap.get(localOrOuter)));
 			return;
 		}
 		if (_labelInstructions.containsKey(localOrOuter))
@@ -329,10 +369,14 @@ public class AvailCodeGenerator
 		return;
 	}
 
+	/**
+	 * Push the type of the value N levels deep in the stack.
+	 * @param stackDepth
+	 */
 	public void emitGetType (
 			final int stackDepth)
 	{
-		_instructions.add(new AvailGetType().depth(stackDepth));
+		_instructions.add(new AvailGetType(stackDepth));
 		decreaseDepth(stackDepth + 1);
 		//  make sure there are sufficient elements on the stack by 'testing the water'.
 		increaseDepth(stackDepth + 1);
@@ -371,7 +415,7 @@ public class AvailCodeGenerator
 		increaseDepth(1);
 		//  Push one thing.
 		final int index = indexOfLiteral(aLiteral);
-		_instructions.add(new AvailPushLiteral().index(index));
+		_instructions.add(new AvailPushLiteral(index));
 	}
 
 	public void emitPushLocalOrOuter (
@@ -382,12 +426,14 @@ public class AvailCodeGenerator
 		increaseDepth(1);
 		if (_varMap.containsKey(localOrOuter))
 		{
-			_instructions.add(new AvailPushLocalVariable().index(_varMap.get(localOrOuter)));
+			_instructions.add(
+				new AvailPushLocalVariable(_varMap.get(localOrOuter)));
 			return;
 		}
 		if (_outerMap.containsKey(localOrOuter))
 		{
-			_instructions.add(new AvailPushOuterVariable().index(_outerMap.get(localOrOuter)));
+			_instructions.add(
+				new AvailPushOuterVariable(_outerMap.get(localOrOuter)));
 			return;
 		}
 		if (_labelInstructions.containsKey(localOrOuter))
@@ -403,7 +449,7 @@ public class AvailCodeGenerator
 			final AvailObject aLiteral)
 	{
 		final int index = indexOfLiteral(aLiteral);
-		_instructions.add(new AvailSetLiteralVariable().index(index));
+		_instructions.add(new AvailSetLiteralVariable(index));
 		//  Value to assign has been popped.
 		decreaseDepth(1);
 	}
@@ -416,12 +462,12 @@ public class AvailCodeGenerator
 		decreaseDepth(1);
 		if (_varMap.containsKey(localOrOuter))
 		{
-			_instructions.add(new AvailSetLocalVariable().index(_varMap.get(localOrOuter)));
+			_instructions.add(new AvailSetLocalVariable(_varMap.get(localOrOuter)));
 			return;
 		}
 		if (_outerMap.containsKey(localOrOuter))
 		{
-			_instructions.add(new AvailSetOuterVariable().index(_outerMap.get(localOrOuter)));
+			_instructions.add(new AvailSetOuterVariable(_outerMap.get(localOrOuter)));
 			return;
 		}
 		if (_labelInstructions.containsKey(localOrOuter))
@@ -433,36 +479,19 @@ public class AvailCodeGenerator
 		return;
 	}
 
-	public void emitVerifyReturnedTypeToBe (
-			final AvailObject aType)
-	{
-		//  Emit code which will verify at runtime that the top of stack is a subinstance of aType.
-		//  It should leave the item on the stack.
-
-		if (aType.equals(Types.voidType.object()))
-		{
-			return;
-		}
-		//  Don't bother checking a return type of void.
-		final int index = indexOfLiteral(aType);
-		_instructions.add(new AvailVerifyType().index(index));
-		decreaseDepth(1);
-		//  Make sure object is there,...
-		//
-		//  ...but leave it there.
-		increaseDepth(1);
-	}
-
+	/**
+	 * Set the primitive number to write in the generated code.  A failed
+	 * attempt at running the primitive will be followed by running the level
+	 * one code (nybblecodes) that this class generates.
+	 * 
+	 * @param primitiveNumber An integer encoding a {@link Primitive}.
+	 */
 	public void primitive (
 			final int primitiveNumber)
 	{
-		//  Set the primitive number that I will always attempt before falling
-		//  back to the Avail implementation.
-
 		assert (_primitive == 0) : "Primitive number was already set";
 		_primitive = primitiveNumber;
 	}
-
 
 
 	/**
@@ -470,16 +499,16 @@ public class AvailCodeGenerator
 	 * interferes with the concept of labels in the following way.  We now only
 	 * allow labels as the first statement in a block, so you can only restart
 	 * or exit a continuation (not counting the debugger usage, which shouldn't
-	 * affect us).  Restarting requires only the arguments and outers to be
-	 * preserved, as all local variables are recreated (unassigned) on restart.
-	 * Exiting doesn't require anything of any non-argument locals, so no
-	 * problem there.  Note that after the last place in the code where the
-	 * continuation is constructed we don't even need any arguments or outers
-	 * unless the code after this point actually uses the arguments.  We'll be a
-	 * bit conservative here and simply clean up those arguments and outers
-	 * which are used after the last continuation construction point, at their
-	 * final use points, while always cleaning up final uses of local
-	 * non-argument variables.
+	 * affect us).  Restarting requires only the arguments and outer variables
+	 * to be preserved, as all local variables are recreated (unassigned) on
+	 * restart.  Exiting doesn't require anything of any non-argument locals, so
+	 * no problem there.  Note that after the last place in the code where the
+	 * continuation is constructed we don't even need any arguments or outer
+	 * variables unless the code after this point actually uses the arguments.
+	 * We'll be a bit conservative here and simply clean up those arguments and
+	 * outer variables which are used after the last continuation construction
+	 * point, at their final use points, while always cleaning up final uses of
+	 * local non-argument variables.
 	 */
 	public void fixFinalUses ()
 	{

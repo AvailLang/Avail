@@ -41,22 +41,23 @@ import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import java.util.ArrayList;
+import java.util.List;
 import static java.lang.Math.*;
 
 public class L2CodeGenerator
 {
-	ArrayList<AvailObject> _literals;
-	ArrayList<ArrayList<Integer>> _vectors;
+	List<AvailObject> _literals;
+	List<List<Integer>> _vectors;
 	int _numObjects;
 	int _numIntegers;
 	int _numFloats;
-	ArrayList<Integer> _wordcodes;
+	List<Integer> _wordcodes;
 	AvailObject _contingentImpSets;
 
 
 	// accessing
 
-	public ArrayList<Integer> wordcodes ()
+	public List<Integer> wordcodes ()
 	{
 		return _wordcodes;
 	}
@@ -147,8 +148,8 @@ public class L2CodeGenerator
 	public void emitVector (
 			final L2RegisterVector registerVector)
 	{
-		ArrayList<L2ObjectRegister> registersList = registerVector.registers();
-		ArrayList<Integer> registerIndices = new ArrayList<Integer>(registersList.size());
+		List<L2ObjectRegister> registersList = registerVector.registers();
+		List<Integer> registerIndices = new ArrayList<Integer>(registersList.size());
 		for (int i = 0; i < registersList.size(); i++)
 		{
 			registerIndices.add(registersList.get(i).finalIndex());
@@ -178,7 +179,7 @@ public class L2CodeGenerator
 	}
 
 	public void setInstructions (
-			final ArrayList<L2Instruction> instrs)
+			final List<L2Instruction> instrs)
 	{
 		//  Set my collection of instructions.  Generate the wordcodes at this time.
 
@@ -210,7 +211,7 @@ public class L2CodeGenerator
 	L2CodeGenerator ()
 	{
 		_literals = new ArrayList<AvailObject>(20);
-		_vectors = new ArrayList<ArrayList<Integer>>(20);
+		_vectors = new ArrayList<List<Integer>>(20);
 		_numObjects = 0;
 		_numIntegers = 0;
 		_numFloats = 0;

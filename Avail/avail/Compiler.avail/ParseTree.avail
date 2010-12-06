@@ -144,13 +144,16 @@ Method "_emit value on_" is [node : Send Node, gen : Instruction Generator |
 				gen get type at depth (||args|| - 1 max 0);
 			];
 		];
-		gen super call (node bundle message) arg count ||args||;
+		gen
+			super call (node bundle message)
+			arg count ||args||
+			type node returnType;
 	] else [
 		/* Emit a regular message invocation... */
-		gen call (node bundle message) arg count ||args||;
-	];
-	if node returnType not = void then [
-		gen verify type node returnType;
+		gen
+			call (node bundle message)
+			arg count ||args||
+			type node returnType;
 	];
 ];
 

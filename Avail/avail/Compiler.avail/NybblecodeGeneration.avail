@@ -39,7 +39,7 @@ Names
 	"Nybblecode Generator",
 	"new Nybblecode Generator",
 
-	"_call_",
+	"_call_type_",
 	"_close_numOuters_",
 	"_get literal_",
 	"_get local_can clear_",
@@ -54,8 +54,7 @@ Names
 	"_set literal_",
 	"_set local_",
 	"_set outer_",
-	"_super call_",
-	"_verify type_"
+	"_super call_type_"
 
 Body
 
@@ -130,9 +129,13 @@ Method "_put integer_" is [cg : Nybblecode Generator, int : whole number |
 
 
 
-Method "_call_" is [cg : Nybblecode Generator, selectorIndex : natural number |
+Method "_call_type_" is [
+		cg : Nybblecode Generator,
+		selectorIndex : natural number
+		typeIndex : natural number |
 	cg emit callNybbles;
-	cg put integer  selectorIndex;
+	cg put integer selectorIndex;
+	cg put integer typeIndex;
 ];
 
 Method "_close_numOuters_" is [
@@ -223,13 +226,12 @@ Method "_set outer_" is [cg : Nybblecode Generator, outerIndex : natural number 
 	cg put integer outerIndex;
 ];
 
-Method "_super call_" is [cg : Nybblecode Generator, selectorIndex : natural number |
+Method "_super call_type_" is [
+		cg : Nybblecode Generator,
+		selectorIndex : natural number,
+		typeIndex : nural number |
 	cg emit superCallNybbles;
 	cg put integer selectorIndex;
-];
-
-Method "_verify type_" is [cg : Nybblecode Generator, typeIndex : natural number |
-	cg emit verifyTypeNybbles;
 	cg put integer typeIndex;
 ];
 

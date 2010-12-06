@@ -35,24 +35,32 @@ package com.avail.compiler.instruction;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * Push the value of a variable found in a literal.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailGetLiteralVariable extends AvailInstructionWithIndex
 {
 
+	/**
+	 * Construct a new {@link AvailGetLiteralVariable}.
+	 *
+	 * @param index The index of the literal holding the variable whose
+	 *              content should be pushed.
+	 */
+	public AvailGetLiteralVariable (int index)
+	{
+		super(index);
+	}
 
-	// nybblecodes
-
+	
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1Ext_doGetLiteral.writeTo(aStream);
-		writeIntegerOn(_index, aStream);
+		writeIntegerOn(index, aStream);
 	}
-
-
-
-
 
 }
