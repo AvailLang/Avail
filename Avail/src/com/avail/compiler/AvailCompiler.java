@@ -69,6 +69,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.LiteralTokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor;
@@ -1507,12 +1508,19 @@ public class AvailCompiler
 	}
 
 
+	/**
+	 * Parse an expression that isn't a list.  Backtracking will find all valid
+	 * interpretations.
+	 * 
+	 * @param node An expression that acts as the first argument for a potential
+	 *             leading-argument message send, or possibly a chain of them.
+	 * @param continuation What to do with either the passed node, or the node
+	 *                     wrapped in suitable leading-argument message sends.
+	 */
 	void parseOptionalLeadingArgumentSendAfterThen (
 			final AvailParseNode node,
 			final Continuation1<AvailParseNode> continuation)
 	{
-		//  Parse an expression that isn't a list.  Backtracking will find all valid interpretations.
-
 		continuation.value(node);
 		if (node.type().equals(Types.voidType.object()))
 		{
@@ -1565,7 +1573,9 @@ public class AvailCompiler
 						num.value = (short)(token.literal().extractInt());
 						if (interpreter.supportsPrimitive(num.value))
 						{
-							if ((interpreter.argCountForPrimitive(num.value) == argCount))
+							if (interpreter.primitiveAcceptsThisManyArguments(
+								num.value,
+								argCount))
 							{
 								parseTokenTypeStringContinue(
 									TokenType.END_OF_STATEMENT,
@@ -1581,8 +1591,15 @@ public class AvailCompiler
 							}
 							else
 							{
-								final int expectedArgCount = interpreter.argCountForPrimitive(num.value);
-								expected("primitive #" + Short.toString(num.value) + " to be passed " + Integer.toString(expectedArgCount) + " arguments, not " + Integer.toString(argCount));
+								final Primitive prim =
+									Primitive.byPrimitiveNumber(num.value);
+								expected(
+									"Primitive #" +
+									Short.toString(num.value) +
+									" to be passed " +
+									Integer.toString(prim.argCount()) +
+									" arguments, not " +
+									Integer.toString(argCount));
 							}
 						}
 						else

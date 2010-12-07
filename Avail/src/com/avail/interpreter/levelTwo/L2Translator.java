@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ClosureDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ImplementationSetDescriptor;
 import com.avail.descriptor.L2ChunkDescriptor;
@@ -352,17 +353,19 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
 	 * implementation sets where every possible method uses the same primitive
-	 * number.  Return the primitive number if it's unambiguous and can be
-	 * inlined, otherwise zero.
+	 * number.  Return one of the method implementation bodies if it's
+	 * unambiguous and can be inlined (or is a {@code
+	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 * 
 	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
-	 * @param argTypeRegisters A {@link List} of {@link L2ObjectRegister
-	 *                         registers} holding the values used to look up the
-	 *                         implementation for the call.
-	 * @return The primitive number or zero.
+	 * @param args A {@link List} of {@link L2ObjectRegister registers} holding
+	 *             the actual constant values used to look up the implementation
+	 *             for the call.
+	 * @return A method body (a {@code ClosureDescriptor closure}) that
+	 *         exemplifies the primitive that should be inlined.
 	 */
-	short primitiveToInlineForWithArgumentRegisters (
+	AvailObject primitiveToInlineForWithArgumentRegisters (
 			final AvailObject impSet,
 			final List<L2ObjectRegister> args)
 	{
@@ -381,17 +384,19 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
 	 * implementation sets where every possible method uses the same primitive
-	 * number.  Return the primitive number if it's unambiguous and can be
-	 * inlined, otherwise zero.
+	 * number.  Return one of the method implementation bodies if it's
+	 * unambiguous and can be inlined (or is a {@code
+	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 * 
 	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypeRegisters A {@link List} of {@link L2ObjectRegister
 	 *                         registers} holding the types used to look up the
 	 *                         implementation for the call.
-	 * @return The primitive number or zero.
+	 * @return A method body (a {@code ClosureDescriptor closure}) that
+	 *         exemplifies the primitive that should be inlined.
 	 */
-	short primitiveToInlineForWithArgumentTypeRegisters (
+	AvailObject primitiveToInlineForWithArgumentTypeRegisters (
 			final AvailObject impSet,
 			final List<L2ObjectRegister> argTypeRegisters)
 	{
@@ -421,49 +426,69 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypes The types of the arguments to the call.
-	 * @return The primitive number or zero.
+	 * @return One of the (equivalent) primitive method bodies, or null.
 	 */
-	short primitiveToInlineForWithArgumentTypes (
+	AvailObject primitiveToInlineForWithArgumentTypes (
 			final AvailObject impSet,
 			final List<AvailObject> argTypes)
 	{
 		List<AvailObject> imps = impSet.implementationsAtOrBelow(argTypes);
-		short prim = -1;
+		AvailObject firstBody = null;
 		for (AvailObject bundle : imps)
 		{
 			// If a forward or abstract method is possible, don't inline.
 			if (!bundle.isImplementation())
 			{
-				return 0;
+				return null;
 			}
 
-			if (prim == -1)
+			AvailObject body = bundle.bodyBlock();
+			if (body.code().primitiveNumber() == 0)
 			{
-				prim = bundle.bodyBlock().code().primitiveNumber();
+				return null;
+			}
+
+			short primitiveNumber = body.code().primitiveNumber();
+			if (firstBody == null)
+			{
+				firstBody = body;
+			}
+			else if (primitiveNumber != firstBody.code().primitiveNumber())
+			{
+				// Another possible implementation has a different primitive
+				// number.  Don't attempt to inline.
+				return null;
 			}
 			else
 			{
-				if (prim != bundle.bodyBlock().code().primitiveNumber())
+				// Same primitive number.
+				if (Primitive.byPrimitiveNumber(primitiveNumber).hasFlag(
+					Primitive.Flag.SpecialReturnConstant))
 				{
-					// Another possible implementation has a different primitive
-					// number.  Don't attempt to inline.
-					return 0;
+					// It's the push-the-first-literal primitive.
+					if (!firstBody.literalAt(1).equals(
+						body.literalAt(1)))
+					{
+						// The push-the-first-literal primitive methods push
+						// different literals.  Give up.
+						return null;
+					}
 				}
+				
 			}
 		}
-		if (prim == -1)
+		if (firstBody == null)
 		{
-			error("Bug - No implementations were possible!");
+			return null;
 		}
-		if (prim == 0)
+		Primitive primitive = Primitive.byPrimitiveNumber(
+			firstBody.code().primitiveNumber());
+		if (primitive.hasFlag(SpecialReturnConstant)
+				|| primitive.hasFlag(CanInline))
 		{
-			return 0;
+			return firstBody;
 		}
-		if (!Primitive.byPrimitiveNumber(prim).hasFlag(CanInline))
-		{
-			return 0;
-		}
-		return prim;
+		return null;
 	}
 
 	
@@ -498,11 +523,17 @@ public class L2Translator implements L1OperationDispatcher
 
 
 	/**
-	 * Inline the primitive.  Attempt to fold it if the primitive says it's
-	 * foldable and the arguments are all constants.  Answer the result if it
-	 * was folded, otherwise null.  If it was folded, generate code to push it,
+	 * Inline the primitive.  Attempt to fold it (evaluate it right now) if the
+	 * primitive says it's foldable and the arguments are all constants.  Answer
+	 * the result if it was folded, otherwise null.  If it was folded, generate
+	 * code to push the folded value.
+	 * <p>
+	 * Special case if the flag {@link Primitive.Flag#SpecialReturnConstant} is
+	 * specified:  Always fold it, since it's just a constant.
 	 * 
-	 * @param prim The primitive number to inline.
+	 * @param primitiveClosure A {@link ClosureDescriptor closure} for which
+	 *                         its primitive might be inlined, or even folded if
+	 *                         possible.
 	 * @param impSet The implementation set containing the primitive to be
 	 *               invoked.
 	 * @param args The {@link List} of arguments.
@@ -511,16 +542,31 @@ public class L2Translator implements L1OperationDispatcher
 	 * @return The value if the primitive was folded, otherwise null.
 	 */
 	AvailObject emitInlinePrimitiveImpSetArgsOnSuccessJumpTo (
-			final short prim,
+			final AvailObject primitiveClosure,
 			final AvailObject impSet,
 			final List<L2ObjectRegister> args,
 			final L2LabelInstruction successLabel)
 	{
-		contingentImpSets = contingentImpSets.setWithElementCanDestroy(impSet, true);
-		boolean allConstants = true;
-		for (int i = 1, _end1 = args.size(); i <= _end1; i++)
+		final short primitiveNumber = primitiveClosure.code().primitiveNumber();
+		final Primitive primitive =
+			Primitive.byPrimitiveNumber(primitiveNumber);
+		contingentImpSets = contingentImpSets.setWithElementCanDestroy(
+			impSet,
+			true);
+		if (primitive.hasFlag(SpecialReturnConstant))
 		{
-			if (!registerHasConstantAt(args.get(i - 1)))
+			// Don't attempt the primitive because it will fail.  Immediately
+			// use the first literal as the return value.
+			AvailObject value = primitiveClosure.code().literalAt(1);
+			addInstruction(new L2LoadConstantInstruction().constantDestination(
+				value,
+				topOfStackRegister()));
+			return value;
+		}
+		boolean allConstants = true;
+		for (L2ObjectRegister arg : args)
+		{
+			if (!registerHasConstantAt(arg))
 			{
 				allConstants = false;
 			}
@@ -529,7 +575,7 @@ public class L2Translator implements L1OperationDispatcher
 		boolean hasInterpreter;
 		if (allConstants)
 		{
-			canFold = Primitive.byPrimitiveNumber(prim).hasFlag(CanFold);
+			canFold = primitive.hasFlag(CanFold);
 			hasInterpreter = interpreter != null;
 		}
 		else
@@ -544,7 +590,7 @@ public class L2Translator implements L1OperationDispatcher
 			{
 				argValues.add(registerConstantAt(argReg));
 			}
-			Result success = interpreter.attemptPrimitive(prim, argValues);
+			Result success = interpreter.attemptPrimitive(primitiveNumber, argValues);
 			if (success == SUCCESS)
 			{
 				AvailObject value = interpreter.primitiveResult();
@@ -559,7 +605,7 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		final L2LabelInstruction postPrimitiveLabel = newLabel();
 		addInstruction(new L2AttemptPrimitiveInstruction().primitiveArgumentsDestinationIfFail(
-			prim,
+			primitiveNumber,
 			createVector(args),
 			topOfStackRegister(),
 			postPrimitiveLabel));
@@ -752,15 +798,18 @@ public class L2Translator implements L1OperationDispatcher
 			code.numArgs() + code.numLocals() + stackp - 1,
 			expectedTypeReg);
 		L2LabelInstruction postExplodeLabel = newLabel();
-		short prim = primitiveToInlineForWithArgumentTypeRegisters(
+		AvailObject primClosure = primitiveToInlineForWithArgumentTypeRegisters(
 			impSet,
 			argTypes);
-		if (prim > 0)
+		if (primClosure.code().primitiveNumber() > 0)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
 			AvailObject folded = emitInlinePrimitiveImpSetArgsOnSuccessJumpTo(
-				prim, impSet, args, postExplodeLabel);
+				primClosure,
+				impSet,
+				args,
+				postExplodeLabel);
 			if (folded != null)
 			{
 				// It was folded to a constant.
@@ -825,10 +874,11 @@ public class L2Translator implements L1OperationDispatcher
 			}
 		}
 
-		// For now assume nothing about the type of the returned value.
-		// The verifyType instruction will strengthen it.
-		removeTypeForRegister(topOfStackRegister());
+		// At this point the implied return instruction in the called code has
+		// verified the value matched the expected type, so we know that much
+		// has to be true.
 		removeConstantForRegister(topOfStackRegister());
+		registerTypeAtPut(topOfStackRegister(), expectedType);
 		addInstruction(postExplodeLabel);
 	}
 
@@ -879,15 +929,19 @@ public class L2Translator implements L1OperationDispatcher
 			code.numArgs() + code.numLocals() + stackp - 1,
 			expectedTypeReg);
 		L2LabelInstruction postExplodeLabel = newLabel();
-		short prim = primitiveToInlineForWithArgumentRegisters(
+		AvailObject primClosure = primitiveToInlineForWithArgumentRegisters(
 			impSet,
 			args);
-		if (prim > 0)
+		if (primClosure != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
+			assert primClosure.code().primitiveNumber() != 0;
 			AvailObject folded = emitInlinePrimitiveImpSetArgsOnSuccessJumpTo(
-				prim, impSet, args, postExplodeLabel);
+				primClosure,
+				impSet,
+				args,
+				postExplodeLabel);
 			if (folded != null)
 			{
 				// It was folded to a constant.
@@ -948,10 +1002,11 @@ public class L2Translator implements L1OperationDispatcher
 				registerConstantAtPut(postSlots.get(i), constant);
 			}
 		}
-		// For now assume nothing about the type of the returned value.
-		// The verifyType instruction will strengthen it.
-		removeTypeForRegister(topOfStackRegister());
+		// At this point the implied return instruction in the called code has
+		// verified the value matched the expected type, so we know that much
+		// has to be true.
 		removeConstantForRegister(topOfStackRegister());
+		registerTypeAtPut(topOfStackRegister(), expectedType);
 		addInstruction(postExplodeLabel);
 	}
 

@@ -61,6 +61,7 @@ import com.avail.descriptor.ContainerTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.instruction.L2Instruction;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -84,8 +85,13 @@ public class AvailCodeGenerator
 	int _primitive = 0;
 
 
-	// accessing
 
+	/**
+	 * Answer the index of the literal, adding it if not already present.
+	 * 
+	 * @param aLiteral The literal to look up.
+	 * @return The index of the literal.
+	 */
 	public int indexOfLiteral (
 			final AvailObject aLiteral)
 	{
@@ -100,25 +106,42 @@ public class AvailCodeGenerator
 		return index;
 	}
 
+	/**
+	 * Answer the number of arguments that the code under construction accepts.
+	 * 
+	 * @return The code's number of arguments.
+	 */
 	public int numArgs ()
 	{
-		//  Answer the number of arguments that the block under construction accepts.
-
 		return _numArgs;
 	}
 
 
 
-	// code generation
+	/**
+	 * Finish compilation of the block, answering the resulting compiledCode
+	 * object.
+	 * 
+	 * @return A {@link CompiledCodeDescriptor compiled code} object.
+	 */
 
 	public AvailObject endBlock ()
 	{
-		//  Finish compilation of the block, answering the resulting compiledCode object.
-
 		fixFinalUses();
 		ByteArrayOutputStream nybbles;
 		AvailObject nybbleTuple;
 		nybbles = new ByteArrayOutputStream(50);
+		if (_primitive == 0 && _instructions.size() == 1)
+		{
+			AvailInstruction onlyInstruction = _instructions.get(0);
+			if (onlyInstruction instanceof AvailPushLiteral)
+			{
+				if (((AvailPushLiteral)onlyInstruction).index() == 1)
+				{
+					primitive(340);
+				}
+			}
+		}
 		for (AvailInstruction instruction : _instructions)
 		{
 			instruction.writeNybblesOn(nybbles);
@@ -130,7 +153,6 @@ public class AvailCodeGenerator
 		}
 		nybbleTuple = TupleDescriptor.mutableCompressedFromIntegerArray(nybbleIntegerArray);
 		nybbleTuple.makeImmutable();
-		//  (numArgs = (varMap keys count: [:var | var isArgument])) assert.
 		assert _resultType.isType();
 		List<AvailObject> outerArray;
 		AvailObject outerTuple;
@@ -218,9 +240,6 @@ public class AvailCodeGenerator
 	}
 
 
-
-	// depth tracking
-
 	public void decreaseDepth (
 			final int delta)
 	{
@@ -232,6 +251,7 @@ public class AvailCodeGenerator
 		}
 	}
 
+	
 	public void increaseDepth (
 			final int delta)
 	{
@@ -242,10 +262,12 @@ public class AvailCodeGenerator
 		}
 	}
 
+	
+	/**
+	 * Verify that the stack is empty at this point.
+	 */
 	public void stackShouldBeEmpty ()
 	{
-		//  Make sure the stack is empty at this point.
-
 		assert (_depth == 0) : "The stack should be empty here";
 	}
 

@@ -46,9 +46,12 @@ import com.avail.descriptor.ListDescriptor;
 import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.*;
 
 /**
  * This class is used to execute level two code.  It mostly exposes the
@@ -183,11 +186,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 					L2ChunkDescriptor.chunkFromId (
 						_pointers[callerRegister()].levelTwoChunkIndex());
 				Result primResult = attemptPrimitive(primNum, _argsBuffer);
-				if (primResult == Result.CONTINUATION_CHANGED)
+				if (primResult == CONTINUATION_CHANGED)
 				{
 					return;
 				}
-				if (primResult == Result.SUCCESS)
+				if (primResult == SUCCESS)
 				{
 					if (!primitiveResult.isInstanceOfSubtypeOf(
 						expectedReturnType))
@@ -666,11 +669,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 						.chunkFromId(_pointers[callerRegister()]
 								.levelTwoChunkIndex()));
 				Result primResult = attemptPrimitive(primNum, _argsBuffer);
-				if (primResult == Result.CONTINUATION_CHANGED)
+				if (primResult == CONTINUATION_CHANGED)
 				{
 					return;
 				}
-				if (primResult == Result.SUCCESS)
+				if (primResult == SUCCESS)
 				{
 					if (!primitiveResult.isInstanceOfSubtypeOf(
 						expectedReturnType))
@@ -913,7 +916,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			}
 			cont = cont.caller();
 		}
-		return Result.FAILURE;
+		return FAILURE;
 	}
 
 	/**
@@ -937,20 +940,20 @@ final public class L2Interpreter extends AvailInterpreter implements
 		{
 			Result result;
 			result = attemptPrimitive(primNum, args);
-			if (result == Result.SUCCESS)
+			if (result == SUCCESS)
 			{
 				AvailObject cont = pointerAt(callerRegister());
 				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return result;
 			}
-			if (result == Result.CONTINUATION_CHANGED)
+			if (result == CONTINUATION_CHANGED)
 			{
 				return result;
 			}
 		}
 		// Either it wasn't a primitive or the primitive failed.
 		invokeWithoutPrimitiveClosureArguments(aClosure, args);
-		return Result.CONTINUATION_CHANGED;
+		return CONTINUATION_CHANGED;
 	}
 
 	/**
@@ -1067,7 +1070,15 @@ final public class L2Interpreter extends AvailInterpreter implements
 		List<AvailObject> arguments)
 	{
 		AvailObject theCode = aClosure.code();
-		assert theCode.primitiveNumber() == 0 : "The outermost context can't be a primitive.";
+		short prim = theCode.primitiveNumber();
+		if (prim != 0)
+		{
+			assert Primitive.byPrimitiveNumber(prim)
+					.hasFlag(SpecialReturnConstant)
+				: "The outermost context can't be a primitive.";
+			process.continuation(VoidDescriptor.voidObject());
+			return theCode.literalAt(1);
+		}
 		if (theCode.numArgs() != arguments.size())
 		{
 			error("Closure should take " + theCode.numArgs() + " arguments");
@@ -2031,11 +2042,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
 			Result primResult = attemptPrimitive(primNum, _argsBuffer);
-			if (primResult == Result.CONTINUATION_CHANGED)
+			if (primResult == CONTINUATION_CHANGED)
 			{
 				return;
 			}
-			else if (primResult != Result.FAILURE)
+			else if (primResult != FAILURE)
 			{
 				// Primitive succeeded.
 				AvailObject cont = _pointers[callerRegister()];
@@ -2098,11 +2109,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
 			Result primResult = attemptPrimitive(primNum, _argsBuffer);
-			if (primResult == Result.CONTINUATION_CHANGED)
+			if (primResult == CONTINUATION_CHANGED)
 			{
 				return;
 			}
-			else if (primResult != Result.FAILURE)
+			else if (primResult != FAILURE)
 			{
 				// Primitive succeeded.
 				AvailObject cont = _pointers[callerRegister()];
@@ -2317,17 +2328,17 @@ final public class L2Interpreter extends AvailInterpreter implements
 			_argsBuffer.add(_pointers[argsVect.tupleAt(i1).extractInt()]);
 		}
 		Result res = attemptPrimitive((short) primNumber, _argsBuffer);
-		if (res == Result.SUCCESS)
+		if (res == SUCCESS)
 		{
 			_pointers[resultRegister] = primitiveResult;
 		}
-		else if (res == Result.CONTINUATION_CHANGED)
+		else if (res == CONTINUATION_CHANGED)
 		{
 			error(
 				"attemptPrimitive wordcode should never set up a new continuation",
 				primNumber);
 		}
-		else if (res == Result.FAILURE)
+		else if (res == FAILURE)
 		{
 			offset(failureOffset);
 		}

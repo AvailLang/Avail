@@ -141,15 +141,21 @@ public abstract class AvailInterpreter
 
 
 	/** 
-	 * Answer how many arguments this primitive expects.
+	 * Answer whether the specified primitive accepts the specified number of
+	 * arguments.  Note that some primitives expect a variable number of
+	 * arguments.
 	 * 
-	 * @param n Which primitive.
-	 * @return The number of arguments.
+	 * @param primitiveNumber Which primitive.
+	 * @param argCount The number of arguments that we should check is legal for
+	 *                 this primitive.
+	 * @return Whether the primitive accepts the specified number of arguments.
 	 */
-	public int argCountForPrimitive (
-		final short n)
+	public boolean primitiveAcceptsThisManyArguments (
+		final short primitiveNumber,
+		final int argCount)
 	{
-		return Primitive.byPrimitiveNumber(n).argCount();
+		int expected = Primitive.byPrimitiveNumber(primitiveNumber).argCount(); 
+		return expected == -1 || expected == argCount; 
 	}
 
 	/**
