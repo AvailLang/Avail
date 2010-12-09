@@ -32,6 +32,10 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.interpreter.Primitive.Flag.SpecialReturnConstant;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+import static com.avail.interpreter.Primitive.Result.FAILURE;
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static java.lang.Math.max;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,67 +54,65 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.*;
 
 /**
  * This class is used to execute level two code.  It mostly exposes the
- * machinery 
+ * machinery
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 final public class L2Interpreter extends AvailInterpreter implements
-		L2OperationDispatcher
+L2OperationDispatcher
 {
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
 	 */
 	AvailObject _chunk;
-	
+
 	/**
-	 * The L2 instruction stream as a tuple of integers. 
+	 * The L2 instruction stream as a tuple of integers.
 	 */
 	AvailObject _chunkWords;
-	
+
 	/**
 	 * This chunk's register vectors.  A register vector is a tuple of integers
 	 * that represent {@link #_pointers Avail object registers}.
 	 */
 	AvailObject _chunkVectors;
-	
+
 	/**
 	 * The registers that hold {@link AvailObject Avail objects}.
 	 */
 	AvailObject[] _pointers = new AvailObject[10];
-	
+
 	/**
 	 * The 32-bit signed integer registers.
 	 */
 	int[] _integers = new int[10];
-	
+
 	/**
 	 * The double-precision floating point registers.
 	 */
 	double[] _doubles = new double[10];
-	
+
 	/**
 	 * The current pointer into {@link #_chunkWords}, the level two instruction
 	 * stream.
 	 * 
 	 */
 	int _offset;
-	
+
 	/**
 	 * A reusable temporary buffer used to hold arguments during method
-	 * invocations. 
+	 * invocations.
 	 */
 	List<AvailObject> _argsBuffer = new ArrayList<AvailObject>();
-	
+
 	/**
 	 * Whether or not execution has completed.
 	 */
 	boolean _exitNow = false;
-	
+
 	/**
 	 * The value returned by the outermost continuation.
 	 */
@@ -221,7 +223,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// always immutable.
 			cont.stackAtPut(stackp, constant);
 		}
-		
+
 		/**
 		 * [n] - Push the argument (actual value) or local variable (the variable
 		 * itself) indexed by n. Since this is known to be the last use
@@ -239,7 +241,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, variable);
 		}
-		
+
 		/**
 		 * [n] - Push the argument (actual value) or local variable (the variable
 		 * itself) indexed by n.
@@ -255,7 +257,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, variable);
 		}
-		
+
 		/**
 		 * [n] - Push the outer variable indexed by n in the current closure. If the
 		 * variable is mutable, clear it (no one will know). If the variable and
@@ -281,7 +283,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, variable);
 		}
-		
+
 		/**
 		 * [n,m] - Pop the top n items off the stack, and use them as outer
 		 * variables in the construction of a closure based on the compiledCode
@@ -293,7 +295,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			final AvailObject cont = pointerAt(callerRegister());
 			final int numCopiedVars = getInteger();
 			final AvailObject codeToClose = cont.closure().code()
-					.literalAt(getInteger());
+			.literalAt(getInteger());
 			int stackp = cont.stackp() + numCopiedVars - 1;
 			cont.stackp(stackp);
 			final AvailObject newClosure = AvailObject.newIndexedDescriptor(
@@ -317,7 +319,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			 */
 			cont.stackAtPut(stackp, newClosure);
 		}
-		
+
 		/**
 		 * [n] - Pop the stack and assign this value to the local variable (not an
 		 * argument) indexed by n (index 1 is first argument).
@@ -325,7 +327,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		@Override
 		public void L1_doSetLocal ()
 		{
-		
+
 			final AvailObject cont = pointerAt(callerRegister());
 			final int index = getInteger();
 			final AvailObject variable = cont.localOrArgOrStackAt(index);
@@ -336,7 +338,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// The value's reference from the stack is now from the variable.
 			variable.setValue(value);
 		}
-		
+
 		/**
 		 * [n] - Push the value of the local variable (not an argument) indexed by n
 		 * (index 1 is first argument). If the variable itself is mutable, clear it
@@ -361,7 +363,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value);
 		}
-		
+
 		/**
 		 * [n] - Push the outer variable indexed by n in the current closure.
 		 */
@@ -381,7 +383,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, variable);
 		}
-		
+
 		/**
 		 * Remove the top item from the stack.
 		 */
@@ -394,7 +396,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			final int stackp = cont.stackp() + 1;
 			cont.stackp(stackp);
 		}
-		
+
 		/**
 		 * [n] - Push the value of the outer variable indexed by n in the current
 		 * closure. If the variable itself is mutable, clear it at this time -
@@ -403,7 +405,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		@Override
 		public void L1_doGetOuterClearing ()
 		{
-		
+
 			final AvailObject cont = pointerAt(callerRegister());
 			final int index = getInteger();
 			final AvailObject variable = cont.closure().outerVarAt(index);
@@ -420,7 +422,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value);
 		}
-		
+
 		/**
 		 * [n] - Pop the stack and assign this value to the outer variable indexed
 		 * by n in the current closure.
@@ -443,7 +445,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// The value's reference from the stack is now from the variable.
 			variable.setValue(value);
 		}
-		
+
 		/**
 		 * [n] - Push the value of the local variable (not an argument) indexed by n
 		 * (index 1 is first argument).
@@ -460,13 +462,9 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value);
 		}
-		
-		/**
-		 * [n] - Make a list object from n values popped from the stack. Push the
-		 * list.
-		 */
+
 		@Override
-		public void L1_doMakeList ()
+		public void L1_doMakeTuple ()
 		{
 			final AvailObject cont = pointerAt(callerRegister());
 			final int count = getInteger();
@@ -481,15 +479,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 				stackp++;
 			}
 			tuple.hashOrZero(0);
-			final AvailObject list = AvailObject.newIndexedDescriptor(
-				0,
-				ListDescriptor.mutableDescriptor());
-			list.tuple(tuple);
 			stackp--;
 			cont.stackp(stackp);
-			cont.stackAtPut(stackp, list);
+			cont.stackAtPut(stackp, tuple);
 		}
-		
+
 		/**
 		 * [n] - Push the value of the outer variable indexed by n in the current
 		 * closure.
@@ -516,11 +510,11 @@ final public class L2Interpreter extends AvailInterpreter implements
 		{
 			final AvailObject cont = pointerAt(callerRegister());
 			final byte nextNybble = cont.closure().code().nybbles()
-					.extractNybbleFromTupleAt(cont.pc());
+			.extractNybbleFromTupleAt(cont.pc());
 			cont.pc(cont.pc() + 1);
 			L1Operation.values()[nextNybble + 16].dispatch(levelOneDispatcher);
 		}
-		
+
 		/**
 		 * Build a continuation which, when restarted, will be just like restarting
 		 * the current continuation.
@@ -538,10 +532,10 @@ final public class L2Interpreter extends AvailInterpreter implements
 			 * reset, its stack area and non-argument locals cleared, and its
 			 * caller, closure, and args made immutable.
 			 */
-		
+
 			// Set the new continuation's pc to the first instruction...
 			newContinuation.pc(1);
-		
+
 			// Reset the new continuation's stack pointer...
 			newContinuation.stackp(code.numArgsAndLocalsAndStack() + 1);
 			for (int i = code.numArgsAndLocalsAndStack(); i >= stackp; i--)
@@ -560,15 +554,15 @@ final public class L2Interpreter extends AvailInterpreter implements
 			newContinuation.makeSubobjectsImmutable();
 			// ...always a fresh copy, always mutable (uniquely owned).
 			assert newContinuation.caller().equalsVoid()
-					|| !newContinuation.caller().descriptor().isMutable()
-				: "Caller should freeze because two continuations can see it";
+			|| !newContinuation.caller().descriptor().isMutable()
+			: "Caller should freeze because two continuations can see it";
 			assert cont.descriptor().isMutable()
-				: "The CURRENT continuation can't POSSIBLY be seen by anyone!";
+			: "The CURRENT continuation can't POSSIBLY be seen by anyone!";
 			stackp--;
 			cont.stackAtPut(stackp, newContinuation);
 			cont.stackp(stackp);
 		}
-		
+
 		/**
 		 * [n] - Push the value of the variable that's literal number n in the
 		 * current compiledCode.
@@ -584,7 +578,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value);
 		}
-		
+
 		/**
 		 * [n] - Pop the stack and assign this value to the variable that's the
 		 * literal indexed by n in the current compiledCode.
@@ -602,7 +596,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// The value's reference from the stack is now from the variable.
 			variable.setValue(value);
 		}
-		
+
 		/**
 		 * [n] - Send the message at index n in the compiledCode's literals. Like
 		 * the call instruction, the arguments will have been pushed on the stack in
@@ -627,7 +621,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			final AvailObject implementations = code.literalAt(getInteger());
 			final AvailObject expectedReturnType = code.literalAt(getInteger());
 			final AvailObject matching = implementations
-					.lookupByTypesFromContinuationStackp(cont, stackp);
+			.lookupByTypesFromContinuationStackp(cont, stackp);
 			if (matching.equalsVoid())
 			{
 				error("Ambiguous or invalid lookup");
@@ -666,8 +660,8 @@ final public class L2Interpreter extends AvailInterpreter implements
 			if (primNum != 0)
 			{
 				assert (_chunk == L2ChunkDescriptor
-						.chunkFromId(_pointers[callerRegister()]
-								.levelTwoChunkIndex()));
+					.chunkFromId(_pointers[callerRegister()]
+					                       .levelTwoChunkIndex()));
 				Result primResult = attemptPrimitive(primNum, _argsBuffer);
 				if (primResult == CONTINUATION_CHANGED)
 				{
@@ -688,7 +682,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// Either not a primitive or else a failed primitive.
 			invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
 		}
-		
+
 		/**
 		 * [n] - Push the (n+1)st stack element's type. This is only used by the
 		 * supercast mechanism to produce types for arguments not being cast. See
@@ -701,7 +695,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		@Override
 		public void L1Ext_doGetType ()
 		{
-		
+
 			final AvailObject cont = pointerAt(callerRegister());
 			final int index = getInteger();
 			int stackp = cont.stackp() - 1;
@@ -709,14 +703,14 @@ final public class L2Interpreter extends AvailInterpreter implements
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value.type());
 		}
-		
+
 		/**
 		 * This shouldn't happen unless the compiler is out of sync with the interpreter.
 		 */
 		@Override
 		public  void L1Ext_doReserved ()
 		{
-		
+
 			error("That nybblecode is not supported");
 			return;
 		}
@@ -760,7 +754,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		}
 	};
 
-	
+
 	/**
 	 * Construct a new {@link L2Interpreter}.
 	 * 
@@ -809,7 +803,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			return;
 		}
 		_chunk = L2ChunkDescriptor.chunkFromId(continuation
-				.levelTwoChunkIndex());
+			.levelTwoChunkIndex());
 		if (((process.executionMode() & ExecutionMode.singleStep) != 0)
 				|| !_chunk.isValid())
 		{
@@ -823,7 +817,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 				L2ChunkDescriptor.offsetToPauseUnoptimizedChunk());
 			_chunk = L2ChunkDescriptor.chunkFromId(continuation
-					.levelTwoChunkIndex());
+				.levelTwoChunkIndex());
 		}
 		_chunkWords = _chunk.wordcodes();
 		_chunkVectors = _chunk.vectors();
@@ -907,7 +901,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		{
 			if ((cont.closure().code().primitiveNumber() == 200)
 					&& exceptionValue.isInstanceOfSubtypeOf(cont
-							.localOrArgOrStackAt(2).type().argTypeAt(1)))
+						.localOrArgOrStackAt(2).type().argTypeAt(1)))
 			{
 				handler = cont.localOrArgOrStackAt(2);
 				assert !handler.equalsVoid();
@@ -970,20 +964,20 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// When single-stepping, never start up a chunk other than the
 			// unoptimized one.
 			_chunk = L2ChunkDescriptor.chunkFromId(L2ChunkDescriptor
-					.indexOfUnoptimizedChunk());
+				.indexOfUnoptimizedChunk());
 			// skip the decrement-and-optimize instruction
 			offset(L2ChunkDescriptor.offsetToSingleStepUnoptimizedChunk());
 		}
 		else
 		{
 			_chunk = L2ChunkDescriptor.chunkFromId(aClosure.code()
-					.startingChunkIndex());
+				.startingChunkIndex());
 			if (!_chunk.isValid())
 			{
 				// The chunk is invalid, so use the default chunk and patch up
 				// aClosure's code.
 				_chunk = L2ChunkDescriptor.chunkFromId(L2ChunkDescriptor
-						.indexOfUnoptimizedChunk());
+					.indexOfUnoptimizedChunk());
 				aClosure.code().startingChunkIndex(_chunk.index());
 				aClosure.code().invocationCount(
 					L2ChunkDescriptor.countdownForInvalidatedCode());
@@ -1008,7 +1002,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 	 * Run the given process to completion, answering the result returned by
 	 * the outermost process.  We can only resume the continuation safely if it
 	 * was just entering a closure, or just returning from one, or if it took an
-	 * off-ramp for which there is an on-ramp. 
+	 * off-ramp for which there is an on-ramp.
 	 * 
 	 * @param aProcess The process to execute.
 	 * @return The final result produced by the process.
@@ -1028,7 +1022,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			// Note that only the first step of a run is allowed to also execute
 			// the first nybblecode after a prepareToExecuteContinuation().
 			assert _chunk.index() == L2ChunkDescriptor
-					.indexOfUnoptimizedChunk();
+			.indexOfUnoptimizedChunk();
 			offset(L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 			process.continuation().levelTwoChunkIndexOffset(
 				_chunk.index(),
@@ -1074,8 +1068,8 @@ final public class L2Interpreter extends AvailInterpreter implements
 		if (prim != 0)
 		{
 			assert Primitive.byPrimitiveNumber(prim)
-					.hasFlag(SpecialReturnConstant)
-				: "The outermost context can't be a primitive.";
+			.hasFlag(SpecialReturnConstant)
+			: "The outermost context can't be a primitive.";
 			process.continuation(VoidDescriptor.voidObject());
 			return theCode.literalAt(1);
 		}
@@ -1087,12 +1081,12 @@ final public class L2Interpreter extends AvailInterpreter implements
 		// Safety precaution.
 		aClosure.makeImmutable();
 		AvailObject outermostContinuation = ContinuationDescriptor
-				.mutableDescriptor()
-				.newObjectToInvokeCallerLevelTwoChunkIndexArgs(
-					aClosure,
-					VoidDescriptor.voidObject(),
-					L2ChunkDescriptor.indexOfUnoptimizedChunk(),
-					arguments);
+		.mutableDescriptor()
+		.newObjectToInvokeCallerLevelTwoChunkIndexArgs(
+			aClosure,
+			VoidDescriptor.voidObject(),
+			L2ChunkDescriptor.indexOfUnoptimizedChunk(),
+			arguments);
 		outermostContinuation.levelTwoChunkIndexOffset(
 			L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
@@ -1122,7 +1116,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 
 	/**
 	 * Extract the next word from the level two instruction stream.
-	 *  
+	 * 
 	 * @return The word.
 	 */
 	int nextWord ()
@@ -1134,7 +1128,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 	}
 
 
-	
+
 	@Override
 	public void L2_unknownWordcode ()
 	{
@@ -1178,7 +1172,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 			newContinuation.localOrArgOrStackAtPut(
 				nArgs + i,
 				ContainerDescriptor.newContainerWithOuterType(theCode
-						.localTypeAt(i)));
+					.localTypeAt(i)));
 		}
 		pointerAtPut(destIndex, newContinuation);
 	}
@@ -1228,7 +1222,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		else
 		{
 			theCode.invocationCount(L2ChunkDescriptor
-					.countdownForNewlyOptimizedCode());
+				.countdownForNewlyOptimizedCode());
 			AvailObject newChunk = privateTranslateCodeOptimization(theCode, 3);
 			assert (theCode.startingChunkIndex() == newChunk.index());
 			_argsBuffer.clear();
@@ -1254,8 +1248,8 @@ final public class L2Interpreter extends AvailInterpreter implements
 		AvailObject theClosure = _pointers[closureRegister()];
 		AvailObject theCode = theClosure.code();
 		AvailObject newChunk = privateTranslateCodeOptimization(theCode, 1); // initial
-																				// simplistic
-																				// translation
+		// simplistic
+		// translation
 		assert (theCode.startingChunkIndex() == newChunk.index());
 		_argsBuffer.clear();
 		int nArgs = theCode.numArgs();
@@ -1299,7 +1293,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		pointerAtPut(
 			destIndex,
 			ContainerDescriptor.newContainerWithOuterType(_chunk
-					.literalAt(typeIndex)));
+				.literalAt(typeIndex)));
 	}
 
 	@Override
@@ -2024,7 +2018,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		}
 		final AvailObject selector = _chunk.literalAt(selectorIndex);
 		final AvailObject signatureToCall = selector
-				.lookupByValuesFromArray(_argsBuffer);
+		.lookupByValuesFromArray(_argsBuffer);
 		if (signatureToCall.equalsVoid())
 		{
 			error("Unable to find unique implementation for call");
@@ -2085,7 +2079,7 @@ final public class L2Interpreter extends AvailInterpreter implements
 		}
 		final AvailObject selector = _chunk.literalAt(selectorIndex);
 		final AvailObject signatureToCall = selector
-				.lookupByTypesFromArray(_argsBuffer);
+		.lookupByTypesFromArray(_argsBuffer);
 		if (signatureToCall.equalsVoid())
 		{
 			error("Unable to find unique implementation for call");

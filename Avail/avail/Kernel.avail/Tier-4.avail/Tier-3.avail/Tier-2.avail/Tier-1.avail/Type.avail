@@ -70,7 +70,7 @@ returns [cT : closure type |
 
 /* Compute the nearest common ancestor of two types. */
 
-Forward "type union of_and_" for [type,type]->type;
+Forward "type union of_and_" for [type, type]->type;
 
 Method "type union of_and_" is [a : type, b : type |
 	Primitive 31;

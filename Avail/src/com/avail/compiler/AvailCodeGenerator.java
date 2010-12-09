@@ -32,8 +32,13 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailLabelNode;
-import com.avail.compiler.AvailVariableDeclarationNode;
+import static com.avail.descriptor.AvailObject.error;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.avail.compiler.instruction.AvailCall;
 import com.avail.compiler.instruction.AvailCloseCode;
 import com.avail.compiler.instruction.AvailGetLiteralVariable;
@@ -42,7 +47,7 @@ import com.avail.compiler.instruction.AvailGetOuterVariable;
 import com.avail.compiler.instruction.AvailGetType;
 import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.compiler.instruction.AvailLabel;
-import com.avail.compiler.instruction.AvailMakeList;
+import com.avail.compiler.instruction.AvailMakeTuple;
 import com.avail.compiler.instruction.AvailPop;
 import com.avail.compiler.instruction.AvailPushLabel;
 import com.avail.compiler.instruction.AvailPushLiteral;
@@ -61,15 +66,6 @@ import com.avail.descriptor.ContainerTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
-
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static com.avail.descriptor.AvailObject.*;
 
 public class AvailCodeGenerator
 {
@@ -93,7 +89,7 @@ public class AvailCodeGenerator
 	 * @return The index of the literal.
 	 */
 	public int indexOfLiteral (
-			final AvailObject aLiteral)
+		final AvailObject aLiteral)
 	{
 
 		int index;
@@ -210,11 +206,11 @@ public class AvailCodeGenerator
 	}
 
 	public void startBlockWithArgumentsLocalsLabelsOuterVarsResultType (
-			final List<AvailVariableDeclarationNode> arguments,
-			final List<AvailVariableDeclarationNode> locals,
-			final List<AvailLabelNode> labels,
-			final List<AvailVariableDeclarationNode> outerVars,
-			final AvailObject resType)
+		final List<AvailVariableDeclarationNode> arguments,
+		final List<AvailVariableDeclarationNode> locals,
+		final List<AvailLabelNode> labels,
+		final List<AvailVariableDeclarationNode> outerVars,
+		final AvailObject resType)
 	{
 		_numArgs = arguments.size();
 		_varMap = new HashMap<AvailVariableDeclarationNode, Integer>(arguments.size()+locals.size());
@@ -241,7 +237,7 @@ public class AvailCodeGenerator
 
 
 	public void decreaseDepth (
-			final int delta)
+		final int delta)
 	{
 		_depth -= delta;
 		if (_depth < 0)
@@ -251,9 +247,9 @@ public class AvailCodeGenerator
 		}
 	}
 
-	
+
 	public void increaseDepth (
-			final int delta)
+		final int delta)
 	{
 		_depth += delta;
 		if (_depth > _maxDepth)
@@ -262,7 +258,7 @@ public class AvailCodeGenerator
 		}
 	}
 
-	
+
 	/**
 	 * Verify that the stack is empty at this point.
 	 */
@@ -284,9 +280,9 @@ public class AvailCodeGenerator
 	 * @param returnType The expected return type of the call.
 	 */
 	public void emitSuperCall (
-			final int nArgs,
-			final AvailObject implementationSet,
-			final AvailObject returnType)
+		final int nArgs,
+		final AvailObject implementationSet,
+		final AvailObject returnType)
 	{
 		final int messageIndex = indexOfLiteral(implementationSet);
 		final int returnIndex = indexOfLiteral(returnType);
@@ -306,9 +302,9 @@ public class AvailCodeGenerator
 	 * @param returnType The expected return type of the call.
 	 */
 	public void emitCall (
-			final int nArgs,
-			final AvailObject implementationSet,
-			final AvailObject returnType)
+		final int nArgs,
+		final AvailObject implementationSet,
+		final AvailObject returnType)
 	{
 		final int messageIndex = indexOfLiteral(implementationSet);
 		final int returnIndex = indexOfLiteral(returnType);
@@ -329,8 +325,8 @@ public class AvailCodeGenerator
 	 *                   access.
 	 */
 	public void emitCloseCode (
-			final AvailObject compiledCode,
-			final List<AvailVariableDeclarationNode> copiedVars)
+		final AvailObject compiledCode,
+		final List<AvailVariableDeclarationNode> copiedVars)
 	{
 		for (int i = 1, _end1 = copiedVars.size(); i <= _end1; i++)
 		{
@@ -351,7 +347,7 @@ public class AvailCodeGenerator
 	 *                 its value extracted.
 	 */
 	public void emitGetLiteral (
-			final AvailObject aLiteral)
+		final AvailObject aLiteral)
 	{
 		// Push one thing.
 		increaseDepth(1);
@@ -366,7 +362,7 @@ public class AvailCodeGenerator
 	 *                     of the variable that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
-			final AvailVariableDeclarationNode localOrOuter)
+		final AvailVariableDeclarationNode localOrOuter)
 	{
 		// Push one thing.
 		increaseDepth(1);
@@ -396,7 +392,7 @@ public class AvailCodeGenerator
 	 * @param stackDepth
 	 */
 	public void emitGetType (
-			final int stackDepth)
+		final int stackDepth)
 	{
 		_instructions.add(new AvailGetType(stackDepth));
 		decreaseDepth(stackDepth + 1);
@@ -409,17 +405,17 @@ public class AvailCodeGenerator
 	}
 
 	public void emitLabelDeclaration (
-			final AvailLabelNode labelNode)
+		final AvailLabelNode labelNode)
 	{
 		assert _instructions.isEmpty() : "Label must be first statement in block";
 		//  stack is unaffected.
 		_instructions.add(_labelInstructions.get(labelNode));
 	}
 
-	public void emitMakeList (
-			final int count)
+	public void emitMakeTuple (
+		final int count)
 	{
-		_instructions.add(new AvailMakeList().count(count));
+		_instructions.add(new AvailMakeTuple(count));
 		decreaseDepth(count);
 		increaseDepth(1);
 	}
@@ -432,7 +428,7 @@ public class AvailCodeGenerator
 	}
 
 	public void emitPushLiteral (
-			final AvailObject aLiteral)
+		final AvailObject aLiteral)
 	{
 		increaseDepth(1);
 		//  Push one thing.
@@ -441,7 +437,7 @@ public class AvailCodeGenerator
 	}
 
 	public void emitPushLocalOrOuter (
-			final AvailVariableDeclarationNode localOrOuter)
+		final AvailVariableDeclarationNode localOrOuter)
 	{
 		//  Push a variable.
 
@@ -468,7 +464,7 @@ public class AvailCodeGenerator
 	}
 
 	public void emitSetLiteral (
-			final AvailObject aLiteral)
+		final AvailObject aLiteral)
 	{
 		final int index = indexOfLiteral(aLiteral);
 		_instructions.add(new AvailSetLiteralVariable(index));
@@ -477,7 +473,7 @@ public class AvailCodeGenerator
 	}
 
 	public void emitSetLocalOrOuter (
-			final AvailVariableDeclarationNode localOrOuter)
+		final AvailVariableDeclarationNode localOrOuter)
 	{
 		//  Set a variable to the value popped from the stack.
 
@@ -509,7 +505,7 @@ public class AvailCodeGenerator
 	 * @param primitiveNumber An integer encoding a {@link Primitive}.
 	 */
 	public void primitive (
-			final int primitiveNumber)
+		final int primitiveNumber)
 	{
 		assert (_primitive == 0) : "Primitive number was already set";
 		_primitive = primitiveNumber;

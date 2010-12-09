@@ -32,6 +32,19 @@
 
 package com.avail.interpreter.levelTwo;
 
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.SpecialReturnConstant;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+import static com.avail.interpreter.Primitive.Result.FAILURE;
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static java.lang.Math.max;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ClosureDescriptor;
@@ -41,14 +54,12 @@ import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
 import com.avail.interpreter.levelTwo.instruction.L2CallInstruction;
 import com.avail.interpreter.levelTwo.instruction.L2ClearObjectInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2ConvertTupleToListInstruction;
 import com.avail.interpreter.levelTwo.instruction.L2CreateClosureInstruction;
 import com.avail.interpreter.levelTwo.instruction.L2CreateContinuationInstruction;
 import com.avail.interpreter.levelTwo.instruction.L2CreateSimpleContinuation;
@@ -77,16 +88,6 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterIdentity;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import static com.avail.descriptor.AvailObject.*;
-import static java.lang.Math.*;
-import static com.avail.interpreter.Primitive.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.*;
 
 public class L2Translator implements L1OperationDispatcher
 {
@@ -118,51 +119,51 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	public AvailObject registerConstantAt (
-			final L2Register register)
+		final L2Register register)
 	{
 		return registerConstants.get(register.identity());
 	}
 
 	public void registerConstantAtPut (
-			final L2Register register,
-			final AvailObject value)
+		final L2Register register,
+		final AvailObject value)
 	{
 		registerConstants.put(register.identity(), value);
 	}
 
 	public boolean registerHasConstantAt (
-			final L2Register register)
+		final L2Register register)
 	{
 		return registerConstants.containsKey(register.identity());
 	}
 
 	public boolean registerHasTypeAt (
-			final L2Register register)
+		final L2Register register)
 	{
 		return registerTypes.containsKey(register.identity());
 	}
 
 	public AvailObject registerTypeAt (
-			final L2Register register)
+		final L2Register register)
 	{
 		return registerTypes.get(register.identity());
 	}
 
 	public void registerTypeAtPut (
-			final L2Register register,
-			final AvailObject type)
+		final L2Register register,
+		final AvailObject type)
 	{
 		registerTypes.put(register.identity(), type);
 	}
 
 	public void removeConstantForRegister (
-			final L2Register register)
+		final L2Register register)
 	{
 		registerConstants.remove(register.identity());
 	}
 
 	public void removeTypeForRegister (
-			final L2Register register)
+		final L2Register register)
 	{
 		registerTypes.remove(register.identity());
 	}
@@ -205,14 +206,14 @@ public class L2Translator implements L1OperationDispatcher
 	// private-helper
 
 	void addInstruction (
-			final L2Instruction anL2Instruction)
+		final L2Instruction anL2Instruction)
 	{
 		instructions.add(anL2Instruction);
 		anL2Instruction.propagateTypeInfoFor(this);
 	}
 
 	L2ObjectRegister architecturalRegister (
-			final int n)
+		final int n)
 	{
 		//  Answer the nth architectural register.  These are registers with a fixed numbering.  Include the
 		//  caller, the current closure, and the arguments.  Also include the locals and stack slots, but these
@@ -261,7 +262,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	L2ObjectRegister continuationSlotRegister (
-			final int slotNumber)
+		final int slotNumber)
 	{
 		//  Answer the register holding the specified continuation slot.  The slots are the arguments, then the locals,
 		//  then the stack entries.  The first argument is in the 3rd architectural register.
@@ -270,7 +271,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	L2RegisterVector createVector (
-			final List<L2ObjectRegister> arrayOfRegisters)
+		final List<L2ObjectRegister> arrayOfRegisters)
 	{
 		//  Answer a vector of register numbers, registering a new one if necessary.
 
@@ -331,7 +332,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	L2ObjectRegister localOrArgumentRegister (
-			final int argumentNumber)
+		final int argumentNumber)
 	{
 		//  Answer the register holding the specified argument/local number (the 1st argument is the 3rd architectural register).
 
@@ -366,16 +367,16 @@ public class L2Translator implements L1OperationDispatcher
 	 *         exemplifies the primitive that should be inlined.
 	 */
 	AvailObject primitiveToInlineForWithArgumentRegisters (
-			final AvailObject impSet,
-			final List<L2ObjectRegister> args)
+		final AvailObject impSet,
+		final List<L2ObjectRegister> args)
 	{
 		List<AvailObject> argTypes = new ArrayList<AvailObject>(args.size());
 		for (L2ObjectRegister arg : args)
 		{
 			AvailObject type;
 			type = registerHasTypeAt(arg)
-				? registerTypeAt(arg)
-				: Types.voidType.object();
+			? registerTypeAt(arg)
+					: Types.voidType.object();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
@@ -397,8 +398,8 @@ public class L2Translator implements L1OperationDispatcher
 	 *         exemplifies the primitive that should be inlined.
 	 */
 	AvailObject primitiveToInlineForWithArgumentTypeRegisters (
-			final AvailObject impSet,
-			final List<L2ObjectRegister> argTypeRegisters)
+		final AvailObject impSet,
+		final List<L2ObjectRegister> argTypeRegisters)
 	{
 		List<AvailObject> argTypes =
 			new ArrayList<AvailObject>(argTypeRegisters.size());
@@ -409,14 +410,14 @@ public class L2Translator implements L1OperationDispatcher
 			// to a type constant, but we'll allow it anyhow for the moment.
 			AvailObject type;
 			type = registerHasConstantAt(argTypeRegister)
-				? registerConstantAt(argTypeRegister)
-				: Types.voidType.object();
+			? registerConstantAt(argTypeRegister)
+					: Types.voidType.object();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
 	}
 
-	
+
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
 	 * implementation sets where every possible method uses the same primitive
@@ -429,8 +430,8 @@ public class L2Translator implements L1OperationDispatcher
 	 * @return One of the (equivalent) primitive method bodies, or null.
 	 */
 	AvailObject primitiveToInlineForWithArgumentTypes (
-			final AvailObject impSet,
-			final List<AvailObject> argTypes)
+		final AvailObject impSet,
+		final List<AvailObject> argTypes)
 	{
 		List<AvailObject> imps = impSet.implementationsAtOrBelow(argTypes);
 		AvailObject firstBody = null;
@@ -474,7 +475,7 @@ public class L2Translator implements L1OperationDispatcher
 						return null;
 					}
 				}
-				
+
 			}
 		}
 		if (firstBody == null)
@@ -491,7 +492,7 @@ public class L2Translator implements L1OperationDispatcher
 		return null;
 	}
 
-	
+
 	/**
 	 * Answer the register representing the slot of the stack associated with
 	 * the given index.
@@ -501,13 +502,13 @@ public class L2Translator implements L1OperationDispatcher
 	 *         given position.
 	 */
 	L2ObjectRegister stackRegister (
-			final int stackIndex)
+		final int stackIndex)
 	{
 		assert 1 <= stackIndex && stackIndex <= code.maxStackDepth();
 		return continuationSlotRegister(code.numArgs() + code.numLocals() + stackIndex);
 	}
 
-	
+
 	/**
 	 * Answer the register representing the slot of the stack associated with
 	 * the current value of stackp.
@@ -542,10 +543,10 @@ public class L2Translator implements L1OperationDispatcher
 	 * @return The value if the primitive was folded, otherwise null.
 	 */
 	AvailObject emitInlinePrimitiveImpSetArgsOnSuccessJumpTo (
-			final AvailObject primitiveClosure,
-			final AvailObject impSet,
-			final List<L2ObjectRegister> args,
-			final L2LabelInstruction successLabel)
+		final AvailObject primitiveClosure,
+		final AvailObject impSet,
+		final List<L2ObjectRegister> args,
+		final L2LabelInstruction successLabel)
 	{
 		final short primitiveNumber = primitiveClosure.code().primitiveNumber();
 		final Primitive primitive =
@@ -673,19 +674,19 @@ public class L2Translator implements L1OperationDispatcher
 			}
 			vectorWithOnlyArgsPreserved.add(
 				i <= code.numArgs()
-					? continuationSlotRegister(i)
-					: voidRegClone);
+				? continuationSlotRegister(i)
+						: voidRegClone);
 		}
 		addInstruction(new L2CreateContinuationInstruction()
-			.callerClosurePcStackpSizeSlotsVectorLabelDestination(
-				callerRegister(),
-				closureRegister(),
-				1,
-				code.maxStackDepth() + 1,
-				numSlots,
-				createVector(vectorWithOnlyArgsPreserved),
-				resumeLabel,
-				destReg));
+		.callerClosurePcStackpSizeSlotsVectorLabelDestination(
+			callerRegister(),
+			closureRegister(),
+			1,
+			code.maxStackDepth() + 1,
+			numSlots,
+			createVector(vectorWithOnlyArgsPreserved),
+			resumeLabel,
+			destReg));
 
 		// Freeze all fields of the new object, including its caller, closure, and args.
 		addInstruction(new L2MakeSubobjectsImmutableInstruction().register(destReg));
@@ -701,11 +702,11 @@ public class L2Translator implements L1OperationDispatcher
 		// to say what to do on resume, which includes the explosion and a subsequent
 		// jump to the start of the compiledCode.
 		addInstruction(new L2ExplodeInstruction()
-			.toExplodeDestSenderDestClosureDestVector(
-				callerRegister(),
-				callerRegister(),
-				closureRegister(),
-				createVector(vector)));
+		.toExplodeDestSenderDestClosureDestVector(
+			callerRegister(),
+			callerRegister(),
+			closureRegister(),
+			createVector(vector)));
 		// After exploding the continuation, jump back to the start of this method.
 		// Assume inlining will uniformly adjust labels, otherwise nothing would work.
 		// We insert a label just before dispatching nybblecodes, so the cast below is safe.
@@ -733,9 +734,9 @@ public class L2Translator implements L1OperationDispatcher
 		AvailObject constant = code.literalAt(getInteger());
 		L2ObjectRegister tempReg = newRegister();
 		addInstruction(new L2LoadConstantInstruction()
-			.constantDestination(constant, tempReg));
+		.constantDestination(constant, tempReg));
 		addInstruction(new L2SetInstruction()
-			.variableValue(tempReg, topOfStackRegister()));
+		.variableValue(tempReg, topOfStackRegister()));
 		stackp++;
 	}
 
@@ -833,20 +834,20 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		L2LabelInstruction postCallLabel = newLabel();
 		addInstruction(new L2CreateContinuationInstruction()
-			.callerClosurePcStackpSizeSlotsVectorLabelDestination(
-				callerRegister(),
-				closureRegister(),
-				pc,
-				stackp,
-				numSlots,
-				createVector(preSlots),
-				postCallLabel,
-				callerRegister()));
+		.callerClosurePcStackpSizeSlotsVectorLabelDestination(
+			callerRegister(),
+			closureRegister(),
+			pc,
+			stackp,
+			numSlots,
+			createVector(preSlots),
+			postCallLabel,
+			callerRegister()));
 		addInstruction(new L2SuperCallInstruction()
-			.selectorArgsVectorArgTypesVector(
-				impSet,
-				createVector(args),
-				createVector(argTypes)));
+		.selectorArgsVectorArgTypesVector(
+			impSet,
+			createVector(args),
+			createVector(argTypes)));
 
 		// The method being invoked will run until it returns, and the next
 		// instruction will be here.
@@ -855,11 +856,11 @@ public class L2Translator implements L1OperationDispatcher
 		// And after the call returns, the callerRegister will contain the
 		// continuation to be exploded.
 		addInstruction(new L2ExplodeInstruction()
-			.toExplodeDestSenderDestClosureDestVector(
-				callerRegister(),
-				callerRegister(),
-				closureRegister(),
-				createVector(postSlots)));
+		.toExplodeDestSenderDestClosureDestVector(
+			callerRegister(),
+			callerRegister(),
+			closureRegister(),
+			createVector(postSlots)));
 		for (int i = 0; i < postSlots.size(); i++)
 		{
 			AvailObject type = savedSlotTypes.get(i);
@@ -882,7 +883,7 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(postExplodeLabel);
 	}
 
-	
+
 	/**
 	 * [n] - Send the message at index n in the compiledCode's literals.  Pop
 	 * the arguments for this message off the stack (the message itself knows
@@ -965,30 +966,30 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		L2LabelInstruction postCallLabel = newLabel();
 		addInstruction(new L2CreateContinuationInstruction()
-			.callerClosurePcStackpSizeSlotsVectorLabelDestination(
-				callerRegister(),
-				closureRegister(),
-				pc,
-				stackp,
-				numSlots,
-				createVector(preSlots),
-				postCallLabel,
-				callerRegister()));
+		.callerClosurePcStackpSizeSlotsVectorLabelDestination(
+			callerRegister(),
+			closureRegister(),
+			pc,
+			stackp,
+			numSlots,
+			createVector(preSlots),
+			postCallLabel,
+			callerRegister()));
 		addInstruction(new L2CallInstruction()
-			.selectorArgsVector(
-				impSet,
-				createVector(args)));
+		.selectorArgsVector(
+			impSet,
+			createVector(args)));
 		// The method being invoked will run until it returns, and the next
 		// instruction will be here.
 		addInstruction(postCallLabel);
 		// And after the call returns, the callerRegister will contain the
 		// continuation to be exploded.
 		addInstruction(new L2ExplodeInstruction()
-			.toExplodeDestSenderDestClosureDestVector(
-				callerRegister(),
-				callerRegister(),
-				closureRegister(),
-				createVector(postSlots)));
+		.toExplodeDestSenderDestClosureDestVector(
+			callerRegister(),
+			callerRegister(),
+			closureRegister(),
+			createVector(postSlots)));
 		for (int i = 0; i < postSlots.size(); i++)
 		{
 			AvailObject type = savedSlotTypes.get(i);
@@ -1010,7 +1011,7 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(postExplodeLabel);
 	}
 
-	
+
 	@Override
 	public void L1_doClose ()
 	{
@@ -1080,7 +1081,7 @@ public class L2Translator implements L1OperationDispatcher
 	public void L1_doGetOuter ()
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
-	
+
 		final int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction().closureRegisterOuterNumberDestination(
@@ -1100,32 +1101,28 @@ public class L2Translator implements L1OperationDispatcher
 		int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction()
-			.closureRegisterOuterNumberDestination(
-				closureRegister(),
-				outerIndex,
-				topOfStackRegister()));
+		.closureRegisterOuterNumberDestination(
+			closureRegister(),
+			outerIndex,
+			topOfStackRegister()));
 		addInstruction(new L2GetClearingInstruction()
-			.sourceVariableDestination(
-				topOfStackRegister(),
-				topOfStackRegister()));
+		.sourceVariableDestination(
+			topOfStackRegister(),
+			topOfStackRegister()));
 	}
 
 	@Override
-	public void L1_doMakeList ()
+	public void L1_doMakeTuple ()
 	{
-		//  [n] - Make a list object from n values popped from the stack.  Push the list.
-	
 		int count = getInteger();
 		List<L2ObjectRegister> vector = new ArrayList<L2ObjectRegister>(count);
-		for (int i = 1; i<= count; i++)
+		for (int i = 1; i <= count; i++)
 		{
 			vector.add(stackRegister(stackp + count - i));
 		}
 		stackp += count - 1;
 		addInstruction(new L2CreateTupleInstruction()
-			.sourceVectorDestination(createVector(vector), topOfStackRegister()));
-		addInstruction(new L2ConvertTupleToListInstruction()
-			.sourceDestination(topOfStackRegister(), topOfStackRegister()));
+		.sourceVectorDestination(createVector(vector), topOfStackRegister()));
 	}
 
 	@Override
@@ -1165,10 +1162,10 @@ public class L2Translator implements L1OperationDispatcher
 		int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction()
-			.closureRegisterOuterNumberDestination(
-				closureRegister(),
-				outerIndex,
-				topOfStackRegister()));
+		.closureRegisterOuterNumberDestination(
+			closureRegister(),
+			outerIndex,
+			topOfStackRegister()));
 		addInstruction(new L2MakeImmutableInstruction().register(
 			topOfStackRegister()));
 	}
@@ -1207,10 +1204,10 @@ public class L2Translator implements L1OperationDispatcher
 		int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction()
-			.closureRegisterOuterNumberDestination(
-				closureRegister(),
-				outerIndex,
-				topOfStackRegister()));
+		.closureRegisterOuterNumberDestination(
+			closureRegister(),
+			outerIndex,
+			topOfStackRegister()));
 		addInstruction(new L2MakeImmutableInstruction().register(
 			topOfStackRegister()));
 	}
@@ -1256,10 +1253,10 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(new L2MakeImmutableInstruction().register(
 			topOfStackRegister()));
 		addInstruction(new L2ExtractOuterInstruction()
-			.closureRegisterOuterNumberDestination(
-				closureRegister(),
-				outerIndex,
-				tempReg));
+		.closureRegisterOuterNumberDestination(
+			closureRegister(),
+			outerIndex,
+			tempReg));
 		addInstruction(new L2SetInstruction().variableValue(
 			tempReg,
 			topOfStackRegister()));
@@ -1410,9 +1407,9 @@ public class L2Translator implements L1OperationDispatcher
 				localOrArgumentRegister(code.numArgs() + local)));
 		}
 		for (
-			int stackSlot = 1, end = code.maxStackDepth();
-			stackSlot <= end;
-			stackSlot++)
+				int stackSlot = 1, end = code.maxStackDepth();
+				stackSlot <= end;
+				stackSlot++)
 		{
 			addInstruction(new L2ClearObjectInstruction().destination(
 				stackRegister(stackSlot)));

@@ -32,15 +32,20 @@
 
 package com.avail.interpreter.levelOne;
 
+import static com.avail.descriptor.AvailObject.error;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.avail.compiler.AvailAssignmentNode;
 import com.avail.compiler.AvailBlockNode;
 import com.avail.compiler.AvailLabelNode;
-import com.avail.compiler.AvailListNode;
 import com.avail.compiler.AvailLiteralNode;
 import com.avail.compiler.AvailParseNode;
 import com.avail.compiler.AvailReferenceNode;
 import com.avail.compiler.AvailSendNode;
 import com.avail.compiler.AvailSuperCastNode;
+import com.avail.compiler.AvailTupleNode;
 import com.avail.compiler.AvailVariableDeclarationNode;
 import com.avail.compiler.AvailVariableSyntheticDeclarationNode;
 import com.avail.compiler.AvailVariableUseNode;
@@ -50,16 +55,9 @@ import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.interpreter.levelOne.AvailDecompiler;
 import com.avail.newcompiler.LiteralTokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor.TokenType;
-import java.lang.Integer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static com.avail.descriptor.AvailObject.*;
 
 public class AvailDecompiler implements L1OperationDispatcher
 {
@@ -82,17 +80,17 @@ public class AvailDecompiler implements L1OperationDispatcher
 	 * tempBlock takes a prefix string which can thereby distinguish arguments,
 	 * locals, and labels.  Answer the resulting AvailBlockNode.
 	 * 
-	 * @param aCodeObject The {@link CompiledCodeDescriptor code} to decompile. 
+	 * @param aCodeObject The {@link CompiledCodeDescriptor code} to decompile.
 	 * @param outerVars The list of outer variable declarations and literal
 	 *                  nodes.
 	 * @param tempBlock A {@link Transformer1 transformer} that takes a prefix
 	 *                  and generates a suitably unique temporary variable name.
-	 * @return The {@link AvailBlockNode} that is the decompilation of the code. 
+	 * @return The {@link AvailBlockNode} that is the decompilation of the code.
 	 */
 	public AvailBlockNode parseWithOuterVarsTempGenerator (
-			final AvailObject aCodeObject,
-			final List<? extends AvailParseNode> outerVars,
-			final Transformer1<String, String> tempBlock)
+		final AvailObject aCodeObject,
+		final List<? extends AvailParseNode> outerVars,
+		final Transformer1<String, String> tempBlock)
 	{
 
 		_code = aCodeObject;
@@ -153,8 +151,8 @@ public class AvailDecompiler implements L1OperationDispatcher
 		if (tag == 13)
 		{
 			integer = (_nybbles.extractNybbleFromTupleAt(_pc + 1) << 4)
-					+ _nybbles.extractNybbleFromTupleAt(_pc + 2)
-					+ 58;
+			+ _nybbles.extractNybbleFromTupleAt(_pc + 2)
+			+ 58;
 			_pc += 3;
 			return integer;
 		}
@@ -206,15 +204,15 @@ public class AvailDecompiler implements L1OperationDispatcher
 	 *         added to the stack.
 	 */
 	List<AvailParseNode> popExpressions (
-			final int count)
-	{
+		final int count)
+		{
 		List<AvailParseNode> result = new ArrayList<AvailParseNode>(count);
 		for (int i = 1; i <= count; i++)
 		{
 			result.add(0, popExpression());
 		}
 		return result;
-	}
+		}
 
 	/**
 	 * Push the given {@link AvailParseNode parse node} onto the expression
@@ -223,7 +221,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 	 * @param expression The expression to push.
 	 */
 	void pushExpression (
-			final AvailParseNode expression)
+		final AvailParseNode expression)
 	{
 		_expressionStack.add(expression);
 	}
@@ -400,7 +398,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
 		//  Note that the calling continuation has automatically pre-pushed a void object as a
 		//  sentinel, which should simply be replaced by this value (to avoid manipulating the stackp).
-	
+
 		assert (_pc == (_nybbles.tupleSize() + 1));
 		_statements.add(popExpression());
 		assert (_expressionStack.size() == 0) : "There should be nothing on the stack after a return";
@@ -458,9 +456,9 @@ public class AvailDecompiler implements L1OperationDispatcher
 		for (AvailParseNode outer : theOuters)
 		{
 			assert
-				outer instanceof AvailReferenceNode ||
-				outer instanceof AvailVariableUseNode ||
-				outer instanceof AvailLiteralNode;
+			outer instanceof AvailReferenceNode ||
+			outer instanceof AvailVariableUseNode ||
+			outer instanceof AvailLiteralNode;
 		}
 		final AvailBlockNode blockNode = new AvailDecompiler().parseWithOuterVarsTempGenerator(
 			theCode,
@@ -510,7 +508,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 	public void L1_doGetOuter ()
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
-	
+
 		final AvailVariableUseNode use = new AvailVariableUseNode();
 		final AvailParseNode outer = _outers.get((getInteger() - 1));
 		if (outer.isLiteralNode())
@@ -582,14 +580,10 @@ public class AvailDecompiler implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1_doMakeList ()
+	public void L1_doMakeTuple ()
 	{
-		//  [n] - Make a list object from n values popped from the stack.  Push the list.
-	
 		final int count = getInteger();
-		final AvailListNode listNode = new AvailListNode();
-		listNode.expressions(popExpressions(count));
-		pushExpression(listNode);
+		pushExpression(new AvailTupleNode(popExpressions(count)));
 	}
 
 
@@ -778,7 +772,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		_statements.add(assignment);
 	}
 
-	
+
 
 	/**
 	 * Create any necessary variable declaration nodes.
@@ -836,7 +830,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 	 */
 	public static AvailBlockNode parse (AvailObject aClosure)
 	{
-		// 
+		//
 
 		final Map<String, Integer> counts = new HashMap<String, Integer>();
 		Transformer1<String, String> generator = new Transformer1<String, String>()

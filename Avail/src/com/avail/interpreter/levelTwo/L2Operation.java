@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.interpreter.levelTwo.L2OperationDispatcher;
+import java.lang.Enum;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 public enum L2Operation
@@ -698,12 +698,12 @@ public enum L2Operation
 	},
 
 
-	L2_doConvertTupleObject_toListObject_(66, READ_POINTER, WRITE_POINTER)
+	L2_doAttemptPrimitive_withArguments_result_ifFail_(66, PRIMITIVE, READ_VECTOR, WRITE_POINTER, PC)
 	{
 		@Override
 		void dispatch(L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doConvertTupleObject_toListObject_();
+			operationDispatcher.L2_doAttemptPrimitive_withArguments_result_ifFail_();
 		}
 	},
 
@@ -815,17 +815,8 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doBreakpoint();
 		}
-	},
-
-
-	L2_doAttemptPrimitive_withArguments_result_ifFail_(78, PRIMITIVE, READ_VECTOR, WRITE_POINTER, PC)
-	{
-		@Override
-		void dispatch(L2OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L2_doAttemptPrimitive_withArguments_result_ifFail_();
-		}
 	};
+
 
 	public final L2OperandType [] operandTypes;
 
@@ -834,14 +825,28 @@ public enum L2Operation
 		return operandTypes;
 	};
 
-	// Constructors
-	L2Operation (
-			int ordinalCheck,
-			L2OperandType ... operandTypes)
+
+	/**
+	 * Construct a new {@link L2Operation}.
+	 *
+	 * @param ordinalCheck The number that should be this {@linkplain
+	 *                     Enum} value's {@linkplain Enum#ordinal() ordinal};
+	 *                     fail if it is incorrect.
+	 * @param operandTypes The operand types that this operation expects.
+	 */
+	L2Operation (int ordinalCheck, L2OperandType ... operandTypes)
 	{
 		assert ordinalCheck == ordinal();
 		this.operandTypes = operandTypes;
 	};
 
+
+	/**
+	 * Dispatch to my operation's implementation within an {@linkplain
+	 * L2OperationDispatcher}.
+	 * 
+	 * @param operationDispatcher The dispatcher to which to redirect this
+	 *                            message.
+	 */
 	abstract void dispatch (L2OperationDispatcher operationDispatcher);
 };

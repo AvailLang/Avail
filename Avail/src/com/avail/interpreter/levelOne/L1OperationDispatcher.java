@@ -48,7 +48,11 @@ public interface L1OperationDispatcher
 	void L1_doGetOuterClearing();
 	void L1_doSetOuter();
 	void L1_doGetLocal();
-	void L1_doMakeList();
+
+	/**
+	 * [n] - Make a tuple from n values popped from the stack.  Push the tuple.
+	 */
+	void L1_doMakeTuple();
 	void L1_doGetOuter();
 	void L1_doExtension();
 	void L1Ext_doPushLabel();

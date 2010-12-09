@@ -37,7 +37,6 @@ import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContainerDescriptor;
 import com.avail.descriptor.ImplementationSetDescriptor;
 import com.avail.descriptor.MethodSignatureDescriptor;
-import com.avail.interpreter.levelOne.L1OperationDispatcher;
 
 /**
  * An {@link L1Operation} is encoded within a {@link
@@ -78,7 +77,7 @@ public enum L1Operation
 
 
 	/**
-	 * Push the literal whose index is specified by the operand. 
+	 * Push the literal whose index is specified by the operand.
 	 */
 	L1_doPushLiteral(1, L1OperandType.LITERAL)
 	{
@@ -131,7 +130,7 @@ public enum L1Operation
 	/**
 	 * Push an outer variable, i.e. a variable lexically captured by the current
 	 * closure.  This should be the last use of the variable, so clear it from
-	 * the closure if the closure is still mutable. 
+	 * the closure if the closure is still mutable.
 	 */
 	L1_doPushLastOuter(4, L1OperandType.OUTER)
 	{
@@ -223,12 +222,12 @@ public enum L1Operation
 	},
 
 
-	L1_doMakeList(13, L1OperandType.IMMEDIATE)
+	L1_doMakeTuple(13, L1OperandType.IMMEDIATE)
 	{
 		@Override
 		public void dispatch(L1OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L1_doMakeList();
+			operationDispatcher.L1_doMakeTuple();
 		}
 	},
 
@@ -311,7 +310,7 @@ public enum L1Operation
 			operationDispatcher.L1Ext_doReserved();
 		}
 	},
-	
+
 
 	L1Implied_Return(22)
 	{
@@ -320,23 +319,23 @@ public enum L1Operation
 		{
 			operationDispatcher.L1Implied_doReturn();
 		}
-		
+
 		@Override
 		public void writeTo (ByteArrayOutputStream stream)
 		{
 			assert false
-				: "The implied return instruction should not be output";
+			: "The implied return instruction should not be output";
 		}
 
 	};
 
 
 	/**
-	 * This operation's collection of {@link L1OperandType operand types}. 
+	 * This operation's collection of {@link L1OperandType operand types}.
 	 */
 	private final L1OperandType [] operandTypes;
 
-	
+
 	/**
 	 * Return this operation's collection of {@link L1OperandType operand
 	 * types}.
@@ -360,40 +359,40 @@ public enum L1Operation
 	 *                     types}.
 	 */
 	L1Operation (
-			int ordinalCheck,
-			L1OperandType ... operandTypes)
-	{
+		int ordinalCheck,
+		L1OperandType ... operandTypes)
+		{
 		assert ordinalCheck == ordinal();
 		this.operandTypes = operandTypes;
-	};
+		};
 
-	/**
-	 * Dispatch this operation through an {@link L1OperationDispatcher}.
-	 * 
-	 * @param operationDispatcher The {@link L1OperationDispatcher} that will
-	 *                            accept this operation.
-	 */
-	public abstract void dispatch (L1OperationDispatcher operationDispatcher);
-	
-	/**
-	 * Write this operation to a {@link ByteArrayOutputStream}.  Do not output
-	 * operands.
-	 * 
-	 * @param stream The {@link ByteArrayOutputStream} on which to write the
-	 *               nybble(s) representing this operation. 
-	 */
-	public void writeTo (ByteArrayOutputStream stream)
-	{
-		int nybble = ordinal();
-		if (nybble < 16)
+		/**
+		 * Dispatch this operation through an {@link L1OperationDispatcher}.
+		 * 
+		 * @param operationDispatcher The {@link L1OperationDispatcher} that will
+		 *                            accept this operation.
+		 */
+		public abstract void dispatch (L1OperationDispatcher operationDispatcher);
+
+		/**
+		 * Write this operation to a {@link ByteArrayOutputStream}.  Do not output
+		 * operands.
+		 * 
+		 * @param stream The {@link ByteArrayOutputStream} on which to write the
+		 *               nybble(s) representing this operation.
+		 */
+		public void writeTo (ByteArrayOutputStream stream)
 		{
-			stream.write(nybble);
+			int nybble = ordinal();
+			if (nybble < 16)
+			{
+				stream.write(nybble);
+			}
+			else
+			{
+				assert nybble < 32;
+				stream.write(L1_doExtension.ordinal());
+				stream.write(nybble - 16);
+			}
 		}
-		else
-		{
-			assert nybble < 32;
-			stream.write(L1_doExtension.ordinal());
-			stream.write(nybble - 16);
-		}
-	}
 };

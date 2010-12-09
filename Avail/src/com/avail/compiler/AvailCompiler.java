@@ -32,48 +32,7 @@
 
 package com.avail.compiler;
 
-import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailAssignmentNode;
-import com.avail.compiler.AvailBlockNode;
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.AvailCompilerCachedSolution;
-import com.avail.compiler.AvailCompilerFragmentCache;
-import com.avail.compiler.AvailCompilerScopeStack;
-import com.avail.compiler.AvailConstantDeclarationNode;
-import com.avail.compiler.AvailConstantSyntheticDeclarationNode;
-import com.avail.compiler.AvailInitializingDeclarationNode;
-import com.avail.compiler.AvailLabelNode;
-import com.avail.compiler.AvailListNode;
-import com.avail.compiler.AvailLiteralNode;
-import com.avail.compiler.AvailParseNode;
-import com.avail.compiler.AvailReferenceNode;
-import com.avail.compiler.AvailSendNode;
-import com.avail.compiler.AvailSuperCastNode;
-import com.avail.compiler.AvailVariableDeclarationNode;
-import com.avail.compiler.AvailVariableSyntheticDeclarationNode;
-import com.avail.compiler.AvailVariableUseNode;
-import com.avail.compiler.Continuation0;
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Generator;
-import com.avail.compiler.Mutable;
-import com.avail.compiler.scanner.AvailScanner;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.ClosureDescriptor;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.CyclicTypeDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.AvailInterpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.LiteralTokenDescriptor;
-import com.avail.newcompiler.TokenDescriptor;
-import com.avail.newcompiler.TokenDescriptor.TokenType;
+import static com.avail.descriptor.AvailObject.error;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -83,7 +42,25 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
+import com.avail.compiler.scanner.AvailScanner;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ByteStringDescriptor;
+import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.ContainerDescriptor;
+import com.avail.descriptor.CyclicTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.newcompiler.LiteralTokenDescriptor;
+import com.avail.newcompiler.TokenDescriptor;
+import com.avail.newcompiler.TokenDescriptor.TokenType;
 
 
 /**
@@ -133,7 +110,7 @@ public class AvailCompiler
 	 *         from the argument and evaluating it.
 	 */
 	private AvailObject evaluate (
-			final AvailParseNode expressionNode)
+		final AvailParseNode expressionNode)
 	{
 		//  Evaluate a parse tree node.
 
@@ -160,7 +137,7 @@ public class AvailCompiler
 	}
 
 	private void evaluateModuleStatement (
-			final AvailParseNode expressionNode)
+		final AvailParseNode expressionNode)
 	{
 		//  Evaluate a parse tree node.  It's a top-level statement in a module.  Declarations are
 		//  handled differently - they cause a variable to be declared in the module's scope.
@@ -211,7 +188,7 @@ public class AvailCompiler
 	private @NotNull ResolvedModuleName tokenize (
 		final @NotNull ModuleName qualifiedName,
 		final boolean stopAfterNamesToken)
-		throws AvailCompilerException
+	throws AvailCompilerException
 	{
 		final ModuleNameResolver resolver =
 			interpreter.runtime().moduleNameResolver();
@@ -273,9 +250,9 @@ public class AvailCompiler
 	 *         If compilation fails.
 	 */
 	public void parseModule (
-			final @NotNull ModuleName qualifiedName,
-			final @NotNull Continuation3<ModuleName, Long, Long> aBlock)
-		throws AvailCompilerException
+		final @NotNull ModuleName qualifiedName,
+		final @NotNull Continuation3<ModuleName, Long, Long> aBlock)
+	throws AvailCompilerException
 	{
 		progressBlock = aBlock;
 		greatestGuess = -1;
@@ -295,7 +272,7 @@ public class AvailCompiler
 			throw e;
 		}
 		assert peekToken().tokenType() == TokenType.END_OF_FILE
-			: "Expected end of text, not " + peekToken().string();
+		: "Expected end of text, not " + peekToken().string();
 		commitModuleTransaction();
 	}
 
@@ -312,7 +289,7 @@ public class AvailCompiler
 	 * @author Todd L Smith &lt;anarkul@gmail.com&gt;
 	 */
 	void parseModuleHeader (final @NotNull ModuleName qualifiedName)
-		throws AvailCompilerException
+	throws AvailCompilerException
 	{
 		progressBlock = null;
 		greatestGuess = -1;
@@ -326,7 +303,7 @@ public class AvailCompiler
 			assert false;
 		}
 		assert peekToken().tokenType() == TokenType.END_OF_FILE
-			: "Expected end of text, not " + peekToken().string();
+		: "Expected end of text, not " + peekToken().string();
 	}
 
 	/**
@@ -345,7 +322,7 @@ public class AvailCompiler
 	 *         Always thrown.
 	 */
 	private void reportError (final @NotNull ModuleName qualifiedName)
-		throws AvailCompilerException
+	throws AvailCompilerException
 	{
 		int tokenPosSave = position();
 		position(greatestGuess);
@@ -374,8 +351,8 @@ public class AvailCompiler
 	// private - parsing body
 
 	void parseAdditionalBlockArgumentsAfterThen (
-			final List<AvailVariableDeclarationNode> argsSoFar,
-			final Continuation1<List<AvailVariableDeclarationNode>> continuation)
+		final List<AvailVariableDeclarationNode> argsSoFar,
+		final Continuation1<List<AvailVariableDeclarationNode>> continuation)
 	{
 		//  Parse more of a block's formal arguments from the token stream.  A verticalBar
 		//  is required after the arguments if there are any (which there are if we're here).
@@ -390,7 +367,7 @@ public class AvailCompiler
 				public void value()
 				{
 					parseBlockArgumentThen(new Continuation1<AvailVariableDeclarationNode> ()
-					{
+						{
 						@Override
 						public void value(final AvailVariableDeclarationNode arg)
 						{
@@ -398,7 +375,7 @@ public class AvailCompiler
 							parseAdditionalBlockArgumentsAfterThen(argsSoFar, continuation);
 							argsSoFar.remove(argsSoFar.size() - 1);
 						}
-					});
+						});
 				}
 			});
 		parseTokenTypeStringErrorContinue(
@@ -416,8 +393,8 @@ public class AvailCompiler
 	}
 
 	void parseAndEvaluateExpressionYieldingInstanceOfThen (
-			final AvailObject someType,
-			final Continuation1<AvailObject> continuation)
+		final AvailObject someType,
+		final Continuation1<AvailObject> continuation)
 	{
 		//  Parse an expression whose type is (at least) someType.  Evaluate the expression,
 		//  yielding a type, and pass that to the continuation.  Note that the longest syntactically
@@ -432,7 +409,7 @@ public class AvailCompiler
 		maxExprs.value = new ArrayList<AvailParseNode>();
 		maxPos.value = -1;
 		parseExpressionThen(new Continuation1<AvailParseNode> ()
-		{
+			{
 			@Override
 			public void value(final AvailParseNode expr)
 			{
@@ -452,16 +429,16 @@ public class AvailCompiler
 				else
 				{
 					expected(new Generator<String> ()
-					{
+						{
 						@Override
 						public String value()
 						{
 							return "expression to have type " + someType.toString();
 						}
-					});
+						});
 				}
 			}
-		});
+			});
 		AvailObject value;
 		if ((maxExprs.value.size() == 1))
 		{
@@ -499,7 +476,7 @@ public class AvailCompiler
 	}
 
 	void parseAssignmentThen (
-			final Continuation1<AvailAssignmentNode> continuation)
+		final Continuation1<AvailAssignmentNode> continuation)
 	{
 		//  Since this is now a statement instead of an expression, we don't need
 		//  a special rule about rightmost parse anymore (it must be followed by a
@@ -508,7 +485,7 @@ public class AvailCompiler
 		if ((peekToken().tokenType() == TokenType.KEYWORD))
 		{
 			parseVariableUseWithExplanationThen("for an assignment", new Continuation1<AvailVariableUseNode> ()
-			{
+				{
 				@Override
 				public void value(final AvailVariableUseNode varUse)
 				{
@@ -564,7 +541,7 @@ public class AvailCompiler
 											if (ok)
 											{
 												parseExpressionThen(new Continuation1<AvailParseNode> ()
-												{
+													{
 													@Override
 													public void value(final AvailParseNode expr)
 													{
@@ -580,13 +557,13 @@ public class AvailCompiler
 															else
 															{
 																expected(new Generator<String> ()
-																{
+																	{
 																	@Override
 																	public String value()
 																	{
 																		return "assignment expression's type (" + expr.type().toString() + ") to match variable type (" + varType.value.toString() + ")";
 																	}
-																});
+																	});
 															}
 														}
 														else
@@ -594,26 +571,26 @@ public class AvailCompiler
 															expected("; to end assignment statement");
 														}
 													}
-												});
+													});
 											}
 										}
 									});
 							}
 						});
 				}
-			});
+				});
 		}
 	}
 
 	private void parseBlockArgumentsThen (
-			final Continuation1<List<AvailVariableDeclarationNode>> continuation)
+		final Continuation1<List<AvailVariableDeclarationNode>> continuation)
 	{
 		//  Parse a block's formal arguments from the token stream.  A verticalBar
 		//  is required after the arguments if there are any.
 
 		continuation.value(new ArrayList<AvailVariableDeclarationNode>());
 		parseBlockArgumentThen(new Continuation1<AvailVariableDeclarationNode> ()
-		{
+			{
 			@Override
 			public void value(final AvailVariableDeclarationNode firstArg)
 			{
@@ -622,11 +599,11 @@ public class AvailCompiler
 				argsList.add(firstArg);
 				parseAdditionalBlockArgumentsAfterThen(argsList, continuation);
 			}
-		});
+			});
 	}
 
 	void parseBlockArgumentThen (
-			final Continuation1<AvailVariableDeclarationNode> continuation)
+		final Continuation1<AvailVariableDeclarationNode> continuation)
 	{
 		//  Requires block arguments to be named.
 
@@ -644,7 +621,7 @@ public class AvailCompiler
 					public void value()
 					{
 						parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
-						{
+							{
 							@Override
 							public void value(final AvailObject type)
 							{
@@ -669,7 +646,7 @@ public class AvailCompiler
 									scopeStack = oldScope;
 								}
 							}
-						});
+							});
 					}
 				});
 			backupToken();
@@ -681,7 +658,7 @@ public class AvailCompiler
 	}
 
 	private void parseBlockThen (
-			final Continuation1<AvailBlockNode> continuation)
+		final Continuation1<AvailBlockNode> continuation)
 	{
 		//  Parse a block from the token stream.
 
@@ -690,17 +667,17 @@ public class AvailCompiler
 			final AvailCompilerScopeStack scopeOutsideBlock = scopeStack;
 			nextToken();
 			parseBlockArgumentsThen(new Continuation1<List<AvailVariableDeclarationNode>> ()
-			{
+				{
 				@Override
 				public void value(final List<AvailVariableDeclarationNode> arguments)
 				{
 					parseOptionalPrimitiveForArgCountThen(arguments.size(), new Continuation1<Short> ()
-					{
+						{
 						@Override
 						public void value(final Short primitive)
 						{
 							parseStatementsThen(new Continuation1<List<AvailParseNode>> ()
-							{
+								{
 								@Override
 								public void value(final List<AvailParseNode> statements)
 								{
@@ -748,7 +725,7 @@ public class AvailCompiler
 															public void value()
 															{
 																parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
-																{
+																	{
 																	@Override
 																	public void value(final AvailObject returnType)
 																	{
@@ -759,7 +736,7 @@ public class AvailCompiler
 																			{
 																				AvailObject labelClosureType = ((AvailLabelNode)statements.get(0)).declaredType().closureType();
 																				blockTypeGood = labelClosureType.numArgs() == arguments.size()
-																					&& labelClosureType.returnType().equals(returnType);
+																				&& labelClosureType.returnType().equals(returnType);
 																				if (blockTypeGood)
 																				{
 																					for (int i = 1, _end1 = arguments.size(); i <= _end1; i++)
@@ -788,16 +765,16 @@ public class AvailCompiler
 																		else
 																		{
 																			expected(new Generator<String> ()
-																			{
+																				{
 																				@Override
 																				public String value()
 																				{
 																					return "last statement's type \"" + lastStatementType.value.toString() + "\" to agree with block's declared result type \"" + returnType.toString() + "\".";
 																				}
-																			});
+																				});
 																		}
 																	}
-																});
+																	});
 															}
 														});
 													if ((statements.isEmpty() && (primitive != 0)))
@@ -841,11 +818,11 @@ public class AvailCompiler
 											});
 									}
 								}
-							});
+								});
 						}
-					});
+						});
 				}
-			});
+				});
 			scopeStack = scopeOutsideBlock;
 			//  open square bracket.
 			backupToken();
@@ -853,7 +830,7 @@ public class AvailCompiler
 	}
 
 	void parseDeclarationThen (
-			final Continuation1<AvailVariableDeclarationNode> continuation)
+		final Continuation1<AvailVariableDeclarationNode> continuation)
 	{
 		//  Parse a local variable declaration.  These are one of three forms:
 		//  a simple declaration (var : type),
@@ -894,7 +871,7 @@ public class AvailCompiler
 											public void value()
 											{
 												parseExpressionThen(new Continuation1<AvailParseNode> ()
-												{
+													{
 													@Override
 													public void value(final AvailParseNode initExpr)
 													{
@@ -907,13 +884,13 @@ public class AvailCompiler
 														continuation.value(constantDeclaration);
 														scopeStack = oldScope;
 													}
-												});
+													});
 											}
 										});
 								}
 							});
 						parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
-						{
+							{
 							@Override
 							public void value(final AvailObject type)
 							{
@@ -940,7 +917,7 @@ public class AvailCompiler
 														public void value()
 														{
 															parseExpressionThen(new Continuation1<AvailParseNode> ()
-															{
+																{
 																@Override
 																public void value(final AvailParseNode initExpr)
 																{
@@ -960,7 +937,7 @@ public class AvailCompiler
 																		expected("initializing expression's type to agree with declared type");
 																	}
 																}
-															});
+																});
 														}
 													});
 											}
@@ -975,7 +952,7 @@ public class AvailCompiler
 									scopeStack = oldScope;
 								}
 							}
-						});
+							});
 					}
 				});
 		}
@@ -986,75 +963,40 @@ public class AvailCompiler
 		position(where);
 	}
 
-	void parseExpressionListItemsBeyondThen (
-			final List<AvailParseNode> itemsSoFar,
-			final Continuation1<AvailParseNode> continuation)
+
+	/**
+	 * Parse an expression, without directly using the {@linkplain
+	 * #fragmentCache}.
+	 * 
+	 * @param continuation What to do with the expression.
+	 */
+	void parseExpressionUncachedThen (
+		final Continuation1<AvailParseNode> continuation)
 	{
-		//  Given a sequenceable collection of itemsSoFar, attempt to extend that
-		//  collection by parsing comma and another item.  If successful, try that
-		//  answer and then look for more items.
-
-		if (peekTokenIsTypeString(TokenType.OPERATOR, ","))
-		{
-			parseTokenTypeStringErrorContinue(
-				TokenType.OPERATOR,
-				",",
-				"comma for a list",
-				new Continuation0 ()
-				{
-					@Override
-					public void value()
-					{
-						parseExpressionListItemThen(new Continuation1<AvailParseNode> ()
-						{
-							@Override
-							public void value(final AvailParseNode newItem)
-							{
-								List<AvailParseNode> newItems;
-								newItems = new ArrayList<AvailParseNode>(itemsSoFar);
-								newItems.add(newItem);
-								//  Answer this list.
-								final AvailListNode listNode = new AvailListNode();
-								listNode.expressions(newItems);
-								continuation.value(listNode);
-								//  Try for more items, too...
-								parseExpressionListItemsBeyondThen(newItems, continuation);
-							}
-						});
-					}
-				});
-		}
-	}
-
-	void parseExpressionListItemThen (
-			final Continuation1<AvailParseNode> continuation)
-	{
-		//  Parse an expression that isn't a list.  Backtracking will find all valid interpretations.
-
 		parseLeadingKeywordSendThen(new Continuation1<AvailSendNode> ()
-		{
+			{
 			@Override
 			public void value(final AvailSendNode sendNode)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(sendNode, continuation);
 			}
-		});
+			});
 		parseSimpleThen(new Continuation1<AvailParseNode> ()
-		{
+			{
 			@Override
 			public void value(final AvailParseNode simpleNode)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(simpleNode, continuation);
 			}
-		});
+			});
 		parseBlockThen(new Continuation1<AvailBlockNode> ()
-		{
+			{
 			@Override
 			public void value(final AvailBlockNode blockNode)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(blockNode, continuation);
 			}
-		});
+			});
 	}
 
 	/**
@@ -1068,7 +1010,7 @@ public class AvailCompiler
 	 * @param originalContinuation What to do with the expression.
 	 */
 	void parseExpressionThen (
-			final Continuation1<AvailParseNode> originalContinuation)
+		final Continuation1<AvailParseNode> originalContinuation)
 	{
 		final int start = position();
 		final AvailCompilerScopeStack originalScope = scopeStack;
@@ -1089,18 +1031,7 @@ public class AvailCompiler
 							scopeStack));
 				}
 			};
-			parseExpressionListItemThen(new Continuation1<AvailParseNode> ()
-			{
-				@Override
-				public void value(final AvailParseNode firstItem)
-				{
-					justRecord.value(firstItem);
-					List<AvailParseNode> itemList;
-					itemList = new ArrayList<AvailParseNode>(1);
-					itemList.add(firstItem);
-					parseExpressionListItemsBeyondThen(itemList, justRecord);
-				}
-			});
+			parseExpressionUncachedThen(justRecord);
 			if (!(position() == start && scopeStack == originalScope))
 			{
 				error("token stream position and scopeStack were not restored correctly");
@@ -1140,11 +1071,11 @@ public class AvailCompiler
 	 * @param continuation What to do with a fully parsed send node.
 	 */
 	void parseRestOfSendNode (
-			final AvailObject bundleTree,
-			final AvailParseNode firstArgOrNull,
-			final int initialTokenPosition,
-			final List<AvailParseNode> argsSoFar,
-			final Continuation1<AvailSendNode> continuation)
+		final AvailObject bundleTree,
+		final AvailParseNode firstArgOrNull,
+		final int initialTokenPosition,
+		final List<AvailParseNode> argsSoFar,
+		final Continuation1<AvailSendNode> continuation)
 	{
 		final int start = position();
 		final AvailObject complete = bundleTree.complete();
@@ -1158,7 +1089,7 @@ public class AvailCompiler
 		if (completeMapSize != 0 && firstArgOrNull == null)
 		{
 			complete.mapDo(new Continuation2<AvailObject, AvailObject>()
-			{
+				{
 				@Override
 				public void value (
 					final AvailObject message,
@@ -1201,7 +1132,7 @@ public class AvailCompiler
 						}
 					}
 				}
-			});
+				});
 		}
 		if (incompleteMapSize != 0 && firstArgOrNull == null)
 		{
@@ -1236,7 +1167,7 @@ public class AvailCompiler
 		{
 			// Interpret a parse instruction.
 			special.mapDo(new Continuation2<AvailObject, AvailObject>()
-			{
+				{
 				@Override
 				public void value (
 					final AvailObject instructionObject,
@@ -1271,13 +1202,13 @@ public class AvailCompiler
 													if (restrictions.hasElement(((AvailSendNode)newArg).message()))
 													{
 														expected(new Generator<String> ()
-														{
+															{
 															@Override
 															public String value()
 															{
 																return "different nesting in" + outerSend.toString();
 															}
-														});
+															});
 													}
 													else
 													{
@@ -1303,9 +1234,8 @@ public class AvailCompiler
 							// Push an empty list node.
 							assert successorTrees.tupleSize() == 1;
 							List<AvailParseNode> newArgsSoFar =
-								new ArrayList<AvailParseNode>(argsSoFar); 
-							AvailListNode newListNode = new AvailListNode();
-							newListNode.expressions(
+								new ArrayList<AvailParseNode>(argsSoFar);
+							AvailTupleNode newListNode = new AvailTupleNode(
 								Collections.<AvailParseNode>emptyList());
 							newArgsSoFar.add(newListNode);
 							parseRestOfSendNode(
@@ -1327,8 +1257,8 @@ public class AvailCompiler
 								new ArrayList<AvailParseNode>(argsSoFar);
 							AvailParseNode value =
 								newArgsSoFar.remove(newArgsSoFar.size() - 1);
-							AvailListNode oldListNode =
-								(AvailListNode)newArgsSoFar.remove(
+							AvailTupleNode oldListNode =
+								(AvailTupleNode)newArgsSoFar.remove(
 									newArgsSoFar.size() - 1);
 							AvailParseNode newListNode =
 								oldListNode.copyWith(value);
@@ -1364,7 +1294,7 @@ public class AvailCompiler
 						}
 					}
 				}
-			});
+				});
 		}
 		assert start == position();
 	}
@@ -1381,21 +1311,21 @@ public class AvailCompiler
 		final AvailObject incomplete)
 	{
 		expected(new Generator<String> ()
-		{
+			{
 			@Override
 			public String value()
 			{
 				final StringBuilder builder = new StringBuilder(200);
 				builder.append("one of the following internal keywords: ");
 				final List<String> sorted = new ArrayList<String>(
-					incomplete.mapSize());
+						incomplete.mapSize());
 				incomplete.mapDo(new Continuation2<AvailObject, AvailObject>()
 					{
-						@Override
-						public void value (AvailObject key, AvailObject value)
-						{
-							sorted.add(key.asNativeString());
-						}
+					@Override
+					public void value (AvailObject key, AvailObject value)
+					{
+						sorted.add(key.asNativeString());
+					}
 					});
 				Collections.sort(sorted);
 				if (incomplete.mapSize() > 5)
@@ -1409,7 +1339,7 @@ public class AvailCompiler
 				}
 				return builder.toString();
 			}
-		});
+			});
 	}
 
 	/**
@@ -1418,7 +1348,7 @@ public class AvailCompiler
 	 * @param continuation What to do after parsing a label.
 	 */
 	void parseLabelThen (
-			final Continuation1<AvailLabelNode> continuation)
+		final Continuation1<AvailLabelNode> continuation)
 	{
 		parseTokenTypeStringErrorContinue(
 			TokenType.OPERATOR,
@@ -1443,7 +1373,7 @@ public class AvailCompiler
 								public void value()
 								{
 									parseAndEvaluateExpressionYieldingInstanceOfThen(Types.continuationType.object(), new Continuation1<AvailObject> ()
-									{
+										{
 										@Override
 										public void value(final AvailObject contType)
 										{
@@ -1455,7 +1385,7 @@ public class AvailCompiler
 											continuation.value(label);
 											scopeStack = oldScope;
 										}
-									});
+										});
 								}
 							});
 						backupToken();
@@ -1468,7 +1398,7 @@ public class AvailCompiler
 			});
 	}
 
-	
+
 	/**
 	 * Parse a send node whose leading argument has already been parsed.
 	 * 
@@ -1476,8 +1406,8 @@ public class AvailCompiler
 	 * @param continuation What to do after parsing a send node.
 	 */
 	void parseLeadingArgumentSendAfterThen (
-			final AvailParseNode leadingArgument,
-			final Continuation1<AvailSendNode> continuation)
+		final AvailParseNode leadingArgument,
+		final Continuation1<AvailSendNode> continuation)
 	{
 		parseRestOfSendNode(
 			interpreter.rootBundleTree(),
@@ -1487,7 +1417,7 @@ public class AvailCompiler
 			continuation);
 	}
 
-	
+
 	/**
 	 * Parse a send node.  To prevent infinite left-recursion and false
 	 * ambiguity, we only allow a send with a leading keyword to be parsed from
@@ -1497,7 +1427,7 @@ public class AvailCompiler
 	 * @param continuation What to do after parsing a complete send node.
 	 */
 	private void parseLeadingKeywordSendThen (
-			final Continuation1<AvailSendNode> continuation)
+		final Continuation1<AvailSendNode> continuation)
 	{
 		parseRestOfSendNode(
 			interpreter.rootBundleTree(),
@@ -1518,8 +1448,8 @@ public class AvailCompiler
 	 *                     wrapped in suitable leading-argument message sends.
 	 */
 	void parseOptionalLeadingArgumentSendAfterThen (
-			final AvailParseNode node,
-			final Continuation1<AvailParseNode> continuation)
+		final AvailParseNode node,
+		final Continuation1<AvailParseNode> continuation)
 	{
 		continuation.value(node);
 		if (node.type().equals(Types.voidType.object()))
@@ -1535,20 +1465,20 @@ public class AvailCompiler
 				public void value(final AvailParseNode cast)
 				{
 					parseLeadingArgumentSendAfterThen(cast, new Continuation1<AvailSendNode> ()
-					{
+						{
 						@Override
 						public void value(final AvailSendNode leadingSend)
 						{
 							parseOptionalLeadingArgumentSendAfterThen(leadingSend, continuation);
 						}
-					});
+						});
 				}
 			});
 	}
 
 	void parseOptionalPrimitiveForArgCountThen (
-			final int argCount,
-			final Continuation1<Short> continuation)
+		final int argCount,
+		final Continuation1<Short> continuation)
 	{
 		//  Parse the optional primitive declaration at the start of a block.
 		//  Pass the primitive number (or nil) into the continuation.
@@ -1621,9 +1551,9 @@ public class AvailCompiler
 	}
 
 	void parseOptionalSuperCastAfterErrorSuffixThen (
-			final AvailParseNode expr,
-			final String errorSuffix,
-			final Continuation1<? super AvailParseNode> continuation)
+		final AvailParseNode expr,
+		final String errorSuffix,
+		final Continuation1<? super AvailParseNode> continuation)
 	{
 		//  An expression was parsed.  Now parse the optional supercast clause that may
 		//  follow it to make a supercast node.
@@ -1652,7 +1582,7 @@ public class AvailCompiler
 					public void value()
 					{
 						parseAndEvaluateExpressionYieldingInstanceOfThen(Types.type.object(), new Continuation1<AvailObject> ()
-						{
+							{
 							@Override
 							public void value(final AvailObject type)
 							{
@@ -1668,7 +1598,7 @@ public class AvailCompiler
 									expected("supercast type to be supertype of expression's type.");
 								}
 							}
-						});
+							});
 					}
 				});
 			backupToken();
@@ -1677,22 +1607,22 @@ public class AvailCompiler
 
 	/**
 	 * Parse an argument to a message send.  Backtracking will find all valid
-	 * interpretations.  
+	 * interpretations.
 	 * 
 	 * @param explanation A {@link String} indicating why it's parsing an
 	 *                    argument.
 	 * @param firstArgOrNull Either a parse node to use as the argument, or
-	 *                       null if we should parse one now. 
+	 *                       null if we should parse one now.
 	 * @param initialTokenPosition The position at which we started parsing the
 	 *                             message send.  Does not include the first
 	 *                             argument if there were no leading keywords.
 	 * @param continuation What to do with the argument.
 	 */
 	void parseSendArgumentWithExplanationThen (
-			final String explanation,
-			final AvailParseNode firstArgOrNull,
-			final int initialTokenPosition,
-			final Continuation1<AvailParseNode> continuation)
+		final String explanation,
+		final AvailParseNode firstArgOrNull,
+		final int initialTokenPosition,
+		final Continuation1<AvailParseNode> continuation)
 	{
 		if (firstArgOrNull == null)
 		{
@@ -1702,7 +1632,7 @@ public class AvailCompiler
 			if (position != initialTokenPosition)
 			{
 				parseExpressionThen(new Continuation1<AvailParseNode> ()
-				{
+					{
 					@Override
 					public void value(final AvailParseNode expr)
 					{
@@ -1711,7 +1641,7 @@ public class AvailCompiler
 							explanation,
 							continuation);
 					}
-				});
+					});
 			}
 		}
 		else
@@ -1734,7 +1664,7 @@ public class AvailCompiler
 	 * @param continuation What to do with the simple parse node.
 	 */
 	private void parseSimpleThen (
-			final Continuation1<? super AvailParseNode> continuation)
+		final Continuation1<? super AvailParseNode> continuation)
 	{
 		final int originalPosition = position;
 		parseVariableUseWithExplanationThen("", continuation);
@@ -1749,7 +1679,7 @@ public class AvailCompiler
 		{
 			nextToken();
 			parseVariableUseWithExplanationThen("in reference expression", new Continuation1<AvailVariableUseNode> ()
-			{
+				{
 				@Override
 				public void value(final AvailVariableUseNode var)
 				{
@@ -1773,7 +1703,7 @@ public class AvailCompiler
 						continuation.value(referenceNode);
 					}
 				}
-			});
+				});
 			backupToken();
 		}
 		expected("simple expression");
@@ -1781,9 +1711,9 @@ public class AvailCompiler
 	}
 
 	private void parseStatementAsOutermostCanBeLabelThen (
-			final boolean outermost,
-			final boolean canBeLabel,
-			final Continuation1<AvailParseNode> continuation)
+		final boolean outermost,
+		final boolean canBeLabel,
+		final Continuation1<AvailParseNode> continuation)
 	{
 		//  Parse a statement.  This is the boundary for the backtracking grammar.
 		//  A statement must be unambiguous (in isolation) to be valid.  The passed
@@ -1792,14 +1722,14 @@ public class AvailCompiler
 
 		assert !(outermost & canBeLabel);
 		tryIfUnambiguousThen(new Continuation1<Continuation1<AvailParseNode>> ()
-		{
+			{
 			@Override
 			public void value(final Continuation1<AvailParseNode> whenFoundStatement)
 			{
 				if (canBeLabel)
 				{
 					parseLabelThen(new Continuation1<AvailLabelNode> ()
-					{
+						{
 						@Override
 						public void value(final AvailLabelNode label)
 						{
@@ -1816,10 +1746,10 @@ public class AvailCompiler
 									}
 								});
 						}
-					});
+						});
 				}
 				parseDeclarationThen(new Continuation1<AvailVariableDeclarationNode> ()
-				{
+					{
 					@Override
 					public void value(final AvailVariableDeclarationNode declaration)
 					{
@@ -1836,9 +1766,9 @@ public class AvailCompiler
 								}
 							});
 					}
-				});
+					});
 				parseAssignmentThen(new Continuation1<AvailAssignmentNode> ()
-				{
+					{
 					@Override
 					public void value(final AvailAssignmentNode assignment)
 					{
@@ -1855,9 +1785,9 @@ public class AvailCompiler
 								}
 							});
 					}
-				});
+					});
 				parseExpressionThen(new Continuation1<AvailParseNode> ()
-				{
+					{
 					@Override
 					public void value(final AvailParseNode expr)
 					{
@@ -1881,20 +1811,20 @@ public class AvailCompiler
 								}
 							});
 					}
-				});
+					});
 			}
-		}, new Continuation1<AvailParseNode> ()
-		{
-			@Override
-			public void value(final AvailParseNode statement)
+			}, new Continuation1<AvailParseNode> ()
 			{
-				continuation.value(statement);
-			}
-		});
+				@Override
+				public void value(final AvailParseNode statement)
+				{
+					continuation.value(statement);
+				}
+			});
 	}
 
 	void parseStatementsThen (
-			final Continuation1<List<AvailParseNode>> continuation)
+		final Continuation1<List<AvailParseNode>> continuation)
 	{
 		//  Parse zero or more statements from the tokenStream.  Parse as many
 		//  statements as possible before invoking the continuation.
@@ -1915,8 +1845,8 @@ public class AvailCompiler
 			{
 				final AvailParseNode lastStatement = statements.get((statements.size() - 1));
 				if (!lastStatement.isAssignment()
-					&& !lastStatement.isDeclaration()
-					&& !lastStatement.isLabel())
+						&& !lastStatement.isDeclaration()
+						&& !lastStatement.isLabel())
 				{
 					if (lastStatement.type().equals(Types.terminates.object()))
 					{
@@ -1927,13 +1857,13 @@ public class AvailCompiler
 					{
 						problem = true;
 						expected(new Generator<String> ()
-						{
+							{
 							@Override
 							public String value()
 							{
 								return "non-last statement \"" + lastStatement.toString() + "\" to have type void, not \"" + lastStatement.type().toString() + "\".";
 							}
-						});
+							});
 					}
 				}
 			}
@@ -2029,7 +1959,7 @@ public class AvailCompiler
 	 * @param continuation What to do after parsing the strings.
 	 */
 	void parseStringsThen (
-			final Continuation1<List<AvailObject>> continuation)
+		final Continuation1<List<AvailObject>> continuation)
 	{
 		final int where = position();
 		final List<AvailObject> strings = parseStrings();
@@ -2045,8 +1975,8 @@ public class AvailCompiler
 	 * @param continuation What to do after parsing the variable use.
 	 */
 	private void parseVariableUseWithExplanationThen (
-			final String explanation,
-			final Continuation1<? super AvailVariableUseNode> continuation)
+		final String explanation,
+		final Continuation1<? super AvailVariableUseNode> continuation)
 	{
 
 		if (peekToken().tokenType() != TokenType.KEYWORD)
@@ -2100,13 +2030,13 @@ public class AvailCompiler
 			return;
 		}
 		expected(new Generator<String> ()
-		{
+			{
 			@Override
 			public String value()
 			{
 				return "variable " + token.string() + " to have been declared before use " + explanation;
 			}
-		});
+			});
 		backupToken();
 	}
 
@@ -2185,7 +2115,7 @@ public class AvailCompiler
 							public void value()
 							{
 								parseStringsThen(new Continuation1<List<AvailObject>> ()
-								{
+									{
 									@Override
 									public void value(final List<AvailObject> extendsStrings)
 									{
@@ -2200,7 +2130,7 @@ public class AvailCompiler
 												public void value()
 												{
 													parseStringsThen(new Continuation1<List<AvailObject>> ()
-													{
+														{
 														@Override
 														public void value(final List<AvailObject> usesStrings)
 														{
@@ -2215,7 +2145,7 @@ public class AvailCompiler
 																	public void value()
 																	{
 																		parseStringsThen(new Continuation1<List<AvailObject>> ()
-																		{
+																			{
 																			@Override
 																			public void value(final List<AvailObject> namesStrings)
 																			{
@@ -2235,15 +2165,15 @@ public class AvailCompiler
 																						}
 																					});
 																			}
-																		});
+																			});
 																	}
 																});
 														}
-													});
+														});
 												}
 											});
 									}
-								});
+									});
 							}
 						});
 					position(savePosition);
@@ -2269,8 +2199,8 @@ public class AvailCompiler
 	 *         If parsing fails.
 	 */
 	private boolean parseHeaderForDependenciesOnly (
-			final @NotNull ResolvedModuleName qualifiedName)
-		throws AvailCompilerException
+		final @NotNull ResolvedModuleName qualifiedName)
+	throws AvailCompilerException
 	{
 		final Mutable<Integer> where = new Mutable<Integer>();
 		final Mutable<Boolean> ok = new Mutable<Boolean>();
@@ -2313,7 +2243,7 @@ public class AvailCompiler
 							public void value()
 							{
 								parseStringsThen(new Continuation1<List<AvailObject>> ()
-								{
+									{
 									@Override
 									public void value(final List<AvailObject> extendsStrings)
 									{
@@ -2328,7 +2258,7 @@ public class AvailCompiler
 												public void value()
 												{
 													parseStringsThen(new Continuation1<List<AvailObject>> ()
-													{
+														{
 														@Override
 														public void value(final List<AvailObject> usesStrings)
 														{
@@ -2348,11 +2278,11 @@ public class AvailCompiler
 																	}
 																});
 														}
-													});
+														});
 												}
 											});
 									}
-								});
+									});
 							}
 						});
 					position(savePosition);
@@ -2377,8 +2307,8 @@ public class AvailCompiler
 	 *         If compilation fails.
 	 */
 	private void parseModule (
-			final @NotNull ResolvedModuleName qualifiedName)
-		throws AvailCompilerException
+		final @NotNull ResolvedModuleName qualifiedName)
+	throws AvailCompilerException
 	{
 		final AvailRuntime runtime = interpreter.runtime();
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
@@ -2485,7 +2415,7 @@ public class AvailCompiler
 					public void value(final AvailParseNode stmt)
 					{
 						assert interpretation.value == null
-							: "Statement parser was supposed to catch ambiguity";
+						: "Statement parser was supposed to catch ambiguity";
 						interpretation.value = stmt;
 						endOfStatement.value = position();
 					}
@@ -2527,11 +2457,11 @@ public class AvailCompiler
 	 *                        {@link AvailParseNode}.
 	 */
 	private void ambiguousInterpretationsAnd (
-			final AvailParseNode interpretation1,
-			final AvailParseNode interpretation2)
+		final AvailParseNode interpretation1,
+		final AvailParseNode interpretation2)
 	{
 		expected(new Generator<String> ()
-		{
+			{
 			@Override
 			public String value()
 			{
@@ -2544,7 +2474,7 @@ public class AvailCompiler
 				builder.append(interpretation2.toString());
 				return builder.toString();
 			}
-		});
+			});
 	}
 
 	/**
@@ -2583,7 +2513,7 @@ public class AvailCompiler
 	 * @param stringGenerator The {@code Generator<String>} to capture.
 	 */
 	void expected (
-			final Generator<String> stringGenerator)
+		final Generator<String> stringGenerator)
 	{
 		// System.out.println(Integer.toString(position) + " expected " + stringBlock.value());
 		if (position() == greatestGuess)
@@ -2614,14 +2544,14 @@ public class AvailCompiler
 	/**
 	 * If the next token has the specified type and content then consume it and
 	 * return true, otherwise leave the position unchanged and return false.
-	 *  
+	 * 
 	 * @param tokenType The {@link TokenType type} of token to look for.
 	 * @param string The exact token content to look for.
 	 * @return Whether the specified token was found and consumed.
 	 */
 	boolean parseTokenIsTypeString (
-			final TokenType tokenType,
-			final String string)
+		final TokenType tokenType,
+		final String string)
 	{
 		final AvailObject token = peekToken();
 		if (token.tokenType() == tokenType
@@ -2643,9 +2573,9 @@ public class AvailCompiler
 	 * @param continuationNoArgs What to do if the token was found and consumed.
 	 */
 	void parseTokenTypeStringContinue (
-			final TokenType tokenType,
-			final String string,
-			final Continuation0 continuationNoArgs)
+		final TokenType tokenType,
+		final String string,
+		final Continuation0 continuationNoArgs)
 	{
 		final int where = position();
 		final AvailCompilerScopeStack oldScope = scopeStack;
@@ -2660,13 +2590,13 @@ public class AvailCompiler
 		else
 		{
 			expected(new Generator<String> ()
-			{
+				{
 				@Override
 				public String value()
 				{
 					return string.toString() + ", not " + token.string().toString();
 				}
-			});
+				});
 		}
 		assert (where == position());
 		assert (oldScope == scopeStack);
@@ -2681,10 +2611,10 @@ public class AvailCompiler
 	 * @param continuationNoArgs
 	 */
 	void parseTokenTypeStringErrorContinue (
-			final TokenType tokenType,
-			final String string,
-			final String error,
-			final Continuation0 continuationNoArgs)
+		final TokenType tokenType,
+		final String string,
+		final String error,
+		final Continuation0 continuationNoArgs)
 	{
 		parseTokenTypeStringErrorGeneratorContinue(
 			tokenType,
@@ -2694,10 +2624,10 @@ public class AvailCompiler
 	}
 
 	private void parseTokenTypeStringErrorGeneratorContinue (
-			final TokenType tokenType,
-			final String string,
-			final Generator<String> errorGenerator,
-			final Continuation0 continuationNoArgs)
+		final TokenType tokenType,
+		final String string,
+		final Generator<String> errorGenerator,
+		final Continuation0 continuationNoArgs)
 	{
 		final int where = position();
 		final AvailCompilerScopeStack oldScope = scopeStack;
@@ -2728,8 +2658,8 @@ public class AvailCompiler
 	}
 
 	private boolean peekTokenIsTypeString (
-			final TokenType tokenType,
-			final String string)
+		final TokenType tokenType,
+		final String string)
 	{
 		final AvailObject token = peekToken();
 		return ((token.tokenType() == tokenType)
@@ -2742,7 +2672,7 @@ public class AvailCompiler
 	}
 
 	void position (
-			final int anInteger)
+		final int anInteger)
 	{
 		position = anInteger;
 	}
@@ -2755,8 +2685,8 @@ public class AvailCompiler
 	}
 
 	private void tryIfUnambiguousThen (
-			final Continuation1<Continuation1<AvailParseNode>> tryBlock,
-			final Continuation1<AvailParseNode> continuation)
+		final Continuation1<Continuation1<AvailParseNode>> tryBlock,
+		final Continuation1<AvailParseNode> continuation)
 	{
 		//  Execute the block, passing a continuation that it should run upon finding a
 		//  local solution.  If exactly one solution is found, unwrap the stack (but not the
@@ -2772,7 +2702,7 @@ public class AvailCompiler
 		final AvailCompilerScopeStack oldScope = scopeStack;
 		count.value = 0;
 		tryBlock.value(new Continuation1<AvailParseNode> ()
-		{
+			{
 			@Override
 			public void value(final AvailParseNode aSolution)
 			{
@@ -2789,7 +2719,7 @@ public class AvailCompiler
 				}
 				++count.value;
 			}
-		});
+			});
 		if (count.value > 1)
 		{
 			position(where.value);
@@ -2816,8 +2746,8 @@ public class AvailCompiler
 	}
 
 	private Generator<String> wrapInGenerator (
-			final String aString)
-	{
+		final String aString)
+		{
 		//  Answer a block that will yield aString.  The Java version should create a Generator.
 
 		return new Generator<String> ()
@@ -2828,14 +2758,14 @@ public class AvailCompiler
 				return aString;
 			}
 		};
-	}
+		}
 
 
 
 	// scope
 
 	private AvailVariableDeclarationNode lookupDeclaration (
-			final AvailObject name)
+		final AvailObject name)
 	{
 		AvailCompilerScopeStack scope = scopeStack;
 		while (scope.name() != null) {
@@ -2849,7 +2779,7 @@ public class AvailCompiler
 	}
 
 	void pushDeclaration (
-			final AvailVariableDeclarationNode declaration)
+		final AvailVariableDeclarationNode declaration)
 	{
 		scopeStack = new AvailCompilerScopeStack(
 			declaration.name().string(),
@@ -2870,9 +2800,9 @@ public class AvailCompiler
 	}
 
 	AvailCompilerCachedSolution newCachedSolutionEndPositionScopeStack (
-			final AvailParseNode parseNode,
-			final int endPosition,
-			final AvailCompilerScopeStack savedScopeStack)
+		final AvailParseNode parseNode,
+		final int endPosition,
+		final AvailCompilerScopeStack savedScopeStack)
 	{
 		return new AvailCompilerCachedSolution(parseNode, endPosition, savedScopeStack);
 	}

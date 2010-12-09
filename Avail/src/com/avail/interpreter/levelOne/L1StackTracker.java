@@ -32,11 +32,9 @@
 
 package com.avail.interpreter.levelOne;
 
+import static com.avail.descriptor.AvailObject.error;
+import static java.lang.Math.max;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelOne.L1Instruction;
-
-import static com.avail.descriptor.AvailObject.*;
-import static java.lang.Math.*;
 
 abstract class L1StackTracker implements L1OperationDispatcher
 {
@@ -145,7 +143,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		currentDepth += 1;
 	}
 
-	@Override public void L1_doMakeList ()
+	@Override public void L1_doMakeTuple ()
 	{
 		currentDepth += 1 - currentOperands[0];
 	}

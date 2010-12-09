@@ -1,5 +1,5 @@
 /**
- * compiler/AvailListNode.java
+ * compiler/AvailTupleNode.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,96 +32,101 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.AvailParseNode;
+import java.util.ArrayList;
+import java.util.List;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.ListTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class AvailListNode extends AvailParseNode
+/**
+ * Create a tuple from a list of expressions that generate the tuple's elements.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class AvailTupleNode extends AvailParseNode
 {
+
+	/**
+	 * The expressions that generate elements of the tuple.
+	 */
 	List<AvailParseNode> parseNodes;
 
-	AvailObject listType;
+	/**
+	 * The type of tuple to be constructed.
+	 */
+	AvailObject tupleType;
 
-
-	public List<AvailParseNode> expressions ()
+	/**
+	 * Construct a new instance that builds a tuple from the values of the given
+	 * expressions.
+	 * 
+	 * @param parseNodes The expressions that generate my elements.
+	 */
+	public AvailTupleNode (final List<AvailParseNode> parseNodes)
 	{
-		return parseNodes;
-	}
-
-	public void expressions (
-		final List<AvailParseNode> arrayOfExpressions)
-	{
-		parseNodes = arrayOfExpressions;
+		this.parseNodes = parseNodes;
 		List<AvailObject> types;
 		types = new ArrayList<AvailObject>(parseNodes.size());
 		for (AvailParseNode expr : parseNodes)
 		{
 			types.add(expr.type());
 		}
-		final AvailObject tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+		tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.objectFromInt(types.size())),
 			TupleDescriptor.mutableObjectFromArray(types),
 			Types.terminates.object());
-		listType = ListTypeDescriptor.listTypeForTupleType(tupleType);
-		//  The problem isn't really here, but this Avail compiler is only a bootstrapper.
-		listType.makeImmutable();
+		tupleType.makeImmutable();
 	}
+
 
 	@Override
 	public AvailObject type ()
 	{
-		return listType;
+		return tupleType;
 	}
 
 
 	@Override
 	public void emitValueOn (
-			final AvailCodeGenerator codeGenerator)
+		final AvailCodeGenerator codeGenerator)
 	{
 		for (AvailParseNode expr : parseNodes)
 		{
 			expr.emitValueOn(codeGenerator);
 		}
-		codeGenerator.emitMakeList(parseNodes.size());
+		codeGenerator.emitMakeTuple(parseNodes.size());
 	}
 
-	
+
 	/**
-	 * Create a new {@code AvailListNode} with one more parse node added to the
-	 * end of the list.
+	 * Create a new {@code AvailTupleNode} with one more parse node added to the
+	 * end of the tuple.
 	 * 
 	 * @param newParseNode The parse node to append.
-	 * @return A new {@code AvailListNode} with the parse node appended.
+	 * @return A new {@code AvailTupleNode} with the parse node appended.
 	 */
-	public AvailListNode copyWith (
+	public AvailTupleNode copyWith (
 		AvailParseNode newParseNode)
 	{
 		List<AvailParseNode> newNodes =
 			new ArrayList<AvailParseNode>(parseNodes.size() + 1);
 		newNodes.addAll(parseNodes);
 		newNodes.add(newParseNode);
-		AvailListNode newListNode = new AvailListNode();
-		newListNode.expressions(newNodes);
-		return newListNode;
+		AvailTupleNode newTupleNode = new AvailTupleNode(newNodes);
+		return newTupleNode;
 	}
 
-	
+
 	/**
 	 * Map my children through the (destructive) transformation specified by
 	 * aBlock.  Answer the receiver.
 	 */
 	@Override
 	public void childrenMap (
-			final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
 		parseNodes = new ArrayList<AvailParseNode>(parseNodes);
 		for (int i = 0; i < parseNodes.size(); i++)
@@ -133,8 +138,8 @@ public class AvailListNode extends AvailParseNode
 
 	@Override
 	public void printOnIndent (
-			final StringBuilder aStream,
-			final int indent)
+		final StringBuilder aStream,
+		final int indent)
 	{
 		for (int i = 1, _end1 = parseNodes.size(); i <= _end1; i++)
 		{

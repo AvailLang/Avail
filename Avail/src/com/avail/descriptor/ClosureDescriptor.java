@@ -350,7 +350,7 @@ public class ClosureDescriptor extends Descriptor
 		{
 			writer.write(new L1Instruction(L1Operation.L1_doPushLastLocal, i));
 		}
-		writer.write(new L1Instruction(L1Operation.L1_doMakeList, numArgs));
+		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, numArgs));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,

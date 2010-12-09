@@ -52,23 +52,10 @@ Body
 
 /* Private tuple constructors (bootstrapping workaround)... */
 
-Method "<>" is [
-	/* Answer the empty tuple */
-	Primitive 134;
-	Failed;
+Method "<«_‡,»>" is [t : tuple |
+	t;
 ] : tuple;
 
-Method "<_>" is [it : all |
-	/* Construct a tuple with one element */
-	Primitive 133;
-	Failed;
-] : tuple;
-
-Method "<_>" is [it : list |
-	/* Convert a list to a tuple */
-	Primitive 47;
-	Failed;
-] : tuple;
 
 
 /* Block type constructors / extractors... */
@@ -94,26 +81,16 @@ Method "block type taking_and returning_" is [args : tuple, ret : type |
 	Failed;
 ] : closureType;
 
-Method "[]->_" is [result : type |
-	/* Create a zero-argument closure type. */
-	block type taking <> and returning result;
-] : closureType;
-
-Method "[_]->_" is [argType : type, result : type |
-	/* Create a one-argument closure type. */
-	block type taking <argType> and returning result;
-] : closureType;
-
-Method "[_]->_" is [types : list, result : type |
+Method "[«_‡,»]->_" is [types : tuple, result : type |
 	/* Create a two or more argument closure type. */
-	block type taking <types> and returning result;
+	block type taking types and returning result;
 ] : closureType;
 
 Method "[...]->_" is [result : type |
 	/* Answer a generalized closure type.  It will be a supertype of []->result,
-	   [terminates]->result, [terminates,terminates]->result, etc.  It will also be
-	   a subtype of generalizedClosure, but not a subtype of closure.  Its type
-	   will be generalizedClosureType.  */
+	   [terminates]->result, [terminates,terminates]->result, etc.  It will also
+	   be a subtype of generalizedClosure, but not a subtype of closure.  Its
+	   type will be generalizedClosureType.  */
 	Primitive 39;
 	Failed;
 ] : generalizedClosureType;

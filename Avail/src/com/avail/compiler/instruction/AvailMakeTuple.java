@@ -1,5 +1,5 @@
 /**
- * compiler/instruction/AvailMakeList.java
+ * compiler/instruction/AvailMakeTuple.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,41 +32,41 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailInstruction;
-import com.avail.compiler.instruction.AvailMakeList;
-import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
+import com.avail.interpreter.levelOne.L1Operation;
 
-public class AvailMakeList extends AvailInstruction
+/**
+ * Construct a tuple from some number of objects already pushed on the stack.
+ * 
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class AvailMakeTuple extends AvailInstruction
 {
-	int _count;
 
+	/**
+	 * The size of the tuple to create.
+	 */
+	final int count;
 
-	// accessing
-
-	public AvailMakeList count (
-			final int anInteger)
-	{
-		_count = anInteger;
-		return this;
-	}
-
-
-
-	// nybblecodes
 
 	@Override
 	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+		final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
-		L1Operation.L1_doMakeList.writeTo(aStream);
-		writeIntegerOn(_count, aStream);
+		L1Operation.L1_doMakeTuple.writeTo(aStream);
+		writeIntegerOn(count, aStream);
 	}
 
 
-
-
+	/**
+	 * Construct a new {@link AvailMakeTuple} that consumes the specified number
+	 * of elements from the stack to create a tuple.
+	 *
+	 * @param count The number of stack elements to pop to make a tuple.
+	 */
+	public AvailMakeTuple (final int count)
+	{
+		this.count = count;
+	}
 
 }
