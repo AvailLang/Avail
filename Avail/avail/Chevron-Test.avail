@@ -55,10 +55,10 @@ Assert Spam = 1;
 Assert Spam Spam Spam Spam = 4;
 
 Method "«%‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
-	||x||;
+	x;
 ];
 
-Assert %10%20%30% = 4;
-Assert %1%1%1%1%1% = 6;
-Assert %0% = 2;
-Assert % = 1;
+Assert %10%20%30% = <<10>,<20>,<30>,<>>;
+Assert %1%1%1%1%1% = <<1>,<1>,<1>,<1>,<1>,<>>;
+Assert %0% = <<0>,<>>;
+Assert % = <<>>;
