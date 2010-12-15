@@ -53,7 +53,7 @@ Names
 Body
 
 /** The compiler needs this in order to specify "tuple type". */
-privateTupleType ::= Special Object 35;
+privateTupleType ::= Special Object 33;
 
 /**
  * @returns The basic type of any {@code tuple}.
@@ -64,7 +64,7 @@ Method "tuple type" is
 ] : meta;
 
 /** The compiler needs this in order to specify "tuple". */
-privateTuple ::= Special Object 34;
+privateTuple ::= Special Object 32;
 
 /**
  * @returns The type {@code tuple}.
@@ -91,7 +91,7 @@ Method "<>" is
 ] : type of private <>;
 
 /** The compiler needs this in order to specify "set type". */
-privateSetType ::= Special Object 29;
+privateSetType ::= Special Object 27;
 
 /**
  * @returns The basic type of any {@code set}.
@@ -102,7 +102,7 @@ Method "set type" is
 ] : meta;
 
 /** The compiler needs this in order to specify "set". */
-privateSet ::= Special Object 28;
+privateSet ::= Special Object 26;
 
 /**
  * @returns The type {@code set}.
@@ -113,7 +113,7 @@ Method "set" is
 ] : set type;
 
 /** The compiler needs this in order to specify "map". */
-privateMap ::= Special Object 21;
+privateMap ::= Special Object 19;
 
 /**
  * @returns The basic type of any {@code map}.

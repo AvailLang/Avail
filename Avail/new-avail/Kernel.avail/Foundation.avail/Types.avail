@@ -56,7 +56,7 @@ Name
 Body
 
 /** The compiler needs this in order to specify "meta". */
-privateMeta ::= Special Object 22;
+privateMeta ::= Special Object 20;
 
 /**
  * Answer {@code meta}, the ultimate type of every type, including itself.
@@ -69,7 +69,7 @@ Method "meta" is
 ] : privateMeta;
 
 /** The compiler needs this in order to specify "type". */
-privateType ::= Special Object 36;
+privateType ::= Special Object 34;
 
 /**
  * @returns The meta-type {@code type}.
@@ -80,7 +80,7 @@ Method "type" is
 ] : meta;
 
 /** The compiler needs this in order to specify "void". */
-privateVoid ::= Special Object 37;
+privateVoid ::= Special Object 35;
 
 /**
  * Answer the most general type. {@code void} as the return type of a block
@@ -107,7 +107,7 @@ Method "all" is
 ] : type;
 
 /** The compiler needs this in order to specify "terminates type". */
-privateTerminatesType ::= Special Object 32;
+privateTerminatesType ::= Special Object 30;
 
 /**
  * Answer the ultimate subtype of {@code type}.
@@ -120,7 +120,7 @@ Method "terminates type" is
 ] : meta;
 
 /** The compiler needs this in order to specify "terminates". */
-privateTerminatesType ::= Special Object 31;
+privateTerminatesType ::= Special Object 29;
 
 /**
  * Answer the most specific type. {@code terminates} as the return type of a
@@ -134,7 +134,7 @@ Method "terminates" is
 ] : terminates type;
 
 /** The compiler needs this in order to specify "primitive type". */
-privatePrimitiveType ::= Special Object 26;
+privatePrimitiveType ::= Special Object 24;
 
 /**
  * @returns The type of most primitive types.

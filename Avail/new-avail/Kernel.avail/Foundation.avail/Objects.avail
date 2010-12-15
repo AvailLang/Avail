@@ -48,7 +48,7 @@ Names
 Body
 
 /** The compiler needs this in order to specify "object meta meta". */
-privateObjectMetaMeta ::= Special Object 24;
+privateObjectMetaMeta ::= Special Object 22;
 
 /**
  * @returns The type of {@code object meta}.
@@ -59,7 +59,7 @@ Method "object meta meta" is
 ] : meta;
 
 /** The compiler needs this in order to specify "object meta". */
-privateObjectMeta ::= Special Object 23;
+privateObjectMeta ::= Special Object 21;
 
 /**
  * @returns The type of {@code object type}.
@@ -70,7 +70,7 @@ Method "object meta" is
 ] : object meta meta;
 
 /** The compiler needs this in order to specify "object type". */
-privateObjectType ::= Special Object 25;
+privateObjectType ::= Special Object 23;
 
 /**
  * @returns The supertype of every user-defined type.

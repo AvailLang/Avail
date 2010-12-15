@@ -1396,15 +1396,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	public abstract boolean o_IsSupertypeOfListType (
-		final AvailObject object,
-		final AvailObject aListType);
-
-	/**
-	 * @param object
 	 * @param aMapType
 	 * @return
 	 */
@@ -2544,12 +2535,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	public abstract void o_Tuple (final AvailObject object, final AvailObject value);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -2584,14 +2569,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract int o_TupleIntAt (final AvailObject object, final int index);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_TupleType (
-		final AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -2692,15 +2669,6 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType);
-
-	/**
-	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	public abstract AvailObject o_TypeIntersectionOfListType (
-		final AvailObject object,
-		final AvailObject aListType);
 
 	/**
 	 * @param object
@@ -2846,15 +2814,6 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_TypeUnionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType);
-
-	/**
-	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	public abstract AvailObject o_TypeUnionOfListType (
-		final AvailObject object,
-		final AvailObject aListType);
 
 	/**
 	 * @param object
@@ -3934,19 +3893,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Tuple (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract int o_TupleSize (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_TupleType (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4192,24 +4139,6 @@ public abstract class AbstractDescriptor
 	public abstract boolean o_EqualsIntegerRangeType (
 		final AvailObject object,
 		final AvailObject another);
-
-	/**
-	 * @param object
-	 * @param aList
-	 * @return
-	 */
-	public abstract boolean o_EqualsList (
-		final AvailObject object,
-		final AvailObject aList);
-
-	/**
-	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	public abstract boolean o_EqualsListType (
-		final AvailObject object,
-		final AvailObject aListType);
 
 	/**
 	 * @param object
@@ -4495,12 +4424,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsList (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract boolean o_IsMap (final AvailObject object);
 
 	/**
@@ -4636,12 +4559,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract boolean o_IsIntegerRangeType (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract boolean o_IsListType (final AvailObject object);
 
 	/**
 	 * @param object

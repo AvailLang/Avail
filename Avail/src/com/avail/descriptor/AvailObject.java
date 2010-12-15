@@ -32,19 +32,13 @@
 
 package com.avail.descriptor;
 
-import java.io.CharArrayWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Generator;
+import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
-import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
-import com.avail.visitor.AvailSubobjectVisitor;
+import com.avail.visitor.*;
 
 /**
  * This is the base type for all Objects in Avail.  An AvailObject must keep
@@ -54,7 +48,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * {@code Descriptor}, passing the AvailObject as an additional first argument.
  * The redirected messages in {@code Descriptor} have the prefix "o_", both to
  * make them stand out better and to indicate the additional first argument.
- * 
+ *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @param <DescriptorType>
  */
@@ -212,7 +206,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Extract the byte at the given one-based byte subscript within the
 	 * specified field.  Always use little endian encoding.
-	 * 
+	 *
 	 * @param e An enumeration value representing an integer field.
 	 * @param byteSubscript Which byte to extract.
 	 * @return The unsigned byte as a short.
@@ -225,7 +219,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Replace the byte at the given one-based byte subscript within the
 	 * specified field.  Always use little endian encoding.
-	 * 
+	 *
 	 * @param e An enumeration value representing an integer field.
 	 * @param byteSubscript Which byte to extract.
 	 * @param aByte The unsigned byte to write, passed as a short.
@@ -270,7 +264,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Extract the (signed 32-bit) integer for the given field enum value.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return An int extracted from this AvailObject.
 	 */
@@ -281,7 +275,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Store the (signed 32-bit) integer in the four bytes starting at the
 	 * given field enum value.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param anInteger An int to store in the indicated slot of the receiver.
 	 */
@@ -292,7 +286,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Extract the (signed 32-bit) integer at the given field enum value.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
 	 * @return An int extracted from this AvailObject.
@@ -305,7 +299,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Store the (signed 32-bit) integer in the four bytes starting at the
 	 * given field enum value.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
 	 * @param anInteger An int to store in the indicated slot of the receiver.
@@ -322,7 +316,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Store the AvailObject in the receiver at the given byte-index.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return The AvailObject found at the specified slot in the receiver.
 	 */
@@ -332,7 +326,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Store the AvailObject in the specified slot of the receiver.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param anAvailObject The AvailObject to store at the specified slot.
 	 */
@@ -343,7 +337,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Extract the AvailObject at the specified slot of the receiver.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
 	 * @return The AvailObject found at the specified slot in the receiver.
@@ -355,7 +349,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Store the AvailObject in the specified slot of the receiver.
-	 * 
+	 *
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
 	 * @param anAvailObject The AvailObject to store at the specified slot.
@@ -377,7 +371,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Answer whether the objects occupy the same memory addresses.
-	 * 
+	 *
 	 * @param anotherObject The object to compare the receiver's address to.
 	 * @return Whether the objects occupy the same storage.
 	 */
@@ -399,7 +393,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
-	 * 
+	 *
 	 * @param INDEX The index in bytes (must be even).
 	 * @return The short found at the given byte-index.
 	 */
@@ -409,7 +403,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Store the (16-bit signed) short at the given byte-index of the receiver.
-	 * 
+	 *
 	 * @param INDEX The index in bytes (must be even).
 	 * @param aShort The short to store at the given byte-index.
 	 */
@@ -426,7 +420,7 @@ implements Iterable<AvailObject>
 	 * post-header slots (i.e., just the header), but the left object must not,
 	 * since it may turn into an Indirection some day and will require at least
 	 * one slot for the target pointer.
-	 * 
+	 *
 	 * @param newSlotsCount The number of slots in the left object.
 	 */
 	abstract public void truncateWithFillerForNewIntegerSlotsCount (
@@ -516,20 +510,20 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.createWellKnownObjects();
 	}
 
-	public static void error(Object... args)
+	public static void error(final Object... args)
 	{
 		throw new RuntimeException((String)args[0]);
 	};
 
-	public static AvailObject newIndexedDescriptor(int size, AbstractDescriptor descriptor)
+	public static AvailObject newIndexedDescriptor(final int size, final AbstractDescriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newIndexedDescriptor(size, descriptor);
 	};
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
-		int variableObjectSlots,
-		int variableIntegerSlots,
-		AbstractDescriptor descriptor)
+		final int variableObjectSlots,
+		final int variableIntegerSlots,
+		final AbstractDescriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newObjectIndexedIntegerIndexedDescriptor(
 			variableObjectSlots,
@@ -549,11 +543,11 @@ implements Iterable<AvailObject>
 	private final static List<AvailObject> LockedObjects =
 		new ArrayList<AvailObject>(10);
 
-	public static void lock (AvailObject obj)
+	public static void lock (final AvailObject obj)
 	{
 		LockedObjects.add(obj);
 	};
-	public static void unlock (AvailObject obj)
+	public static void unlock (final AvailObject obj)
 	{
 		AvailObject popped = LockedObjects.remove(LockedObjects.size() - 1);
 		assert popped == obj;
@@ -562,7 +556,7 @@ implements Iterable<AvailObject>
 	private static boolean CanAllocateObjects = true;
 	private static boolean CanDestroyObjects = true;
 
-	public static void CanAllocateObjects (boolean flag)
+	public static void CanAllocateObjects (final boolean flag)
 	{
 		CanAllocateObjects = flag;
 	}
@@ -572,7 +566,7 @@ implements Iterable<AvailObject>
 		return CanAllocateObjects;
 	}
 
-	public static void CanDestroyObjects (boolean flag)
+	public static void CanDestroyObjects (final boolean flag)
 	{
 		CanDestroyObjects = flag;
 	}
@@ -1958,24 +1952,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsList (
-		final AvailObject aList)
-	{
-		return descriptor().o_EqualsList(this, aList);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean equalsListType (
-		final AvailObject aListType)
-	{
-		return descriptor().o_EqualsListType(this, aListType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public boolean equalsMap (
 		final AvailObject aMap)
 	{
@@ -2812,22 +2788,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isList ()
-	{
-		return descriptor().o_IsList(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean isListType ()
-	{
-		return descriptor().o_IsListType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public boolean isMap ()
 	{
 		return descriptor().o_IsMap(this);
@@ -2980,15 +2940,6 @@ implements Iterable<AvailObject>
 		final AvailObject anIntegerRangeType)
 	{
 		return descriptor().o_IsSupertypeOfIntegerRangeType(this, anIntegerRangeType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean isSupertypeOfListType (
-		final AvailObject aListType)
-	{
-		return descriptor().o_IsSupertypeOfListType(this, aListType);
 	}
 
 	/**
@@ -5044,23 +4995,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject tuple ()
-	{
-		return descriptor().o_Tuple(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void tuple (
-		final AvailObject value)
-	{
-		descriptor().o_Tuple(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject tupleAt (
 		final int index)
 	{
@@ -5110,23 +5044,6 @@ implements Iterable<AvailObject>
 	public int tupleSize ()
 	{
 		return descriptor().o_TupleSize(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject tupleType ()
-	{
-		return descriptor().o_TupleType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void tupleType (
-		final AvailObject value)
-	{
-		descriptor().o_TupleType(this, value);
 	}
 
 	/**
@@ -5251,15 +5168,6 @@ implements Iterable<AvailObject>
 		final AvailObject anIntegerRangeType)
 	{
 		return descriptor().o_TypeIntersectionOfIntegerRangeType(this, anIntegerRangeType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject typeIntersectionOfListType (
-		final AvailObject aListType)
-	{
-		return descriptor().o_TypeIntersectionOfListType(this, aListType);
 	}
 
 	/**
@@ -5416,15 +5324,6 @@ implements Iterable<AvailObject>
 		final AvailObject anIntegerRangeType)
 	{
 		return descriptor().o_TypeUnionOfIntegerRangeType(this, anIntegerRangeType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject typeUnionOfListType (
-		final AvailObject aListType)
-	{
-		return descriptor().o_TypeUnionOfListType(this, aListType);
 	}
 
 	/**

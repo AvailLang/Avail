@@ -136,16 +136,6 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		//  List types are covariant by their content type.
-
-		return false;
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
@@ -303,18 +293,6 @@ public abstract class TypeDescriptor extends Descriptor
 	public AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
-	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return Types.terminates.object();
-	}
-
-	@Override
-	public AvailObject o_TypeIntersectionOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -493,18 +471,6 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.  Note: list is not under the type all.
-		 */
-
-		return Types.voidType.object();
-	}
-
-	@Override
 	public AvailObject o_TypeUnionOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
@@ -661,7 +627,6 @@ public abstract class TypeDescriptor extends Descriptor
 		methodSignature(signature),
 		type(all, "meta"),
 		integerType(type, "meta"),
-		listType(type, "meta"),
 		mapType(type, "meta"),
 		meta(type, "meta"),
 		cyclicType(meta, "cyclicType"),
@@ -682,14 +647,14 @@ public abstract class TypeDescriptor extends Descriptor
 		protected AvailObject object;
 
 		// Constructors
-		Types (Types parent, String myTypeName, AbstractDescriptor descriptor)
+		Types (final Types parent, final String myTypeName, final AbstractDescriptor descriptor)
 		{
 			this.parent = parent;
 			this.myTypeName = myTypeName;
 			this.descriptor = descriptor;
 		}
 
-		Types (Types parent, String myTypeName)
+		Types (final Types parent, final String myTypeName)
 		{
 			this(
 				parent,
@@ -697,7 +662,7 @@ public abstract class TypeDescriptor extends Descriptor
 				PrimitiveTypeDescriptor.mutableDescriptor());
 		}
 
-		Types (Types parent)
+		Types (final Types parent)
 		{
 			this(parent,"primType");
 		}

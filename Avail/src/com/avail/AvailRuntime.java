@@ -135,32 +135,29 @@ public final class AvailRuntime
 		specialObjects[17] =
 			IntegerRangeTypeDescriptor.integers().makeImmutable();
 		specialObjects[18] = Types.integerType.object();
-		specialObjects[19] = ListTypeDescriptor.listTypeForTupleType(
-			TupleTypeDescriptor.mostGeneralTupleType()).makeImmutable();
-		specialObjects[20] = Types.listType.object();
-		specialObjects[21] = Types.mapType.object();
-		specialObjects[22] = Types.meta.object();
-		specialObjects[23] = ObjectTypeDescriptor.objectTypeFromMap(
+		specialObjects[19] = Types.mapType.object();
+		specialObjects[20] = Types.meta.object();
+		specialObjects[21] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().type().makeImmutable();
-		specialObjects[24] = ObjectTypeDescriptor.objectTypeFromMap(
+		specialObjects[22] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().type().type().makeImmutable();
-		specialObjects[25] = ObjectTypeDescriptor.objectTypeFromMap(
+		specialObjects[23] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().makeImmutable();
-		specialObjects[26] = Types.primType.object();
-		specialObjects[27] = Types.process.object();
-		specialObjects[28] = SetTypeDescriptor.setTypeForSizesContentType(
+		specialObjects[24] = Types.primType.object();
+		specialObjects[25] = Types.process.object();
+		specialObjects[26] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(), Types.all.object())
 				.makeImmutable();
-		specialObjects[29] = Types.setType.object();
-		specialObjects[30] = TupleTypeDescriptor.stringTupleType();
-		specialObjects[31] = Types.terminates.object();
-		specialObjects[32] = Types.terminatesType.object();
-		specialObjects[33] = Types.trueType.object();
-		specialObjects[34] =
+		specialObjects[27] = Types.setType.object();
+		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
+		specialObjects[29] = Types.terminates.object();
+		specialObjects[30] = Types.terminatesType.object();
+		specialObjects[31] = Types.trueType.object();
+		specialObjects[32] =
 			TupleTypeDescriptor.mostGeneralTupleType().makeImmutable();
-		specialObjects[35] = Types.tupleType.object();
-		specialObjects[36] = Types.type.object();
-		specialObjects[37] = Types.voidType.object();
+		specialObjects[33] = Types.tupleType.object();
+		specialObjects[34] = Types.type.object();
+		specialObjects[35] = Types.voidType.object();
 
 		// Code reflection
 		specialObjects[40] = Types.messageBundle.object();

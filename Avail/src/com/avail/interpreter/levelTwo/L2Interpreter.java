@@ -49,8 +49,9 @@ import com.avail.interpreter.levelOne.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-final public class L2Interpreter extends Interpreter implements
-L2OperationDispatcher
+final public class L2Interpreter
+extends Interpreter
+implements L2OperationDispatcher
 {
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
@@ -2128,20 +2129,6 @@ L2OperationDispatcher
 			tuple.tupleAtPut(i, pointerAt(indices.tupleAt(i).extractInt()));
 		}
 		pointerAtPut(destIndex, tuple);
-	}
-
-	@Override
-	public void L2_doConvertTupleObject_toListObject_ ()
-	{
-		int tupleObject = nextWord();
-		int destObject = nextWord();
-		final AvailObject tuple = pointerAt(tupleObject);
-		assert tuple.isTuple();
-		final AvailObject list = AvailObject.newIndexedDescriptor(
-			0,
-			ListDescriptor.mutableDescriptor());
-		list.tuple(tuple);
-		pointerAtPut(destObject, list);
 	}
 
 	@Override

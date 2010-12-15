@@ -1453,7 +1453,7 @@ public enum Primitive
 			for (int i = 1, _end7 = aClosure.numOuterVars(); i <= _end7; i++)
 			{
 				final AvailObject outer = aClosure.outerVarAt(i);
-				if (outer.equalsVoid() || outer.isList())
+				if (outer.equalsVoid())
 				{
 					newTupleObject.tupleAtPut(i, IntegerDescriptor.zero());
 				}
@@ -3116,7 +3116,7 @@ public enum Primitive
 			for (int i = 1, _end11 = tupleObject.tupleSize(); i <= _end11; i++)
 			{
 				literal = cc.literalAt(i);
-				if (literal.equalsVoid() || literal.isList())
+				if (literal.equalsVoid())
 				{
 					literal = IntegerDescriptor.zero();
 				}

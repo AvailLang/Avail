@@ -32,9 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 
 public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 {
@@ -238,17 +235,6 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
 		//  an integer range type - in particular, the degenerate integer type (INF..-INF).
-
-		return true;
-	}
-
-	@Override
-	public boolean o_IsListType (
-			final AvailObject object)
-	{
-		//  Because terminates is a subtype of all other types, it is even considered
-		//  a list type - in particular, the degenerate list type with terminates as its
-		//  embedded tupleType.
 
 		return true;
 	}

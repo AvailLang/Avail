@@ -33,16 +33,12 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Generator;
+import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
-import com.avail.visitor.AvailBeImmutableSubobjectVisitor;
-import com.avail.visitor.AvailSubobjectVisitor;
+import com.avail.visitor.*;
 
 public abstract class Descriptor extends AbstractDescriptor
 {
@@ -52,13 +48,13 @@ public abstract class Descriptor extends AbstractDescriptor
 	 *
 	 * @param isMutable
 	 */
-	public Descriptor (boolean isMutable)
+	public Descriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 
-	public void subclassResponsibility(Object... args)
+	public void subclassResponsibility(final Object... args)
 	{
 		error(args);
 	}
@@ -71,7 +67,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	/**
 	 * Visit all of the object's object slots, passing the parent and child
 	 * objects to the provided visitor.
-	 * 
+	 *
 	 * @param object The object to scan.
 	 * @param visitor The visitor to invoke.
 	 */
@@ -1919,22 +1915,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	@Override
-	public boolean o_IsSupertypeOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:isSupertypeOfListType:", object);
-		return false;
-	}
-
-	/**
-	 * @param object
 	 * @param aMapType
 	 * @return
 	 */
@@ -3460,7 +3440,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	@Override
 	public boolean o_RemoveBundle (
 		final AvailObject object,
-		AvailObject bundle)
+		final AvailObject bundle)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -4066,21 +4046,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Tuple (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:tuple:", object);
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -4146,21 +4111,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 		subclassResponsibility("Object:tupleIntAt:", object);
 		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_TupleType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:tupleType:", object);
-		return;
 	}
 
 	/**
@@ -4339,22 +4289,6 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("Object:typeIntersectionOfIntegerRangeType:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	@Override
-	public AvailObject o_TypeIntersectionOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:typeIntersectionOfListType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4612,22 +4546,6 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("Object:typeUnionOfIntegerRangeType:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	@Override
-	public AvailObject o_TypeUnionOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:typeUnionOfListType:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7054,20 +6972,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Tuple (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_Tuple:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public int o_TupleSize (
 		final AvailObject object)
 	{
@@ -7075,20 +6979,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 		subclassResponsibility("o_TupleSize:", object);
 		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public AvailObject o_TupleType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_TupleType:", object);
-		return VoidDescriptor.voidObject();
 	}
 
 	/**
@@ -7529,32 +7419,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aList
-	 * @return
-	 */
-	@Override
-	public boolean o_EqualsList (
-		final AvailObject object,
-		final AvailObject aList)
-	{
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param aListType
-	 * @return
-	 */
-	@Override
-	public boolean o_EqualsListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		return false;
-	}
-
-	/**
-	 * @param object
 	 * @param aMap
 	 * @return
 	 */
@@ -7711,7 +7575,7 @@ public abstract class Descriptor extends AbstractDescriptor
 		//  Given two objects that are known to be equal, is the first one in a better form (more
 		//  compact, more efficient, older generation) than the second one?
 
-		return ((object.objectSlotsCount() + object.integerSlotsCount()) < (anotherObject.objectSlotsCount() + anotherObject.integerSlotsCount()));
+		return object.objectSlotsCount() + object.integerSlotsCount() < anotherObject.objectSlotsCount() + anotherObject.integerSlotsCount();
 	}
 
 	/**
@@ -8091,21 +7955,6 @@ public abstract class Descriptor extends AbstractDescriptor
 
 
 
-	// operations-lists
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public boolean o_IsList (
-		final AvailObject object)
-	{
-		return false;
-	}
-
-
-
 	// operations-maps
 
 	/**
@@ -8284,7 +8133,7 @@ public abstract class Descriptor extends AbstractDescriptor
 
 		assert mutableTuple.descriptor().isMutable();
 		mutableTuple.tupleAtPut(startingIndex, object);
-		return (startingIndex + 1);
+		return startingIndex + 1;
 	}
 
 	/**
@@ -8418,17 +8267,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsListType (
-		final AvailObject object)
-	{
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public boolean o_IsMapType (
 		final AvailObject object)
 	{
@@ -8501,8 +8339,8 @@ public abstract class Descriptor extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ParsingInstructions (
-		AvailObject object,
-		AvailObject instructionsTuple)
+		final AvailObject object,
+		final AvailObject instructionsTuple)
 	{
 		subclassResponsibility("o_ParsingInstructions", object);
 	}
@@ -8512,7 +8350,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public AvailObject o_ParsingInstructions (AvailObject object)
+	public AvailObject o_ParsingInstructions (final AvailObject object)
 	{
 		subclassResponsibility("o_ParsingInstructions", object);
 		return null;

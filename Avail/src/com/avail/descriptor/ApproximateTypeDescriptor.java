@@ -32,13 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.*;
+import java.util.List;
 
 /**
  * My instances are cheaply constructed type proxies, representing the type of a
@@ -110,7 +106,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		//  check.
 
 		final AvailObject inst = object.instance();
-		return (inst.canComputeHashOfType() ? inst.typeEquals(another) : object.becomeExactType().equals(another));
+		return inst.canComputeHashOfType() ? inst.typeEquals(another) : object.becomeExactType().equals(another);
 	}
 
 	@Override
@@ -175,7 +171,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		//  statistically different for different objects.
 
 		final AvailObject inst = object.instance();
-		return (inst.canComputeHashOfType() ? inst.hashOfType() : object.becomeExactType().hash());
+		return inst.canComputeHashOfType() ? inst.hashOfType() : object.becomeExactType().hash();
 	}
 
 	@Override
@@ -209,7 +205,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject aClosureType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aClosureType) : object.becomeExactType().equalsClosureType(aClosureType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aClosureType) : object.becomeExactType().equalsClosureType(aClosureType);
 	}
 
 	@Override
@@ -217,7 +213,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject aContainerType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aContainerType) : object.becomeExactType().equalsContainerType(aContainerType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aContainerType) : object.becomeExactType().equalsContainerType(aContainerType);
 	}
 
 	@Override
@@ -241,7 +237,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	{
 		//  This is always false here, but we can leave that to the type propagating Java VM generator to deduce.
 
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aGeneralizedClosureType) : object.becomeExactType().equalsGeneralizedClosureType(aGeneralizedClosureType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aGeneralizedClosureType) : object.becomeExactType().equalsGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
 	@Override
@@ -249,19 +245,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject anIntegerRangeType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(anIntegerRangeType) : object.becomeExactType().equalsIntegerRangeType(anIntegerRangeType));
-	}
-
-	@Override
-	public boolean o_EqualsListType (
-			final AvailObject object,
-			final AvailObject aListType)
-	{
-		if (object.instance().isList())
-		{
-			return object.instance().tuple().type().equals(aListType.tupleType());
-		}
-		return false;
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(anIntegerRangeType) : object.becomeExactType().equalsIntegerRangeType(anIntegerRangeType);
 	}
 
 	@Override
@@ -269,7 +253,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject aMapType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aMapType) : object.becomeExactType().equalsMapType(aMapType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aMapType) : object.becomeExactType().equalsMapType(aMapType);
 	}
 
 	@Override
@@ -277,7 +261,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject aPrimitiveType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aPrimitiveType) : object.becomeExactType().equalsPrimitiveType(aPrimitiveType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aPrimitiveType) : object.becomeExactType().equalsPrimitiveType(aPrimitiveType);
 	}
 
 	@Override
@@ -285,7 +269,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject aSetType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aSetType) : object.becomeExactType().equalsSetType(aSetType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aSetType) : object.becomeExactType().equalsSetType(aSetType);
 	}
 
 	@Override
@@ -293,7 +277,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			final AvailObject object,
 			final AvailObject aTupleType)
 	{
-		return (object.instance().canComputeHashOfType() ? object.instance().typeEquals(aTupleType) : object.becomeExactType().equalsTupleType(aTupleType));
+		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aTupleType) : object.becomeExactType().equalsTupleType(aTupleType);
 	}
 
 	@Override
@@ -345,23 +329,9 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 		if (object.instance().isExtendedInteger())
 		{
-			return (anIntegerRangeType.lowerBound().equals(object.instance()) && anIntegerRangeType.upperBound().equals(object.instance()));
+			return anIntegerRangeType.lowerBound().equals(object.instance()) && anIntegerRangeType.upperBound().equals(object.instance());
 		}
 		return object.becomeExactType().isSupertypeOfIntegerRangeType(anIntegerRangeType);
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfListType (
-			final AvailObject object,
-			final AvailObject aListType)
-	{
-		//  Redirect it to the exact type to be more precise.
-
-		if (object.instance().isList())
-		{
-			return object.instance().tuple().type().isSupertypeOfTupleType(aListType.tupleType());
-		}
-		return false;
 	}
 
 	@Override
@@ -492,16 +462,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
 
 		return object.becomeExactType().typeIntersectionOfIntegerRangeType(anIntegerRangeType);
-	}
-
-	@Override
-	public AvailObject o_TypeIntersectionOfListType (
-			final AvailObject object,
-			final AvailObject aListType)
-	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfListType(aListType);
 	}
 
 	@Override
@@ -637,16 +597,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfListType (
-			final AvailObject object,
-			final AvailObject aListType)
-	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		return object.becomeExactType().typeUnionOfListType(aListType);
-	}
-
-	@Override
 	public AvailObject o_TypeUnionOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
@@ -753,20 +703,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 
 
 
-	// operations-lists
-
-	@Override
-	public AvailObject o_TupleType (
-			final AvailObject object)
-	{
-		//  I must support this in case I represent a listType.  I simply go to my
-		//  instance, get its tuple, and take its approximate type.
-
-		return object.instance().tuple().type();
-	}
-
-
-
 	// operations-tupleType
 
 	@Override
@@ -784,7 +720,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			error("Don't send typeAtIndex: to a non-tupleType", object);
 			return VoidDescriptor.voidObject();
 		}
-		if ((1 <= index && index <= object.instance().tupleSize()))
+		if (1 <= index && index <= object.instance().tupleSize())
 		{
 			return object.instance().tupleAt(index).type();
 		}
@@ -801,7 +737,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		//  given range of indices.  Out-of-range indices are treated as terminates,
 		//  which don't affect the union (unless all indices are out of range).
 
-		assert (startIndex <= endIndex);
+		assert startIndex <= endIndex;
 		assert object.isTupleType();
 		if (startIndex == endIndex)
 		{
@@ -834,7 +770,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			error("Don't send defaultType to a non-tupleType", object);
 			return VoidDescriptor.voidObject();
 		}
-		if ((object.instance().tupleSize() == 0))
+		if (object.instance().tupleSize() == 0)
 		{
 			return Types.terminates.object();
 		}
@@ -885,13 +821,6 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsListType (
-			final AvailObject object)
-	{
-		return object.instance().isList();
-	}
-
-	@Override
 	public boolean o_IsMapType (
 			final AvailObject object)
 	{
@@ -919,11 +848,11 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	/**
 	 * Answer a new instance of this descriptor based on some object whose type
 	 * it will represent.
-	 * 
+	 *
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	static AvailObject withInstance (AvailObject instance)
+	static AvailObject withInstance (final AvailObject instance)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(0, ApproximateTypeDescriptor.mutableDescriptor());
 		result.instance(instance.makeImmutable());

@@ -94,7 +94,7 @@ Method "closure" is
 ] : closure type;
 
 /** This is required to bootstrap "[«_‡,»]->_". */
-privateTuple ::= Special Object 34;
+privateTuple ::= Special Object 32;
 
 /**
  * Answer the type of a {@code closure} with the specified signature.
@@ -144,7 +144,7 @@ Method "compiled code" is
 ] : primitive type;
 
 /** The compiler needs this in order to specify "process". */
-privateProcess ::= Special Object 27;
+privateProcess ::= Special Object 25;
 
 /**
  * @return The type of a process.

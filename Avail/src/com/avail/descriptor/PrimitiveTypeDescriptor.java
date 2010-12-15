@@ -32,8 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
 public class PrimitiveTypeDescriptor extends TypeDescriptor
@@ -251,18 +249,6 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfListType (
-			final AvailObject object,
-			final AvailObject aListType)
-	{
-		//  A list type's supertypes are all instances of listType until they reach void.  Note that
-		//  'all' is not in the hierarchy.  Thus object, a primitive type, is a supertype of aListType iff
-		//  object is a supertype of (i.e., equal to) void.
-
-		return Types.voidType.object().isSubtypeOf(object);
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfMapType (
 			final AvailObject object,
 			final AvailObject aMapType)
@@ -357,7 +343,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 		{
 			return another;
 		}
-		if ((object.isSubtypeOf(Types.type.object()) && another.isSubtypeOf(Types.type.object())))
+		if (object.isSubtypeOf(Types.type.object()) && another.isSubtypeOf(Types.type.object()))
 		{
 			return Types.terminatesType.object();
 		}
@@ -419,7 +405,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 
 	/**
 	 * Answer the descriptor instance that describes a mutable primitive type.
-	 * 
+	 *
 	 * @return a PrimitiveTypeDescriptor for mutable objects.
 	 */
 	public static PrimitiveTypeDescriptor mutableDescriptor ()
@@ -435,7 +421,7 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	/**
 	 * Answer the descriptor instance that describes an immutable primitive
 	 * type.
-	 * 
+	 *
 	 * @return a PrimitiveTypeDescriptor for immutable objects.
 	 */
 	public static PrimitiveTypeDescriptor immutableDescriptor ()

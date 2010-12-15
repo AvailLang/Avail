@@ -102,7 +102,6 @@ interface L2OperationDispatcher
 	void L2_doGetType_destObject_ ();
 	void L2_doSuperSend_argumentsVector_argumentTypesVector_ ();
 	void L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_ ();
-	void L2_doConvertTupleObject_toListObject_ ();
 	void L2_doConcatenateTuplesVector_destObject_ ();
 	void L2_doCreateSetOfSizeImmediate_valuesVector_destObject_ ();
 	void L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_ ();

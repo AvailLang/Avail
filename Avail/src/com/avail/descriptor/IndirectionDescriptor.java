@@ -1,21 +1,21 @@
 /**
  * descriptor/IndirectionDescriptor.java Copyright (c) 2010, Mark van Gulik. All
  * rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * 
+ *
  * * Neither the name of the copyright holder nor the names of the contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,12 +31,9 @@
 
 package com.avail.descriptor;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Generator;
+import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -185,7 +182,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 	/**
 	 * Construct a new {@link IndirectionDescriptor}.
-	 * 
+	 *
 	 * @param isMutable
 	 *            Does the {@linkplain Descriptor descriptor} represent a
 	 *            mutable object?
@@ -203,7 +200,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 	/**
 	 * Answer the mutable {@link IndirectionDescriptor}.
-	 * 
+	 *
 	 * @return The mutable {@link IndirectionDescriptor}.
 	 */
 	public static IndirectionDescriptor mutableDescriptor ()
@@ -219,7 +216,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 	/**
 	 * Answer the immutable {@link IndirectionDescriptor}.
-	 * 
+	 *
 	 * @return The immutable {@link IndirectionDescriptor}.
 	 */
 	public static IndirectionDescriptor immutableDescriptor ()
@@ -1058,22 +1055,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_EqualsList (
-		final AvailObject object,
-		final AvailObject aList)
-	{
-		return o_Traversed(object).equalsList(aList);
-	}
-
-	@Override
-	public boolean o_EqualsListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		return o_Traversed(object).equalsListType(aListType);
-	}
-
-	@Override
 	public boolean o_EqualsMap (final AvailObject object, final AvailObject aMap)
 	{
 		return o_Traversed(object).equalsMap(aMap);
@@ -1504,14 +1485,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		return o_Traversed(object).isSupertypeOfListType(aListType);
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
@@ -1632,7 +1605,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Literal (AvailObject object, AvailObject value)
+	public void o_Literal (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).literal(value);
 	}
@@ -2262,7 +2235,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	@Override
 	public boolean o_RemoveBundle (
 		final AvailObject object,
-		AvailObject bundle)
+		final AvailObject bundle)
 	{
 		return o_Traversed(object).removeBundle(
 			bundle);
@@ -2457,7 +2430,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Start (AvailObject object, int value)
+	public void o_Start (final AvailObject object, final int value)
 	{
 		o_Traversed(object).start(value);
 	}
@@ -2483,7 +2456,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_String (AvailObject object, AvailObject value)
+	public void o_String (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).string(value);
 	}
@@ -2528,7 +2501,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_TokenType (AvailObject object, TokenDescriptor.TokenType value)
+	public void o_TokenType (final AvailObject object, final TokenDescriptor.TokenType value)
 	{
 		o_Traversed(object).tokenType(value);
 	}
@@ -2556,12 +2529,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 		final int newTupleSize)
 	{
 		return o_Traversed(object).truncateTo(newTupleSize);
-	}
-
-	@Override
-	public void o_Tuple (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).tuple(value);
 	}
 
 	@Override
@@ -2596,12 +2563,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).tupleIntAt(index);
-	}
-
-	@Override
-	public void o_TupleType (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).tupleType(value);
 	}
 
 	@Override
@@ -2705,14 +2666,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	{
 		return o_Traversed(object).typeIntersectionOfIntegerRangeType(
 			anIntegerRangeType);
-	}
-
-	@Override
-	public AvailObject o_TypeIntersectionOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		return o_Traversed(object).typeIntersectionOfListType(aListType);
 	}
 
 	@Override
@@ -2846,14 +2799,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	{
 		return o_Traversed(object).typeUnionOfIntegerRangeType(
 			anIntegerRangeType);
-	}
-
-	@Override
-	public AvailObject o_TypeUnionOfListType (
-		final AvailObject object,
-		final AvailObject aListType)
-	{
-		return o_Traversed(object).typeUnionOfListType(aListType);
 	}
 
 	@Override
@@ -3588,18 +3533,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsList (final AvailObject object)
-	{
-		return o_Traversed(object).isList();
-	}
-
-	@Override
-	public boolean o_IsListType (final AvailObject object)
-	{
-		return o_Traversed(object).isListType();
-	}
-
-	@Override
 	public boolean o_IsMap (final AvailObject object)
 	{
 		return o_Traversed(object).isMap();
@@ -3723,7 +3656,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_Literal (AvailObject object)
+	public AvailObject o_Literal (final AvailObject object)
 	{
 		return o_Literal(object);
 	}
@@ -4090,7 +4023,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_Start (AvailObject object)
+	public int o_Start (final AvailObject object)
 	{
 		return o_Traversed(object).start();
 	}
@@ -4108,7 +4041,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_String (AvailObject object)
+	public AvailObject o_String (final AvailObject object)
 	{
 		return o_Traversed(object).string();
 	}
@@ -4120,7 +4053,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public TokenDescriptor.TokenType o_TokenType (AvailObject object)
+	public TokenDescriptor.TokenType o_TokenType (final AvailObject object)
 	{
 		return o_Traversed(object).tokenType();
 	}
@@ -4132,21 +4065,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_Tuple (final AvailObject object)
-	{
-		return o_Traversed(object).tuple();
-	}
-
-	@Override
 	public int o_TupleSize (final AvailObject object)
 	{
 		return o_Traversed(object).tupleSize();
-	}
-
-	@Override
-	public AvailObject o_TupleType (final AvailObject object)
-	{
-		return o_Traversed(object).tupleType();
 	}
 
 	@Override
@@ -4241,22 +4162,22 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 	@Override
 	public void o_ParsingInstructions (
-		AvailObject object,
-		AvailObject instructionsTuple)
+		final AvailObject object,
+		final AvailObject instructionsTuple)
 	{
 		o_Traversed(object).parsingInstructions(instructionsTuple);
 	}
 
 	@Override
-	public AvailObject o_ParsingInstructions (AvailObject object)
+	public AvailObject o_ParsingInstructions (final AvailObject object)
 	{
 		return o_Traversed(object).parsingInstructions();
 	}
 
 	@Override
 	public void o_mapDo (
-		AvailObject object,
-		Continuation2<AvailObject, AvailObject> continuation)
+		final AvailObject object,
+		final Continuation2<AvailObject, AvailObject> continuation)
 	{
 		o_Traversed(object).mapDo(continuation);
 	}

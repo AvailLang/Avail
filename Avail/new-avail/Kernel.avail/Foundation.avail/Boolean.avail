@@ -75,7 +75,7 @@ Method "false" is
 ] : privateFalseType;
 
 /** The compiler needs this in order to specify "true". */
-privateTrueType ::= Special Object 33;
+privateTrueType ::= Special Object 31;
 privateTrue ::= Special Object 70;
 
 /**

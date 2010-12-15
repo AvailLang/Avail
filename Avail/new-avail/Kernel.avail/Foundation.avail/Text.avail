@@ -59,7 +59,7 @@ Method "character" is
 ] : primitive type;
 
 /** The compiler needs this in order to specify "string". */
-privateString ::= Special Object 30;
+privateString ::= Special Object 28;
 
 /**
  * @return The type {@code string}.
