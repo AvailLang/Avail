@@ -32,16 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.levelOne.AvailDecompiler;
-import com.avail.interpreter.levelOne.L1Instruction;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
+import static java.util.Arrays.fill;
 import java.util.List;
-import static java.util.Arrays.*;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.*;
 
 public class ClosureDescriptor extends Descriptor
 {
@@ -176,10 +171,10 @@ public class ClosureDescriptor extends Descriptor
 		//  0 or something), it's ok because nobody could know what the hash value
 		//  *used to be* for this closure.
 
-		int hash = (object.code().hash() ^ 0x1386D4F6);
+		int hash = object.code().hash() ^ 0x1386D4F6;
 		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
 		{
-			hash = ((hash * 13) + object.outerVarAt(i).hash());
+			hash = hash * 13 + object.outerVarAt(i).hash();
 		}
 		return hash;
 	}
@@ -274,20 +269,20 @@ public class ClosureDescriptor extends Descriptor
 		return object.objectSlotsCount() - numberOfFixedObjectSlots();
 	}
 
-	
+
 	/**
 	 * Create a closure that accepts a specific number of arguments and always
 	 * returns the specified constant value.  The arguments may be of any type
 	 * (except void or terminates), and in fact the closure types them as "all".
-	 * 
+	 *
 	 * @param numArgs The number of arguments to accept.
 	 * @param constantResult The constant that the new closure should always
 	 *                       produce.
 	 * @return A closure that takes N arguments and returns a constant.
 	 */
 	public static AvailObject newStubForNumArgsConstantResult (
-			int numArgs,
-			AvailObject constantResult)
+			final int numArgs,
+			final AvailObject constantResult)
 	{
 		L1InstructionWriter writer = new L1InstructionWriter();
 
@@ -295,10 +290,12 @@ public class ClosureDescriptor extends Descriptor
 		fill(argTypes, Types.all.object());
 		writer.argumentTypes(argTypes);
 		writer.returnType(constantResult.type());
-
-		writer.write(new L1Instruction(
-			L1Operation.L1_doPushLiteral, writer.addLiteral(constantResult)));
-
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(constantResult)));
+		writer.primitiveNumber(
+			Primitive.prim340_PushConstant_ignoreArgs.primitiveNumber);
 		AvailObject code = writer.compiledCode();
 		AvailObject closure =
 			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
@@ -314,7 +311,7 @@ public class ClosureDescriptor extends Descriptor
 	 * that message is specified here, and the second argument is a list of the
 	 * arguments supplied to the closure we're creating.  Ensure the send
 	 * returns a value that complies with resultType.
-	 * 
+	 *
 	 * @param argTypes The types of arguments the new closure should accept.
 	 * @param implementationSet The two-argument message the new closure should
 	 *                          invoke.
@@ -324,11 +321,11 @@ public class ClosureDescriptor extends Descriptor
 	 * @return A closure which accepts arguments of the given types and produces
 	 *         a value of the specified type.
 	 */
-	public static AvailObject newStubCollectingArgsWithTypesIntoAListAndSendingImplementationSetFirstArgumentResultType (
-			AvailObject argTypes,
-			AvailObject implementationSet,
-			AvailObject firstArg,
-			AvailObject resultType)
+	public static AvailObject newStubWithArgTypes (
+			final AvailObject argTypes,
+			final AvailObject implementationSet,
+			final AvailObject firstArg,
+			final AvailObject resultType)
 	{
 		int numArgs = argTypes.tupleSize();
 		AvailObject [] argTypesArray = new AvailObject[numArgs];
@@ -359,9 +356,10 @@ public class ClosureDescriptor extends Descriptor
 
 		AvailObject code = writer.compiledCode();
 
-		AvailObject closure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
-			code,
-			TupleDescriptor.empty());
+		AvailObject closure =
+			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
+				code,
+				TupleDescriptor.empty());
 		closure.makeImmutable();
 		return closure;
 	}
@@ -369,25 +367,27 @@ public class ClosureDescriptor extends Descriptor
 
 	/**
 	 * Construct a closure with the given code and tuple of copied variables.
-	 * 
+	 *
 	 * @param code The code with which to build the closure.
 	 * @param copiedTuple The outer variables and constants to enclose.
 	 * @return A closure.
 	 */
 	public static AvailObject newMutableObjectWithCodeAndCopiedTuple (
-			AvailObject code,
-			AvailObject copiedTuple)
+			final AvailObject code,
+			final AvailObject copiedTuple)
 	{
 		AvailObject object = AvailObject.newIndexedDescriptor (
 			copiedTuple.tupleSize(),
 			ClosureDescriptor.mutableDescriptor());
 		object.code (code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
+		{
 			object.outerVarAtPut (i, copiedTuple.tupleAt (i));
+		}
 		return object;
 	};
 
-	
+
 	/**
 	 * Construct a new {@link ClosureDescriptor}.
 	 *
@@ -399,7 +399,7 @@ public class ClosureDescriptor extends Descriptor
 	{
 		super(isMutable);
 	}
-	
+
 	/**
 	 * The mutable {@link ClosureDescriptor}.
 	 */

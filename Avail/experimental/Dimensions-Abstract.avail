@@ -46,7 +46,7 @@ Method "Dimension_" is [name : string |
 
 
 
-MultiDimensionType ::= explicit subtype of Object;
+MultiDimensionType is explicit subtype of Object;
 
 M ::= Dimension with units "m";
 

@@ -1,21 +1,21 @@
 /**
  * compiler/AvailSendNode.java Copyright (c) 2010, Mark van Gulik. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * 
+ *
  * * Neither the name of the copyright holder nor the names of the contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,12 +31,9 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.AvailParseNode;
+import java.util.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AvailSendNode extends AvailParseNode
 {
@@ -90,7 +87,7 @@ public class AvailSendNode extends AvailParseNode
 	/**
 	 * Answer this message send's expected return type.  Make it immutable so
 	 * that multiple requests avoid accidental sharing.
-	 * 
+	 *
 	 * @return The type of this message send.
 	 */
 	public AvailObject returnType ()
@@ -100,7 +97,7 @@ public class AvailSendNode extends AvailParseNode
 
 	/**
 	 * Set this message send's expected return type.
-	 * 
+	 *
 	 * @param aType The type this message send should return.
 	 */
 	public void returnType (final AvailObject aType)
@@ -171,48 +168,36 @@ public class AvailSendNode extends AvailParseNode
 	@Override
 	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
-		//TODO: Update this for repeated arguments.
-		//@see MessageSplitter.
-		int underscores = 0;
-		for (int charIndex = 1, _end1 = _message.name().tupleSize(); charIndex <= _end1; charIndex++)
+		final boolean nicePrinting = true;
+		if (nicePrinting)
 		{
-			if ((((char) (_message.name().tupleAt(charIndex).codePoint())) == '_'))
-			{
-				underscores++;
-			}
+			MessageSplitter splitter = new MessageSplitter(message().name());
+			splitter.printSendNodeOnIndent(
+				this,
+				aStream,
+				indent);
 		}
-		if (underscores != _arguments.size())
+		else
 		{
-			aStream.append("<An AvailSendNode with the wrong number of arguments>");
-			return;
-		}
-		int argIndex = 1;
-		for (int charIndex = 1, _end2 = _message.name().tupleSize(); charIndex <= _end2; charIndex++)
-		{
-			final char chr = ((char) (_message.name().tupleAt(charIndex)
-					.codePoint()));
-			if (chr == '_')
+			aStream.append("SendNode[");
+			aStream.append(message().name().asNativeString());
+			aStream.append("](");
+			boolean isFirst = true;
+			for (AvailParseNode arg : arguments())
 			{
-				if (charIndex > 1)
+				if (!isFirst)
 				{
-					aStream.append(' ');
+					aStream.append(",");
 				}
-				// No leading space for leading arguments
-				_arguments.get(argIndex - 1).printOnIndentIn(
-					aStream,
-					indent,
-					this);
-				if ((charIndex < _message.name().tupleSize()))
+				aStream.append("\n");
+				for (int i = indent; i >= 0; i--)
 				{
-					aStream.append(' ');
+					aStream .append("\t");
 				}
-				// No trailing space for trailing arguments
-				argIndex++;
+				arg.printOnIndentIn(aStream, indent + 1, this);
+				isFirst = false;
 			}
-			else
-			{
-				aStream.append(chr);
-			}
+			aStream.append(")");
 		}
 	}
 
@@ -222,9 +207,9 @@ public class AvailSendNode extends AvailParseNode
 		final int indent,
 		final AvailParseNode outerNode)
 	{
-		aStream.append('(');
+		// aStream.append('(');
 		printOnIndent(aStream, indent);
-		aStream.append(')');
+		// aStream.append(')');
 	}
 
 

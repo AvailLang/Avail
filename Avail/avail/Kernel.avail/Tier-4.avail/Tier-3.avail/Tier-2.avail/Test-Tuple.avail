@@ -35,6 +35,7 @@ Extends
 Uses
 	"Tier-1",
 	"BlockA",
+	"BlockB",
 	"Tuple"
 Names
 Body

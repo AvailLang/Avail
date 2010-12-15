@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
@@ -75,7 +75,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter anAvailInterpreter)
+			final Interpreter anAvailInterpreter)
 	{
 		//  We simply run the 'returns' block, passing in the static argument types from the call site.
 
@@ -92,7 +92,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter interpreter)
+			final Interpreter interpreter)
 	{
 		//  We simply run the 'requires' block, passing in the static arguments types from the call site.  The result of
 		//  the 'requires' block is an Avail boolean, which we convert before answering it.

@@ -57,12 +57,13 @@ p := Object new with <<x,1>,<y,{5,6,7}>>;
 ripeness ::= lookup "ripeness";
 shade ::= lookup "shade";
 
-"Fruit" is implicit subtype of Object with [ripeness->integer];
+"Fruit" is implicit subtype of Object with ripeness->integer;
 
-"Apple" is implicit subtype of Fruit with [shade->all];
+"Apple" is implicit subtype of Fruit with shade->all;
 
 Fruit has fields <"ripeness">;
 Apple has fields <"shade">;
+
 
 Method "_name" is [f : Fruit |
 	"Fruit";
@@ -75,13 +76,16 @@ Method "_name" is [a : Apple |
 aFruit ::= Fruit new with <<ripeness, 3>>;
 anApple ::= Apple new with <<ripeness, 123>,<shade, "green">>;
 
+Assert aFruit ripeness = 3;
+Assert anApple ripeness = 123;
+Assert anApple shade = "green";
 
 str ::= "The "
 	then anApple name
 	then "'s ripeness is "
-	then (anApple ripeness) decimal
+	then anApple ripeness decimal
 	then " or in hex, "
-	then (anApple ripeness) hex;
+	then anApple ripeness hex;
 
 Assert str = "The Apple's ripeness is 123 or in hex, 7B";
 

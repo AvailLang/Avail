@@ -45,7 +45,8 @@ Body
 
 result ::= lookup "result";
 
-"Division By Zero Exception" is explicit subtype of Exception with [result->extended integer];
+"Division By Zero Exception" is explicit subtype of Exception with
+	result -> extended integer;
 
 
 /* Test exceptions. */

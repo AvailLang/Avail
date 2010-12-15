@@ -347,7 +347,7 @@ Assert [x : [-11..3]; y : [-5..3]; x * y;] type = []->[-33..55];
 Method "_/_" is [a : extended integer, b : extended integer |
 	Primitive 4;
 	if b = 0 then [
-		divisionByZeroHandler();
+		divisionByZeroHandler apply <>;
 	] else [
 		if a is infinite & b is infinite then [
 			Crash "Can't divide infinity by infinity";
@@ -397,11 +397,11 @@ returns [aT : integerType, bT : integerType |
 	   (and therefore, for the moment, Avail) will round toward the infinity with
 	   the same sign as the denominator.  */
 	negativeDenominators ::= type intersection of bT and [-INF..-1];
-	tryDivisor(negativeDenominators lower bound);
-	tryDivisor(negativeDenominators upper bound);
+	tryDivisor apply <negativeDenominators lower bound>;
+	tryDivisor apply <negativeDenominators upper bound>;
 	positiveDenominators ::= type intersection of bT and [1..INF];
-	tryDivisor(positiveDenominators lower bound);
-	tryDivisor(positiveDenominators upper bound);
+	tryDivisor apply <positiveDenominators lower bound>;
+	tryDivisor apply <positiveDenominators upper bound>;
 	soFar;
 ] : integerType;
 

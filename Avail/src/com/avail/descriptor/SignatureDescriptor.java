@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
@@ -49,7 +49,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter anAvailInterpreter)
+			final Interpreter anAvailInterpreter)
 	{
 		//  Determine the return type for a call site invoking this method or an override of it
 		//  (which is also constrained to support any specializations declared at this level).
@@ -62,7 +62,7 @@ public abstract class SignatureDescriptor extends Descriptor
 	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter interpreter)
+			final Interpreter interpreter)
 	{
 		//  Determine if these argument types are appropriate at a call site.
 

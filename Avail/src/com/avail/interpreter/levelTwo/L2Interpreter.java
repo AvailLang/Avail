@@ -1,21 +1,21 @@
 /**
  * interpreter/levelTwo/L2Interpreter.java Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * 
+ *
  * * Neither the name of the copyright holder nor the names of the contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,27 +33,15 @@ package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Flag.SpecialReturnConstant;
-import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
-import static com.avail.interpreter.Primitive.Result.FAILURE;
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.max;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureDescriptor;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.ListDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.AvailInterpreter;
-import com.avail.interpreter.Primitive;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.levelOne.L1OperationDispatcher;
+import com.avail.interpreter.levelOne.*;
 
 /**
  * This class is used to execute level two code.  It mostly exposes the
@@ -61,7 +49,7 @@ import com.avail.interpreter.levelOne.L1OperationDispatcher;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-final public class L2Interpreter extends AvailInterpreter implements
+final public class L2Interpreter extends Interpreter implements
 L2OperationDispatcher
 {
 	/**
@@ -98,7 +86,7 @@ L2OperationDispatcher
 	/**
 	 * The current pointer into {@link #_chunkWords}, the level two instruction
 	 * stream.
-	 * 
+	 *
 	 */
 	int _offset;
 
@@ -659,9 +647,9 @@ L2OperationDispatcher
 			final short primNum = theCode.primitiveNumber();
 			if (primNum != 0)
 			{
-				assert (_chunk == L2ChunkDescriptor
+				assert _chunk == L2ChunkDescriptor
 					.chunkFromId(_pointers[callerRegister()]
-					                       .levelTwoChunkIndex()));
+					                       .levelTwoChunkIndex());
 				Result primResult = attemptPrimitive(primNum, _argsBuffer);
 				if (primResult == CONTINUATION_CHANGED)
 				{
@@ -757,7 +745,7 @@ L2OperationDispatcher
 
 	/**
 	 * Construct a new {@link L2Interpreter}.
-	 * 
+	 *
 	 * @param runtime
 	 *            An {@link AvailRuntime}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -769,7 +757,7 @@ L2OperationDispatcher
 
 	/**
 	 * Return the current position in the L2 wordcode stream.
-	 * 
+	 *
 	 * @return The position in the L2 wordcode stream.
 	 */
 	int offset ()
@@ -779,10 +767,10 @@ L2OperationDispatcher
 
 	/**
 	 * Jump to a new position in the L2 wordcode stream.
-	 * 
+	 *
 	 * @param newOffset The new position in the L2 wordcode stream.
 	 */
-	void offset (int newOffset)
+	void offset (final int newOffset)
 	{
 		// System.out.printf("[#%d] %d -> %d%n", _chunk.index(), _offset,
 		// newOffset);
@@ -790,7 +778,7 @@ L2OperationDispatcher
 	}
 
 	@Override
-	public void prepareToExecuteContinuation (AvailObject continuation)
+	public void prepareToExecuteContinuation (final AvailObject continuation)
 	{
 		if (continuation.equalsVoid())
 		{
@@ -804,7 +792,7 @@ L2OperationDispatcher
 		}
 		_chunk = L2ChunkDescriptor.chunkFromId(continuation
 			.levelTwoChunkIndex());
-		if (((process.executionMode() & ExecutionMode.singleStep) != 0)
+		if ((process.executionMode() & ExecutionMode.singleStep) != 0
 				|| !_chunk.isValid())
 		{
 			// Either we're single-stepping or the chunk was invalidated, but
@@ -830,12 +818,12 @@ L2OperationDispatcher
 	/**
 	 * Increase the number of registers if necessary to accommodate the new
 	 * chunk/code.
-	 * 
+	 *
 	 * @param theChunk The {@link L2ChunkDescriptor L2Chunk} about to be
 	 *                 invoked.
 	 * @param theCode The code about to be invoked.
 	 */
-	void makeRoomForChunkRegisters (AvailObject theChunk, AvailObject theCode)
+	void makeRoomForChunkRegisters (final AvailObject theChunk, final AvailObject theCode)
 	{
 		int neededObjectCount = max(
 			theChunk.numObjects(),
@@ -865,14 +853,14 @@ L2OperationDispatcher
 	 * Translate the code into a chunk using the specified effort. An effort of
 	 * zero means produce an initial translation that decrements a counter on
 	 * each invocation, re-optimizing (with more effort) if it reaches zero.
-	 * 
+	 *
 	 * @param theCode The code to translate.
 	 * @param effort How much effort to put into the optimization effort.
 	 * @return The (potentially new) {@link L2ChunkDescriptor L2Chunk}.
 	 */
 	AvailObject privateTranslateCodeOptimization (
-		AvailObject theCode,
-		int effort)
+		final AvailObject theCode,
+		final int effort)
 	{
 		return new L2Translator().translateOptimizationFor(
 			theCode,
@@ -899,7 +887,7 @@ L2OperationDispatcher
 		AvailObject handler = VoidDescriptor.voidObject();
 		while (!cont.equalsVoid())
 		{
-			if ((cont.closure().code().primitiveNumber() == 200)
+			if (cont.closure().code().primitiveNumber() == 200
 					&& exceptionValue.isInstanceOfSubtypeOf(cont
 						.localOrArgOrStackAt(2).type().argTypeAt(1)))
 			{
@@ -925,8 +913,8 @@ L2OperationDispatcher
 	 */
 	@Override
 	public Result invokeClosureArguments (
-		AvailObject aClosure,
-		List<AvailObject> args)
+		final AvailObject aClosure,
+		final List<AvailObject> args)
 	{
 
 		short primNum = aClosure.code().primitiveNumber();
@@ -956,8 +944,8 @@ L2OperationDispatcher
 	 */
 	@Override
 	public void invokeWithoutPrimitiveClosureArguments (
-		AvailObject aClosure,
-		List<AvailObject> args)
+		final AvailObject aClosure,
+		final List<AvailObject> args)
 	{
 		if ((process.executionMode() & ExecutionMode.singleStep) != 0)
 		{
@@ -1003,11 +991,11 @@ L2OperationDispatcher
 	 * the outermost process.  We can only resume the continuation safely if it
 	 * was just entering a closure, or just returning from one, or if it took an
 	 * off-ramp for which there is an on-ramp.
-	 * 
+	 *
 	 * @param aProcess The process to execute.
 	 * @return The final result produced by the process.
 	 */
-	public AvailObject run (AvailObject aProcess)
+	public AvailObject run (final AvailObject aProcess)
 	{
 		process = aProcess;
 		AvailObject continuationTemp = aProcess.continuation();
@@ -1060,15 +1048,15 @@ L2OperationDispatcher
 
 	@Override
 	public AvailObject runClosureArguments (
-		AvailObject aClosure,
-		List<AvailObject> arguments)
+		final AvailObject aClosure,
+		final List<AvailObject> arguments)
 	{
 		AvailObject theCode = aClosure.code();
 		short prim = theCode.primitiveNumber();
 		if (prim != 0)
 		{
-			assert Primitive.byPrimitiveNumber(prim)
-			.hasFlag(SpecialReturnConstant)
+			assert Primitive.byPrimitiveNumber(prim).hasFlag(
+				SpecialReturnConstant)
 			: "The outermost context can't be a primitive.";
 			process.continuation(VoidDescriptor.voidObject());
 			return theCode.literalAt(1);
@@ -1080,13 +1068,12 @@ L2OperationDispatcher
 
 		// Safety precaution.
 		aClosure.makeImmutable();
-		AvailObject outermostContinuation = ContinuationDescriptor
-		.mutableDescriptor()
-		.newObjectToInvokeCallerLevelTwoChunkIndexArgs(
-			aClosure,
-			VoidDescriptor.voidObject(),
-			L2ChunkDescriptor.indexOfUnoptimizedChunk(),
-			arguments);
+		AvailObject outermostContinuation =
+			ContinuationDescriptor.create(
+				aClosure,
+				VoidDescriptor.voidObject(),
+				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
+				arguments);
 		outermostContinuation.levelTwoChunkIndexOffset(
 			L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
@@ -1105,7 +1092,7 @@ L2OperationDispatcher
 
 	/**
 	 * Run the current continuation within the current process.
-	 * 
+	 *
 	 * @return The result of executing the process.
 	 */
 	private AvailObject jumpContinuation ()
@@ -1116,7 +1103,7 @@ L2OperationDispatcher
 
 	/**
 	 * Extract the next word from the level two instruction stream.
-	 * 
+	 *
 	 * @return The word.
 	 */
 	int nextWord ()
@@ -1160,7 +1147,7 @@ L2OperationDispatcher
 				i,
 				pointerAt(argumentRegister(i)));
 		}
-		for (int i = (nArgs + 1), _end1 = theCode.numArgsAndLocalsAndStack(); i <= _end1; i++)
+		for (int i = nArgs + 1, _end1 = theCode.numArgsAndLocalsAndStack(); i <= _end1; i++)
 		{
 			newContinuation.localOrArgOrStackAtPut(
 				i,
@@ -1214,7 +1201,7 @@ L2OperationDispatcher
 		final AvailObject theClosure = pointerAt(closureRegister());
 		final AvailObject theCode = theClosure.code();
 		final int newCount = theCode.invocationCount() - 1;
-		assert (newCount >= 0);
+		assert newCount >= 0;
 		if (newCount != 0)
 		{
 			theCode.invocationCount(newCount);
@@ -1224,7 +1211,7 @@ L2OperationDispatcher
 			theCode.invocationCount(L2ChunkDescriptor
 				.countdownForNewlyOptimizedCode());
 			AvailObject newChunk = privateTranslateCodeOptimization(theCode, 3);
-			assert (theCode.startingChunkIndex() == newChunk.index());
+			assert theCode.startingChunkIndex() == newChunk.index();
 			_argsBuffer.clear();
 			int nArgs = theCode.numArgs();
 			for (int i = 1; i <= nArgs; i++)
@@ -1250,7 +1237,7 @@ L2OperationDispatcher
 		AvailObject newChunk = privateTranslateCodeOptimization(theCode, 1); // initial
 		// simplistic
 		// translation
-		assert (theCode.startingChunkIndex() == newChunk.index());
+		assert theCode.startingChunkIndex() == newChunk.index();
 		_argsBuffer.clear();
 		int nArgs = theCode.numArgs();
 		for (int i = nArgs; i > 0; --i)
@@ -1888,7 +1875,9 @@ L2OperationDispatcher
 	{
 		int ifIndex = nextWord();
 		if (interruptRequestFlag != InterruptRequestFlag.noInterrupt)
+		{
 			offset(ifIndex);
+		}
 	}
 
 	@Override
@@ -1896,7 +1885,9 @@ L2OperationDispatcher
 	{
 		int ifNotIndex = nextWord();
 		if (interruptRequestFlag == InterruptRequestFlag.noInterrupt)
+		{
 			offset(ifNotIndex);
+		}
 	}
 
 	@Override
@@ -2044,9 +2035,9 @@ L2OperationDispatcher
 			{
 				// Primitive succeeded.
 				AvailObject cont = _pointers[callerRegister()];
-				assert (_chunk.index() == cont.levelTwoChunkIndex());
+				assert _chunk.index() == cont.levelTwoChunkIndex();
 				cont.readBarrierFault();
-				assert (cont.descriptor().isMutable());
+				assert cont.descriptor().isMutable();
 				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return;
 			}
@@ -2111,9 +2102,9 @@ L2OperationDispatcher
 			{
 				// Primitive succeeded.
 				AvailObject cont = _pointers[callerRegister()];
-				assert (_chunk.index() == cont.levelTwoChunkIndex());
+				assert _chunk.index() == cont.levelTwoChunkIndex();
 				cont.readBarrierFault();
-				assert (cont.descriptor().isMutable());
+				assert cont.descriptor().isMutable();
 				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return;
 			}
@@ -2128,7 +2119,7 @@ L2OperationDispatcher
 		int valuesIndex = nextWord();
 		int destIndex = nextWord();
 		final AvailObject indices = _chunkVectors.tupleAt(valuesIndex);
-		assert (indices.tupleSize() == sizeIndex);
+		assert indices.tupleSize() == sizeIndex;
 		final AvailObject tuple = AvailObject.newIndexedDescriptor(
 			sizeIndex,
 			ObjectTupleDescriptor.mutableDescriptor());
@@ -2345,7 +2336,7 @@ L2OperationDispatcher
 	/**
 	 * Answer the subscript of the register holding the argument with the given
 	 * index (e.g., the first argument is in register 3).
-	 * 
+	 *
 	 * @param localNumber The one-based argument/local number.
 	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
 	 */
@@ -2358,7 +2349,7 @@ L2OperationDispatcher
 	/**
 	 * Answer the subscript of the register holding the current context's caller
 	 * context.
-	 * 
+	 *
 	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
 	 */
 	public int callerRegister ()
@@ -2370,7 +2361,7 @@ L2OperationDispatcher
 	/**
 	 * Answer the subscript of the register holding the current context's
 	 * closure.
-	 * 
+	 *
 	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
 	 */
 	public int closureRegister ()
@@ -2381,7 +2372,7 @@ L2OperationDispatcher
 
 	/**
 	 * Answer the current continuation.
-	 * 
+	 *
 	 * @return The current continuation.
 	 */
 	public AvailObject currentContinuation ()
@@ -2392,7 +2383,7 @@ L2OperationDispatcher
 	/**
 	 * Answer an integer extracted at the current program counter. The program
 	 * counter will be adjusted to skip over the integer.
-	 * 
+	 *
 	 * @return An integer extracted from the instruction stream.
 	 */
 	public int getInteger ()
@@ -2425,7 +2416,7 @@ L2OperationDispatcher
 	/**
 	 * Read from an object register.  The index is one-based in both Smalltalk
 	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
-	 * 
+	 *
 	 * @param index The one-based object-register index.
 	 * @return The object in the specified register.
 	 */
@@ -2437,7 +2428,7 @@ L2OperationDispatcher
 	/**
 	 * Write to an object register.  The index is one-based in both Smalltalk
 	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
-	 * 
+	 *
 	 * @param index The one-based object-register index.
 	 * @param anAvailObject The object to write to the specified register.
 	 */

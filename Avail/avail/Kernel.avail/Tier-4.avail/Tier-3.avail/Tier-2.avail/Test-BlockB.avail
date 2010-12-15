@@ -1,5 +1,5 @@
 /**
- * .../Tier-2/Test-BlockA.avail
+ * .../Tier-2/Test-BlockB.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,11 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-BlockA"
+Module "Test-BlockB"
 Extends
 Uses
 	"Tier-1",
-	"BlockA"
+	"BlockA",
+	"BlockB"
 Names
 Body
 

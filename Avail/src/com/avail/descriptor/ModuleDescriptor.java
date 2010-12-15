@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 
 public class ModuleDescriptor extends Descriptor
 {
@@ -555,7 +555,7 @@ public class ModuleDescriptor extends Descriptor
 	@Override
 	public void o_RemoveFrom (
 		final @NotNull AvailObject object,
-		final @NotNull AvailInterpreter anInterpreter)
+		final @NotNull Interpreter anInterpreter)
 	{
 		for (final AvailObject methodName : object.methods().keysAsArray())
 		{

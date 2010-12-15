@@ -173,7 +173,7 @@ public class FloatDescriptor extends Descriptor
 		return result;
 	};
 
-	public static AvailObject objectFromFloatRecyclingOr(float aFloat, AvailObject recyclable1, AvailObject recyclable2)
+	public static AvailObject objectWithRecycling(float aFloat, AvailObject recyclable1, AvailObject recyclable2)
 	{
 		AvailObject result;
 		if (recyclable1.descriptor().isMutable())

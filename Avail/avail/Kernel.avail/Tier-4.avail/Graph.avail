@@ -59,9 +59,9 @@ predecessors ::= lookup "predecessors";
 
 
 "Graph" is explicit subtype of Object with
-	[nodes -> set]
-	[successors -> map from all to set]
-	[predecessors -> map from all to set];
+	nodes -> set,
+	successors -> map from all to set,
+	predecessors -> map from all to set;
 
 Method "_nodes" is [g : Graph |
 	g -> nodes;
@@ -124,9 +124,9 @@ Method "new_" is [gft : Graph Factory type |
 	nodesVar : set := {};
 	succVar : map from all to set := [->];
 	graphTypeThunk ::= stub block taking <>
-		and applying name of list block invoker
-		to [lst : list | Halt;]
-		and argument list returning graphType;
+		and applying name of block invoker
+		to [t : tuple | Halt;]
+		and argument tuple returning graphType;
 	gtt ::= cast graphTypeThunk into [gtt2 : []->Graph | gtt2;];
 	gft new with <
 		<resultType, gtt>,

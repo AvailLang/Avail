@@ -37,7 +37,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -723,7 +723,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter)
+		final Interpreter anAvailInterpreter)
 	{
 		return o_Traversed(object)
 				.computeReturnTypeFromArgumentTypesInterpreter(
@@ -1578,7 +1578,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public boolean o_IsValidForArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter interpreter)
+		final Interpreter interpreter)
 	{
 		return o_Traversed(object).isValidForArgumentTypesInterpreter(
 			argTypes,
@@ -2246,7 +2246,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	@Override
 	public void o_RemoveFrom (
 		final AvailObject object,
-		final AvailInterpreter anInterpreter)
+		final Interpreter anInterpreter)
 	{
 		o_Traversed(object).removeFrom(anInterpreter);
 	}
@@ -2946,7 +2946,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter,
+		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
 		return o_Traversed(object).validateArgumentTypesInterpreterIfFail(

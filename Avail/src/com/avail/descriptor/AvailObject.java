@@ -41,7 +41,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -1402,7 +1402,7 @@ implements Iterable<AvailObject>
 	 */
 	public AvailObject computeReturnTypeFromArgumentTypesInterpreter (
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter)
+		final Interpreter anAvailInterpreter)
 	{
 		return descriptor().o_ComputeReturnTypeFromArgumentTypesInterpreter(
 			this,
@@ -3116,7 +3116,7 @@ implements Iterable<AvailObject>
 	 */
 	public boolean isValidForArgumentTypesInterpreter (
 		final List<AvailObject> argTypes,
-		final AvailInterpreter interpreter)
+		final Interpreter interpreter)
 	{
 		return descriptor().o_IsValidForArgumentTypesInterpreter(
 			this,
@@ -4441,7 +4441,7 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public void removeFrom (
-		final AvailInterpreter anInterpreter)
+		final Interpreter anInterpreter)
 	{
 		descriptor().o_RemoveFrom(this, anInterpreter);
 	}
@@ -5563,7 +5563,7 @@ implements Iterable<AvailObject>
 	 */
 	public AvailObject validateArgumentTypesInterpreterIfFail (
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter,
+		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
 		return descriptor().o_ValidateArgumentTypesInterpreterIfFail(

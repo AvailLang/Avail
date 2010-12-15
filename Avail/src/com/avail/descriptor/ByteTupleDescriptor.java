@@ -32,17 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteTupleDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class ByteTupleDescriptor extends TupleDescriptor
 {
@@ -90,27 +84,32 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			aStream.append("(mut) ");
 		}
 		aStream.append("ByteTuple with: #[");
-		int rowSize = max((30 - ((indent * 3) / 2)), 8);
-		rowSize = (((rowSize + 3) / 4) * 4);
+		int rowSize = max(30 - indent * 3 / 2, 8);
+		rowSize = (rowSize + 3) / 4 * 4;
 		//  How many equal (shorter by at least 1 on the last) rows are needed?
-		final int rows = ((object.tupleSize() + rowSize) / rowSize);
+		final int rows = (object.tupleSize() + rowSize) / rowSize;
 		//  How many on each row for that layout?
-		rowSize = ((object.tupleSize() + rows) / rows);
+		rowSize = (object.tupleSize() + rows) / rows;
 		//  Round up to a multiple of four per row.
-		rowSize = (((rowSize + 3) / 4) * 4);
+		rowSize = (rowSize + 3) / 4 * 4;
 		int rowStart = 1;
-		while ((rowStart <= object.tupleSize())) {
+		while (rowStart <= object.tupleSize()) {
 			aStream.append('\n');
 			for (int _count1 = 1; _count1 <= indent; _count1++)
 			{
 				aStream.append('\t');
 			}
-			for (int i = rowStart, _end2 = min(rowStart + rowSize - 1, object.tupleSize()); i <= _end2; i++)
+			for (
+					int
+						i = rowStart,
+						_end2 = min(rowStart + rowSize - 1, object.tupleSize());
+					i <= _end2;
+					i++)
 			{
 				final short val = object.tupleAt(i).extractByte();
 				aStream.append(Integer.toHexString(val >> 4));
 				aStream.append(Integer.toHexString(val & 15));
-				if (((i % 4) == 0))
+				if (i % 4 == 0)
 				{
 					aStream.append(' ');
 				}
@@ -137,7 +136,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 		return anotherObject.compareFromToWithByteTupleStartingAt(
 			startIndex2,
-			((startIndex2 + endIndex1) - startIndex1),
+			(startIndex2 + endIndex1 - startIndex1),
 			object,
 			startIndex1);
 	}
@@ -152,7 +151,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Compare sections of two byte tuples.
 
-		if ((object.sameAddressAs(aByteTuple) && (startIndex1 == startIndex2)))
+		if (object.sameAddressAs(aByteTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
@@ -260,7 +259,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		for (int i = (breakIndex + 1), _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = breakIndex + 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
 			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
 			{
@@ -403,7 +402,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = (IntegerDescriptor.hashOfByte(object.rawByteAt(index)) ^ PreToggle);
+			final int itemHash = IntegerDescriptor.hashOfByte(object.rawByteAt(index)) ^ PreToggle;
 			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
 		return TupleDescriptor.multiplierTimes(hash);
@@ -419,7 +418,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		//  Answer a mutable copy of object that also only holds bytes.
 
 		final AvailObject result = AvailObject.newIndexedDescriptor(((object.tupleSize() + 3) / 4), ByteTupleDescriptor.isMutableSize(true, object.tupleSize()));
-		assert (result.integerSlotsCount() == object.integerSlotsCount());
+		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
@@ -434,7 +433,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - _unusedBytesOfLastWord;
 	}
 
 	public AvailObject mutableObjectOfSize (
@@ -447,7 +446,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (((size + _unusedBytesOfLastWord) & 3) == 0);
+		assert (size + _unusedBytesOfLastWord & 3) == 0;
 		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 3) / 4), this);
 		return result;
 	}
@@ -457,10 +456,10 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 
 	/* Descriptor lookup */
-	public static ByteTupleDescriptor isMutableSize(boolean flag, int size)
+	public static ByteTupleDescriptor isMutableSize(final boolean flag, final int size)
 	{
 		int delta = flag ? 0 : 1;
-		return descriptors[delta + ((size & 3) * 2)];
+		return descriptors[delta + (size & 3) * 2];
 	};
 
 	/**

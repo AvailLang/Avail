@@ -32,28 +32,12 @@
 
 package com.avail.test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import org.junit.Before;
-import org.junit.Test;
+import java.io.*;
+import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailBuilder;
-import com.avail.compiler.AvailCompilerException;
-import com.avail.compiler.Continuation3;
-import com.avail.compiler.ModuleName;
-import com.avail.compiler.ModuleNameResolver;
-import com.avail.compiler.ModuleRoots;
-import com.avail.compiler.Mutable;
-import com.avail.compiler.RenamesFileParser;
-import com.avail.compiler.RenamesFileParserException;
-import com.avail.compiler.ResolvedModuleName;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.compiler.*;
+import com.avail.descriptor.*;
 
 /**
  * Broad test suite for the Avail compiler, interpreter, and library.
@@ -116,7 +100,7 @@ public class AvailCompilerTest
 	 */
 	@Before
 	public void initializeAllWellKnownObjects ()
-		throws RenamesFileParserException
+	throws RenamesFileParserException
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
@@ -134,7 +118,7 @@ public class AvailCompilerTest
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
 	private void compile (final @NotNull ModuleName target)
-		throws Exception
+	throws Exception
 	{
 		try
 		{
@@ -172,7 +156,7 @@ public class AvailCompilerTest
 						System.out.printf(
 							"\t... bytes processed = %d (%.2f%% done)%n",
 							position,
-							(double) ((position * 100L) / globalCodeSize));
+							position * 100.0d / globalCodeSize);
 					}
 				});
 		}
@@ -196,13 +180,14 @@ public class AvailCompilerTest
 			final char[] sourceBuffer = source.toCharArray();
 			final StringBuilder builder = new StringBuilder();
 			System.err.append(new String(
-				sourceBuffer, 0, (int) e.position()));
+				sourceBuffer, 0, (int) e.endOfErrorLine()));
 			System.err.append(e.getMessage());
 			builder.append(new String(
 				sourceBuffer,
-				(int) e.position(),
-				sourceBuffer.length - (int) e.position()));
+				(int) e.endOfErrorLine(),
+				sourceBuffer.length - (int) e.endOfErrorLine()));
 			System.err.printf("%s%n", builder);
+			throw e;
 		}
 	}
 
@@ -212,7 +197,7 @@ public class AvailCompilerTest
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
-//	@Test
+	//	@Test
 	public void tier4 () throws Exception
 	{
 		long startTime = System.currentTimeMillis();
@@ -221,20 +206,20 @@ public class AvailCompilerTest
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
-//	/**
-//	 * Test: Compile all non-experimental modules.
-//	 *
-//	 * @throws Exception
-//	 *         If an {@linkplain Exception exception} occurs.
-//	 */
-//	@Test
-//	public void everything () throws Exception
-//	{
-//		long startTime = System.currentTimeMillis();
-//		compile(new ModuleName("/avail/Test-Everything"));
-//		System.err.printf(
-//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-//	}
+	//	/**
+	//	 * Test: Compile all non-experimental modules.
+	//	 *
+	//	 * @throws Exception
+	//	 *         If an {@linkplain Exception exception} occurs.
+	//	 */
+	//	@Test
+	//	public void everything () throws Exception
+	//	{
+	//		long startTime = System.currentTimeMillis();
+	//		compile(new ModuleName("/avail/Test-Everything"));
+	//		System.err.printf(
+	//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+	//	}
 
 	/**
 	 * Test: Compile the Chevron-Test module.

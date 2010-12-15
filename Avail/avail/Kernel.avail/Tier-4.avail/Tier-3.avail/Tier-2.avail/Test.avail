@@ -33,7 +33,7 @@
 Module "Test"
 Extends
 Uses
-	"Test-BlockA",
+	"Test-BlockB",
 	"Test-Continuation",
 	"Test-Integer",
 	"Test-Map",

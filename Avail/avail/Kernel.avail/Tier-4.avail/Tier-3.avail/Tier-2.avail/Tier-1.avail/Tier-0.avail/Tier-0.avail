@@ -45,7 +45,6 @@ Names
 	"falseType", "float",
 	"generalizedClosureType",
 	"integer", "integerType",
-	"list", "listType",
 	"mapType", "meta",
 	"objectMeta", "objectMetaMeta", "objectType",
 	"primType", "process",
@@ -84,8 +83,6 @@ privateFloat                       ::= Special Object 15;
 privateGeneralizedClosureType      ::= Special Object 16;
 privateInteger                     ::= Special Object 17;
 privateIntegerType                 ::= Special Object 18;
-privateList                        ::= Special Object 19;
-privateListType                    ::= Special Object 20;
 privateMapType                     ::= Special Object 21;
 privateMeta                        ::= Special Object 22;
 privateObjectMeta                  ::= Special Object 23;
@@ -122,7 +119,6 @@ Method "extended integer"       is [privateExtendedInteger;] : privateIntegerTyp
 Method "falseType"              is [privateFalseType;] : privatePrimType;
 Method "float"                  is [privateFloat;] : privatePrimType;
 Method "integer"                is [privateInteger;] : privateIntegerType;
-Method "list"                   is [privateList;] : privateListType;
 Method "process"                is [privateProcess;] : privatePrimType;
 Method "set"                    is [privateSet;] : privateSetType;
 Method "string"                 is [privateString;] : privateTupleType;
@@ -140,7 +136,6 @@ Method "closureType"            is [privateClosureType;] : privateMeta;
 Method "containerType"          is [privateContainerType;] : privateMeta;
 Method "continuationType"       is [privateContinuationType;] : privateMeta;
 Method "generalizedClosureType" is [privateGeneralizedClosureType;] : privateMeta;
-Method "listType"               is [privateListType;] : privateMeta;
 Method "objectType"             is [privateObjectType;] : privateObjectMeta;
 Method "primType"               is [privatePrimType;] : privateMeta;
 Method "terminatesType"         is [privateTerminatesType;] : privateMeta;
@@ -202,9 +197,6 @@ Method "Print_" is [something : all |
 /* Explicitly disregard a return result */
 
 Method "Discard_" is [somethingToIgnore : all |
-] : void;
-
-Method "Discard_" is [someThingsToIgnore : list |
 ] : void;
 
 

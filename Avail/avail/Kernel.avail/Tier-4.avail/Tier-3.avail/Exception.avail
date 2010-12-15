@@ -37,21 +37,26 @@ Uses
 	"Object"
 Names
 	"Exception",
-	"catch_in_",
+	"catch«_‡,»in_",
+	"_with_",
 	"Raise_",
 	"result"
 Body
 
 
-/* Exception support.  The exception model is kept simple by only supporting
-   terminating exceptions.  This means that when an exception is thrown via
-   Raise_, the handler will be invoked in such a way that the Raise_ will not
-   return.  It's multi-threaded (continuation chains hold all exception information). */
+/*
+ * Exception support.  The exception model is kept simple by only supporting
+ * terminating exceptions.  This means that when an exception is thrown via
+ * Raise_, the handler will be invoked in such a way that the Raise_ will not
+ * return.  It's multi-threaded (continuation chains hold all exception
+ * information).
+ */
 
 
 result ::= lookup "result";
 
-"Exception" is explicit subtype of Object with [result->all];
+"Exception" is explicit subtype of Object with
+	result->all;
 
 Method "_result" is [ex : Exception |
 	ex -> result;
@@ -145,44 +150,44 @@ Method "handleTuple_do_" is [
 ] : all;
 
 
-Method "catch_in_" is [
-		handlerList : tuple of [terminates]->void as listType,
+/**
+ * Attach multiple handlers simultaneously.  Treat the last handler as the
+ * innermost one.
+ */
+Method "catch«_‡,»in_" is [
+		handlers : tuple of [terminates]->void,
 		body : []->void |
-	/* Attach multiple handlers simultaneously.  Treat the last
-	   handler as the innermost one. */
-	handleTuple <handlerList> do body;
+	handleTuple handlers do body;
 ] : void
-returns [listT : listType, bodyT : closure type |
+returns [handlersT : tupleType, bodyT : closure type |
 	merge : type := cast bodyT into [bt2 : closureType |
 		bt2 result;
 	] otherwise [
 		void;
 	];
-	tt ::= listT as tupleType;
 	merge := type union of merge and
-		cast tt default type into [hndT : closureType |
-			hndT;
+		cast handlersT default type into [handlerT : closureType |
+			handlerT;
 		] otherwise [
 			void;
 		];
-	tt leading types do [t : type |
+	handlersT leading types do [t : type |
 		merge := type union of merge and
-			cast t into [hndT : closureType |
-				hndT;
+			cast t into [handlerT : closureType |
+				handlerT;
 			] otherwise [
 				void;
 			];
 	];
 	merge;
 ]
-requires [listT : listType, bodyT : closure type |
+requires [handlersT : tupleType, bodyT : closure type |
 	/* We require each exception handler to accept some subtype of
 	   Exception.  Only some handlers are applicable, therefore, based
 	   on the Exception subtype, so a dynamic check determines which
 	   handlers to skip over.  */
-	tt ::= listT as tupleType;
-	union ::= type union of tt default type and
-		union of types in tt leading types;
+	union ::= type union of handlersT default type and
+		union of types in handlersT leading types;
 	cast union into [ut : closureType |
 		ut [1] <= Exception;
 	] otherwise [

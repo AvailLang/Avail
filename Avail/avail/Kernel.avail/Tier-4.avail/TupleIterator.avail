@@ -52,8 +52,8 @@ tupleField ::= lookup "tuple";
 
 
 "Tuple Iterator" is explicit subtype of Iterator with
-	[position -> & : natural number]
-	[tupleField -> tuple];
+	position -> & : natural number,
+	tupleField -> tuple;
 
 Rule [iter : Tuple Iterator |
 	1 <= *iter -> position <= ||iter -> tupleField||;
@@ -67,9 +67,9 @@ Method "_as Iterator" is [t : tuple |
 	/* The following code is experimental, and should be replaced by
 	   something with a more opaque encapsulation... */
 	thingsThunk ::= stub block taking <>
-		and applying name of list block invoker
-		to [lst : list | Halt;]
-		and argument list returning things;
+		and applying name of block invoker
+		to [t : tuple | Halt;]
+		and argument tuple returning things;
 	thingsThunk2 ::= cast thingsThunk into [c : []->all | c;];
 	Tuple Iterator new with <
 		<tupleField, t>,

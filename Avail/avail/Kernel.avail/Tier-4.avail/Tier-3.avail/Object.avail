@@ -44,16 +44,13 @@ Names
 	"Rule_",
 	"_as map",
 	"_instance",
-	"_is implicit subtype of_with_",
-	"_is explicit subtype of_with_",
-	"_is explicit subtype of_",
+	"_is implicit subtype of«_‡,»«with«_->_‡,»»",
+	"_is explicit subtype of«_‡,»«with«_->_‡,»»",
 	"_->_",
 	"_->_result",
 	"fieldMap",
 	"fieldTypeMap",
-	"_has fields_",
-	"implicit subtype of_with_named_",
-	"explicit subtype of_with_named_"
+	"_has fields_"
 Body
 
 
@@ -342,98 +339,70 @@ returns [ot : objectType, key : cyclicType |
 
 
 
-Method "implicit subtype of_with_named_" is [
-		superType : objectType,
-		conditions : fieldTypeMap,
-		newName : string |
-	intersection ::= type intersection of superType and (conditions as objectType);
-	Give type intersection the name newName;
-	intersection;
-] : objectType;
-
-Method "explicit subtype of_with_named_" is [
-		superType : objectType,
-		conditions : fieldTypeMap,
-		newName : string |
-	newKey ::= new cyclic type newName;
-	implicit subtype of superType with conditions [newKey->newKey] named newName;
-] : objectType;
-
-
-Method "_is implicit subtype of_with_" is [
+Method "_is implicit subtype of«_‡,»«with«_->_‡,»»" is [
 		newName : string,
-		superType : objectType,
-		conditions : fieldTypeMap |
-	intersection ::= type intersection of superType and (conditions as objectType);
-	Method newName is stub block taking 0 arguments and returning intersection;
-	Give type intersection the name newName;
-] : void;
-
-Method "_is implicit subtype of_with_" is [
-		newName : string,
-		superTypes : tuple of objectType as listType,
-		conditions : fieldTypeMap |
-	intersection : objectType := conditions as objectType;
-	<superTypes> do [each : objectType |
+		superTypes : tuple [1..INF) of objectType,
+		optionalConditions : tuple [0..1] of
+			tuple [1..INF) of
+				tuple like <cyclicType, type> |
+	conditionsMap : map from cyclicType to type := [->];
+	if ||optionalConditions|| > 0 then [
+		optionalConditions[1] do [pair : tuple like <cyclicType, type> |
+			conditionsMap := conditionsMap[pair[1] -> pair[2]];];];
+	intersection : objectType := conditionsMap as objectType;
+	superTypes do [each : objectType |
 		intersection := type intersection of intersection and each;
 	];
 	Method newName is stub block taking 0 arguments and returning intersection;
+/*	Method newName is [intersection;] returns [intersection type;];*/
 	Give type intersection the name newName;
 ] : void;
 
-Method "_is explicit subtype of_with_" is [
+
+/**
+ * This constructs an explicit subtype.  An explicit subtype is like an implicit
+ * subtype, but it adds a generated key that makes the type unique even if there
+ * is no (other) added representation.
+ */
+Method "_is explicit subtype of«_‡,»«with«_->_‡,»»" is [
 		newName : string,
-		superTypes : tuple of objectType as listType,
-		conditions : fieldTypeMap |
-	/* This constructs an explicit subtype.  An explicit subtype is like an implicit
-	   subtype, but it adds a generated key that makes the type unique even if
-	   there is no (other) added representation. */
+		superTypes : tuple of objectType,
+		optionalConditions : tuple [0..1] of
+			tuple [1..INF) of
+				tuple like <cyclicType, type> |
 	newKey ::= new cyclic type newName;
-	newName is implicit subtype of superTypes with conditions [newKey->newKey];
+	conditionsMap : map from cyclicType to type := [newKey -> newKey];
+	if ||optionalConditions|| > 0 then [
+		optionalConditions[1] do [pair : tuple like <cyclicType, type> |
+			conditionsMap := conditionsMap[pair[1] -> pair[2]];];];
+	intersection : objectType := conditionsMap as objectType;
+	superTypes do [each : objectType |
+		intersection := type intersection of intersection and each;
+	];
+	Method newName is stub block taking 0 arguments and returning intersection;
+/*	Method newName is [intersection;] returns [intersection type;];*/
+	Give type intersection the name newName;
 ] : void;
 
-Method "_is explicit subtype of_with_" is [
-		newName : string,
-		superType : objectType,
-		conditions : fieldTypeMap |
-	newKey ::= new cyclic type newName;
-	newName is implicit subtype of superType with conditions [newKey->newKey];
-] : void;
 
-Method "_is explicit subtype of_" is [
-		newName : string,
-		superTypes : tuple of objectType as listType |
-	newName is explicit subtype of superTypes with [->];
-] : void;
-
-Method "_is explicit subtype of_" is [
-		newName : string,
-		superType : objectType |
-	newName is explicit subtype of superType with [->];
-] : void;
-
+/**
+ * Define some postfix accessor methods for these fields.
+ */
 Method "_has fields_" is [ot : Object type, fields : tuple of string |
-	/* Define some postfix accessor methods for these fields. */
 	fields do [fieldString : string |
 		fieldCyc ::= lookup fieldString;
 
-		/* Define an instance-side accessor... */
+		/* Define an instance-side getter... */
 		Method "_" then fieldString
 		is
 			stub block taking <ot>
-			and applying name of list block invoker
-			to [args : list |
-				cast <args>[1] into [o : Object |
-					o as map [fieldCyc];];]
-			and argument list returning (ot as map [fieldCyc])
+			and applying name of block invoker
+			to [o : Object | o as map [fieldCyc];]
+			and argument tuple returning (ot as map [fieldCyc])
 		returns
 			stub block taking <ot type>
-			and applying name of list block invoker
-			to [args : list |
-				cast <args>[1] into [o : objectType |
-					o as map [fieldCyc];];]
-			and argument list returning type;
-
+			and applying name of block invoker
+			to [oT : objectType | oT as map [fieldCyc];]
+			and argument tuple returning type;
 	];
 ];
-

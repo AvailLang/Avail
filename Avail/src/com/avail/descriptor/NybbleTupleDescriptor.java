@@ -32,17 +32,10 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteTupleDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.NybbleTupleDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.*;
+import java.util.List;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class NybbleTupleDescriptor extends TupleDescriptor
 {
@@ -85,7 +78,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			final List<AvailObject> recursionList,
 			final int indent)
 	{
-		if ((object.tupleSize() == 0))
+		if (object.tupleSize() == 0)
 		{
 			aStream.append("<>");
 			return;
@@ -95,26 +88,31 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			aStream.append("(mut)");
 		}
 		aStream.append("NybbleTuple with: #[");
-		int rowSize = max((60 - ((indent * 3) / 2)), 8);
+		int rowSize = max(60 - indent * 3 / 2, 8);
 		//  How many equal (shorter by at least 1 on the last) rows are needed?
-		final int rows = ((object.tupleSize() + rowSize) / rowSize);
+		final int rows = (object.tupleSize() + rowSize) / rowSize;
 		//  How many on each row for that layout?
-		rowSize = ((object.tupleSize() + rows) / rows);
+		rowSize = (object.tupleSize() + rows) / rows;
 		//  Round up to a multiple of eight per row.
-		rowSize = (((rowSize + 7) / 8) * 8);
+		rowSize = (rowSize + 7) / 8 * 8;
 		int rowStart = 1;
-		while ((rowStart <= object.tupleSize())) {
+		while (rowStart <= object.tupleSize()) {
 			aStream.append('\n');
 			for (int _count1 = 1; _count1 <= indent; _count1++)
 			{
 				aStream.append('\t');
 			}
-			for (int i = rowStart, _end2 = min(rowStart + rowSize - 1, object.tupleSize()); i <= _end2; i++)
+			for (
+					int
+						i = rowStart,
+						_end2 = min(rowStart + rowSize - 1, object.tupleSize());
+					i <= _end2;
+					i++)
 			{
 				final byte val = object.extractNybbleFromTupleAt(i);
 				assert 0 <= val && val <= 15;
 				aStream.append(Integer.toHexString(val));
-				if (((i % 8) == 0))
+				if (i % 8 == 0)
 				{
 					aStream.append(' ');
 				}
@@ -140,7 +138,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 		return anotherObject.compareFromToWithNybbleTupleStartingAt(
 			startIndex2,
-			((startIndex2 + endIndex1) - startIndex1),
+			(startIndex2 + endIndex1 - startIndex1),
 			object,
 			startIndex1);
 	}
@@ -155,7 +153,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Compare sections of two nybble tuples.
 
-		if ((object.sameAddressAs(aNybbleTuple) && (startIndex1 == startIndex2)))
+		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
@@ -273,7 +271,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		{
 			return true;
 		}
-		for (int i = (breakIndex + 1), _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = breakIndex + 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
 			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
 			{
@@ -296,7 +294,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		object.verifyToSpaceAddress();
 		int wordIndex = (nybbleIndex + 7) / 8;
 		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		int leftShift = ((nybbleIndex - 1) & 7) * 4;
+		int leftShift = (nybbleIndex - 1 & 7) * 4;
 		word &= ~(0x0F << leftShift);
 		word |= aNybble << leftShift;
 		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
@@ -331,8 +329,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		object.verifyToSpaceAddress();
 		int wordIndex = (nybbleIndex + 7) / 8;
 		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		int shift = ((nybbleIndex - 1) & 7) * 4;
-		return (byte) ((word>>>shift) & 0x0F);
+		int shift = (nybbleIndex - 1 & 7) * 4;
+		return (byte) (word>>>shift & 0x0F);
 	}
 
 	@Override
@@ -366,8 +364,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		object.verifyToSpaceAddress();
 		int wordIndex = (nybbleIndex + 7) / 8;
 		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		int shift = ((nybbleIndex - 1) & 7) * 4;
-		return (byte) ((word>>>shift) & 0x0F);
+		int shift = (nybbleIndex - 1 & 7) * 4;
+		return (byte) (word>>>shift & 0x0F);
 	}
 
 	@Override
@@ -446,7 +444,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots()) * 8) - unusedNybblesOfLastWord);
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots()) * 8 - unusedNybblesOfLastWord;
 	}
 
 
@@ -465,7 +463,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	/**
 	 * Set how many unused nybbles that this descriptor leaves in the last
 	 * word.
-	 * 
+	 *
 	 * @param anInteger The number of unused nybbles in the last word of all of
 	 *                  this descriptor's objects.
 	 */
@@ -492,7 +490,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
-			final int itemHash = (IntegerDescriptor.hashOfByte(object.rawNybbleAt(nybbleIndex)) ^ PreToggle);
+			final int itemHash = IntegerDescriptor.hashOfByte(object.rawNybbleAt(nybbleIndex)) ^ PreToggle;
 			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
 		return TupleDescriptor.multiplierTimes(hash);
@@ -531,13 +529,13 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (((size + unusedNybblesOfLastWord) & 7) == 0);
+		assert (size + unusedNybblesOfLastWord & 7) == 0;
 		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 7) / 8), this);
 		return result;
 	}
 
 	/* Descriptor lookup */
-	public static NybbleTupleDescriptor isMutableSize(boolean flag, int size)
+	public static NybbleTupleDescriptor isMutableSize(final boolean flag, final int size)
 	{
 		int delta = flag ? 0 : 1;
 		return descriptors[(size & 7) * 2 + delta];

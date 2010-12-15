@@ -39,43 +39,44 @@ Uses
 	"Integer",
 	"Tuple"
 Names
-	"stub block taking_and applying_to_and argument list returning_",
-	"_call with one list(_)",
-	"name of list block invoker"
+	"stub block taking_and applying_to_and argument tuple returning_",
+	"name of block invoker",
+	"_(«_‡,»)"
 Body
 
 
 /* Block evaluation with a list of arguments... */
 
-Method "_(_)" is [block : [...]->void, args : list |
-	block apply <args>;
+Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
+	block apply args;
 ] : void
-requires [blkType : generalizedClosureType, argsType : listType |
+requires [blkType : generalizedClosureType, argsType : tupleType |
 	cast blkType into [blkType2 : closureType |
-		argsTupleType ::= argsType as tupleType;
-		if argsTupleType sizes lower bound not = argsTupleType sizes upper bound then [
+		if argsType sizes lower bound not = argsType sizes upper bound then [
 			Crash "# of arguments to _(_) can't be verified at call site - maybe use _apply_ ?";
 		];
-		size ::= argsTupleType sizes lower bound;
+		size ::= argsType sizes lower bound;
 		size = ||blkType2||
 			& [
-				1 to size all [i : natural number | argsTupleType[i] <= blkType2[i];];
+				1 to size all [i : natural number |
+					argsType[i] <= blkType2[i];];
 			];
 	] otherwise [
 		false;
 	];
 ] : boolean
-returns [blkType : generalizedClosureType, argsType : listType |
+returns [blkType : generalizedClosureType, argsType : tupleType |
 	blkType result;
 ];
 
 
-/* Advanced stub building.  This is for when you *need* a block with
-   a particular signature, and it must invoke some code with the
-   arguments bundled in a list.  */
-
-Method "stub block taking_and applying_to_and argument list returning_" is [
-		argTypes : tuple,
+/**
+ * Advanced stub building.  This is for when you *need* a block with
+ * a particular signature, and it must invoke some code with the
+ * arguments bundled in a tuple.
+ */
+Method "stub block taking_and applying_to_and argument tuple returning_" is [
+		argTypes : tuple of type,
 		message : cyclicType,
 		clientArg : all,
 		resultType : type |
@@ -84,22 +85,6 @@ Method "stub block taking_and applying_to_and argument list returning_" is [
 ] : closure;
 
 
-/* Non-typesafe function application for use by stub blocks.   Note that
-   the requires clause is absent, unlike "_(_)".  */
+privateInvoker ::= lookup "_apply_";
 
-Method "_call with one list(_)" is [block : [list]->void, args : list |
-	/* Invoke a block that takes a single argument, which is a list. */
-	Primitive 42;
-	Failed;
-] : void
-returns [blkType : closureType, argsType : listType |
-	/* If at some call site we don't know anything except that we have some
-	   block, we must be careful to say the return type is void.  Otherwise use
-	   the block's return type. */
-	blkType result;
-];
-
-privateInvoker ::= lookup "_call with one list(_)";
-
-Method "name of list block invoker" is [privateInvoker;];
-
+Method "name of block invoker" is [privateInvoker;];

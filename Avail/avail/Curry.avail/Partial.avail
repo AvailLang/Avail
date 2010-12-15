@@ -52,9 +52,9 @@ Method "_curry_" is [block : closure, arg : all |
 	block2 ::= cast block into [blk : [...]->void | blk;];
 	bt ::= block type;
 	stub block taking 2 to ||bt|| collect [i : natural number | bt[i];]
-		and applying name of list block invoker
+		and applying name of block invoker
 		to [args : list | block2 apply <arg> then <args>;]
-		and argument list returning (bt result);
+		and argument tuple returning (bt result);
 ] : closure
 requires [cT : closure type, aT : type |
 	/* Requires block to take one or more arguments, and for first argument
@@ -82,12 +82,12 @@ Method "_taking arguments tupled" is [block : closure |
 	block2 ::= cast block into [b : [...]->void | b;];
 	result ::= stub block taking
 			<tuple like 1 to ||block type|| collect [i : natural number | block type [i];]>
-		and applying name of list block invoker
+		and applying name of block invoker
 		to [args : list |
 			cast <args>[1] into [argTuple : tuple |
 				block2 apply argTuple;
 			];
-		] and argument list returning block type result;
+		] and argument tuple returning block type result;
 	cast result into [x : [terminates]->void | x;];
 ] : [terminates]->void
 returns [ct : closure type |
@@ -129,20 +129,20 @@ Method "_curry of tupled block" is [blk : [terminates]->void |
 		size ::= tt sizes lower bound;
 		cast size into [s : [2..INF) |
 			stub block taking <tt[1]>
-				and applying name of list block invoker
+				and applying name of block invoker
 				to [firstAsList : list |
 					inner ::= stub block taking <tuple like tt[2..s]>
-						and applying name of list block invoker
+						and applying name of block invoker
 						to [otherArgs : list |
 							cast <otherArgs>[1] into [others : tuple |
 								blk apply <<firstAsList> then others>;
 							];
 						]
-						and argument list returning blk type result;
+						and argument tuple returning blk type result;
 					cast inner into [in : [terminates]->all |
 						in curry of tupled block;
 					];
-				] and argument list returning
+				] and argument tuple returning
 					curried type for argument types tt[2..s]
 					and result blk type result;
 		] otherwise [
@@ -150,9 +150,9 @@ Method "_curry of tupled block" is [blk : [terminates]->void |
 			   is converted to a block expecting one arg, which is then
 			   bundled into a singleton tuple and passed to blk. */
 			stub block taking <tt[1]>
-			and applying name of list block invoker
+			and applying name of block invoker
 			to [args : list | blk apply <<args>>;]
-			and argument list returning blk type result;
+			and argument tuple returning blk type result;
 		];
 	];
 	cast result into [res : [terminates]->void | res;];

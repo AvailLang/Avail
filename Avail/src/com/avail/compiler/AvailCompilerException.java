@@ -33,7 +33,6 @@
 package com.avail.compiler;
 
 import java.io.File;
-import java.lang.RuntimeException;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;
 
@@ -88,6 +87,25 @@ extends RuntimeException
 	}
 
 	/**
+	 * The position within the {@linkplain ModuleDescriptor module} undergoing
+	 * {@linkplain AvailCompiler compilation} of the first line break after the
+	 * position at which the error was detected.
+	 */
+	private final long endOfErrorLine;
+
+	/**
+	 * Answer the position within the {@linkplain ModuleDescriptor module}
+	 * undergoing {@linkplain AvailCompiler compilation} of the first line break
+	 * after the position at which the error was detected.
+	 *
+	 * @return A {@linkplain File file} position.
+	 */
+	public long endOfErrorLine ()
+	{
+		return endOfErrorLine;
+	}
+
+	/**
 	 * Construct a new {@link AvailCompilerException}.
 	 *
 	 * @param moduleName
@@ -98,17 +116,23 @@ extends RuntimeException
 	 *        The position within the {@linkplain ModuleDescriptor module}
 	 *        undergoing {@linkplain AvailCompiler compilation} at which the
 	 *        error was detected.
+	 * @param endOfErrorLine
+	 *        The position within the {@linkplain ModuleDescriptor module}'s
+	 *        source of the line break following the error.  Useful for
+	 *        displaying the error in context.
 	 * @param errorText
 	 *        The text of the error message, intended for display at the
 	 *        encapsulated position.
 	 */
 	AvailCompilerException (
 		final @NotNull ModuleName moduleName,
-		long position,
+		final long position,
+		final long endOfErrorLine,
 		final @NotNull String errorText)
 	{
 		super(errorText);
-		this.moduleName = moduleName;
-		this.position   = position;
+		this.moduleName     = moduleName;
+		this.position       = position;
+		this.endOfErrorLine = endOfErrorLine;
 	}
 }

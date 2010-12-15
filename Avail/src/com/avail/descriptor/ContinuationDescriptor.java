@@ -32,15 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.ContinuationTypeDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 public class ContinuationDescriptor extends Descriptor
 {
@@ -188,77 +181,6 @@ public class ContinuationDescriptor extends Descriptor
 
 
 	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
-	{
-		if (e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET)
-		{
-			return true;
-		}
-		return false;
-	}
-
-
-	/**
-	 * Create a new continuation with the given data.  The continuation should
-	 * represent the state upon entering the new context - i.e., set the pc to
-	 * the first instruction (skipping the primitive indicator if necessary),
-	 * clear the stack, and set up all local variables.
-	 * 
-	 * @param closure The closure being invoked.
-	 * @param caller The calling continuation.
-	 * @param startingChunkIndex The index of the level two chunk to invoke.
-	 * @param args The List of arguments
-	 * @return The new continuation.
-	 */
-	public AvailObject newObjectToInvokeCallerLevelTwoChunkIndexArgs (
-			final AvailObject closure,
-			final AvailObject caller,
-			final int startingChunkIndex,
-			final List<AvailObject> args)
-	{
-		assert isMutable();
-		final AvailObject code = closure.code();
-		final AvailObject cont = AvailObject.newIndexedDescriptor(
-			code.numArgsAndLocalsAndStack(),
-			this);
-		cont.caller(caller);
-		cont.closure(closure);
-		cont.pc(1);
-		cont.stackp(cont.objectSlotsCount() + 1 - numberOfFixedObjectSlots);
-		cont.hiLevelTwoChunkLowOffset((startingChunkIndex << 16) + 1);
-		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
-		{
-			cont.localOrArgOrStackAtPut(i, VoidDescriptor.voidObject());
-		}
-		//  Set up arguments...
-		final int nArgs = args.size();
-		if (nArgs != code.numArgs())
-		{
-			error("Wrong number of arguments");
-			return VoidDescriptor.voidObject();
-		}
-		for (int i = 1; i <= nArgs; i++)
-		{
-			//  arguments area
-			cont.localOrArgOrStackAtPut(i, args.get(i - 1));
-		}
-		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
-		{
-			//  non-argument locals
-			cont.localOrArgOrStackAtPut(
-				nArgs + i,
-				ContainerDescriptor.newContainerWithOuterType(
-					code.localTypeAt(i)));
-		}
-		return cont;
-	}
-
-
-
-	// operations
-
-	@Override
 	public boolean o_Equals (
 			final AvailObject object,
 			final AvailObject another)
@@ -316,10 +238,10 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();
-		h = ((h + object.closure().hash()) + (object.pc() * object.stackp()));
+		h = h + object.closure().hash() + object.pc() * object.stackp();
 		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
 		{
-			h = (((h * 23) + 0x221C9) ^ object.localOrArgOrStackAt(i).hash());
+			h = h * 23 + 0x221C9 ^ object.localOrArgOrStackAt(i).hash();
 		}
 		return h;
 	}
@@ -372,7 +294,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Set my chunk index and offset.
 
-		object.hiLevelTwoChunkLowOffset(((index * 0x10000) + offset));
+		object.hiLevelTwoChunkLowOffset((index * 0x10000 + offset));
 	}
 
 	/**
@@ -411,7 +333,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  If immutable, copy the object as mutable, otherwise answer the original mutable.
 
-		return (isMutable ? object : object.copyAsMutableContinuation());
+		return isMutable ? object : object.copyAsMutableContinuation();
 	}
 
 	@Override
@@ -420,7 +342,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Answer the chunk index (without the offset).
 
-		return (object.hiLevelTwoChunkLowOffset() >>> 16);
+		return object.hiLevelTwoChunkLowOffset() >>> 16;
 	}
 
 	@Override
@@ -429,7 +351,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Answer the wordcode offset into the chunk.
 
-		return (object.hiLevelTwoChunkLowOffset() & 0xFFFF);
+		return object.hiLevelTwoChunkLowOffset() & 0xFFFF;
 	}
 
 	@Override
@@ -438,7 +360,7 @@ public class ContinuationDescriptor extends Descriptor
 	{
 		//  Answer the number of slots allocated for locals, arguments, and stack entries.
 
-		return (object.objectSlotsCount() - numberOfFixedObjectSlots);
+		return object.objectSlotsCount() - numberOfFixedObjectSlots;
 	}
 
 
@@ -482,7 +404,7 @@ public class ContinuationDescriptor extends Descriptor
 			object.makeSubobjectsImmutable();
 		}
 		final AvailObject result = AvailObject.newIndexedDescriptor((object.objectSlotsCount() - numberOfFixedObjectSlots), ContinuationDescriptor.mutableDescriptor());
-		assert (result.objectSlotsCount() == object.objectSlotsCount());
+		assert result.objectSlotsCount() == object.objectSlotsCount();
 		result.caller(object.caller());
 		result.closure(object.closure());
 		result.pc(object.pc());
@@ -493,6 +415,73 @@ public class ContinuationDescriptor extends Descriptor
 			result.localOrArgOrStackAtPut(i, object.localOrArgOrStackAt(i));
 		}
 		return result;
+	}
+
+	@Override
+	public boolean allowsImmutableToMutableReferenceInField (
+			final Enum<?> e)
+	{
+		if (e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Create a new continuation with the given data.  The continuation should
+	 * represent the state upon entering the new context - i.e., set the pc to
+	 * the first instruction (skipping the primitive indicator if necessary),
+	 * clear the stack, and set up all local variables.
+	 *
+	 * @param closure The closure being invoked.
+	 * @param caller The calling continuation.
+	 * @param startingChunkIndex The index of the level two chunk to invoke.
+	 * @param args The List of arguments
+	 * @return The new continuation.
+	 */
+	public static AvailObject create (
+			final AvailObject closure,
+			final AvailObject caller,
+			final int startingChunkIndex,
+			final List<AvailObject> args)
+	{
+		ContinuationDescriptor descriptor = mutableDescriptor();
+		final AvailObject code = closure.code();
+		final AvailObject cont = AvailObject.newIndexedDescriptor(
+			code.numArgsAndLocalsAndStack(),
+			descriptor);
+		cont.caller(caller);
+		cont.closure(closure);
+		cont.pc(1);
+		cont.stackp(
+			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);
+		cont.hiLevelTwoChunkLowOffset((startingChunkIndex << 16) + 1);
+		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
+		{
+			cont.localOrArgOrStackAtPut(i, VoidDescriptor.voidObject());
+		}
+		//  Set up arguments...
+		final int nArgs = args.size();
+		if (nArgs != code.numArgs())
+		{
+			error("Wrong number of arguments");
+			return VoidDescriptor.voidObject();
+		}
+		for (int i = 1; i <= nArgs; i++)
+		{
+			//  arguments area
+			cont.localOrArgOrStackAtPut(i, args.get(i - 1));
+		}
+		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
+		{
+			//  non-argument locals
+			cont.localOrArgOrStackAtPut(
+				nArgs + i,
+				ContainerDescriptor.newContainerWithOuterType(
+					code.localTypeAt(i)));
+		}
+		return cont;
 	}
 
 	/**

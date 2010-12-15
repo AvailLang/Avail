@@ -33,26 +33,18 @@
 package com.avail.test;
 
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.*;
+import org.junit.*;
 import com.avail.AvailRuntime;
-import com.avail.compiler.MessageSplitter;
-import com.avail.compiler.ModuleNameResolver;
-import com.avail.compiler.ModuleRoots;
-import com.avail.compiler.RenamesFileParser;
-import com.avail.compiler.RenamesFileParserException;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
+import com.avail.compiler.*;
+import com.avail.descriptor.*;
 
 
 /**
  * Test the {@link MessageSplitter}.  It splits method names into a sequence of
  * tokens to expect and underscores, but it also implements the repeated
  * argument mechanism by producing a sequence of mini-instructions to say how
- * to do the parsing. 
+ * to do the parsing.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -60,8 +52,8 @@ public class MessageSplitterTest
 {
 	/** A {@linkplain ModuleNameResolver module name resolver}. */
 	private ModuleNameResolver moduleNameResolver;
-	
-	/** An {@linkplain AvailRuntime Avail runtime}. */ 
+
+	/** An {@linkplain AvailRuntime Avail runtime}. */
 	private AvailRuntime runtime;
 
 	/**
@@ -77,7 +69,7 @@ public class MessageSplitterTest
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-		RenamesFileParser renamesFileParser = new RenamesFileParser( 
+		RenamesFileParser renamesFileParser = new RenamesFileParser(
 			new StringReader(""),
 			new ModuleRoots(""));
 		ModuleNameResolver resolver = renamesFileParser.parse();
@@ -121,7 +113,7 @@ public class MessageSplitterTest
 			"new", "_", "«", "with", "«", "_", "=", "_", "‡", ",", "»", "»",
 			"[6, 0, 1, 88, 18, 1, 76, 1, 0, 2, 30, 0, 2, 72, 42, 2, 33, 2, 2, 88, 21]"},
 	};
-	
+
 	/**
 	 * Test: Split the test cases.
 	 */
@@ -138,7 +130,7 @@ public class MessageSplitterTest
 			assert splitCase.length == parts.tupleSize() + 2;
 			for (int i = 1; i <= parts.tupleSize(); i++)
 			{
-				assert parts.tupleAt(i).asNativeString().equals(splitCase[i]); 
+				assert parts.tupleAt(i).asNativeString().equals(splitCase[i]);
 			}
 			AvailObject instructionsTuple = splitter.instructionsTuple();
 			List<Integer> instructionsList = new ArrayList<Integer>();

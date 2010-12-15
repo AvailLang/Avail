@@ -34,29 +34,11 @@ package com.avail;
 
 import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import com.avail.annotations.NotNull;
-import com.avail.annotations.ThreadSafe;
-import com.avail.compiler.MessageSplitter;
-import com.avail.compiler.ModuleNameResolver;
-import com.avail.compiler.ModuleRoots;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BooleanDescriptor;
-import com.avail.descriptor.CyclicTypeDescriptor;
-import com.avail.descriptor.ImplementationSetDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.ListTypeDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.MessageBundleTreeDescriptor;
-import com.avail.descriptor.ObjectTypeDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
+import com.avail.annotations.*;
+import com.avail.compiler.*;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 
@@ -70,6 +52,7 @@ import com.avail.interpreter.Primitive;
  */
 public final class AvailRuntime
 {
+
 	/**
 	 * The {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
@@ -206,8 +189,8 @@ public final class AvailRuntime
 		specialObjects[64] = Types.variableUseNode.object();
 
 		// Booleans
-		specialObjects[70] = BooleanDescriptor.objectFromBoolean(true);
-		specialObjects[71] = BooleanDescriptor.objectFromBoolean(false);
+		specialObjects[70] = BooleanDescriptor.objectFrom(true);
+		specialObjects[71] = BooleanDescriptor.objectFrom(false);
 	}
 
 	/**
@@ -465,7 +448,8 @@ public final class AvailRuntime
 	 * contains the {@linkplain MessageBundleDescriptor message bundles}
 	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
-	private @NotNull AvailObject rootBundleTree =
+	private @NotNull
+	final AvailObject rootBundleTree =
 		UnexpandedMessageBundleTreeDescriptor.newPc(1);
 
 	/**
@@ -498,7 +482,8 @@ public final class AvailRuntime
 	 * A {@linkplain MapDescriptor map} from {@linkplain ObjectTypeDescriptor
 	 * user-defined object types} to user-assigned names.
 	 */
-	private @NotNull AvailObject typeNames = MapDescriptor.empty();
+	private @NotNull
+	final AvailObject typeNames = MapDescriptor.empty();
 
 	/**
 	 * Answer the user-assigned name of the specified {@linkplain
@@ -538,14 +523,14 @@ public final class AvailRuntime
 	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
 	 * RandomAccessFile}s open for reading.
 	 */
-	private Map<AvailObject, RandomAccessFile> openReadableFiles =
+	private final Map<AvailObject, RandomAccessFile> openReadableFiles =
 		new HashMap<AvailObject, RandomAccessFile>();
 
 	/**
 	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
 	 * RandomAccessFile}s open for writing.
 	 */
-	private Map<AvailObject, RandomAccessFile> openWritableFiles =
+	private final Map<AvailObject, RandomAccessFile> openWritableFiles =
 		new HashMap<AvailObject, RandomAccessFile>();
 
 	/**

@@ -109,7 +109,7 @@ public abstract class BooleanDescriptor extends Descriptor
 	 * @param b A Java boolean.
 	 * @return An Avail boolean.
 	 */
-	public static AvailObject objectFromBoolean (boolean b)
+	public static AvailObject objectFrom (boolean b)
 	{
 		return b ? TrueBooleanObject : FalseBooleanObject;
 	};

@@ -341,7 +341,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		//  at least two references now.
 		//
 		//  at least two references now.
-		return IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
+		return IntegerRangeTypeDescriptor.create(
 			minObject.makeImmutable(),
 			isMinInc,
 			maxObject.makeImmutable(),
@@ -395,7 +395,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			maxObject = another.upperBound();
 			isMaxInc = another.upperInclusive();
 		}
-		return IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
+		return IntegerRangeTypeDescriptor.create(
 			minObject,
 			isMinInc,
 			maxObject,
@@ -436,37 +436,37 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	static void createWellKnownObjects ()
 	{
-		ExtendedIntegers = lowerBoundInclusiveUpperBoundInclusive(
+		ExtendedIntegers = create(
 			InfinityDescriptor.negativeInfinity(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
 			true);
-		Integers = lowerBoundInclusiveUpperBoundInclusive(
+		Integers = create(
 			InfinityDescriptor.negativeInfinity(),
 			false,
 			InfinityDescriptor.positiveInfinity(),
 			false);
-		NaturalNumbers = lowerBoundInclusiveUpperBoundInclusive(
+		NaturalNumbers = create(
 			IntegerDescriptor.one(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
 			false);
-		WholeNumbers = lowerBoundInclusiveUpperBoundInclusive(
+		WholeNumbers = create(
 			IntegerDescriptor.zero(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
 			false);
-		Bytes = lowerBoundInclusiveUpperBoundInclusive(
+		Bytes = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.objectFromByte(((short)(255))),
 			true);
-		Nybbles = lowerBoundInclusiveUpperBoundInclusive(
+		Nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.objectFromByte(((short)(15))),
 			true);
-		Characters = lowerBoundInclusiveUpperBoundInclusive(
+		Characters = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.objectFromInt(0xFFFF),
@@ -533,12 +533,12 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public static AvailObject singleInteger (AvailObject integerObject)
 	{
 		integerObject.makeImmutable();
-		return IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
+		return IntegerRangeTypeDescriptor.create(
 			integerObject, true, integerObject, true);
 	}
 
 
-	public static AvailObject lowerBoundInclusiveUpperBoundInclusive (
+	public static AvailObject create (
 			AvailObject lowerBound,
 			boolean lowerInclusive,
 			AvailObject upperBound,

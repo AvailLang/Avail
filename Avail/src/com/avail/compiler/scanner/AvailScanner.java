@@ -32,19 +32,13 @@
 
 package com.avail.compiler.scanner;
 
+import static com.avail.descriptor.AvailObject.error;
+import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.DoubleDescriptor;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.newcompiler.LiteralTokenDescriptor;
-import com.avail.newcompiler.TokenDescriptor;
+import com.avail.compiler.scanner.AvailScanner.ScannerAction;
+import com.avail.descriptor.*;
+import com.avail.newcompiler.*;
 import com.avail.newcompiler.TokenDescriptor.TokenType;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
@@ -86,7 +80,7 @@ public class AvailScanner
 	 */
 	boolean _encounteredNamesToken;
 
-	
+
 	// private
 
 	/**
@@ -99,14 +93,14 @@ public class AvailScanner
 	 * <li>{@link TokenDescriptor#o_TokenType(AvailObject, TokenType) token
 	 *     type} based on the passed {@link TokenDescriptor.TokenType}.
 	 * </ul>
-	 * 
+	 *
 	 * @param anAvailToken The token to initialize and add.
 	 * @param tokenType The {@link TokenDescriptor.TokenType enumeration value}
-	 *                  to set in the token. 
+	 *                  to set in the token.
 	 */
 	void addToken (
 			final AvailObject anAvailToken,
-			TokenDescriptor.TokenType tokenType)
+			final TokenDescriptor.TokenType tokenType)
 	{
 		anAvailToken.tokenType(tokenType);
 		anAvailToken.start(_startOfToken);
@@ -127,9 +121,9 @@ public class AvailScanner
 	 * <li>{@link TokenDescriptor#o_TokenType(AvailObject, TokenType) token type}
 	 *     based on the passed {@link TokenDescriptor.TokenType}.
 	 * </ul>
-	 * 
+	 *
 	 * @param tokenType The {@link TokenDescriptor.TokenType enumeration value}
-	 *                  to set in the token. 
+	 *                  to set in the token.
 	 */
 	void addToken (final TokenDescriptor.TokenType tokenType)
 	{
@@ -142,7 +136,7 @@ public class AvailScanner
 	/**
 	 * Add the provided uninitialized {@link LiteralTokenDescriptor literal
 	 * token}.
-	 * 
+	 *
 	 * @param anAvailObject A {@link LiteralTokenDescriptor literal token}.
 	 */
 	void addTokenForLiteral (final AvailObject anAvailObject)
@@ -195,42 +189,46 @@ public class AvailScanner
 		AvailObject result;
 		long twoTo59;
 		_position = _startOfToken;
-		if ((peekFor('d') || (peekFor('e') || (peekFor('.') && peekIsDigit()))))
+		if (peekFor('d') || peekFor('e') || peekFor('.') && peekIsDigit())
 		{
 			mantissa = 0;
 			decimalExponent = 0;
 			twoTo59 = 0x800000000000000L;
 			isDoublePrecision = false;
 			while (peekIsDigit())
+			{
 				if (mantissa > twoTo59)
 				{
 					decimalExponent++;
 				}
 				else
 				{
-					mantissa = ((mantissa * 10) + nextDigitValue());
+					mantissa = mantissa * 10 + nextDigitValue();
 				}
+			}
 			if (peekFor('.'))
 			{
 				next();
 				while (peekIsDigit())
+				{
 					if (mantissa <= twoTo59)
 					{
-						mantissa = ((mantissa * 10) + nextDigitValue());
+						mantissa = mantissa * 10 + nextDigitValue();
 						decimalExponent--;
 					}
 					else
 					{
 						next();
 					}
+				}
 			}
 			isDoublePrecision = peekFor('d');
-			if ((isDoublePrecision || (peek() == 'e')))
+			if (isDoublePrecision || peek() == 'e')
 			{
 				int explicitExponent = 0;
 				final boolean negateExponent = peekFor('-');
 				while (peekIsDigit()) {
-					explicitExponent = ((explicitExponent * 10) + nextDigitValue());
+					explicitExponent = explicitExponent * 10 + nextDigitValue();
 					if (explicitExponent > 0x2710)
 					{
 						error("Literal exponent is (way) out of bounds");
@@ -238,8 +236,8 @@ public class AvailScanner
 					}
 				}
 				decimalExponent = negateExponent
-					? (decimalExponent - explicitExponent)
-					: (decimalExponent + explicitExponent);
+					? decimalExponent - explicitExponent
+					: decimalExponent + explicitExponent;
 			}
 			// The mantissa is in the range of a long, so even if 10**e would
 			// overflow we know that 10**(e/2) will not (unless the double we're
@@ -256,10 +254,11 @@ public class AvailScanner
 		else
 		{
 			result = IntegerDescriptor.zero();
-			final AvailObject ten = IntegerDescriptor.objectFromByte(((byte)(10)));
+			final AvailObject ten = IntegerDescriptor.ten();
 			while (peekIsDigit()) {
 				result = result.timesCanDestroy(ten, true);
-				result = result.plusCanDestroy(IntegerDescriptor.objectFromByte(nextDigitValue()), true);
+				result = result.plusCanDestroy(
+					IntegerDescriptor.objectFromByte(nextDigitValue()), true);
 			}
 		}
 		addTokenForLiteral(result);
@@ -332,7 +331,7 @@ public class AvailScanner
 				error("Expected close comment to correspond with open comment");
 				return;
 			}
-			if ((peekFor('/') && peekFor('*')))
+			if (peekFor('/') && peekFor('*'))
 			{
 				depth++;
 			}
@@ -387,7 +386,7 @@ public class AvailScanner
 
 	/**
 	 * Answer whether we have exhausted the input string.
-	 * 
+	 *
 	 * @return Whether we are finished scanning.
 	 */
 	boolean atEnd ()
@@ -398,7 +397,7 @@ public class AvailScanner
 	/**
 	 * Extract a native {@link String} from the input, from the {@link
 	 * #_startOfToken} to the current {@link #_position}.
-	 * 
+	 *
 	 * @return A substring of the input.
 	 */
 	String currentTokenString ()
@@ -408,7 +407,7 @@ public class AvailScanner
 
 	/**
 	 * Extract the current character and increment the {@link #_position}.
-	 * 
+	 *
 	 * @return The consumed character.
 	 */
 	char next ()
@@ -419,7 +418,7 @@ public class AvailScanner
 
 	/**
 	 * Extract the value of the next characater, which must be a digit.
-	 * 
+	 *
 	 * @return The digit's value.
 	 */
 	byte nextDigitValue ()
@@ -430,7 +429,7 @@ public class AvailScanner
 
 	/**
 	 * Answer the character at the current {@link #_position} of the input.
-	 * 
+	 *
 	 * @return The current character.
 	 */
 	char peek ()
@@ -441,7 +440,7 @@ public class AvailScanner
 	/**
 	 * Skip aCharacter if it's next in the input stream.  Answer whether it was
 	 * present.
-	 * 
+	 *
 	 * @param aCharacter The character to look for.
 	 * @return Whether the specified character was found and skipped.
 	 */
@@ -463,7 +462,7 @@ public class AvailScanner
 	/**
 	 * Skip the next character if it's alphanumeric.  Answer whether such a
 	 * character was encountered.
-	 * 
+	 *
 	 * @return Whether an alphanumeric character was encountered and skipped.
 	 */
 	boolean peekForLetterOrAlphaNumeric ()
@@ -481,7 +480,7 @@ public class AvailScanner
 
 	/**
 	 * Answer whether the current character is a digit.
-	 * 
+	 *
 	 * @return Whether the current character is a digit.
 	 */
 	boolean peekIsDigit ()
@@ -491,7 +490,7 @@ public class AvailScanner
 
 	/**
 	 * Adjust the current {@link #_position} by the specified amount.
-	 * 
+	 *
 	 * @param anInteger The amount to add to the {@link #_position}.
 	 */
 	void skip (
@@ -540,34 +539,34 @@ public class AvailScanner
 	enum ScannerAction
 	{
 		/**
-		 * A digit indicates a numeric constant. 
+		 * A digit indicates a numeric constant.
 		 */
 		DIGIT ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanDigit();
 			}
 		},
 		/**
-		 * A double quote portends a string constant.  
+		 * A double quote portends a string constant.
 		 */
 		DOUBLE_QUOTE ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanDoubleQuote();
 			}
 		},
 		/**
-		 * Keywords start this way. 
+		 * Keywords start this way.
 		 */
 		IDENTIFIER_START ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanAlpha();
 			}
@@ -578,7 +577,7 @@ public class AvailScanner
 		SEMICOLON ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanSemicolon();
 			}
@@ -590,29 +589,29 @@ public class AvailScanner
 		SLASH ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanSlash();
 			}
 		},
 		/**
-		 * An unknown character. 
+		 * An unknown character.
 		 */
 		UNKNOWN ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanUnknown();
 			}
 		},
 		/**
-		 * Whitespace can be ignored. 
+		 * Whitespace can be ignored.
 		 */
 		WHITESPACE ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanWhitespace();
 			}
@@ -624,7 +623,7 @@ public class AvailScanner
 		ZEROWIDTHWHITESPACE ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanZeroWidthNonbreakingWhitespace();
 			}
@@ -635,7 +634,7 @@ public class AvailScanner
 		OPERATOR ()
 		{
 			@Override
-			void scan (AvailScanner scanner)
+			void scan (final AvailScanner scanner)
 			{
 				scanner.scanOperator();
 			}
@@ -643,7 +642,7 @@ public class AvailScanner
 
 		/**
 		 * Process the current character.
-		 * 
+		 *
 		 * @param scanner The scanner processing this character.
 		 */
 		abstract void scan (AvailScanner scanner);
@@ -651,11 +650,11 @@ public class AvailScanner
 
 	/**
 	 * Answer whether the passed character can appear as an Avail operator.
-	 * 
+	 *
 	 * @param c The character to test.
 	 * @return Whether it's a valid operator character.
 	 */
-	public static boolean isOperatorCharacter (char c)
+	public static boolean isOperatorCharacter (final char c)
 	{
 		return DispatchTable[c] == (byte)ScannerAction.OPERATOR.ordinal();
 	}
@@ -699,7 +698,7 @@ public class AvailScanner
 			}
 			else if (!Character.isSpaceChar(c)
 				&& !Character.isWhitespace(c)
-				&& (c < 32 || (c > 126 && c < 160) || (c >= 65534)))
+				&& (c < 32 || c > 126 && c < 160 || c >= 65534))
 			{
 				action = ScannerAction.UNKNOWN;
 			}

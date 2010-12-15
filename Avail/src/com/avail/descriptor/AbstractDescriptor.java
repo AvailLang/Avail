@@ -32,15 +32,10 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import com.avail.annotations.NotNull;
-import com.avail.annotations.ThreadSafe;
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Generator;
-import com.avail.interpreter.AvailInterpreter;
+import java.util.*;
+import com.avail.annotations.*;
+import com.avail.compiler.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -97,13 +92,22 @@ public abstract class AbstractDescriptor
 	protected static final List<AbstractDescriptor> allDescriptors =
 		new ArrayList<AbstractDescriptor>(200);
 
-	protected static int bitShift (int value, int leftShift)
+	protected static int bitShift (final int value, final int leftShift)
 	{
 		// Note:  This is a logical shift *without* Java's implicit modulus on
 		// the shift amount.
-		if (leftShift >= 32) return 0;
-		if (leftShift >= 0) return value << leftShift;
-		if (leftShift > -32) return value >>> -leftShift;
+		if (leftShift >= 32)
+		{
+			return 0;
+		}
+		if (leftShift >= 0)
+		{
+			return value << leftShift;
+		}
+		if (leftShift > -32)
+		{
+			return value >>> -leftShift;
+		}
 		return 0;
 	}
 
@@ -175,28 +179,28 @@ public abstract class AbstractDescriptor
 	protected boolean hasVariableIntegerSlots ()
 	{
 		//  Answer whether I have a variable number of integer slots.
-	
+
 		return hasVariableIntegerSlots;
 	}
 
 	protected boolean hasVariableObjectSlots ()
 	{
 		//  Answer whether I have a variable number of object slots.
-	
+
 		return hasVariableObjectSlots;
 	}
 
 	public int numberOfFixedIntegerSlots ()
 	{
 		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
-	
+
 		return numberOfFixedIntegerSlots;
 	}
 
 	public int numberOfFixedObjectSlots ()
 	{
 		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
-	
+
 		return numberOfFixedObjectSlots;
 	}
 
@@ -222,10 +226,10 @@ public abstract class AbstractDescriptor
 	public int maximumIndent ()
 	{
 		//  Answer the deepest a recursive print can go before summarizing.
-	
+
 		return 5;
 	}
-	
+
 	/**
 	 * Print the object to the {@link StringBuilder}.  By default show it as the
 	 * descriptor name and a line-by-line list of fields.  If the indent is
@@ -262,12 +266,12 @@ public abstract class AbstractDescriptor
 		}
 		builder.append(' ');
 		builder.append(shortenedName);
-	
+
 		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
 		Enum<?>[] instances;
-	
+
 		try
 		{
 			enumClass = (Class<Enum<?>>) loader.loadClass(
@@ -278,9 +282,9 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-		? enumClass.getEnumConstants()
-				: new Enum<?>[0];
-	
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
 		{
 			builder.append('\n');
@@ -291,23 +295,28 @@ public abstract class AbstractDescriptor
 			int ordinal = Math.min(i, instances.length) - 1;
 			Enum<?> slot = instances[ordinal];
 			String slotName = slot.name();
+			int value;
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
 				int subscript = i - instances.length + 1;
+				value = object.integerSlotAt(slot, subscript);
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
 				builder.append(subscript);
-				builder.append("] = ");
-				builder.append(object.integerSlotAt(slot, subscript));
+				builder.append("]");
 			}
 			else
 			{
+				value = object.integerSlot(slot);
 				builder.append(slotName);
-				builder.append(" = ");
-				builder.append(object.integerSlot(slot));
 			}
+			builder.append(" = ");
+			builder.append(value);
+			builder.append(" = 0x");
+			builder.append(
+				new Formatter().format("%08X", value & 0xFFFFFFFFL));
 		}
-	
+
 		try
 		{
 			enumClass = (Class<Enum<?>>) loader.loadClass(
@@ -320,7 +329,7 @@ public abstract class AbstractDescriptor
 		instances = enumClass != null
 		? enumClass.getEnumConstants()
 				: new Enum<?>[0];
-	
+
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{
 			builder.append('\n');
@@ -369,8 +378,8 @@ public abstract class AbstractDescriptor
 		return;
 	}
 
-	
-	
+
+
 	public abstract boolean o_AcceptsArgTypesFromClosureType (
 		final AvailObject object,
 		final AvailObject closureType);
@@ -853,7 +862,7 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter);
+		final Interpreter anAvailInterpreter);
 
 	/**
 	 * @param object
@@ -1472,7 +1481,7 @@ public abstract class AbstractDescriptor
 	public abstract boolean o_IsValidForArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter interpreter);
+		final Interpreter interpreter);
 
 	/**
 	 * @param object
@@ -2189,7 +2198,7 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract void o_RemoveFrom (
 		final AvailObject object,
-		final AvailInterpreter anInterpreter);
+		final Interpreter anInterpreter);
 
 	/**
 	 * @param object
@@ -2957,7 +2966,7 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter,
+		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock);
 
 	/**

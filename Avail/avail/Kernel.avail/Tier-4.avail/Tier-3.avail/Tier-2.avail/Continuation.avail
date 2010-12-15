@@ -52,6 +52,16 @@ Names
 Body
 
 
+/**
+ * Private zero-argument block evaluation (bootstrap workaround)...
+ */
+Method "_()" is [block : []->void |
+	block apply <>;
+]
+returns [bt : closureType |
+	bt result;
+];
+
 
 /* Continuation type primitives. */
 

@@ -1,5 +1,5 @@
 /**
- * interpreter/AvailInterpreter.java
+ * interpreter/Interpreter.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -36,48 +36,24 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCompiler;
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Generator;
-import com.avail.compiler.MessageSplitter;
-import com.avail.descriptor.AbstractSignatureDescriptor;
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BooleanDescriptor;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.ClosureDescriptor;
-import com.avail.descriptor.CyclicTypeDescriptor;
-import com.avail.descriptor.ForwardSignatureDescriptor;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MethodSignatureDescriptor;
-import com.avail.descriptor.ProcessDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.compiler.*;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelOne.L1Instruction;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelOne.*;
 
 /**
  * This is the abstraction for execution Avail code.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public abstract class AvailInterpreter
+public abstract class Interpreter
 {
 	/** An {@link AvailRuntime}. */
 	private final @NotNull AvailRuntime runtime;
 
 	/**
-	 * Answer the {@link AvailRuntime} that the {@linkplain AvailInterpreter
+	 * Answer the {@link AvailRuntime} that the {@linkplain Interpreter
 	 * receiver} uses to locate and store Avail runtime elements.
 	 *
 	 * @return An {@link AvailRuntime}.
@@ -96,7 +72,7 @@ public abstract class AvailInterpreter
 
 	/**
 	 * Set the {@linkplain ModuleDescriptor module} context of the
-	 * {@linkplain AvailInterpreter interpreter}. This feature is used by the
+	 * {@linkplain Interpreter interpreter}. This feature is used by the
 	 * compiler to establish transaction boundaries for module parsing.
 	 *
 	 * @param module A {@linkplain ModuleDescriptor module}, or {@code
@@ -115,36 +91,36 @@ public abstract class AvailInterpreter
 	 * interpreter between nybblecodes.
 	 */
 	protected volatile int interruptRequestFlag;
-	
+
 	/**
 	 * The {@link ProcessDescriptor} being executed by this interpreter.
 	 */
 	public AvailObject process;
-	
+
 	/**
 	 * A place to store the result of a primitive when the primitive
 	 * succeeds by returning {@link Result#SUCCESS}.
 	 */
 	public AvailObject primitiveResult;
 
-	
+
 	/**
-	 * Construct a new {@link AvailInterpreter}.
+	 * Construct a new {@link Interpreter}.
 	 *
 	 * @param runtime An {@link AvailRuntime}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	protected AvailInterpreter (final @NotNull AvailRuntime runtime)
+	protected Interpreter (final @NotNull AvailRuntime runtime)
 	{
 		this.runtime = runtime;
 	}
 
 
-	/** 
+	/**
 	 * Answer whether the specified primitive accepts the specified number of
 	 * arguments.  Note that some primitives expect a variable number of
 	 * arguments.
-	 * 
+	 *
 	 * @param primitiveNumber Which primitive.
 	 * @param argCount The number of arguments that we should check is legal for
 	 *                 this primitive.
@@ -154,8 +130,8 @@ public abstract class AvailInterpreter
 		final short primitiveNumber,
 		final int argCount)
 	{
-		int expected = Primitive.byPrimitiveNumber(primitiveNumber).argCount(); 
-		return expected == -1 || expected == argCount; 
+		int expected = Primitive.byPrimitiveNumber(primitiveNumber).argCount();
+		return expected == -1 || expected == argCount;
 	}
 
 	/**
@@ -231,7 +207,7 @@ public abstract class AvailInterpreter
 	 * Add the method implementation.  The precedence rules can not change after
 	 * the first implementation is encountered, so set them to 'no restrictions'
 	 * if they're not set already.
-	 * 
+	 *
 	 * @param methodName The method's name, a {@link CyclicTypeDescriptor cyclic
 	 *                   type}.
 	 * @param method A {@link ClosureDescriptor method}.
@@ -248,7 +224,7 @@ public abstract class AvailInterpreter
 		final AvailObject requiresBlock =
 			ClosureDescriptor.newStubForNumArgsConstantResult(
 				numArgs,
-				BooleanDescriptor.objectFromBoolean(true));
+				BooleanDescriptor.objectFrom(true));
 		atAddMethodBodyRequiresBlockReturnsBlock(
 			methodName,
 			method,
@@ -282,11 +258,11 @@ public abstract class AvailInterpreter
 
 		MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
-		assert (bodyBlock.code().numArgs() == numArgs)
+		assert bodyBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in method definition";
-		assert (requiresBlock.code().numArgs() == numArgs)
+		assert requiresBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in method type verifier";
-		assert (returnsBlock.code().numArgs() == numArgs)
+		assert returnsBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in method result type generator";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
@@ -387,11 +363,11 @@ public abstract class AvailInterpreter
 
 		MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
-		assert (bodySignature.numArgs() == numArgs)
+		assert bodySignature.numArgs() == numArgs
 		: "Wrong number of arguments in abstract method signature";
-		assert (requiresBlock.code().numArgs() == numArgs)
+		assert requiresBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in abstract method type verifier";
-		assert (returnsBlock.code().numArgs() == numArgs)
+		assert returnsBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in abstract method result type "
 			+ "specializer";
 		//  Make it so we can safely hold onto these things in the VM
@@ -507,10 +483,7 @@ public abstract class AvailInterpreter
 	public void bootstrapDefiningMethod (
 		final @NotNull String defineMethodName)
 	{
-		//  Define the special defining method.
-
 		assert module != null;
-		AvailObject newClosure;
 		L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
 			new L1Instruction(
@@ -522,9 +495,10 @@ public abstract class AvailInterpreter
 			Primitive.prim253_SimpleMethodDeclaration_string_block
 			.primitiveNumber);
 		writer.returnType(Types.voidType.object());
-		newClosure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
+		final AvailObject newClosure =
+			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
+				writer.compiledCode(),
+				TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
 			ByteStringDescriptor.mutableObjectFromNativeString(
@@ -552,7 +526,7 @@ public abstract class AvailInterpreter
 
 		assert module != null;
 		final AvailObject naturalNumbers =
-			IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
+			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.one(),
 				true,
 				InfinityDescriptor.positiveInfinity(),
@@ -598,9 +572,9 @@ public abstract class AvailInterpreter
 	 * Answer the map whose sole token-component is firstPiece.  The map is from
 	 * message (cyclicType) to messageBundle.  Filter selectors based on the
 	 * visibility of names in the current module.
-	 * 
-	 * @param firstPiece An Avail {@link ByteStringDescriptor string}. 
-	 * @return A map from 
+	 *
+	 * @param firstPiece An Avail {@link ByteStringDescriptor string}.
+	 * @return A map from
 	 */
 	public AvailObject completeBundlesStartingWith (
 		final AvailObject firstPiece)
@@ -618,10 +592,10 @@ public abstract class AvailInterpreter
 	 * Answer the map whose first (but not only) token-component is firstPiece.
 	 * The map is from the second piece to bundle tree.  Filter selectors based
 	 * on the visibility of names in the current module.
-	 * 
+	 *
 	 * @param firstPiece The first Avail {@link ByteStringDescriptor string}
 	 *                   token by which to filter messages.
-	 * @return A map from 
+	 * @return A map from
 	 */
 	public AvailObject incompleteBundlesStartingWith (
 		final AvailObject firstPiece)
@@ -635,43 +609,16 @@ public abstract class AvailInterpreter
 	}
 
 	/**
-	 * Answer the map whose first (but not only) token-component is firstPiece.
-	 * The map is from the second piece to bundle tree.  Filter selectors based
-	 * on the visibility of names in the current module.
-	 * 
-	 * @param firstPiece The first Avail {@link ByteStringDescriptor string}
-	 *                   token by which to filter messages.
-	 * @return A map from 
-	 */
-	public AvailObject specialBundlesStartingWith (
-		final AvailObject firstPiece)
-	{
-		//TODO: Implement this for real.  This is where we'll need to rewrite
-		// the parser as a shift-reduce with an argument read-ahead.  The idea
-		// is that one parses an expression then attempts to wrap it repeatedly
-		// with leading-underscore interpretations.  It doesn't work quite the
-		// same way with repetitions, so allow the shift-reduce engine to abort
-		// the operation along all paths where it happens to get to a leading
-		// keyword before an argument.
-		final AvailObject all = module.filteredBundleTree().specialActions();
-		if (!all.hasKey(firstPiece))
-		{
-			return MapDescriptor.empty();
-		}
-		return all.mapAt(firstPiece).incomplete();
-	}
-
-	/**
 	 * Answer the current module's filtered bundle tree used for parsing.  It
 	 * only includes bundles visible in the current module.
-	 * 
+	 *
 	 * @return The filtered root bundle tree.
 	 */
 	public AvailObject rootBundleTree ()
 	{
 		return module.filteredBundleTree();
 	}
-	
+
 	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
 	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
@@ -689,14 +636,14 @@ public abstract class AvailInterpreter
 		//  Check if it's already defined somewhere...
 		final AvailObject who = module.trueNamesForStringName(stringName);
 		AvailObject trueName;
-		if ((who.setSize() == 0))
+		if (who.setSize() == 0)
 		{
 			trueName = CyclicTypeDescriptor.newCyclicTypeWithName(stringName);
 			trueName.makeImmutable();
 			module.atPrivateNameAdd(stringName, trueName);
 			return trueName;
 		}
-		if ((who.setSize() == 1))
+		if (who.setSize() == 1)
 		{
 			return who.asTuple().tupleAt(1);
 		}
@@ -708,7 +655,7 @@ public abstract class AvailInterpreter
 
 	/**
 	 * Return the current {@link ProcessDescriptor process}.
-	 * 
+	 *
 	 * @return The current executing process.
 	 */
 	public AvailObject process ()
@@ -774,7 +721,7 @@ public abstract class AvailInterpreter
 	}
 
 	/**
-	 * Does the {@linkplain AvailInterpreter interpreter} provide a {@linkplain
+	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
 	 * Primitive primitive} with the specified ordinal?
 	 *
 	 * @param ordinal An ordinal.
@@ -801,7 +748,7 @@ public abstract class AvailInterpreter
 		final AvailObject implementations = runtime.methodsAt(methodName);
 		final List<AvailObject> matching =
 			implementations.filterByTypes(argTypes);
-		if ((matching.size() == 0))
+		if (matching.size() == 0)
 		{
 			error("Problem - there were no matching implementations");
 			return;
@@ -884,27 +831,49 @@ public abstract class AvailInterpreter
 		process.processGlobals(MapDescriptor.empty());
 	}
 
-	public void primitiveResult (AvailObject result)
+	/**
+	 * Set the resulting value of a primitive invocation.  This value will only
+	 * be used if the primitive subsequently returns {@link
+	 * Result#SUCCESS}.
+	 *
+	 * @param result The {@link AvailObject} that a primitive has produced.
+	 */
+	public void primitiveResult (final AvailObject result)
 	{
 		primitiveResult = result;
 	}
 
+
+	/**
+	 * Answer the result that a primitive invocation has produced.
+	 *
+	 * @return The result that was {@link #primitiveResult(AvailObject)
+	 * recorded} during primitive execution.
+	 */
 	public AvailObject primitiveResult()
 	{
 		return primitiveResult;
 	}
 
-	public Result attemptPrimitive (
-		short primitiveNumber,
-		List<AvailObject> args)
-	{
-		//  Invoke an Avail primitive.  The primitive number and arguments are passed.
-		//  If the primitive fails, return primitiveFailed immediately.  If the primitive causes
-		//  the continuation to change (e.g., through block invocation, continuation restart,
-		//  exception throwing, etc), answer continuationChanged.  Otherwise the primitive
-		//  succeeded, and we simply store the resulting value in args.result and return
-		//  primitiveSucceeded.
 
+	/**
+	 * Invoke an Avail primitive.  The primitive number and arguments are
+	 * passed.  If the primitive fails, return primitiveFailed immediately.  If
+	 * the primitive causes the continuation to change (e.g., through block
+	 * invocation, continuation restart, exception throwing, etc), answer
+	 * continuationChanged.  Otherwise the primitive succeeded, and we simply
+	 * capture the resulting value with {@link
+	 * Interpreter#primitiveResult(AvailObject)} and return {@link
+	 * Primitive.Result#SUCCESS}.
+	 *
+	 * @param primitiveNumber The number of the primitive to invoke.
+	 * @param args The list of arguments to supply to the primitive.
+	 * @return The resulting status of the primitive attempt.
+	 */
+	public Result attemptPrimitive (
+		final short primitiveNumber,
+		final List<AvailObject> args)
+	{
 		return Primitive.byPrimitiveNumber(primitiveNumber).attempt(args, this);
 	}
 
@@ -929,8 +898,8 @@ public abstract class AvailInterpreter
 
 	@Deprecated
 	Result callBackSmalltalkPrimitive (
-		short primitiveNumber,
-		List<AvailObject> args)
+		final short primitiveNumber,
+		final List<AvailObject> args)
 	{
 		//TODO: [MvG] Phase this out without ever implementing it.
 		error("Can't call back to Smalltalk -- not supported.");

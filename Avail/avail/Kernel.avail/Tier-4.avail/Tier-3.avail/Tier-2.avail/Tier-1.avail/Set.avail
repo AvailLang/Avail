@@ -49,8 +49,7 @@ Names
 	"||_||",
 	"_as tuple",
 	"_as set",
-	"{}",
-	"{_}"
+	"{«_‡,»}"
 Body
 
 
@@ -140,26 +139,11 @@ Method "_sizes upper bound" is [st : setType |
 
 /* Set constructors... */
 
-Method "{}" is [
-	/* Answer the empty set. */
-	Primitive 108;
-	Failed;
-] : set [0..0] of terminates;
-
-Method "{_}" is [it : all |
-	/* Construct a set with one element. */
-	<it> as set;
+Method "{«_‡,»}" is [t : tuple |
+	/* Construct a set from the comma-separated tuple of values. */
+	t as set;
 ] : set
-returns [t : type |
-	set [1..1] of t;
-] : setType;
-
-Method "{_}" is [them : list |
-	/* Convert a list to a set. */
-	<them> as set;
-] : set
-returns [lt : listType |
-	tt ::= lt as tupleType;
+returns [tt : tupleType |
 	sizes ::= tt sizes;
 	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
 	maxSize ::= sizes upper bound;

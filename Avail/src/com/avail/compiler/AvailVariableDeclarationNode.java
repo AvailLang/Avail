@@ -32,10 +32,9 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VoidDescriptor;
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.error;
+import java.util.ArrayList;
+import com.avail.descriptor.*;
 
 public class AvailVariableDeclarationNode extends AvailParseNode
 {
@@ -167,7 +166,10 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 	{
 		aStream.append(_name.string().asNativeString());
 		aStream.append(" : ");
-		aStream.append(_declaredType.toString());
+		_declaredType.printOnAvoidingIndent(
+			aStream,
+			new ArrayList<AvailObject>(5),
+			indent);
 	}
 
 

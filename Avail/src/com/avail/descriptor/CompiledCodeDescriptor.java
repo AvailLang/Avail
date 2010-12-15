@@ -537,7 +537,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * @param outerTypes A tuple of types of outer (captured) variables.
 	 * @return The new compiled code object.
 	 */
-	public static AvailObject newCompiledCodeWithNybblesNumArgsLocalsStackClosureTypePrimitiveLiteralsLocalTypesOuterTypes (
+	public static AvailObject create (
 			AvailObject nybbles,
 			int numArgs,
 			int locals,

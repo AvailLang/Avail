@@ -84,19 +84,19 @@ maxDepth ::= lookup "maxDepth";
 
 
 "Instruction Generator" is implicit subtype of Factory with
-	[numArgs -> whole number]
-	[primitive -> [0..65535]]
-	[localTuple -> tuple of Variable]
-	[localMap -> map from Variable to natural number]
-	[outerTuple -> tuple of Variable]
-	[outerMap -> map from Variable to natural number]
-	[blockType -> closureType]
-	[instructions -> & : tuple of Instruction]
-	[labels -> tuple [0..1] of Label]
-	[literals -> & : map from all to natural number]
-	[stackDepth -> & : integer]
-	[maxDepth -> & : integer]
-	[resultType -> []->compiledCode];
+	numArgs -> whole number,
+	primitive -> [0..65535],
+	localTuple -> tuple of Variable,
+	localMap -> map from Variable to natural number,
+	outerTuple -> tuple of Variable,
+	outerMap -> map from Variable to natural number,
+	blockType -> closureType,
+	instructions -> & : tuple of Instruction,
+	labels -> tuple [0..1] of Label,
+	literals -> & : map from all to natural number,
+	stackDepth -> & : integer,
+	maxDepth -> & : integer,
+	resultType -> []->compiledCode;
 
 
 Instruction Generator has fields <

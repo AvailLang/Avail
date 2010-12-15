@@ -34,36 +34,9 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import com.avail.compiler.instruction.AvailCall;
-import com.avail.compiler.instruction.AvailCloseCode;
-import com.avail.compiler.instruction.AvailGetLiteralVariable;
-import com.avail.compiler.instruction.AvailGetLocalVariable;
-import com.avail.compiler.instruction.AvailGetOuterVariable;
-import com.avail.compiler.instruction.AvailGetType;
-import com.avail.compiler.instruction.AvailInstruction;
-import com.avail.compiler.instruction.AvailLabel;
-import com.avail.compiler.instruction.AvailMakeTuple;
-import com.avail.compiler.instruction.AvailPop;
-import com.avail.compiler.instruction.AvailPushLabel;
-import com.avail.compiler.instruction.AvailPushLiteral;
-import com.avail.compiler.instruction.AvailPushLocalVariable;
-import com.avail.compiler.instruction.AvailPushOuterVariable;
-import com.avail.compiler.instruction.AvailSetLiteralVariable;
-import com.avail.compiler.instruction.AvailSetLocalVariable;
-import com.avail.compiler.instruction.AvailSetOuterVariable;
-import com.avail.compiler.instruction.AvailSuperCall;
-import com.avail.compiler.instruction.AvailVariableAccessNote;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureTypeDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.ContainerTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import java.util.*;
+import com.avail.compiler.instruction.*;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 
@@ -84,7 +57,7 @@ public class AvailCodeGenerator
 
 	/**
 	 * Answer the index of the literal, adding it if not already present.
-	 * 
+	 *
 	 * @param aLiteral The literal to look up.
 	 * @return The index of the literal.
 	 */
@@ -104,7 +77,7 @@ public class AvailCodeGenerator
 
 	/**
 	 * Answer the number of arguments that the code under construction accepts.
-	 * 
+	 *
 	 * @return The code's number of arguments.
 	 */
 	public int numArgs ()
@@ -117,7 +90,7 @@ public class AvailCodeGenerator
 	/**
 	 * Finish compilation of the block, answering the resulting compiledCode
 	 * object.
-	 * 
+	 *
 	 * @return A {@link CompiledCodeDescriptor compiled code} object.
 	 */
 
@@ -147,7 +120,8 @@ public class AvailCodeGenerator
 		{
 			nybbleIntegerArray.add(new Integer(nybble));
 		}
-		nybbleTuple = TupleDescriptor.mutableCompressedFromIntegerArray(nybbleIntegerArray);
+		nybbleTuple = TupleDescriptor.mutableCompressedFromIntegerArray(
+			nybbleIntegerArray);
 		nybbleTuple.makeImmutable();
 		assert _resultType.isType();
 		List<AvailObject> outerArray;
@@ -156,9 +130,12 @@ public class AvailCodeGenerator
 		AvailObject argsTuple;
 		List<AvailObject> localsArray;
 		AvailObject localsTuple;
-		argsArray = new ArrayList<AvailObject>(Arrays.asList(new AvailObject[_numArgs]));
-		localsArray = new ArrayList<AvailObject>(Arrays.asList(new AvailObject[_varMap.size() - _numArgs]));
-		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry : _varMap.entrySet())
+		argsArray = new ArrayList<AvailObject>(
+				Arrays.asList(new AvailObject[_numArgs]));
+		localsArray = new ArrayList<AvailObject>(
+				Arrays.asList(new AvailObject[_varMap.size() - _numArgs]));
+		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry
+				: _varMap.entrySet())
 		{
 			int i = entry.getValue();
 			AvailVariableDeclarationNode argDecl = entry.getKey();
@@ -170,13 +147,18 @@ public class AvailCodeGenerator
 			}
 			else
 			{
-				localsArray.set(i - _numArgs - 1, ContainerTypeDescriptor.containerTypeForInnerType(argDeclType));
+				localsArray.set(
+					i - _numArgs - 1,
+					ContainerTypeDescriptor.containerTypeForInnerType(
+						argDeclType));
 			}
 		}
 		argsTuple = TupleDescriptor.mutableObjectFromArray(argsArray);
 		localsTuple = TupleDescriptor.mutableObjectFromArray(localsArray);
-		outerArray = new ArrayList<AvailObject>(Arrays.asList(new AvailObject[_outerMap.size()]));
-		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry : _outerMap.entrySet())
+		outerArray = new ArrayList<AvailObject>(
+				Arrays.asList(new AvailObject[_outerMap.size()]));
+		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry
+				: _outerMap.entrySet())
 		{
 			int i = entry.getValue();
 			AvailVariableDeclarationNode argDecl = entry.getKey();
@@ -187,16 +169,21 @@ public class AvailCodeGenerator
 			}
 			else
 			{
-				outerArray.set(i - 1, ContainerTypeDescriptor.containerTypeForInnerType(argDeclType));
+				outerArray.set(
+					i - 1,
+					ContainerTypeDescriptor.containerTypeForInnerType(
+						argDeclType));
 			}
 		}
 		outerTuple = TupleDescriptor.mutableObjectFromArray(outerArray);
-		final AvailObject code = CompiledCodeDescriptor.newCompiledCodeWithNybblesNumArgsLocalsStackClosureTypePrimitiveLiteralsLocalTypesOuterTypes(
+		final AvailObject code = CompiledCodeDescriptor.create(
 			nybbleTuple,
 			_numArgs,
 			(_varMap.size() - _numArgs),
 			_maxDepth,
-			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(argsTuple, _resultType),
+			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				argsTuple,
+				_resultType),
 			_primitive,
 			TupleDescriptor.mutableObjectFromArray(_literals),
 			localsTuple,
@@ -213,7 +200,8 @@ public class AvailCodeGenerator
 		final AvailObject resType)
 	{
 		_numArgs = arguments.size();
-		_varMap = new HashMap<AvailVariableDeclarationNode, Integer>(arguments.size()+locals.size());
+		_varMap = new HashMap<AvailVariableDeclarationNode, Integer>(
+				arguments.size() + locals.size());
 		for (AvailVariableDeclarationNode arg : arguments)
 		{
 			_varMap.put(arg, _varMap.size() + 1);
@@ -222,12 +210,14 @@ public class AvailCodeGenerator
 		{
 			_varMap.put(local, _varMap.size() + 1);
 		}
-		_outerMap = new HashMap<AvailVariableDeclarationNode, Integer>(outerVars.size());
+		_outerMap = new HashMap<AvailVariableDeclarationNode, Integer>(
+				outerVars.size());
 		for (AvailVariableDeclarationNode outerVar : outerVars)
 		{
 			_outerMap.put(outerVar, _outerMap.size() + 1);
 		}
-		_labelInstructions = new HashMap<AvailLabelNode, AvailLabel>(labels.size());
+		_labelInstructions = new HashMap<AvailLabelNode, AvailLabel>(
+				labels.size());
 		for (AvailLabelNode label : labels)
 		{
 			_labelInstructions.put(label, new AvailLabel());
@@ -264,7 +254,7 @@ public class AvailCodeGenerator
 	 */
 	public void stackShouldBeEmpty ()
 	{
-		assert (_depth == 0) : "The stack should be empty here";
+		assert _depth == 0 : "The stack should be empty here";
 	}
 
 
@@ -273,7 +263,7 @@ public class AvailCodeGenerator
 	 * Write a multimethod super-call.  I expect the arguments to have been
 	 * pushed, as well as the types that those arguments should be considered
 	 * for the purpose of lookup.
-	 * 
+	 *
 	 * @param nArgs The number of arguments that the method accepts.
 	 * @param implementationSet The implementation set in which to look up the
 	 *                          method being invoked.
@@ -295,7 +285,7 @@ public class AvailCodeGenerator
 
 	/**
 	 * Write a multimethod call.  I expect my arguments to have been pushed.
-	 * 
+	 *
 	 * @param nArgs The number of arguments that the method accepts.
 	 * @param implementationSet The implementation set in which to look up the
 	 *                          method being invoked.
@@ -318,7 +308,7 @@ public class AvailCodeGenerator
 	/**
 	 * Create a closure from {@code CompiledCodeDescriptor compiled code} and
 	 * the pushed outer (lexically bound) variables.
-	 * 
+	 *
 	 * @param compiledCode The code from which to make a closure.
 	 * @param copiedVars A {@link List} of {@link AvailVariableDeclarationNode
 	 *                   declarations} of variables that the code needs to
@@ -342,7 +332,7 @@ public class AvailCodeGenerator
 
 	/**
 	 * Get the value of a literal variable.
-	 * 
+	 *
 	 * @param aLiteral The {@link ContainerDescriptor variable} that should have
 	 *                 its value extracted.
 	 */
@@ -357,7 +347,7 @@ public class AvailCodeGenerator
 
 	/**
 	 * Get the value of a local or outer (captured) variable.
-	 * 
+	 *
 	 * @param localOrOuter The {@link AvailVariableDeclarationNode declaration}
 	 *                     of the variable that should have its value extracted.
 	 */
@@ -501,13 +491,13 @@ public class AvailCodeGenerator
 	 * Set the primitive number to write in the generated code.  A failed
 	 * attempt at running the primitive will be followed by running the level
 	 * one code (nybblecodes) that this class generates.
-	 * 
+	 *
 	 * @param primitiveNumber An integer encoding a {@link Primitive}.
 	 */
 	public void primitive (
 		final int primitiveNumber)
 	{
-		assert (_primitive == 0) : "Primitive number was already set";
+		assert _primitive == 0 : "Primitive number was already set";
 		_primitive = primitiveNumber;
 	}
 

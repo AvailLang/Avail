@@ -229,7 +229,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		//  Answer the most general type that is still at least as specific as these.  Respect
 		//  the covariance of the return types.
 
-		return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeIntersection(aGeneralizedClosureType.returnType()));
+		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeIntersection(aGeneralizedClosureType.returnType()));
 	}
 
 	@Override
@@ -260,7 +260,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		//  the union of a generalized closure type and a closure type is always a generalized
 		//  closure type.
 
-		return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aClosureType.returnType()));
+		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aClosureType.returnType()));
 	}
 
 	@Override
@@ -271,7 +271,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		//  Answer the most specific type that is still at least as general as these.  Respect
 		//  the covariance of the return types.
 
-		return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
+		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
 	}
 
 
@@ -279,7 +279,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 
 	/* Descriptor lookup */
-	public static AvailObject generalizedClosureTypeForReturnType (
+	public static AvailObject forReturnType (
 			AvailObject returnType)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(0, GeneralizedClosureTypeDescriptor.mutableDescriptor());

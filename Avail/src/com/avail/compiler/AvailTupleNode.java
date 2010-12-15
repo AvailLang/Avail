@@ -32,13 +32,8 @@
 
 package com.avail.compiler;
 
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
+import java.util.*;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
@@ -62,29 +57,34 @@ public class AvailTupleNode extends AvailParseNode
 	/**
 	 * Construct a new instance that builds a tuple from the values of the given
 	 * expressions.
-	 * 
+	 *
 	 * @param parseNodes The expressions that generate my elements.
 	 */
 	public AvailTupleNode (final List<AvailParseNode> parseNodes)
 	{
 		this.parseNodes = parseNodes;
-		List<AvailObject> types;
-		types = new ArrayList<AvailObject>(parseNodes.size());
-		for (AvailParseNode expr : parseNodes)
-		{
-			types.add(expr.type());
-		}
-		tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.objectFromInt(types.size())),
-			TupleDescriptor.mutableObjectFromArray(types),
-			Types.terminates.object());
-		tupleType.makeImmutable();
 	}
 
 
 	@Override
 	public AvailObject type ()
 	{
+		if (tupleType == null)
+		{
+			final List<AvailObject> types =
+				new ArrayList<AvailObject>(parseNodes.size());
+			for (AvailParseNode expr : parseNodes)
+			{
+				types.add(expr.type());
+			}
+			AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
+				IntegerDescriptor.objectFromInt(types.size()));
+			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizes,
+				TupleDescriptor.mutableObjectFromArray(types),
+				Types.terminates.object());
+			tupleType.makeImmutable();
+		}
 		return tupleType;
 	}
 
@@ -104,12 +104,12 @@ public class AvailTupleNode extends AvailParseNode
 	/**
 	 * Create a new {@code AvailTupleNode} with one more parse node added to the
 	 * end of the tuple.
-	 * 
+	 *
 	 * @param newParseNode The parse node to append.
 	 * @return A new {@code AvailTupleNode} with the parse node appended.
 	 */
 	public AvailTupleNode copyWith (
-		AvailParseNode newParseNode)
+		final AvailParseNode newParseNode)
 	{
 		List<AvailParseNode> newNodes =
 			new ArrayList<AvailParseNode>(parseNodes.size() + 1);
@@ -141,17 +141,26 @@ public class AvailTupleNode extends AvailParseNode
 		final StringBuilder aStream,
 		final int indent)
 	{
+		aStream.append("TupleNode[");
+		aStream.append(parseNodes.size());
+		aStream.append("](");
 		for (int i = 1, _end1 = parseNodes.size(); i <= _end1; i++)
 		{
 			if (i > 1)
 			{
-				aStream.append(", ");
+				aStream.append(",");
+			}
+			aStream.append("\n");
+			for (int j = indent; j >= 0; j--)
+			{
+				aStream.append("\t");
 			}
 			parseNodes.get(i - 1).printOnIndentIn(
 				aStream,
 				(indent + 1),
 				this);
 		}
+		aStream.append(")");
 	}
 
 }

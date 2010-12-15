@@ -672,7 +672,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		if (object.numArgs() != aClosureType.numArgs())
 		{
-			return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aClosureType.returnType()));
+			return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aClosureType.returnType()));
 		}
 		if (!canDestroy || !isMutable)
 		{
@@ -700,7 +700,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		//  the union of a generalized closure type and a closure type is always a generalized
 		//  closure type.
 
-		return GeneralizedClosureTypeDescriptor.generalizedClosureTypeForReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
+		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
 	}
 
 

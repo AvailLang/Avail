@@ -32,13 +32,8 @@
 
 package com.avail.descriptor;
 
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.MessageSplitter;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ExpandedMessageBundleTreeDescriptor;
-import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
+import java.util.*;
+import com.avail.compiler.*;
 
 public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
@@ -247,7 +242,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject message, AvailObject bundle)
+			public void value (final AvailObject message, final AvailObject bundle)
 			{
 				if (visibleNames.hasElement(message))
 				{
@@ -259,7 +254,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject message, AvailObject subtree)
+			public void value (final AvailObject message, final AvailObject subtree)
 			{
 				if (!subtree.equalsVoid())
 				{
@@ -280,7 +275,6 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	{
 		final int pc = object.parsingPc();
 		final AvailObject message = messageBundle.message();
-		final AvailObject parts = messageBundle.messageParts();
 		final AvailObject instructions = messageBundle.parsingInstructions();
 		if (pc == instructions.tupleSize() + 1)
 		{
@@ -305,7 +299,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		if (keywordIndex != 0)
 		{
 			// This is a keyword parse instruction.  Look up the keyword.
-			AvailObject keyword = parts.tupleAt(keywordIndex);
+			final AvailObject parts = messageBundle.messageParts();
+			final AvailObject keyword = parts.tupleAt(keywordIndex);
 			AvailObject incomplete = object.incomplete();
 			AvailObject subtree;
 			if (incomplete.hasKey(keyword))
@@ -373,7 +368,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	@Override
 	public boolean o_RemoveBundle (
 			final AvailObject object,
-			AvailObject bundle)
+			final AvailObject bundle)
 	{
 		final int pc = object.parsingPc();
 		AvailObject complete = object.complete();

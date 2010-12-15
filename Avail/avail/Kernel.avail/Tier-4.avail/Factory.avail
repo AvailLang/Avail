@@ -48,11 +48,10 @@ Body
 privateResultType ::= lookup "resultType";
 Method "resultType" is [privateResultType;];
 
-"Factory" is explicit subtype of Object with [resultType->[]->all];
+"Factory" is explicit subtype of Object with
+	resultType->[]->all;
 
 Abstract method "_result" for [Factory]->all
 returns [factoryType : Factory type |
 	factoryType -> resultType result;
 ] : type;
-
-

@@ -1,21 +1,20 @@
 /**
- * compiler/AvailBuilder.java
- * Copyright (c) 2010, Mark van Gulik.
- * All rights reserved.
+ * compiler/AvailBuilder.java Copyright (c) 2010, Mark van Gulik. All rights
+ * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ * list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,65 +31,61 @@
 
 package com.avail.compiler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and installs into
- * an {@linkplain AvailRuntime Avail runtime} a target {@linkplain
- * ModuleDescriptor module} and each of its dependencies.
+ * an {@linkplain AvailRuntime Avail runtime} a target
+ * {@linkplain ModuleDescriptor module} and each of its dependencies.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public final class AvailBuilder
 {
 	/**
-	 * The {@linkplain AvailRuntime runtime} into which the {@linkplain
-	 * AvailBuilder builder} will install the target {@linkplain
-	 * ModuleDescriptor module} and its dependencies.
+	 * The {@linkplain AvailRuntime runtime} into which the
+	 * {@linkplain AvailBuilder builder} will install the target
+	 * {@linkplain ModuleDescriptor module} and its dependencies.
 	 */
-	private final @NotNull AvailRuntime runtime;
+	private final @NotNull
+	AvailRuntime runtime;
 
 	/**
-	 * The {@linkplain ModuleName canonical name} of the {@linkplain
-	 * ModuleDescriptor module} that the {@linkplain AvailBuilder builder} must
-	 * (recursively) load into the {@linkplain AvailRuntime runtime}.
+	 * The {@linkplain ModuleName canonical name} of the
+	 * {@linkplain ModuleDescriptor module} that the {@linkplain AvailBuilder
+	 * builder} must (recursively) load into the {@linkplain AvailRuntime
+	 * runtime}.
 	 */
-	private final @NotNull ModuleName target;
+	private final @NotNull
+	ModuleName target;
 
 	/** An {@linkplain L2Interpreter interpreter}. */
-	private final @NotNull L2Interpreter interpreter;
+	private final @NotNull
+	L2Interpreter interpreter;
 
 	/**
 	 * Construct a new {@link AvailBuilder}.
 	 *
 	 * @param runtime
-	 *        The {@linkplain AvailRuntime runtime} into which the {@linkplain
-	 *        AvailBuilder builder} will install the target {@linkplain
-	 *        ModuleDescriptor module} and its dependencies.
+	 *            The {@linkplain AvailRuntime runtime} into which the
+	 *            {@linkplain AvailBuilder builder} will install the target
+	 *            {@linkplain ModuleDescriptor module} and its dependencies.
 	 * @param target
-	 *        The {@linkplain ModuleName canonical name} of the {@linkplain
-	 *        ModuleDescriptor module} that the {@linkplain AvailBuilder
-	 *        builder} must (recursively) load into the {@linkplain AvailRuntime
-	 *        runtime}.
+	 *            The {@linkplain ModuleName canonical name} of the
+	 *            {@linkplain ModuleDescriptor module} that the
+	 *            {@linkplain AvailBuilder builder} must (recursively) load into
+	 *            the {@linkplain AvailRuntime runtime}.
 	 */
 	public AvailBuilder (
-		final @NotNull AvailRuntime runtime,
-		final @NotNull ModuleName target)
+			final @NotNull AvailRuntime runtime,
+			final @NotNull ModuleName target)
 	{
-		this.runtime     = runtime;
-		this.target      = target;
+		this.runtime = runtime;
+		this.target = target;
 		this.interpreter = new L2Interpreter(this.runtime);
 	}
 
@@ -98,53 +93,52 @@ public final class AvailBuilder
 	 * The path maintained by the {@linkplain #traceModuleImports(ModuleName)
 	 * tracer} to prevent recursive tracing.
 	 */
-	private final @NotNull Set<ModuleName> recursionSet =
-		new LinkedHashSet<ModuleName>();
+	private final @NotNull
+	Set<ModuleName> recursionSet = new LinkedHashSet<ModuleName>();
 
 	/**
-	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to
-	 * their predecessors.
+	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
+	 * predecessors.
 	 */
-	private final @NotNull Map<ModuleName, Set<ModuleName>> predecessors =
-		new HashMap<ModuleName, Set<ModuleName>>();
+	private final @NotNull
+	Map<ModuleName, Set<ModuleName>> predecessors = new HashMap<ModuleName, Set<ModuleName>>();
 
 	/**
-	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to
-	 * their successors.
+	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
+	 * successors.
 	 */
-	private final @NotNull Map<ModuleName, Set<ModuleName>> successors =
-		new HashMap<ModuleName, Set<ModuleName>>();
+	private final @NotNull
+	Map<ModuleName, Set<ModuleName>> successors = new HashMap<ModuleName, Set<ModuleName>>();
 
 	/**
 	 * The {@linkplain ModuleName dependencies} of the {@linkplain #target
 	 * target}.
 	 */
-	private final @NotNull List<ModuleName> dependencies =
-		new ArrayList<ModuleName>();
+	private final @NotNull
+	List<ModuleName> dependencies = new ArrayList<ModuleName>();
 
 	/**
 	 * Trace the imports of the {@linkplain ModuleDescriptor module} specified
 	 * by the given {@linkplain ModuleName module name}.
 	 *
 	 * @param qualifiedName
-	 *        A fully-qualified {@linkplain ModuleName module name}.
+	 *            A fully-qualified {@linkplain ModuleName module name}.
 	 * @throws AvailCompilerException
-	 *         If the {@linkplain AvailCompiler compiler} is unable to process
-	 *         a module declaration for this {@linkplain ModuleDescriptor
-	 *         module}.
+	 *             If the {@linkplain AvailCompiler compiler} is unable to
+	 *             process a module declaration for this
+	 *             {@linkplain ModuleDescriptor module}.
 	 * @throws RecursiveDependencyException
-	 *         If the specified {@linkplain ModuleDescriptor module} recursively
-	 *         depends upon itself.
+	 *             If the specified {@linkplain ModuleDescriptor module}
+	 *             recursively depends upon itself.
 	 */
-	private void traceModuleImports (
-			final @NotNull ModuleName qualifiedName)
-		throws AvailCompilerException, RecursiveDependencyException
+	private void traceModuleImports (final @NotNull ModuleName qualifiedName)
+			throws AvailCompilerException, RecursiveDependencyException
 	{
 		// Detect recursion into this module.
 		if (recursionSet.contains(qualifiedName))
 		{
-			final List<ModuleName> recursionList =
-				new ArrayList<ModuleName>(recursionSet);
+			final List<ModuleName> recursionList = new ArrayList<ModuleName>(
+				recursionSet);
 			recursionList.add(qualifiedName);
 			throw new RecursiveDependencyException(recursionList);
 		}
@@ -157,8 +151,8 @@ public final class AvailBuilder
 		successors.put(qualifiedName, new HashSet<ModuleName>());
 		predecessors.put(qualifiedName, new HashSet<ModuleName>());
 
-		final ResolvedModuleName resolution =
-			runtime.moduleNameResolver().resolve(qualifiedName);
+		final ResolvedModuleName resolution = runtime.moduleNameResolver()
+				.resolve(qualifiedName);
 
 		// Build the set of names of imported modules.
 		final AvailCompiler compiler = new AvailCompiler(interpreter);
@@ -167,13 +161,13 @@ public final class AvailBuilder
 			compiler.extendedModules.size() + compiler.usedModules.size());
 		for (final AvailObject extendedModule : compiler.extendedModules)
 		{
-			importedModules.add(
-				resolution.asSibling(extendedModule.asNativeString()));
+			importedModules.add(resolution.asSibling(extendedModule
+					.asNativeString()));
 		}
 		for (final AvailObject usedModule : compiler.usedModules)
 		{
-			importedModules.add(
-				resolution.asSibling(usedModule.asNativeString()));
+			importedModules.add(resolution.asSibling(usedModule
+					.asNativeString()));
 		}
 
 		// Recurse into each previously unseen import.
@@ -200,9 +194,8 @@ public final class AvailBuilder
 	{
 		while (!predecessors.isEmpty())
 		{
-			for (final Map.Entry<ModuleName, Set<ModuleName>> entry :
-				new ArrayList<Map.Entry<ModuleName, Set<ModuleName>>>(
-					predecessors.entrySet()))
+			for (final Map.Entry<ModuleName, Set<ModuleName>> entry : new ArrayList<Map.Entry<ModuleName, Set<ModuleName>>>(
+				predecessors.entrySet()))
 			{
 				final ModuleName key = entry.getKey();
 				if (entry.getValue().isEmpty())
@@ -232,8 +225,8 @@ public final class AvailBuilder
 		long globalCodeSize = 0L;
 		for (final ModuleName moduleName : dependencies)
 		{
-			globalCodeSize +=
-				resolver.resolve(moduleName).fileReference().length();
+			globalCodeSize += resolver.resolve(moduleName).fileReference()
+					.length();
 		}
 		return globalCodeSize;
 	}
@@ -242,30 +235,30 @@ public final class AvailBuilder
 	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
 	 *
 	 * @param localTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts the
-	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
-	 *        module} undergoing {@linkplain AvailCompiler compilation}, the
-	 *        position of the ongoing parse (in bytes), and the size of the
-	 *        module (in bytes).
+	 *            A {@linkplain Continuation3 continuation} that accepts the
+	 *            {@linkplain ModuleName name} of the
+	 *            {@linkplain ModuleDescriptor module} undergoing
+	 *            {@linkplain AvailCompiler compilation}, the position of the
+	 *            ongoing parse (in bytes), and the size of the module (in
+	 *            bytes).
 	 * @param globalTracker
-	 *        A {@linkplain Continuation3 continuation} that accepts the
-	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
-	 *        module} undergoing {@linkplain AvailCompiler compilation}, the
-	 *        number of bytes globally processed, and the global size (in bytes)
-	 *        of all modules that will be built.
+	 *            A {@linkplain Continuation3 continuation} that accepts the
+	 *            {@linkplain ModuleName name} of the
+	 *            {@linkplain ModuleDescriptor module} undergoing
+	 *            {@linkplain AvailCompiler compilation}, the number of bytes
+	 *            globally processed, and the global size (in bytes) of all
+	 *            modules that will be built.
 	 * @throws AvailCompilerException
-	 *         If the {@linkplain AvailCompiler compiler} is unable to process
-	 *         a module declaration.
+	 *             If the {@linkplain AvailCompiler compiler} is unable to
+	 *             process a module declaration.
 	 * @throws RecursiveDependencyException
-	 *         If an encountered {@linkplain ModuleDescriptor module}
-	 *         recursively depends upon itself.
+	 *             If an encountered {@linkplain ModuleDescriptor module}
+	 *             recursively depends upon itself.
 	 */
 	public void buildTarget (
-			final @NotNull Continuation3<
-				ModuleName, Long, Long> localTracker,
-			final @NotNull Continuation3<
-				ModuleName, Long, Long> globalTracker)
-		throws AvailCompilerException, RecursiveDependencyException
+		final @NotNull Continuation3<ModuleName, Long, Long> localTracker,
+		final @NotNull Continuation3<ModuleName, Long, Long> globalTracker)
+			throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
 		final AvailCompiler compiler = new AvailCompiler(interpreter);
@@ -278,10 +271,11 @@ public final class AvailBuilder
 		for (final ModuleName moduleName : dependencies)
 		{
 			globalTracker.value(
-				moduleName, globalPosition.value, globalCodeSize);
-			if (!runtime.includesModuleNamed(
-				ByteStringDescriptor.mutableObjectFromNativeString(
-					moduleName.qualifiedName())))
+				moduleName,
+				globalPosition.value,
+				globalCodeSize);
+			if (!runtime.includesModuleNamed(ByteStringDescriptor
+					.mutableObjectFromNativeString(moduleName.qualifiedName())))
 			{
 				compiler.parseModule(
 					moduleName,
@@ -294,7 +288,9 @@ public final class AvailBuilder
 							final @NotNull Long moduleSize)
 						{
 							localTracker.value(
-								moduleName, localPosition, moduleSize);
+								moduleName,
+								localPosition,
+								moduleSize);
 							globalTracker.value(
 								moduleName,
 								globalPosition.value + localPosition,
@@ -302,8 +298,8 @@ public final class AvailBuilder
 						}
 					});
 			}
-			globalPosition.value +=
-				resolver.resolve(moduleName).fileReference().length();
+			globalPosition.value += resolver.resolve(moduleName)
+					.fileReference().length();
 		}
 		assert globalPosition.value == globalCodeSize;
 		globalTracker.value(target, globalPosition.value, globalCodeSize);

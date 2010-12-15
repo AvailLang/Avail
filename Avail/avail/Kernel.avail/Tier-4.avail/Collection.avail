@@ -49,7 +49,8 @@ Body
 privateElementType ::= lookup "elementType";
 Method "elementType" is [privateElementType;];
 
-"Collection" is explicit subtype of Object with [elementType->[]->all];
+"Collection" is explicit subtype of Object with
+	elementType->[]->all;
 
 Abstract method "_do_" for [Collection, [terminates]->void]->void
 requires [cType : Collection type, blkType : closureType |
@@ -60,7 +61,8 @@ requires [cType : Collection type, blkType : closureType |
 
 /* Define the type Collection Factory */
 
-"Collection Factory" is implicit subtype of Factory with [resultType->[]->Collection];
+"Collection Factory" is implicit subtype of Factory with
+	resultType->[]->Collection;
 
 Abstract method "_add_" for [Collection Factory, all]->void
 requires [cfType : Collection Factory type, itemType : type |
@@ -76,4 +78,3 @@ requires [cfType : Collection Factory type, cType : Collection type |
 	collectionType ::= cfType -> resultType result;
 	cType -> elementType <= collectionType -> elementType result;
 ];
-

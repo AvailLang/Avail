@@ -36,8 +36,6 @@ Uses
 	"Tier-1"
 Names
 	"_apply_",
-	"_()",
-	"_(_)",
 	"cast_into_otherwise_",
 	"cast_into_"
 Body
@@ -61,7 +59,8 @@ requires [gct : generalizedClosureType, at : tupleType |
 	   call will never work), then report the problem at compile time.  */
 	ct : closureType;
 	if gct <= closure then [
-		/* The closure type is known.  Strengthen it and check for definite inconsistency. */
+		/* The closure type is known.  Strengthen it and check for definite
+		   inconsistency. */
 		*&ct ?:= gct;
 		nargs ::= ||ct||;
 		if not nargs type <= at sizes then [
@@ -79,9 +78,12 @@ returns [gct : generalizedClosureType, at : type |
 
 /* Type downcasting operation... */
 
-Method "cast_into_otherwise_" is [value : all, blk1 : [terminates]->void, blk2 : []-> void |
-	/* Attempt to call the first block, but if the dynamic type isn't right, call
-	   the second one. */
+Method "cast_into_otherwise_" is [
+		value : all,
+		blk1 : [terminates]->void,
+		blk2 : []-> void |
+	/* Attempt to call the first block, but if the dynamic type isn't right,
+	   call the second one. */
 	if value type <= blk1 type[1] then [
 		blk1 apply <value>;
 	] else blk2;
@@ -97,46 +99,20 @@ requires [valType : type, blk1Type : closureType, blk2Type : closureType |
 ];
 
 
-Method "cast_into_" is [value : all, blk : [terminates]->void |
+Method "cast_into_" is [value : all, block : [terminates]->void |
 	/* Same as cast_into_otherwise_, but fail if type isn't right. */
-	if value type <= blk type[1] then [
-		blk apply <value>;
+	if value type <= block type[1] then [
+		block apply <value>;
 	] else [
-		Crash <"Bad dynamic cast of a ", value type, " into a ", blk type[1]>;
+		Crash <"Bad dynamic cast of a ", value type, " into a ", block type[1]>;
 	];
 ] : void
-returns [valType : type, blkType : closureType |
-	blkType result;
+returns [valType : type, blockType : closureType |
+	blockType result;
 ]
-requires [valType : type, blkType : closureType |
-	if valType <= blkType[1] then [
+requires [valType : type, blockType : closureType |
+	if valType <= blockType[1] then [
 		Crash "Warning - unnecessary cast expression";
 	];
 	true;
 ];
-
-
-/* Statically checked block evaluation... */
-
-Method "_()" is [block : []->void |
-	/* This application function takes a block with no arguments.  The static
-	   linkage lets a call site know what the block's type's return type is. */
-	Primitive 41;
-	Failed;
-	/* block apply <>; */
-] : void
-returns [bt : closureType | bt result;];
-
-
-Method "_(_)" is [block : [terminates]->void, arg : all |
-	/* This application function takes a block with one argument.  The static
-	   linkage lets a call site know what the block's type's return type is.  Also,
-	   the argument type is validated against the block's argument type. */
-	Primitive 42;
-	Failed;
-	/* block apply <arg>; */
-] : void
-requires [bt : closureType, at : type | at <= bt[1];]
-returns [bt : closureType, at : type | bt result;];
-
-

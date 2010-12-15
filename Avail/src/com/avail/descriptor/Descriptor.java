@@ -39,7 +39,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.Continuation1;
 import com.avail.compiler.Continuation2;
 import com.avail.compiler.Generator;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.visitor.AvailBeImmutableSubobjectVisitor;
 import com.avail.visitor.AvailSubobjectVisitor;
@@ -923,7 +923,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter)
+		final Interpreter anAvailInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -2070,7 +2070,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	public boolean o_IsValidForArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter interpreter)
+		final Interpreter interpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -3430,7 +3430,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_RemoveFrom (
 		final AvailObject object,
-		final AvailInterpreter anInterpreter)
+		final Interpreter anInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -4819,7 +4819,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final AvailInterpreter anAvailInterpreter,
+		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
 		//  GENERATED pure (abstract) method.

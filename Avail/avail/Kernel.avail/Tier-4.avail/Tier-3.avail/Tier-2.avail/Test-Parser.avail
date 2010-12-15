@@ -34,6 +34,7 @@ Module "Test-Parser"
 Extends
 Uses
 	"BlockA",
+	"BlockB",
 	"Integer"
 Names
 Body

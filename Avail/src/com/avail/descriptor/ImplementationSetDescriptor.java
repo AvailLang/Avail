@@ -32,32 +32,21 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.Continuation1;
-import com.avail.compiler.Generator;
-import com.avail.compiler.Mutable;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteTupleDescriptor;
-import com.avail.descriptor.ImplementationSetDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import static java.lang.Math.max;
+import java.util.*;
+import com.avail.compiler.*;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.AvailInterpreter;
-import java.util.ArrayList;
-import java.util.List;
-import static java.lang.Math.*;
+import com.avail.interpreter.Interpreter;
 
 /**
- * An {@code ImplementationSetDescriptor implementation set} maintains all
- * methods that have the same name.  At compile time a name is looked up and the
- * corresponding implementation set is stored as a literal in the object code.
- * At runtime the actual method is located within the implementation set and
- * then invoked.  The implementation sets also keep track of bidirectional
- * dependencies, so that a change of membership causes an immediate invalidation
- * of optimized level two code that depends on the previous membership.
- * 
+ * An implementation set maintains all methods that have the same name.  At
+ * compile time a name is looked up and the corresponding implementation set is
+ * stored as a literal in the object code.  At runtime the actual method is
+ * located within the implementation set and then invoked.  The implementation
+ * sets also keep track of bidirectional dependencies, so that a change of
+ * membership causes an immediate invalidation of optimized level two code that
+ * depends on the previous membership.
+ *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class ImplementationSetDescriptor extends Descriptor
@@ -220,7 +209,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  the name (a cyclicType), because the name's hash is random and permanent,
 		//  and an implementationSet's name is permanent, too.
 
-		return (object.name().hash() + 0x61AF3FC);
+		return object.name().hash() + 0x61AF3FC;
 	}
 
 	@Override
@@ -272,7 +261,7 @@ public class ImplementationSetDescriptor extends Descriptor
 
 		object.implementationsTuple(object.implementationsTuple().asSet().setWithElementCanDestroy(implementation, true).asTuple());
 		final AvailObject chunks = object.dependentChunks();
-		if ((chunks.setSize() > 0))
+		if (chunks.setSize() > 0)
 		{
 			final AvailObject chunksAsTuple = chunks.asTuple();
 			for (int i = 1, _end1 = chunksAsTuple.tupleSize(); i <= _end1; i++)
@@ -310,14 +299,14 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		final AvailObject imps = object.implementationsTuple();
 		AvailObject result;
-		if ((possibilities.tupleSize() == 0))
+		if (possibilities.tupleSize() == 0)
 		{
 			for (int i = 1, _end1 = positiveTuple.tupleSize(); i <= _end1; i++)
 			{
 				boolean all = true;
 				for (int k = 1, _end2 = positiveTuple.tupleSize(); k <= _end2; k++)
 				{
-					all = (all && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(positiveTuple.tupleAt(i).extractInt()).bodySignature()));
+					all = all && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(positiveTuple.tupleAt(i).extractInt()).bodySignature());
 				}
 				if (all)
 				{
@@ -325,7 +314,7 @@ public class ImplementationSetDescriptor extends Descriptor
 					result.hashOrZero(0);
 					result = result.tupleAtPuttingCanDestroy(
 						1,
-						IntegerDescriptor.objectFromInt(((positiveTuple.tupleAt(i).extractInt() * 2) + 1)),
+						IntegerDescriptor.objectFromInt((positiveTuple.tupleAt(i).extractInt() * 2 + 1)),
 						true);
 					return result;
 				}
@@ -336,7 +325,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
-				IntegerDescriptor.objectFromInt(((0 * 2) + 1)),
+				IntegerDescriptor.objectFromInt((0 * 2 + 1)),
 				true);
 			return result;
 		}
@@ -353,7 +342,7 @@ public class ImplementationSetDescriptor extends Descriptor
 				boolean allPossibleAreParents = true;
 				for (int k = 1, _end4 = positiveTuple.tupleSize(); k <= _end4; k++)
 				{
-					allPossibleAreParents = (allPossibleAreParents && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(possibility));
+					allPossibleAreParents = allPossibleAreParents && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -366,7 +355,7 @@ public class ImplementationSetDescriptor extends Descriptor
 				boolean allPossibleAreParents = true;
 				for (int k = 1, _end6 = positiveTuple.tupleSize(); k <= _end6; k++)
 				{
-					allPossibleAreParents = (allPossibleAreParents && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(possibility));
+					allPossibleAreParents = allPossibleAreParents && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -377,7 +366,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
-				IntegerDescriptor.objectFromInt(((0 * 2) + 1)),
+				IntegerDescriptor.objectFromInt((0 * 2 + 1)),
 				true);
 			return result;
 		}
@@ -451,7 +440,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		final AvailObject falseTree = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(positiveTuple, newPossible.asTuple());
 		//  Combine the subtrees together, preceded by a test-and-branch.
-		final int newSize = ((2 + trueTree.tupleSize()) + falseTree.tupleSize());
+		final int newSize = 2 + trueTree.tupleSize() + falseTree.tupleSize();
 		result = ByteTupleDescriptor.isMutableSize(true, newSize).mutableObjectOfSize(newSize);
 		result.hashOrZero(0);
 		result = result.tupleAtPuttingCanDestroy(
@@ -472,7 +461,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		for (int i = 1, _end13 = falseTree.tupleSize(); i <= _end13; i++)
 		{
 			result = result.tupleAtPuttingCanDestroy(
-				((2 + trueTree.tupleSize()) + i),
+				(2 + trueTree.tupleSize() + i),
 				falseTree.tupleAt(i),
 				true);
 		}
@@ -574,7 +563,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
+				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsArrayOfArgTypes(argumentTypeArray))
 			{
@@ -582,7 +571,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
+				index = index + 2 + tree.tupleAt(index + 1).extractInt();
 			}
 		}
 	}
@@ -608,7 +597,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
+				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsArgumentTypesFromContinuationStackp(continuation, stackp))
 			{
@@ -616,7 +605,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
+				index = index + 2 + tree.tupleAt(index + 1).extractInt();
 			}
 		}
 	}
@@ -641,7 +630,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
+				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsTupleOfArgTypes(argumentTypeTuple))
 			{
@@ -649,12 +638,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
+				index = index + 2 + tree.tupleAt(index + 1).extractInt();
 			}
 		}
 	}
 
-	
+
 	/**
 	 * Look up the implementation to invoke, given an array of argument values.
 	 * Use the testingTree to find the implementation to invoke (answer void if
@@ -674,7 +663,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
+				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsArrayOfArgValues(argumentArray))
 			{
@@ -682,7 +671,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
+				index = index + 2 + tree.tupleAt(index + 1).extractInt();
 			}
 		}
 	}
@@ -708,7 +697,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
+				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsArgumentsFromContinuationStackp(continuation, stackp))
 			{
@@ -716,7 +705,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
+				index = index + 2 + tree.tupleAt(index + 1).extractInt();
 			}
 		}
 	}
@@ -742,7 +731,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return ((test == 0) ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test));
+				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature().acceptsTupleOfArguments(argumentTuple))
 			{
@@ -750,7 +739,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			}
 			else
 			{
-				index = ((index + 2) + tree.tupleAt(index + 1).extractInt());
+				index = index + 2 + tree.tupleAt(index + 1).extractInt();
 			}
 		}
 	}
@@ -780,7 +769,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		object.implementationsTuple(object.implementationsTuple().asSet().setWithoutElementCanDestroy(implementation, true).asTuple());
 		final AvailObject chunks = object.dependentChunks();
-		if ((chunks.setSize() > 0))
+		if (chunks.setSize() > 0)
 		{
 			final AvailObject chunksAsTuple = chunks.asTuple();
 			for (int i = 1, _end1 = chunksAsTuple.tupleSize(); i <= _end1; i++)
@@ -795,7 +784,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
-	
+
 	/**
 	 * Answers the return type.  Fails if no (or >1) applicable implementation.
 	 */
@@ -803,7 +792,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter anAvailInterpreter,
+			final Interpreter anAvailInterpreter,
 			final Continuation1<Generator<String>> failBlock)
 	{
 		final Mutable<List<AvailObject>> mostSpecific = new Mutable<List<AvailObject>>();
@@ -826,7 +815,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  Filter the implementations down to those that are locally most
 		//  specific.  Fail if more than one survives.
 		final List<AvailObject> satisfyingTypes = object.filterByTypes(argTypes);
-		if ((satisfyingTypes.size() == 1))
+		if (satisfyingTypes.size() == 1)
 		{
 			mostSpecific.value = satisfyingTypes;
 		}
@@ -846,7 +835,7 @@ public class ImplementationSetDescriptor extends Descriptor
 						final AvailObject otherType = other.bodySignature();
 						for (int argIndex = 1, _end4 = impType.numArgs(); argIndex <= _end4; argIndex++)
 						{
-							isBest = (isBest && impType.argTypeAt(argIndex).isSubtypeOf(otherType.argTypeAt(argIndex)));
+							isBest = isBest && impType.argTypeAt(argIndex).isSubtypeOf(otherType.argTypeAt(argIndex));
 						}
 					}
 				}
@@ -856,7 +845,7 @@ public class ImplementationSetDescriptor extends Descriptor
 				}
 			}
 		}
-		if ((mostSpecific.value.size() != 1))
+		if (mostSpecific.value.size() != 1)
 		{
 			failBlock.value(new Generator<String> ()
 			{
@@ -871,7 +860,7 @@ public class ImplementationSetDescriptor extends Descriptor
 						signatures.add(implementationsTuple.tupleAt(i).bodySignature());
 					}
 					String string;
-					if ((mostSpecific.value.size() == 0))
+					if (mostSpecific.value.size() == 0)
 					{
 						List<Integer> allFailedIndices;
 						allFailedIndices = new ArrayList<Integer>(3);
@@ -893,7 +882,7 @@ public class ImplementationSetDescriptor extends Descriptor
 								allFailedIndices.add(index);
 							}
 						}
-						if (((allFailedIndices.size() >= 1) && (allFailedIndices.size() <= (argTypes.size() - 1))))
+						if (allFailedIndices.size() >= 1 && allFailedIndices.size() <= argTypes.size() - 1)
 						{
 							string = "arguments at indices " + allFailedIndices.toString() + " of message " + object.name().name().asNativeString() + " to match a method.  I got: " + argTypes.toString();
 						}
@@ -925,11 +914,11 @@ public class ImplementationSetDescriptor extends Descriptor
 	public short o_NumArgs (
 			final AvailObject object)
 	{
-		assert (object.implementationsTuple().tupleSize() >= 1);
+		assert object.implementationsTuple().tupleSize() >= 1;
 		return object.implementationsTuple().tupleAt(1).bodySignature().numArgs();
 	}
 
-	
+
 	/**
 	 * Answer the cached privateTestingTree.  If there's a voidObject in that slot,
 	 * compute the testing tree based on implementationsSet.  The tree is flattened
@@ -974,13 +963,13 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * Answer a new implementation set.  Use the passed cyclicType as its name.
 	 * An implementation set is always immutable, but its implementationsTuple,
 	 * privateTestingTree, and dependentsChunks can all be assigned to.
-	 * 
+	 *
 	 * @param messageName The {@link CyclicTypeDescriptor cyclic type}
 	 *                    acting as the message name.
 	 * @return A new {@link ImplementationSetDescriptor implementation set}.
 	 */
 	public static AvailObject newImplementationSetWithName (
-		AvailObject messageName)
+		final AvailObject messageName)
 	{
 		assert messageName.isCyclicType();
 		AvailObject result = AvailObject.newIndexedDescriptor(

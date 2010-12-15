@@ -40,8 +40,7 @@ Names
 	"_[_]",
 	"_result",
 	"block type taking_and returning_",
-	"[]->_",
-	"[_]->_",
+	"[«_‡,»]->_",
 	"[...]->_",
 	"stub block taking_arguments and returning_",
 	"_compiledCode",
@@ -49,12 +48,48 @@ Names
 	"closure from_outer variables_"
 Body
 
+/**
+ * Private method declaration helper (bootstrapping workaround).
+ */
+Method "Method_is_requires_returns_"
+is [name : string, body : closure, requires: closure, returns : closure |
+	Primitive 254;
+	Failed;
+] : void;
 
-/* Private tuple constructors (bootstrapping workaround)... */
-
+/**
+ * Private tuple constructor (bootstrapping workaround)...
+ */
 Method "<«_‡,»>" is [t : tuple |
 	t;
-] : tuple;
+] : tuple
+requires [tt : tupleType |
+	true;
+]
+returns [tt : tupleType |
+	tt;
+];
+
+/**
+ * Private tuple type constructor (bootstrapping workaround)...
+ */
+Method "private tuple type for sizes_like_default_" is [
+		sizeRange : integerType,
+		typeTuple : tuple,
+		defaultType : type |
+	/* Construct a new tuple type.  Defined here privately with weak input types... */
+	Primitive 137;
+	Failed;
+] : tupleType;
+
+/**
+ * Private tuple type constructor (bootstrapping workaround)...
+ */
+Method "tuple of_" is [elementType : type |
+	private tuple type for sizes whole number
+		like <>
+		default elementType;
+] : tupleType;
 
 
 
@@ -70,27 +105,35 @@ Method "_[_]" is [ct : closureType, index : natural number |
 	Failed;
 ] : type;
 
+
+/**
+ * Answer the return result type for this generalized closure type.
+ */
 Method "_result" is [ct : generalizedClosureType |
-	/* Answer the return result type for this generalized closure type. */
 	Primitive 37;
 	Failed;
 ] : type;
 
-Method "block type taking_and returning_" is [args : tuple, ret : type |
+Method "block type taking_and returning_" is [args : tuple of type, ret : type |
 	Primitive 34;
 	Failed;
 ] : closureType;
 
-Method "[«_‡,»]->_" is [types : tuple, result : type |
-	/* Create a two or more argument closure type. */
+/**
+ * Create a closure type.
+ */
+Method "[«_‡,»]->_" is [types : tuple of type, result : type |
 	block type taking types and returning result;
 ] : closureType;
 
+
+/**
+ * Answer a generalized closure type.  It will be a supertype of []->result,
+ * [terminates]->result, [terminates, terminates]->result, etc.  It will also be
+ * a subtype of generalizedClosure, but not a subtype of closure.  Its type will
+ * be generalizedClosureType.
+ */
 Method "[...]->_" is [result : type |
-	/* Answer a generalized closure type.  It will be a supertype of []->result,
-	   [terminates]->result, [terminates,terminates]->result, etc.  It will also
-	   be a subtype of generalizedClosure, but not a subtype of closure.  Its
-	   type will be generalizedClosureType.  */
 	Primitive 39;
 	Failed;
 ] : generalizedClosureType;
@@ -117,9 +160,10 @@ Method "_outerVars" is [c : closure |
 ] : tuple;
 
 
-/* Closure construction (for dumping/loading, but some day we could
-   build all the stub generation primitives this way). */
-
+/**
+ * Closure construction (for dumping/loading, but some day we could build all
+ * the stub generation primitives this way).
+ */
 Method "closure from_outer variables_" is [c : compiledCode, outers : tuple |
 	Primitive 74;
 	Failed;

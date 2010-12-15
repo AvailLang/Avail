@@ -378,7 +378,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		final AvailObject a = object.firstTupleType().sizeRange();
 		final AvailObject b = object.secondTupleType().sizeRange();
 		final AvailObject upper = a.upperBound().plusCanDestroy(b.upperBound(), false);
-		return IntegerRangeTypeDescriptor.lowerBoundInclusiveUpperBoundInclusive(
+		return IntegerRangeTypeDescriptor.create(
 			a.lowerBound().plusCanDestroy(b.lowerBound(), false),
 			true,
 			upper,

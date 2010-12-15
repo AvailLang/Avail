@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.AvailInterpreter;
+import com.avail.interpreter.Interpreter;
 import java.util.List;
 
 public class ForwardSignatureDescriptor extends SignatureDescriptor
@@ -61,7 +61,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter anAvailInterpreter)
+			final Interpreter anAvailInterpreter)
 	{
 		//  We're just a forward declaration, so just say the actual implementation's result will
 		//  agree with our signature's return type.  We wiil be replaced by a real implementation
@@ -76,7 +76,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
-			final AvailInterpreter interpreter)
+			final Interpreter interpreter)
 	{
 		//  We're just a forward declaration, so just say our implementation accepts the argument types.  There
 		//  is an issue similar to that mentioned in computeReturnTypeFromArgumentTypes:interpreter:.  All

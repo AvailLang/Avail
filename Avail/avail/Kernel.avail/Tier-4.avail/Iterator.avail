@@ -42,7 +42,8 @@ Names
 Body
 
 
-"Iterator" is explicit subtype of Object with [elementType->[]->all];
+"Iterator" is explicit subtype of Object with
+	elementType->[]->all;
 
 Abstract method "_is at end" for [Iterator]->boolean;
 
@@ -58,5 +59,3 @@ Method "_do_" is [iter : Iterator, blk : [terminates]->void |
 requires [iterType : Iterator type, bt : closureType |
 	iterType -> elementType result <= bt[1];
 ];
-
-

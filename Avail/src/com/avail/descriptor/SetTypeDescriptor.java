@@ -32,11 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
 public class SetTypeDescriptor extends TypeDescriptor
@@ -143,7 +138,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		return (object.sizeRange().equals(aSetType.sizeRange()) && object.contentType().equals(aSetType.contentType()));
+		return object.sizeRange().equals(aSetType.sizeRange()) && object.contentType().equals(aSetType.contentType());
 	}
 
 	@Override
@@ -162,7 +157,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return ((object.sizeRange().hash() * 11) + (object.contentType().hash() * 5));
+		return object.sizeRange().hash() * 11 + object.contentType().hash() * 5;
 	}
 
 	@Override
@@ -216,7 +211,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 		//  Set type A is a subtype of B if and only if their size ranges are covariant
 		//  and their content types are covariant.
 
-		return (aSetType.sizeRange().isSubtypeOf(object.sizeRange()) && aSetType.contentType().isSubtypeOf(object.contentType()));
+		return aSetType.sizeRange().isSubtypeOf(object.sizeRange()) && aSetType.contentType().isSubtypeOf(object.contentType());
 	}
 
 	@Override
@@ -292,28 +287,32 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	/* Object creation */
 	public static AvailObject setTypeForSizesContentType (
-			AvailObject sizeRange,
-			AvailObject contentType)
+			final AvailObject sizeRange,
+			final AvailObject contentType)
 	{
 		if (sizeRange.equals(Types.terminates.object()))
 		{
 			return Types.terminates.object();
 		}
-		assert(sizeRange.lowerBound().isFinite());
-		assert(IntegerDescriptor.objectFromByte((byte)0).lessOrEqual(sizeRange.lowerBound()));
-		assert(sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive());
-		AvailObject result = AvailObject.newIndexedDescriptor(0, SetTypeDescriptor.mutableDescriptor());
-		if (sizeRange.upperBound().equals(IntegerDescriptor.objectFromByte((byte)0)))
+		assert sizeRange.lowerBound().isFinite();
+		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
+		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
+		AvailObject result = AvailObject.newIndexedDescriptor(
+			0,
+			SetTypeDescriptor.mutableDescriptor());
+		if (sizeRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			result.sizeRange(sizeRange);
 			result.contentType(Types.terminates.object());
 		}
 		else if (contentType.equals(Types.terminates.object()))
 		{
-			if (sizeRange.lowerBound().equals(IntegerDescriptor.objectFromByte((byte)0)))
+			if (sizeRange.lowerBound().equals(IntegerDescriptor.zero()))
 			{
 				//  sizeRange includes at least 0 and 1, but the content type is terminates, so no contents exist.
-				result.sizeRange(IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.objectFromByte((byte)0)));
+				result.sizeRange(
+					IntegerRangeTypeDescriptor.singleInteger(
+						IntegerDescriptor.zero()));
 				result.contentType(Types.terminates.object());
 			}
 			else

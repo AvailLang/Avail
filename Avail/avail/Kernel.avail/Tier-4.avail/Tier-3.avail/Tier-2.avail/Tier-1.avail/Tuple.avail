@@ -44,9 +44,7 @@ Names
 	"tuple_of_",
 	"tuple of_",
 	"tuple like_",
-	"<>",
-	"<_>",
-	"_as listType",
+	"<«_‡,»>",
 	"_as tupleType",
 	"_leading types",
 	"_default type",
@@ -61,13 +59,14 @@ Names
 Body
 
 
-/* Private stuff to solve bootstrap problem... */
+/* Tuple constructor... */
 
-Method "privateEmptyTuple" is [
-	/* Defined here privately with weak result type (merely tuple)... */
-	Primitive 134;
-	Failed;
-] : tuple;
+Method "<«_‡,»>" is [t : tuple |
+	t;
+] : tuple
+returns [tType : tupleType |
+	tType;
+] : tupleType;
 
 
 Method "private tuple type for sizes_like_default_" is [
@@ -78,15 +77,6 @@ Method "private tuple type for sizes_like_default_" is [
 	Primitive 137;
 	Failed;
 ] : tupleType;
-
-
-/* Empty tuple constructor... */
-
-Method "<>" is [
-	/* Defined publicly this time with stronger result type by using previous definition... */
-	Primitive 134;
-	Failed;
-] : privateEmptyTuple type;
 
 
 /* Tuple type constructor... */
@@ -112,41 +102,6 @@ Method "tuple of_" is [elementType : type |
 		default elementType;
 ] : tupleType;
 
-
-/* List type and tuple type converters */
-
-Method "_as listType" is [it : tupleType |
-	Primitive 46;
-	Failed;
-] : listType;
-
-Method "_as tupleType" is [it : listType |
-	Primitive 48;
-	Failed;
-] : tupleType;
-
-
-/* Tuple constructors... */
-
-Method "<_>" is [it : all |
-	/* Construct a tuple with one element. */
-	Primitive 133;
-	Failed;
-] : tuple
-returns [itsType : type |
-	tuple [1..1]
-		like <>
-		default itsType;
-] : tupleType;
-
-Method "<_>" is [them : list |
-	/* Convert a list to a tuple. */
-	Primitive 47;
-	Failed;
-] : tuple
-returns [themType : listType |
-	themType as tupleType;
-] : tupleType;
 
 
 /* Accessors for tupleTypes... */

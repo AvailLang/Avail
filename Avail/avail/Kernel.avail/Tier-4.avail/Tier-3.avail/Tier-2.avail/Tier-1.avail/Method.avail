@@ -69,24 +69,29 @@ Method "_basicType" is [c : closure |
 ] : closureType;
 
 
-/* Add support for alternative forms of method declarations.  These forms allow
-the user to attach two blocks during method definition.  The 'returns' block is
-evaluated to compute the return type that a CALL SITE will produce.  Thus, it
-is a linkage time construct, and is evaluated when code using the new method
-is compiled.  Similarly, the 'requires' block answers whether a particular call site
-provides types that fit together in ways the type system is too weak to validate.
-This flexibility should even allow general function applicators to be defined,
-while retaining all the warm fuzzies associated with static typing. */
-
+/**
+ * Add support for alternative forms of method declarations.  These forms allow
+ * the user to attach two blocks during method definition.  The 'returns' block
+ * is evaluated to compute the return type that a CALL SITE will produce.  Thus,
+ * it is a linkage time construct, and is evaluated when code using the new
+ * method is compiled.  Similarly, the 'requires' block answers whether a
+ * particular call site provides types that fit together in ways the type system
+ * is too weak to validate.  This flexibility should even allow general function
+ * applicators to be defined, while retaining all the warm fuzzies associated
+ * with static typing.
+ */
 Method "Method_is_requires_returns_"
 is [name : string, body : closure, requires: closure, returns : closure |
 	Primitive 254;
 	Failed;
 ] : void;
 
+
+/**
+ * Alternate order for requires / returns clauses
+ */
 Method "Method_is_returns_requires_"
 is [name : string, body : closure, returns : closure, requires: closure |
-	/* Alternate order for requires / returns clauses */
 	Method name is body requires requires returns returns;
 ] : void;
 
@@ -115,12 +120,15 @@ is [name : string, blockType : closureType |
 ] : void;
 
 
-/* Abstract method declarations.  Stubbed for now, but eventually the concept of
-   an abstract class will be any class for which there is an abstract method that has
-   not been overridden.  It's illegal to add an abstract method in an extension of a
-   class (i.e., the class must still be open in the current module), otherwise a module
-   could have the effect of changing a concrete class into an abstract class. */
 
+/**
+ * Abstract method declarations.  Stubbed for now, but eventually the concept of
+ * an abstract class will be any class for which there is an abstract method
+ * that has not been overridden.  It's illegal to add an abstract method in an
+ * extension of a class (i.e., the class must still be open in the current
+ * module), otherwise a module could have the effect of changing a concrete
+ * class into an abstract class.
+ */
 Method "Abstract method_for_requires_returns_" is [
 		name : string, bodyType : closureType, requires : closure, returns : closure |
 	Primitive 251;
@@ -160,27 +168,26 @@ Method "Abstract method_for_" is [
 ] : void;
 
 
-/* Method name lookup operation.  Looks up a given string in the current
-   module's namespace. */
-
+/**
+ * Method name lookup operation.  Looks up a given string in the current
+ * module's namespace.
+ */
 Method "lookup_" is [t : string |
 	Primitive 245;
 	Failed;
 ] : cyclicType;
 
-/* Define simple parentheses.  This is not part of the built-in syntax
-of Avail because I want to emphasize the fact that things like function
-application and array subscripting can be added dynamically to the
-syntax, and these similar operations "_(_)" look so much like simple
-parentheses "(_)" that doing them two different ways would be a
-shameful inconsistency.  Besides, this is an excellent example of
-parametric result typing.  Note that list expressions *can not* be
-parenthesized.  This is to avoid confusion with function evaluation,
-and possibly the syntax of Points.  */
 
+/**
+ * Define simple parentheses.  This is not part of the built-in syntax of Avail
+ * because I want to emphasize the fact that things like function application
+ * and array subscripting can be added dynamically to the syntax, and these
+ * similar operations "_(_)" look so much like simple parentheses "(_)" that
+ * doing them two different ways would be a shameful inconsistency.  Besides,
+ * this is an excellent example of parametric result typing.
+ */
 Method "(_)" is [arg : all |
 	arg;
 ] returns [argType : type |
 	argType;
 ];
-

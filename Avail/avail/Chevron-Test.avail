@@ -37,25 +37,28 @@ Uses
 Names
 Body
 
-Method "Start«_‡@»End" is [x : list |
-	Print <x>;
+Method "Start«_‡@»End" is [x : tuple |
+	x;
 ];
 
-Start End;
-Start 1 End;
-Start 1 @ 2 End;
-Start 1 @ 2 @ 3 End;
+Assert Start End = <>;
+Assert Start 1 End = <1>;
+Assert Start 1 @ 2 End = <1, 2>;
+Assert Start 1 @ 2 @ 3 End = <1, 2, 3>;
 
 
-/**
- * Can't run this example yet.  The type system currently forbids lists from
- * containing lists.
- *
- *	Method "«Spam»" is [x : list |
- *		Print ||<x>||;
- *	];
- *	
- *	Spam;
- *	Spam Spam Spam Spam;
- */
- 
+Method "«Spam»" is [x : tuple of tuple like <> |
+	||x||;
+];
+
+Assert Spam = 1;
+Assert Spam Spam Spam Spam = 4;
+
+Method "«%‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
+	||x||;
+];
+
+Assert %10%20%30% = 4;
+Assert %1%1%1%1%1% = 6;
+Assert %0% = 2;
+Assert % = 1;

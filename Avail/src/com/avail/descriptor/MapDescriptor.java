@@ -41,6 +41,13 @@ import com.avail.compiler.Continuation2;
 import com.avail.compiler.Mutable;
 import com.avail.descriptor.TypeDescriptor.Types;
 
+/**
+ * I represent a discrete function whose keys and values are arbitrary Avail
+ * objects.  My type depends on the union of the types of my keys, as well as
+ * the union of the types of my values.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class MapDescriptor extends Descriptor
 {
 
@@ -159,7 +166,7 @@ public class MapDescriptor extends Descriptor
 			aStream.append("Map:");
 		}
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-		{
+			{
 			@Override
 			public void value (AvailObject key, AvailObject value)
 			{
@@ -177,7 +184,7 @@ public class MapDescriptor extends Descriptor
 				value.printOnAvoidingIndent(aStream, recursionList, indent + 1);
 				aStream.append(']');
 			}
-		});
+			});
 	}
 
 
@@ -266,7 +273,7 @@ public class MapDescriptor extends Descriptor
 				}
 				value = object.valueAtIndex(i);
 				if (!value.equalsVoidOrBlank()
-					&& !value.isInstanceOfSubtypeOf(valueTypeObject))
+						&& !value.isInstanceOfSubtypeOf(valueTypeObject))
 				{
 					return false;
 				}
@@ -286,14 +293,14 @@ public class MapDescriptor extends Descriptor
 		final Mutable<AvailObject> valueType = new Mutable<AvailObject>(
 				Types.terminates.object());
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-		{
+			{
 			@Override
 			public void value (AvailObject key, AvailObject value)
 			{
 				keyType.value = keyType.value.typeUnion(key.type());
 				valueType.value = valueType.value.typeUnion(value.type());
 			}
-		});
+			});
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerDescriptor.objectFromInt(object.mapSize()).type(),
 			keyType.value,
@@ -411,8 +418,8 @@ public class MapDescriptor extends Descriptor
 		//  Forces hash value to be available so GC can't happen during internalHash update.
 		final int neededCapacity = ((object.mapSize() + 1 + object.numBlanks()) * 4 / 3 + 1);
 		if (canDestroy && isMutable &&
-			(object.hasKey(keyObject)
-				|| object.capacity() >= neededCapacity))
+				(object.hasKey(keyObject)
+						|| object.capacity() >= neededCapacity))
 		{
 			return object.privateMapAtPut(keyObject, newValueObject);
 		}
@@ -420,13 +427,13 @@ public class MapDescriptor extends Descriptor
 		//  Start new map just over 50% free (with no blanks).
 		CanAllocateObjects(false);
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-		{
+			{
 			@Override
 			public void value (AvailObject key, AvailObject value)
 			{
 				result.privateMapAtPut(key, value);
 			}
-		});
+			});
 		result.privateMapAtPut(keyObject, newValueObject);
 		CanAllocateObjects(true);
 		return result;
@@ -457,7 +464,7 @@ public class MapDescriptor extends Descriptor
 		final AvailObject result = MapDescriptor.newWithCapacity(object.capacity());
 		CanAllocateObjects(false);
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-		{
+			{
 			@Override
 			public void value (AvailObject key, AvailObject value)
 			{
@@ -466,7 +473,7 @@ public class MapDescriptor extends Descriptor
 					result.privateMapAtPut(key, value);
 				}
 			}
-		});
+			});
 		CanAllocateObjects(true);
 		return result;
 	}
@@ -536,7 +543,7 @@ public class MapDescriptor extends Descriptor
 		result.hashOrZero(0);
 		final Mutable<Integer> targetIndex = new Mutable<Integer>(1);
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-		{
+			{
 			@Override
 			public void value (AvailObject key, AvailObject value)
 			{
@@ -544,7 +551,7 @@ public class MapDescriptor extends Descriptor
 				result.tupleAtPut(targetIndex.value, value);
 				targetIndex.value++;
 			}
-		});
+			});
 		assert (targetIndex.value == object.mapSize() + 1);
 		CanAllocateObjects(true);
 		AvailObject.unlock(result);
@@ -600,7 +607,7 @@ public class MapDescriptor extends Descriptor
 			{
 				object.internalHash(
 					object.internalHash()
-						^ (h0 + object.valueAtIndex(probe).hash() * 23));
+					^ (h0 + object.valueAtIndex(probe).hash() * 23));
 				object.keyAtIndexPut(probe, BlankDescriptor.blank());
 				object.valueAtIndexPut(probe, VoidDescriptor.voidObject());
 				object.mapSize((object.mapSize() - 1));
@@ -641,7 +648,7 @@ public class MapDescriptor extends Descriptor
 			if (slotValue.equals(keyObject))
 			{
 				tempHash = object.internalHash()
-					^ (h0 + object.valueAtIndex(probe).hash() * 23);
+				^ (h0 + object.valueAtIndex(probe).hash() * 23);
 				tempHash ^= h0 + valueObject.hash() * 23;
 				object.internalHash(tempHash);
 				object.valueAtIndexPut(probe, valueObject);
@@ -734,29 +741,39 @@ public class MapDescriptor extends Descriptor
 	}
 
 
-
-	// Startup/shutdown
-
+	/**
+	 * An immutable empty map.
+	 */
 	static AvailObject EmptyMap;
 
+	/**
+	 * Initialize my EmptyMap static field.
+	 */
 	static void createWellKnownObjects ()
 	{
-		//  Initialize my EmptyMap class variable in addition to the usual classInstVars.
-
 		EmptyMap = newWithCapacity(3);
 		EmptyMap.makeImmutable();
 	}
 
+	/**
+	 * Clear my EmptyMap static field.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		//  Initialize my EmptyMap class variable in addition to the usual classInstVars.
-
 		EmptyMap = null;
 	}
 
 
 
-	/* Object creation */
+	/**
+	 * Create a new map with the given initial capacity.  The capacity is a
+	 * measure of how many slot pairs a map contains, and as such is always
+	 * somewhat larger than the maximum number of keys the map may actually
+	 * contain.
+	 * 
+	 * @param capacity The number of key/value slot pairs to reserve.
+	 * @return A new map.
+	 */
 	public static AvailObject newWithCapacity (int capacity)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(capacity * 2, MapDescriptor.mutableDescriptor());
@@ -770,6 +787,12 @@ public class MapDescriptor extends Descriptor
 		return result;
 	};
 
+
+	/**
+	 * Return the (immutable) empty map.
+	 * 
+	 * @return An empty, immutable map.
+	 */
 	public static AvailObject empty ()
 	{
 		return EmptyMap;

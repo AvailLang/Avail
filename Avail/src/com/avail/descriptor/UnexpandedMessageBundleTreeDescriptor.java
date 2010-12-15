@@ -32,16 +32,9 @@
 
 package com.avail.descriptor;
 
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.MessageSplitter;
-import com.avail.compiler.Mutable;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ExpandedMessageBundleTreeDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.UnexpandedMessageBundleTreeDescriptor;
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.error;
+import java.util.*;
+import com.avail.compiler.*;
 
 public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
@@ -229,7 +222,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		unclassified.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject message, AvailObject bundle)
+			public void value (final AvailObject message, final AvailObject bundle)
 			{
 				if (visibleNames.hasElement(message))
 				{
@@ -239,16 +232,18 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		});
 	}
 
+
+	/**
+	 * If there isn't one already, add a bundle to correspond to the given
+	 * message.  Answer the new or existing bundle.
+	 */
 	@Override
 	public AvailObject o_IncludeBundle (
 		final AvailObject object,
 		final AvailObject messageBundle)
 	{
-		//  If there isn't one already, add a bundle to correspond to the given message.
-		//  Answer the new or existing bundle.
-
 		AvailObject unclassified = object.unclassified();
-		final AvailObject message = messageBundle.message(); 
+		final AvailObject message = messageBundle.message();
 		if (unclassified.hasKey(message))
 		{
 			return unclassified.mapAt(message);
@@ -261,7 +256,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		return messageBundle;
 	}
 
-	
+
 	/**
 	 * Remove the bundle with the given message name (expanded as parts).
 	 * Answer true if this tree is now empty and should be removed.
@@ -269,7 +264,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	@Override
 	public boolean o_RemoveBundle (
 			final AvailObject object,
-			AvailObject bundle)
+			final AvailObject bundle)
 	{
 		AvailObject unclassified = object.unclassified();
 		unclassified = unclassified.mapWithoutKeyCanDestroy(
@@ -286,7 +281,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		return object.expand().complete();
 	}
 
-	
+
 	/**
 	 * Expand the bundleTree.  Answer the resulting expanded tree.
 	 */
@@ -305,7 +300,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		unclassified.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject message, AvailObject bundle)
+			public void value (final AvailObject message, final AvailObject bundle)
 			{
 				final AvailObject instructions = bundle.parsingInstructions();
 				if (pc == instructions.tupleSize() + 1)
@@ -380,7 +375,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 				}
 			}
 		});
-		assert (numberOfFixedObjectSlots() == ExpandedMessageBundleTreeDescriptor.immutableDescriptor().numberOfFixedObjectSlots());
+		assert numberOfFixedObjectSlots() == ExpandedMessageBundleTreeDescriptor.immutableDescriptor().numberOfFixedObjectSlots();
 		object.descriptor(
 			ExpandedMessageBundleTreeDescriptor.immutableDescriptor());
 		object.complete(complete.value);
@@ -402,11 +397,11 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Create a new message bundle tree, but don't yet break down the messages
 	 * and categorize them into complete/incomplete.  That will happen on
 	 * demand during parsing.
-	 * 
+	 *
 	 * @param pc A common index into each eligible message's instructions.
 	 * @return The new unexpanded, empty message bundle tree.
 	 */
-	public static AvailObject newPc(int pc)
+	public static AvailObject newPc(final int pc)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(
 			0,
