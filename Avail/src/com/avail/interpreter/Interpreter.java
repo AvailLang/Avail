@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
+import com.avail.utility.*;
 
 /**
  * This is the abstraction for execution Avail code.
@@ -218,11 +219,11 @@ public abstract class Interpreter
 	{
 		final short numArgs = method.type().numArgs();
 		final AvailObject returnsBlock =
-			ClosureDescriptor.newStubForNumArgsConstantResult(
+			ClosureDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
 				method.type().returnType());
 		final AvailObject requiresBlock =
-			ClosureDescriptor.newStubForNumArgsConstantResult(
+			ClosureDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
 				BooleanDescriptor.objectFrom(true));
 		atAddMethodBodyRequiresBlockReturnsBlock(
@@ -282,9 +283,8 @@ public abstract class Interpreter
 		final AvailObject bodySignature = bodyBlock.type();
 		AvailObject forward = null;
 		final AvailObject impsTuple = imps.implementationsTuple();
-		for (int i = 1, _end1 = impsTuple.tupleSize(); i <= _end1; i++)
+		for (final AvailObject existingImp : impsTuple)
 		{
-			final AvailObject existingImp = impsTuple.tupleAt(i);
 			final AvailObject existingType = existingImp.bodySignature();
 			boolean same = true;
 			for (int k = 1, _end2 = bodySignature.numArgs(); k <= _end2; k++)
@@ -496,14 +496,14 @@ public abstract class Interpreter
 			.primitiveNumber);
 		writer.returnType(Types.voidType.object());
 		final AvailObject newClosure =
-			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
+			ClosureDescriptor.create(
 				writer.compiledCode(),
 				TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
-			ByteStringDescriptor.mutableObjectFromNativeString(
+			ByteStringDescriptor.fromNativeString(
 				defineMethodName);
-		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(
+		final AvailObject realName = CyclicTypeDescriptor.create(
 			nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
@@ -541,14 +541,14 @@ public abstract class Interpreter
 		writer.primitiveNumber(
 			Primitive.prim240_SpecialObject_index.primitiveNumber);
 		writer.returnType(Types.all.object());
-		newClosure = ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(
+		newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
-			ByteStringDescriptor.mutableObjectFromNativeString(
+			ByteStringDescriptor.fromNativeString(
 				specialObjectName);
-		final AvailObject realName = CyclicTypeDescriptor.newCyclicTypeWithName(
+		final AvailObject realName = CyclicTypeDescriptor.create(
 			nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
@@ -638,7 +638,7 @@ public abstract class Interpreter
 		AvailObject trueName;
 		if (who.setSize() == 0)
 		{
-			trueName = CyclicTypeDescriptor.newCyclicTypeWithName(stringName);
+			trueName = CyclicTypeDescriptor.create(stringName);
 			trueName.makeImmutable();
 			module.atPrivateNameAdd(stringName, trueName);
 			return trueName;
@@ -714,7 +714,9 @@ public abstract class Interpreter
 
 		if (implementation.isForward())
 		{
-			pendingForwards = pendingForwards.setWithoutElementCanDestroy(implementation, true);
+			pendingForwards = pendingForwards.setWithoutElementCanDestroy(
+				implementation,
+				true);
 		}
 
 		runtime.removeMethod(methodName, implementation);

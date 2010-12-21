@@ -228,8 +228,7 @@ public final class AvailRuntime
 		try
 		{
 			// Add all visible message bundles to the root message bundle tree.
-			final AvailObject visibleNames = aModule.visibleNames();
-			for (final AvailObject name : visibleNames)
+			for (final AvailObject name : aModule.visibleNames())
 			{
 				assert name.isCyclicType();
 				MessageSplitter splitter = new MessageSplitter(name.name());

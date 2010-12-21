@@ -64,6 +64,7 @@ Body
    types to be strengthened by the 0-ary method definitions below them. */
 
 
+cheeseSandwich ::= 1000;
 
 privateAll                         ::= Special Object 1;
 privateBoolean                     ::= Special Object 2;

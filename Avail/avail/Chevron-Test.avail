@@ -47,6 +47,7 @@ Assert Start 1 @ 2 End = <1, 2>;
 Assert Start 1 @ 2 @ 3 End = <1, 2, 3>;
 
 
+/* Test no arguments. */
 Method "«Spam»" is [x : tuple of tuple like <> |
 	||x||;
 ];
@@ -54,11 +55,50 @@ Method "«Spam»" is [x : tuple of tuple like <> |
 Assert Spam = 1;
 Assert Spam Spam Spam Spam = 4;
 
-Method "«%‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
+
+/* Test argument to the right of the double-dagger. */
+Method "«!‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
 	x;
 ];
 
-Assert %10%20%30% = <<10>,<20>,<30>,<>>;
-Assert %1%1%1%1%1% = <<1>,<1>,<1>,<1>,<1>,<>>;
-Assert %0% = <<0>,<>>;
-Assert % = <<>>;
+Assert !10!20!30! = <<10>,<20>,<30>,<>>;
+Assert !1!1!1!1!1! = <<1>,<1>,<1>,<1>,<1>,<>>;
+Assert !0! = <<0>,<>>;
+Assert ! = <<>>;
+
+
+/* Test nullable content (chevron group occurrence with nothing inside). */
+Method "««cat»«dog»»" is [
+		t : tuple of tuple [2..2] of tuple [0..1] of tuple [0..0] of all |
+	t collect [y : tuple [2..2] of tuple |
+		if ||y[1]|| = 1 then [$"c";] else [$"d";];
+	];
+] : string
+requires [xT : tupleType |
+	limit ::= cast xT sizes upper bound into [lim : [0..INF) | lim;];
+	(1 to limit) all [
+			subscript : natural number |
+		cast xT[subscript] into [pairT : tupleType |
+			catCount ::= cast pairT[1] into [catT : tupleType |
+				catT sizes upper bound;];
+			dogCount ::= cast pairT[2] into [dogT : tupleType |
+				dogT sizes upper bound;];
+			catCount + dogCount = 1;
+		];
+	];
+];
+
+Assert cat = "c";
+Assert dog = "d";
+Assert cat cat = "cc";
+Assert cat dog = "cd";
+Assert dog cat = "dc";
+Assert dog dog = "dd";
+Assert cat cat cat = "ccc"; 
+Assert cat cat dog = "ccd";
+Assert cat dog cat = "cdc"; 
+Assert cat dog dog = "cdd";
+Assert dog cat cat = "dcc"; 
+Assert dog cat dog = "dcd";
+Assert dog dog cat = "ddc"; 
+Assert dog dog dog = "ddd";

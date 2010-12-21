@@ -140,12 +140,10 @@ Method "*" is [
 
 
 /* Quoting (0, 1, >1)... */
-Method "[]" is [ [s:stack | s;] withType [sT:stackType | sT with <TypedFunct>;]; ];
-Method "[_]" is [x : all | [s:stack | <x> then s;] withType [sT:stackType | sT with <TypedFunct>;]; ];
-Method "[_]" is [aList : list |
+Method "[«_‡,»]" is [aTuple : tuple |
 	[s:stack |
 		s2 : stack := s;
-		<aList> do [x : all | s2 := x run s2;];
+		aTuple do [x : all | s2 := x run s2;];
 		s2;]
 	withType [sT:stackType | sT with <TypedFunct>;];];
 

@@ -149,7 +149,7 @@ public class AvailCodeGenerator
 			{
 				localsArray.set(
 					i - _numArgs - 1,
-					ContainerTypeDescriptor.containerTypeForInnerType(
+					ContainerTypeDescriptor.wrapInnerType(
 						argDeclType));
 			}
 		}
@@ -171,7 +171,7 @@ public class AvailCodeGenerator
 			{
 				outerArray.set(
 					i - 1,
-					ContainerTypeDescriptor.containerTypeForInnerType(
+					ContainerTypeDescriptor.wrapInnerType(
 						argDeclType));
 			}
 		}

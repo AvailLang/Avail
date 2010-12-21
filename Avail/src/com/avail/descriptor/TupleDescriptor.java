@@ -751,7 +751,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 
 	/**
-	 * Compute {@linkplain #object}'s hash value.
+	 * Compute the object's hash value.
 	 *
 	 * @param object The object to hash.
 	 * @return The hash value.
@@ -880,23 +880,23 @@ public abstract class TupleDescriptor extends Descriptor
 		EmptyTuple.makeImmutable();
 
 		UnderscoreTuple = ByteStringDescriptor
-				.mutableObjectFromNativeString("_");
+				.fromNativeString("_");
 		UnderscoreTuple.makeImmutable();
 
 		OpenChevronTuple = ByteStringDescriptor
-				.mutableObjectFromNativeString("«");
+				.fromNativeString("«");
 		OpenChevronTuple.makeImmutable();
 
 		CloseChevronTuple = ByteStringDescriptor
-				.mutableObjectFromNativeString("»");
+				.fromNativeString("»");
 		CloseChevronTuple.makeImmutable();
 
 		DoubleDaggerTuple = ByteStringDescriptor
-				.mutableObjectFromNativeString("‡");
+				.fromNativeString("‡");
 		DoubleDaggerTuple.makeImmutable();
 
 		BackQuoteTuple = ByteStringDescriptor
-				.mutableObjectFromNativeString("`");
+				.fromNativeString("`");
 		BackQuoteTuple.makeImmutable();
 	}
 

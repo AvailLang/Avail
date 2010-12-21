@@ -1159,7 +1159,7 @@ implements L2OperationDispatcher
 			// non-argument locals
 			newContinuation.localOrArgOrStackAtPut(
 				nArgs + i,
-				ContainerDescriptor.newContainerWithOuterType(theCode
+				ContainerDescriptor.forOuterType(theCode
 					.localTypeAt(i)));
 		}
 		pointerAtPut(destIndex, newContinuation);
@@ -1280,7 +1280,7 @@ implements L2OperationDispatcher
 		int destIndex = nextWord();
 		pointerAtPut(
 			destIndex,
-			ContainerDescriptor.newContainerWithOuterType(_chunk
+			ContainerDescriptor.forOuterType(_chunk
 				.literalAt(typeIndex)));
 	}
 

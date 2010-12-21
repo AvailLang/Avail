@@ -32,14 +32,13 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Mutable;
 import com.avail.descriptor.ApproximateTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.ObjectDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.utility.*;
 
 public class ObjectDescriptor extends Descriptor
 {

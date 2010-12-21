@@ -64,7 +64,7 @@ primitiveTypes := <
 	parseNode,
 	assignmentNode,
 	blockNode,
-	listNode,
+	tupleNode,
 	literalNode,
 	referenceNode,
 	sendNode,

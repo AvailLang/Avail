@@ -245,7 +245,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 
 	/* Descriptor lookup */
-	public static AvailObject containerTypeForInnerType (AvailObject innerType)
+	public static AvailObject wrapInnerType (AvailObject innerType)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor(0, ContainerTypeDescriptor.mutableDescriptor());
 		result.innerType(innerType.makeImmutable());

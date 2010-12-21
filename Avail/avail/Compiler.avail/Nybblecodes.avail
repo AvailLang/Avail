@@ -45,7 +45,7 @@ Names
 		"Get Outer Instruction",
 	"Get Type Instruction",
 	"Label Instruction",
-	"Make List Instruction",
+	"Make Tuple Instruction",
 	"Pop Instruction",
 	"Push Label Instruction",
 	"Push Literal Instruction",
@@ -65,7 +65,7 @@ Names
 	"new Get Outer Instruction outer index_",
 	"new Get Type Instruction depth_",
 	"new Label Instruction",
-	"new Make List Instruction count_",
+	"new Make Tuple Instruction count_",
 	"new Pop Instruction",
 	"new Push Label Instruction",
 	"new Push Literal Instruction literal index_",
@@ -115,7 +115,7 @@ label ::= lookup "label";
 	"Get Type Instruction" is explicit subtype of Instruction with
 			[depth -> whole number];
 	"Label Instruction" is explicit subtype of Instruction;
-	"Make List Instruction" is explicit subtype of Instruction with
+	"Make Tuple Instruction" is explicit subtype of Instruction with
 			[count -> whole number];
 	"Pop Instruction" is explicit subtype of Instruction;
 	"Push Label Instruction" is explicit subtype of Instruction;
@@ -197,9 +197,9 @@ Method "new Label Instruction" is [
 	Label Instruction new with <>;
 ];
 
-Method "new Make List Instruction count_" is [listSize : whole number |
-	Make List Instruction new with <
-		<count, listSize>
+Method "new Make Tuple Instruction count_" is [tupleSize : whole number |
+	Make Tuple Instruction new with <
+		<count, tupleSize>
 	>;
 ];
 
@@ -296,8 +296,8 @@ Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Label Instruc
 	/* Do nothing.  I represent a label, NOT a push of that label. */
 ];
 
-Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Make List Instruction |
-	cg make list instr->count;
+Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Make Tuple Instruction |
+	cg make tuple instr->count;
 ];
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Pop Instruction |

@@ -34,9 +34,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
+import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 /**
@@ -1249,7 +1249,7 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract AvailObject o_IncludeBundle (
 		final AvailObject object,
-		final AvailObject bundleToFind);
+		final AvailObject messageBundle);
 
 	/**
 	 * @param object
@@ -2498,7 +2498,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param value
-	 * @return
 	 */
 	public abstract void o_TokenType (
 		final AvailObject object,

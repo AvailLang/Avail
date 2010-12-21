@@ -32,63 +32,57 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCompilerFragmentCache;
-import com.avail.compiler.AvailCompilerScopeStack;
-import com.avail.compiler.Generator;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2Interpreter;
-import java.util.List;
 
 public class Compiler
 {
-	List<AvailObject> tokens;
-	int position;
-	AvailObject currentToken;
-	List<ParserState> alternativeStates;
-	int greatestGuess;
-	List<Generator<String>> greatExpectations;
-	L2Interpreter interpreter;
-	AvailObject module;
-	AvailCompilerFragmentCache fragmentCache;
-	List<AvailObject> extendedModules;
-	List<AvailObject> usedModules;
-	List<AvailObject> exportedNames;
-	Continuation2<Integer, Integer> progressBlock;
-
-
-	public class AvailObjectStack
-	{
-		protected AvailObject node;
-		protected AvailObjectStack next;
-		public AvailObjectStack push (AvailObject newNode)
-		{
-			AvailObjectStack newStack = new AvailObjectStack();
-			newStack.node = newNode;
-			newStack.next = this;
-			return newStack;
-		}
-	}
-
-	public class ParserState
-	{
-		AvailObjectStack nodeStack;
-		List<AvailObject> expressionStack;
-		AvailObject firstArgument;
-		AvailCompilerScopeStack scopeStack;
-		AvailObject popNode ()
-		{
-			AvailObject node = nodeStack.node;
-			nodeStack = nodeStack.next;
-			return node;
-		}
-		void pushNode (AvailObject node)
-		{
-			AvailObjectStack newStack = new AvailObjectStack();
-			newStack.node = node;
-			newStack.next = nodeStack;
-			nodeStack = newStack;
-		}
-	};
+//	List<AvailObject> tokens;
+//	int position;
+//	AvailObject currentToken;
+//	List<ParserState> alternativeStates;
+//	int greatestGuess;
+//	List<Generator<String>> greatExpectations;
+//	L2Interpreter interpreter;
+//	AvailObject module;
+//	AvailCompilerFragmentCache fragmentCache;
+//	List<AvailObject> extendedModules;
+//	List<AvailObject> usedModules;
+//	List<AvailObject> exportedNames;
+//	Continuation2<Integer, Integer> progressBlock;
+//
+//
+//	public class AvailObjectStack
+//	{
+//		protected AvailObject node;
+//		protected AvailObjectStack next;
+//		public AvailObjectStack push (AvailObject newNode)
+//		{
+//			AvailObjectStack newStack = new AvailObjectStack();
+//			newStack.node = newNode;
+//			newStack.next = this;
+//			return newStack;
+//		}
+//	}
+//
+//	public class ParserState
+//	{
+//		AvailObjectStack nodeStack;
+//		List<AvailObject> expressionStack;
+//		AvailObject firstArgument;
+//		AvailCompilerScopeStack scopeStack;
+//		AvailObject popNode ()
+//		{
+//			AvailObject node = nodeStack.node;
+//			nodeStack = nodeStack.next;
+//			return node;
+//		}
+//		void pushNode (AvailObject node)
+//		{
+//			AvailObjectStack newStack = new AvailObjectStack();
+//			newStack.node = node;
+//			newStack.next = nodeStack;
+//			nodeStack = newStack;
+//		}
+//	};
 
 //	public enum ParserOperation
 //	{

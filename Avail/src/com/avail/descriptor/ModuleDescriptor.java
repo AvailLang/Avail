@@ -113,7 +113,8 @@ public class ModuleDescriptor extends Descriptor
 			stringName,
 			set,
 			true));
-		object.visibleNames(object.visibleNames().setWithElementCanDestroy(trueName, true));
+		object.visibleNames(
+			object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
 
 	@Override
@@ -133,7 +134,8 @@ public class ModuleDescriptor extends Descriptor
 			stringName,
 			trueName,
 			true));
-		object.visibleNames(object.visibleNames().setWithElementCanDestroy(trueName, true));
+		object.visibleNames(
+			object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
 
 	@Override
@@ -158,7 +160,8 @@ public class ModuleDescriptor extends Descriptor
 			stringName,
 			set,
 			true));
-		object.visibleNames(object.visibleNames().setWithElementCanDestroy(trueName, true));
+		object.visibleNames(
+			object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
 
 	@Override
@@ -219,7 +222,7 @@ public class ModuleDescriptor extends Descriptor
 			return publics;
 		}
 		final AvailObject privates = object.privateNames().mapAt(stringName);
-		if ((publics.setSize() == 0))
+		if (publics.setSize() == 0)
 		{
 			return privates;
 		}
@@ -545,7 +548,7 @@ public class ModuleDescriptor extends Descriptor
 	{
 		//  Answer a 32-bit hash value.
 
-		return (object.name().hash() * 13);
+		return object.name().hash() * 13;
 	}
 
 

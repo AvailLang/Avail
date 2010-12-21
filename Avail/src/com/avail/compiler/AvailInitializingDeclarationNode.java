@@ -34,8 +34,8 @@ package com.avail.compiler;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
-import com.avail.compiler.Transformer1;
 import com.avail.descriptor.VoidDescriptor;
+import com.avail.utility.Transformer1;
 
 public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNode
 {

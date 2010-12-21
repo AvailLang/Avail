@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.compiler.*;
+import com.avail.utility.*;
 
 public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {

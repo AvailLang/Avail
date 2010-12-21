@@ -36,6 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.*;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and installs into
@@ -275,7 +276,7 @@ public final class AvailBuilder
 				globalPosition.value,
 				globalCodeSize);
 			if (!runtime.includesModuleNamed(ByteStringDescriptor
-					.mutableObjectFromNativeString(moduleName.qualifiedName())))
+					.fromNativeString(moduleName.qualifiedName())))
 			{
 				compiler.parseModule(
 					moduleName,

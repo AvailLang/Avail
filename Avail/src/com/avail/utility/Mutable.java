@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
 /**
  * Support explicit mutable wrapping of variables.  This is used specifically

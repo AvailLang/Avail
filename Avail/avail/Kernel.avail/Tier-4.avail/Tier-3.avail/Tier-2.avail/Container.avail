@@ -121,8 +121,7 @@ Method "*_=nil" is [var : container |
 
 Method "swap_and_" is [var1 : container, var2 : container |
 	/* In theory, I believe the following commented-out implementation would
-	   work, but the primitive is more efficient, and will work even for list-valued
-	   containers.
+	   work, but the primitive is more efficient.
 		t : all;
 		*& t ?:= clearing* var1;
 		*& var1 ?:= clearing* var2;
@@ -135,7 +134,7 @@ Method "swap_and_" is [var1 : container, var2 : container |
 requires [t1 : type, t2 : type |
 	/* The containers must be the same type, otherwise the swap could break
 	   the type constraints.  The container types must, therefore, be known at
-	   the call site.  Allows list containers to be swapped.  */
+	   the call site. */
 	t1 = t2 & t1 not = container;
 ];
 

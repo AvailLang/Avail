@@ -82,9 +82,9 @@ Method "_function_" is [
 	>;
 ] : External Entry Point;
 
-Method "_(_)" is [
+Method "_(«_‡,»)" is [
 		entryPoint : External Entry Point,
-		arguments : list |
+		arguments : tuple |
 	invoke primitive entry point entryPoint -> privateHandle
-		with arguments <arguments>;
+		with arguments arguments;
 ] : all;

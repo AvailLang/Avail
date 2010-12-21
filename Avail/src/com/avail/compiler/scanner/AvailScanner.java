@@ -105,7 +105,7 @@ public class AvailScanner
 		anAvailToken.tokenType(tokenType);
 		anAvailToken.start(_startOfToken);
 		anAvailToken.string(
-			ByteStringDescriptor.mutableObjectFromNativeString(
+			ByteStringDescriptor.fromNativeString(
 				currentTokenString()));
 		anAvailToken.makeImmutable();
 		_outputTokens.add(anAvailToken);
@@ -279,7 +279,7 @@ public class AvailScanner
 				if (!peekFor('\"'))
 				{
 					String string = stringBuilder.toString();
-					AvailObject availValue = ByteStringDescriptor.mutableObjectFromNativeString(string);
+					AvailObject availValue = ByteStringDescriptor.fromNativeString(string);
 					availValue.makeImmutable();
 					addTokenForLiteral(availValue);
 					return;

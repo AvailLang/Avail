@@ -45,7 +45,7 @@ Names
 	"_get local_can clear_",
 	"_get outer_can clear_",
 	"_get type at depth_",
-	"_make list_",
+	"_make tuple_",
 	"_pop",
 	"_push label",
 	"_push literal_",
@@ -175,8 +175,8 @@ Method "_get type at depth_" is [cg : Nybblecode Generator, depth : whole number
 	cg put integer depth;
 ];
 
-Method "_make list_" is [cg : Nybblecode Generator, count : whole number |
-	cg emit makeListNybbles;
+Method "_make tuple_" is [cg : Nybblecode Generator, count : whole number |
+	cg emit makeTupleNybbles;
 	cg put integer count;
 ];
 

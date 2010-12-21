@@ -280,7 +280,7 @@ public class ClosureDescriptor extends Descriptor
 	 *                       produce.
 	 * @return A closure that takes N arguments and returns a constant.
 	 */
-	public static AvailObject newStubForNumArgsConstantResult (
+	public static AvailObject createStubForNumArgsConstantResult (
 			final int numArgs,
 			final AvailObject constantResult)
 	{
@@ -298,7 +298,7 @@ public class ClosureDescriptor extends Descriptor
 			Primitive.prim340_PushConstant_ignoreArgs.primitiveNumber);
 		AvailObject code = writer.compiledCode();
 		AvailObject closure =
-			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
+			ClosureDescriptor.create (
 				code,
 				TupleDescriptor.empty());
 		closure.makeImmutable();
@@ -321,7 +321,7 @@ public class ClosureDescriptor extends Descriptor
 	 * @return A closure which accepts arguments of the given types and produces
 	 *         a value of the specified type.
 	 */
-	public static AvailObject newStubWithArgTypes (
+	public static AvailObject createStubWithArgTypes (
 			final AvailObject argTypes,
 			final AvailObject implementationSet,
 			final AvailObject firstArg,
@@ -357,7 +357,7 @@ public class ClosureDescriptor extends Descriptor
 		AvailObject code = writer.compiledCode();
 
 		AvailObject closure =
-			ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple (
+			ClosureDescriptor.create (
 				code,
 				TupleDescriptor.empty());
 		closure.makeImmutable();
@@ -372,7 +372,7 @@ public class ClosureDescriptor extends Descriptor
 	 * @param copiedTuple The outer variables and constants to enclose.
 	 * @return A closure.
 	 */
-	public static AvailObject newMutableObjectWithCodeAndCopiedTuple (
+	public static AvailObject create (
 			final AvailObject code,
 			final AvailObject copiedTuple)
 	{

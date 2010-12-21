@@ -45,7 +45,7 @@ Names
 	"Initializing Declaration Node",
 	"Constant Declaration Node",
 	"Label Node",
-	"List Node",
+	"Tuple Node",
 	"Literal Node",
 	"Reference Node",
 	"Send Node",
@@ -58,7 +58,7 @@ Names
 	"new Constant Declaration Node variable_expression_",
 	"new Label Node variable_",
 	"new Block Node arguments_primitive_statements_return type_",
-	"new List Node expressions_",
+	"new Tuple Node expressions_",
 	"new Literal Node value_",
 	"new Variable Use Node from declaration_",
 	"new Assignment Node declaration_value_",
@@ -120,7 +120,7 @@ myType ::= lookup "myType";
 			[primitive -> [0..65535]]
 			[statements -> tuple of Parse Node]
 			[returnType -> type];
-	"List Node" is explicit subtype of Parse Node with
+	"Tuple Node" is explicit subtype of Parse Node with
 			[expressions -> tuple of Parse Node];
 	"Literal Node" is explicit subtype of Parse Node with
 			[value -> all];
@@ -146,7 +146,7 @@ Declaration Node has fields
 	<"variable">;
 Initializing Declaration Node has fields
 	<"expression">;
-List Node has fields
+Tuple Node has fields
 	<"expressions">;
 Literal Node has fields
 	<"value">;
@@ -234,12 +234,12 @@ Method "new Literal Node value_" is [
 ] : Literal Node;
 
 
-Method "new List Node expressions_" is [
+Method "new Tuple Node expressions_" is [
 		exprs : tuple of Parse Node |
-	List Node new with <
+	Tuple Node new with <
 		<expressions, exprs>
 	>;
-] : List Node;
+] : Tuple Node;
 
 
 Method "new Block Node arguments_primitive_statements_return type_" is [
@@ -321,7 +321,7 @@ Method "_accumulate needed outer variables in_" is [
 ];
 
 Method "_accumulate needed outer variables in_" is [
-		node : List Node,
+		node : Tuple Node,
 		outers : & : set of Declaration Node |
 	node expressions do [expr : Parse Node |
 		expr accumulate needed outer variables in outers;
@@ -384,9 +384,9 @@ Method "_result type" is [node : Block Node |
 		and returning node returnType;
 ] : closureType;
 
-Method "_result type" is [node : List Node |
+Method "_result type" is [node : Tuple Node |
 	types ::= node expressions collect [item : Parse Node | item result type;];
-	(tuple like types) as listType;
+	tuple like types;
 ] : type;
 
 Method "_result type" is [node : Reference Node |

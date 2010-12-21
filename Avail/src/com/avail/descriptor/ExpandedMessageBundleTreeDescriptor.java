@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.*;
 import com.avail.compiler.*;
+import com.avail.utility.Continuation2;
 
 public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {

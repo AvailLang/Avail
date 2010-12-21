@@ -37,9 +37,8 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Mutable;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.utility.*;
 
 /**
  * I represent a discrete function whose keys and values are arbitrary Avail

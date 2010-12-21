@@ -38,6 +38,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.utility.*;
 
 /**
  * Broad test suite for the Avail compiler, interpreter, and library.

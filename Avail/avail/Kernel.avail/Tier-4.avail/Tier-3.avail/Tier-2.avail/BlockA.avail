@@ -50,7 +50,7 @@ Method "_apply_" is [block : [...]->void, args : tuple |
 	   If the arguments are known to conflict with the block's argument
 	   types at some call site (i.e., it'll always fail), report a compile error.  */
 	Primitive 40;
-	Crash "Bad argument list or something during function application.";
+	Crash "Bad argument during function application.";
 ] : void
 requires [gct : generalizedClosureType, at : tupleType |
 	/* The closure type is allowed to be too weak, so that this operation will

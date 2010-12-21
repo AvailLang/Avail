@@ -38,7 +38,7 @@ Names
 	"parseNode",
 		"assignmentNode",
 		"blockNode",
-		"listNode",
+		"tupleNode",
 		"literalNode",
 		"referenceNode",
 		"sendNode",
@@ -83,7 +83,7 @@ privateBlockNode                   ::= Special Object 51;
 privateConstantDeclarationNode     ::= Special Object 52;
 privateInitializingDeclarationNode ::= Special Object 53;
 privateLabelNode                   ::= Special Object 54;
-privateListNode                    ::= Special Object 55;
+privateTupleNode                   ::= Special Object 55;
 privateLiteralNode                 ::= Special Object 56;
 privateParseNode                   ::= Special Object 57;
 privateReferenceNode               ::= Special Object 58;
@@ -100,7 +100,7 @@ Method "blockNode" is [privateBlockNode;] : primType;
 Method "constantDeclarationNode" is [privateConstantDeclarationNode;] : primType;
 Method "initializingDeclarationNode" is [privateInitializingDeclarationNode;] : primType;
 Method "labelNode" is [privateLabelNode;] : primType;
-Method "listNode" is [privateListNode;] : primType;
+Method "tupleNode" is [privateTupleNode;] : primType;
 Method "literalNode" is [privateLiteralNode;] : primType;
 Method "parseNode" is [privateParseNode;] : primType;
 Method "referenceNode" is [privateReferenceNode;] : primType;

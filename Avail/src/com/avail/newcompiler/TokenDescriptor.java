@@ -32,9 +32,7 @@
 
 package com.avail.newcompiler;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.*;
 
 
 /**
@@ -53,7 +51,7 @@ extends Descriptor
 	{
 		/**
 		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
-		 * source. 
+		 * source.
 		 */
 		STRING
 	}
@@ -65,12 +63,12 @@ extends Descriptor
 	{
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,
-		 * but this will change at some point -- not that we really need to
-		 * parse 2GB of <em>Avail</em> source in one file, due to its deeply
-		 * flexible syntax.
+		 * but this may change at some point -- not that we really need to parse
+		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
+		 * syntax.
 		 */
 		START,
-		
+
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
 		 * indicates what basic kind of token this is.
@@ -196,7 +194,11 @@ extends Descriptor
 	 */
 	public enum TokenType
 	{
-		END_OF_FILE, END_OF_STATEMENT, KEYWORD, LITERAL, OPERATOR;
+		END_OF_FILE,
+		END_OF_STATEMENT,
+		KEYWORD,
+		LITERAL,
+		OPERATOR;
 	}
 
 }

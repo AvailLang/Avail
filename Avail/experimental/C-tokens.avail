@@ -76,7 +76,7 @@ Method "Declare keyword token_" is [ lexeme : string |
 	asStringBody ::= stub block
 		taking <keywordTokenType>
 		and applying name of block invoker
-		to [ args : list | lexeme; ]
+		to [ args : tuple | lexeme; ]
 		and argument tuple returning string;
 
 	Method "_as string" is asStringBody;

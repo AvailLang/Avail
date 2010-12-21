@@ -32,84 +32,52 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCompilerCachedSolution;
-import com.avail.compiler.AvailCompilerScopeStack;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import com.avail.compiler.AvailCompiler.ParserState;
 
 public class AvailCompilerFragmentCache
 {
-	Map<Integer, Map<AvailCompilerScopeStack, List<AvailCompilerCachedSolution>>> _tokenPositionToScopeToSolutions;
+	Map<ParserState, List<AvailCompilerCachedSolution>> solutions =
+		new HashMap<ParserState, List<AvailCompilerCachedSolution>>(100);
 
 
-	// accessing
-
-	List<AvailCompilerCachedSolution> atTokenPositionScopeStack (
-			final int tokenPosition,
-			final AvailCompilerScopeStack scopeStack)
+	List<AvailCompilerCachedSolution> solutionsAt (
+		final ParserState state)
 	{
-		//  Answer the previously recorded solution for the recursive ascent optimization.
-
-		return _tokenPositionToScopeToSolutions.get(tokenPosition).get(scopeStack);
+		// Answer the previously recorded solution for the recursive ascent
+		// optimization.
+		return solutions.get(state);
 	}
 
-	void atTokenPositionScopeStackAddSolution (
-			final int tokenPosition,
-			final AvailCompilerScopeStack scopeStack,
+	void addSolution (
+			final ParserState state,
 			final AvailCompilerCachedSolution solution)
 	{
 		//  Record a solution for the recursive ascent optimization.
 
-		_tokenPositionToScopeToSolutions.get(tokenPosition).get(scopeStack).add(solution);
+		solutions.get(state).add(solution);
 	}
 
 	void clear ()
 	{
-		_tokenPositionToScopeToSolutions.clear();
+		solutions.clear();
 	}
 
-	boolean hasComputedTokenPositionScopeStack (
-			final int tokenPosition,
-			final AvailCompilerScopeStack scopeStack)
+	boolean hasComputedForState (
+			final ParserState state)
 	{
 		//  Answer whether a parse has already occurred at the specified position.
 
-		return _tokenPositionToScopeToSolutions.containsKey(tokenPosition)
-			&& _tokenPositionToScopeToSolutions.get(tokenPosition).containsKey(scopeStack);
+		return solutions.containsKey(state);
 	}
 
-	void startComputingTokenPositionScopeStack (
-			final int tokenPosition,
-			final AvailCompilerScopeStack scopeStack)
+	void startComputingForState (
+			final ParserState state)
 	{
 		//  Indicate that a parse at the given position has started.
 
-		assert !hasComputedTokenPositionScopeStack(tokenPosition, scopeStack);
-		Map<AvailCompilerScopeStack, List<AvailCompilerCachedSolution>> innerMap;
-		innerMap = _tokenPositionToScopeToSolutions.get(tokenPosition);
-		if (innerMap == null)
-		{
-			innerMap = new HashMap<AvailCompilerScopeStack, List<AvailCompilerCachedSolution>>();
-			_tokenPositionToScopeToSolutions.put(tokenPosition, innerMap);
-		}
-		innerMap.put(scopeStack, new ArrayList<AvailCompilerCachedSolution>(3));
-	}
-
-
-
-
-
-	// Constructor
-
-	AvailCompilerFragmentCache ()
-	{
-		_tokenPositionToScopeToSolutions = new HashMap<
-			Integer,
-			Map<
-				AvailCompilerScopeStack,
-				List<AvailCompilerCachedSolution>>>(100);
+		assert !hasComputedForState(state);
+		solutions.put(state, new ArrayList<AvailCompilerCachedSolution>(3));
 	}
 
 }

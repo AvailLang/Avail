@@ -33,9 +33,9 @@ package com.avail.descriptor;
 
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
+import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 /**

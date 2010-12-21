@@ -1,5 +1,5 @@
 /**
- * compiler/Transformer0.java
+ * compiler/Transformer2.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
-public abstract class Transformer0 <X>
+public abstract class Transformer2 <X,Y,Z>
 {
-	public abstract X value ();
+	public abstract Z value (X arg1, Y arg2);
 }

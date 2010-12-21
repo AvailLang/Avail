@@ -40,7 +40,6 @@ import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.*;
@@ -307,7 +306,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
-			interpreter.primitiveResult(ContainerTypeDescriptor.containerTypeForInnerType(type));
+			interpreter.primitiveResult(ContainerTypeDescriptor.wrapInnerType(type));
 			return SUCCESS;
 		}
 	},
@@ -361,7 +360,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject innerType = args.get(0);
-			interpreter.primitiveResult(ContainerDescriptor.newContainerWithInnerType(innerType));
+			interpreter.primitiveResult(ContainerDescriptor.forInnerType(innerType));
 			return SUCCESS;
 		}
 	},
@@ -1072,7 +1071,7 @@ public enum Primitive
 			}
 			for (int i = 1, _end5 = itsCode.numLocals(); i <= _end5; i++)
 			{
-				conCopy.localOrArgOrStackAtPut((itsCode.numArgs() + i), ContainerDescriptor.newContainerWithOuterType(itsCode.localTypeAt(i)));
+				conCopy.localOrArgOrStackAtPut((itsCode.numArgs() + i), ContainerDescriptor.forOuterType(itsCode.localTypeAt(i)));
 			}
 			interpreter.prepareToExecuteContinuation(conCopy);
 			return CONTINUATION_CHANGED;
@@ -1142,7 +1141,7 @@ public enum Primitive
 			{
 				conCopy.localOrArgOrStackAtPut(
 					itsCode.numArgs() + i,
-					ContainerDescriptor.newContainerWithOuterType(
+					ContainerDescriptor.forOuterType(
 						itsCode.localTypeAt(i)));
 			}
 			interpreter.prepareToExecuteContinuation(conCopy);
@@ -1384,7 +1383,7 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject numArgs = args.get(0);
 			final AvailObject constantResult = args.get(1);
-			interpreter.primitiveResult(ClosureDescriptor.newStubForNumArgsConstantResult(numArgs.extractInt(), constantResult));
+			interpreter.primitiveResult(ClosureDescriptor.createStubForNumArgsConstantResult(numArgs.extractInt(), constantResult));
 			return SUCCESS;
 		}
 	},
@@ -1409,7 +1408,7 @@ public enum Primitive
 			final AvailObject firstArg = args.get(2);
 			final AvailObject resultType = args.get(3);
 			interpreter.primitiveResult(
-				ClosureDescriptor.newStubWithArgTypes(
+				ClosureDescriptor.createStubWithArgTypes(
 					argTypes,
 					interpreter.runtime().methodsAt(message),
 					firstArg,
@@ -1481,7 +1480,7 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject compiledCode = args.get(0);
 			final AvailObject outers = args.get(1);
-			interpreter.primitiveResult(ClosureDescriptor.newMutableObjectWithCodeAndCopiedTuple(compiledCode, outers));
+			interpreter.primitiveResult(ClosureDescriptor.create(compiledCode, outers));
 			return SUCCESS;
 		}
 	},
@@ -1953,7 +1952,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject name = args.get(0);
-			interpreter.primitiveResult(CyclicTypeDescriptor.newCyclicTypeWithName(name));
+			interpreter.primitiveResult(CyclicTypeDescriptor.create(name));
 			return SUCCESS;
 		}
 	},
@@ -2291,7 +2290,7 @@ public enum Primitive
 			}
 
 			final AvailObject handle =
-				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
+				CyclicTypeDescriptor.create(filename);
 			try
 			{
 				final RandomAccessFile file = new RandomAccessFile(
@@ -2333,7 +2332,7 @@ public enum Primitive
 			}
 
 			final AvailObject handle =
-				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
+				CyclicTypeDescriptor.create(filename);
 			try
 			{
 				final RandomAccessFile file = new RandomAccessFile(
@@ -2381,7 +2380,7 @@ public enum Primitive
 			}
 
 			final AvailObject handle =
-				CyclicTypeDescriptor.newCyclicTypeWithName(filename);
+				CyclicTypeDescriptor.create(filename);
 			try
 			{
 				final RandomAccessFile file = new RandomAccessFile(

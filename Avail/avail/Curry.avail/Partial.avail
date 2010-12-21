@@ -35,7 +35,7 @@ Extends
 Uses
 	"Kernel"
 Names
-	"_call with one list(_)",
+	"_call with one tuple(_)",
 	"_taking arguments tupled",
 	"_curry_",
 	"_curried"
@@ -53,7 +53,7 @@ Method "_curry_" is [block : closure, arg : all |
 	bt ::= block type;
 	stub block taking 2 to ||bt|| collect [i : natural number | bt[i];]
 		and applying name of block invoker
-		to [args : list | block2 apply <arg> then <args>;]
+		to [args : tuple | block2 apply <arg> then args;]
 		and argument tuple returning (bt result);
 ] : closure
 requires [cT : closure type, aT : type |
@@ -83,8 +83,8 @@ Method "_taking arguments tupled" is [block : closure |
 	result ::= stub block taking
 			<tuple like 1 to ||block type|| collect [i : natural number | block type [i];]>
 		and applying name of block invoker
-		to [args : list |
-			cast <args>[1] into [argTuple : tuple |
+		to [args : tuple |
+			cast args[1] into [argTuple : tuple |
 				block2 apply argTuple;
 			];
 		] and argument tuple returning block type result;
@@ -130,12 +130,12 @@ Method "_curry of tupled block" is [blk : [terminates]->void |
 		cast size into [s : [2..INF) |
 			stub block taking <tt[1]>
 				and applying name of block invoker
-				to [firstAsList : list |
+				to [firstAsTuple : tuple |
 					inner ::= stub block taking <tuple like tt[2..s]>
 						and applying name of block invoker
-						to [otherArgs : list |
-							cast <otherArgs>[1] into [others : tuple |
-								blk apply <<firstAsList> then others>;
+						to [otherArgs : tuple |
+							cast otherArgs[1] into [others : tuple |
+								blk apply <firstAsTuple then others>;
 							];
 						]
 						and argument tuple returning blk type result;
@@ -151,7 +151,7 @@ Method "_curry of tupled block" is [blk : [terminates]->void |
 			   bundled into a singleton tuple and passed to blk. */
 			stub block taking <tt[1]>
 			and applying name of block invoker
-			to [args : list | blk apply <<args>>;]
+			to [args : tuple | blk apply <args>;]
 			and argument tuple returning blk type result;
 		];
 	];

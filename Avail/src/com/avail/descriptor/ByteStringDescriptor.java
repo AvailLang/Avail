@@ -517,7 +517,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return descriptor.privateMutableObjectFromNativeByteString(aNativeByteString);
 	}
 
-	public static AvailObject mutableObjectFromNativeString(String aNativeString)
+	public static AvailObject fromNativeString(String aNativeString)
 	{
 		for (int i = 0; i < aNativeString.length(); i++)
 		{

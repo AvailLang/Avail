@@ -32,10 +32,7 @@
 
 package com.avail.newcompiler;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.Descriptor;
-import com.avail.newcompiler.TokenDescriptor.TokenType;
+import com.avail.descriptor.*;
 
 /**
  * I represent a token that's a literal representation of some object.
@@ -58,10 +55,10 @@ extends TokenDescriptor
 	{
 		/**
 		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
-		 * source. 
+		 * source.
 		 */
 		STRING,
-		
+
 		/**
 		 * The actual {@link AvailObject} wrapped by this token.
 		 */
@@ -75,11 +72,12 @@ extends TokenDescriptor
 	{
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,
-		 * but this will change at some point -- not that we really need to
-		 * parse 2GB of <em>Avail</em> source, with its flexible syntax.
+		 * but this may change at some point -- not that we really need to parse
+		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
+		 * syntax.
 		 */
 		START,
-		
+
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
 		 * indicates what basic kind of token this is.

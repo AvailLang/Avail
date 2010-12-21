@@ -52,8 +52,8 @@ Body
 Method "testMethod_is_«requires_»«returns_»" is [
         name : string,
         body : closure,
-        requires : list [0..1] of closure,
-        returns : list [0..1] of closure |
+        requires : tuple [0..1] of closure,
+        returns : tuple [0..1] of closure |
     Halt;
 ] : void;
 
@@ -62,7 +62,7 @@ Repeated parameters:
 
 Method "Add_«and_»" is [
         firstArg : integer,
-        otherArgs : list [1..INF) of integer |
+        otherArgs : tuple [1..INF) of integer |
     ....
 ] : integer;
 
@@ -70,7 +70,7 @@ Method "Add_«and_»" is [
 Repeated parameters with separators:
 
 Method "Add«_‡and»" is [
-        args : list [2..INF) of integer |
+        args : tuple [2..INF) of integer |
     ...
 ] : tuple;
 
@@ -79,7 +79,7 @@ Method "Add«_‡and»" is [
 Repeated parameters with nested repetitions:
 
 Method "Graph«vertex_«edge to_‡and»»" is [
-        pairs : list [0..INF) like <all, list of all> |
+        pairs : tuple [0..INF) like <all, tuple> |
     ...
 ] : Graph;
 
@@ -92,11 +92,11 @@ Underscores after the double dagger:
 
 Method "_«join_«where«_=_‡and»»»" is [
         firstTable : table,
-        joins : list [0..INF) of
-            list like <
+        joins : tuple [0..INF) of
+            tuple like <
                 table,
-                list [0..INF) of
-                    list like <column, column>> |
+                tuple [0..INF) of
+                    tuple like <column, column>> |
     ...
 ] : join;
 

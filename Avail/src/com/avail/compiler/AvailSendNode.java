@@ -34,6 +34,7 @@ package com.avail.compiler;
 import java.util.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 
 public class AvailSendNode extends AvailParseNode
 {

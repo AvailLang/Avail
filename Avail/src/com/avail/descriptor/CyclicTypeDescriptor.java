@@ -289,7 +289,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 
 	/* Object creation */
-	public static AvailObject newCyclicTypeWithName (AvailObject aTupleObject)
+	public static AvailObject create (AvailObject aTupleObject)
 	{
 		aTupleObject.makeImmutable();
 		AvailObject cyc = AvailObject.newIndexedDescriptor (

@@ -32,13 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 public class IntegerRangeTypeDescriptor extends TypeDescriptor
 {
@@ -231,14 +226,14 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public boolean o_LowerInclusive (
 			final AvailObject object)
 	{
-		return ((object.inclusiveFlags() & 1) == 1);
+		return (object.inclusiveFlags() & 1) == 1;
 	}
 
 	@Override
 	public boolean o_UpperInclusive (
 			final AvailObject object)
 	{
-		return ((object.inclusiveFlags() & 256) == 256);
+		return (object.inclusiveFlags() & 256) == 256;
 	}
 
 
@@ -274,7 +269,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		{
 			return false;
 		}
-		if ((subMinObject.equals(superMinObject) && possibleSub.lowerInclusive() && !object.lowerInclusive()))
+		if (subMinObject.equals(superMinObject) && possibleSub.lowerInclusive() && !object.lowerInclusive())
 		{
 			return false;
 		}
@@ -284,7 +279,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		{
 			return false;
 		}
-		if ((superMaxObject.equals(subMaxObject) && possibleSub.upperInclusive() && !object.upperInclusive()))
+		if (superMaxObject.equals(subMaxObject) && possibleSub.upperInclusive() && !object.upperInclusive())
 		{
 			return false;
 		}
@@ -432,6 +427,9 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	static AvailObject Integers;
 
 
+	static AvailObject PositiveShorts;
+
+
 	static AvailObject WholeNumbers;
 
 	static void createWellKnownObjects ()
@@ -446,6 +444,11 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			false,
 			InfinityDescriptor.positiveInfinity(),
 			false);
+		PositiveShorts = create(
+			IntegerDescriptor.one(),
+			true,
+			IntegerDescriptor.objectFromInt(Short.MAX_VALUE),
+			true);
 		NaturalNumbers = create(
 			IntegerDescriptor.one(),
 			true,
@@ -459,12 +462,12 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		Bytes = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.objectFromByte(((short)(255))),
+			IntegerDescriptor.objectFromByte(((short)255)),
 			true);
 		Nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.objectFromByte(((short)(15))),
+			IntegerDescriptor.objectFromByte(((short)15)),
 			true);
 		Characters = create(
 			IntegerDescriptor.zero(),
@@ -490,16 +493,16 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	/* Hashing */
 	static int computeHashFromLowerBoundHashUpperBoundHashLowerInclusiveUpperInclusive (
-			int lowerBoundHash,
-			int upperBoundHash,
-			boolean lowerInclusive,
-			boolean upperInclusive)
+			final int lowerBoundHash,
+			final int upperBoundHash,
+			final boolean lowerInclusive,
+			final boolean upperInclusive)
 	{
 		final int flagsHash =
 			lowerInclusive
 				? (upperInclusive ? 0x1503045E : 0x053A6C17)
-				: (upperInclusive ? 0x1DB2D751 : 0x1130427D);
-		return ((lowerBoundHash * 29) ^ flagsHash ^ upperBoundHash);
+				: upperInclusive ? 0x1DB2D751 : 0x1130427D;
+		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
 	}
 
 
@@ -513,6 +516,11 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	public static AvailObject integers ()
 	{
 		return Integers;
+	}
+
+	public static AvailObject positiveShorts ()
+	{
+		return PositiveShorts;
 	}
 
 	public static AvailObject wholeNumbers ()
@@ -530,7 +538,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		return Nybbles;
 	}
 
-	public static AvailObject singleInteger (AvailObject integerObject)
+	public static AvailObject singleInteger (final AvailObject integerObject)
 	{
 		integerObject.makeImmutable();
 		return IntegerRangeTypeDescriptor.create(
@@ -539,14 +547,18 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 
 	public static AvailObject create (
-			AvailObject lowerBound,
-			boolean lowerInclusive,
-			AvailObject upperBound,
-			boolean upperInclusive)
+			final AvailObject lowerBound,
+			final boolean lowerInclusive,
+			final AvailObject upperBound,
+			final boolean upperInclusive)
 	{
 		if (lowerBound.sameAddressAs(upperBound))
+		{
 			if (lowerBound.descriptor().isMutable())
+			{
 				error("Don't plug a mutable object in as two distinct construction parameters");
+			}
+		}
 		AvailObject low = lowerBound;
 		boolean lowInc = lowerInclusive;
 		if (!lowInc)
@@ -573,7 +585,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		{
 			return Types.terminates.object();
 		}
-		if (high.equals(low) && ((!highInc) || !lowInc))
+		if (high.equals(low) && (!highInc || !lowInc))
 		{
 			//  Unusual cases such as [INF..INF) give preference to exclusion over inclusion.
 			return Types.terminates.object();

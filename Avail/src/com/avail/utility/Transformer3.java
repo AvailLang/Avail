@@ -1,5 +1,5 @@
 /**
- * compiler/Continuation1.java
+ * compiler/Transformer3.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,23 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
-import com.avail.compiler.Continuation1;
-
-/**
- * Implementors of {@code Continuation3} provide a single arbitrary operation
- * that accepts one argument.
- *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @param <X> The type of the argument.
- */
-public interface Continuation1<X>
+public abstract class Transformer3 <W,X,Y,Z>
 {
-	/**
-	 * Perform the operation.
-	 *
-	 * @param arg The first argument.
-	 */
-	public void value (X arg);
+	public abstract Z value (W arg1, X arg2, Y arg3);
 }

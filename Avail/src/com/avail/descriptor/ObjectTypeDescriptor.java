@@ -32,12 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.Continuation2;
-import com.avail.compiler.Mutable;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.ObjectMetaDescriptor;
 import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.utility.*;
 import static java.lang.Math.*;
 
 public class ObjectTypeDescriptor extends TypeDescriptor

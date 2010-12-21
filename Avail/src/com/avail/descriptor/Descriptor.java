@@ -35,9 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
+import com.avail.utility.*;
 import com.avail.visitor.*;
 
 public abstract class Descriptor extends AbstractDescriptor
@@ -3981,7 +3981,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	/**
 	 * @param object
 	 * @param value
-	 * @return
 	 */
 	@Override
 	public void o_TokenType (

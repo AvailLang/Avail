@@ -211,7 +211,7 @@ public class ContainerDescriptor extends Descriptor
 	{
 		//  Initialize my type based on the given inner type.
 
-		object.type(ContainerTypeDescriptor.containerTypeForInnerType(innerType));
+		object.type(ContainerTypeDescriptor.wrapInnerType(innerType));
 	}
 
 	@Override
@@ -272,13 +272,13 @@ public class ContainerDescriptor extends Descriptor
 
 	/* Object creation */
 
-	public static AvailObject newContainerWithInnerType (AvailObject innerType)
+	public static AvailObject forInnerType (AvailObject innerType)
 	{
-		return ContainerDescriptor.newContainerWithOuterType(
-			ContainerTypeDescriptor.containerTypeForInnerType(innerType));
+		return ContainerDescriptor.forOuterType(
+			ContainerTypeDescriptor.wrapInnerType(innerType));
 	};
 
-	public static AvailObject newContainerWithOuterType (AvailObject outerType)
+	public static AvailObject forOuterType (AvailObject outerType)
 	{
 		AvailObject result = AvailObject.newIndexedDescriptor (
 			0,

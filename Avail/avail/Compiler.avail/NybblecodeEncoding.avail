@@ -49,7 +49,7 @@ Names
 	"setOuterNybbles",
 	"getLocalNybbles",
 	"getOuterNybbles",
-	"makeListNybbles",
+	"makeTupleNybbles",
 	"pushLabelNybbles",
 	"getLiteralNybbles",
 	"setLiteralNybbles",
@@ -78,7 +78,7 @@ Method "popNybbles" is [<9>;];
 Method "getOuterClearingNybbles" is [<10>;];
 Method "setOuterNybbles" is [<11>;];
 Method "getLocalNybbles" is [<12>;];
-Method "makeListNybbles" is [<13>;];
+Method "makeTupleNybbles" is [<13>;];
 Method "getOuterNybbles" is [<14>;];
 Method "pushLabelNybbles" is [<15,0>;];
 Method "getLiteralNybbles" is [<15,1>;];

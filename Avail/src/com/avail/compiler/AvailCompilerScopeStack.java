@@ -32,8 +32,6 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCompilerScopeStack;
-import com.avail.compiler.AvailVariableDeclarationNode;
 import com.avail.descriptor.AvailObject;
 
 public class AvailCompilerScopeStack
@@ -88,14 +86,43 @@ public class AvailCompilerScopeStack
 	// Constructor
 
 	AvailCompilerScopeStack (
-		AvailObject name,
-		AvailVariableDeclarationNode declaration,
-		AvailCompilerScopeStack next)
+		final AvailVariableDeclarationNode declaration,
+		final AvailCompilerScopeStack next)
 	{
-		assert name == null || name.isString();
-		_name = name;
-		_declaration = declaration;
+		if (declaration == null)
+		{
+			_declaration = null;
+			_name = null;
+		}
+		else
+		{
+			_declaration = declaration;
+			_name = declaration.name().string();
+			assert _name.isString();
+		}
 		_next = next;
 	}
 
+	/**
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append(getClass().getSimpleName());
+		builder.append(" [");
+		AvailCompilerScopeStack next = this;
+		while (next != null)
+		{
+			builder.append(next._name != null ? next._name : "(null)");
+			next = next._next;
+			if (next != null)
+			{
+				builder.append(", ");
+			}
+		}
+		builder.append(']');
+		return builder.toString();
+	}
 }

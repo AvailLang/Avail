@@ -32,91 +32,52 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCompilerScopeStack;
-import com.avail.compiler.AvailParseNode;
+import com.avail.compiler.AvailCompiler.ParserState;
 
 public class AvailCompilerCachedSolution
 {
-	AvailParseNode _parseNode;
-	int _endPosition;
-	AvailCompilerScopeStack _scopeStack;
+
+	final ParserState endState;
+
+	final AvailParseNode parseNode;
 
 
-	// accessing
-
-	int endPosition ()
+	ParserState endState ()
 	{
-		return _endPosition;
-	}
-
-	void endPosition (
-			final int anInteger)
-	{
-
-		_endPosition = anInteger;
+		return endState;
 	}
 
 	AvailParseNode parseNode ()
 	{
-		return _parseNode;
+		return parseNode;
 	}
 
-	void parseNode (
-			final AvailParseNode aParseNode)
-	{
-
-		_parseNode = aParseNode;
-	}
-
-	AvailCompilerScopeStack scopeStack ()
-	{
-		return _scopeStack;
-	}
-
-	void scopeStack (
-			final AvailCompilerScopeStack aScopeStack)
-	{
-
-		_scopeStack = aScopeStack;
-	}
-
-
-
-	// java printing
 
 	@Override
 	public String toString ()
 	{
 		StringBuilder builder = new StringBuilder();
 		builder.append("Solution(@");
-		builder.append(endPosition());
-		if (scopeStack().name() == null)
+		builder.append(endState.position);
+		if (endState.scopeStack.name() == null)
 		{
 			builder.append(", no bindings");
 		}
 		else
 		{
-			builder.append(", last binding=" + scopeStack().name());
+			builder.append(", last binding=" + endState.scopeStack.name());
 		}
 		builder.append(") = ");
 		builder.append(parseNode().toString());
 		return builder.toString();
 	}
 
-
-
-
-
-	// Constructor
-
 	AvailCompilerCachedSolution (
-		AvailParseNode parseNode,
-		int endPosition,
-		AvailCompilerScopeStack scopeStack)
+		final ParserState endState,
+		final AvailParseNode parseNode)
 	{
-		_parseNode = parseNode;
-		_endPosition = endPosition;
-		_scopeStack = scopeStack;
+		this.endState = endState;
+		this.parseNode = parseNode;
 	}
 
 }

@@ -57,10 +57,10 @@ Method "uint16" is [unsigned 16;];
 Method "uint32" is [unsigned 32;];
 Method "uint64" is [unsigned 64;];
 Method "structure{_}" is [
-		types : tuple of type as listType |
-	<types>;
+		types : tuple of type |
+	types;
 ];
 Method "union{_}" is [
-		types : tuple of type as listType |
-	{types};
+		types : tuple of type |
+	types as set;
 ];

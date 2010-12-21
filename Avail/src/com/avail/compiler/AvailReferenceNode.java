@@ -39,6 +39,7 @@ import com.avail.compiler.AvailVariableUseNode;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContainerTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
@@ -61,7 +62,7 @@ public class AvailReferenceNode extends AvailParseNode
 	{
 		//  The value I represent is a variable itself.  Answer an appropriate container type.
 
-		return ContainerTypeDescriptor.containerTypeForInnerType(_variable.type());
+		return ContainerTypeDescriptor.wrapInnerType(_variable.type());
 	}
 
 	public AvailVariableUseNode variable ()

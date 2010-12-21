@@ -36,6 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.AvailParseNode;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 

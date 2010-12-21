@@ -74,9 +74,7 @@ Method "*" is [ [s:stack |
 
 
 /* Quoting (0, 1, >1)... */
-Method "[]" is [<>;];
-Method "[_]" is [x : all | <x>;];
-Method "[_]" is [aList : list | <aList>;];
+Method "[«_‡,»]" is [x : tuple | x;];
 
 /* And, of course, the outer 'evaluator'... */
 Method "_Joy run" is [t : tuple |

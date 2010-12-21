@@ -81,7 +81,7 @@ Method "Avail Parser on_" is [toks : tuple of Token |
 Forward "_skip_then_" for [
 		Avail Parser, Token, []->void]->void;
 Forward "_skip_then_" for [
-		Avail Parser, (tuple of Token) as listType, []->void]->void;
+		Avail Parser, tuple of Token, []->void]->void;
 Forward "_expected_" for [
 		Avail Parser, string]->void;
 Forward "primitive_is defined" for [
@@ -99,8 +99,6 @@ Forward "_parse block then_" for [
 		Avail Parser, [Block Node]->void]->void;
 Forward "_parse declaration then_" for [
 		Avail Parser, [Declaration Node]->void]->void;
-Forward "_parse expression list item then_" for [
-		Avail Parser, [Parse Node]->void]->void;
 Forward "_parse expression then_" for [
 		Avail Parser, [Parse Node]->void]->void;
 Forward "_parse from_complete_incomplete_arguments so far_then_" for [
@@ -161,12 +159,12 @@ Method "_skip_then_" is [p : Avail Parser, t : Token, c : [] -> void |
 
 Method "_skip_then_" is [
 		p : Avail Parser,
-		tList : (tuple of Token) as listType,
+		token : tuple of Token,
 		c : [] -> void |
 	startPos ::= *p->position;
 	[
 		$escape : $[]->void;
-		<tList> do [tok : Token |
+		token do [tok : Token |
 			if p->tokens [*p->position] = tok then [
 				p->position++;
 			] else [
@@ -456,28 +454,8 @@ Method "_parse optional return type after_then_" is [
 Method "_parse expression then_" is [
 		p : Avail Parser,
 		c : [Parse Node]->void |
-	p parse expression list item then [firstItem : Parse Node |
-		c(firstItem);    /* Try the expression by itself, not in a list. */
-		tryMore : [tuple [1..INF) of Parse Node]->void;
-		tryMore := [soFar : tuple [1..INF) of Parse Node |
-			p skip "," then [
-				p parse expression list item then [nextItem : Parse Node |
-					soFarAndNext ::= soFar then <nextItem>;
-					c(new List Node expressions soFarAndNext);
-					tryMore (soFarAndNext);
-				];
-			];
-		];
-		tryMore (<firstItem>);
-	];
-];
-
-
-Method "_parse expression list item then_" is [
-		p : Avail Parser,
-		c : [Parse Node]->void |
-	checkForPostfix ::= [expr : Parse Node |
-		p parse optional leading argument send after expr then c;
+	checkForPostfix ::= [expression : Parse Node |
+		p parse optional leading argument send after expression then c;
 	];
 	p parse block then checkForPostfix;
 	p parse leading keyword send then checkForPostfix;

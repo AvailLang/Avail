@@ -609,7 +609,7 @@ public class L2ChunkDescriptor extends Descriptor
 		assert (head.index() == 0);
 		assert (head.nextIndex() == 0);
 		assert (head.previousIndex() == 0);
-		final AvailObject allChunks = ContainerDescriptor.newContainerWithInnerType(
+		final AvailObject allChunks = ContainerDescriptor.forInnerType(
 			Types.all.object());
 		allChunks.setValue(TupleDescriptor.empty());
 		HeadOfRing = head;

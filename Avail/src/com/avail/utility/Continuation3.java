@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
 /**
  * Implementors of {@code Continuation3} provide a single arbitrary operation

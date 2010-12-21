@@ -1,5 +1,5 @@
 /**
- * compiler/Continuation0.java
+ * compiler/Transformer1.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,20 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
-import com.avail.compiler.Continuation0;
-
-/**
- * Implementors of {@code Continuation0} provide a single arbitrary operation
- * that accepts zero arguments.
- *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- */
-public interface Continuation0
+public abstract class Transformer1 <X,Y>
 {
-	/**
-	 * Perform the operation.
-	 */
-	public void value ();
+	public abstract Y value (X arg);
 }

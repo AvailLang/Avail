@@ -49,7 +49,6 @@ import com.avail.compiler.AvailTupleNode;
 import com.avail.compiler.AvailVariableDeclarationNode;
 import com.avail.compiler.AvailVariableSyntheticDeclarationNode;
 import com.avail.compiler.AvailVariableUseNode;
-import com.avail.compiler.Transformer1;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteStringDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
@@ -58,6 +57,7 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.newcompiler.LiteralTokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor;
 import com.avail.newcompiler.TokenDescriptor.TokenType;
+import com.avail.utility.Transformer1;
 
 public class AvailDecompiler implements L1OperationDispatcher
 {
@@ -240,7 +240,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 			TokenDescriptor.mutableDescriptor());
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(
-			ByteStringDescriptor.mutableObjectFromNativeString("SomeGlobal"));
+			ByteStringDescriptor.fromNativeString("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = _code.literalAt(getInteger());
 		final AvailVariableSyntheticDeclarationNode decl = new AvailVariableSyntheticDeclarationNode();
@@ -286,7 +286,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				TokenDescriptor.mutableDescriptor());
 			labelToken.tokenType(TokenType.KEYWORD);
 			labelToken.string(
-				ByteStringDescriptor.mutableObjectFromNativeString(
+				ByteStringDescriptor.fromNativeString(
 					_tempGenerator.value("label")));
 			labelToken.start(0);
 			label = new AvailLabelNode();
@@ -322,7 +322,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 			TokenDescriptor.mutableDescriptor());
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(
-			ByteStringDescriptor.mutableObjectFromNativeString("SomeGlobal"));
+			ByteStringDescriptor.fromNativeString("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = _code.literalAt(getInteger());
 		final AvailVariableSyntheticDeclarationNode decl =
@@ -651,7 +651,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 					LiteralTokenDescriptor.mutableDescriptor());
 				token.tokenType(TokenType.LITERAL);
 				token.string(
-					ByteStringDescriptor.mutableObjectFromNativeString(
+					ByteStringDescriptor.fromNativeString(
 						"AnOuter" + Integer.toString(i)));
 				token.start(0);
 				token.literal(var);
@@ -672,7 +672,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				LiteralTokenDescriptor.mutableDescriptor());
 			token.tokenType(TokenType.LITERAL);
 			token.string(
-				ByteStringDescriptor.mutableObjectFromNativeString(
+				ByteStringDescriptor.fromNativeString(
 					value.toString()));
 			token.start(0);
 			token.literal(value);
@@ -789,7 +789,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				TokenDescriptor.mutableDescriptor());
 			token.tokenType(TokenType.KEYWORD);
 			token.string(
-				ByteStringDescriptor.mutableObjectFromNativeString(argName));
+				ByteStringDescriptor.fromNativeString(argName));
 			token.start(0);
 			AvailVariableDeclarationNode decl =
 				new AvailVariableDeclarationNode();
@@ -806,7 +806,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				TokenDescriptor.mutableDescriptor());
 			token.tokenType(TokenType.KEYWORD);
 			token.string(
-				ByteStringDescriptor.mutableObjectFromNativeString(localName));
+				ByteStringDescriptor.fromNativeString(localName));
 			token.start(0);
 			AvailVariableDeclarationNode decl = new AvailVariableDeclarationNode();
 			decl.name(token);
@@ -862,7 +862,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				LiteralTokenDescriptor.mutableDescriptor());
 			token.tokenType(TokenType.LITERAL);
 			token.string(
-				ByteStringDescriptor.mutableObjectFromNativeString(
+				ByteStringDescriptor.fromNativeString(
 					"AnOuter" + i));
 			token.start(0);
 			token.literal(varObject);

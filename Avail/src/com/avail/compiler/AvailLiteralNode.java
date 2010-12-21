@@ -32,9 +32,7 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.newcompiler.TokenDescriptor;
 
 /**
@@ -49,12 +47,12 @@ public class AvailLiteralNode extends AvailParseNode
 	 * The token I'm based on.
 	 */
 	AvailObject _token;
-	
+
 	/**
-	 * The actual value I enclose. 
+	 * The actual value I enclose.
 	 */
 	AvailObject _availValue;
-	
+
 	/**
 	 * The {@link TypeDescriptor type} of the value I enclose.
 	 */
@@ -63,7 +61,7 @@ public class AvailLiteralNode extends AvailParseNode
 
 	/**
 	 * Answer the literal value I hold.
-	 * 
+	 *
 	 * @return The literal's value.
 	 */
 	public AvailObject availValue ()
@@ -74,7 +72,7 @@ public class AvailLiteralNode extends AvailParseNode
 
 	/**
 	 * Answer the token I'm based on.
-	 * 
+	 *
 	 * @return The {@link TokenDescriptor token}.
 	 */
 	public AvailObject token ()
@@ -82,10 +80,10 @@ public class AvailLiteralNode extends AvailParseNode
 		return _token;
 	}
 
-	
+
 	/**
 	 * Set the token I'm based on.
-	 * 
+	 *
 	 * @param aToken The {@link TokenDescriptor token}.
 	 */
 	public void token (
@@ -97,7 +95,7 @@ public class AvailLiteralNode extends AvailParseNode
 		_availType = null;
 	}
 
-	
+
 	@Override
 	public AvailObject type ()
 	{

@@ -478,7 +478,7 @@ public class ContinuationDescriptor extends Descriptor
 			//  non-argument locals
 			cont.localOrArgOrStackAtPut(
 				nArgs + i,
-				ContainerDescriptor.newContainerWithOuterType(
+				ContainerDescriptor.forOuterType(
 					code.localTypeAt(i)));
 		}
 		return cont;

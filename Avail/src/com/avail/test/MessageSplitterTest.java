@@ -124,7 +124,7 @@ public class MessageSplitterTest
 		{
 			String msgString = splitCase[0];
 			AvailObject message =
-				ByteStringDescriptor.mutableObjectFromNativeString(msgString);
+				ByteStringDescriptor.fromNativeString(msgString);
 			MessageSplitter splitter = new MessageSplitter(message);
 			AvailObject parts = splitter.messageParts();
 			assert splitCase.length == parts.tupleSize() + 2;

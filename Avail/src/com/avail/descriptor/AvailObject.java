@@ -35,9 +35,9 @@ package com.avail.descriptor;
 import java.io.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.TokenDescriptor;
+import com.avail.utility.*;
 import com.avail.visitor.*;
 
 /**
@@ -50,7 +50,6 @@ import com.avail.visitor.*;
  * make them stand out better and to indicate the additional first argument.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @param <DescriptorType>
  */
 public abstract class AvailObject
 implements Iterable<AvailObject>
@@ -392,20 +391,22 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * Extract a (16-bit signed) short at the given byte-index of the receiver.
+	 * Extract a (16-bit signed) short at the given short-index of the receiver.
 	 *
-	 * @param INDEX The index in bytes (must be even).
-	 * @return The short found at the given byte-index.
+	 * @param e The enumeration value that identifies the base field.
+	 * @param shortIndex The index in bytes (must be even).
+	 * @return The short found at the given short-index.
 	 */
 	abstract public short shortSlotAt (
 		final Enum<?> e,
 		final int shortIndex);
 
 	/**
-	 * Store the (16-bit signed) short at the given byte-index of the receiver.
+	 * Store the (16-bit signed) short at the given short-index of the receiver.
 	 *
-	 * @param INDEX The index in bytes (must be even).
-	 * @param aShort The short to store at the given byte-index.
+	 * @param e The enumeration value that identifies the base field.
+	 * @param shortIndex The index in bytes (must be even).
+	 * @param aShort The short to store at the given short-index.
 	 */
 	abstract public void shortSlotAtPut (
 		final Enum<?> e,

@@ -1,5 +1,5 @@
 /**
- * compiler/Generator.java
+ * compiler/Continuation0.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,23 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
-import com.avail.compiler.Generator;
+import com.avail.utility.Continuation0;
 
 /**
- * I represent the ability to generate something in the future, when my {@link
- * #value()} operation is invoked.
+ * Implementors of {@code Continuation0} provide a single arbitrary operation
+ * that accepts zero arguments.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @param <X> The kind of thing to generate.
  */
-public abstract class Generator <X>
+public interface Continuation0
 {
 	/**
-	 * Request that the value be produced.
-	 * 
-	 * @return The generated value.
+	 * Perform the operation.
 	 */
-	public abstract X value ();
+	public void value ();
 }

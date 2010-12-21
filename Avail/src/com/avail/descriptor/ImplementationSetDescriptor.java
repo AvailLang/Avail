@@ -34,9 +34,9 @@ package com.avail.descriptor;
 
 import static java.lang.Math.max;
 import java.util.*;
-import com.avail.compiler.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
+import com.avail.utility.*;
 
 /**
  * An implementation set maintains all methods that have the same name.  At

@@ -1,5 +1,5 @@
 /**
- * compiler/Transformer1.java
+ * compiler/Generator.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,9 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility;
 
-public abstract class Transformer1 <X,Y>
+import com.avail.utility.Generator;
+
+/**
+ * I represent the ability to generate something in the future, when my {@link
+ * #value()} operation is invoked.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @param <X> The kind of thing to generate.
+ */
+public abstract class Generator <X>
 {
-	public abstract Y value (X arg);
+	/**
+	 * Request that the value be produced.
+	 * 
+	 * @return The generated value.
+	 */
+	public abstract X value ();
 }

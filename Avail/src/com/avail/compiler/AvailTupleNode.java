@@ -35,6 +35,7 @@ package com.avail.compiler;
 import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.utility.Transformer1;
 
 /**
  * Create a tuple from a list of expressions that generate the tuple's elements.

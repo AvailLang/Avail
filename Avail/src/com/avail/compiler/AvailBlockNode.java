@@ -42,6 +42,7 @@ import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -218,7 +219,7 @@ public class AvailBlockNode extends AvailParseNode
 		if (_neededVariables.isEmpty())
 		{
 			final AvailObject closure = ClosureDescriptor
-					.newMutableObjectWithCodeAndCopiedTuple(
+					.create(
 						compiledBlock,
 						TupleDescriptor.empty());
 			closure.makeImmutable();

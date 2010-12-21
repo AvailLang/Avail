@@ -48,7 +48,7 @@ Names
 	"_get local_",
 	"_get outer_",
 	"_get type at depth_",
-	"_make list_",
+	"_make tuple_",
 	"_pop",
 	"_push label",
 	"_push literal_",
@@ -239,13 +239,13 @@ Method "_get type at depth_" is [
 	gen increase stack by depth + 2;   /* compensate for above, and push the type */
 ];
 
-Method "_make list_" is [
+Method "_make tuple_" is [
 		gen : Instruction Generator,
 		count : whole number |
 	gen add instruction
-		new Make List Instruction count count;
-	gen decrease stack by count;   /* pop values to use to build list */
-	gen increase stack by 1;   /* push the list */
+		new Make Tuple Instruction count count;
+	gen decrease stack by count;   /* pop values to use in tuple */
+	gen increase stack by 1;   /* push the tuple */
 ];
 
 Method "_pop" is [gen : Instruction Generator |
