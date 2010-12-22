@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
-import com.avail.compiler.*;
+import com.avail.compiler.MessageSplitter;
 import com.avail.utility.*;
 
 public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
@@ -301,7 +301,9 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		unclassified.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (final AvailObject message, final AvailObject bundle)
+			public void value (
+				final AvailObject message,
+				final AvailObject bundle)
 			{
 				final AvailObject instructions = bundle.parsingInstructions();
 				if (pc == instructions.tupleSize() + 1)
@@ -321,8 +323,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 					{
 						// It's a parseKeyword instruction.
 						AvailObject subtree;
-						final AvailObject part =
-							bundle.messageParts().tupleAt(keywordIndex);
+						final AvailObject part = bundle.messageParts().tupleAt(
+							keywordIndex);
 						if (incomplete.value.hasKey(part))
 						{
 							subtree = incomplete.value.mapAt(part);

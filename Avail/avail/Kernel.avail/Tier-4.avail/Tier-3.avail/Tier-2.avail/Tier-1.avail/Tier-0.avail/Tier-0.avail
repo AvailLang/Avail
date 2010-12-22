@@ -65,6 +65,7 @@ Body
 
 
 cheeseSandwich ::= 1000;
+hamSandwich ::= cheeseSandwich;
 
 privateAll                         ::= Special Object 1;
 privateBoolean                     ::= Special Object 2;

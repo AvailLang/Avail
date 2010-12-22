@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.*;
-import com.avail.compiler.*;
+import com.avail.compiler.MessageSplitter;
 import com.avail.utility.Continuation2;
 
 public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
@@ -207,8 +207,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			MessageSplitter.keywordIndexFromInstruction(instructionInt);
 		if (keywordIndex != 0)
 		{
-			// This is a keyword parse instruction (4N+2).  Look up the
-			// indicated keyword (parts[N]).
+			// This is a keyword parse instruction.  Look up the indicated
+			// keyword.
 			AvailObject keyword = parts.tupleAt(keywordIndex);
 			final AvailObject incomplete = object.incomplete();
 			assert incomplete.hasKey(keyword)
@@ -407,7 +407,6 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 						true);
 					object.incomplete(incomplete);
 				}
-				// return subtree.includeBundle(messageBundle);
 			}
 
 			final AvailObject part = parts.tupleAt(pc);

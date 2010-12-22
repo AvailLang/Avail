@@ -169,7 +169,7 @@ public class AvailSendNode extends AvailParseNode
 	@Override
 	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
-		final boolean nicePrinting = true;
+		final boolean nicePrinting = false;
 		if (nicePrinting)
 		{
 			MessageSplitter splitter = new MessageSplitter(message().name());

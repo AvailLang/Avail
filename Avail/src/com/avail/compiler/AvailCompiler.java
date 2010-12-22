@@ -88,7 +88,7 @@ public class AvailCompiler
 	 * A stack of {@link Continuation0 continuations} that need to be explored
 	 * at some point.
 	 */
-	private final Deque<Continuation0> workStack =
+	final Deque<Continuation0> workStack =
 		new ArrayDeque<Continuation0>();
 
 	/**
@@ -107,7 +107,7 @@ public class AvailCompiler
 		/**
 		 * A debugging description of this continuation.
 		 */
-		private final String description;
+		final String description;
 
 		/**
 		 * Construct a new {@link AvailCompiler.Con} with the provided
@@ -155,14 +155,17 @@ public class AvailCompiler
 		final Mutable<AvailParseNode> another = new Mutable<AvailParseNode>();
 		final Mutable<ParserState> where = new Mutable<ParserState>();
 		final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
-		workStack.push(new Continuation0()
-		{
-			@Override
-			public void value ()
+		attempt(
+			new Continuation0()
 			{
-				markerFired.value = true;
-			}
-		});
+				@Override
+				public void value ()
+				{
+					markerFired.value = true;
+				}
+			},
+			"Marker for try unambiguous",
+			start.position);
 		attempt(start, tryBlock, new Con<AvailParseNode>(
 			"Unambiguous statement")
 		{
@@ -193,8 +196,12 @@ public class AvailCompiler
 		}
 		if (count.value > 1)
 		{
+			// Indicate the problem on the last token of the ambiguous
+			// expression.
 			ambiguousInterpretationsAnd(
-				where.value,
+				new ParserState(
+					where.value.position - 1,
+					where.value.scopeStack),
 				solution.value,
 				another.value);
 			return;
@@ -532,117 +539,118 @@ public class AvailCompiler
 		final Con<AvailParseNode> continuation)
 	{
 		assert !(outermost & canBeLabel);
-		tryIfUnambiguousThen(start, new Con<Con<AvailParseNode>>(
-			"Detect ambiguity")
-		{
-			@Override
-			public void value (
-				final ParserState ignored,
-				final Con<AvailParseNode> whenFoundStatement)
+		tryIfUnambiguousThen(
+			start,
+			new Con<Con<AvailParseNode>>("Detect ambiguity")
 			{
-				parseDeclarationThen(
-					start,
-					new Con<AvailVariableDeclarationNode>(
-						"Semicolon after declaration")
-					{
-						@Override
-						public void value (
-							final ParserState afterDeclaration,
-							final AvailVariableDeclarationNode declaration)
+				@Override
+				public void value (
+					final ParserState ignored,
+					final Con<AvailParseNode> whenFoundStatement)
+				{
+					parseDeclarationThen(
+						start,
+						new Con<AvailVariableDeclarationNode>(
+							"Semicolon after declaration")
 						{
-							if (afterDeclaration.peekToken(
-								END_OF_STATEMENT,
-								";",
-								"; to end declaration statement"))
+							@Override
+							public void value (
+								final ParserState afterDeclaration,
+								final AvailVariableDeclarationNode declaration)
 							{
-								ParserState afterSemicolon =
-									afterDeclaration.afterToken();
-								if (outermost)
+								if (afterDeclaration.peekToken(
+									END_OF_STATEMENT,
+									";",
+									"; to end declaration statement"))
 								{
-									afterSemicolon = new ParserState(
-										afterSemicolon.position,
-										new AvailCompilerScopeStack(
-											null, null));
+									ParserState afterSemicolon =
+										afterDeclaration.afterToken();
+									if (outermost)
+									{
+										afterSemicolon = new ParserState(
+											afterSemicolon.position,
+											new AvailCompilerScopeStack(
+												null, null));
+									}
+									whenFoundStatement.value(
+										afterSemicolon,
+										declaration);
 								}
-								whenFoundStatement.value(
-									afterSemicolon,
-									declaration);
 							}
-						}
-					});
-				parseAssignmentThen(start, new Con<AvailAssignmentNode>(
-					"Semicolon after assignment")
-				{
-					@Override
-					public void value (
-						final ParserState afterAssignment,
-						final AvailAssignmentNode assignment)
-					{
-						if (afterAssignment.peekToken(
-							END_OF_STATEMENT,
-							";",
-							"; to end assignment statement"))
-						{
-							whenFoundStatement.value(
-								afterAssignment.afterToken(),
-								assignment);
-						}
-					}
-				});
-				parseExpressionThen(start, new Con<AvailParseNode>(
-					"Semicolon after expression")
-				{
-					@Override
-					public void value (
-						final ParserState afterExpression,
-						final AvailParseNode expression)
-					{
-						if (!afterExpression.peekToken(
-							END_OF_STATEMENT,
-							";",
-							"; to end statement"))
-						{
-							return;
-						}
-						if (!outermost
-								|| expression.type().equals(
-									Types.voidType.object()))
-						{
-							whenFoundStatement.value(
-								afterExpression.afterToken(),
-								expression);
-						}
-						else
-						{
-							afterExpression
-									.expected("outer level statement to have void type");
-						}
-					}
-				});
-				if (canBeLabel)
-				{
-					parseLabelThen(start, new Con<AvailLabelNode>(
-						"Semicolon after label")
+						});
+					parseAssignmentThen(start, new Con<AvailAssignmentNode>(
+						"Semicolon after assignment")
 					{
 						@Override
 						public void value (
-							final ParserState afterDeclaration,
-							final AvailLabelNode label)
+							final ParserState afterAssignment,
+							final AvailAssignmentNode assignment)
 						{
-							if (afterDeclaration.peekToken(
+							if (afterAssignment.peekToken(
 								END_OF_STATEMENT,
 								";",
-								"; to end label statement"))
+								"; to end assignment statement"))
 							{
 								whenFoundStatement.value(
-									afterDeclaration.afterToken(),
-									label);
+									afterAssignment.afterToken(),
+									assignment);
 							}
 						}
 					});
+					parseExpressionThen(start, new Con<AvailParseNode>(
+						"Semicolon after expression")
+					{
+						@Override
+						public void value (
+							final ParserState afterExpression,
+							final AvailParseNode expression)
+						{
+							if (!afterExpression.peekToken(
+								END_OF_STATEMENT,
+								";",
+								"; to end statement"))
+							{
+								return;
+							}
+							if (!outermost
+									|| expression.type().equals(
+										Types.voidType.object()))
+							{
+								whenFoundStatement.value(
+									afterExpression.afterToken(),
+									expression);
+							}
+							else
+							{
+								afterExpression
+										.expected("outer level statement to have void type");
+							}
+						}
+					});
+					if (canBeLabel)
+					{
+						parseLabelThen(start, new Con<AvailLabelNode>(
+							"Semicolon after label")
+						{
+							@Override
+							public void value (
+								final ParserState afterDeclaration,
+								final AvailLabelNode label)
+							{
+								if (afterDeclaration.peekToken(
+									END_OF_STATEMENT,
+									";",
+									"; to end label statement"))
+								{
+									whenFoundStatement.value(
+										afterDeclaration.afterToken(),
+										label);
+								}
+							}
+						});
+					}
 				}
-			}
-		},
+			},
 			continuation);
 	}
 
@@ -681,31 +689,34 @@ public class AvailCompiler
 			return;
 		}
 		final ParserState afterColon = atColon.afterToken();
-		attempt(new Continuation0()
-		{
-			@Override
-			public void value ()
+		attempt(
+			new Continuation0()
 			{
-				parseAndEvaluateExpressionYieldingInstanceOfThen(
-					afterColon,
-					Types.continuationType.object(),
-					new Con<AvailObject>("Check label type expression")
-					{
-						@Override
-						public void value (
-							final ParserState afterExpression,
-							final AvailObject contType)
+				@Override
+				public void value ()
+				{
+					parseAndEvaluateExpressionYieldingInstanceOfThen(
+						afterColon,
+						Types.continuationType.object(),
+						new Con<AvailObject>("Check label type expression")
 						{
-							final AvailLabelNode label = new AvailLabelNode();
-							label.name(token);
-							label.declaredType(contType);
-							ParserState afterDeclaration = afterExpression
-									.withDeclaration(label);
-							attempt(afterDeclaration, continuation, label);
-						}
-					});
-			}
-		});
+							@Override
+							public void value (
+								final ParserState afterExpression,
+								final AvailObject contType)
+							{
+								final AvailLabelNode label = new AvailLabelNode();
+								label.name(token);
+								label.declaredType(contType);
+								ParserState afterDeclaration = afterExpression
+										.withDeclaration(label);
+								attempt(afterDeclaration, continuation, label);
+							}
+						});
+				}
+			},
+			"Label type",
+			afterColon.position);
 	}
 
 	/**
@@ -727,13 +738,9 @@ public class AvailCompiler
 		final AvailObject someType,
 		final Con<AvailObject> continuation)
 	{
-		final Mutable<List<AvailParseNode>> maxExprs = new Mutable<List<AvailParseNode>>();
-		final Mutable<ParserState> maxState = new Mutable<ParserState>();
 		final ParserState startWithoutScope = new ParserState(
 			start.position,
 			new AvailCompilerScopeStack(null, null));
-		maxExprs.value = new ArrayList<AvailParseNode>();
-		maxState.value = startWithoutScope;
 		parseExpressionThen(startWithoutScope, new Con<AvailParseNode>(
 			"Evaluate expression")
 		{
@@ -744,15 +751,28 @@ public class AvailCompiler
 			{
 				if (expression.type().isSubtypeOf(someType))
 				{
-					if (afterExpression.position > maxState.value.position)
+					// A unique, longest type-correct expression was found.
+					AvailObject value = evaluate(expression);
+					if (value.isInstanceOfSubtypeOf(someType))
 					{
-						maxState.value = afterExpression;
-						maxExprs.value.clear();
+						assert afterExpression.scopeStack == startWithoutScope.scopeStack
+						: "Subexpression should not have been able to cause declaration";
+						// Make sure we continue with the position after the expression,
+						// but the scope stack we started with. That's because the
+						// expression was parsed for execution, and as such was excluded
+						// from seeing things that would be in scope for regular
+						// subexpressions at this point.
+						attempt(
+							new ParserState(
+								afterExpression.position,
+								start.scopeStack),
+							continuation,
+							value);
 					}
-
-					if (afterExpression.position >= maxState.value.position)
+					else
 					{
-						maxExprs.value.add(expression);
+						afterExpression.expected(
+							"expression to respect its own type declaration");
 					}
 				}
 				else
@@ -769,40 +789,6 @@ public class AvailCompiler
 				}
 			}
 		});
-		if (maxExprs.value.size() == 1)
-		{
-			// A unique, longest type-correct expression was found.
-			AvailParseNode expr = maxExprs.value.get(0);
-			assert expr.type().isSubtypeOf(someType);
-			AvailObject value = evaluate(expr);
-			if (value.isInstanceOfSubtypeOf(someType))
-			{
-				assert maxState.value.scopeStack == startWithoutScope.scopeStack : "Subexpression should not have been able to cause declaration";
-				// Make sure we continue with the position after the expression,
-				// but the scope stack we started with. That's because the
-				// expression was parsed for execution, and as such was excluded
-				// from seeing things that would be in scope for regular
-				// subexpressions at this point.
-				attempt(new ParserState(
-					maxState.value.position,
-					start.scopeStack), continuation, value);
-			}
-			else
-			{
-				maxState.value
-						.expected("expression to respect its own type declaration");
-			}
-		}
-		else if (maxExprs.value.size() == 0)
-		{
-			maxState.value.expected("compile-time expression that yields a "
-					+ someType.toString());
-		}
-		else
-		{
-			maxState.value
-					.expected("unambiguous longest parse of compile-time expression");
-		}
 	}
 
 	/**
@@ -959,22 +945,53 @@ public class AvailCompiler
 	 *
 	 * @param continuation
 	 *            What to do at some point in the future.
+	 * @param description
+	 *            Debugging information about what is to be parsed.
+	 * @param position
+	 *            Debugging information about where the parse is happening.
 	 */
-	void attempt (final Continuation0 continuation)
+	void attempt (
+		final Continuation0 continuation,
+		final String description,
+		final int position)
 	{
-		workStack.push(continuation);
+//		for (int i = workStack.size(); i > 0; i--)
+//		{
+//			System.err.append("  ");
+//		}
+//		System.err.printf(
+//			"Pushing (%d): +%s%n",
+//			position,
+//			description);
+		workStack.push(
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+//					for (int i = workStack.size(); i > 0; i--)
+//					{
+//						System.err.append("  ");
+//					}
+//					System.err.printf(
+//						"Running (%d): -%s%n",
+//						position,
+//						description);
+					continuation.value();
+				}
+			});
 		if (workStack.size() > 1000)
 		{
 			throw new RuntimeException("Probable recursive parse error");
 		}
 		//TODO: This temporarily forces depth-first parsing.
-		workStack.pop().value();
+		//workStack.pop().value();
 	}
 
 	/**
 	 * Wrap the {@link Continuation1 continuation of one argument} inside a
 	 * {@link Continuation0 continuation of zero arguments} and record that as
-	 * per {@link #attempt(Continuation0)}.
+	 * per {@link #attempt(Continuation0, String, int)}.
 	 *
 	 * @param <ArgType>
 	 *            The type of argument to the given continuation.
@@ -991,30 +1008,25 @@ public class AvailCompiler
 		final Con<ArgType> continuation,
 		final ArgType argument)
 	{
-//		for (int i = workStack.size(); i > 0; i--)
-//		{
-//			System.err.append("  ");
-//		}
-//		System.err.printf(
-//			"Pushing (%d): %s%n",
-//			here.position,
-//			continuation.description);
-		attempt(new Continuation0()
-		{
-			@Override
-			public void value ()
+		attempt(
+			new Continuation0()
 			{
-//				for (int i = workStack.size(); i > 0; i--)
-//				{
-//					System.err.append("  ");
-//				}
-//				System.err.printf(
-//					"Running (%d): %s%n",
-//					here.position,
-//					continuation.description);
-				continuation.value(here, argument);
-			}
-		});
+				@Override
+				public void value ()
+				{
+//					for (int i = workStack.size(); i > 0; i--)
+//					{
+//						System.err.append("  ");
+//					}
+//					System.err.printf(
+//						"Invoking %s with %s%n",
+//						continuation.description,
+//						argument.toString());
+					continuation.value(here, argument);
+				}
+			},
+			continuation.description,
+			here.position);
 	}
 
 	/**
@@ -1027,7 +1039,7 @@ public class AvailCompiler
 	 * @return The result of generating a {@link ClosureDescriptor closure} from
 	 *         the argument and evaluating it.
 	 */
-	private AvailObject evaluate (final AvailParseNode expressionNode)
+	AvailObject evaluate (final AvailParseNode expressionNode)
 	{
 		// Evaluate a parse tree node.
 
@@ -1315,6 +1327,11 @@ public class AvailCompiler
 						state.value = afterStatement;
 					}
 				});
+			while (!workStack.isEmpty())
+			{
+				workStack.pop().value();
+			}
+
 			if (interpretation.value == null)
 			{
 				reportError(state.value, qualifiedName);
@@ -1608,12 +1625,14 @@ public class AvailCompiler
 						final ParserState afterArgument,
 						final AvailVariableDeclarationNode arg)
 					{
-						argsSoFar.add(arg);
+						List<AvailVariableDeclarationNode> newArgsSoFar =
+							new ArrayList<AvailVariableDeclarationNode>(
+								argsSoFar);
+						newArgsSoFar.add(arg);
 						parseAdditionalBlockArgumentsAfterThen(
 							afterArgument,
-							argsSoFar,
+							Collections.unmodifiableList(newArgsSoFar),
 							continuation);
-						argsSoFar.remove(argsSoFar.size() - 1);
 					}
 				});
 		}
@@ -1782,12 +1801,12 @@ public class AvailCompiler
 				final ParserState afterFirstArg,
 				final AvailVariableDeclarationNode firstArg)
 			{
-				List<AvailVariableDeclarationNode> argsList = new ArrayList<AvailVariableDeclarationNode>(
-					1);
+				List<AvailVariableDeclarationNode> argsList =
+					new ArrayList<AvailVariableDeclarationNode>(1);
 				argsList.add(firstArg);
 				parseAdditionalBlockArgumentsAfterThen(
 					afterFirstArg,
-					argsList,
+					Collections.unmodifiableList(argsList),
 					continuation);
 			}
 		});
@@ -1941,8 +1960,8 @@ public class AvailCompiler
 	{
 		if (primitive != 0 && primitive != 256 && statements.isEmpty())
 		{
-			afterStatements
-					.expected("mandatory failure code for primitive method (except #256)");
+			afterStatements.expected(
+				"mandatory failure code for primitive method (except #256)");
 			return;
 		}
 		if (!afterStatements.peekToken(
@@ -1957,8 +1976,8 @@ public class AvailCompiler
 		final Mutable<AvailObject> lastStatementType = new Mutable<AvailObject>();
 		if (statements.size() > 0)
 		{
-			final AvailParseNode lastStatement = statements.get(statements
-					.size() - 1);
+			final AvailParseNode lastStatement = statements.get(
+				statements.size() - 1);
 			if (lastStatement.isDeclaration() || lastStatement.isAssignment())
 			{
 				lastStatementType.value = Types.voidType.object();
@@ -1978,9 +1997,9 @@ public class AvailCompiler
 
 		if (statements.isEmpty() && primitive != 0)
 		{
-			afterClose
-					.expected("return type declaration for primitive block with "
-							+ "no statements");
+			afterClose.expected(
+				"return type declaration for primitive block with "
+				+ "no statements");
 		}
 		else
 		{
@@ -2014,9 +2033,9 @@ public class AvailCompiler
 			}
 			else
 			{
-				afterClose
-						.expected("block with label to have return type void "
-								+ "(otherwise exiting would need to provide a value)");
+				afterClose.expected(
+					"block with label to have return type void "
+					+ "(otherwise exiting would need to provide a value)");
 			}
 		}
 
@@ -2075,8 +2094,8 @@ public class AvailCompiler
 						}
 						else
 						{
-							stateOutsideBlock
-									.expected("label's type to agree with block type");
+							stateOutsideBlock.expected(
+								"label's type to agree with block type");
 						}
 					}
 					else
@@ -2171,17 +2190,20 @@ public class AvailCompiler
 		final ParserState start,
 		final Con<AvailParseNode> originalContinuation)
 	{
-		final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
-		workStack.push(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				markerFired.value = true;
-			}
-		});
 		if (!fragmentCache.hasComputedForState(start))
 		{
+			final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
+			attempt(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						markerFired.value = true;
+					}
+				},
+				"Expression marker",
+				start.position);
 			fragmentCache.startComputingForState(start);
 			final Con<AvailParseNode> justRecord = new Con<AvailParseNode>(
 				"Expression")
@@ -2196,19 +2218,22 @@ public class AvailCompiler
 						new AvailCompilerCachedSolution(afterExpr, expr));
 				}
 			};
-			attempt(new Continuation0()
-			{
-				@Override
-				public void value ()
+			attempt(
+				new Continuation0()
 				{
-					parseExpressionUncachedThen(start, justRecord);
-				}
-			});
-		}
-		// Force the previous attempts to all complete.
-		while (!markerFired.value)
-		{
-			workStack.pop().value();
+					@Override
+					public void value ()
+					{
+						parseExpressionUncachedThen(start, justRecord);
+					}
+				},
+				"Capture expression for caching",
+				start.position);
+			// Force the previous attempts to all complete.
+			while (!markerFired.value)
+			{
+				workStack.pop().value();
+			}
 		}
 		// Deja vu! We were asked to parse an expression starting at this point
 		// before. Luckily we had the foresight to record what those resulting
@@ -2217,8 +2242,8 @@ public class AvailCompiler
 		// effect of eliminating each 'local' misparsing exactly once. I'm not
 		// sure what happens to the order of the algorithm, but it might go from
 		// exponential to small polynomial.
-		final List<AvailCompilerCachedSolution> solutions = fragmentCache
-				.solutionsAt(start);
+		final List<AvailCompilerCachedSolution> solutions =
+			fragmentCache.solutionsAt(start);
 		for (final AvailCompilerCachedSolution solution : solutions)
 		{
 			attempt(
@@ -2261,7 +2286,8 @@ public class AvailCompiler
 		final boolean anyComplete = complete.mapSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
 		final boolean anySpecial = special.mapSize() > 0;
-		assert anyComplete || anyIncomplete || anySpecial : "Expected a nonempty list of possible messages";
+		assert anyComplete || anyIncomplete || anySpecial
+		: "Expected a nonempty list of possible messages";
 		if (anyComplete && firstArgOrNull == null
 				&& start.position != initialTokenPosition.position)
 		{
@@ -2282,26 +2308,26 @@ public class AvailCompiler
 						final AvailObject impSet = interpreter.runtime()
 								.methodsAt(message);
 						valid.value = true;
-						final List<AvailObject> argTypes = new ArrayList<AvailObject>(
-							argsSoFar.size());
+						final List<AvailObject> argTypes =
+							new ArrayList<AvailObject>(argsSoFar.size());
 						for (AvailParseNode arg : argsSoFar)
 						{
 							argTypes.add(arg.type());
 						}
 						final AvailObject returnType = interpreter
-								.validateTypesOfMessageSendArgumentTypesIfFail(
-									message,
-									argTypes,
-									new Continuation1<Generator<String>>()
+							.validateTypesOfMessageSendArgumentTypesIfFail(
+								message,
+								argTypes,
+								new Continuation1<Generator<String>>()
+								{
+									@Override
+									public void value (
+										final Generator<String> errorGenerator)
 									{
-										@Override
-										public void value (
-											final Generator<String> errorGenerator)
-										{
-											valid.value = false;
-											start.expected(errorGenerator);
-										}
-									});
+										valid.value = false;
+										start.expected(errorGenerator);
+									}
+								});
 						if (valid.value)
 						{
 							checkRestrictionsIfFail(
@@ -2342,13 +2368,24 @@ public class AvailCompiler
 				if (incomplete.hasKey(keywordString))
 				{
 					final AvailObject subtree = incomplete.mapAt(keywordString);
-					parseRestOfSendNode(
-						start.afterToken(),
-						subtree,
-						null,
-						initialTokenPosition,
-						argsSoFar,
-						continuation);
+					attempt(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start.afterToken(),
+									subtree,
+									null,
+									initialTokenPosition,
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after keyword: "
+							+ keywordString.asNativeString(),
+						start.afterToken().position);
 				}
 				else
 				{
@@ -2369,21 +2406,24 @@ public class AvailCompiler
 					final AvailObject instructionObject,
 					final AvailObject successorTrees)
 				{
-					attempt(new Continuation0()
-					{
-						@Override
-						public void value ()
+					attempt(
+						new Continuation0()
 						{
-							runParsingInstructionThen(
-								start,
-								instructionObject.extractInt(),
-								firstArgOrNull,
-								argsSoFar,
-								initialTokenPosition,
-								successorTrees,
-								continuation);
-						}
-					});
+							@Override
+							public void value ()
+							{
+								runParsingInstructionThen(
+									start,
+									instructionObject.extractInt(),
+									firstArgOrNull,
+									argsSoFar,
+									initialTokenPosition,
+									successorTrees,
+									continuation);
+							}
+						},
+						"Continue with instruction " + instructionObject,
+						start.position);
 				}
 			});
 		}
@@ -2442,24 +2482,27 @@ public class AvailCompiler
 							final ParserState afterArg,
 							final AvailParseNode newArg)
 						{
-							final List<AvailParseNode> newArgsSoFar = new ArrayList<AvailParseNode>(
-								argsSoFar);
+							final List<AvailParseNode> newArgsSoFar =
+								new ArrayList<AvailParseNode>(argsSoFar);
 							newArgsSoFar.add(newArg);
-							attempt(new Continuation0()
-							{
-								@Override
-								public void value ()
+							attempt(
+								new Continuation0()
 								{
-									parseRestOfSendNode(
-										afterArg,
-										successorTrees.tupleAt(1),
-										null,
-										initialTokenPosition,
-										Collections
-												.unmodifiableList(newArgsSoFar),
-										continuation);
-								}
-							});
+									@Override
+									public void value ()
+									{
+										parseRestOfSendNode(
+											afterArg,
+											successorTrees.tupleAt(1),
+											null,
+											initialTokenPosition,
+											Collections.unmodifiableList(
+												newArgsSoFar),
+											continuation);
+									}
+								},
+								"Continue send after argument",
+								afterArg.position);
 						}
 					});
 				break;
@@ -2468,25 +2511,28 @@ public class AvailCompiler
 			{
 				// Push an empty list node and continue.
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailParseNode> newArgsSoFar = new ArrayList<AvailParseNode>(
-					argsSoFar);
+				final List<AvailParseNode> newArgsSoFar =
+					new ArrayList<AvailParseNode>(argsSoFar);
 				AvailTupleNode newTupleNode = new AvailTupleNode(
 					Collections.<AvailParseNode> emptyList());
 				newArgsSoFar.add(newTupleNode);
-				attempt(new Continuation0()
-				{
-					@Override
-					public void value ()
+				attempt(
+					new Continuation0()
 					{
-						parseRestOfSendNode(
-							start,
-							successorTrees.tupleAt(1),
-							firstArgOrNull,
-							initialTokenPosition,
-							Collections.unmodifiableList(newArgsSoFar),
-							continuation);
-					}
-				});
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after push empty",
+					start.position);
 				break;
 			}
 			case 2:
@@ -2496,32 +2542,134 @@ public class AvailCompiler
 				// push the new list (the original list must not
 				// change), then continue.
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailParseNode> newArgsSoFar = new ArrayList<AvailParseNode>(
-					argsSoFar);
-				AvailParseNode value = newArgsSoFar
-						.remove(newArgsSoFar.size() - 1);
-				AvailParseNode oldNode = newArgsSoFar.remove(newArgsSoFar
-						.size() - 1);
+				final List<AvailParseNode> newArgsSoFar =
+					new ArrayList<AvailParseNode>(argsSoFar);
+				AvailParseNode value = newArgsSoFar.remove(
+					newArgsSoFar.size() - 1);
+				AvailParseNode oldNode = newArgsSoFar.remove(
+					newArgsSoFar.size() - 1);
 				AvailTupleNode tupleNode = (AvailTupleNode) oldNode;
 				tupleNode = tupleNode.copyWith(value);
 				newArgsSoFar.add(tupleNode);
-				attempt(new Continuation0()
-				{
-					@Override
-					public void value ()
+				attempt(
+					new Continuation0()
 					{
-						parseRestOfSendNode(
-							start,
-							successorTrees.tupleAt(1),
-							firstArgOrNull,
-							initialTokenPosition,
-							Collections.unmodifiableList(newArgsSoFar),
-							continuation);
-					}
-				});
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after append",
+					start.position);
 				break;
 			}
 			case 3:
+			{
+				// Push current parse position.
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailParseNode> newArgsSoFar =
+					new ArrayList<AvailParseNode>(argsSoFar);
+				newArgsSoFar.add(
+					new AvailMarkerNode(
+						IntegerDescriptor.objectFromInt(start.position)));
+				attempt(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after push parse position",
+					start.position);
+				break;
+			}
+			case 4:
+			{
+				// Underpop saved parse position (from 2nd-to-top of stack).
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailParseNode> newArgsSoFar =
+					new ArrayList<AvailParseNode>(argsSoFar);
+				AvailParseNode marker =
+					newArgsSoFar.remove(newArgsSoFar.size() - 2);
+				assert marker instanceof AvailMarkerNode;
+				attempt(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after underpop saved position",
+					start.position);
+				break;
+			}
+			case 5:
+			{
+				// Check parse progress (abort if parse position is still equal
+				// to value at 2nd-to-top of stack).  Also update the entry to
+				// be the new parse position.
+				assert successorTrees.tupleSize() == 1;
+				AvailParseNode shouldBeMarker =
+					argsSoFar.get(argsSoFar.size() - 2);
+				AvailMarkerNode marker = (AvailMarkerNode) shouldBeMarker;
+				if (marker.markerValue().extractInt() == start.position)
+				{
+					return;
+				}
+				final List<AvailParseNode> newArgsSoFar =
+					new ArrayList<AvailParseNode>(argsSoFar);
+				newArgsSoFar.set(
+					newArgsSoFar.size() - 2,
+					new AvailMarkerNode(
+						IntegerDescriptor.objectFromInt(start.position)));
+				attempt(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after check parse progress",
+					start.position);
+				break;
+			}
+			case 6:
+			{
+				assert false : "Reserved parsing instruction";
+				break;
+			}
+			case 7:
 			{
 				assert false : "Reserved parsing instruction";
 				break;
@@ -2530,23 +2678,26 @@ public class AvailCompiler
 			{
 				// Branch or jump, or else we shouldn't be here. Continue along
 				// each available path.
-				assert (instruction & 3) <= 1;
+				assert instruction >= 8 && (instruction & 7) <= 1;
 				for (final AvailObject successorTree : successorTrees)
 				{
-					attempt(new Continuation0()
-					{
-						@Override
-						public void value ()
+					attempt(
+						new Continuation0()
 						{
-							parseRestOfSendNode(
-								start,
-								successorTree,
-								firstArgOrNull,
-								initialTokenPosition,
-								Collections.unmodifiableList(argsSoFar),
-								continuation);
-						}
-					});
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start,
+									successorTree,
+									firstArgOrNull,
+									initialTokenPosition,
+									Collections.unmodifiableList(argsSoFar),
+									continuation);
+							}
+						},
+						"Continue send after branch or jump",
+						start.position);
 				}
 			}
 		}
@@ -2876,38 +3027,42 @@ public class AvailCompiler
 			return;
 		}
 		final ParserState afterSecondColon = afterColon.afterToken();
-		attempt(new Continuation0()
-		{
-			@Override
-			public void value ()
+		attempt(
+			new Continuation0()
 			{
-				parseAndEvaluateExpressionYieldingInstanceOfThen(
-					afterSecondColon,
-					Types.type.object(),
-					new Con<AvailObject>("Type expression of supercast")
-					{
-						@Override
-						public void value (
-							final ParserState afterType,
-							final AvailObject type)
+				@Override
+				public void value ()
+				{
+					parseAndEvaluateExpressionYieldingInstanceOfThen(
+						afterSecondColon,
+						Types.type.object(),
+						new Con<AvailObject>("Type expression of supercast")
 						{
-							if (expr.type().isSubtypeOf(type))
+							@Override
+							public void value (
+								final ParserState afterType,
+								final AvailObject type)
 							{
-								final AvailSuperCastNode cast = new AvailSuperCastNode();
-								cast.expression(expr);
-								cast.type(type);
-								attempt(afterType, continuation, cast);
+								if (expr.type().isSubtypeOf(type))
+								{
+									final AvailSuperCastNode cast =
+										new AvailSuperCastNode();
+									cast.expression(expr);
+									cast.type(type);
+									attempt(afterType, continuation, cast);
+								}
+								else
+								{
+									afterType.expected(
+										"supercast type to be supertype "
+										+ "of expression's type.");
+								}
 							}
-							else
-							{
-								afterType
-										.expected("supercast type to be supertype "
-												+ "of expression's type.");
-							}
-						}
-					});
-			}
-		});
+						});
+				}
+			},
+			"Type expression in supercast",
+			afterSecondColon.position);
 	}
 
 	/**
@@ -3052,72 +3207,82 @@ public class AvailCompiler
 		final ParserState start,
 		final Con<List<AvailParseNode>> continuation)
 	{
-		final Mutable<ParserState> where = new Mutable<ParserState>(start);
-		final List<AvailParseNode> statements = new ArrayList<AvailParseNode>(
-			10);
-		while (true)
+		parseMoreStatementsThen(
+			start,
+			Collections.<AvailParseNode>emptyList(),
+			continuation);
+	}
+
+	/**
+	 * Try the current list of statements but also try to parse more.
+	 *
+	 * @param start Where to parse.
+	 * @param statements The preceding list of statements.
+	 * @param continuation What to do with the resulting list of statements.
+	 */
+	void parseMoreStatementsThen (
+		final ParserState start,
+		final List <AvailParseNode> statements,
+		final Con<List<AvailParseNode>> continuation)
+	{
+		// Try it with the current list of statements.
+		attempt(start, continuation, statements);
+
+		// See if more statements would be legal.
+		if (statements.size() > 0)
 		{
-			boolean problem = false;
-			if (statements.size() > 0)
+			final AvailParseNode lastStatement = statements.get(
+				statements.size() - 1);
+			if (!lastStatement.isAssignment()
+					&& !lastStatement.isDeclaration()
+					&& !lastStatement.isLabel())
 			{
-				final AvailParseNode lastStatement = statements.get(statements
-						.size() - 1);
-				if (!lastStatement.isAssignment()
-						&& !lastStatement.isDeclaration()
-						&& !lastStatement.isLabel())
+				if (lastStatement.type().equals(Types.terminates.object()))
 				{
-					if (lastStatement.type().equals(Types.terminates.object()))
-					{
-						problem = true;
-						where.value
-								.expected("previous statement to be the last statement "
-										+ "because it always terminates");
-					}
-					if (!lastStatement.type().equals(Types.voidType.object()))
-					{
-						problem = true;
-						where.value.expected(new Generator<String>()
-						{
-							@Override
-							public String value ()
-							{
-								return "non-last statement \""
-										+ lastStatement.toString()
-										+ "\" to have type void, not \""
-										+ lastStatement.type().toString()
-										+ "\".";
-							}
-						});
-					}
+					start.expected(
+						"end of statements since this one always terminates");
+					return;
 				}
-			}
-			final Mutable<ParserState> newWhere = new Mutable<ParserState>();
-			if (!problem)
-			{
-				parseStatementAsOutermostCanBeLabelThen(
-					where.value,
-					false,
-					statements.isEmpty(),
-					new Con<AvailParseNode>("Another statement")
+				if (!lastStatement.type().equals(Types.voidType.object()))
+				{
+					start.expected(new Generator<String>()
 					{
 						@Override
-						public void value (
-							final ParserState afterStatement,
-							final AvailParseNode statement)
+						public String value ()
 						{
-							newWhere.value = afterStatement;
-							statements.add(statement);
+							return "non-last statement \""
+									+ lastStatement.toString()
+									+ "\" to have type void, not \""
+									+ lastStatement.type().toString()
+									+ "\".";
 						}
 					});
+				}
 			}
-			if (newWhere.value == null)
-			{
-				break;
-			}
-			where.value = newWhere.value;
 		}
-		attempt(where.value, continuation, statements);
-		where.value.expected("more statements");
+		start.expected("more statements");
+
+		// Try for more statements.
+		parseStatementAsOutermostCanBeLabelThen(
+			start,
+			false,
+			statements.isEmpty(),
+			new Con<AvailParseNode>("Another statement")
+			{
+				@Override
+				public void value (
+					final ParserState afterStatement,
+					final AvailParseNode newStatement)
+				{
+					List<AvailParseNode> newStatements =
+						new ArrayList<AvailParseNode>(statements);
+					newStatements.add(newStatement);
+					parseMoreStatementsThen(
+						afterStatement,
+						newStatements,
+						continuation);
+				}
+			});
 	}
 
 	/**
@@ -3161,7 +3326,8 @@ public class AvailCompiler
 		{
 			final AvailObject variableObject = module.variableBindings().mapAt(
 				varName);
-			final AvailVariableSyntheticDeclarationNode moduleVarDecl = new AvailVariableSyntheticDeclarationNode();
+			final AvailVariableSyntheticDeclarationNode moduleVarDecl =
+				new AvailVariableSyntheticDeclarationNode();
 			moduleVarDecl.name(token);
 			moduleVarDecl.declaredType(variableObject.type().innerType());
 			moduleVarDecl.isArgument(false);
@@ -3176,7 +3342,8 @@ public class AvailCompiler
 		{
 			final AvailObject valueObject = module.constantBindings().mapAt(
 				varName);
-			final AvailConstantSyntheticDeclarationNode moduleConstDecl = new AvailConstantSyntheticDeclarationNode();
+			final AvailConstantSyntheticDeclarationNode moduleConstDecl =
+				new AvailConstantSyntheticDeclarationNode();
 			moduleConstDecl.name(token);
 			moduleConstDecl.declaredType(valueObject.type());
 			moduleConstDecl.isArgument(false);

@@ -46,13 +46,23 @@ import com.avail.descriptor.*;
  * <li>0     - parseArgument</li>
  * <li>1     - pushEmptyList</li>
  * <li>2     - append (pop A, append A to list on top of stack)</li>
- * <li>3     - (reserved)</li>
- * <li>4*N   - branch to instruction N (attempt to continue parsing at both
+ * <li>3     - push current parse position</li>
+ * <li>4     - under-pop parse position (should be 2nd-to-top of stack)</li>
+ * <li>5     - check that progress has been made relative to the parse position
+ *             found at 2nd-to-top of stack.  Also replace with new parse
+ *             position.</li>
+ * <li>6     - (reserved)</li>
+ * <li>7     - (reserved)</li>
+ * <li>8*N   - branch to instruction N (attempt to continue parsing at both
  *             the next instruction and N)</li>
- * <li>4*N+1 - jump to instruction N (do not attempt to continue at the next
+ * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
  *             instruction)</li>
- * <li>4*N+2 - parseKeyword at part N</li>
- * <li>4*N+3 - (reserved)</li>
+ * <li>8*N+2 - parseKeyword at part N</li>
+ * <li>8*N+3 - (reserved)</li>
+ * <li>8*N+4 - (reserved)</li>
+ * <li>8*N+5 - (reserved)</li>
+ * <li>8*N+6 - (reserved)</li>
+ * <li>8*N+7 - (reserved)</li>
  * </ul></p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -188,7 +198,7 @@ public class MessageSplitter
 		void emitOn (final List<Integer> list)
 		{
 			// Parse the specific keyword.
-			list.add(tokenIndex * 4 + 2);
+			list.add(tokenIndex * 8 + 2);
 		}
 
 
@@ -382,6 +392,7 @@ public class MessageSplitter
 				 * expressions rather than a list of fixed-length lists of
 				 * expressions.  The generated instructions should look like:
 				 *
+				 * **push current parse position
 				 * push empty list
 				 * branch to @loopSkip
 				 * @loopStart:
@@ -390,27 +401,32 @@ public class MessageSplitter
 				 * branch to @loopExit (even if no dagger)
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
+				 * ** check progress and update saved position, or abort.
 				 * jump to @loopStart
 				 * @loopExit:
 				 * @loopSkip:
+				 * **under-pop parse position (remove 2nd from top of stack)
 				 */
+				list.add(3);  // push parse position
 				list.add(1);  // push empty list
-				list.add(4 * loopSkip);  // branch to @loopSkip
+				list.add(8 * loopSkip);  // branch to @loopSkip
 				int loopStart = list.size() + 1;
 				for (Expression expression : expressionsBeforeDagger)
 				{
 					expression.emitOn(list);
 				}
 				list.add(2);  // append
-				list.add(4 * loopExit);  // branch to @loopExit
+				list.add(8 * loopExit);  // branch to @loopExit
 				for (Expression expression : expressionsAfterDagger)
 				{
 					assert !expression.isArgumentOrGroup();
 					expression.emitOn(list);
 				}
-				list.add(loopStart * 4 + 1);  // jump to @loopStart
+				list.add(5);  // check progress
+				list.add(loopStart * 8 + 1);  // jump to @loopStart
 				loopExit = list.size() + 1;
 				loopSkip = list.size() + 1;
+				list.add(4);  // underpop parse position
 			}
 			else
 			{
@@ -421,6 +437,7 @@ public class MessageSplitter
 				 * group, and the backward jump should be preceded by an append
 				 * to capture a solution.  Here's the code:
 				 *
+				 * **push current parse position
 				 * push empty list (the list of solutions)
 				 * branch to @loopSkip
 				 * @loopStart:
@@ -431,13 +448,16 @@ public class MessageSplitter
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
 				 * append  (add complete solution)
+				 * ** check progress and update saved position, or abort.
 				 * jump @loopStart
 				 * @loopExit:
 				 * append  (add partial solution up to dagger)
 				 * @loopSkip:
+				 * **under-pop parse position (remove 2nd from top of stack)
 				 */
+				list.add(3);  // push parse position
 				list.add(1);  // push empty list
-				list.add(4 * loopSkip);  // branch to @loopSkip
+				list.add(8 * loopSkip);  // branch to @loopSkip
 				int loopStart = list.size() + 1;
 				list.add(1);  // inner list
 				for (Expression expression : expressionsBeforeDagger)
@@ -448,7 +468,7 @@ public class MessageSplitter
 						list.add(2);  // append
 					}
 				}
-				list.add(4 * loopExit);  // branch to @loopExit
+				list.add(8 * loopExit);  // branch to @loopExit
 				for (Expression expression : expressionsAfterDagger)
 				{
 					expression.emitOn(list);
@@ -458,10 +478,12 @@ public class MessageSplitter
 					}
 				}
 				list.add(2);  // add inner list to outer
-				list.add(loopStart * 4 + 1);  // jump to @loopStart
+				list.add(5);  // check progress
+				list.add(loopStart * 8 + 1);  // jump to @loopStart
 				loopExit = list.size() + 1;
 				list.add(2);  // append partial tuple, up to dagger
 				loopSkip = list.size() + 1;
+				list.add(4);  // underpop parse position
 			}
 		}
 
@@ -622,7 +644,7 @@ public class MessageSplitter
 			final boolean completeGroup,
 			final boolean doubleWrap)
 		{
-			aStream.append("{{{");
+			aStream.append("«");
 			List<AvailParseNode> argumentNodes;
 			if (doubleWrap)
 			{
@@ -684,14 +706,14 @@ public class MessageSplitter
 							occurrences.get(i),
 							aStream,
 							indent,
-							i == occurrences.size() - 1,
+							i != occurrences.size() - 1,
 							subgroup.needsDoubleWrapping());
 					}
 				}
 				isFirst = false;
 			}
 			assert !argumentsIterator.hasNext();
-			aStream.append("}}}");
+			aStream.append("»");
 		}
 
 	}
@@ -1012,9 +1034,9 @@ public class MessageSplitter
 	 */
 	public static int keywordIndexFromInstruction (final int instruction)
 	{
-		if (instruction >= 4 && instruction % 4 == 2)
+		if (instruction >= 8 && instruction % 8 == 2)
 		{
-			return instruction >> 2;
+			return instruction >> 3;
 		}
 		return 0;
 	}
@@ -1035,16 +1057,16 @@ public class MessageSplitter
 		final int instruction,
 		final int currentPc)
 	{
-		if (instruction >= 4)
+		if (instruction >= 8)
 		{
-			if ((instruction & 3) == 0)
+			if ((instruction & 7) == 0)
 			{
 				// Branch -- return the next pc *and* the branch target.
-				return Arrays.asList(instruction >> 2, currentPc + 1);
+				return Arrays.asList(instruction >> 3, currentPc + 1);
 			}
-			if ((instruction & 3) == 1)
+			if ((instruction & 7) == 1)
 			{
-				return Collections.singletonList(instruction >> 2);
+				return Collections.singletonList(instruction >> 3);
 			}
 		}
 		return Collections.singletonList(currentPc + 1);
