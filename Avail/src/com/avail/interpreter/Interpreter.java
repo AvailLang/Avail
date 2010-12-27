@@ -131,7 +131,7 @@ public abstract class Interpreter
 		final short primitiveNumber,
 		final int argCount)
 	{
-		int expected = Primitive.byPrimitiveNumber(primitiveNumber).argCount();
+		final int expected = Primitive.byPrimitiveNumber(primitiveNumber).argCount();
 		return expected == -1 || expected == argCount;
 	}
 
@@ -195,8 +195,8 @@ public abstract class Interpreter
 			newImp,
 			true);
 		assert methodName.isCyclicType();
-		AvailObject message = methodName.name();
-		MessageSplitter splitter = new MessageSplitter(message);
+		final AvailObject message = methodName.name();
+		final MessageSplitter splitter = new MessageSplitter(message);
 		module.filteredBundleTree().includeBundle(
 			MessageBundleDescriptor.newBundle(
 				methodName,
@@ -257,7 +257,7 @@ public abstract class Interpreter
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
 
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert bodyBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in method definition";
@@ -361,7 +361,7 @@ public abstract class Interpreter
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
 
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert bodySignature.numArgs() == numArgs
 		: "Wrong number of arguments in abstract method signature";
@@ -457,13 +457,13 @@ public abstract class Interpreter
 		//  So we can safely hold onto it in the VM
 		illegalArgMsgs.makeImmutable();
 		//  So we can safely hold this data in the VM
-		MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
 		assert methodName.isCyclicType();
 		//  Fix precedence.
-		AvailObject bundle =
+		final AvailObject bundle =
 			module.filteredBundleTree().includeBundle(
 				MessageBundleDescriptor.newBundle(
 					methodName,
@@ -484,7 +484,7 @@ public abstract class Interpreter
 		final @NotNull String defineMethodName)
 	{
 		assert module != null;
-		L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
@@ -532,7 +532,7 @@ public abstract class Interpreter
 				InfinityDescriptor.positiveInfinity(),
 				false);
 		AvailObject newClosure;
-		L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
@@ -741,8 +741,9 @@ public abstract class Interpreter
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
 	 *                 of the message send.
+	 * @return A message {@linkPlain String} or null if successful.
 	 */
-	public void validateRequiresClausesOfMessageSendArgumentTypes (
+	public String validateRequiresClauses (
 		final @NotNull AvailObject methodName,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -752,18 +753,17 @@ public abstract class Interpreter
 			implementations.filterByTypes(argTypes);
 		if (matching.size() == 0)
 		{
-			error("Problem - there were no matching implementations");
-			return;
+			return "matching implementations for method " + methodName;
 		}
-		for (int i = 1, _end1 = matching.size(); i <= _end1; i++)
+		for (final AvailObject imp : matching)
 		{
-			final AvailObject imp = matching.get(i - 1);
 			if (!imp.isValidForArgumentTypesInterpreter(argTypes, this))
 			{
-				error("A requires clause rejected the arguments");
-				return;
+				return "message send of " + methodName
+					+ " to pass its requires clause";
 			}
 		}
+		return null;
 	}
 
 	/**

@@ -127,7 +127,7 @@ public class AvailScanner
 	 */
 	void addToken (final TokenDescriptor.TokenType tokenType)
 	{
-		AvailObject token = AvailObject.newIndexedDescriptor(
+		final AvailObject token = AvailObject.newIndexedDescriptor(
 			0,
 			TokenDescriptor.mutableDescriptor());
 		addToken(token, tokenType);
@@ -270,16 +270,16 @@ public class AvailScanner
 	void scanDoubleQuote ()
 	{
 
-		StringBuilder stringBuilder = new StringBuilder(40);
+		final StringBuilder stringBuilder = new StringBuilder(40);
 		while (true)
 		{
-			char c = next();
+			final char c = next();
 			if (c == '\"')
 			{
 				if (!peekFor('\"'))
 				{
-					String string = stringBuilder.toString();
-					AvailObject availValue = ByteStringDescriptor.fromNativeString(string);
+					final String string = stringBuilder.toString();
+					final AvailObject availValue = ByteStringDescriptor.fromNativeString(string);
 					availValue.makeImmutable();
 					addTokenForLiteral(availValue);
 					return;
@@ -523,7 +523,7 @@ public class AvailScanner
 		while (!(stopAfterNamesToken ? _encounteredNamesToken : atEnd()))
 		{
 			_startOfToken = _position;
-			int c = next();
+			final int c = next();
 			ScannerAction.values()[DispatchTable[c]].scan(this);
 		}
 		addToken(TokenType.END_OF_FILE);
@@ -674,7 +674,7 @@ public class AvailScanner
 	{
 		for (int i = 0; i < 65536; i++)
 		{
-			char c = (char) i;
+			final char c = (char) i;
 			ScannerAction action;
 			if (Character.isDigit(c))
 			{

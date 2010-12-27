@@ -33,7 +33,6 @@ package com.avail.compiler;
 
 import java.util.*;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
 public class AvailSendNode extends AvailParseNode
@@ -117,7 +116,7 @@ public class AvailSendNode extends AvailParseNode
 	{
 		boolean anyCasts;
 		anyCasts = false;
-		for (AvailParseNode arg : _arguments)
+		for (final AvailParseNode arg : _arguments)
 		{
 			arg.emitValueOn(codeGenerator);
 			if (arg.isSuperCast())
@@ -128,7 +127,7 @@ public class AvailSendNode extends AvailParseNode
 		_message.makeImmutable();
 		if (anyCasts)
 		{
-			for (AvailParseNode arg : _arguments)
+			for (final AvailParseNode arg : _arguments)
 			{
 				if (arg.isSuperCast())
 				{
@@ -169,10 +168,11 @@ public class AvailSendNode extends AvailParseNode
 	@Override
 	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
-		final boolean nicePrinting = false;
+		final boolean nicePrinting = false;  // convenient switch
 		if (nicePrinting)
 		{
-			MessageSplitter splitter = new MessageSplitter(message().name());
+			final MessageSplitter splitter = new MessageSplitter(
+				message().name());
 			splitter.printSendNodeOnIndent(
 				this,
 				aStream,
@@ -184,7 +184,7 @@ public class AvailSendNode extends AvailParseNode
 			aStream.append(message().name().asNativeString());
 			aStream.append("](");
 			boolean isFirst = true;
-			for (AvailParseNode arg : arguments())
+			for (final AvailParseNode arg : arguments())
 			{
 				if (!isFirst)
 				{
@@ -218,27 +218,6 @@ public class AvailSendNode extends AvailParseNode
 	public boolean isSend ()
 	{
 		return true;
-	}
-
-
-	@Override
-	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
-		final AvailParseNode parent,
-		final List<AvailBlockNode> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
-	{
-		// Invoke the requires clauses in bottom-up order.
-
-		List<AvailObject> argumentTypes;
-		argumentTypes = new ArrayList<AvailObject>(_arguments.size());
-		for (AvailParseNode arg : _arguments)
-		{
-			argumentTypes.add(arg.type());
-		}
-		anAvailInterpreter.validateRequiresClausesOfMessageSendArgumentTypes(
-			message(),
-			argumentTypes);
-		return this;
 	}
 
 }

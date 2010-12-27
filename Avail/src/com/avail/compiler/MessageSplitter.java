@@ -404,6 +404,7 @@ public class MessageSplitter
 				 * ** check progress and update saved position, or abort.
 				 * jump to @loopStart
 				 * @loopExit:
+				 * ** check progress and update saved position, or abort.
 				 * @loopSkip:
 				 * **under-pop parse position (remove 2nd from top of stack)
 				 */
@@ -425,6 +426,7 @@ public class MessageSplitter
 				list.add(5);  // check progress
 				list.add(loopStart * 8 + 1);  // jump to @loopStart
 				loopExit = list.size() + 1;
+				list.add(5);  // check progress
 				loopSkip = list.size() + 1;
 				list.add(4);  // underpop parse position
 			}
@@ -452,6 +454,7 @@ public class MessageSplitter
 				 * jump @loopStart
 				 * @loopExit:
 				 * append  (add partial solution up to dagger)
+				 * ** check progress and update saved position, or abort.
 				 * @loopSkip:
 				 * **under-pop parse position (remove 2nd from top of stack)
 				 */
@@ -482,6 +485,7 @@ public class MessageSplitter
 				list.add(loopStart * 8 + 1);  // jump to @loopStart
 				loopExit = list.size() + 1;
 				list.add(2);  // append partial tuple, up to dagger
+				list.add(5);  // check progress
 				loopSkip = list.size() + 1;
 				list.add(4);  // underpop parse position
 			}

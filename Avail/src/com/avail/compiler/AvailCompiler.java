@@ -63,8 +63,8 @@ public class AvailCompiler
 	private String source;
 	List<AvailObject> tokens;
 	int greatestGuess;
-	final List<Generator<String>> greatExpectations = new ArrayList<Generator<String>>(
-		10);
+	final List<Generator<String>> greatExpectations =
+		new ArrayList<Generator<String>>(10);
 	AvailObject module;
 	AvailCompilerFragmentCache fragmentCache;
 	List<AvailObject> extendedModules;
@@ -271,7 +271,7 @@ public class AvailCompiler
 			{
 				return false;
 			}
-			ParserState anotherState = (ParserState) another;
+			final ParserState anotherState = (ParserState) another;
 			return position == anotherState.position
 					&& scopeStack.equals(anotherState.scopeStack);
 		}
@@ -348,7 +348,7 @@ public class AvailCompiler
 			final Generator<String> expected)
 		{
 			final AvailObject token = peekToken();
-			boolean found = token.tokenType() == tokenType
+			final boolean found = token.tokenType() == tokenType
 					&& token.string().asNativeString().equals(string);
 			if (!found)
 			{
@@ -708,7 +708,7 @@ public class AvailCompiler
 								final AvailLabelNode label = new AvailLabelNode();
 								label.name(token);
 								label.declaredType(contType);
-								ParserState afterDeclaration = afterExpression
+								final ParserState afterDeclaration = afterExpression
 										.withDeclaration(label);
 								attempt(afterDeclaration, continuation, label);
 							}
@@ -752,7 +752,7 @@ public class AvailCompiler
 				if (expression.type().isSubtypeOf(someType))
 				{
 					// A unique, longest type-correct expression was found.
-					AvailObject value = evaluate(expression);
+					final AvailObject value = evaluate(expression);
 					if (value.isInstanceOfSubtypeOf(someType))
 					{
 						assert afterExpression.scopeStack == startWithoutScope.scopeStack
@@ -1092,8 +1092,8 @@ public class AvailCompiler
 		final AvailObject name = declarationExpression.name().string();
 		if (declarationExpression.isConstant())
 		{
-			AvailInitializingDeclarationNode declaration = (AvailInitializingDeclarationNode) declarationExpression;
-			AvailObject val = evaluate(declaration.initializingExpression());
+			final AvailInitializingDeclarationNode declaration = (AvailInitializingDeclarationNode) declarationExpression;
+			final AvailObject val = evaluate(declaration.initializingExpression());
 			module.constantBindings(module.constantBindings()
 					.mapAtPuttingCanDestroy(name, val.makeImmutable(), true));
 		}
@@ -1103,7 +1103,7 @@ public class AvailCompiler
 					.forInnerType(declarationExpression.declaredType());
 			if (declarationExpression.isInitializing())
 			{
-				AvailInitializingDeclarationNode declaration = (AvailInitializingDeclarationNode) declarationExpression;
+				final AvailInitializingDeclarationNode declaration = (AvailInitializingDeclarationNode) declarationExpression;
 				var.setValue(evaluate(declaration.initializingExpression()));
 			}
 			module.variableBindings(module.variableBindings()
@@ -1248,9 +1248,9 @@ public class AvailCompiler
 		for (final AvailObject modName : extendedModules)
 		{
 			assert modName.isString();
-			ModuleName ref = resolver.canonicalNameFor(qualifiedName
+			final ModuleName ref = resolver.canonicalNameFor(qualifiedName
 					.asSibling(modName.asNativeString()));
-			AvailObject availRef = ByteStringDescriptor.fromNativeString(ref
+			final AvailObject availRef = ByteStringDescriptor.fromNativeString(ref
 					.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
@@ -1259,11 +1259,11 @@ public class AvailCompiler
 				reportError(state.value, qualifiedName);
 				assert false;
 			}
-			AvailObject mod = runtime.moduleAt(availRef);
-			AvailObject modNames = mod.names().keysAsSet();
+			final AvailObject mod = runtime.moduleAt(availRef);
+			final AvailObject modNames = mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
 			{
-				AvailObject trueNames = mod.names().mapAt(strName);
+				final AvailObject trueNames = mod.names().mapAt(strName);
 				for (final AvailObject trueName : trueNames)
 				{
 					module.atNameAdd(strName, trueName);
@@ -1273,9 +1273,9 @@ public class AvailCompiler
 		for (final AvailObject modName : usedModules)
 		{
 			assert modName.isString();
-			ModuleName ref = resolver.canonicalNameFor(qualifiedName
+			final ModuleName ref = resolver.canonicalNameFor(qualifiedName
 					.asSibling(modName.asNativeString()));
-			AvailObject availRef = ByteStringDescriptor.fromNativeString(ref
+			final AvailObject availRef = ByteStringDescriptor.fromNativeString(ref
 					.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
@@ -1284,11 +1284,11 @@ public class AvailCompiler
 				reportError(state.value, qualifiedName);
 				assert false;
 			}
-			AvailObject mod = runtime.moduleAt(availRef);
-			AvailObject modNames = mod.names().keysAsSet();
+			final AvailObject mod = runtime.moduleAt(availRef);
+			final AvailObject modNames = mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
 			{
-				AvailObject trueNames = mod.names().mapAt(strName);
+				final AvailObject trueNames = mod.names().mapAt(strName);
 				for (final AvailObject trueName : trueNames)
 				{
 					module.atPrivateNameAdd(strName, trueName);
@@ -1449,7 +1449,7 @@ public class AvailCompiler
 				for (int index = 0; index < strings.size(); index++)
 				{
 					final AvailObject pragmaString = strings.get(index);
-					String[] parts = pragmaString.asNativeString().split("=");
+					final String[] parts = pragmaString.asNativeString().split("=");
 					assert parts.length == 2;
 					final String pragmaKey = parts[0].trim();
 					final String pragmaValue = parts[1].trim();
@@ -1543,10 +1543,10 @@ public class AvailCompiler
 		final ParserState state,
 		final @NotNull ModuleName qualifiedName) throws AvailCompilerException
 	{
-		long charPos = tokens.get(greatestGuess).start();
-		String sourceUpToError = source.substring(0, (int) charPos);
-		int startOfPreviousLine = sourceUpToError.lastIndexOf('\n') + 1;
-		StringBuilder text = new StringBuilder(100);
+		final long charPos = tokens.get(greatestGuess).start();
+		final String sourceUpToError = source.substring(0, (int) charPos);
+		final int startOfPreviousLine = sourceUpToError.lastIndexOf('\n') + 1;
+		final StringBuilder text = new StringBuilder(100);
 		text.append('\n');
 		int wedges = 3;
 		for (int i = startOfPreviousLine; i < charPos; i++)
@@ -1576,7 +1576,7 @@ public class AvailCompiler
 		text.append("^-- Expected...");
 		text.append("\n>>>---------------------------------------------------------------------");
 		assert greatExpectations.size() > 0 : "Bug - empty expectation list";
-		Set<String> alreadySeen = new HashSet<String>(greatExpectations.size());
+		final Set<String> alreadySeen = new HashSet<String>(greatExpectations.size());
 		for (final Generator<String> generator : greatExpectations)
 		{
 			final String str = generator.value();
@@ -1625,7 +1625,7 @@ public class AvailCompiler
 						final ParserState afterArgument,
 						final AvailVariableDeclarationNode arg)
 					{
-						List<AvailVariableDeclarationNode> newArgsSoFar =
+						final List<AvailVariableDeclarationNode> newArgsSoFar =
 							new ArrayList<AvailVariableDeclarationNode>(
 								argsSoFar);
 						newArgsSoFar.add(arg);
@@ -1801,7 +1801,7 @@ public class AvailCompiler
 				final ParserState afterFirstArg,
 				final AvailVariableDeclarationNode firstArg)
 			{
-				List<AvailVariableDeclarationNode> argsList =
+				final List<AvailVariableDeclarationNode> argsList =
 					new ArrayList<AvailVariableDeclarationNode>(1);
 				argsList.add(firstArg);
 				parseAdditionalBlockArgumentsAfterThen(
@@ -2006,8 +2006,8 @@ public class AvailCompiler
 			boolean blockTypeGood = true;
 			if (statements.size() > 0 && statements.get(0).isLabel())
 			{
-				AvailLabelNode labelNode = (AvailLabelNode) statements.get(0);
-				AvailObject labelClosureType = labelNode.declaredType()
+				final AvailLabelNode labelNode = (AvailLabelNode) statements.get(0);
+				final AvailObject labelClosureType = labelNode.declaredType()
 						.closureType();
 				blockTypeGood = labelClosureType.numArgs() == arguments.size()
 						&& labelClosureType.returnType().equals(
@@ -2024,7 +2024,7 @@ public class AvailCompiler
 			}
 			if (blockTypeGood)
 			{
-				AvailBlockNode blockNode = new AvailBlockNode();
+				final AvailBlockNode blockNode = new AvailBlockNode();
 				blockNode.arguments(arguments);
 				blockNode.primitive(primitive);
 				blockNode.statements(statements);
@@ -2063,9 +2063,9 @@ public class AvailCompiler
 						if (statements.size() > 0
 								&& statements.get(0).isLabel())
 						{
-							AvailLabelNode labelNode = (AvailLabelNode) statements
+							final AvailLabelNode labelNode = (AvailLabelNode) statements
 									.get(0);
-							AvailObject labelClosureType = labelNode
+							final AvailObject labelClosureType = labelNode
 									.declaredType().closureType();
 							blockTypeGood = labelClosureType.numArgs() == arguments
 									.size()
@@ -2085,7 +2085,7 @@ public class AvailCompiler
 						}
 						if (blockTypeGood)
 						{
-							AvailBlockNode blockNode = new AvailBlockNode();
+							final AvailBlockNode blockNode = new AvailBlockNode();
 							blockNode.arguments(arguments);
 							blockNode.primitive(primitive);
 							blockNode.statements(statements);
@@ -2310,7 +2310,7 @@ public class AvailCompiler
 						valid.value = true;
 						final List<AvailObject> argTypes =
 							new ArrayList<AvailObject>(argsSoFar.size());
-						for (AvailParseNode arg : argsSoFar)
+						for (final AvailParseNode arg : argsSoFar)
 						{
 							argTypes.add(arg.type());
 						}
@@ -2343,6 +2343,18 @@ public class AvailCompiler
 										start.expected(errorGenerator);
 									}
 								});
+						}
+						if (valid.value)
+						{
+							final String errorMessage = interpreter
+								.validateRequiresClauses(
+									bundle.message(),
+									argTypes);
+							if (errorMessage != null)
+							{
+								valid.value = false;
+								start.expected(errorMessage);
+							}
 						}
 						if (valid.value)
 						{
@@ -2513,7 +2525,7 @@ public class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailParseNode> newArgsSoFar =
 					new ArrayList<AvailParseNode>(argsSoFar);
-				AvailTupleNode newTupleNode = new AvailTupleNode(
+				final AvailTupleNode newTupleNode = new AvailTupleNode(
 					Collections.<AvailParseNode> emptyList());
 				newArgsSoFar.add(newTupleNode);
 				attempt(
@@ -2544,9 +2556,9 @@ public class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailParseNode> newArgsSoFar =
 					new ArrayList<AvailParseNode>(argsSoFar);
-				AvailParseNode value = newArgsSoFar.remove(
+				final AvailParseNode value = newArgsSoFar.remove(
 					newArgsSoFar.size() - 1);
-				AvailParseNode oldNode = newArgsSoFar.remove(
+				final AvailParseNode oldNode = newArgsSoFar.remove(
 					newArgsSoFar.size() - 1);
 				AvailTupleNode tupleNode = (AvailTupleNode) oldNode;
 				tupleNode = tupleNode.copyWith(value);
@@ -2604,7 +2616,7 @@ public class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailParseNode> newArgsSoFar =
 					new ArrayList<AvailParseNode>(argsSoFar);
-				AvailParseNode marker =
+				final AvailParseNode marker =
 					newArgsSoFar.remove(newArgsSoFar.size() - 2);
 				assert marker instanceof AvailMarkerNode;
 				attempt(
@@ -2632,9 +2644,9 @@ public class AvailCompiler
 				// to value at 2nd-to-top of stack).  Also update the entry to
 				// be the new parse position.
 				assert successorTrees.tupleSize() == 1;
-				AvailParseNode shouldBeMarker =
+				final AvailParseNode shouldBeMarker =
 					argsSoFar.get(argsSoFar.size() - 2);
-				AvailMarkerNode marker = (AvailMarkerNode) shouldBeMarker;
+				final AvailMarkerNode marker = (AvailMarkerNode) shouldBeMarker;
 				if (marker.markerValue().extractInt() == start.position)
 				{
 					return;
@@ -2723,11 +2735,11 @@ public class AvailCompiler
 		for (int i = 1; i <= arguments.size(); i++)
 		{
 			final int index = i;
-			AvailParseNode argument = arguments.get(index - 1);
+			final AvailParseNode argument = arguments.get(index - 1);
 			if (argument.isSend())
 			{
-				AvailSendNode innerSend = (AvailSendNode) argument;
-				AvailObject restrictions = bundle.restrictions().tupleAt(index);
+				final AvailSendNode innerSend = (AvailSendNode) argument;
+				final AvailObject restrictions = bundle.restrictions().tupleAt(index);
 				if (restrictions.hasElement(innerSend.message()))
 				{
 					ifFail.value(new Generator<String>()
@@ -2784,7 +2796,7 @@ public class AvailCompiler
 				{
 					builder.append("\n\t");
 				}
-				for (String s : sorted)
+				for (final String s : sorted)
 				{
 					builder.append(s);
 					builder.append("  ");
@@ -3013,7 +3025,7 @@ public class AvailCompiler
 		{
 			return;
 		}
-		ParserState afterColon = start.afterToken();
+		final ParserState afterColon = start.afterToken();
 		if (!afterColon.peekToken(OPERATOR, ":"))
 		{
 			start.expected(new Generator<String>()
@@ -3274,7 +3286,7 @@ public class AvailCompiler
 					final ParserState afterStatement,
 					final AvailParseNode newStatement)
 				{
-					List<AvailParseNode> newStatements =
+					final List<AvailParseNode> newStatements =
 						new ArrayList<AvailParseNode>(statements);
 					newStatements.add(newStatement);
 					parseMoreStatementsThen(
@@ -3312,7 +3324,7 @@ public class AvailCompiler
 			token.string());
 		if (localDecl != null)
 		{
-			AvailVariableUseNode varUse = new AvailVariableUseNode();
+			final AvailVariableUseNode varUse = new AvailVariableUseNode();
 			varUse.name(token);
 			varUse.associatedDeclaration(localDecl);
 			attempt(afterVar, continuation, varUse);
@@ -3332,7 +3344,7 @@ public class AvailCompiler
 			moduleVarDecl.declaredType(variableObject.type().innerType());
 			moduleVarDecl.isArgument(false);
 			moduleVarDecl.availVariable(variableObject);
-			AvailVariableUseNode varUse = new AvailVariableUseNode();
+			final AvailVariableUseNode varUse = new AvailVariableUseNode();
 			varUse.name(token);
 			varUse.associatedDeclaration(moduleVarDecl);
 			attempt(afterVar, continuation, varUse);
@@ -3348,7 +3360,7 @@ public class AvailCompiler
 			moduleConstDecl.declaredType(valueObject.type());
 			moduleConstDecl.isArgument(false);
 			moduleConstDecl.availValue(valueObject);
-			AvailVariableUseNode varUse = new AvailVariableUseNode();
+			final AvailVariableUseNode varUse = new AvailVariableUseNode();
 			varUse.name(token);
 			varUse.associatedDeclaration(moduleConstDecl);
 			attempt(afterVar, continuation, varUse);
@@ -3386,7 +3398,7 @@ public class AvailCompiler
 			@Override
 			public String value ()
 			{
-				StringBuilder builder = new StringBuilder(200);
+				final StringBuilder builder = new StringBuilder(200);
 				builder.append("unambiguous interpretation.  ");
 				builder.append("Here are two possible parsings...\n");
 				builder.append("\t");

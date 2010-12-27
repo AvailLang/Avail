@@ -69,10 +69,10 @@ public class MessageSplitterTest
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-		RenamesFileParser renamesFileParser = new RenamesFileParser(
+		final RenamesFileParser renamesFileParser = new RenamesFileParser(
 			new StringReader(""),
 			new ModuleRoots(""));
-		ModuleNameResolver resolver = renamesFileParser.parse();
+		final ModuleNameResolver resolver = renamesFileParser.parse();
 		runtime = new AvailRuntime(resolver);
 	}
 
@@ -91,27 +91,27 @@ public class MessageSplitterTest
 		{"_``_", "_", "`", "`", "_", "[0, 26, 0]"},
 		/* Repeated groups */
 		{"«_;»", "«", "_", ";", "»",
-			"[3, 1, 80, 0, 26, 2, 80, 5, 33, 4]"},
+			"[3, 1, 88, 0, 26, 2, 80, 5, 33, 5, 4]"},
 		{"«x»", "«", "x", "»",
-			"[3, 1, 88, 1, 18, 80, 2, 5, 33, 2, 4]"},
+			"[3, 1, 96, 1, 18, 80, 2, 5, 33, 2, 5, 4]"},
 		{"«x y»", "«", "x", "y", "»",
-			"[3, 1, 96, 1, 18, 26, 88, 2, 5, 33, 2, 4]"},
+			"[3, 1, 104, 1, 18, 26, 88, 2, 5, 33, 2, 5, 4]"},
 		{"«x_y»", "«", "x", "_", "y", "»",
-			"[3, 1, 88, 18, 0, 34, 2, 88, 5, 33, 4]"},
+			"[3, 1, 96, 18, 0, 34, 2, 88, 5, 33, 5, 4]"},
 		{"«_:_»", "«", "_", ":", "_", "»",
-			"[3, 1, 120, 1, 0, 2, 26, 0, 2, 112, 2, 5, 33, 2, 4]"},
+			"[3, 1, 128, 1, 0, 2, 26, 0, 2, 112, 2, 5, 33, 2, 5, 4]"},
 		{"«»", "«", "»",
-			"[3, 1, 80, 1, 72, 2, 5, 33, 2, 4]"},
+			"[3, 1, 88, 1, 72, 2, 5, 33, 2, 5, 4]"},
 		{"«»«»", "«", "»", "«", "»",
-			"[3, 1, 80, 1, 72, 2, 5, 33, 2, 4, 3, 1, 160, 1, 152, 2, 5, 113, 2, 4]"},
+			"[3, 1, 88, 1, 72, 2, 5, 33, 2, 5, 4, 3, 1, 176, 1, 160, 2, 5, 121, 2, 5, 4]"},
 		/* With dagger */
 		{"«_‡,»", "«", "_", "‡", ",", "»",
-			"[3, 1, 80, 0, 2, 80, 34, 5, 33, 4]"},
+			"[3, 1, 88, 0, 2, 80, 34, 5, 33, 5, 4]"},
 		{"«‡»", "«", "‡", "»",
-			"[3, 1, 80, 1, 72, 2, 5, 33, 2, 4]"},
+			"[3, 1, 88, 1, 72, 2, 5, 33, 2, 5, 4]"},
 		{"new_«with«_=_‡,»»",
 			"new", "_", "«", "with", "«", "_", "=", "_", "‡", ",", "»", "»",
-			"[10, 0, 3, 1, 216, 34, 3, 1, 176, 1, 0, 2, 58, 0, 2, 168, 82, 2, 5, 81, 2, 4, 2, 216, 5, 49, 4]"},
+			"[10, 0, 3, 1, 232, 34, 3, 1, 184, 1, 0, 2, 58, 0, 2, 168, 82, 2, 5, 81, 2, 5, 4, 2, 224, 5, 49, 5, 4]"},
 	};
 
 	/**
@@ -120,21 +120,21 @@ public class MessageSplitterTest
 	@Test
 	public void testSplitting ()
 	{
-		for (String[] splitCase : Arrays.asList(splitCases))
+		for (final String[] splitCase : Arrays.asList(splitCases))
 		{
-			String msgString = splitCase[0];
-			AvailObject message =
+			final String msgString = splitCase[0];
+			final AvailObject message =
 				ByteStringDescriptor.fromNativeString(msgString);
-			MessageSplitter splitter = new MessageSplitter(message);
-			AvailObject parts = splitter.messageParts();
+			final MessageSplitter splitter = new MessageSplitter(message);
+			final AvailObject parts = splitter.messageParts();
 			assert splitCase.length == parts.tupleSize() + 2;
 			for (int i = 1; i <= parts.tupleSize(); i++)
 			{
 				assert parts.tupleAt(i).asNativeString().equals(splitCase[i]);
 			}
-			AvailObject instructionsTuple = splitter.instructionsTuple();
-			List<Integer> instructionsList = new ArrayList<Integer>();
-			for (AvailObject instruction : instructionsTuple)
+			final AvailObject instructionsTuple = splitter.instructionsTuple();
+			final List<Integer> instructionsList = new ArrayList<Integer>();
+			for (final AvailObject instruction : instructionsTuple)
 			{
 				instructionsList.add(instruction.extractInt());
 			}

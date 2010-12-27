@@ -126,7 +126,7 @@ public class AvailVariableUseNode extends AvailParseNode
 
 
 	@Override
-	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
+	public AvailParseNode validateLocally (
 			final AvailParseNode parent,
 			final List<AvailBlockNode> outerBlocks,
 			final L2Interpreter anAvailInterpreter)

@@ -1,21 +1,21 @@
 /**
  * compiler/AvailParseNode.java Copyright (c) 2010, Mark van Gulik. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * 
+ *
  * * Neither the name of the copyright holder nor the names of the contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,17 +31,11 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.AvailBlockNode;
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.AvailParseNode;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MethodSignatureDescriptor;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
+import java.util.*;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 public class AvailParseNode
 {
@@ -103,11 +97,11 @@ public class AvailParseNode
 	 * aBlock, children before parents. The block takes three arguments: the
 	 * node, its parent, and the list of enclosing block nodes. Answer the
 	 * resulting tree.
-	 * 
+	 *
 	 * @param aBlock What to do with each descendant.
 	 * @param parent This node's parent.
 	 * @param outerNodes The list of blocks surrounding this node, from
-	 *                   outermost to innermost. 
+	 *                   outermost to innermost.
 	 * @return A replacement for this node, possibly this node itself.
 	 */
 	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
@@ -157,12 +151,12 @@ public class AvailParseNode
 	@Override
 	public String toString ()
 	{
-		StringBuilder stringBuilder = new StringBuilder(100);
+		final StringBuilder stringBuilder = new StringBuilder(100);
 		printOnIndent(stringBuilder, 0);
 		return stringBuilder.toString();
 	}
 
-	
+
 	public boolean isAssignment ()
 	{
 		return false;
@@ -209,37 +203,42 @@ public class AvailParseNode
 	/**
 	 * Ensure that the tree represented by this node is valid.  Throw an
 	 * appropriate exception if it is not.
-	 * 
-	 * @param anAvailInterpreter Used to run requires and returns clauses. 
+	 *
+	 * @param anAvailInterpreter Used to run requires and returns clauses.
 	 * @return This node or a replacement.
 	 */
 	public AvailParseNode validatedWithInterpreter (
 		final L2Interpreter anAvailInterpreter)
 	{
-		final List<AvailBlockNode> initialBlockNodes = new ArrayList<AvailBlockNode>(
-			3);
+		final List<AvailBlockNode> initialBlockNodes =
+			new ArrayList<AvailBlockNode>(3);
 		return treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
-			new Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode>()
+			new Transformer3<
+				AvailParseNode,
+				AvailParseNode,
+				List<AvailBlockNode>,
+				AvailParseNode>()
 			{
 				@Override
 				public AvailParseNode value (
-					AvailParseNode node,
-					AvailParseNode parent,
-					List<AvailBlockNode> blockNodes)
+					final AvailParseNode node,
+					final AvailParseNode parent,
+					final List<AvailBlockNode> blockNodes)
 				{
-					return node
-							.validateLocallyWithParentOuterBlocksInterpreter(
-								parent,
-								blockNodes,
-								anAvailInterpreter);
+					return node.validateLocally(
+						parent,
+						blockNodes,
+						anAvailInterpreter);
 				}
-			}, null, initialBlockNodes);
+			},
+			null,
+			initialBlockNodes);
 	}
 
 	/**
 	 * Ensure the parse node represented by the receiver is valid. Throw a
 	 * suitable exception if it is not.
-	 * 
+	 *
 	 * @param parent
 	 *            This node's parent.
 	 * @param outerBlocks
@@ -250,7 +249,7 @@ public class AvailParseNode
 	 *            clauses of {@link MethodSignatureDescriptor methods}.
 	 * @return The receiver.
 	 */
-	public AvailParseNode validateLocallyWithParentOuterBlocksInterpreter (
+	public AvailParseNode validateLocally (
 		final AvailParseNode parent,
 		final List<AvailBlockNode> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
