@@ -37,7 +37,6 @@ import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;

@@ -34,8 +34,8 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
-import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.*;
+import com.avail.newcompiler.scanner.AvailScanner;
 import com.avail.oldcompiler.*;
 
 /**
