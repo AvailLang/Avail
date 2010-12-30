@@ -1,5 +1,5 @@
 /**
- * com.avail.descriptor.parser/ListOfNodesDescriptor.java
+ * com.avail.descriptor.parser/ParseNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler;
+package com.avail.newcompiler.node;
 
 import com.avail.descriptor.Descriptor;
 
@@ -49,7 +49,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param isMutable Whether the descriptor being constructed represents
 	 *                  mutable objects or not.
 	 */
-	public ParseNodeDescriptor (boolean isMutable)
+	public ParseNodeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

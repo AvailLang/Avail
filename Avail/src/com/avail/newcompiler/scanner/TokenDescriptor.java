@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler;
+package com.avail.newcompiler.scanner;
 
 import com.avail.descriptor.*;
 
@@ -137,7 +137,7 @@ extends Descriptor
 	public TokenDescriptor.TokenType o_TokenType (
 		final AvailObject object)
 	{
-		int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
+		final int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
 		return TokenDescriptor.TokenType.values()[index];
 	}
 
@@ -157,31 +157,31 @@ extends Descriptor
 	/**
 	 * The mutable {@link TokenDescriptor}.
 	 */
-	private final static TokenDescriptor mutableDescriptor = new TokenDescriptor(true);
+	private final static TokenDescriptor mutable = new TokenDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TokenDescriptor}.
 	 *
 	 * @return The mutable {@link TokenDescriptor}.
 	 */
-	public static TokenDescriptor mutableDescriptor ()
+	public static TokenDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link TokenDescriptor}.
 	 */
-	private final static TokenDescriptor immutableDescriptor = new TokenDescriptor(false);
+	private final static TokenDescriptor immutable = new TokenDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TokenDescriptor}.
 	 *
 	 * @return The immutable {@link TokenDescriptor}.
 	 */
-	public static TokenDescriptor immutableDescriptor ()
+	public static TokenDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 
@@ -194,10 +194,36 @@ extends Descriptor
 	 */
 	public enum TokenType
 	{
+		/**
+		 * A special type of token that is appended to the actual tokens of the
+		 * file to simplify end-of-file processing.
+		 */
 		END_OF_FILE,
+
+		/**
+		 * The semicolon character may not (at least on 2010.12.28) be used as
+		 * an operator character.  This token type is used to prevent seeing a
+		 * semicolon as an operator.
+		 */
 		END_OF_STATEMENT,
+
+		/**
+		 * A sequence of characters suitable for an Avail identifier, which
+		 * roughly corresponds to characters in a Java identifier.
+		 */
 		KEYWORD,
+
+		/**
+		 * A literal token, detected at lexical scanning time.  At the moment
+		 * this includes non-negative numeric tokens and strings.
+		 */
 		LITERAL,
+
+		/**
+		 * A single operator character, which is anything that isn't whitespace,
+		 * a keyword character, or an Avail reserved character such as
+		 * semicolon.
+		 */
 		OPERATOR;
 	}
 

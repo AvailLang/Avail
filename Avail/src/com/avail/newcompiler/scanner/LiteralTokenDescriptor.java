@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler;
+package com.avail.newcompiler.scanner;
 
 import com.avail.descriptor.*;
 
@@ -79,15 +79,16 @@ extends TokenDescriptor
 		START,
 
 		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
+		 * The {@link Enum#ordinal() ordinal} of the {@link
+		 * TokenDescriptor.TokenType} that indicates what basic kind of token
+		 * this is.
 		 */
 		TOKEN_TYPE_CODE
 	}
 
 
 	/**
-	 * Setter for field string.
+	 * Setter for field literal.
 	 */
 	@Override
 	public void o_Literal (
@@ -98,7 +99,7 @@ extends TokenDescriptor
 	}
 
 	/**
-	 * Getter for field string.
+	 * Getter for field literal.
 	 */
 	@Override
 	public AvailObject o_Literal (
@@ -123,31 +124,31 @@ extends TokenDescriptor
 	/**
 	 * The mutable {@link LiteralTokenDescriptor}.
 	 */
-	private final static LiteralTokenDescriptor mutableDescriptor = new LiteralTokenDescriptor(true);
+	private final static LiteralTokenDescriptor mutable = new LiteralTokenDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link LiteralTokenDescriptor}.
 	 *
 	 * @return The mutable {@link LiteralTokenDescriptor}.
 	 */
-	public static LiteralTokenDescriptor mutableDescriptor ()
+	public static LiteralTokenDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link LiteralTokenDescriptor}.
 	 */
-	private final static LiteralTokenDescriptor immutableDescriptor = new LiteralTokenDescriptor(false);
+	private final static LiteralTokenDescriptor immutable = new LiteralTokenDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link LiteralTokenDescriptor}.
 	 *
 	 * @return The immutable {@link LiteralTokenDescriptor}.
 	 */
-	public static LiteralTokenDescriptor immutableDescriptor ()
+	public static LiteralTokenDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 
