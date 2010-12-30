@@ -39,6 +39,7 @@ import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
+import com.avail.oldcompiler.*;
 
 public class AvailCodeGenerator
 {
@@ -120,7 +121,7 @@ public class AvailCodeGenerator
 		{
 			nybbleIntegerArray.add(new Integer(nybble));
 		}
-		nybbleTuple = TupleDescriptor.mutableCompressedFromIntegerArray(
+		nybbleTuple = TupleDescriptor.mutableFromIntegerArray(
 			nybbleIntegerArray);
 		nybbleTuple.makeImmutable();
 		assert _resultType.isType();

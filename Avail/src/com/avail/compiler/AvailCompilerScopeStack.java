@@ -33,6 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.descriptor.AvailObject;
+import com.avail.oldcompiler.AvailVariableDeclarationNode;
 
 public class AvailCompilerScopeStack
 {

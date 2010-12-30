@@ -33,6 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.oldcompiler.AvailParseNode;
 
 public class AvailCompilerCachedSolution
 {

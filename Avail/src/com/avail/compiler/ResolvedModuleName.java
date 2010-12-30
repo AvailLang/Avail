@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/ResolvedModuleName.java
+ * com.avail.oldcompiler/ResolvedModuleName.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -90,7 +90,7 @@ extends ModuleName
 	 * @param localName A local module name.
 	 * @return A {@linkplain ModuleName module name}.
 	 */
-	ModuleName asSibling (final @NotNull String localName)
+	public ModuleName asSibling (final @NotNull String localName)
 	{
 		final String moduleGroup = isModuleGroup()
 			? qualifiedName()

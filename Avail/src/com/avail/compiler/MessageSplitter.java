@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/MessageSplitter.java
+ * com.avail.oldcompiler/MessageSplitter.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.compiler.scanner.AvailScanner;
 import com.avail.descriptor.*;
+import com.avail.oldcompiler.*;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -205,7 +206,7 @@ public class MessageSplitter
 		@Override
 		public String toString ()
 		{
-			StringBuilder builder = new StringBuilder();
+			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
 			builder.append(messageParts.get(tokenIndex - 1).asNativeString());
@@ -411,14 +412,14 @@ public class MessageSplitter
 				list.add(3);  // push parse position
 				list.add(1);  // push empty list
 				list.add(8 * loopSkip);  // branch to @loopSkip
-				int loopStart = list.size() + 1;
-				for (Expression expression : expressionsBeforeDagger)
+				final int loopStart = list.size() + 1;
+				for (final Expression expression : expressionsBeforeDagger)
 				{
 					expression.emitOn(list);
 				}
 				list.add(2);  // append
 				list.add(8 * loopExit);  // branch to @loopExit
-				for (Expression expression : expressionsAfterDagger)
+				for (final Expression expression : expressionsAfterDagger)
 				{
 					assert !expression.isArgumentOrGroup();
 					expression.emitOn(list);
@@ -461,9 +462,9 @@ public class MessageSplitter
 				list.add(3);  // push parse position
 				list.add(1);  // push empty list
 				list.add(8 * loopSkip);  // branch to @loopSkip
-				int loopStart = list.size() + 1;
+				final int loopStart = list.size() + 1;
 				list.add(1);  // inner list
-				for (Expression expression : expressionsBeforeDagger)
+				for (final Expression expression : expressionsBeforeDagger)
 				{
 					expression.emitOn(list);
 					if (expression.isArgumentOrGroup())
@@ -472,7 +473,7 @@ public class MessageSplitter
 					}
 				}
 				list.add(8 * loopExit);  // branch to @loopExit
-				for (Expression expression : expressionsAfterDagger)
+				for (final Expression expression : expressionsAfterDagger)
 				{
 					expression.emitOn(list);
 					if (expression.isArgumentOrGroup())
@@ -494,24 +495,24 @@ public class MessageSplitter
 		@Override
 		public String toString ()
 		{
-			List<String> strings = new ArrayList<String>();
-			for (Expression e : expressionsBeforeDagger)
+			final List<String> strings = new ArrayList<String>();
+			for (final Expression e : expressionsBeforeDagger)
 			{
 				strings.add(e.toString());
 			}
 			if (hasDagger)
 			{
 				strings.add("‡");
-				for (Expression e : expressionsAfterDagger)
+				for (final Expression e : expressionsAfterDagger)
 				{
 					strings.add(e.toString());
 				}
 			}
 
-			StringBuilder builder = new StringBuilder();
+			final StringBuilder builder = new StringBuilder();
 			builder.append("Group(");
 			boolean first = true;
-			for (String s : strings)
+			for (final String s : strings)
 			{
 				if (first)
 				{
@@ -560,15 +561,15 @@ public class MessageSplitter
 				// size ranges from the number of arguments left of the dagger
 				// up to that plus the number of arguments right of the dagger.
 				assert argumentType.isTupleType();
-				AvailObject expectedLower = IntegerDescriptor.objectFromInt(
+				final AvailObject expectedLower = IntegerDescriptor.objectFromInt(
 					argumentsBeforeDagger);
-				AvailObject expectedUpper = IntegerDescriptor.objectFromInt(
+				final AvailObject expectedUpper = IntegerDescriptor.objectFromInt(
 					argumentsBeforeDagger + argumentsAfterDagger);
 				for (int i = 1, limit = argumentType.typeTuple().tupleSize();
 					i <= limit;
 					i++)
 				{
-					AvailObject solutionType = argumentType.typeAtIndex(i);
+					final AvailObject solutionType = argumentType.typeAtIndex(i);
 					if (!solutionType.isTupleType())
 					{
 						error(
@@ -581,9 +582,9 @@ public class MessageSplitter
 					// Check that the solution that will reside at the current
 					// index accepts either a full group or a group up to the
 					// dagger.
-					AvailObject solutionTypeSizes = solutionType.sizeRange();
-					AvailObject lower = solutionTypeSizes.lowerBound();
-					AvailObject upper = solutionTypeSizes.upperBound();
+					final AvailObject solutionTypeSizes = solutionType.sizeRange();
+					final AvailObject lower = solutionTypeSizes.lowerBound();
+					final AvailObject upper = solutionTypeSizes.upperBound();
 					if (lower != expectedLower && lower != expectedUpper
 						|| upper != expectedLower && upper != expectedUpper)
 					{
@@ -600,7 +601,7 @@ public class MessageSplitter
 							solutionType.toString() + ".");
 					}
 					int j = 1;
-					for (Expression e : expressionsBeforeDagger)
+					for (final Expression e : expressionsBeforeDagger)
 					{
 						if (e.isArgumentOrGroup())
 						{
@@ -608,7 +609,7 @@ public class MessageSplitter
 							j++;
 						}
 					}
-					for (Expression e : expressionsAfterDagger)
+					for (final Expression e : expressionsAfterDagger)
 					{
 						if (e.isArgumentOrGroup())
 						{
@@ -652,14 +653,14 @@ public class MessageSplitter
 			List<AvailParseNode> argumentNodes;
 			if (doubleWrap)
 			{
-				AvailTupleNode tupleNode = (AvailTupleNode)argumentsNode;
-				argumentNodes = tupleNode.parseNodes;
+				final AvailTupleNode tupleNode = (AvailTupleNode)argumentsNode;
+				argumentNodes = tupleNode.parseNodes();
 			}
 			else
 			{
 				argumentNodes = Collections.singletonList(argumentsNode);
 			}
-			Iterator<AvailParseNode> argumentsIterator =
+			final Iterator<AvailParseNode> argumentsIterator =
 				argumentNodes.iterator();
 			boolean isFirst = true;
 			final List<Expression> expressionsToVisit;
@@ -675,7 +676,7 @@ public class MessageSplitter
 			{
 				expressionsToVisit = expressionsBeforeDagger;
 			}
-			for (Expression expr : expressionsToVisit)
+			for (final Expression expr : expressionsToVisit)
 			{
 				if (!isFirst)
 				{
@@ -684,22 +685,23 @@ public class MessageSplitter
 
 				if (expr instanceof Simple)
 				{
-					AvailObject token =
+					final AvailObject token =
 						messageParts.get(((Simple)expr).tokenIndex - 1);
 					aStream.append(token.asNativeString());
 				}
 				else if (expr instanceof Argument)
 				{
-					AvailParseNode argument = argumentsIterator.next();
+					final AvailParseNode argument = argumentsIterator.next();
 					argument.printOnIndentIn(aStream, indent, null);
 				}
 				else
 				{
 					assert expr instanceof Group;
-					Group subgroup = (Group)expr;
-					AvailParseNode argument = argumentsIterator.next();
-					AvailTupleNode argumentTuple = (AvailTupleNode)argument;
-					List<AvailParseNode> occurrences = argumentTuple.parseNodes;
+					final Group subgroup = (Group)expr;
+					final AvailParseNode argument = argumentsIterator.next();
+					final AvailTupleNode arguments = (AvailTupleNode)argument;
+					final List<AvailParseNode> occurrences =
+						arguments.parseNodes();
 					for (int i = 0; i < occurrences.size(); i++)
 					{
 						if (i > 0)
@@ -753,7 +755,7 @@ public class MessageSplitter
 		for (int i = 1; i <= 2; i++)
 		{
 			instructions.clear();
-			for (Expression expression : rootGroup.expressionsBeforeDagger)
+			for (final Expression expression : rootGroup.expressionsBeforeDagger)
 			{
 				expression.emitOn(instructions);
 			}
@@ -769,14 +771,14 @@ public class MessageSplitter
 	 */
 	public void dumpForDebug ()
 	{
-		List<String> partsList = new ArrayList<String>(messageParts.size());
-		for (AvailObject part : messageParts)
+		final List<String> partsList = new ArrayList<String>(messageParts.size());
+		for (final AvailObject part : messageParts)
 		{
 			partsList.add(part.asNativeString());
 		}
-		AvailObject instructionsTuple = instructionsTuple();
-		List<Integer> instructionsList = new ArrayList<Integer>();
-		for (AvailObject instruction : instructionsTuple)
+		final AvailObject instructionsTuple = instructionsTuple();
+		final List<Integer> instructionsList = new ArrayList<Integer>();
+		for (final AvailObject instruction : instructionsTuple)
 		{
 			instructionsList.add(instruction.extractInt());
 		}
@@ -796,7 +798,7 @@ public class MessageSplitter
 	 */
 	public AvailObject messageParts ()
 	{
-		AvailObject tuple = TupleDescriptor.mutableObjectFromArray(
+		final AvailObject tuple = TupleDescriptor.mutableObjectFromArray(
 			messageParts);
 		tuple.makeImmutable();
 		return tuple;
@@ -835,7 +837,7 @@ public class MessageSplitter
 	 */
 	public AvailObject instructionsTuple ()
 	{
-		AvailObject tuple = TupleDescriptor.mutableCompressedFromIntegerArray(
+		final AvailObject tuple = TupleDescriptor.mutableFromIntegerArray(
 			instructions);
 		tuple.makeImmutable();
 		return tuple;
@@ -924,7 +926,7 @@ public class MessageSplitter
 	 */
 	Group parseGroup ()
 	{
-		Group group = new Group();
+		final Group group = new Group();
 		while (true)
 		{
 			if (messagePartPosition > messageParts.size())
@@ -955,7 +957,7 @@ public class MessageSplitter
 				// Eat the open chevron, parse a subgroup, eat the (mandatory)
 				// close chevron, and add the group.
 				messagePartPosition++;
-				Group subgroup = parseGroup();
+				final Group subgroup = parseGroup();
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);

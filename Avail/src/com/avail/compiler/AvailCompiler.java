@@ -32,7 +32,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.newcompiler.TokenDescriptor.TokenType.*;
+import static com.avail.newcompiler.scanner.TokenDescriptor.TokenType.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -42,8 +42,9 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.*;
-import com.avail.newcompiler.TokenDescriptor.TokenType;
+import com.avail.newcompiler.scanner.*;
+import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
+import com.avail.oldcompiler.*;
 import com.avail.utility.*;
 
 /**
@@ -613,7 +614,7 @@ public class AvailCompiler
 								return;
 							}
 							if (!outermost
-									|| expression.type().equals(
+									|| expression.expressionType().equals(
 										Types.voidType.object()))
 							{
 								whenFoundStatement.value(
@@ -749,7 +750,7 @@ public class AvailCompiler
 				final ParserState afterExpression,
 				final AvailParseNode expression)
 			{
-				if (expression.type().isSubtypeOf(someType))
+				if (expression.expressionType().isSubtypeOf(someType))
 				{
 					// A unique, longest type-correct expression was found.
 					final AvailObject value = evaluate(expression);
@@ -845,7 +846,7 @@ public class AvailCompiler
 						{
 							final AvailConstantDeclarationNode constantDeclaration = new AvailConstantDeclarationNode();
 							constantDeclaration.name(localName);
-							constantDeclaration.declaredType(initExpression.type());
+							constantDeclaration.declaredType(initExpression.expressionType());
 							constantDeclaration
 									.initializingExpression(initExpression);
 							constantDeclaration.isArgument(false);
@@ -913,7 +914,7 @@ public class AvailCompiler
 								final ParserState afterInit,
 								final AvailParseNode initExpr)
 							{
-								if (initExpr.type().isSubtypeOf(type))
+								if (initExpr.expressionType().isSubtypeOf(type))
 								{
 									final AvailInitializingDeclarationNode initializingDeclaration = new AvailInitializingDeclarationNode();
 									initializingDeclaration.name(localName);
@@ -1746,7 +1747,7 @@ public class AvailCompiler
 									"; to end assignment statement");
 								return;
 							}
-							if (expr.type().isSubtypeOf(varType.value))
+							if (expr.expressionType().isSubtypeOf(varType.value))
 							{
 								final AvailAssignmentNode assignment =
 									new AvailAssignmentNode();
@@ -1762,7 +1763,7 @@ public class AvailCompiler
 									public String value ()
 									{
 										return "assignment expression's type ("
-												+ expr.type().toString()
+												+ expr.expressionType().toString()
 												+ ") to match variable type ("
 												+ varType.value.toString()
 												+ ")";
@@ -1984,7 +1985,7 @@ public class AvailCompiler
 			}
 			else
 			{
-				lastStatementType.value = lastStatement.type();
+				lastStatementType.value = lastStatement.expressionType();
 			}
 		}
 		else
@@ -2312,7 +2313,7 @@ public class AvailCompiler
 							new ArrayList<AvailObject>(argsSoFar.size());
 						for (final AvailParseNode arg : argsSoFar)
 						{
-							argTypes.add(arg.type());
+							argTypes.add(arg.expressionType());
 						}
 						final AvailObject returnType = interpreter
 							.validateTypesOfMessageSendArgumentTypesIfFail(
@@ -2359,8 +2360,6 @@ public class AvailCompiler
 						if (valid.value)
 						{
 							final AvailSendNode sendNode = new AvailSendNode();
-							sendNode.message(bundle.message());
-							sendNode.bundle(bundle);
 							sendNode.implementationSet(impSet);
 							sendNode.arguments(argsSoFar);
 							sendNode.returnType(returnType);
@@ -2876,7 +2875,7 @@ public class AvailCompiler
 		attempt(start, continuation, node);
 
 		// Don't wrap it if its type is void.
-		if (node.type().equals(Types.voidType.object()))
+		if (node.expressionType().equals(Types.voidType.object()))
 		{
 			return;
 		}
@@ -3055,7 +3054,7 @@ public class AvailCompiler
 								final ParserState afterType,
 								final AvailObject type)
 							{
-								if (expr.type().isSubtypeOf(type))
+								if (expr.expressionType().isSubtypeOf(type))
 								{
 									final AvailSuperCastNode cast =
 										new AvailSuperCastNode();
@@ -3249,13 +3248,13 @@ public class AvailCompiler
 					&& !lastStatement.isDeclaration()
 					&& !lastStatement.isLabel())
 			{
-				if (lastStatement.type().equals(Types.terminates.object()))
+				if (lastStatement.expressionType().equals(Types.terminates.object()))
 				{
 					start.expected(
 						"end of statements since this one always terminates");
 					return;
 				}
-				if (!lastStatement.type().equals(Types.voidType.object()))
+				if (!lastStatement.expressionType().equals(Types.voidType.object()))
 				{
 					start.expected(new Generator<String>()
 					{
@@ -3265,7 +3264,7 @@ public class AvailCompiler
 							return "non-last statement \""
 									+ lastStatement.toString()
 									+ "\" to have type void, not \""
-									+ lastStatement.type().toString()
+									+ lastStatement.expressionType().toString()
 									+ "\".";
 						}
 					});
