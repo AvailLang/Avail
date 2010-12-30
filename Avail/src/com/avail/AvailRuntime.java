@@ -231,7 +231,7 @@ public final class AvailRuntime
 			for (final AvailObject name : aModule.visibleNames())
 			{
 				assert name.isCyclicType();
-				MessageSplitter splitter = new MessageSplitter(name.name());
+				final MessageSplitter splitter = new MessageSplitter(name.name());
 				final AvailObject messageParts = splitter.messageParts();
 				final AvailObject instructions = splitter.instructionsTuple();
 				final AvailObject rootBundle = rootBundleTree.includeBundle(
@@ -425,7 +425,7 @@ public final class AvailRuntime
 			if (implementationSet.implementationsTuple().tupleSize() == 0)
 			{
 				methods = methods.mapWithoutKeyCanDestroy(selector, true);
-				MessageSplitter splitter = new MessageSplitter(selector.name());
+				final MessageSplitter splitter = new MessageSplitter(selector.name());
 				rootBundleTree.removeBundle(
 					MessageBundleDescriptor.newBundle(
 						selector,
