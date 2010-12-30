@@ -32,10 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureTypeDescriptor;
-import com.avail.descriptor.ContinuationTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 import java.util.List;
 
 public class ContinuationTypeDescriptor extends TypeDescriptor
@@ -129,7 +125,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's hash value.
 
-		return ((object.closureType().hash() * 11) ^ 0x3E20409);
+		return object.closureType().hash() * 11 ^ 0x3E20409;
 	}
 
 	@Override
@@ -233,7 +229,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return Types.terminates.object();
 		}
-		final AvailObject intersection = AvailObject.newIndexedDescriptor(closType1.numArgs(), ClosureTypeDescriptor.mutableDescriptor());
+		final AvailObject intersection = ClosureTypeDescriptor.mutable().create(
+			closType1.numArgs());
 		AvailObject.lock(intersection);
 		intersection.returnType(closType1.returnType().typeUnion(closType2.returnType()));
 		for (int i = 1, _end1 = closType1.numArgs(); i <= _end1; i++)
@@ -280,7 +277,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return Types.continuation.object();
 		}
-		final AvailObject closureUnion = AvailObject.newIndexedDescriptor(closType1.numArgs(), ClosureTypeDescriptor.mutableDescriptor());
+		final AvailObject closureUnion = ClosureTypeDescriptor.mutable().create(
+			closType1.numArgs());
 		AvailObject.lock(closureUnion);
 		closureUnion.returnType(closType1.returnType().typeIntersection(closType2.returnType()));
 		for (int i = 1, _end1 = closType1.numArgs(); i <= _end1; i++)
@@ -297,9 +295,9 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 
 	/* Descriptor lookup */
-	public static AvailObject continuationTypeForClosureType (AvailObject closureType)
+	public static AvailObject continuationTypeForClosureType (final AvailObject closureType)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, ContinuationTypeDescriptor.mutableDescriptor());
+		final AvailObject result = mutable().create();
 		result.closureType(closureType.makeImmutable());
 		result.makeImmutable();
 		return result;
@@ -320,30 +318,30 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ContinuationTypeDescriptor}.
 	 */
-	private final static ContinuationTypeDescriptor mutableDescriptor = new ContinuationTypeDescriptor(true);
+	private final static ContinuationTypeDescriptor mutable = new ContinuationTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContinuationTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ContinuationTypeDescriptor}.
 	 */
-	public static ContinuationTypeDescriptor mutableDescriptor ()
+	public static ContinuationTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ContinuationTypeDescriptor}.
 	 */
-	private final static ContinuationTypeDescriptor immutableDescriptor = new ContinuationTypeDescriptor(false);
+	private final static ContinuationTypeDescriptor immutable = new ContinuationTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContinuationTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ContinuationTypeDescriptor}.
 	 */
-	public static ContinuationTypeDescriptor immutableDescriptor ()
+	public static ContinuationTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

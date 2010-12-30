@@ -35,7 +35,8 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.newcompiler.TokenDescriptor;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -89,13 +90,23 @@ public abstract class AbstractDescriptor
 	final boolean hasVariableIntegerSlots;
 
 
+	/**
+	 * The registry of all {@linkplain AbstractDescriptor descriptors}.
+	 */
 	protected static final List<AbstractDescriptor> allDescriptors =
 		new ArrayList<AbstractDescriptor>(200);
 
+	/**
+	 * Note:  This is a logical shift *without* Java's implicit modulus on the
+	 * shift amount.
+	 *
+	 * @param value The value to shift.
+	 * @param leftShift The amount to shift left.  If negative, shift right by
+	 *                  the corresponding positive amount.
+	 * @return The shifted integer, modulus 2^32 then cast to int.
+	 */
 	protected static int bitShift (final int value, final int leftShift)
 	{
-		// Note:  This is a logical shift *without* Java's implicit modulus on
-		// the shift amount.
 		if (leftShift >= 32)
 		{
 			return 0;
@@ -134,7 +145,7 @@ public abstract class AbstractDescriptor
 			enumClass = (Class<Enum<?>>) loader.loadClass(
 				cls.getCanonicalName() + "$ObjectSlots");
 		}
-		catch (ClassNotFoundException e)
+		catch (final ClassNotFoundException e)
 		{
 			enumClass = null;
 		}
@@ -151,7 +162,7 @@ public abstract class AbstractDescriptor
 			enumClass = (Class<Enum<?>>) loader.loadClass(
 				cls.getCanonicalName() + "$IntegerSlots");
 		}
-		catch (ClassNotFoundException e)
+		catch (final ClassNotFoundException e)
 		{
 			enumClass = null;
 		}
@@ -230,6 +241,46 @@ public abstract class AbstractDescriptor
 		return 5;
 	}
 
+	public final void checkWriteForField (final Enum<?> e)
+	{
+		if (isMutable())
+		{
+			return;
+		}
+		if (allowsImmutableToMutableReferenceInField(e))
+		{
+			return;
+		}
+		error("Illegal write into immutable object");
+		return;
+	}
+
+
+	/**
+	 * Create a new AvailObject whose descriptor is the receiver, and which has
+	 * the specified number of indexed (variable) slots.
+	 *
+	 * @param indexedSlotCount The number of variable slots to include.
+	 * @return The new uninitialized object.
+	 */
+	public final AvailObject create (final int indexedSlotCount)
+	{
+		return AvailObject.newIndexedDescriptor(indexedSlotCount, this);
+	}
+
+
+	/**
+	 * Create a new AvailObject whose descriptor is the receiver, and which has
+	 * no indexed (variable) slots.
+	 *
+	 * @return The new uninitialized object.
+	 */
+	public final AvailObject create ()
+	{
+		return create(0);
+	}
+
+
 	/**
 	 * Print the object to the {@link StringBuilder}.  By default show it as the
 	 * descriptor name and a line-by-line list of fields.  If the indent is
@@ -250,8 +301,8 @@ public abstract class AbstractDescriptor
 		final int indent)
 	{
 		builder.append('a');
-		String className = getClass().getSimpleName();
-		String shortenedName = className.substring(0, className.length() - 10);
+		final String className = getClass().getSimpleName();
+		final String shortenedName = className.substring(0, className.length() - 10);
 		switch (shortenedName.codePointAt(0))
 		{
 			case 'A':
@@ -277,7 +328,7 @@ public abstract class AbstractDescriptor
 			enumClass = (Class<Enum<?>>) loader.loadClass(
 				cls.getCanonicalName() + "$IntegerSlots");
 		}
-		catch (ClassNotFoundException e)
+		catch (final ClassNotFoundException e)
 		{
 			enumClass = null;
 		}
@@ -292,13 +343,13 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			int ordinal = Math.min(i, instances.length) - 1;
-			Enum<?> slot = instances[ordinal];
-			String slotName = slot.name();
+			final int ordinal = Math.min(i, instances.length) - 1;
+			final Enum<?> slot = instances[ordinal];
+			final String slotName = slot.name();
 			int value;
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
-				int subscript = i - instances.length + 1;
+				final int subscript = i - instances.length + 1;
 				value = object.integerSlotAt(slot, subscript);
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
@@ -322,7 +373,7 @@ public abstract class AbstractDescriptor
 			enumClass = (Class<Enum<?>>) loader.loadClass(
 				cls.getCanonicalName() + "$ObjectSlots");
 		}
-		catch (ClassNotFoundException e)
+		catch (final ClassNotFoundException e)
 		{
 			enumClass = null;
 		}
@@ -337,12 +388,12 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			int ordinal = Math.min(i, instances.length) - 1;
-			Enum<?> slot = instances[ordinal];
-			String slotName = slot.name();
+			final int ordinal = Math.min(i, instances.length) - 1;
+			final Enum<?> slot = instances[ordinal];
+			final String slotName = slot.name();
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
-				int subscript = i - instances.length + 1;
+				final int subscript = i - instances.length + 1;
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
 				builder.append(subscript);
@@ -363,22 +414,6 @@ public abstract class AbstractDescriptor
 			}
 		}
 	}
-
-	public final void checkWriteForField (final Enum<?> e)
-	{
-		if (isMutable())
-		{
-			return;
-		}
-		if (allowsImmutableToMutableReferenceInField(e))
-		{
-			return;
-		}
-		error("Illegal write into immutable object");
-		return;
-	}
-
-
 
 	public abstract boolean o_AcceptsArgTypesFromClosureType (
 		final AvailObject object,
@@ -4629,5 +4664,269 @@ public abstract class AbstractDescriptor
 	public abstract void o_mapDo (
 		final AvailObject object,
 		final Continuation2<AvailObject, AvailObject> continuation);
+
+	/**
+	 * @param object
+	 * @param expression
+	 * @return
+	 */
+	public abstract void o_Expression (
+		final AvailObject object,
+		final AvailObject expression);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Expression (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param variable
+	 */
+	public abstract void o_Variable (
+		final AvailObject object,
+		final AvailObject variable);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Variable (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param argumentsTuple
+	 */
+	public abstract void o_ArgumentsTuple (
+		AvailObject object,
+		AvailObject argumentsTuple);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_ArgumentsTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param statementsTuple
+	 */
+	public abstract void o_StatementsTuple (
+		AvailObject object,
+		AvailObject statementsTuple);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_StatementsTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param resultType
+	 */
+	public abstract void o_ResultType (
+		AvailObject object,
+		AvailObject resultType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_ResultType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param neededVariables
+	 */
+	public abstract void o_NeededVariables (
+		AvailObject object,
+		AvailObject neededVariables);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_NeededVariables (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param primitive
+	 */
+	public abstract void o_Primitive (AvailObject object, int primitive);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract int o_Primitive (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param declaredType
+	 */
+	public abstract void o_DeclaredType (
+		AvailObject object,
+		AvailObject declaredType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_DeclaredType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param declarationKind
+	 */
+	public abstract void o_DeclarationKind (
+		final AvailObject object,
+		final DeclarationKind declarationKind);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract DeclarationKind o_DeclarationKind (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param initializationExpression
+	 */
+	public abstract void o_InitializationExpression (
+		AvailObject object,
+		AvailObject initializationExpression);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_InitializationExpression (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param literalObject
+	 */
+	public abstract void o_LiteralObject (
+		AvailObject object,
+		AvailObject literalObject);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_LiteralObject (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param token
+	 */
+	public abstract void o_Token (AvailObject object, AvailObject token);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Token (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param markerValue
+	 */
+	public abstract void o_MarkerValue (
+		AvailObject object,
+		AvailObject markerValue);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_MarkerValue (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param arguments
+	 */
+	public abstract void o_Arguments (
+		AvailObject object,
+		AvailObject arguments);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Arguments (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param implementationSet
+	 */
+	public abstract void o_ImplementationSet (
+		AvailObject object,
+		AvailObject implementationSet);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_ImplementationSet (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param superCastType
+	 */
+	public abstract void o_SuperCastType (
+		AvailObject object,
+		AvailObject superCastType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_SuperCastType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param expressionsTuple
+	 */
+	public abstract void o_ExpressionsTuple (
+		AvailObject object,
+		AvailObject expressionsTuple);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_ExpressionsTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param tupleType
+	 */
+	public abstract void o_TupleType (
+		AvailObject object,
+		AvailObject tupleType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_TupleType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param declaration
+	 */
+	public abstract void o_Declaration (
+		AvailObject object,
+		AvailObject declaration);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Declaration (AvailObject object);
 
 }

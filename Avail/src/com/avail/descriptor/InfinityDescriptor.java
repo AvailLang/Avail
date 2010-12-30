@@ -418,11 +418,11 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 
 	static void createWellKnownObjects ()
 	{
-		Positive = AvailObject.newIndexedDescriptor(0, InfinityDescriptor.mutableDescriptor());
+		Positive = mutable().create();
 		Positive.whichOne(1);
 		//  See #positiveInfinity
 		Positive.makeImmutable();
-		Negative = AvailObject.newIndexedDescriptor(0, InfinityDescriptor.mutableDescriptor());
+		Negative = mutable().create();
 		Negative.whichOne(2);
 		//  See #negativeInfinity
 		Negative.makeImmutable();
@@ -461,30 +461,30 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	/**
 	 * The mutable {@link InfinityDescriptor}.
 	 */
-	private final static InfinityDescriptor mutableDescriptor = new InfinityDescriptor(true);
+	private final static InfinityDescriptor mutable = new InfinityDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link InfinityDescriptor}.
 	 *
 	 * @return The mutable {@link InfinityDescriptor}.
 	 */
-	public static InfinityDescriptor mutableDescriptor ()
+	public static InfinityDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link InfinityDescriptor}.
 	 */
-	private final static InfinityDescriptor immutableDescriptor = new InfinityDescriptor(false);
+	private final static InfinityDescriptor immutable = new InfinityDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link InfinityDescriptor}.
 	 *
 	 * @return The immutable {@link InfinityDescriptor}.
 	 */
-	public static InfinityDescriptor immutableDescriptor ()
+	public static InfinityDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

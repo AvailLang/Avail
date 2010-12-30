@@ -104,7 +104,7 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link VoidTypeDescriptor}.
 	 */
-	private final static VoidTypeDescriptor mutableDescriptor = new VoidTypeDescriptor(true);
+	private final static VoidTypeDescriptor mutable = new VoidTypeDescriptor(true);
 
 	/**
 	 * Answer a mutable {@link VoidTypeDescriptor}.
@@ -117,15 +117,15 @@ extends PrimitiveTypeDescriptor
 	 *
 	 * @return The mutable {@link VoidTypeDescriptor}.
 	 */
-	public static VoidTypeDescriptor mutableDescriptor ()
+	public static VoidTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link VoidTypeDescriptor}.
 	 */
-	private final static VoidTypeDescriptor immutableDescriptor = new VoidTypeDescriptor(false);
+	private final static VoidTypeDescriptor immutable = new VoidTypeDescriptor(false);
 
 	/**
 	 * Answer an immutable {@link VoidTypeDescriptor}.
@@ -138,9 +138,9 @@ extends PrimitiveTypeDescriptor
 	 *
 	 * @return The immutable {@link VoidTypeDescriptor}.
 	 */
-	public static VoidTypeDescriptor immutableDescriptor ()
+	public static VoidTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 }

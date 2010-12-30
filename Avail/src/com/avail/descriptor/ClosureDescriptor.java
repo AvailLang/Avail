@@ -284,9 +284,9 @@ public class ClosureDescriptor extends Descriptor
 			final int numArgs,
 			final AvailObject constantResult)
 	{
-		L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter();
 
-		AvailObject [] argTypes = new AvailObject [numArgs];
+		final AvailObject [] argTypes = new AvailObject [numArgs];
 		fill(argTypes, Types.all.object());
 		writer.argumentTypes(argTypes);
 		writer.returnType(constantResult.type());
@@ -296,8 +296,8 @@ public class ClosureDescriptor extends Descriptor
 				writer.addLiteral(constantResult)));
 		writer.primitiveNumber(
 			Primitive.prim340_PushConstant_ignoreArgs.primitiveNumber);
-		AvailObject code = writer.compiledCode();
-		AvailObject closure =
+		final AvailObject code = writer.compiledCode();
+		final AvailObject closure =
 			ClosureDescriptor.create (
 				code,
 				TupleDescriptor.empty());
@@ -327,8 +327,8 @@ public class ClosureDescriptor extends Descriptor
 			final AvailObject firstArg,
 			final AvailObject resultType)
 	{
-		int numArgs = argTypes.tupleSize();
-		AvailObject [] argTypesArray = new AvailObject[numArgs];
+		final int numArgs = argTypes.tupleSize();
+		final AvailObject [] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
 		{
 			assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(
@@ -336,7 +336,7 @@ public class ClosureDescriptor extends Descriptor
 			argTypesArray[i - 1] = argTypes.tupleAt(i);
 		}
 
-		L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(resultType);
 		writer.write(
@@ -354,9 +354,9 @@ public class ClosureDescriptor extends Descriptor
 				writer.addLiteral(implementationSet),
 				writer.addLiteral(resultType)));
 
-		AvailObject code = writer.compiledCode();
+		final AvailObject code = writer.compiledCode();
 
-		AvailObject closure =
+		final AvailObject closure =
 			ClosureDescriptor.create (
 				code,
 				TupleDescriptor.empty());
@@ -376,9 +376,8 @@ public class ClosureDescriptor extends Descriptor
 			final AvailObject code,
 			final AvailObject copiedTuple)
 	{
-		AvailObject object = AvailObject.newIndexedDescriptor (
-			copiedTuple.tupleSize(),
-			ClosureDescriptor.mutableDescriptor());
+		final AvailObject object = mutable().create(
+			copiedTuple.tupleSize());
 		object.code (code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
 		{
@@ -403,30 +402,30 @@ public class ClosureDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ClosureDescriptor}.
 	 */
-	private final static ClosureDescriptor mutableDescriptor = new ClosureDescriptor(true);
+	private final static ClosureDescriptor mutable = new ClosureDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ClosureDescriptor}.
 	 *
 	 * @return The mutable {@link ClosureDescriptor}.
 	 */
-	public static ClosureDescriptor mutableDescriptor ()
+	public static ClosureDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ClosureDescriptor}.
 	 */
-	private final static ClosureDescriptor immutableDescriptor = new ClosureDescriptor(false);
+	private final static ClosureDescriptor immutable = new ClosureDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ClosureDescriptor}.
 	 *
 	 * @return The immutable {@link ClosureDescriptor}.
 	 */
-	public static ClosureDescriptor immutableDescriptor ()
+	public static ClosureDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

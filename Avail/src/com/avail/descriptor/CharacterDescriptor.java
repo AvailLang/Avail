@@ -76,9 +76,7 @@ extends Descriptor
 		byteCharacters = new AvailObject[256];
 		for (int i = 0; i <= 255; i++)
 		{
-			AvailObject object = AvailObject.newIndexedDescriptor(
-				0,
-				CharacterDescriptor.mutableDescriptor());
+			AvailObject object = mutable().create();
 			object.codePoint(i);
 			object.makeImmutable();
 			byteCharacters[i] = object;
@@ -109,8 +107,7 @@ extends Descriptor
 			return byteCharacters[codePoint];
 		}
 
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0, CharacterDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.codePoint(codePoint);
 		result.makeImmutable();
 		return result;
@@ -166,7 +163,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link CharacterDescriptor}.
 	 */
-	final private static CharacterDescriptor mutableDescriptor =
+	final private static CharacterDescriptor mutable =
 		new CharacterDescriptor(true);
 
 	/**
@@ -180,15 +177,15 @@ extends Descriptor
 	 *
 	 * @return The mutable {@link CharacterDescriptor}.
 	 */
-	public static CharacterDescriptor mutableDescriptor ()
+	public static CharacterDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link CharacterDescriptor}.
 	 */
-	final static CharacterDescriptor immutableDescriptor =
+	final static CharacterDescriptor immutable =
 		new CharacterDescriptor(false);
 
 	/**
@@ -202,9 +199,9 @@ extends Descriptor
 	 *
 	 * @return The immutable {@link CharacterDescriptor}.
 	 */
-	public static CharacterDescriptor immutableDescriptor ()
+	public static CharacterDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 

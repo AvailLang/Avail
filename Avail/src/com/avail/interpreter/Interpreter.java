@@ -151,8 +151,7 @@ public abstract class Interpreter
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
 		//  Add the stubbed method implementation.
-		final AvailObject newImp = AvailObject.newIndexedDescriptor(
-			0, ForwardSignatureDescriptor.mutableDescriptor());
+		final AvailObject newImp = ForwardSignatureDescriptor.mutable().create();
 		newImp.bodySignature(bodySignature);
 		newImp.makeImmutable();
 		module.atAddMethodImplementation(methodName, newImp);
@@ -271,8 +270,7 @@ public abstract class Interpreter
 		requiresBlock.makeImmutable();
 		returnsBlock.makeImmutable();
 		//  Add the method implementation.
-		final AvailObject newImp = AvailObject.newIndexedDescriptor(
-			0, MethodSignatureDescriptor.mutableDescriptor());
+		final AvailObject newImp = MethodSignatureDescriptor.mutable().create();
 		newImp.bodyBlockRequiresBlockReturnsBlock(
 			bodyBlock,
 			requiresBlock,
@@ -376,8 +374,7 @@ public abstract class Interpreter
 		requiresBlock.makeImmutable();
 		returnsBlock.makeImmutable();
 		//  Add the method implementation.
-		final AvailObject newImp = AvailObject.newIndexedDescriptor(
-			0, AbstractSignatureDescriptor.mutableDescriptor());
+		final AvailObject newImp = AbstractSignatureDescriptor.mutable().create();
 		newImp.bodySignatureRequiresBlockReturnsBlock(
 			bodySignature,
 			requiresBlock,
@@ -823,7 +820,7 @@ public abstract class Interpreter
 	}
 
 	{
-		process = AvailObject.newIndexedDescriptor(0, ProcessDescriptor.mutableDescriptor());
+		process = ProcessDescriptor.mutable().create();
 		process.priority(50);
 		process.continuation(VoidDescriptor.voidObject());
 		process.executionMode(ExecutionMode.noDebug);

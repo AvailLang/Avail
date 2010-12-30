@@ -165,7 +165,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 			final AvailObject object)
 	{
 		object.descriptor(
-			UnexpandedMessageBundleTreeDescriptor.immutableDescriptor());
+			UnexpandedMessageBundleTreeDescriptor.immutable());
 		// Don't bother scanning subobjects. They're allowed to be mutable even
 		// when object is immutable.
 		return object;
@@ -378,9 +378,9 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 				}
 			}
 		});
-		assert numberOfFixedObjectSlots() == ExpandedMessageBundleTreeDescriptor.immutableDescriptor().numberOfFixedObjectSlots();
+		assert numberOfFixedObjectSlots() == ExpandedMessageBundleTreeDescriptor.immutable().numberOfFixedObjectSlots();
 		object.descriptor(
-			ExpandedMessageBundleTreeDescriptor.immutableDescriptor());
+			ExpandedMessageBundleTreeDescriptor.immutable());
 		object.complete(complete.value);
 		object.incomplete(incomplete.value);
 		object.parsingPc(pc);
@@ -406,9 +406,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 */
 	public static AvailObject newPc(final int pc)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0,
-			UnexpandedMessageBundleTreeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.unclassified(MapDescriptor.empty());
 		result.pad1(VoidDescriptor.voidObject());
 		result.pad2(VoidDescriptor.voidObject());
@@ -432,30 +430,30 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	/**
 	 * The mutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 */
-	private final static UnexpandedMessageBundleTreeDescriptor mutableDescriptor = new UnexpandedMessageBundleTreeDescriptor(true);
+	private final static UnexpandedMessageBundleTreeDescriptor mutable = new UnexpandedMessageBundleTreeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 *
 	 * @return The mutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 */
-	public static UnexpandedMessageBundleTreeDescriptor mutableDescriptor ()
+	public static UnexpandedMessageBundleTreeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 */
-	private final static UnexpandedMessageBundleTreeDescriptor immutableDescriptor = new UnexpandedMessageBundleTreeDescriptor(false);
+	private final static UnexpandedMessageBundleTreeDescriptor immutable = new UnexpandedMessageBundleTreeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 *
 	 * @return The immutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 */
-	public static UnexpandedMessageBundleTreeDescriptor immutableDescriptor ()
+	public static UnexpandedMessageBundleTreeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

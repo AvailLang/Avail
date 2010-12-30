@@ -247,7 +247,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	/* Descriptor lookup */
 	public static AvailObject wrapInnerType (AvailObject innerType)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, ContainerTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.innerType(innerType.makeImmutable());
 		result.makeImmutable();
 		return result;
@@ -266,30 +266,30 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	/* Descriptor lookup */
-	private final static ContainerTypeDescriptor mutableDescriptor = new ContainerTypeDescriptor(true);
+	private final static ContainerTypeDescriptor mutable = new ContainerTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContainerTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ContainerTypeDescriptor}.
 	 */
-	public static ContainerTypeDescriptor mutableDescriptor ()
+	public static ContainerTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ContainerTypeDescriptor}.
 	 */
-	private final static ContainerTypeDescriptor immutableDescriptor = new ContainerTypeDescriptor(false);
+	private final static ContainerTypeDescriptor immutable = new ContainerTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContainerTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ContainerTypeDescriptor}.
 	 */
-	public static ContainerTypeDescriptor immutableDescriptor ()
+	public static ContainerTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

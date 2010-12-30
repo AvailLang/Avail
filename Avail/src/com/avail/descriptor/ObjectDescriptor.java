@@ -177,9 +177,7 @@ public class ObjectDescriptor extends Descriptor
 	/* Object creation */
 	public static AvailObject objectFromMap (AvailObject map)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0,
-			ObjectDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.fieldMap(map);
 		return result;
 	};
@@ -205,30 +203,30 @@ public class ObjectDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ObjectDescriptor}.
 	 */
-	private final static ObjectDescriptor mutableDescriptor = new ObjectDescriptor(true);
+	private final static ObjectDescriptor mutable = new ObjectDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectDescriptor}.
 	 *
 	 * @return The mutable {@link ObjectDescriptor}.
 	 */
-	public static ObjectDescriptor mutableDescriptor ()
+	public static ObjectDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ObjectDescriptor}.
 	 */
-	private final static ObjectDescriptor immutableDescriptor = new ObjectDescriptor(false);
+	private final static ObjectDescriptor immutable = new ObjectDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectDescriptor}.
 	 *
 	 * @return The immutable {@link ObjectDescriptor}.
 	 */
-	public static ObjectDescriptor immutableDescriptor ()
+	public static ObjectDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

@@ -655,7 +655,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 				error("Illegal tuple type construction (some element type)");
 			}
 		}
-		AvailObject result = AvailObject.newIndexedDescriptor(0, TupleTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.sizeRange(sizeRange);
 		result.typeTuple(typeTuple);
 		result.defaultType(defaultType);
@@ -710,30 +710,30 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link TupleTypeDescriptor}.
 	 */
-	private final static TupleTypeDescriptor mutableDescriptor = new TupleTypeDescriptor(true);
+	private final static TupleTypeDescriptor mutable = new TupleTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TupleTypeDescriptor}.
 	 *
 	 * @return The mutable {@link TupleTypeDescriptor}.
 	 */
-	public static TupleTypeDescriptor mutableDescriptor ()
+	public static TupleTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link TupleTypeDescriptor}.
 	 */
-	private final static TupleTypeDescriptor immutableDescriptor = new TupleTypeDescriptor(false);
+	private final static TupleTypeDescriptor immutable = new TupleTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TupleTypeDescriptor}.
 	 *
 	 * @return The immutable {@link TupleTypeDescriptor}.
 	 */
-	public static TupleTypeDescriptor immutableDescriptor ()
+	public static TupleTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

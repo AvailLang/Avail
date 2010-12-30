@@ -153,7 +153,7 @@ public class FloatDescriptor extends Descriptor
 	/* Special instance accessing */
 	public static AvailObject objectFromFloat(float aFloat)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, FloatDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.rawQuad1(Float.floatToRawIntBits(aFloat));
 		return result;
 	};
@@ -167,7 +167,7 @@ public class FloatDescriptor extends Descriptor
 		}
 		else
 		{
-			result = AvailObject.newIndexedDescriptor(0, FloatDescriptor.mutableDescriptor());
+			result = mutable().create();
 		}
 		result.rawQuad1(Float.floatToRawIntBits(aFloat));
 		return result;
@@ -188,7 +188,7 @@ public class FloatDescriptor extends Descriptor
 			}
 			else
 			{
-				result = AvailObject.newIndexedDescriptor(0, FloatDescriptor.mutableDescriptor());
+				result = mutable().create();
 			}
 		}
 		result.rawQuad1(Float.floatToRawIntBits(aFloat));
@@ -210,30 +210,30 @@ public class FloatDescriptor extends Descriptor
 	/**
 	 * The mutable {@link FloatDescriptor}.
 	 */
-	private final static FloatDescriptor mutableDescriptor = new FloatDescriptor(true);
+	private final static FloatDescriptor mutable = new FloatDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link FloatDescriptor}.
 	 *
 	 * @return The mutable {@link FloatDescriptor}.
 	 */
-	public static FloatDescriptor mutableDescriptor ()
+	public static FloatDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link FloatDescriptor}.
 	 */
-	private final static FloatDescriptor immutableDescriptor = new FloatDescriptor(false);
+	private final static FloatDescriptor immutable = new FloatDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link FloatDescriptor}.
 	 *
 	 * @return The immutable {@link FloatDescriptor}.
 	 */
-	public static FloatDescriptor immutableDescriptor ()
+	public static FloatDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

@@ -32,17 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TwoByteStringDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
+import static java.lang.Math.min;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
-import static java.lang.Math.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class TwoByteStringDescriptor extends TupleDescriptor
 {
@@ -84,15 +78,15 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		aStream.append("\"");
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			final char c = ((char)(object.rawShortForCharacterAt(i)));
-			if (((c == '\"') || ((c == '\'') || (c == '\\'))))
+			final char c = (char)object.rawShortForCharacterAt(i);
+			if (c == '\"' || c == '\'' || c == '\\')
 			{
 				aStream.append('\\');
 				aStream.append(c);
 			}
 			else
 			{
-				aStream.append(((char)(object.rawShortForCharacterAt(i))));
+				aStream.append((char)object.rawShortForCharacterAt(i));
 			}
 		}
 		aStream.append('\"');
@@ -244,7 +238,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
-	
+
 	/**
 	 * Make the object immutable so it can be shared safely.
 	 */
@@ -322,11 +316,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		//  Answer a tuple with all the elements of object except at the given index we should
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
-		assert ((index >= 1) && (index <= object.tupleSize()));
+		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
 			final int codePoint = newValueObject.codePoint();
-			if (((codePoint >= 0) && (codePoint <= 0xFFFF)))
+			if (codePoint >= 0 && codePoint <= 0xFFFF)
 			{
 				if (canDestroy & isMutable)
 				{
@@ -422,10 +416,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer a mutable copy of object that also only holds 16-bit characters.
 
-		final AvailObject result = AvailObject.newIndexedDescriptor(
-			(object.tupleSize() + 1) >> 1,
-			TwoByteStringDescriptor.isMutableSize(true, object.tupleSize()));
-		assert (result.integerSlotsCount() == object.integerSlotsCount());
+		final AvailObject result = isMutableSize(true, object.tupleSize()).create(
+			object.tupleSize() + 1 >> 1);
+		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
@@ -441,10 +434,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	AvailObject privateMutableObjectFromNativeTwoByteString (
 			final String aNativeTwoByteString)
 	{
-		AvailObject result = mutableObjectOfSize(aNativeTwoByteString.length());
+		final AvailObject result = mutableObjectOfSize(
+			aNativeTwoByteString.length());
 		for (int index = 1; index <= aNativeTwoByteString.length(); index++)
 		{
-			char c = aNativeTwoByteString.charAt(index - 1);
+			final char c = aNativeTwoByteString.charAt(index - 1);
 			result.rawShortForCharacterAtPut(index, (short)c);
 		}
 		return result;
@@ -461,25 +455,24 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (((size + unusedShortsOfLastWord) * 2) & 3) == 0;
-		final AvailObject result = AvailObject.newIndexedDescriptor(
-			(size + 1) >> 1,
-			this);
+		assert ((size + unusedShortsOfLastWord) * 2 & 3) == 0;
+		final AvailObject result = this.create(
+			size + 1 >> 1);
 		return result;
 	}
 
 	// Descriptor lookup
-	static TwoByteStringDescriptor isMutableSize(boolean flag, int size)
+	static TwoByteStringDescriptor isMutableSize(final boolean flag, final int size)
 	{
-		int delta = flag ? 0 : 1;
-		return descriptors [delta + ((size & 1) * 2)];
+		final int delta = flag ? 0 : 1;
+		return descriptors [delta + (size & 1) * 2];
 	};
 
 
 	// Object creation
-	public static AvailObject mutableObjectFromNativeTwoByteString(String aNativeTwoByteString)
+	public static AvailObject mutableObjectFromNativeTwoByteString(final String aNativeTwoByteString)
 	{
-		TwoByteStringDescriptor descriptor = isMutableSize(true, aNativeTwoByteString.length());
+		final TwoByteStringDescriptor descriptor = isMutableSize(true, aNativeTwoByteString.length());
 		return descriptor.privateMutableObjectFromNativeTwoByteString(aNativeTwoByteString);
 	}
 

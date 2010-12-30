@@ -192,30 +192,30 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The mutable {@link ForwardSignatureDescriptor}.
 	 */
-	private final static ForwardSignatureDescriptor mutableDescriptor = new ForwardSignatureDescriptor(true);
+	private final static ForwardSignatureDescriptor mutable = new ForwardSignatureDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ForwardSignatureDescriptor}.
 	 *
 	 * @return The mutable {@link ForwardSignatureDescriptor}.
 	 */
-	public static ForwardSignatureDescriptor mutableDescriptor ()
+	public static ForwardSignatureDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ForwardSignatureDescriptor}.
 	 */
-	private final static ForwardSignatureDescriptor immutableDescriptor = new ForwardSignatureDescriptor(false);
+	private final static ForwardSignatureDescriptor immutable = new ForwardSignatureDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ForwardSignatureDescriptor}.
 	 *
 	 * @return The immutable {@link ForwardSignatureDescriptor}.
 	 */
-	public static ForwardSignatureDescriptor immutableDescriptor ()
+	public static ForwardSignatureDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

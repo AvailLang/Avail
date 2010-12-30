@@ -340,7 +340,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	/* Object creation */
 	public static AvailObject objectTypeFromMap (AvailObject map)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, ObjectTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.fieldTypeMap(map);
 		return result;
 	};
@@ -360,30 +360,30 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ObjectTypeDescriptor}.
 	 */
-	private final static ObjectTypeDescriptor mutableDescriptor = new ObjectTypeDescriptor(true);
+	private final static ObjectTypeDescriptor mutable = new ObjectTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ObjectTypeDescriptor}.
 	 */
-	public static ObjectTypeDescriptor mutableDescriptor ()
+	public static ObjectTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ObjectTypeDescriptor}.
 	 */
-	private final static ObjectTypeDescriptor immutableDescriptor = new ObjectTypeDescriptor(false);
+	private final static ObjectTypeDescriptor immutable = new ObjectTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ObjectTypeDescriptor}.
 	 */
-	public static ObjectTypeDescriptor immutableDescriptor ()
+	public static ObjectTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

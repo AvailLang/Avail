@@ -221,7 +221,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  descendants).  Actually, I allow my implementationsTuple, my privateTestingTree,
 		//  and my dependentsChunks slots to be mutable even when I'm immutable.
 
-		object.descriptor(ImplementationSetDescriptor.immutableDescriptor());
+		object.descriptor(ImplementationSetDescriptor.immutable());
 		object.name().makeImmutable();
 		//  Don't bother scanning implementationsTuple, privateTestingTree and dependentChunks.
 		//  They're allowed to be mutable even when object is immutable.
@@ -306,22 +306,29 @@ public class ImplementationSetDescriptor extends Descriptor
 				boolean all = true;
 				for (int k = 1, _end2 = positiveTuple.tupleSize(); k <= _end2; k++)
 				{
-					all = all && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(positiveTuple.tupleAt(i).extractInt()).bodySignature());
+					all = all && imps.tupleAt(
+							positiveTuple.tupleAt(k).extractInt()
+						).bodySignature().acceptsArgTypesFromClosureType(
+							imps.tupleAt(
+								positiveTuple.tupleAt(i).extractInt()
+							).bodySignature());
 				}
 				if (all)
 				{
-					result = AvailObject.newIndexedDescriptor(1, ByteTupleDescriptor.isMutableSize(true, 1));
+					result = ByteTupleDescriptor.isMutableSize(true, 1).create(
+						1);
 					result.hashOrZero(0);
 					result = result.tupleAtPuttingCanDestroy(
 						1,
-						IntegerDescriptor.objectFromInt((positiveTuple.tupleAt(i).extractInt() * 2 + 1)),
+						IntegerDescriptor.objectFromInt(
+							positiveTuple.tupleAt(i).extractInt() * 2 + 1),
 						true);
 					return result;
 				}
 			}
 			//  There was no most specific positive signature.  Indicate an ambiguity error at this
 			//  point in the tree.
-			result = AvailObject.newIndexedDescriptor(1, ByteTupleDescriptor.isMutableSize(true, 1));
+			result = ByteTupleDescriptor.isMutableSize(true, 1).create(1);
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
@@ -362,7 +369,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		if (!possibleSolutionExists)
 		{
-			result = AvailObject.newIndexedDescriptor(1, ByteTupleDescriptor.isMutableSize(true, 1));
+			result = ByteTupleDescriptor.isMutableSize(true, 1).create(1);
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
@@ -405,7 +412,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		AvailObject newPositive = positiveTuple.asSet();
 		for (int i = 1, _end9 = possibilities.tupleSize(); i <= _end9; i++)
 		{
-			AvailObject boxedIndex = possibilities.tupleAt(i);
+			final AvailObject boxedIndex = possibilities.tupleAt(i);
 			possibility = imps.tupleAt(boxedIndex.extractInt());
 			if (possibility.bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(bestIndex).bodySignature()))
 			{
@@ -431,7 +438,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		newPossible = possibilities.asSet();
 		for (int i = 1, _end11 = possibilities.tupleSize(); i <= _end11; i++)
 		{
-			AvailObject boxedIndex = possibilities.tupleAt(i);
+			final AvailObject boxedIndex = possibilities.tupleAt(i);
 			possibility = imps.tupleAt(boxedIndex.extractInt());
 			if (imps.tupleAt(bestIndex).bodySignature().acceptsArgTypesFromClosureType(possibility.bodySignature()))
 			{
@@ -534,7 +541,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject imp)
 	{
-		for (AvailObject signature : object.implementationsTuple())
+		for (final AvailObject signature : object.implementationsTuple())
 		{
 			if (signature.equals(imp))
 			{
@@ -972,9 +979,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		final AvailObject messageName)
 	{
 		assert messageName.isCyclicType();
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0,
-			mutableDescriptor());
+		final AvailObject result = mutable().create();
 		result.implementationsTuple(TupleDescriptor.empty());
 		result.privateTestingTree(TupleDescriptor.empty());
 		result.dependentChunks(SetDescriptor.empty());
@@ -998,30 +1003,30 @@ public class ImplementationSetDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ImplementationSetDescriptor}.
 	 */
-	private final static ImplementationSetDescriptor mutableDescriptor = new ImplementationSetDescriptor(true);
+	private final static ImplementationSetDescriptor mutable = new ImplementationSetDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ImplementationSetDescriptor}.
 	 *
 	 * @return The mutable {@link ImplementationSetDescriptor}.
 	 */
-	public static ImplementationSetDescriptor mutableDescriptor ()
+	public static ImplementationSetDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ImplementationSetDescriptor}.
 	 */
-	private final static ImplementationSetDescriptor immutableDescriptor = new ImplementationSetDescriptor(false);
+	private final static ImplementationSetDescriptor immutable = new ImplementationSetDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ImplementationSetDescriptor}.
 	 *
 	 * @return The immutable {@link ImplementationSetDescriptor}.
 	 */
-	public static ImplementationSetDescriptor immutableDescriptor ()
+	public static ImplementationSetDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

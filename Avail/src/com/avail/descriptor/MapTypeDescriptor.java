@@ -358,7 +358,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 		assert(sizes.lowerBound().isFinite());
 		assert(IntegerDescriptor.zero().lessOrEqual(sizes.lowerBound()));
 		assert(sizes.upperBound().isFinite() || !sizes.upperInclusive());
-		AvailObject result = AvailObject.newIndexedDescriptor(0, MapTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		if (sizes.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			result.sizeRange(sizes);
@@ -395,30 +395,30 @@ public class MapTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link MapTypeDescriptor}.
 	 */
-	private final static MapTypeDescriptor mutableDescriptor = new MapTypeDescriptor(true);
+	private final static MapTypeDescriptor mutable = new MapTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link MapTypeDescriptor}.
 	 *
 	 * @return The mutable {@link MapTypeDescriptor}.
 	 */
-	public static MapTypeDescriptor mutableDescriptor ()
+	public static MapTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link MapTypeDescriptor}.
 	 */
-	private final static MapTypeDescriptor immutableDescriptor = new MapTypeDescriptor(false);
+	private final static MapTypeDescriptor immutable = new MapTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link MapTypeDescriptor}.
 	 *
 	 * @return The immutable {@link MapTypeDescriptor}.
 	 */
-	public static MapTypeDescriptor immutableDescriptor ()
+	public static MapTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

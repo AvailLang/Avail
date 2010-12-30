@@ -1,0 +1,173 @@
+/**
+ * compiler/AvailTupleNode.java
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.oldcompiler;
+
+import java.util.*;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.utility.Transformer1;
+
+/**
+ * Create a tuple from a list of expressions that generate the tuple's elements.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class AvailTupleNode extends AvailParseNode
+{
+
+	/**
+	 * The expressions that generate elements of the tuple.
+	 */
+	List<AvailParseNode> parseNodes;
+
+	/**
+	 * The type of tuple to be constructed.
+	 */
+	AvailObject tupleType;
+
+	/**
+	 * Construct a new instance that builds a tuple from the values of the given
+	 * expressions.
+	 *
+	 * @param parseNodes The expressions that generate my elements.
+	 */
+	public AvailTupleNode (final List<AvailParseNode> parseNodes)
+	{
+		this.parseNodes = parseNodes;
+	}
+
+
+	public List<AvailParseNode> parseNodes ()
+	{
+		return parseNodes;
+	}
+
+	@Override
+	public AvailObject expressionType ()
+	{
+		if (tupleType == null)
+		{
+			final List<AvailObject> types =
+				new ArrayList<AvailObject>(parseNodes.size());
+			for (final AvailParseNode expr : parseNodes)
+			{
+				types.add(expr.expressionType());
+			}
+			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
+				IntegerDescriptor.objectFromInt(types.size()));
+			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizes,
+				TupleDescriptor.mutableObjectFromArray(types),
+				Types.terminates.object());
+			tupleType.makeImmutable();
+		}
+		return tupleType;
+	}
+
+
+	@Override
+	public void emitValueOn (
+		final AvailCodeGenerator codeGenerator)
+	{
+		for (final AvailParseNode expr : parseNodes)
+		{
+			expr.emitValueOn(codeGenerator);
+		}
+		codeGenerator.emitMakeTuple(parseNodes.size());
+	}
+
+
+	/**
+	 * Create a new {@code AvailTupleNode} with one more parse node added to the
+	 * end of the tuple.
+	 *
+	 * @param newParseNode The parse node to append.
+	 * @return A new {@code AvailTupleNode} with the parse node appended.
+	 */
+	public AvailTupleNode copyWith (
+		final AvailParseNode newParseNode)
+	{
+		final List<AvailParseNode> newNodes =
+			new ArrayList<AvailParseNode>(parseNodes.size() + 1);
+		newNodes.addAll(parseNodes);
+		newNodes.add(newParseNode);
+		final AvailTupleNode newTupleNode = new AvailTupleNode(newNodes);
+		return newTupleNode;
+	}
+
+
+	/**
+	 * Map my children through the (destructive) transformation specified by
+	 * aBlock.  Answer the receiver.
+	 */
+	@Override
+	public void childrenMap (
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+	{
+		parseNodes = new ArrayList<AvailParseNode>(parseNodes);
+		for (int i = 0; i < parseNodes.size(); i++)
+		{
+			parseNodes.set(i, aBlock.value(parseNodes.get(i)));
+		}
+	}
+
+
+	@Override
+	public void printOnIndent (
+		final StringBuilder aStream,
+		final int indent)
+	{
+		aStream.append("TupleNode[");
+		aStream.append(parseNodes.size());
+		aStream.append("](");
+		for (int i = 1, _end1 = parseNodes.size(); i <= _end1; i++)
+		{
+			if (i > 1)
+			{
+				aStream.append(",");
+			}
+			aStream.append("\n");
+			for (int j = indent; j >= 0; j--)
+			{
+				aStream.append("\t");
+			}
+			parseNodes.get(i - 1).printOnIndentIn(
+				aStream,
+				(indent + 1),
+				this);
+		}
+		aStream.append(")");
+	}
+
+}

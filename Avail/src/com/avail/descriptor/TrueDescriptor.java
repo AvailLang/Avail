@@ -124,30 +124,30 @@ public class TrueDescriptor extends BooleanDescriptor
 	/**
 	 * The mutable {@link TrueDescriptor}.
 	 */
-	private final static TrueDescriptor mutableDescriptor = new TrueDescriptor(true);
+	private final static TrueDescriptor mutable = new TrueDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TrueDescriptor}.
 	 *
 	 * @return The mutable {@link TrueDescriptor}.
 	 */
-	public static TrueDescriptor mutableDescriptor ()
+	public static TrueDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link TrueDescriptor}.
 	 */
-	private final static TrueDescriptor immutableDescriptor = new TrueDescriptor(false);
+	private final static TrueDescriptor immutable = new TrueDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TrueDescriptor}.
 	 *
 	 * @return The immutable {@link TrueDescriptor}.
 	 */
-	public static TrueDescriptor immutableDescriptor ()
+	public static TrueDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

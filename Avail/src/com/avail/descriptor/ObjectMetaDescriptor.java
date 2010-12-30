@@ -234,7 +234,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	/* Object creation */
 	static AvailObject fromObjectType (AvailObject objectType)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, ObjectMetaDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.myObjectType(objectType);
 		return result;
 	};
@@ -254,30 +254,30 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ObjectMetaDescriptor}.
 	 */
-	private final static ObjectMetaDescriptor mutableDescriptor = new ObjectMetaDescriptor(true);
+	private final static ObjectMetaDescriptor mutable = new ObjectMetaDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectMetaDescriptor}.
 	 *
 	 * @return The mutable {@link ObjectMetaDescriptor}.
 	 */
-	public static ObjectMetaDescriptor mutableDescriptor ()
+	public static ObjectMetaDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ObjectMetaDescriptor}.
 	 */
-	private final static ObjectMetaDescriptor immutableDescriptor = new ObjectMetaDescriptor(false);
+	private final static ObjectMetaDescriptor immutable = new ObjectMetaDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectMetaDescriptor}.
 	 *
 	 * @return The immutable {@link ObjectMetaDescriptor}.
 	 */
-	public static ObjectMetaDescriptor immutableDescriptor ()
+	public static ObjectMetaDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

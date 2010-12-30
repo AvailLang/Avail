@@ -95,7 +95,7 @@ public enum L1Operation
 	 * at the same time.
 	 * <p>
 	 * Clearing the variable keeps the variable's reference count from changing,
-	 * so it may stay {@link Descriptor#mutableDescriptor() mutable} if it was
+	 * so it may stay {@link Descriptor#mutable() mutable} if it was
 	 * before.
 	 * <p>
 	 * If an argument or constant is specified then push the value, since there

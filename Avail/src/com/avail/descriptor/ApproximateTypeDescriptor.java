@@ -854,7 +854,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	 */
 	static AvailObject withInstance (final AvailObject instance)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, ApproximateTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.instance(instance.makeImmutable());
 		return result;
 	};
@@ -874,30 +874,30 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ApproximateTypeDescriptor}.
 	 */
-	private final static ApproximateTypeDescriptor mutableDescriptor = new ApproximateTypeDescriptor(true);
+	private final static ApproximateTypeDescriptor mutable = new ApproximateTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ApproximateTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ApproximateTypeDescriptor}.
 	 */
-	public static ApproximateTypeDescriptor mutableDescriptor ()
+	public static ApproximateTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ApproximateTypeDescriptor}.
 	 */
-	private final static ApproximateTypeDescriptor immutableDescriptor = new ApproximateTypeDescriptor(false);
+	private final static ApproximateTypeDescriptor immutable = new ApproximateTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ApproximateTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ApproximateTypeDescriptor}.
 	 */
-	public static ApproximateTypeDescriptor immutableDescriptor ()
+	public static ApproximateTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

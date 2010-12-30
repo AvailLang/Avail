@@ -581,7 +581,7 @@ public class ModuleDescriptor extends Descriptor
 	{
 		AvailObject emptyMap = MapDescriptor.empty();
 		AvailObject unexpanded = UnexpandedMessageBundleTreeDescriptor.newPc(1);
-		AvailObject object = AvailObject.newIndexedDescriptor(0, ModuleDescriptor.mutableDescriptor());
+		AvailObject object = mutable().create();
 		object.newNames(emptyMap);
 		object.names(emptyMap);
 		object.privateNames(emptyMap);
@@ -609,31 +609,31 @@ public class ModuleDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ModuleDescriptor}.
 	 */
-	private final static ModuleDescriptor mutableDescriptor = new ModuleDescriptor(true);
+	private final static ModuleDescriptor mutable = new ModuleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ModuleDescriptor}.
 	 *
 	 * @return The mutable {@link ModuleDescriptor}.
 	 */
-	public static ModuleDescriptor mutableDescriptor ()
+	public static ModuleDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ModuleDescriptor}.
 	 */
-	private final static ModuleDescriptor immutableDescriptor = new ModuleDescriptor(false);
+	private final static ModuleDescriptor immutable = new ModuleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ModuleDescriptor}.
 	 *
 	 * @return The immutable {@link ModuleDescriptor}.
 	 */
-	public static ModuleDescriptor immutableDescriptor ()
+	public static ModuleDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 }

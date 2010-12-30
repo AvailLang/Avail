@@ -312,7 +312,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			limit2 = (part2.typeTuple().tupleSize() + 1);
 		}
 		final int total = limit1 + limit2;
-		final AvailObject typeTuple = AvailObject.newIndexedDescriptor(total, ObjectTupleDescriptor.mutableDescriptor());
+		final AvailObject typeTuple = ObjectTupleDescriptor.mutable().create(total);
 		AvailObject.lock(typeTuple);
 		for (int i = 1; i <= total; i++)
 		{
@@ -609,9 +609,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		//  the concatenation of the objects *at the time it was built*.
 
 		assert(firstObject.isTupleType() && secondObject.isTupleType());
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0,
-			ConcatenatedTupleTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.firstTupleType(firstObject.makeImmutable());
 		result.secondTupleType(secondObject.makeImmutable());
 		return result;
@@ -632,30 +630,30 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ConcatenatedTupleTypeDescriptor}.
 	 */
-	private final static ConcatenatedTupleTypeDescriptor mutableDescriptor = new ConcatenatedTupleTypeDescriptor(true);
+	private final static ConcatenatedTupleTypeDescriptor mutable = new ConcatenatedTupleTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ConcatenatedTupleTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ConcatenatedTupleTypeDescriptor}.
 	 */
-	public static ConcatenatedTupleTypeDescriptor mutableDescriptor ()
+	public static ConcatenatedTupleTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ConcatenatedTupleTypeDescriptor}.
 	 */
-	private final static ConcatenatedTupleTypeDescriptor immutableDescriptor = new ConcatenatedTupleTypeDescriptor(false);
+	private final static ConcatenatedTupleTypeDescriptor immutable = new ConcatenatedTupleTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ConcatenatedTupleTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ConcatenatedTupleTypeDescriptor}.
 	 */
-	public static ConcatenatedTupleTypeDescriptor immutableDescriptor ()
+	public static ConcatenatedTupleTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

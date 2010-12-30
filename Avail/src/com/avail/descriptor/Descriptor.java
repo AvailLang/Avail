@@ -33,20 +33,37 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import java.lang.reflect.Array;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.Interpreter;
-import com.avail.newcompiler.TokenDescriptor;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 
+/**
+ * This is the primary subclass of {@linkplain AbstractDescriptor}.  It has the
+ * sibling IndirectionDescriptor.
+ *
+ * <p>When a new method is added in a subclass, it should be added with the
+ * {@linkplain Override @Override} annotation.  That way the project will
+ * indicate errors until an abstract declaration is added to {@linkplain
+ * AbstractDescriptor}, a default implementation is added to {@linkplain
+ * Descriptor}, and a redirecting implementation is added to {@linkplain
+ * IndirectionDescriptor}.  Any code attempting to send the corresponding
+ * message to an {@linkplain AvailObject} will also indicate a problem until a
+ * suitable implementation is added to AvailObject.</p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class Descriptor extends AbstractDescriptor
 {
 
 	/**
 	 * Construct a new {@link Descriptor}.
 	 *
-	 * @param isMutable
+	 * @param isMutable Whether an instance of the descriptor can be modified.
 	 */
 	public Descriptor (final boolean isMutable)
 	{
@@ -54,12 +71,29 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 
+	/**
+	 * Indicate that a runtime error has occurred due to failure to implement
+	 * some message in a subclass.  This may be an indication that the wrong
+	 * kind of object is being used somewhere.
+	 *
+	 * @param args An {@linkplain Array array} of arguments describing the
+	 *             problem.
+	 */
 	public void subclassResponsibility(final Object... args)
 	{
 		error(args);
 	}
 
+	/**
+	 * A special enumeration used to visit all object slots within an instance
+	 * of the receiver.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
 	enum FakeObjectSlotsForScanning {
+		/**
+		 * An indexed object slot that makes it easy to visit all object slots.
+		 */
 		ALL_OBJECT_SLOTS_
 	}
 
@@ -78,7 +112,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		for (int i = object.objectSlotsCount(); i >= 1; i--)
 		{
-			AvailObject child = object.objectSlotAt(
+			final AvailObject child = object.objectSlotAt(
 				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
 				i);
 			visitor.invoke(object, child);
@@ -8038,7 +8072,9 @@ public abstract class Descriptor extends AbstractDescriptor
 			return object;
 		}
 		//  Create a linear bin with two slots.
-		final AvailObject result = AvailObject.newIndexedDescriptor(2, LinearSetBinDescriptor.isMutableLevel(true, myLevel));
+		final AvailObject result =
+			LinearSetBinDescriptor.isMutableLevel(true, myLevel)
+				.create(2);
 		result.binHash(object.hash() + elementObject.hash());
 		result.binElementAtPut(1, object);
 		result.binElementAtPut(2, elementObject);
@@ -8365,6 +8401,346 @@ public abstract class Descriptor extends AbstractDescriptor
 		final Continuation2<AvailObject, AvailObject> continuation)
 	{
 		subclassResponsibility("o_KeysAndValuesDo", object);
+	}
+
+	@Override
+	public void o_Expression (
+		final AvailObject object,
+		final AvailObject expression)
+	{
+		subclassResponsibility("o_Expression", object);
+	}
+
+	@Override
+	public AvailObject o_Expression (final AvailObject object)
+	{
+		subclassResponsibility("o_Expression", object);
+		return null;
+	}
+
+	@Override
+	public void o_Variable (
+		final AvailObject object,
+		final AvailObject variable)
+	{
+		subclassResponsibility("o_Variable", object);
+	}
+
+	@Override
+	public AvailObject o_Variable (final AvailObject object)
+	{
+		subclassResponsibility("o_Variable");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param argumentsTuple
+	 */
+	@Override
+	public void o_ArgumentsTuple (
+		final AvailObject object,
+		final AvailObject argumentsTuple)
+	{
+		subclassResponsibility("o_ArgumentsTuple", argumentsTuple);
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject o_ArgumentsTuple (final AvailObject object)
+	{
+		subclassResponsibility("o_ArgumentsTuple");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param statementsTuple
+	 */
+	@Override
+	public void o_StatementsTuple (
+		final AvailObject object,
+		final AvailObject statementsTuple)
+	{
+		subclassResponsibility("o_StatementsTuple");
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject o_StatementsTuple (final AvailObject object)
+	{
+		subclassResponsibility("o_StatementsTuple");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param resultType
+	 */
+	@Override
+	public void o_ResultType (final AvailObject object, final AvailObject resultType)
+	{
+		subclassResponsibility("o_ResultType");
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject o_ResultType (final AvailObject object)
+	{
+		subclassResponsibility("o_ResultType");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param neededVariables
+	 */
+	@Override
+	public void o_NeededVariables (
+		final AvailObject object,
+		final AvailObject neededVariables)
+	{
+		subclassResponsibility("o_NeededVariables");
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject o_NeededVariables (final AvailObject object)
+	{
+		subclassResponsibility("o_NeededVariables");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param primitive
+	 */
+	@Override
+	public void o_Primitive (final AvailObject object, final int primitive)
+	{
+		subclassResponsibility("o_Primitive");
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public int o_Primitive (final AvailObject object)
+	{
+		subclassResponsibility("o_Primitive");
+		return 0;
+	}
+
+
+	@Override
+	public void o_DeclaredType (final AvailObject object, final AvailObject declaredType)
+	{
+		subclassResponsibility("o_DeclaredType");
+	}
+
+
+	@Override
+	public AvailObject o_DeclaredType (final AvailObject object)
+	{
+		subclassResponsibility("o_DeclaredType");
+		return null;
+	}
+
+
+	@Override
+	public DeclarationKind o_DeclarationKind (final AvailObject object)
+	{
+		subclassResponsibility("o_DeclarationKind");
+		return null;
+	}
+
+
+	@Override
+	public void o_DeclarationKind (
+		final AvailObject object,
+		final DeclarationKind declarationKind)
+	{
+		subclassResponsibility("o_DeclarationKind");
+	}
+
+
+	@Override
+	public AvailObject o_InitializationExpression (final AvailObject object)
+	{
+		subclassResponsibility("o_InitializationExpression");
+		return null;
+	}
+
+
+	@Override
+	public void o_InitializationExpression (
+		final AvailObject object,
+		final AvailObject initializationExpression)
+	{
+		subclassResponsibility("o_InitializationExpression");
+	}
+
+
+	@Override
+	public AvailObject o_LiteralObject (final AvailObject object)
+	{
+		subclassResponsibility("o_LiteralObject");
+		return null;
+	}
+
+
+	@Override
+	public void o_LiteralObject (final AvailObject object, final AvailObject literalObject)
+	{
+		subclassResponsibility("o_LiteralObject");
+	}
+
+
+	@Override
+	public AvailObject o_Token (final AvailObject object)
+	{
+		subclassResponsibility("o_Token");
+		return null;
+	}
+
+
+	@Override
+	public void o_Token (final AvailObject object, final AvailObject token)
+	{
+		subclassResponsibility("o_Token");
+	}
+
+
+	@Override
+	public AvailObject o_MarkerValue (final AvailObject object)
+	{
+		subclassResponsibility("o_MarkerValue");
+		return null;
+	}
+
+
+	@Override
+	public void o_MarkerValue (final AvailObject object, final AvailObject markerValue)
+	{
+		subclassResponsibility("o_MarkerValue");
+	}
+
+
+	@Override
+	public AvailObject o_Arguments (final AvailObject object)
+	{
+		subclassResponsibility("o_Arguments");
+		return null;
+	}
+
+
+	@Override
+	public void o_Arguments (final AvailObject object, final AvailObject arguments)
+	{
+		subclassResponsibility("o_Arguments");
+	}
+
+
+	@Override
+	public AvailObject o_ImplementationSet(final AvailObject object)
+	{
+		subclassResponsibility("o_ImplementationSet");
+		return null;
+	}
+
+
+	@Override
+	public void o_ImplementationSet (
+		final AvailObject object,
+		final AvailObject implementationSet)
+	{
+		subclassResponsibility("o_ImplementationSet");
+	}
+
+
+	@Override
+	public AvailObject o_SuperCastType (final AvailObject object)
+	{
+		subclassResponsibility("o_SuperCastType");
+		return null;
+	}
+
+
+	@Override
+	public void o_SuperCastType (
+		final AvailObject object,
+		final AvailObject superCastType)
+	{
+		subclassResponsibility("o_SuperCastType");
+	}
+
+
+	@Override
+	public AvailObject o_ExpressionsTuple (final AvailObject object)
+	{
+		subclassResponsibility("o_ExpressionsTuple");
+		return null;
+	}
+
+
+	@Override
+	public void o_ExpressionsTuple (
+		final AvailObject object,
+		final AvailObject expressionsTuple)
+	{
+		subclassResponsibility("o_ExpressionsTuple");
+	}
+
+
+	@Override
+	public void o_TupleType (final AvailObject object, final AvailObject tupleType)
+	{
+		subclassResponsibility("o_TupleType");
+	}
+
+
+	@Override
+	public AvailObject o_TupleType (final AvailObject object)
+	{
+		subclassResponsibility("o_TupleType");
+		return null;
+	}
+
+
+	@Override
+	public void o_Declaration (final AvailObject object, final AvailObject declaration)
+	{
+		subclassResponsibility("o_Declaration");
+	}
+
+	@Override
+	public AvailObject o_Declaration (final AvailObject object)
+	{
+		subclassResponsibility("o_Declaration");
+		return null;
 	}
 
 }

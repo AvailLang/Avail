@@ -133,9 +133,7 @@ public class BlankDescriptor extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		SoleInstance = AvailObject.newIndexedDescriptor(
-			0,
-			immutableDescriptor());
+		SoleInstance = immutable().create();
 	}
 
 	/**
@@ -173,30 +171,30 @@ public class BlankDescriptor extends Descriptor
 	/**
 	 * The mutable {@link BlankDescriptor}.
 	 */
-	private final static BlankDescriptor mutableDescriptor = new BlankDescriptor(true);
+	private final static BlankDescriptor mutable = new BlankDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link BlankDescriptor}.
 	 *
 	 * @return The mutable {@link BlankDescriptor}.
 	 */
-	public static BlankDescriptor mutableDescriptor ()
+	public static BlankDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link BlankDescriptor}.
 	 */
-	private final static BlankDescriptor immutableDescriptor = new BlankDescriptor(false);
+	private final static BlankDescriptor immutable = new BlankDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link BlankDescriptor}.
 	 *
 	 * @return The immutable {@link BlankDescriptor}.
 	 */
-	public static BlankDescriptor immutableDescriptor ()
+	public static BlankDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

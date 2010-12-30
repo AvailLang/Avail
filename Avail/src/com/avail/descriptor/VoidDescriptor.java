@@ -56,8 +56,7 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		soleInstance = AvailObject.newIndexedDescriptor(
-			0, immutableDescriptor());
+		soleInstance = immutable().create();
 	}
 
 	/**
@@ -234,7 +233,7 @@ extends Descriptor
 		super(isMutable);
 	}
 
-	final static @NotNull VoidDescriptor mutableDescriptor =
+	final static @NotNull VoidDescriptor mutable =
 		new VoidDescriptor(true);
 
 	/**
@@ -248,12 +247,12 @@ extends Descriptor
 	 *
 	 * @return The mutable {@link VoidDescriptor}.
 	 */
-	public static VoidDescriptor mutableDescriptor ()
+	public static VoidDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
-	final static VoidDescriptor immutableDescriptor =
+	final static VoidDescriptor immutable =
 		new VoidDescriptor(false);
 
 	/**
@@ -262,9 +261,9 @@ extends Descriptor
 	 * @return An immutable {@link VoidDescriptor}.
 	 */
 	@ThreadSafe
-	public static @NotNull VoidDescriptor immutableDescriptor ()
+	public static @NotNull VoidDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 }

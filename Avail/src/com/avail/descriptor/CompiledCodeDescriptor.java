@@ -32,11 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.L2ChunkDescriptor;
+import static com.avail.descriptor.AvailObject.CanAllocateObjects;
 import com.avail.descriptor.TypeDescriptor.Types;
-
-import static com.avail.descriptor.AvailObject.*;
 
 public class CompiledCodeDescriptor extends Descriptor
 {
@@ -359,12 +356,12 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Note - also zeroes the startingChunkIndex.
 
-		assert (0 <= args && args <= 0xFFFF);
-		assert (0 <= locals && locals <= 0xFFFF);
-		final int slotCount = (args + locals) + stack;
-		assert (0 <= slotCount && slotCount <= 0xFFFF);
-		assert (0 <= outers && outers <= 0xFFFF);
-		assert (0 <= primitive && primitive <= 0xFFFF);
+		assert 0 <= args && args <= 0xFFFF;
+		assert 0 <= locals && locals <= 0xFFFF;
+		final int slotCount = args + locals + stack;
+		assert 0 <= slotCount && slotCount <= 0xFFFF;
+		assert 0 <= outers && outers <= 0xFFFF;
+		assert 0 <= primitive && primitive <= 0xFFFF;
 		object.hiNumLocalsLowNumArgs(((locals << 16) + args));
 		object.hiPrimitiveLowNumArgsAndLocalsAndStack(((primitive << 16) + slotCount));
 		object.hiStartingChunkIndexLowNumOuters(outers);
@@ -375,8 +372,8 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int index)
 	{
-		assert (1 <= index && index <= object.numLocals());
-		return object.literalAt(((object.numLiterals() - object.numLocals()) + index));
+		assert 1 <= index && index <= object.numLocals();
+		return object.literalAt((object.numLiterals() - object.numLocals() + index));
 	}
 
 	@Override
@@ -384,8 +381,8 @@ public class CompiledCodeDescriptor extends Descriptor
 			final AvailObject object,
 			final int index)
 	{
-		assert (1 <= index && index <= object.numOuters());
-		return object.literalAt((((object.numLiterals() - object.numLocals()) - object.numOuters()) + index));
+		assert 1 <= index && index <= object.numOuters();
+		return object.literalAt((object.numLiterals() - object.numLocals() - object.numOuters() + index));
 	}
 
 	@Override
@@ -397,8 +394,8 @@ public class CompiledCodeDescriptor extends Descriptor
 		//  The literal frame has the literals used by the code, followed by the outer types,
 		//  followed by the local variable types.
 
-		assert (tupleOfOuterTypes.tupleSize() == object.numOuters()) : "Wrong number of outer types.";
-		assert (tupleOfLocalContainerTypes.tupleSize() == object.numLocals()) : "Wrong number of local types.";
+		assert tupleOfOuterTypes.tupleSize() == object.numOuters() : "Wrong number of outer types.";
+		assert tupleOfLocalContainerTypes.tupleSize() == object.numLocals() : "Wrong number of local types.";
 		int src = 1;
 		for (
 				int
@@ -492,7 +489,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	public int o_StartingChunkIndex (
 			final AvailObject object)
 	{
-		return (object.hiStartingChunkIndexLowNumOuters() >>> 16);
+		return object.hiStartingChunkIndexLowNumOuters() >>> 16;
 	}
 
 
@@ -525,7 +522,7 @@ public class CompiledCodeDescriptor extends Descriptor
 
 	/**
 	 * Create a new compiled code object with the given properties.
-	 * 
+	 *
 	 * @param nybbles The nybblecodes.
 	 * @param numArgs The number of arguments.
 	 * @param locals The number of local variables.
@@ -538,23 +535,22 @@ public class CompiledCodeDescriptor extends Descriptor
 	 * @return The new compiled code object.
 	 */
 	public static AvailObject create (
-			AvailObject nybbles,
-			int numArgs,
-			int locals,
-			int stack,
-			AvailObject closureType,
-			int primitive,
-			AvailObject literals,
-			AvailObject localTypes,
-			AvailObject outerTypes)
+			final AvailObject nybbles,
+			final int numArgs,
+			final int locals,
+			final int stack,
+			final AvailObject closureType,
+			final int primitive,
+			final AvailObject literals,
+			final AvailObject localTypes,
+			final AvailObject outerTypes)
 	{
 		assert localTypes.tupleSize() == locals;
 		assert closureType.numArgs() == numArgs;
-		int literalsSize = literals.tupleSize();
-		int outersSize = outerTypes.tupleSize();
-		AvailObject code = AvailObject.newIndexedDescriptor (
-			literalsSize + outersSize + locals,
-			CompiledCodeDescriptor.mutableDescriptor());
+		final int literalsSize = literals.tupleSize();
+		final int outersSize = outerTypes.tupleSize();
+		final AvailObject code = mutable().create(
+			literalsSize + outersSize + locals);
 
 		CanAllocateObjects(false);
 		code.nybbles(nybbles);
@@ -577,21 +573,21 @@ public class CompiledCodeDescriptor extends Descriptor
 			code.literalAtPut(dest, localTypes.tupleAt(i));
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
-		int hash = (0x0B085B25 + code.objectSlotsCount() + nybbles.hash())
-			^ (numArgs * 4127);
-		hash += (locals * 1237) + (stack * 9131) + (primitive * 1151);
+		int hash = 0x0B085B25 + code.objectSlotsCount() + nybbles.hash()
+			^ numArgs * 4127;
+		hash += locals * 1237 + stack * 9131 + primitive * 1151;
 		hash ^= closureType.hash();
 		for (int i = 1; i <= literalsSize; i++)
 		{
-			hash = (hash * 2 + literals.tupleAt(i).hash()) ^ 0x052B580B;
+			hash = hash * 2 + literals.tupleAt(i).hash() ^ 0x052B580B;
 		}
 		for (int i = 1; i <= outersSize; i++)
 		{
-			hash = (hash * 3 + outerTypes.tupleAt(i).hash()) ^ 0x015F5947;
+			hash = hash * 3 + outerTypes.tupleAt(i).hash() ^ 0x015F5947;
 		}
 		for (int i = 1; i <= locals; ++ i)
 		{
-			hash = (hash * 5 + localTypes.tupleAt(i).hash()) ^ 0x01E37808;
+			hash = hash * 5 + localTypes.tupleAt(i).hash() ^ 0x01E37808;
 		}
 		code.hash(hash);
 		code.makeImmutable();
@@ -615,30 +611,30 @@ public class CompiledCodeDescriptor extends Descriptor
 	/**
 	 * The mutable {@link CompiledCodeDescriptor}.
 	 */
-	private final static CompiledCodeDescriptor mutableDescriptor = new CompiledCodeDescriptor(true);
+	private final static CompiledCodeDescriptor mutable = new CompiledCodeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link CompiledCodeDescriptor}.
 	 *
 	 * @return The mutable {@link CompiledCodeDescriptor}.
 	 */
-	public static CompiledCodeDescriptor mutableDescriptor ()
+	public static CompiledCodeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link CompiledCodeDescriptor}.
 	 */
-	private final static CompiledCodeDescriptor immutableDescriptor = new CompiledCodeDescriptor(false);
+	private final static CompiledCodeDescriptor immutable = new CompiledCodeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link CompiledCodeDescriptor}.
 	 *
 	 * @return The immutable {@link CompiledCodeDescriptor}.
 	 */
-	public static CompiledCodeDescriptor immutableDescriptor ()
+	public static CompiledCodeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

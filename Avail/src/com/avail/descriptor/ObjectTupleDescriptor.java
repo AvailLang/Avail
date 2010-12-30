@@ -268,7 +268,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		AvailObject result;
 		if (((end - start) < 10))
 		{
-			result = AvailObject.newIndexedDescriptor(end - start + 1, ObjectTupleDescriptor.mutableDescriptor());
+			result = mutable().create(end - start + 1);
 			result.hashOrZero(newHash);
 			for (int i = 1, _end6 = (end - start + 1); i <= _end6; i++)
 			{
@@ -280,7 +280,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 			result = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				1,
 				2,
-				SpliceTupleDescriptor.mutableDescriptor());
+				SpliceTupleDescriptor.mutable());
 			if (isMutable && !canDestroy)
 			{
 				object.makeImmutable();
@@ -421,30 +421,30 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	/**
 	 * The mutable {@link ObjectTupleDescriptor}.
 	 */
-	private final static ObjectTupleDescriptor mutableDescriptor = new ObjectTupleDescriptor(true);
+	private final static ObjectTupleDescriptor mutable = new ObjectTupleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectTupleDescriptor}.
 	 *
 	 * @return The mutable {@link ObjectTupleDescriptor}.
 	 */
-	public static ObjectTupleDescriptor mutableDescriptor ()
+	public static ObjectTupleDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ObjectTupleDescriptor}.
 	 */
-	private final static ObjectTupleDescriptor immutableDescriptor = new ObjectTupleDescriptor(false);
+	private final static ObjectTupleDescriptor immutable = new ObjectTupleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectTupleDescriptor}.
 	 *
 	 * @return The immutable {@link ObjectTupleDescriptor}.
 	 */
-	public static ObjectTupleDescriptor immutableDescriptor ()
+	public static ObjectTupleDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

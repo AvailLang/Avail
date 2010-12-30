@@ -87,10 +87,8 @@ public abstract class BooleanDescriptor extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		TrueBooleanObject = AvailObject.newIndexedDescriptor(
-			0, TrueDescriptor.immutableDescriptor());
-		FalseBooleanObject = AvailObject.newIndexedDescriptor(
-			0, FalseDescriptor.immutableDescriptor());
+		TrueBooleanObject = TrueDescriptor.immutable().create();
+		FalseBooleanObject = FalseDescriptor.immutable().create();
 	}
 
 	/**

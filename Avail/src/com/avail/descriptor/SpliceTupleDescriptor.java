@@ -558,7 +558,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				(highZone - lowZone + 1),
 				((highZone - lowZone + 1) * 2),
-				SpliceTupleDescriptor.mutableDescriptor());
+				SpliceTupleDescriptor.mutable());
 		result.hashOrZero(object.computeHashFromTo(start, end));
 		int mainIndex = 0;
 		int destZone = 1;
@@ -769,7 +769,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				numberOfZones,
 				numberOfZones * 2,
-				SpliceTupleDescriptor.mutableDescriptor());
+				SpliceTupleDescriptor.mutable());
 		assert result.objectSlotsCount() == object.objectSlotsCount();
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		for (int subscript = 1; subscript <= numberOfZones; subscript++)
@@ -827,7 +827,7 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	/**
 	 * The mutable {@link SpliceTupleDescriptor}.
 	 */
-	private final static SpliceTupleDescriptor mutableDescriptor = new SpliceTupleDescriptor(true);
+	private final static SpliceTupleDescriptor mutable = new SpliceTupleDescriptor(true);
 
 	
 	/**
@@ -835,16 +835,16 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 *
 	 * @return The mutable {@link SpliceTupleDescriptor}.
 	 */
-	public static SpliceTupleDescriptor mutableDescriptor ()
+	public static SpliceTupleDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	
 	/**
 	 * The immutable {@link SpliceTupleDescriptor}.
 	 */
-	private final static SpliceTupleDescriptor immutableDescriptor = new SpliceTupleDescriptor(false);
+	private final static SpliceTupleDescriptor immutable = new SpliceTupleDescriptor(false);
 
 	
 	/**
@@ -852,8 +852,8 @@ public class SpliceTupleDescriptor extends TupleDescriptor
 	 *
 	 * @return The immutable {@link SpliceTupleDescriptor}.
 	 */
-	public static SpliceTupleDescriptor immutableDescriptor ()
+	public static SpliceTupleDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

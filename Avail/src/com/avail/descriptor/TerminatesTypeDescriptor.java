@@ -276,30 +276,30 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link TerminatesTypeDescriptor}.
 	 */
-	private final static TerminatesTypeDescriptor mutableDescriptor = new TerminatesTypeDescriptor(true);
+	private final static TerminatesTypeDescriptor mutable = new TerminatesTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TerminatesTypeDescriptor}.
 	 *
 	 * @return The mutable {@link TerminatesTypeDescriptor}.
 	 */
-	public static TerminatesTypeDescriptor mutableDescriptor ()
+	public static TerminatesTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link TerminatesTypeDescriptor}.
 	 */
-	private final static TerminatesTypeDescriptor immutableDescriptor = new TerminatesTypeDescriptor(false);
+	private final static TerminatesTypeDescriptor immutable = new TerminatesTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TerminatesTypeDescriptor}.
 	 *
 	 * @return The immutable {@link TerminatesTypeDescriptor}.
 	 */
-	public static TerminatesTypeDescriptor immutableDescriptor ()
+	public static TerminatesTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

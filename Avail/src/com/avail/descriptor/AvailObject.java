@@ -36,7 +36,8 @@ import java.io.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.Interpreter;
-import com.avail.newcompiler.TokenDescriptor;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 
@@ -110,11 +111,11 @@ implements Iterable<AvailObject>
 				recursionList.remove(recursionList.size() - 1);
 			}
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			builder.append("EXCEPTION while printing.");
-			CharArrayWriter inner = new CharArrayWriter();
-			PrintWriter outer = new PrintWriter(inner);
+			final CharArrayWriter inner = new CharArrayWriter();
+			final PrintWriter outer = new PrintWriter(inner);
 			e.printStackTrace(outer);
 			builder.append(inner);
 		}
@@ -188,7 +189,7 @@ implements Iterable<AvailObject>
 		}
 
 		// Recursively invoke the iterator on the subobjects of self...
-		AvailSubobjectVisitor vis = new AvailMarkUnreachableSubobjectVisitor(exceptMe);
+		final AvailSubobjectVisitor vis = new AvailMarkUnreachableSubobjectVisitor(exceptMe);
 		scanSubobjects(vis);
 		setToInvalidDescriptor();
 		return;
@@ -363,7 +364,7 @@ implements Iterable<AvailObject>
 	public boolean isDestroyed ()
 	{
 		checkValidAddress();
-		return descriptorId() == FillerDescriptor.mutableDescriptor().id();
+		return descriptorId() == FillerDescriptor.mutable().id();
 	}
 
 
@@ -386,7 +387,7 @@ implements Iterable<AvailObject>
 	public void setToInvalidDescriptor ()
 	{
 		verifyToSpaceAddress();
-		descriptor(FillerDescriptor.mutableDescriptor());
+		descriptor(FillerDescriptor.mutable());
 	}
 
 
@@ -516,7 +517,9 @@ implements Iterable<AvailObject>
 		throw new RuntimeException((String)args[0]);
 	};
 
-	public static AvailObject newIndexedDescriptor(final int size, final AbstractDescriptor descriptor)
+	public static AvailObject newIndexedDescriptor(
+		final int size,
+		final AbstractDescriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newIndexedDescriptor(size, descriptor);
 	};
@@ -550,7 +553,7 @@ implements Iterable<AvailObject>
 	};
 	public static void unlock (final AvailObject obj)
 	{
-		AvailObject popped = LockedObjects.remove(LockedObjects.size() - 1);
+		final AvailObject popped = LockedObjects.remove(LockedObjects.size() - 1);
 		assert popped == obj;
 	};
 
@@ -5680,6 +5683,326 @@ implements Iterable<AvailObject>
 		final Continuation2<AvailObject, AvailObject> continuation)
 	{
 		descriptor().o_mapDo(this,continuation);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void expression (final AvailObject expression)
+	{
+		descriptor().o_Expression(this, expression);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public AvailObject expression ()
+	{
+		return descriptor().o_Expression(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void variable (final AvailObject variable)
+	{
+		descriptor().o_Variable(this, variable);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public AvailObject variable ()
+	{
+		return descriptor().o_Variable(this);
+	}
+
+
+	/**
+	 * @param argumentsTuple
+	 */
+	public void argumentsTuple (final AvailObject argumentsTuple)
+	{
+		descriptor().o_ArgumentsTuple(this, argumentsTuple);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject argumentsTuple ()
+	{
+		return descriptor().o_ArgumentsTuple(this);
+	}
+
+
+	/**
+	 * @param statementsTuple
+	 */
+	public void statementsTuple (final AvailObject statementsTuple)
+	{
+		descriptor().o_StatementsTuple(this, statementsTuple);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject statementsTuple ()
+	{
+		return descriptor().o_StatementsTuple(this);
+	}
+
+
+	/**
+	 * @param neededVariables
+	 */
+	public void neededVariables (final AvailObject neededVariables)
+	{
+		descriptor().o_NeededVariables(this, neededVariables);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject neededVariables ()
+	{
+		return descriptor().o_NeededVariables(this);
+	}
+
+
+	/**
+	 * @param primitive
+	 */
+	public void primitive (final int primitive)
+	{
+		descriptor().o_Primitive(this, primitive);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public int primitive ()
+	{
+		return descriptor().o_Primitive(this);
+	}
+
+
+	/**
+	 * @param declaredType
+	 */
+	public void declaredType (final AvailObject declaredType)
+	{
+		descriptor().o_DeclaredType(this, declaredType);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject declaredType ()
+	{
+		return descriptor().o_DeclaredType(this);
+	}
+
+
+	/**
+	 * @param declarationKind
+	 */
+	public void declarationKind (final DeclarationKind declarationKind)
+	{
+		descriptor().o_DeclarationKind(this, declarationKind);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public DeclarationKind declarationKind ()
+	{
+		return descriptor().o_DeclarationKind(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject initializationExpression ()
+	{
+		return descriptor().o_InitializationExpression(this);
+	}
+
+
+	/**
+	 * @param initializationExpression
+	 */
+	public void initializationExpression (final AvailObject initializationExpression)
+	{
+		descriptor().o_InitializationExpression(this, initializationExpression);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject literalObject ()
+	{
+		return descriptor().o_LiteralObject(this);
+	}
+
+
+	/**
+	 * @param literalObject
+	 */
+	public void literalObject (final AvailObject literalObject)
+	{
+		descriptor().o_LiteralObject(this, literalObject);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject token ()
+	{
+		return descriptor().o_Token(this);
+	}
+
+
+	/**
+	 * @param token
+	 */
+	public void token (final AvailObject token)
+	{
+		descriptor().o_Token(this, token);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject markerValue ()
+	{
+		return descriptor().o_MarkerValue(this);
+	}
+
+
+	/**
+	 * @param markerValue
+	 */
+	public void markerValue (final AvailObject markerValue)
+	{
+		descriptor().o_MarkerValue(this, markerValue);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject arguments ()
+	{
+		return descriptor().o_Arguments(this);
+	}
+
+
+	/**
+	 * @param arguments
+	 */
+	public void arguments (final AvailObject arguments)
+	{
+		descriptor().o_Arguments(this, arguments);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject implementationSet ()
+	{
+		return descriptor().o_ImplementationSet(this);
+	}
+
+
+	/**
+	 * @param implementationSet
+	 */
+	public void implementationSet (final AvailObject implementationSet)
+	{
+		descriptor().o_ImplementationSet(this, implementationSet);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject superCastType ()
+	{
+		return descriptor().o_SuperCastType(this);
+	}
+
+
+	/**
+	 * @param superCastType
+	 */
+	public void superCastType (final AvailObject superCastType)
+	{
+		descriptor().o_SuperCastType(this, superCastType);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject expressionTuple ()
+	{
+		return descriptor().o_ExpressionsTuple(this);
+	}
+
+
+	/**
+	 * @param expressionsTuple
+	 */
+	public void expressionTuple (final AvailObject expressionsTuple)
+	{
+		descriptor().o_ExpressionsTuple(this, expressionsTuple);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject tupleType ()
+	{
+		return descriptor().o_TupleType(this);
+	}
+
+
+	/**
+	 * @param tupleType
+	 */
+	public void tupleType (final AvailObject tupleType)
+	{
+		descriptor().o_TupleType(this, tupleType);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject declaration ()
+	{
+		return descriptor().o_Declaration(this);
+	}
+
+
+	/**
+	 * @param declaration
+	 */
+	public void declaration (final AvailObject declaration)
+	{
+		descriptor().o_Declaration(this, declaration);
 	}
 
 }

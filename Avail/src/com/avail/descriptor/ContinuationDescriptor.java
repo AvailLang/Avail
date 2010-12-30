@@ -403,7 +403,8 @@ public class ContinuationDescriptor extends Descriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final AvailObject result = AvailObject.newIndexedDescriptor((object.objectSlotsCount() - numberOfFixedObjectSlots), ContinuationDescriptor.mutableDescriptor());
+		final AvailObject result = mutable().create(
+			object.objectSlotsCount() - numberOfFixedObjectSlots);
 		assert result.objectSlotsCount() == object.objectSlotsCount();
 		result.caller(object.caller());
 		result.closure(object.closure());
@@ -446,11 +447,10 @@ public class ContinuationDescriptor extends Descriptor
 			final int startingChunkIndex,
 			final List<AvailObject> args)
 	{
-		ContinuationDescriptor descriptor = mutableDescriptor();
+		final ContinuationDescriptor descriptor = mutable();
 		final AvailObject code = closure.code();
-		final AvailObject cont = AvailObject.newIndexedDescriptor(
-			code.numArgsAndLocalsAndStack(),
-			descriptor);
+		final AvailObject cont = descriptor.create(
+			code.numArgsAndLocalsAndStack());
 		cont.caller(caller);
 		cont.closure(closure);
 		cont.pc(1);
@@ -499,30 +499,30 @@ public class ContinuationDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ContinuationDescriptor}.
 	 */
-	private final static ContinuationDescriptor mutableDescriptor = new ContinuationDescriptor(true);
+	private final static ContinuationDescriptor mutable = new ContinuationDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContinuationDescriptor}.
 	 *
 	 * @return The mutable {@link ContinuationDescriptor}.
 	 */
-	public static ContinuationDescriptor mutableDescriptor ()
+	public static ContinuationDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ContinuationDescriptor}.
 	 */
-	private final static ContinuationDescriptor immutableDescriptor = new ContinuationDescriptor(false);
+	private final static ContinuationDescriptor immutable = new ContinuationDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContinuationDescriptor}.
 	 *
 	 * @return The immutable {@link ContinuationDescriptor}.
 	 */
-	public static ContinuationDescriptor immutableDescriptor ()
+	public static ContinuationDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

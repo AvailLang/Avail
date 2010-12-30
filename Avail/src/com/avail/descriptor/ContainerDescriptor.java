@@ -32,12 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.ContainerTypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
-import static com.avail.descriptor.AvailObject.*;
 
 public class ContainerDescriptor extends Descriptor
 {
@@ -195,7 +191,7 @@ public class ContainerDescriptor extends Descriptor
 		//  If I am being frozen (a container), I don't need to freeze my current value.
 		//  I do, on the other hand, have to freeze my type object.
 
-		object.descriptor(ContainerDescriptor.immutableDescriptor());
+		object.descriptor(ContainerDescriptor.immutable());
 		object.type().makeImmutable();
 		return object;
 	}
@@ -272,17 +268,15 @@ public class ContainerDescriptor extends Descriptor
 
 	/* Object creation */
 
-	public static AvailObject forInnerType (AvailObject innerType)
+	public static AvailObject forInnerType (final AvailObject innerType)
 	{
 		return ContainerDescriptor.forOuterType(
 			ContainerTypeDescriptor.wrapInnerType(innerType));
 	};
 
-	public static AvailObject forOuterType (AvailObject outerType)
+	public static AvailObject forOuterType (final AvailObject outerType)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor (
-			0,
-			ContainerDescriptor.mutableDescriptor ());
+		final AvailObject result = mutable().create();
 		result.type (outerType);
 		result.hashOrZero (0);
 		result.value (VoidDescriptor.voidObject());
@@ -309,30 +303,30 @@ public class ContainerDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ContainerDescriptor}.
 	 */
-	private final static ContainerDescriptor mutableDescriptor = new ContainerDescriptor(true);
+	private final static ContainerDescriptor mutable = new ContainerDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContainerDescriptor}.
 	 *
 	 * @return The mutable {@link ContainerDescriptor}.
 	 */
-	public static ContainerDescriptor mutableDescriptor ()
+	public static ContainerDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ContainerDescriptor}.
 	 */
-	private final static ContainerDescriptor immutableDescriptor = new ContainerDescriptor(false);
+	private final static ContainerDescriptor immutable = new ContainerDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContainerDescriptor}.
 	 *
 	 * @return The immutable {@link ContainerDescriptor}.
 	 */
-	public static ContainerDescriptor immutableDescriptor ()
+	public static ContainerDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

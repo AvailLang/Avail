@@ -317,7 +317,7 @@ public class ProcessDescriptor extends Descriptor
 		//
 		//  Do nothing.  My subobjects are all allowed to be mutable even if I'm immutable.
 
-		object.descriptor(ProcessDescriptor.immutableDescriptor());
+		object.descriptor(ProcessDescriptor.immutable());
 		return object;
 	}
 
@@ -429,30 +429,30 @@ public class ProcessDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ProcessDescriptor}.
 	 */
-	private final static ProcessDescriptor mutableDescriptor = new ProcessDescriptor(true);
+	private final static ProcessDescriptor mutable = new ProcessDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ProcessDescriptor}.
 	 *
 	 * @return The mutable {@link ProcessDescriptor}.
 	 */
-	public static ProcessDescriptor mutableDescriptor ()
+	public static ProcessDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ProcessDescriptor}.
 	 */
-	private final static ProcessDescriptor immutableDescriptor = new ProcessDescriptor(false);
+	private final static ProcessDescriptor immutable = new ProcessDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ProcessDescriptor}.
 	 *
 	 * @return The immutable {@link ProcessDescriptor}.
 	 */
-	public static ProcessDescriptor immutableDescriptor ()
+	public static ProcessDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

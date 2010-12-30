@@ -32,17 +32,11 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureDescriptor;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2CreateClosureInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateClosureFromCodeObject_outersVector_destObject_;
+import java.util.*;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2CreateClosureInstruction extends L2Instruction
 {
@@ -58,7 +52,7 @@ public class L2CreateClosureInstruction extends L2Instruction
 	{
 		//  Answer a collection of registers written to by this instruction.
 
-		List<L2Register> result = new ArrayList<L2Register>(1);
+		final List<L2Register> result = new ArrayList<L2Register>(1);
 		result.add(_dest);
 		return result;
 	}
@@ -68,7 +62,7 @@ public class L2CreateClosureInstruction extends L2Instruction
 	{
 		//  Answer a collection of registers read by this instruction.
 
-		List<L2Register> result = new ArrayList<L2Register>(_outersVector.registers().size());
+		final List<L2Register> result = new ArrayList<L2Register>(_outersVector.registers().size());
 		result.addAll(_outersVector.registers());
 		return result;
 	}
@@ -117,7 +111,8 @@ public class L2CreateClosureInstruction extends L2Instruction
 		anL2Translator.registerTypeAtPut(_dest, _code.closureType());
 		if (_outersVector.allRegistersAreConstantsIn(anL2Translator))
 		{
-			final AvailObject closure = AvailObject.newIndexedDescriptor(_outersVector.registers().size(), ClosureDescriptor.mutableDescriptor());
+			final AvailObject closure = ClosureDescriptor.mutable().create(
+				_outersVector.registers().size());
 			closure.code(_code);
 			for (int i = 1, _end1 = _outersVector.registers().size(); i <= _end1; i++)
 			{

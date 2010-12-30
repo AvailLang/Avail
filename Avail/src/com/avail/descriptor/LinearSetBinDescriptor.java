@@ -32,11 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.HashedSetBinDescriptor;
-import com.avail.descriptor.LinearSetBinDescriptor;
-import com.avail.descriptor.VoidDescriptor;
-import static java.lang.Integer.*;
+import static java.lang.Integer.bitCount;
 
 public class LinearSetBinDescriptor extends SetBinDescriptor
 {
@@ -128,7 +124,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
 		//  elementObject as immutable if another reference exists.
 
-		assert (myLevel == _level);
+		assert myLevel == _level;
 		if (object.binHasElementHash(elementObject, elementObjectHash))
 		{
 			if (!canDestroy || !isMutable)
@@ -138,22 +134,23 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			return object;
 		}
 		//  It's not present, so grow the list.  Keep it simple for now by always replacing the list.
-		final int oldSize = (object.objectSlotsCount() - numberOfFixedObjectSlots());
+		final int oldSize = object.objectSlotsCount() - numberOfFixedObjectSlots();
 		AvailObject result;
-		if (((myLevel < 7) && (oldSize >= 10)))
+		if (myLevel < 7 && oldSize >= 10)
 		{
-			int bitPosition = (bitShift(elementObjectHash, -5 * myLevel) & 31);
+			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
 			int bitVector = bitShift(1,bitPosition);
 			AvailObject unionType = elementObject.type();
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final AvailObject element = object.binElementAt(i);
-				bitPosition = (bitShift(element.hash(), -5 * myLevel) & 31);
+				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
 				bitVector |= bitShift(1,bitPosition);
 				unionType = unionType.typeUnion(element.type());
 			}
 			final int newSize = bitCount(bitVector);
-			result = AvailObject.newIndexedDescriptor(newSize, HashedSetBinDescriptor.isMutableLevel(true, myLevel));
+			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
+				.create(newSize);
 			result.binHash(0);
 			result.binSize(0);
 			result.binUnionType(unionType);
@@ -186,12 +183,13 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 				assert localAddResult.sameAddressAs(result) : "The element should have been added without reallocation";
 			}
 			final int newHash = object.binHash() + elementObjectHash;
-			assert (result.binHash() == newHash);
-			assert (result.binSize() == (oldSize + 1));
+			assert result.binHash() == newHash;
+			assert result.binSize() == oldSize + 1;
 			return result;
 		}
 		//  Make a slightly larger linear bin and populate it.
-		result = AvailObject.newIndexedDescriptor(oldSize + 1, LinearSetBinDescriptor.isMutableLevel(true, myLevel));
+		result = LinearSetBinDescriptor.isMutableLevel(true, myLevel)
+			.create(oldSize + 1);
 		result.binHash(object.binHash() + elementObjectHash);
 		result.binElementAtPut(oldSize + 1, elementObject);
 		if (canDestroy && isMutable)
@@ -225,7 +223,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			final AvailObject elementObject,
 			final int elementObjectHash)
 	{
-		for (int x = 1, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); x <= _end1; x++)
+		for (int x = 1, _end1 = object.objectSlotsCount() - numberOfFixedObjectSlots(); x <= _end1; x++)
 		{
 			if (elementObject.equals(object.binElementAt(x)))
 			{
@@ -235,6 +233,10 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return false;
 	}
 
+	/**
+	 * Remove elementObject from the bin object, if present.  Answer the
+	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
+	 */
 	@Override
 	public AvailObject o_BinRemoveElementHashCanDestroy (
 			final AvailObject object,
@@ -242,10 +244,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			final int elementObjectHash,
 			final boolean canDestroy)
 	{
-		//  Remove elementObject from the bin object, if present.  Answer the resulting bin.  The bin
-		//  may be modified if it's mutable and canDestroy.
-
-		final int oldSize = (object.objectSlotsCount() - numberOfFixedObjectSlots());
+		final int oldSize = object.objectSlotsCount() - numberOfFixedObjectSlots();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
 			if (object.binElementAt(searchIndex).equals(elementObject))
@@ -260,19 +259,29 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 					}
 					return result;
 				}
-				result = AvailObject.newIndexedDescriptor(oldSize - 1, LinearSetBinDescriptor.isMutableLevel(true, _level));
+				result = LinearSetBinDescriptor.isMutableLevel(true, _level)
+					.create(oldSize - 1);
 				result.binHash(object.binHash() - elementObjectHash);
-				for (int initIndex = 1, _end1 = oldSize - 1; initIndex <= _end1; initIndex++)
+				for (int initIndex = 1; initIndex < oldSize; initIndex++)
 				{
-					result.binElementAtPut(initIndex, VoidDescriptor.voidObject());
+					result.binElementAtPut(
+						initIndex,
+						VoidDescriptor.voidObject());
 				}
-				for (int copyIndex = 1, _end2 = searchIndex - 1; copyIndex <= _end2; copyIndex++)
+				for (int copyIndex = 1; copyIndex < searchIndex; copyIndex++)
 				{
-					result.binElementAtPut(copyIndex, object.binElementAt(copyIndex));
+					result.binElementAtPut(
+						copyIndex,
+						object.binElementAt(copyIndex));
 				}
-				for (int copyIndex = searchIndex + 1; copyIndex <= oldSize; copyIndex++)
+				for (
+						int copyIndex = searchIndex + 1;
+						copyIndex <= oldSize;
+						copyIndex++)
 				{
-					result.binElementAtPut(copyIndex - 1, object.binElementAt(copyIndex));
+					result.binElementAtPut(
+						copyIndex - 1,
+						object.binElementAt(copyIndex));
 				}
 				if (!canDestroy)
 				{
@@ -295,9 +304,14 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	{
 		//  Check if object, a bin, holds a subset of aSet's elements.
 
-		for (int physicalIndex = 1, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); physicalIndex <= _end1; physicalIndex++)
+		for (
+				int physicalIndex = object.objectSlotsCount()
+					- numberOfFixedObjectSlots();
+				physicalIndex >= 1;
+				physicalIndex--)
 		{
-			if (!object.binElementAt(physicalIndex).isBinSubsetOf(potentialSuperset))
+			if (!object.binElementAt(physicalIndex).isBinSubsetOf(
+				potentialSuperset))
 			{
 				return false;
 			}
@@ -305,18 +319,24 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return true;
 	}
 
+	/**
+	 * Write set bin elements into the tuple, starting at the given
+	 * startingIndex.  Answer the next available index in which to write.
+	 */
 	@Override
 	public int o_PopulateTupleStartingAt (
 			final AvailObject object,
 			final AvailObject mutableTuple,
 			final int startingIndex)
 	{
-		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
-		//  the next available index in which to write.
-
 		assert mutableTuple.descriptor().isMutable();
 		int writeIndex = startingIndex;
-		for (int readIndex = 1, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); readIndex <= _end1; readIndex++)
+		for (
+			int
+				readIndex = 1,
+				_end1 = object.objectSlotsCount() - numberOfFixedObjectSlots();
+			readIndex <= _end1;
+			readIndex++)
 		{
 			mutableTuple.tupleAtPut(writeIndex, object.binElementAt(readIndex));
 			writeIndex++;
@@ -330,7 +350,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	{
 		//  Answer how many elements this bin contains.
 
-		return (object.objectSlotsCount() - numberOfFixedObjectSlots());
+		return object.objectSlotsCount() - numberOfFixedObjectSlots();
 	}
 
 	@Override
@@ -341,7 +361,12 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		//  to be small, so recalculate it per request.
 
 		AvailObject unionType = object.binElementAt(1).type();
-		for (int index = 2, _end1 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); index <= _end1; index++)
+		for (
+			int
+				index = 2,
+				_end1 = object.objectSlotsCount() - numberOfFixedObjectSlots();
+			index <= _end1;
+			index++)
 		{
 			unionType = unionType.typeUnion(object.binElementAt(index).type());
 		}
@@ -359,9 +384,11 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	};
 
 
-	static LinearSetBinDescriptor isMutableLevel (boolean flag, byte level)
+	static LinearSetBinDescriptor isMutableLevel (
+		final boolean flag,
+		final byte level)
 	{
-		assert(0 <= level && level <= numberOfLevels());
+		assert 0 <= level && level <= numberOfLevels();
 		return descriptors [level * 2 + (flag ? 0 : 1)];
 	};
 

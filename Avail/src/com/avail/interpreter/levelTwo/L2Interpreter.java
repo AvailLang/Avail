@@ -161,7 +161,7 @@ implements L2OperationDispatcher
 			for (int i = 1; i <= nArgs; i++)
 			{
 				// Reverse order - i.e., _argsBuffer.get(0) was pushed first.
-				int stackIndex = cont.stackp() + nArgs - i;
+				final int stackIndex = cont.stackp() + nArgs - i;
 				_argsBuffer.add(cont.stackAt(stackIndex));
 				cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
 			}
@@ -176,7 +176,7 @@ implements L2OperationDispatcher
 				assert _chunk ==
 					L2ChunkDescriptor.chunkFromId (
 						_pointers[callerRegister()].levelTwoChunkIndex());
-				Result primResult = attemptPrimitive(primNum, _argsBuffer);
+				final Result primResult = attemptPrimitive(primNum, _argsBuffer);
 				if (primResult == CONTINUATION_CHANGED)
 				{
 					return;
@@ -188,7 +188,7 @@ implements L2OperationDispatcher
 					{
 						error("Primitive result did not agree with expected type");
 					}
-					AvailObject callerCont = _pointers[callerRegister()];
+					final AvailObject callerCont = _pointers[callerRegister()];
 					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
 					return;
 				}
@@ -285,11 +285,10 @@ implements L2OperationDispatcher
 			final int numCopiedVars = getInteger();
 			final AvailObject codeToClose = cont.closure().code()
 			.literalAt(getInteger());
-			int stackp = cont.stackp() + numCopiedVars - 1;
+			final int stackp = cont.stackp() + numCopiedVars - 1;
 			cont.stackp(stackp);
-			final AvailObject newClosure = AvailObject.newIndexedDescriptor(
-				numCopiedVars,
-				ClosureDescriptor.mutableDescriptor());
+			final AvailObject newClosure = ClosureDescriptor.mutable().create(
+				numCopiedVars);
 			newClosure.code(codeToClose);
 			int stackIndex = stackp;
 			for (int i = 1; i <= numCopiedVars; i++)
@@ -457,9 +456,8 @@ implements L2OperationDispatcher
 		{
 			final AvailObject cont = pointerAt(callerRegister());
 			final int count = getInteger();
-			final AvailObject tuple = AvailObject.newIndexedDescriptor(
-				count,
-				ObjectTupleDescriptor.mutableDescriptor());
+			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
+				count);
 			int stackp = cont.stackp();
 			for (int i = count; i >= 1; i--)
 			{
@@ -485,7 +483,7 @@ implements L2OperationDispatcher
 			final AvailObject variable = cont.closure().outerVarAt(index);
 			final AvailObject value = variable.getValue();
 			value.makeImmutable();
-			int stackp = cont.stackp() - 1;
+			final int stackp = cont.stackp() - 1;
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value);
 		}
@@ -531,7 +529,7 @@ implements L2OperationDispatcher
 			{
 				newContinuation.stackAtPut(i, VoidDescriptor.voidObject());
 			}
-			int limit = code.numArgs() + code.numLocals();
+			final int limit = code.numArgs() + code.numLocals();
 			for (int i = code.numArgs() + 1; i <= limit; i++)
 			{
 				newContinuation.localOrArgOrStackAtPut(
@@ -635,7 +633,7 @@ implements L2OperationDispatcher
 				cont.stackAtPut(stackp + i - 1, VoidDescriptor.voidObject());
 			}
 			_argsBuffer.clear();
-			int base = stackp + nArgs + nArgs;
+			final int base = stackp + nArgs + nArgs;
 			for (int i = 1; i <= nArgs; i++)
 			{
 				_argsBuffer.add(cont.stackAt(base - i));
@@ -651,7 +649,7 @@ implements L2OperationDispatcher
 				assert _chunk == L2ChunkDescriptor
 					.chunkFromId(_pointers[callerRegister()]
 					                       .levelTwoChunkIndex());
-				Result primResult = attemptPrimitive(primNum, _argsBuffer);
+				final Result primResult = attemptPrimitive(primNum, _argsBuffer);
 				if (primResult == CONTINUATION_CHANGED)
 				{
 					return;
@@ -663,7 +661,7 @@ implements L2OperationDispatcher
 					{
 						error("Primitive result did not agree with expected type");
 					}
-					AvailObject callerCont = _pointers[callerRegister()];
+					final AvailObject callerCont = _pointers[callerRegister()];
 					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
 					return;
 				}
@@ -687,7 +685,7 @@ implements L2OperationDispatcher
 
 			final AvailObject cont = pointerAt(callerRegister());
 			final int index = getInteger();
-			int stackp = cont.stackp() - 1;
+			final int stackp = cont.stackp() - 1;
 			final AvailObject value = cont.stackAt(stackp + index + 1);
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value.type());
@@ -826,25 +824,25 @@ implements L2OperationDispatcher
 	 */
 	void makeRoomForChunkRegisters (final AvailObject theChunk, final AvailObject theCode)
 	{
-		int neededObjectCount = max(
+		final int neededObjectCount = max(
 			theChunk.numObjects(),
 			theCode.numArgsAndLocalsAndStack()) + 3;
 		if (neededObjectCount > _pointers.length)
 		{
-			AvailObject[] newPointers =
+			final AvailObject[] newPointers =
 				new AvailObject[neededObjectCount * 2 + 10];
 			System.arraycopy(_pointers, 0, newPointers, 0, _pointers.length);
 			_pointers = newPointers;
 		}
 		if (theChunk.numIntegers() > _integers.length)
 		{
-			int[] newIntegers = new int[theChunk.numIntegers() * 2 + 10];
+			final int[] newIntegers = new int[theChunk.numIntegers() * 2 + 10];
 			System.arraycopy(_integers, 0, newIntegers, 0, _integers.length);
 			_integers = newIntegers;
 		}
 		if (theChunk.numDoubles() > _doubles.length)
 		{
-			double[] newDoubles = new double[theChunk.numDoubles() * 2 + 10];
+			final double[] newDoubles = new double[theChunk.numDoubles() * 2 + 10];
 			System.arraycopy(_doubles, 0, newDoubles, 0, _doubles.length);
 			_doubles = newDoubles;
 		}
@@ -918,14 +916,14 @@ implements L2OperationDispatcher
 		final List<AvailObject> args)
 	{
 
-		short primNum = aClosure.code().primitiveNumber();
+		final short primNum = aClosure.code().primitiveNumber();
 		if (primNum != 0)
 		{
 			Result result;
 			result = attemptPrimitive(primNum, args);
 			if (result == SUCCESS)
 			{
-				AvailObject cont = pointerAt(callerRegister());
+				final AvailObject cont = pointerAt(callerRegister());
 				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return result;
 			}
@@ -999,7 +997,7 @@ implements L2OperationDispatcher
 	public AvailObject run (final AvailObject aProcess)
 	{
 		process = aProcess;
-		AvailObject continuationTemp = aProcess.continuation();
+		final AvailObject continuationTemp = aProcess.continuation();
 
 		interruptRequestFlag = InterruptRequestFlag.noInterrupt;
 		_exitNow = false;
@@ -1033,8 +1031,8 @@ implements L2OperationDispatcher
 			 * <em>not</em> the caller. That is, only the callerRegister()'s
 			 * content is valid.
 			 */
-			int wordCode = nextWord();
-			L2Operation operation = L2Operation.values()[wordCode];
+			final int wordCode = nextWord();
+			final L2Operation operation = L2Operation.values()[wordCode];
 			//System.out.printf(
 			//	"[%d@%d] %s%n",
 			//	_chunk.index(),
@@ -1052,8 +1050,8 @@ implements L2OperationDispatcher
 		final AvailObject aClosure,
 		final List<AvailObject> arguments)
 	{
-		AvailObject theCode = aClosure.code();
-		short prim = theCode.primitiveNumber();
+		final AvailObject theCode = aClosure.code();
+		final short prim = theCode.primitiveNumber();
 		if (prim != 0)
 		{
 			assert Primitive.byPrimitiveNumber(prim).hasFlag(
@@ -1069,7 +1067,7 @@ implements L2OperationDispatcher
 
 		// Safety precaution.
 		aClosure.makeImmutable();
-		AvailObject outermostContinuation =
+		final AvailObject outermostContinuation =
 			ContinuationDescriptor.create(
 				aClosure,
 				VoidDescriptor.voidObject(),
@@ -1109,8 +1107,8 @@ implements L2OperationDispatcher
 	 */
 	int nextWord ()
 	{
-		int offset = offset();
-		int word = _chunkWords.tupleIntAt(offset);
+		final int offset = offset();
+		final int word = _chunkWords.tupleIntAt(offset);
 		offset(offset + 1);
 		return word;
 	}
@@ -1130,12 +1128,11 @@ implements L2OperationDispatcher
 		// closure, and arguments.
 		// Place the closure in the callerRegister.
 
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		final AvailObject theClosure = pointerAt(closureRegister());
 		final AvailObject theCode = theClosure.code();
-		final AvailObject newContinuation = AvailObject.newIndexedDescriptor(
-			theCode.numArgsAndLocalsAndStack(),
-			ContinuationDescriptor.mutableDescriptor());
+		final AvailObject newContinuation = ContinuationDescriptor.mutable()
+			.create(theCode.numArgsAndLocalsAndStack());
 		final short nArgs = theCode.numArgs();
 		newContinuation.caller(pointerAt(callerRegister()));
 		newContinuation.closure(theClosure);
@@ -1211,10 +1208,10 @@ implements L2OperationDispatcher
 		{
 			theCode.invocationCount(L2ChunkDescriptor
 				.countdownForNewlyOptimizedCode());
-			AvailObject newChunk = privateTranslateCodeOptimization(theCode, 3);
+			final AvailObject newChunk = privateTranslateCodeOptimization(theCode, 3);
 			assert theCode.startingChunkIndex() == newChunk.index();
 			_argsBuffer.clear();
-			int nArgs = theCode.numArgs();
+			final int nArgs = theCode.numArgs();
 			for (int i = 1; i <= nArgs; i++)
 			{
 				_argsBuffer.add(_pointers[argumentRegister(i)]);
@@ -1233,14 +1230,14 @@ implements L2OperationDispatcher
 		// coloring, but insert instrumentation that will eventually trigger a
 		// reoptimization of this code.
 
-		AvailObject theClosure = _pointers[closureRegister()];
-		AvailObject theCode = theClosure.code();
-		AvailObject newChunk = privateTranslateCodeOptimization(theCode, 1); // initial
+		final AvailObject theClosure = _pointers[closureRegister()];
+		final AvailObject theCode = theClosure.code();
+		final AvailObject newChunk = privateTranslateCodeOptimization(theCode, 1); // initial
 		// simplistic
 		// translation
 		assert theCode.startingChunkIndex() == newChunk.index();
 		_argsBuffer.clear();
-		int nArgs = theCode.numArgs();
+		final int nArgs = theCode.numArgs();
 		for (int i = nArgs; i > 0; --i)
 		{
 			_argsBuffer.add(_pointers[argumentRegister(i)]);
@@ -1251,33 +1248,33 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doMoveFromObject_destObject_ ()
 	{
-		int fromIndex = nextWord();
-		int destIndex = nextWord();
+		final int fromIndex = nextWord();
+		final int destIndex = nextWord();
 		pointerAtPut(destIndex, pointerAt(fromIndex));
 	}
 
 	@Override
 	public void L2_doMoveFromConstant_destObject_ ()
 	{
-		int fromIndex = nextWord();
-		int destIndex = nextWord();
+		final int fromIndex = nextWord();
+		final int destIndex = nextWord();
 		pointerAtPut(destIndex, _chunk.literalAt(fromIndex));
 	}
 
 	@Override
 	public void L2_doMoveFromOuterVariable_ofClosureObject_destObject_ ()
 	{
-		int outerIndex = nextWord();
-		int fromIndex = nextWord();
-		int destIndex = nextWord();
+		final int outerIndex = nextWord();
+		final int fromIndex = nextWord();
+		final int destIndex = nextWord();
 		pointerAtPut(destIndex, pointerAt(fromIndex).outerVarAt(outerIndex));
 	}
 
 	@Override
 	public void L2_doCreateVariableTypeConstant_destObject_ ()
 	{
-		int typeIndex = nextWord();
-		int destIndex = nextWord();
+		final int typeIndex = nextWord();
+		final int destIndex = nextWord();
 		pointerAtPut(
 			destIndex,
 			ContainerDescriptor.forOuterType(_chunk
@@ -1287,16 +1284,16 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doGetVariable_destObject_ ()
 	{
-		int getIndex = nextWord();
-		int destIndex = nextWord();
+		final int getIndex = nextWord();
+		final int destIndex = nextWord();
 		pointerAtPut(destIndex, pointerAt(getIndex).getValue().makeImmutable());
 	}
 
 	@Override
 	public void L2_doGetVariableClearing_destObject_ ()
 	{
-		int getIndex = nextWord();
-		int destIndex = nextWord();
+		final int getIndex = nextWord();
+		final int destIndex = nextWord();
 		final AvailObject var = pointerAt(getIndex);
 		final AvailObject value = var.getValue();
 		if (var.traversed().descriptor().isMutable())
@@ -1313,8 +1310,8 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doSetVariable_sourceObject_ ()
 	{
-		int setIndex = nextWord();
-		int sourceIndex = nextWord();
+		final int setIndex = nextWord();
+		final int sourceIndex = nextWord();
 		pointerAt(setIndex).setValue(pointerAt(sourceIndex));
 	}
 
@@ -1322,6 +1319,7 @@ implements L2OperationDispatcher
 	public void L2_doClearVariable_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int clearIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1331,6 +1329,7 @@ implements L2OperationDispatcher
 	public void L2_doClearVariablesVector_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int variablesIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1339,7 +1338,7 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doClearObject_ ()
 	{
-		int clearIndex = nextWord();
+		final int clearIndex = nextWord();
 		pointerAtPut(clearIndex, VoidDescriptor.voidObject());
 	}
 
@@ -1347,8 +1346,10 @@ implements L2OperationDispatcher
 	public void L2_doAddIntegerConstant_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1358,10 +1359,13 @@ implements L2OperationDispatcher
 	public void L2_doAddIntegerConstant_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1371,8 +1375,10 @@ implements L2OperationDispatcher
 	public void L2_doAddObject_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int addIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1383,13 +1389,13 @@ implements L2OperationDispatcher
 	{
 		// Note that failOffset is an absolute position in the chunk.
 
-		int addIndex = nextWord();
-		int destIndex = nextWord();
-		int failOffset = nextWord();
-		long add = _integers[addIndex];
-		long dest = _integers[destIndex];
-		long result = dest + add;
-		int resultInt = (int) result;
+		final int addIndex = nextWord();
+		final int destIndex = nextWord();
+		final int failOffset = nextWord();
+		final long add = _integers[addIndex];
+		final long dest = _integers[destIndex];
+		final long result = dest + add;
+		final int resultInt = (int) result;
 		if (result == resultInt)
 		{
 			_integers[destIndex] = resultInt;
@@ -1404,10 +1410,13 @@ implements L2OperationDispatcher
 	public void L2_doAddIntegerImmediate_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1417,8 +1426,10 @@ implements L2OperationDispatcher
 	public void L2_doAddModThirtyTwoBitInteger_destInteger_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int bitIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1428,8 +1439,10 @@ implements L2OperationDispatcher
 	public void L2_doSubtractIntegerConstant_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1439,10 +1452,13 @@ implements L2OperationDispatcher
 	public void L2_doSubtractIntegerConstant_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1452,8 +1468,10 @@ implements L2OperationDispatcher
 	public void L2_doSubtractObject_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int subtractIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1463,10 +1481,13 @@ implements L2OperationDispatcher
 	public void L2_doSubtractInteger_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int subtractIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1476,10 +1497,13 @@ implements L2OperationDispatcher
 	public void L2_doSubtractIntegerImmediate_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerImmediate = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1489,8 +1513,10 @@ implements L2OperationDispatcher
 	public void L2_doSubtractModThirtyTwoBitInteger_destInteger_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1500,8 +1526,10 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyIntegerConstant_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1511,10 +1539,13 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyIntegerConstant_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1524,8 +1555,10 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyObject_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int multiplyIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1535,10 +1568,13 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyInteger_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int multiplyIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1548,10 +1584,13 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyIntegerImmediate_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1561,8 +1600,10 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyModThirtyTwoBitInteger_destInteger_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1572,14 +1613,19 @@ implements L2OperationDispatcher
 	public void L2_doDivideObject_byIntegerConstant_destQuotientObject_destRemainderInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int divideIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1589,14 +1635,19 @@ implements L2OperationDispatcher
 	public void L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int divideIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int integerIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1606,14 +1657,19 @@ implements L2OperationDispatcher
 	public void L2_doDivideInteger_byIntegerImmediate_destQuotientInteger_destRemainderInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int divideIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int integerImmediate = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1623,14 +1679,19 @@ implements L2OperationDispatcher
 	public void L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int divideIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int byIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int zeroIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1640,16 +1701,22 @@ implements L2OperationDispatcher
 	public void L2_doDivideInteger_byInteger_destQuotientInteger_destRemainderInteger_ifFail_ifZeroDivisor_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int divideIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int byIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int zeroIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1658,7 +1725,7 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doJump_ ()
 	{
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		offset(doIndex);
 	}
 
@@ -1666,10 +1733,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_equalsObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalsIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1679,10 +1749,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_equalsConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalsIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1692,10 +1765,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_notEqualsObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalsIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1705,10 +1781,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_notEqualsConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalsIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1718,10 +1797,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessThanObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int thanIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1731,10 +1813,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessThanConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int thanIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1744,10 +1829,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessOrEqualObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1757,10 +1845,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessOrEqualConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1770,10 +1861,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterThanObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int thanIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1783,10 +1877,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int greaterIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1796,10 +1893,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterOrEqualObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1809,10 +1909,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterOrEqualConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int equalIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1822,10 +1925,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_isKindOfObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ofIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1834,9 +1940,9 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doJump_ifObject_isKindOfConstant_ ()
 	{
-		int doIndex = nextWord();
-		int valueIndex = nextWord();
-		int typeConstIndex = nextWord();
+		final int doIndex = nextWord();
+		final int valueIndex = nextWord();
+		final int typeConstIndex = nextWord();
 		final AvailObject value = pointerAt(valueIndex);
 		final AvailObject type = _chunk.literalAt(typeConstIndex);
 		if (value.isInstanceOfSubtypeOf(type))
@@ -1849,10 +1955,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_isNotKindOfObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ofIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1862,10 +1971,13 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_isNotKindOfConstant_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int doIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ifIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int ofIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1874,7 +1986,7 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doJumpIfInterrupt_ ()
 	{
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		if (interruptRequestFlag != InterruptRequestFlag.noInterrupt)
 		{
 			offset(ifIndex);
@@ -1884,7 +1996,7 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doJumpIfNotInterrupt_ ()
 	{
-		int ifNotIndex = nextWord();
+		final int ifNotIndex = nextWord();
 		if (interruptRequestFlag == InterruptRequestFlag.noInterrupt)
 		{
 			offset(ifNotIndex);
@@ -1905,7 +2017,7 @@ implements L2OperationDispatcher
 		// process later. The continuation to use can be found in
 		// _pointers[continuationIndex].
 
-		int continuationIndex = nextWord();
+		final int continuationIndex = nextWord();
 		process.continuation(_pointers[continuationIndex]);
 		process.interruptRequestFlag(interruptRequestFlag);
 		_exitValue = VoidDescriptor.voidObject();
@@ -1915,19 +2027,18 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_ ()
 	{
-		int senderIndex = nextWord();
-		int closureIndex = nextWord();
-		int pcIndex = nextWord();
-		int stackpIndex = nextWord();
-		int sizeIndex = nextWord();
-		int slotsIndex = nextWord();
-		int wordcodeOffset = nextWord();
-		int destIndex = nextWord();
+		final int senderIndex = nextWord();
+		final int closureIndex = nextWord();
+		final int pcIndex = nextWord();
+		final int stackpIndex = nextWord();
+		final int sizeIndex = nextWord();
+		final int slotsIndex = nextWord();
+		final int wordcodeOffset = nextWord();
+		final int destIndex = nextWord();
 		final AvailObject closure = pointerAt(closureIndex);
 		final AvailObject code = closure.code();
-		final AvailObject continuation = AvailObject.newIndexedDescriptor(
-			code.numArgsAndLocalsAndStack(),
-			ContinuationDescriptor.mutableDescriptor());
+		final AvailObject continuation = ContinuationDescriptor.mutable()
+			.create(code.numArgsAndLocalsAndStack());
 		continuation.caller(pointerAt(senderIndex));
 		continuation.closure(closure);
 		continuation.pc(pcIndex);
@@ -1950,10 +2061,13 @@ implements L2OperationDispatcher
 	public void L2_doSetContinuationObject_slotIndexImmediate_valueObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int continuationIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int indexIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int valueIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1963,10 +2077,13 @@ implements L2OperationDispatcher
 	public void L2_doSetContinuationObject_newPcImmediate_newStackpImmediate_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int continuationIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int pcIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int stackpIndex = nextWord();
 		error("not implemented");
 		return;
@@ -1975,10 +2092,10 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_ ()
 	{
-		int continuationIndex = nextWord();
-		int senderDestIndex = nextWord();
-		int closureDestIndex = nextWord();
-		int slotsDestIndex = nextWord();
+		final int continuationIndex = nextWord();
+		final int senderDestIndex = nextWord();
+		final int closureDestIndex = nextWord();
+		final int slotsDestIndex = nextWord();
 		final AvailObject cont = pointerAt(continuationIndex);
 		pointerAtPut(senderDestIndex, cont.caller());
 		pointerAtPut(closureDestIndex, cont.closure());
@@ -2000,8 +2117,8 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doSend_argumentsVector_ ()
 	{
-		int selectorIndex = nextWord();
-		int argumentsIndex = nextWord();
+		final int selectorIndex = nextWord();
+		final int argumentsIndex = nextWord();
 		final AvailObject vect = _chunkVectors.tupleAt(argumentsIndex);
 		_argsBuffer.clear();
 		for (int i = 1; i <= vect.tupleSize(); i++)
@@ -2027,7 +2144,7 @@ implements L2OperationDispatcher
 		if (primNum != 0)
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
-			Result primResult = attemptPrimitive(primNum, _argsBuffer);
+			final Result primResult = attemptPrimitive(primNum, _argsBuffer);
 			if (primResult == CONTINUATION_CHANGED)
 			{
 				return;
@@ -2035,7 +2152,7 @@ implements L2OperationDispatcher
 			else if (primResult != FAILURE)
 			{
 				// Primitive succeeded.
-				AvailObject cont = _pointers[callerRegister()];
+				final AvailObject cont = _pointers[callerRegister()];
 				assert _chunk.index() == cont.levelTwoChunkIndex();
 				cont.readBarrierFault();
 				assert cont.descriptor().isMutable();
@@ -2049,17 +2166,17 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doGetType_destObject_ ()
 	{
-		int srcIndex = nextWord();
-		int destIndex = nextWord();
+		final int srcIndex = nextWord();
+		final int destIndex = nextWord();
 		pointerAtPut(destIndex, pointerAt(srcIndex).type());
 	}
 
 	@Override
 	public void L2_doSuperSend_argumentsVector_argumentTypesVector_ ()
 	{
-		int selectorIndex = nextWord();
-		int argumentsIndex = nextWord();
-		int typesIndex = nextWord();
+		final int selectorIndex = nextWord();
+		final int argumentsIndex = nextWord();
+		final int typesIndex = nextWord();
 		AvailObject vect = _chunkVectors.tupleAt(typesIndex);
 		if (true)
 		{
@@ -2094,7 +2211,7 @@ implements L2OperationDispatcher
 		if (primNum != 0)
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
-			Result primResult = attemptPrimitive(primNum, _argsBuffer);
+			final Result primResult = attemptPrimitive(primNum, _argsBuffer);
 			if (primResult == CONTINUATION_CHANGED)
 			{
 				return;
@@ -2102,7 +2219,7 @@ implements L2OperationDispatcher
 			else if (primResult != FAILURE)
 			{
 				// Primitive succeeded.
-				AvailObject cont = _pointers[callerRegister()];
+				final AvailObject cont = _pointers[callerRegister()];
 				assert _chunk.index() == cont.levelTwoChunkIndex();
 				cont.readBarrierFault();
 				assert cont.descriptor().isMutable();
@@ -2116,14 +2233,13 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_ ()
 	{
-		int sizeIndex = nextWord();
-		int valuesIndex = nextWord();
-		int destIndex = nextWord();
+		final int sizeIndex = nextWord();
+		final int valuesIndex = nextWord();
+		final int destIndex = nextWord();
 		final AvailObject indices = _chunkVectors.tupleAt(valuesIndex);
 		assert indices.tupleSize() == sizeIndex;
-		final AvailObject tuple = AvailObject.newIndexedDescriptor(
-			sizeIndex,
-			ObjectTupleDescriptor.mutableDescriptor());
+		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
+			sizeIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{
 			tuple.tupleAtPut(i, pointerAt(indices.tupleAt(i).extractInt()));
@@ -2135,8 +2251,10 @@ implements L2OperationDispatcher
 	public void L2_doConcatenateTuplesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int subtupleIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -2146,10 +2264,13 @@ implements L2OperationDispatcher
 	public void L2_doCreateSetOfSizeImmediate_valuesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -2159,12 +2280,16 @@ implements L2OperationDispatcher
 	public void L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int keysIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -2174,12 +2299,16 @@ implements L2OperationDispatcher
 	public void L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int keysIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int destIndex = nextWord();
 		error("not implemented");
 		return;
@@ -2188,13 +2317,12 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doCreateClosureFromCodeObject_outersVector_destObject_ ()
 	{
-		int codeIndex = nextWord();
-		int outersIndex = nextWord();
-		int destIndex = nextWord();
+		final int codeIndex = nextWord();
+		final int outersIndex = nextWord();
+		final int destIndex = nextWord();
 		final AvailObject outers = _chunkVectors.tupleAt(outersIndex);
-		final AvailObject clos = AvailObject.newIndexedDescriptor(
-			outers.tupleSize(),
-			ClosureDescriptor.mutableDescriptor());
+		final AvailObject clos = ClosureDescriptor.mutable().create(
+			outers.tupleSize());
 		clos.code(_chunk.literalAt(codeIndex));
 		for (int i = 1, _end1 = outers.tupleSize(); i <= _end1; i++)
 		{
@@ -2208,8 +2336,8 @@ implements L2OperationDispatcher
 	{
 		// Return to the calling continuation with the given value.
 
-		int continuationIndex = nextWord();
-		int valueIndex = nextWord();
+		final int continuationIndex = nextWord();
+		final int valueIndex = nextWord();
 		assert continuationIndex == callerRegister();
 
 		final AvailObject valueObject = pointerAt(valueIndex);
@@ -2238,8 +2366,10 @@ implements L2OperationDispatcher
 	public void L2_doExitContinuationObject_valueObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int continuationIndex = nextWord();
 		@SuppressWarnings("unused")
+		final
 		int valueIndex = nextWord();
 		error("not implemented");
 		return;
@@ -2249,6 +2379,7 @@ implements L2OperationDispatcher
 	public void L2_doResumeContinuationObject_ ()
 	{
 		@SuppressWarnings("unused")
+		final
 		int continuationIndex = nextWord();
 		error("not implemented");
 		return;
@@ -2257,14 +2388,14 @@ implements L2OperationDispatcher
 	@Override
 	public void L2_doMakeImmutableObject_ ()
 	{
-		int objectIndex = nextWord();
+		final int objectIndex = nextWord();
 		pointerAt(objectIndex).makeImmutable();
 	}
 
 	@Override
 	public void L2_doMakeSubobjectsImmutableInObject_ ()
 	{
-		int objectIndex = nextWord();
+		final int objectIndex = nextWord();
 		pointerAt(objectIndex).makeSubobjectsImmutable();
 	}
 
@@ -2289,17 +2420,17 @@ implements L2OperationDispatcher
 		// is calling the primitive. This is not the case for an *inlined*
 		// primitive.
 
-		int primNumber = nextWord();
-		int argsVector = nextWord();
-		int resultRegister = nextWord();
-		int failureOffset = nextWord();
-		AvailObject argsVect = _chunkVectors.tupleAt(argsVector);
+		final int primNumber = nextWord();
+		final int argsVector = nextWord();
+		final int resultRegister = nextWord();
+		final int failureOffset = nextWord();
+		final AvailObject argsVect = _chunkVectors.tupleAt(argsVector);
 		_argsBuffer.clear();
 		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
 		{
 			_argsBuffer.add(_pointers[argsVect.tupleAt(i1).extractInt()]);
 		}
-		Result res = attemptPrimitive((short) primNumber, _argsBuffer);
+		final Result res = attemptPrimitive((short) primNumber, _argsBuffer);
 		if (res == SUCCESS)
 		{
 			_pointers[resultRegister] = primitiveResult;
@@ -2376,14 +2507,14 @@ implements L2OperationDispatcher
 	public int getInteger ()
 	{
 
-		AvailObject cont = _pointers[callerRegister()];
-		AvailObject clos = cont.closure();
-		AvailObject cod = clos.code();
-		AvailObject nybs = cod.nybbles();
+		final AvailObject cont = _pointers[callerRegister()];
+		final AvailObject clos = cont.closure();
+		final AvailObject cod = clos.code();
+		final AvailObject nybs = cod.nybbles();
 		int pc = cont.pc();
-		byte nyb = nybs.extractNybbleFromTupleAt(pc);
+		final byte nyb = nybs.extractNybbleFromTupleAt(pc);
 		int value = 0;
-		byte[] counts =
+		final byte[] counts =
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
 		};
@@ -2391,7 +2522,7 @@ implements L2OperationDispatcher
 		{
 			value = (value << 4) + nybs.extractNybbleFromTupleAt(++pc);
 		}
-		byte[] offsets =
+		final byte[] offsets =
 		{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
 		};

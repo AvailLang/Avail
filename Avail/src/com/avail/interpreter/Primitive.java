@@ -40,6 +40,7 @@ import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.*;
@@ -781,13 +782,13 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject block = args.get(0);
 			final AvailObject argTuple = args.get(1);
-			AvailObject blockType = block.type();
-			int numArgs = argTuple.tupleSize();
+			final AvailObject blockType = block.type();
+			final int numArgs = argTuple.tupleSize();
 			if (blockType.numArgs() != numArgs)
 			{
 				return FAILURE;
 			}
-			List<AvailObject> callArgs = new ArrayList<AvailObject>(numArgs);
+			final List<AvailObject> callArgs = new ArrayList<AvailObject>(numArgs);
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final AvailObject anArg = argTuple.tupleAt(i);
@@ -894,9 +895,8 @@ public enum Primitive
 			final AvailObject stackp = args.get(3);
 			final AvailObject stack = args.get(4);
 			final AvailObject theCode = closure.code();
-			final AvailObject cont = AvailObject.newIndexedDescriptor(
-				theCode.numArgsAndLocalsAndStack(),
-				ContinuationDescriptor.mutableDescriptor());
+			final AvailObject cont = ContinuationDescriptor.mutable().create(
+				theCode.numArgsAndLocalsAndStack());
 			cont.caller(callerHolder.value());
 			cont.closure(closure);
 			cont.pc(pc.extractInt());
@@ -1163,9 +1163,8 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			final short count = con.closure().code().numArgsAndLocalsAndStack();
-			final AvailObject tuple = AvailObject.newIndexedDescriptor(
-				count,
-				ObjectTupleDescriptor.mutableDescriptor());
+			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
+				count);
 			for (int i = 1; i <= count; i++)
 			{
 				AvailObject entry = con.localOrArgOrStackAt(i);
@@ -1446,7 +1445,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
-			final AvailObject newTupleObject = AvailObject.newIndexedDescriptor(aClosure.numOuterVars(), ObjectTupleDescriptor.mutableDescriptor());
+			final AvailObject newTupleObject = ObjectTupleDescriptor.mutable()
+				.create(aClosure.numOuterVars());
 			newTupleObject.hashOrZero(0);
 			CanAllocateObjects(false);
 			for (int i = 1, _end7 = aClosure.numOuterVars(); i <= _end7; i++)
@@ -2039,7 +2039,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject soleElement = args.get(0);
-			final AvailObject newTupleObject = AvailObject.newIndexedDescriptor(1, ObjectTupleDescriptor.mutableDescriptor());
+			final AvailObject newTupleObject = ObjectTupleDescriptor.mutable().create(1);
 			newTupleObject.hashOrZero(0);
 			newTupleObject.tupleAtPut(1, soleElement);
 			interpreter.primitiveResult(newTupleObject);
@@ -2210,7 +2210,8 @@ public enum Primitive
 			final AvailObject startIndex = args.get(1);
 			final AvailObject endIndex = args.get(2);
 			//  For now, play it safe.
-			AvailObject tupleObject = AvailObject.newIndexedDescriptor((endIndex.extractInt() - startIndex.extractInt() + 1), ObjectTupleDescriptor.mutableDescriptor());
+			AvailObject tupleObject = ObjectTupleDescriptor.mutable().create(
+				endIndex.extractInt() - startIndex.extractInt() + 1);
 			tupleObject.hashOrZero(0);
 			for (int i = 1, _end8 = tupleObject.tupleSize(); i <= _end8; i++)
 			{
@@ -3105,7 +3106,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			AvailObject tupleObject = AvailObject.newIndexedDescriptor(cc.numLiterals(), ObjectTupleDescriptor.mutableDescriptor());
+			AvailObject tupleObject = ObjectTupleDescriptor.mutable().create(
+				cc.numLiterals());
 			tupleObject.hashOrZero(0);
 			for (int i = 1, _end10 = tupleObject.tupleSize(); i <= _end10; i++)
 			{
@@ -3148,9 +3150,9 @@ public enum Primitive
 			final AvailObject closureType = args.get(5);
 			final AvailObject prim = args.get(6);
 			final AvailObject literals = args.get(7);
-			int nLocals = locals.extractInt();
-			int nOuters = outers.extractInt();
-			int nLiteralsTotal = literals.tupleSize();
+			final int nLocals = locals.extractInt();
+			final int nOuters = outers.extractInt();
+			final int nLiteralsTotal = literals.tupleSize();
 			interpreter.primitiveResult(
 				CompiledCodeDescriptor.create (
 					nybs,
@@ -3276,7 +3278,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
-			AvailObject bundles =
+			final AvailObject bundles =
 				interpreter.incompleteBundlesStartingWith(leadingPart);
 			bundles.makeImmutable();
 			interpreter.primitiveResult(bundles);
@@ -3683,7 +3685,7 @@ public enum Primitive
 				AvailObject setOfCyclics = SetDescriptor.empty();
 				for (int k = 1, _end13 = exclusionSetAsTuple.tupleSize(); k <= _end13; k++)
 				{
-					AvailObject string = exclusionSetAsTuple.tupleAt(k);
+					final AvailObject string = exclusionSetAsTuple.tupleAt(k);
 					setOfCyclics = setOfCyclics.setWithElementCanDestroy(interpreter.lookupName(string), true);
 				}
 				disallowed = disallowed.tupleAtPuttingCanDestroy(
@@ -3695,7 +3697,7 @@ public enum Primitive
 			final AvailObject stringSetAsTuple = stringSet.asTuple();
 			for (int i = 1, _end14 = stringSetAsTuple.tupleSize(); i <= _end14; i++)
 			{
-				AvailObject string = stringSetAsTuple.tupleAt(i);
+				final AvailObject string = stringSetAsTuple.tupleAt(i);
 				interpreter.atDisallowArgumentMessages(interpreter.lookupName(string), disallowed);
 			}
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
@@ -4201,14 +4203,14 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			float fa = a.extractFloat();
-			float fb = b.extractFloat();
+			final float fa = a.extractFloat();
+			final float fb = b.extractFloat();
 			if (fb == 0.0f)
 			{
 				return FAILURE;
 			}
-			float div = fa / fb;
-			float mod = fa - (float)floor(div) * fb;
+			final float div = fa / fb;
+			final float mod = fa - (float)floor(div) * fb;
 			interpreter.primitiveResult(
 				FloatDescriptor.objectWithRecycling(mod, a, b));
 			return SUCCESS;
@@ -4236,17 +4238,16 @@ public enum Primitive
 				interpreter.primitiveResult(IntegerDescriptor.objectFromInt((int)f));
 				return SUCCESS;
 			}
-			boolean neg = f < 0.0f;
+			final boolean neg = f < 0.0f;
 			f = abs(f);
-			int exponent = getExponent(f);
-			int slots = exponent + 31 / 32;  // probably needs work
-			AvailObject out = AvailObject.newIndexedDescriptor(
-				slots,
-				IntegerDescriptor.mutableDescriptor());
+			final int exponent = getExponent(f);
+			final int slots = exponent + 31 / 32;  // probably needs work
+			AvailObject out = IntegerDescriptor.mutable().create(
+				slots);
 			f = scalb(f, (1 - slots) * 32);
 			for (int i = slots; i >= 1; --i)
 			{
-				long intSlice = (int) f;
+				final long intSlice = (int) f;
 				out.rawUnsignedIntegerAtPut(i, (int)intSlice);
 				f -= intSlice;
 				f = scalb(f, 32);
@@ -4276,7 +4277,7 @@ public enum Primitive
 			// Extract the top 32 bits and the next-to-top 32 bits.  That guarantees 33 bits
 			// of mantissa, which is more than a float actually captures.
 			float f;
-			int size = a.integerSlotsCount();
+			final int size = a.integerSlotsCount();
 			if (size == 1)
 			{
 				f = a.extractInt();
@@ -4285,7 +4286,7 @@ public enum Primitive
 			{
 				long highInt = a.rawUnsignedIntegerAt(size);
 				long lowInt = a.rawUnsignedIntegerAt(size - 1);
-				boolean neg = (highInt & 0x80000000L) != 0;
+				final boolean neg = (highInt & 0x80000000L) != 0;
 				highInt = ~highInt;
 				lowInt = ~lowInt;
 				if ((int)++lowInt == 0)
@@ -4320,7 +4321,7 @@ public enum Primitive
 			long scale = b.extractInt();
 			scale = max(scale, -0x80000000L);
 			scale = min(scale, 0x7FFFFFFFL);
-			float f = scalb(a.extractFloat(), (int)scale);
+			final float f = scalb(a.extractFloat(), (int)scale);
 			interpreter.primitiveResult(
 				FloatDescriptor.objectFromFloatRecycling(f, a));
 			return SUCCESS;
@@ -4496,14 +4497,14 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			double da = a.extractDouble();
-			double db = b.extractDouble();
+			final double da = a.extractDouble();
+			final double db = b.extractDouble();
 			if (db == 0.0d)
 			{
 				return FAILURE;
 			}
-			double div = da / db;
-			double mod = da - floor(div) * db;
+			final double div = da / db;
+			final double mod = da - floor(div) * db;
 			interpreter.primitiveResult(
 				DoubleDescriptor.objectFromDoubleRecyclingOr(mod, a, b));
 			return SUCCESS;
@@ -4531,17 +4532,16 @@ public enum Primitive
 				interpreter.primitiveResult(IntegerDescriptor.objectFromInt((int)d));
 				return SUCCESS;
 			}
-			boolean neg = d < 0.0d;
+			final boolean neg = d < 0.0d;
 			d = abs(d);
-			int exponent = getExponent(d);
-			int slots = exponent + 31 / 32;  // probably needs work
-			AvailObject out = AvailObject.newIndexedDescriptor(
-				slots,
-				IntegerDescriptor.mutableDescriptor());
+			final int exponent = getExponent(d);
+			final int slots = exponent + 31 / 32;  // probably needs work
+			AvailObject out = IntegerDescriptor.mutable().create(
+				slots);
 			d = scalb(d, (1 - slots) * 32);
 			for (int i = slots; i >= 1; --i)
 			{
-				long intSlice = (int) d;
+				final long intSlice = (int) d;
 				out.rawUnsignedIntegerAtPut(i, (int)intSlice);
 				d -= intSlice;
 				d = scalb(d, 32);
@@ -4571,7 +4571,7 @@ public enum Primitive
 			// Extract the top three 32-bit pieces.  That guarantees 65 bits
 			// of mantissa, which is more than a double actually captures.
 			double d;
-			int size = a.integerSlotsCount();
+			final int size = a.integerSlotsCount();
 			if (size == 1)
 			{
 				d = a.extractInt();
@@ -4581,7 +4581,7 @@ public enum Primitive
 				long highInt = a.rawUnsignedIntegerAt(size);
 				long nextInt = a.rawUnsignedIntegerAt(size - 1);
 				long lowInt = size >= 3 ? a.rawUnsignedIntegerAt(size - 2) : 0;
-				boolean neg = (highInt & 0x80000000L) != 0;
+				final boolean neg = (highInt & 0x80000000L) != 0;
 				if (neg)
 				{
 					highInt = ~highInt;
@@ -4627,7 +4627,7 @@ public enum Primitive
 			long scale = b.extractInt();
 			scale = max(scale, -0x80000000L);
 			scale = min(scale, 0x7FFFFFFFL);
-			double d = scalb(a.extractDouble(), (int)scale);
+			final double d = scalb(a.extractDouble(), (int)scale);
 			interpreter.primitiveResult(
 				DoubleDescriptor.objectFromDoubleRecycling(d, a));
 			return SUCCESS;
@@ -4887,7 +4887,7 @@ public enum Primitive
 	static
 	{
 		byPrimitiveNumber = new Primitive[PrimitiveCounter.maxPrimitiveNumber];
-		for (Primitive prim : values())
+		for (final Primitive prim : values())
 		{
 			assert byPrimitiveNumber[prim.primitiveNumber - 1] == null;
 			byPrimitiveNumber[prim.primitiveNumber - 1] = prim;
@@ -4924,7 +4924,7 @@ public enum Primitive
 		this.argCount = argCount;
 		this.primitiveFlags = EnumSet.noneOf(Flag.class);
 		assert name().matches("prim" + primitiveNumber + "_.*");
-		for (Flag flag : flags)
+		for (final Flag flag : flags)
 		{
 			this.primitiveFlags.add(flag);
 		}

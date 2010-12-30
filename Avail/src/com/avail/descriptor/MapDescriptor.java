@@ -32,11 +32,8 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.CanAllocateObjects;
-import static com.avail.descriptor.AvailObject.error;
-import java.util.ArrayList;
-import java.util.List;
-
+import static com.avail.descriptor.AvailObject.*;
+import java.util.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.*;
 
@@ -167,7 +164,7 @@ public class MapDescriptor extends Descriptor
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
 			{
 			@Override
-			public void value (AvailObject key, AvailObject value)
+			public void value (final AvailObject key, final AvailObject value)
 			{
 				if (size > 1)
 				{
@@ -294,7 +291,7 @@ public class MapDescriptor extends Descriptor
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
 			{
 			@Override
-			public void value (AvailObject key, AvailObject value)
+			public void value (final AvailObject key, final AvailObject value)
 			{
 				keyType.value = keyType.value.typeUnion(key.type());
 				valueType.value = valueType.value.typeUnion(value.type());
@@ -312,7 +309,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Take the internal hash, and twiddle it (so nested maps won't cause unwanted correlation).
 
-		return ((object.internalHash() + 0x1D79B13) ^ 0x1A9A22FE);
+		return object.internalHash() + 0x1D79B13 ^ 0x1A9A22FE;
 	}
 
 	@Override
@@ -374,7 +371,7 @@ public class MapDescriptor extends Descriptor
 			{
 				return true;
 			}
-			h = (h == modulus) ? 1 : (h + 1);
+			h = h == modulus ? 1 : h + 1;
 		}
 	}
 
@@ -386,7 +383,7 @@ public class MapDescriptor extends Descriptor
 		//  Answer the value of the map at the specified key.  Fail if the key is not present.
 
 		final int modulus = object.capacity();
-		int h = (int)(((keyObject.hash() & 0xFFFFFFFFL) % modulus) + 1);
+		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
 		while (true) {
 			final AvailObject slotObject = object.keyAtIndex(h);
 			if (slotObject.equalsVoid())
@@ -398,7 +395,7 @@ public class MapDescriptor extends Descriptor
 			{
 				return object.valueAtIndex(h);
 			}
-			h = ((h == modulus) ? 1 : (h + 1));
+			h = h == modulus ? 1 : h + 1;
 		}
 	}
 
@@ -415,7 +412,7 @@ public class MapDescriptor extends Descriptor
 		keyObject.hash();
 		newValueObject.hash();
 		//  Forces hash value to be available so GC can't happen during internalHash update.
-		final int neededCapacity = ((object.mapSize() + 1 + object.numBlanks()) * 4 / 3 + 1);
+		final int neededCapacity = (object.mapSize() + 1 + object.numBlanks()) * 4 / 3 + 1;
 		if (canDestroy && isMutable &&
 				(object.hasKey(keyObject)
 						|| object.capacity() >= neededCapacity))
@@ -428,7 +425,7 @@ public class MapDescriptor extends Descriptor
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
 			{
 			@Override
-			public void value (AvailObject key, AvailObject value)
+			public void value (final AvailObject key, final AvailObject value)
 			{
 				result.privateMapAtPut(key, value);
 			}
@@ -465,7 +462,7 @@ public class MapDescriptor extends Descriptor
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
 			{
 			@Override
-			public void value (AvailObject key, AvailObject value)
+			public void value (final AvailObject key, final AvailObject value)
 			{
 				if (!key.equals(keyObject))
 				{
@@ -492,7 +489,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Answer the total number of slots reserved for holding keys.
 
-		return ((object.objectSlotsCount() - numberOfFixedObjectSlots()) >>> 1);
+		return object.objectSlotsCount() - numberOfFixedObjectSlots() >>> 1;
 	}
 
 	@Override
@@ -530,9 +527,8 @@ public class MapDescriptor extends Descriptor
 	public AvailObject o_ValuesAsTuple (
 		final AvailObject object)
 	{
-		final AvailObject result = AvailObject.newIndexedDescriptor(
-			object.mapSize(),
-			ObjectTupleDescriptor.mutableDescriptor());
+		final AvailObject result = ObjectTupleDescriptor.mutable().create(
+			object.mapSize());
 		AvailObject.lock(result);
 		CanAllocateObjects(false);
 		for (int i = 1, _end1 = object.mapSize(); i <= _end1; i++)
@@ -544,14 +540,14 @@ public class MapDescriptor extends Descriptor
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
 			{
 			@Override
-			public void value (AvailObject key, AvailObject value)
+			public void value (final AvailObject key, final AvailObject value)
 			{
 				value.makeImmutable();
 				result.tupleAtPut(targetIndex.value, value);
 				targetIndex.value++;
 			}
 			});
-		assert (targetIndex.value == object.mapSize() + 1);
+		assert targetIndex.value == object.mapSize() + 1;
 		CanAllocateObjects(true);
 		AvailObject.unlock(result);
 		return result;
@@ -579,7 +575,7 @@ public class MapDescriptor extends Descriptor
 	{
 		//  Set the map's indexth key.
 
-		object.dataAtIndexPut(((index * 2) - 1), keyObject);
+		object.dataAtIndexPut((index * 2 - 1), keyObject);
 	}
 
 	@Override
@@ -606,7 +602,7 @@ public class MapDescriptor extends Descriptor
 			{
 				object.internalHash(
 					object.internalHash()
-					^ (h0 + object.valueAtIndex(probe).hash() * 23));
+					^ h0 + object.valueAtIndex(probe).hash() * 23);
 				object.keyAtIndexPut(probe, BlankDescriptor.blank());
 				object.valueAtIndexPut(probe, VoidDescriptor.voidObject());
 				object.mapSize((object.mapSize() - 1));
@@ -639,7 +635,7 @@ public class MapDescriptor extends Descriptor
 		assert (object.mapSize() + object.numBlanks()) * 4 <= object.capacity() * 3;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
-		int probe = (int)(((h0 & 0xFFFFFFFFL) % modulus) + 1);
+		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
 		AvailObject.lock(object);
 		int tempHash;
 		while (true) {
@@ -647,7 +643,7 @@ public class MapDescriptor extends Descriptor
 			if (slotValue.equals(keyObject))
 			{
 				tempHash = object.internalHash()
-				^ (h0 + object.valueAtIndex(probe).hash() * 23);
+				^ h0 + object.valueAtIndex(probe).hash() * 23;
 				tempHash ^= h0 + valueObject.hash() * 23;
 				object.internalHash(tempHash);
 				object.valueAtIndexPut(probe, valueObject);
@@ -660,7 +656,7 @@ public class MapDescriptor extends Descriptor
 				object.valueAtIndexPut(probe, valueObject);
 				object.mapSize((object.mapSize() + 1));
 				object.internalHash(
-					object.internalHash() ^ (h0 + valueObject.hash() * 23));
+					object.internalHash() ^ h0 + valueObject.hash() * 23);
 				if (slotValue.equalsBlank())
 				{
 					object.numBlanks(object.numBlanks() - 1);
@@ -668,7 +664,7 @@ public class MapDescriptor extends Descriptor
 				AvailObject.unlock(object);
 				return object;
 			}
-			probe = (probe == modulus ? 1 : probe + 1);
+			probe = probe == modulus ? 1 : probe + 1;
 		}
 	}
 
@@ -714,7 +710,7 @@ public class MapDescriptor extends Descriptor
 				result.add(eachKeyObject.makeImmutable());
 			}
 		}
-		assert (result.size() == object.mapSize());
+		assert result.size() == object.mapSize();
 		AvailObject.unlock(object);
 		return result;
 		}
@@ -769,13 +765,13 @@ public class MapDescriptor extends Descriptor
 	 * measure of how many slot pairs a map contains, and as such is always
 	 * somewhat larger than the maximum number of keys the map may actually
 	 * contain.
-	 * 
+	 *
 	 * @param capacity The number of key/value slot pairs to reserve.
 	 * @return A new map.
 	 */
-	public static AvailObject newWithCapacity (int capacity)
+	public static AvailObject newWithCapacity (final int capacity)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(capacity * 2, MapDescriptor.mutableDescriptor());
+		final AvailObject result = mutable().create(capacity * 2);
 		result.internalHash(0);
 		result.mapSize(0);
 		result.numBlanks(0);
@@ -789,7 +785,7 @@ public class MapDescriptor extends Descriptor
 
 	/**
 	 * Return the (immutable) empty map.
-	 * 
+	 *
 	 * @return An empty, immutable map.
 	 */
 	public static AvailObject empty ()
@@ -812,30 +808,30 @@ public class MapDescriptor extends Descriptor
 	/**
 	 * The mutable {@link MapDescriptor}.
 	 */
-	private final static MapDescriptor mutableDescriptor = new MapDescriptor(true);
+	private final static MapDescriptor mutable = new MapDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link MapDescriptor}.
 	 *
 	 * @return The mutable {@link MapDescriptor}.
 	 */
-	public static MapDescriptor mutableDescriptor ()
+	public static MapDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link MapDescriptor}.
 	 */
-	private final static MapDescriptor immutableDescriptor = new MapDescriptor(false);
+	private final static MapDescriptor immutable = new MapDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link MapDescriptor}.
 	 *
 	 * @return The immutable {@link MapDescriptor}.
 	 */
-	public static MapDescriptor immutableDescriptor ()
+	public static MapDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

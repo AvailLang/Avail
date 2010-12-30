@@ -32,10 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class CyclicTypeDescriptor extends TypeDescriptor
 {
@@ -118,7 +115,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 			final int indent)
 	{
 		aStream.append('$');
-		String nativeName = object.name().asNativeString();
+		final String nativeName = object.name().asNativeString();
 		if (!nativeName.matches("\\w+"))
 		{
 			aStream.append('"');
@@ -289,12 +286,10 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 
 	/* Object creation */
-	public static AvailObject create (AvailObject aTupleObject)
+	public static AvailObject create (final AvailObject aTupleObject)
 	{
 		aTupleObject.makeImmutable();
-		AvailObject cyc = AvailObject.newIndexedDescriptor (
-			0,
-			CyclicTypeDescriptor.mutableDescriptor());
+		final AvailObject cyc = mutable().create();
 		cyc.name(aTupleObject);
 		cyc.hashOrZero(0);
 		cyc.makeImmutable();
@@ -319,30 +314,30 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	/* Descriptor lookup */
-	private final static CyclicTypeDescriptor mutableDescriptor = new CyclicTypeDescriptor(true);
+	private final static CyclicTypeDescriptor mutable = new CyclicTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link CyclicTypeDescriptor}.
 	 *
 	 * @return The mutable {@link CyclicTypeDescriptor}.
 	 */
-	public static CyclicTypeDescriptor mutableDescriptor ()
+	public static CyclicTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link CyclicTypeDescriptor}.
 	 */
-	private final static CyclicTypeDescriptor immutableDescriptor = new CyclicTypeDescriptor(false);
+	private final static CyclicTypeDescriptor immutable = new CyclicTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link CyclicTypeDescriptor}.
 	 *
 	 * @return The immutable {@link CyclicTypeDescriptor}.
 	 */
-	public static CyclicTypeDescriptor immutableDescriptor ()
+	public static CyclicTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

@@ -164,30 +164,30 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link TerminatesMetaDescriptor}.
 	 */
-	private final static TerminatesMetaDescriptor mutableDescriptor = new TerminatesMetaDescriptor(true);
+	private final static TerminatesMetaDescriptor mutable = new TerminatesMetaDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TerminatesMetaDescriptor}.
 	 *
 	 * @return The mutable {@link TerminatesMetaDescriptor}.
 	 */
-	public static TerminatesMetaDescriptor mutableDescriptor ()
+	public static TerminatesMetaDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link TerminatesMetaDescriptor}.
 	 */
-	private final static TerminatesMetaDescriptor immutableDescriptor = new TerminatesMetaDescriptor(false);
+	private final static TerminatesMetaDescriptor immutable = new TerminatesMetaDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TerminatesMetaDescriptor}.
 	 *
 	 * @return The immutable {@link TerminatesMetaDescriptor}.
 	 */
-	public static TerminatesMetaDescriptor immutableDescriptor ()
+	public static TerminatesMetaDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

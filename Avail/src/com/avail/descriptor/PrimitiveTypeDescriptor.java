@@ -401,22 +401,22 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	/**
 	 * The descriptor instance that describes a mutable primitive type.
 	 */
-	final private static PrimitiveTypeDescriptor mutableDescriptor = new PrimitiveTypeDescriptor(true);
+	final private static PrimitiveTypeDescriptor mutable = new PrimitiveTypeDescriptor(true);
 
 	/**
 	 * Answer the descriptor instance that describes a mutable primitive type.
 	 *
 	 * @return a PrimitiveTypeDescriptor for mutable objects.
 	 */
-	public static PrimitiveTypeDescriptor mutableDescriptor ()
+	public static PrimitiveTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The descriptor instance that describes an immutable primitive type.
 	 */
-	final private static PrimitiveTypeDescriptor immutableDescriptor = new PrimitiveTypeDescriptor(false);
+	final private static PrimitiveTypeDescriptor immutable = new PrimitiveTypeDescriptor(false);
 
 	/**
 	 * Answer the descriptor instance that describes an immutable primitive
@@ -424,8 +424,8 @@ public class PrimitiveTypeDescriptor extends TypeDescriptor
 	 *
 	 * @return a PrimitiveTypeDescriptor for immutable objects.
 	 */
-	public static PrimitiveTypeDescriptor immutableDescriptor ()
+	public static PrimitiveTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

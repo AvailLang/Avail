@@ -232,30 +232,30 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The mutable {@link MethodSignatureDescriptor}.
 	 */
-	private final static MethodSignatureDescriptor mutableDescriptor = new MethodSignatureDescriptor(true);
+	private final static MethodSignatureDescriptor mutable = new MethodSignatureDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link MethodSignatureDescriptor}.
 	 *
 	 * @return The mutable {@link MethodSignatureDescriptor}.
 	 */
-	public static MethodSignatureDescriptor mutableDescriptor ()
+	public static MethodSignatureDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link MethodSignatureDescriptor}.
 	 */
-	private final static MethodSignatureDescriptor immutableDescriptor = new MethodSignatureDescriptor(false);
+	private final static MethodSignatureDescriptor immutable = new MethodSignatureDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link MethodSignatureDescriptor}.
 	 *
 	 * @return The immutable {@link MethodSignatureDescriptor}.
 	 */
-	public static MethodSignatureDescriptor immutableDescriptor ()
+	public static MethodSignatureDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

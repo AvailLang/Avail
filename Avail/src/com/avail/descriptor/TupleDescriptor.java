@@ -85,12 +85,12 @@ public abstract class TupleDescriptor extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		List<String> strings = new ArrayList<String>(object.tupleSize());
+		final List<String> strings = new ArrayList<String>(object.tupleSize());
 		int totalChars = 0;
 		boolean anyBreaks = false;
-		for (AvailObject element : object)
+		for (final AvailObject element : object)
 		{
-			StringBuilder localBuilder = new StringBuilder();
+			final StringBuilder localBuilder = new StringBuilder();
 			element.printOnAvoidingIndent(
 				localBuilder,
 				recursionList,
@@ -103,7 +103,7 @@ public abstract class TupleDescriptor extends Descriptor
 			strings.add(localBuilder.toString());
 		}
 		aStream.append('<');
-		boolean breakElements = strings.size() > 1
+		final boolean breakElements = strings.size() > 1
 				&& (anyBreaks || totalChars > 60);
 		for (int i = 0; i < strings.size(); i++)
 		{
@@ -477,7 +477,7 @@ public abstract class TupleDescriptor extends Descriptor
 		int newSize = 0;
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			AvailObject sub = object.tupleAt(i);
+			final AvailObject sub = object.tupleAt(i);
 			final int subZones = sub.tupleSize() == 0 ? 0 : sub.traversed()
 					.isSplice() ? sub.numberOfZones() : 1;
 			// Empty zones are not allowed in splice tuples.
@@ -497,12 +497,12 @@ public abstract class TupleDescriptor extends Descriptor
 				.newObjectIndexedIntegerIndexedDescriptor(
 					zones,
 					(zones * 2),
-					SpliceTupleDescriptor.mutableDescriptor());
+					SpliceTupleDescriptor.mutable());
 		int majorIndex = 0;
 		int zone = 1;
 		for (int i = 1, _end2 = object.tupleSize(); i <= _end2; i++)
 		{
-			AvailObject sub = object.tupleAt(i).traversed();
+			final AvailObject sub = object.tupleAt(i).traversed();
 			if (sub.isSplice())
 			{
 				assert sub.tupleSize() > 0;
@@ -593,7 +593,7 @@ public abstract class TupleDescriptor extends Descriptor
 				.newObjectIndexedIntegerIndexedDescriptor(
 					1,
 					2,
-					SpliceTupleDescriptor.mutableDescriptor());
+					SpliceTupleDescriptor.mutable());
 		result.hashOrZero(object.computeHashFromTo(start, end));
 		result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
 			1,
@@ -797,7 +797,7 @@ public abstract class TupleDescriptor extends Descriptor
 	{
 		// Only applicable to tuples that contain characters.
 
-		StringBuilder builder = new StringBuilder(object.tupleSize());
+		final StringBuilder builder = new StringBuilder(object.tupleSize());
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
 		{
 			builder.appendCodePoint(object.tupleAt(i).codePoint());
@@ -805,14 +805,14 @@ public abstract class TupleDescriptor extends Descriptor
 		return builder.toString();
 	}
 
+	/**
+	 * Answer a mutable copy of object that holds arbitrary objects.
+	 */
 	@Override
 	public AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
-		// Answer a mutable copy of object that holds arbitrary objects.
-
-		final AvailObject result = AvailObject.newIndexedDescriptor(
-			object.tupleSize(),
-			ObjectTupleDescriptor.mutableDescriptor());
+		final AvailObject result = ObjectTupleDescriptor.mutable().create(
+			object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
@@ -873,9 +873,7 @@ public abstract class TupleDescriptor extends Descriptor
 
 	static void createWellKnownObjects ()
 	{
-		EmptyTuple = AvailObject.newIndexedDescriptor(
-			0,
-			NybbleTupleDescriptor.isMutableSize(true, 0));
+		EmptyTuple = NybbleTupleDescriptor.isMutableSize(true, 0).create();
 		EmptyTuple.hashOrZero(0);
 		EmptyTuple.makeImmutable();
 
@@ -916,9 +914,7 @@ public abstract class TupleDescriptor extends Descriptor
 		final List<AvailObject> list)
 	{
 		AvailObject tuple;
-		tuple = AvailObject.newIndexedDescriptor(
-			list.size(),
-			ObjectTupleDescriptor.mutableDescriptor());
+		tuple = ObjectTupleDescriptor.mutable().create(list.size());
 		for (int i = 1; i <= list.size(); i++)
 		{
 			tuple.tupleAtPut(i, list.get(i - 1));
@@ -926,16 +922,15 @@ public abstract class TupleDescriptor extends Descriptor
 		return tuple;
 	}
 
-	public static AvailObject mutableCompressedFromIntegerArray (
+	public static AvailObject mutableFromIntegerArray (
 		final List<Integer> list)
 	{
 		AvailObject tuple;
-		int maxValue = list.size() == 0 ? 0 : max(list);
+		final int maxValue = list.size() == 0 ? 0 : max(list);
 		if (maxValue <= 15)
 		{
-			tuple = AvailObject.newIndexedDescriptor(
-				(list.size() + 7) / 8,
-				NybbleTupleDescriptor.isMutableSize(true, list.size()));
+			tuple = NybbleTupleDescriptor.isMutableSize(true, list.size())
+				.create((list.size() + 7) / 8);
 			for (int i = 1; i <= list.size(); i++)
 			{
 				tuple.rawNybbleAtPut(i, list.get(i - 1).byteValue());
@@ -943,9 +938,8 @@ public abstract class TupleDescriptor extends Descriptor
 		}
 		else if (maxValue <= 255)
 		{
-			tuple = AvailObject.newIndexedDescriptor(
-				(list.size() + 3) / 4,
-				ByteTupleDescriptor.isMutableSize(true, list.size()));
+			tuple = ByteTupleDescriptor.isMutableSize(true, list.size())
+				.create((list.size() + 3) / 4);
 			for (int i = 1; i <= list.size(); i++)
 			{
 				tuple.rawByteAtPut(i, list.get(i - 1).shortValue());
@@ -953,14 +947,13 @@ public abstract class TupleDescriptor extends Descriptor
 		}
 		else
 		{
-			tuple = AvailObject.newIndexedDescriptor(
-				list.size(),
-				ObjectTupleDescriptor.mutableDescriptor());
+			tuple = ObjectTupleDescriptor.mutable().create(list.size());
 			for (int i = 1; i <= list.size(); i++)
 			{
 				tuple.tupleAtPut(
 					i,
-					IntegerDescriptor.objectFromInt(list.get(i - 1).intValue()));
+					IntegerDescriptor.objectFromInt(
+						list.get(i - 1).intValue()));
 			}
 		}
 		return tuple;

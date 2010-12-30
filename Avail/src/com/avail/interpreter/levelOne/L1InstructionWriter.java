@@ -33,21 +33,9 @@
 package com.avail.interpreter.levelOne;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureTypeDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.NybbleTupleDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
+import java.util.*;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelOne.L1Instruction;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.levelOne.L1StackTracker;
 
 public class L1InstructionWriter
 {
@@ -58,7 +46,7 @@ public class L1InstructionWriter
 
 	private final Map<AvailObject, Integer> reverseLiterals = new HashMap<AvailObject, Integer>();
 
-	public int addLiteral (AvailObject literal)
+	public int addLiteral (final AvailObject literal)
 	{
 		Integer index = reverseLiterals.get(literal);
 		if (index == null)
@@ -72,7 +60,7 @@ public class L1InstructionWriter
 
 	private List<AvailObject> argumentTypes;
 
-	public void argumentTypes (AvailObject ... argTypes)
+	public void argumentTypes (final AvailObject ... argTypes)
 	{
 		assert localTypes.size() == 0: "Must declare argument types before allocating locals";
 		this.argumentTypes = Arrays.asList(argTypes);
@@ -80,14 +68,14 @@ public class L1InstructionWriter
 
 	private AvailObject returnType;
 
-	public void returnType (AvailObject retType)
+	public void returnType (final AvailObject retType)
 	{
 		this.returnType = retType;
 	}
 
-	private List<AvailObject> localTypes = new ArrayList<AvailObject>();
+	private final List<AvailObject> localTypes = new ArrayList<AvailObject>();
 
-	public int createLocal (AvailObject localType)
+	public int createLocal (final AvailObject localType)
 	{
 		assert argumentTypes != null : "Must declare argument types before allocating locals";
 		assert localType.isInstanceOfSubtypeOf(Types.type.object());
@@ -95,9 +83,9 @@ public class L1InstructionWriter
 		return localTypes.size();
 	}
 
-	private List<AvailObject> outerTypes = new ArrayList<AvailObject>();
+	private final List<AvailObject> outerTypes = new ArrayList<AvailObject>();
 
-	public int createOuter (AvailObject outerType)
+	public int createOuter (final AvailObject outerType)
 	{
 		outerTypes.add(outerType);
 		return outerTypes.size();
@@ -105,7 +93,7 @@ public class L1InstructionWriter
 
 	private int primitiveNumber = 0;
 
-	public void primitiveNumber (int primNumber)
+	public void primitiveNumber (final int primNumber)
 	{
 		assert this.primitiveNumber == 0 : "Don't set the primitive twice";
 		this.primitiveNumber = primNumber;
@@ -113,7 +101,7 @@ public class L1InstructionWriter
 
 	L1StackTracker stackTracker = new L1StackTracker ()
 	{
-		@Override AvailObject literalAt (int literalIndex)
+		@Override AvailObject literalAt (final int literalIndex)
 		{
 			return literals.get(literalIndex - 1);
 		}
@@ -121,7 +109,7 @@ public class L1InstructionWriter
 
 
 
-	private void writeOperand (int operand)
+	private void writeOperand (final int operand)
 	{
 		if (operand < 10)
 		{
@@ -129,42 +117,42 @@ public class L1InstructionWriter
 		}
 		else if (operand < 58)
 		{
-			stream.write((operand + 150) >>> 4);
-			stream.write((operand + 150) & 15);
+			stream.write(operand + 150 >>> 4);
+			stream.write(operand + 150 & 15);
 		}
 		else if (operand < 314)
 		{
 			stream.write(13);
-			stream.write((operand - 58) >>> 4);
-			stream.write((operand - 59) & 15);
+			stream.write(operand - 58 >>> 4);
+			stream.write(operand - 59 & 15);
 		}
 		else if (operand < 65536)
 		{
 			stream.write(14);
 			stream.write(operand >>> 12);
-			stream.write((operand >>> 8) & 15);
-			stream.write((operand >>> 4) & 15);
+			stream.write(operand >>> 8 & 15);
+			stream.write(operand >>> 4 & 15);
 			stream.write(operand & 15);
 		}
 		else
 		{
 			stream.write(15);
 			stream.write(operand >>> 28);
-			stream.write((operand >>> 24) & 15);
-			stream.write((operand >>> 20) & 15);
-			stream.write((operand >>> 16) & 15);
-			stream.write((operand >>> 12) & 15);
-			stream.write((operand >>> 8) & 15);
-			stream.write((operand >>> 4) & 15);
+			stream.write(operand >>> 24 & 15);
+			stream.write(operand >>> 20 & 15);
+			stream.write(operand >>> 16 & 15);
+			stream.write(operand >>> 12 & 15);
+			stream.write(operand >>> 8 & 15);
+			stream.write(operand >>> 4 & 15);
 			stream.write(operand & 15);
 		}
 	}
 
 
-	public void write (L1Instruction instruction)
+	public void write (final L1Instruction instruction)
 	{
 		stackTracker.track(instruction);
-		byte opcode = (byte)instruction.operation().ordinal();
+		final byte opcode = (byte)instruction.operation().ordinal();
 		if (opcode <= 15)
 		{
 			stream.write(opcode);
@@ -174,21 +162,21 @@ public class L1InstructionWriter
 			stream.write(L1Operation.L1_doExtension.ordinal());
 			stream.write(opcode - 16);
 		}
-		int [] operands = instruction.operands();
-		for (int i = 0; i < operands.length; i++)
+		final int [] operands = instruction.operands();
+		for (final int operand : operands)
 		{
-			writeOperand(operands[i]);
+			writeOperand(operand);
 		}
 	}
 
 
 	private AvailObject nybbles ()
 	{
-		AvailObject nybbles = AvailObject.newIndexedDescriptor(
-			(stream.size() + 7) / 8,
-			NybbleTupleDescriptor.isMutableSize(true, stream.size()));
+		final AvailObject nybbles =
+			NybbleTupleDescriptor.isMutableSize(true, stream.size()).create(
+				(stream.size() + 7) / 8);
 		nybbles.hashOrZero(0);
-		byte [] byteArray = stream.toByteArray();
+		final byte [] byteArray = stream.toByteArray();
 		for (int i = 0; i < byteArray.length; i++)
 		{
 			nybbles.rawNybbleAtPut(i + 1, byteArray[i]);
@@ -200,22 +188,23 @@ public class L1InstructionWriter
 
 	public AvailObject compiledCode ()
 	{
-		int numBaseLiterals = literals.size();
-		int numOuters = outerTypes.size();
-		int numArgs = argumentTypes.size();
-		int numBaseLocals = localTypes.size();
-		AvailObject argTypes = AvailObject.newIndexedDescriptor (
-			numArgs,
-			ObjectTupleDescriptor.mutableDescriptor());
+		final int numBaseLiterals = literals.size();
+		final int numOuters = outerTypes.size();
+		final int numArgs = argumentTypes.size();
+		final int numBaseLocals = localTypes.size();
+		final AvailObject argTypes = ObjectTupleDescriptor.mutable().create(
+			numArgs);
 		argTypes.hashOrZero(0);
 		for (int i = 1; i <= numArgs; ++ i)
+		{
 			argTypes.tupleAtPut(i, argumentTypes.get(i - 1));
-		AvailObject closureType = ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType (
-			argTypes,
-			returnType);
-		AvailObject code = AvailObject.newIndexedDescriptor(
-			numBaseLiterals + numOuters + numArgs + numBaseLocals,
-			CompiledCodeDescriptor.mutableDescriptor());
+		}
+		final AvailObject closureType =
+			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				argTypes,
+				returnType);
+		final AvailObject code = CompiledCodeDescriptor.mutable().create(
+			numBaseLiterals + numOuters + numArgs + numBaseLocals);
 		code.nybbles(nybbles());
 		code.argsLocalsStackOutersPrimitive(
 			numArgs,

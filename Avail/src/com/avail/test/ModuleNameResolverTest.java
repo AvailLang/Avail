@@ -32,16 +32,11 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
-import java.io.File;
-import java.io.StringReader;
+import static org.junit.Assert.assertEquals;
+import java.io.*;
 import org.junit.Test;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.ModuleName;
-import com.avail.compiler.ModuleNameResolver;
-import com.avail.compiler.ModuleRoots;
-import com.avail.compiler.RenamesFileParser;
-import com.avail.compiler.RenamesFileParserException;
+import com.avail.compiler.*;
 
 /**
  * Unit tests for {@link ModuleNameResolver}.

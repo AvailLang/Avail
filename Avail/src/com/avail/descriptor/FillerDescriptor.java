@@ -55,30 +55,30 @@ extends Descriptor
 	/**
 	 * A mutable {@link FillerDescriptor}.
 	 */
-	final private static FillerDescriptor mutableDescriptor = new FillerDescriptor(true);
+	final private static FillerDescriptor mutable = new FillerDescriptor(true);
 
 	/**
 	 * Answer a mutable {@link FillerDescriptor}.
 	 *
 	 * @return A mutable {@link FillerDescriptor}.
 	 */
-	public static FillerDescriptor mutableDescriptor ()
+	public static FillerDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * An immutable {@link FillerDescriptor}.
 	 */
-	final private static FillerDescriptor immutableDescriptor = new FillerDescriptor(false);
+	final private static FillerDescriptor immutable = new FillerDescriptor(false);
 
 	/**
 	 * Answer an immutable {@link FillerDescriptor}.
 	 *
 	 * @return An immutable {@link FillerDescriptor}.
 	 */
-	public static FillerDescriptor immutableDescriptor ()
+	public static FillerDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

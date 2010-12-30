@@ -32,18 +32,10 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.CanAllocateObjects;
+import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.SetTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import java.util.Iterator;
-import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 public class SetDescriptor extends Descriptor
 {
@@ -88,7 +80,7 @@ public class SetDescriptor extends Descriptor
 			final List<AvailObject> recursionList,
 			final int indent)
 	{
-		AvailObject tuple = object.asTuple();
+		final AvailObject tuple = object.asTuple();
 		aStream.append('{');
 		for (int i = 1, limit = tuple.tupleSize(); i <= limit; i++)
 		{
@@ -187,7 +179,7 @@ public class SetDescriptor extends Descriptor
 		//  A set's hash is a simple function of its rootBin's binHash, which is always the sum
 		//  of its elements' hashes.
 
-		return (object.rootBin().binHash() ^ 0xCD9EFC6);
+		return object.rootBin().binHash() ^ 0xCD9EFC6;
 	}
 
 	@Override
@@ -225,7 +217,7 @@ public class SetDescriptor extends Descriptor
 	{
 		//  Check if object is a subset of another.
 
-		if ((object.setSize() > another.setSize()))
+		if (object.setSize() > another.setSize())
 		{
 			return false;
 		}
@@ -242,7 +234,7 @@ public class SetDescriptor extends Descriptor
 
 		AvailObject smaller;
 		AvailObject larger;
-		if ((object.setSize() <= otherSet.setSize()))
+		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
 			larger = otherSet.traversed();
@@ -309,7 +301,7 @@ public class SetDescriptor extends Descriptor
 
 		AvailObject smaller;
 		AvailObject larger;
-		if ((object.setSize() <= otherSet.setSize()))
+		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
 			larger = otherSet.traversed();
@@ -320,10 +312,10 @@ public class SetDescriptor extends Descriptor
 			smaller = otherSet.traversed();
 		}
 		if (!canDestroy
-				|| (!smaller.descriptor().isMutable()
-					&& !larger.descriptor().isMutable()))
+				|| !smaller.descriptor().isMutable()
+					&& !larger.descriptor().isMutable())
 		{
-			final AvailObject copy = AvailObject.newIndexedDescriptor(0, SetDescriptor.mutableDescriptor());
+			final AvailObject copy = mutable().create();
 			copy.rootBin(larger.rootBin().makeImmutable());
 			larger = copy;
 		}
@@ -364,9 +356,9 @@ public class SetDescriptor extends Descriptor
 		final AvailObject newRootBin = root.binAddingElementHashLevelCanDestroy(
 			newElementObject,
 			elementHash,
-			((byte)(0)),
+			((byte)0),
 			(canDestroy & isMutable));
-		if ((newRootBin.binSize() == oldSize))
+		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
 			{
@@ -381,7 +373,7 @@ public class SetDescriptor extends Descriptor
 		}
 		else
 		{
-			result = AvailObject.newIndexedDescriptor(0, SetDescriptor.mutableDescriptor());
+			result = mutable().create();
 		}
 		result.rootBin(newRootBin);
 		return result;
@@ -402,7 +394,7 @@ public class SetDescriptor extends Descriptor
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
 			(canDestroy & isMutable));
-		if ((newRootBin.binSize() == oldSize))
+		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
 			{
@@ -417,7 +409,7 @@ public class SetDescriptor extends Descriptor
 		}
 		else
 		{
-			result = AvailObject.newIndexedDescriptor(0, SetDescriptor.mutableDescriptor());
+			result = mutable().create();
 		}
 		result.rootBin(newRootBin);
 		return result;
@@ -433,18 +425,20 @@ public class SetDescriptor extends Descriptor
 		return object.asTuple().iterator();
 	}
 
+	/**
+	 * Convert me to a tuple.  The ordering will be arbitrary and unstable.
+	 */
 	@Override
 	public AvailObject o_AsTuple (
 			final AvailObject object)
 	{
-		//  Convert me to a tuple.  The ordering will be arbitrary and unstable.
-
-		final AvailObject result = AvailObject.newIndexedDescriptor(object.setSize(), ObjectTupleDescriptor.mutableDescriptor());
+		final AvailObject result = ObjectTupleDescriptor.mutable().create(
+			object.setSize());
 		CanAllocateObjects(false);
 		result.hashOrZero(0);
 		final int pastEnd = object.rootBin().populateTupleStartingAt(result, 1);
-		assert (pastEnd == (object.setSize() + 1));
-		assert ((result.tupleSize() + 1) == pastEnd);
+		assert pastEnd == object.setSize() + 1;
+		assert result.tupleSize() + 1 == pastEnd;
 		CanAllocateObjects(true);
 		return result;
 	}
@@ -466,7 +460,7 @@ public class SetDescriptor extends Descriptor
 	{
 		//  Initialize my EmptySet class variable in addition to the usual classInstVars.
 
-		EmptySet = AvailObject.newIndexedDescriptor(0, mutableDescriptor());
+		EmptySet = mutable().create();
 		EmptySet.rootBin(VoidDescriptor.voidObject());
 		EmptySet.makeImmutable();
 	}
@@ -501,30 +495,30 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * The mutable {@link SetDescriptor}.
 	 */
-	private final static SetDescriptor mutableDescriptor = new SetDescriptor(true);
+	private final static SetDescriptor mutable = new SetDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link SetDescriptor}.
 	 *
 	 * @return The mutable {@link SetDescriptor}.
 	 */
-	public static SetDescriptor mutableDescriptor ()
+	public static SetDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link SetDescriptor}.
 	 */
-	private final static SetDescriptor immutableDescriptor = new SetDescriptor(false);
+	private final static SetDescriptor immutable = new SetDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link SetDescriptor}.
 	 *
 	 * @return The immutable {@link SetDescriptor}.
 	 */
-	public static SetDescriptor immutableDescriptor ()
+	public static SetDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

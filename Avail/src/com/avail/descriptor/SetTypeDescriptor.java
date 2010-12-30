@@ -297,9 +297,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 		assert sizeRange.lowerBound().isFinite();
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0,
-			SetTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		if (sizeRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			result.sizeRange(sizeRange);
@@ -344,30 +342,30 @@ public class SetTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link SetTypeDescriptor}.
 	 */
-	private final static SetTypeDescriptor mutableDescriptor = new SetTypeDescriptor(true);
+	private final static SetTypeDescriptor mutable = new SetTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link SetTypeDescriptor}.
 	 *
 	 * @return The mutable {@link SetTypeDescriptor}.
 	 */
-	public static SetTypeDescriptor mutableDescriptor ()
+	public static SetTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link SetTypeDescriptor}.
 	 */
-	private final static SetTypeDescriptor immutableDescriptor = new SetTypeDescriptor(false);
+	private final static SetTypeDescriptor immutable = new SetTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link SetTypeDescriptor}.
 	 *
 	 * @return The immutable {@link SetTypeDescriptor}.
 	 */
-	public static SetTypeDescriptor immutableDescriptor ()
+	public static SetTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

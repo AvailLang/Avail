@@ -32,18 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteStringDescriptor;
-import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TwoByteStringDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
+import static java.lang.Math.min;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
-import static java.lang.Math.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class ByteStringDescriptor extends TupleDescriptor
 {
@@ -114,7 +107,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 		return anotherObject.compareFromToWithByteStringStartingAt(
 			startIndex2,
-			((startIndex2 + endIndex1) - startIndex1),
+			(startIndex2 + endIndex1 - startIndex1),
 			object,
 			startIndex1);
 	}
@@ -129,7 +122,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Compare sections of two byte strings.
 
-		if ((object.sameAddressAs(aByteString) && (startIndex1 == startIndex2)))
+		if (object.sameAddressAs(aByteString) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
@@ -288,7 +281,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		short codePoint = object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		final short codePoint = object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(
 			codePoint);
 	}
@@ -302,7 +295,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's a one-byte character).
 		assert index >= 1 && index <= object.tupleSize();
-		short codePoint = (short) aCharacterObject.codePoint();
+		final short codePoint = (short) aCharacterObject.codePoint();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, codePoint);
 	}
 
@@ -388,7 +381,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = (CharacterDescriptor.hashOfByteCharacterWithCodePoint(object.rawByteForCharacterAt(index)) ^ PreToggle);
+			final int itemHash = CharacterDescriptor.hashOfByteCharacterWithCodePoint(object.rawByteForCharacterAt(index)) ^ PreToggle;
 			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
 		}
 		return TupleDescriptor.multiplierTimes(hash);
@@ -403,8 +396,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer a mutable copy of object that also only holds byte characters.
 
-		final AvailObject result = AvailObject.newIndexedDescriptor(((object.tupleSize() + 3) / 4), ByteStringDescriptor.isMutableSize(true, object.tupleSize()));
-		assert (result.integerSlotsCount() == object.integerSlotsCount());
+		final AvailObject result = isMutableSize(true, object.tupleSize()).create(
+			(object.tupleSize() + 3) / 4);
+		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
@@ -418,7 +412,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer a mutable copy of object that holds 16-bit characters.
 
-		final AvailObject result = AvailObject.newIndexedDescriptor(((object.tupleSize() + 1) / 2), TwoByteStringDescriptor.isMutableSize(true, object.tupleSize()));
+		final AvailObject result =
+			TwoByteStringDescriptor.isMutableSize(true, object.tupleSize())
+				.create((object.tupleSize() + 1) / 2);
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
@@ -433,7 +429,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (((object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4) - _unusedBytesOfLastWord);
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - _unusedBytesOfLastWord;
 	}
 
 
@@ -447,8 +443,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (((size + _unusedBytesOfLastWord) & 3) == 0);
-		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 3) / 4), this);
+		assert (size + _unusedBytesOfLastWord & 3) == 0;
+		final AvailObject result = this.create(((size + 3) / 4));
 		return result;
 	}
 
@@ -459,10 +455,10 @@ public class ByteStringDescriptor extends TupleDescriptor
 	AvailObject privateMutableObjectFromNativeByteString (
 			final String aNativeByteString)
 	{
-		AvailObject result = mutableObjectOfSize(aNativeByteString.length());
+		final AvailObject result = mutableObjectOfSize(aNativeByteString.length());
 		for (int index = 1; index <= aNativeByteString.length(); index++)
 		{
-			char c = aNativeByteString.charAt(index - 1);
+			final char c = aNativeByteString.charAt(index - 1);
 			assert 0 <= c && c <= 255;
 			result.rawByteForCharacterAtPut(index, (short)c);
 		}
@@ -474,10 +470,10 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 
 	// Descriptor lookup
-	static ByteStringDescriptor isMutableSize(boolean flag, int size)
+	static ByteStringDescriptor isMutableSize(final boolean flag, final int size)
 	{
-		int delta = flag ? 0 : 1;
-		return descriptors[delta + ((size & 3) * 2)];
+		final int delta = flag ? 0 : 1;
+		return descriptors[delta + (size & 3) * 2];
 	};
 
 	/**
@@ -511,13 +507,13 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 
 	// Object creation
-	public static AvailObject mutableObjectFromNativeByteString(String aNativeByteString)
+	public static AvailObject mutableObjectFromNativeByteString(final String aNativeByteString)
 	{
-		ByteStringDescriptor descriptor = isMutableSize(true, aNativeByteString.length());
+		final ByteStringDescriptor descriptor = isMutableSize(true, aNativeByteString.length());
 		return descriptor.privateMutableObjectFromNativeByteString(aNativeByteString);
 	}
 
-	public static AvailObject fromNativeString(String aNativeString)
+	public static AvailObject fromNativeString(final String aNativeString)
 	{
 		for (int i = 0; i < aNativeString.length(); i++)
 		{

@@ -32,12 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureTypeDescriptor;
-import com.avail.descriptor.GeneralizedClosureTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ClosureTypeDescriptor extends TypeDescriptor
 {
@@ -146,7 +141,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		tempStrings = new ArrayList<String>(object.numArgs());
 		for (int i = 1; i <= object.numArgs(); i++)
 		{
-			String str = object.argTypeAt(i).toString();
+			final String str = object.argTypeAt(i).toString();
 			tempStrings.add(str);
 			if (str.indexOf('\n') > -1)
 			{
@@ -247,7 +242,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return Types.closureType.object();
 	}
 
-	
+
 	/**
 	 * The hash value is stored raw in the object's hashOrZero slot if it has
 	 * been computed, otherwise that slot is zero.  If a zero is detected,
@@ -267,14 +262,14 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 			{
 				final AvailObject argTypeObject = object.argTypeAt(i);
-				hash = ((hash * 23) ^ argTypeObject.hash());
+				hash = hash * 23 ^ argTypeObject.hash();
 			}
 			object.hashOrZero(hash);
 		}
 		return hash;
 	}
 
-	
+
 	@Override
 	public AvailObject o_Type (
 			final AvailObject object)
@@ -308,9 +303,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final AvailObject clone = AvailObject.newIndexedDescriptor(
-			object.numArgs(),
-			ClosureTypeDescriptor.mutableDescriptor());
+		final AvailObject clone = mutable().create(
+			object.numArgs());
 		clone.returnType(object.returnType());
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
@@ -357,7 +351,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		final short numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			AvailObject arg = continuation.stackAt(stackp + numArgs - i); 
+			final AvailObject arg = continuation.stackAt(stackp + numArgs - i);
 			if (!arg.isInstanceOfSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
@@ -372,14 +366,14 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject continuation,
 			final int stackp)
 	{
-		// The argument types have been pushed onto continuation's stack. 
+		// The argument types have been pushed onto continuation's stack.
 		// Answer whether these arguments are acceptable for invoking a closure
 		// with this type.
 		final short numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject argType =
-				continuation.stackAt(stackp + numArgs - i); 
+				continuation.stackAt(stackp + numArgs - i);
 			if (!argType.isSubtypeOf(object.argTypeAt(i)))
 			{
 				return false;
@@ -709,12 +703,11 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	/* Object creation */
 	public static AvailObject closureTypeForArgumentTypesReturnType (
-			AvailObject argTypes,
-			AvailObject returnType)
+			final AvailObject argTypes,
+			final AvailObject returnType)
 	{
-		AvailObject type = AvailObject.newIndexedDescriptor (
-			argTypes.tupleSize(),
-			ClosureTypeDescriptor.mutableDescriptor());
+		final AvailObject type = mutable().create(
+			argTypes.tupleSize());
 		type.returnType(returnType);
 		for (int i = argTypes.tupleSize(); i >= 1; -- i)
 		{
@@ -740,30 +733,30 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ClosureTypeDescriptor}.
 	 */
-	private final static ClosureTypeDescriptor mutableDescriptor = new ClosureTypeDescriptor(true);
+	private final static ClosureTypeDescriptor mutable = new ClosureTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ClosureTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ClosureTypeDescriptor}.
 	 */
-	public static ClosureTypeDescriptor mutableDescriptor ()
+	public static ClosureTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ClosureTypeDescriptor}.
 	 */
-	private final static ClosureTypeDescriptor immutableDescriptor = new ClosureTypeDescriptor(false);
+	private final static ClosureTypeDescriptor immutable = new ClosureTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ClosureTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ClosureTypeDescriptor}.
 	 */
-	public static ClosureTypeDescriptor immutableDescriptor ()
+	public static ClosureTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

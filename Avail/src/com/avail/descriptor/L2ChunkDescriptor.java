@@ -32,20 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContainerDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+import java.util.*;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2RawInstruction;
-import com.avail.interpreter.levelTwo.L2RawInstructionDescriber;
-import com.avail.interpreter.levelTwo.L2Translator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.avail.interpreter.levelTwo.*;
 
 public class L2ChunkDescriptor extends Descriptor
 {
@@ -364,8 +353,8 @@ public class L2ChunkDescriptor extends Descriptor
 			}
 			aStream.append("(INVALID)\n");
 		}
-		AvailObject words = object.wordcodes();
-		L2RawInstructionDescriber describer = new L2RawInstructionDescriber();
+		final AvailObject words = object.wordcodes();
+		final L2RawInstructionDescriber describer = new L2RawInstructionDescriber();
 		for (int i = 1, limit = words.tupleSize(); i <= limit; )
 		{
 			for (int t = 1; t <= indent + 1; t++)
@@ -373,14 +362,14 @@ public class L2ChunkDescriptor extends Descriptor
 				aStream.append("\t");
 			}
 			aStream.append(String.format("#%-3d ", i));
-			L2Operation operation = L2Operation.values()[words.tupleAt(i).extractInt()];
+			final L2Operation operation = L2Operation.values()[words.tupleAt(i).extractInt()];
 			i++;
-			int[] operands = new int[operation.operandTypes().length];
+			final int[] operands = new int[operation.operandTypes().length];
 			for (int opIndex = 0; opIndex < operands.length; opIndex++, i++)
 			{
 				operands[opIndex] = words.tupleAt(i).extractInt();
 			}
-			L2RawInstruction rawInstruction = new L2RawInstruction(operation, operands);
+			final L2RawInstruction rawInstruction = new L2RawInstruction(operation, operands);
 			describer.describe(rawInstruction, object, aStream);
 			aStream.append("\n");
 		}
@@ -445,7 +434,7 @@ public class L2ChunkDescriptor extends Descriptor
 			}
 		}
 		object.contingentImpSets(TupleDescriptor.empty());
-		for (int i = 1, _end2 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); i <= _end2; i++)
+		for (int i = 1, _end2 = object.objectSlotsCount() - numberOfFixedObjectSlots(); i <= _end2; i++)
 		{
 			object.literalAtPut(i, VoidDescriptor.voidObject());
 		}
@@ -492,7 +481,7 @@ public class L2ChunkDescriptor extends Descriptor
 			impSets.tupleAt(i).removeDependentChunkId(object.index());
 		}
 		object.contingentImpSets(VoidDescriptor.voidObject());
-		for (int i = 1, _end2 = (object.objectSlotsCount() - numberOfFixedObjectSlots()); i <= _end2; i++)
+		for (int i = 1, _end2 = object.objectSlotsCount() - numberOfFixedObjectSlots(); i <= _end2; i++)
 		{
 			object.literalAtPut(i, VoidDescriptor.voidObject());
 		}
@@ -518,14 +507,14 @@ public class L2ChunkDescriptor extends Descriptor
 	public boolean o_IsSaved (
 			final AvailObject object)
 	{
-		return ((object.validity() & 2) == 2);
+		return (object.validity() & 2) == 2;
 	}
 
 	@Override
 	public boolean o_IsValid (
 			final AvailObject object)
 	{
-		return ((object.validity() & 1) == 1);
+		return (object.validity() & 1) == 1;
 	}
 
 	@Override
@@ -553,7 +542,7 @@ public class L2ChunkDescriptor extends Descriptor
 		//  Answer my successor in whatever ring I'm in.
 
 		final int index = object.nextIndex();
-		return ((index == 0) ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index));
+		return index == 0 ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index);
 	}
 
 	@Override
@@ -563,7 +552,7 @@ public class L2ChunkDescriptor extends Descriptor
 		//  Answer my predecessor in whatever ring I'm in.
 
 		final int index = object.previousIndex();
-		return ((index == 0) ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index));
+		return index == 0 ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index);
 	}
 
 	@Override
@@ -606,9 +595,9 @@ public class L2ChunkDescriptor extends Descriptor
 			SetDescriptor.empty());
 		head.next(head);
 		head.previous(head);
-		assert (head.index() == 0);
-		assert (head.nextIndex() == 0);
-		assert (head.previousIndex() == 0);
+		assert head.index() == 0;
+		assert head.nextIndex() == 0;
+		assert head.previousIndex() == 0;
 		final AvailObject allChunks = ContainerDescriptor.forInnerType(
 			Types.all.object());
 		allChunks.setValue(TupleDescriptor.empty());
@@ -636,7 +625,7 @@ public class L2ChunkDescriptor extends Descriptor
 	{
 		return AllChunks;
 	}
-	public static AvailObject chunkFromId (int anId)
+	public static AvailObject chunkFromId (final int anId)
 	{
 		return allChunks().getValue().tupleAt(anId);
 	}
@@ -675,30 +664,31 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	public static AvailObject allocateIndexCodeLiteralsVectorsNumObjectsNumIntegersNumFloatsWordcodesContingentImpSets(
-		boolean allocateIndex,
-		AvailObject code,
-		List<AvailObject> arrayOfLiterals,
-		List<List<Integer>> arrayOfVectors,
-		int nObjs,
-		int nInts,
-		int nFloats,
-		List<Integer> theWordcodes,
-		AvailObject contingentSets)
+		final boolean allocateIndex,
+		final AvailObject code,
+		final List<AvailObject> arrayOfLiterals,
+		final List<List<Integer>> arrayOfVectors,
+		final int nObjs,
+		final int nInts,
+		final int nFloats,
+		final List<Integer> theWordcodes,
+		final AvailObject contingentSets)
 	{
-		List<AvailObject> vectorTuples = new ArrayList<AvailObject>(arrayOfVectors.size());
-		for (List<Integer> vector : arrayOfVectors)
+		final List<AvailObject> vectorTuples = new ArrayList<AvailObject>(arrayOfVectors.size());
+		for (final List<Integer> vector : arrayOfVectors)
 		{
-			AvailObject vectorTuple = TupleDescriptor.mutableCompressedFromIntegerArray(vector);
+			final AvailObject vectorTuple = TupleDescriptor.mutableFromIntegerArray(vector);
 			vectorTuple.makeImmutable();
 			vectorTuples.add(vectorTuple);
 		}
-		AvailObject vectorTuplesTuple = TupleDescriptor.mutableObjectFromArray(vectorTuples);
+		final AvailObject vectorTuplesTuple = TupleDescriptor.mutableObjectFromArray(
+			vectorTuples);
 		vectorTuplesTuple.makeImmutable();
-		AvailObject wordcodesTuple = TupleDescriptor.mutableCompressedFromIntegerArray(theWordcodes);
+		final AvailObject wordcodesTuple =
+			TupleDescriptor.mutableFromIntegerArray(theWordcodes);
 		wordcodesTuple.makeImmutable();
-		AvailObject chunk = AvailObject.newIndexedDescriptor(
-			arrayOfLiterals.size(),
-			L2ChunkDescriptor.mutableDescriptor());
+		final AvailObject chunk = mutable().create(
+			arrayOfLiterals.size());
 		AvailObject.lock(chunk);
 		chunk.vectors(vectorTuplesTuple);
 		chunk.numObjects(nObjs);
@@ -718,10 +708,9 @@ public class L2ChunkDescriptor extends Descriptor
 			if (NextFreeChunkIndex == -1)
 			{
 				// Allocate room for more chunks in the tuple of all chunks.
-				AvailObject oldChunks = allChunks().getValue();
-				AvailObject newChunks = AvailObject.newIndexedDescriptor(
-					oldChunks.tupleSize() * 2 + 10,
-					ObjectTupleDescriptor.mutableDescriptor());
+				final AvailObject oldChunks = allChunks().getValue();
+				final AvailObject newChunks = ObjectTupleDescriptor.mutable().create(
+					oldChunks.tupleSize() * 2 + 10);
 				for (int i = 1; i <= oldChunks.tupleSize(); i++)
 				{
 					newChunks.tupleAtPut(i, oldChunks.tupleAt(i));
@@ -752,7 +741,7 @@ public class L2ChunkDescriptor extends Descriptor
 				code.startingChunkIndex(index);
 				code.invocationCount(L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 			}
-			AvailObject contingentSetsTuple = contingentSets.asTuple();
+			final AvailObject contingentSetsTuple = contingentSets.asTuple();
 			chunk.contingentImpSets(contingentSetsTuple);
 			for (int i = 1; i <= contingentSetsTuple.tupleSize(); i++)
 			{
@@ -791,30 +780,30 @@ public class L2ChunkDescriptor extends Descriptor
 	/**
 	 * The mutable {@link L2ChunkDescriptor}.
 	 */
-	private final static L2ChunkDescriptor mutableDescriptor = new L2ChunkDescriptor(true);
+	private final static L2ChunkDescriptor mutable = new L2ChunkDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link L2ChunkDescriptor}.
 	 *
 	 * @return The mutable {@link L2ChunkDescriptor}.
 	 */
-	public static L2ChunkDescriptor mutableDescriptor ()
+	public static L2ChunkDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link L2ChunkDescriptor}.
 	 */
-	private final static L2ChunkDescriptor immutableDescriptor = new L2ChunkDescriptor(false);
+	private final static L2ChunkDescriptor immutable = new L2ChunkDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link L2ChunkDescriptor}.
 	 *
 	 * @return The immutable {@link L2ChunkDescriptor}.
 	 */
-	public static L2ChunkDescriptor immutableDescriptor ()
+	public static L2ChunkDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

@@ -33,41 +33,37 @@
 package com.avail.interpreter.levelTwo;
 
 import java.io.ByteArrayOutputStream;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ByteTupleDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.interpreter.levelTwo.L2RawInstruction;
+import com.avail.descriptor.*;
 
 public class L2InstructionWriter
 {
 
 	final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-	private void writeOperand(int operand)
+	private void writeOperand(final int operand)
 	{
 		assert operand == (operand & 0xFFFF);
 		stream.write(operand >>> 8);
 		stream.write(operand & 0xFF);
 	};
 
-	public void write(L2RawInstruction instruction)
+	public void write(final L2RawInstruction instruction)
 	{
-		int opcode = instruction.operation().ordinal();
+		final int opcode = instruction.operation().ordinal();
 		assert opcode == (opcode & 0xFFFF);
 		stream.write(opcode >>> 8);
 		stream.write(opcode & 0xFF);
-		int [] operands = instruction.operands();
-		for (int i = 0; i < operands.length; i++)
+		final int [] operands = instruction.operands();
+		for (final int operand : operands)
 		{
-			writeOperand(operands[i]);
+			writeOperand(operand);
 		}
 	};
 
 	public AvailObject words()
 	{
-		byte [] byteArray = stream.toByteArray();
-		int wordCount = byteArray.length >> 1;
+		final byte [] byteArray = stream.toByteArray();
+		final int wordCount = byteArray.length >> 1;
 		// If all the high bytes are zero we can use a ByteTuple.
 		boolean allBytes = true;
 		for (int i = 0; i < byteArray.length; i += 2)
@@ -80,9 +76,8 @@ public class L2InstructionWriter
 		AvailObject words;
 		if (allBytes)
 		{
-			words = AvailObject.newIndexedDescriptor(
-				(wordCount + 3) / 4,
-				ByteTupleDescriptor.isMutableSize(true, wordCount));
+			words = ByteTupleDescriptor.isMutableSize(true, wordCount).create(
+				(wordCount + 3) / 4);
 			int dest = 1;
 			for (int source = 1; source < byteArray.length; source += 2)
 			{
@@ -91,13 +86,12 @@ public class L2InstructionWriter
 		}
 		else
 		{
-			words = AvailObject.newIndexedDescriptor(
-				wordCount,
-				ObjectTupleDescriptor.mutableDescriptor());
+			words = ObjectTupleDescriptor.mutable().create(
+				wordCount);
 			int dest = 1;
 			for (int source = 0; source < byteArray.length; source += 2)
 			{
-				int value = (byteArray[source] & 0xFF) << 8 + (byteArray[source + 1] & 0xFF);
+				final int value = (byteArray[source] & 0xFF) << 8 + (byteArray[source + 1] & 0xFF);
 				words.tupleAtPut(dest++, IntegerDescriptor.objectFromInt(value));
 			}
 		}

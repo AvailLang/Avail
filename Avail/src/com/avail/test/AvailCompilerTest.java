@@ -201,7 +201,7 @@ public class AvailCompilerTest
 	//	@Test
 	public void tier4 () throws Exception
 	{
-		long startTime = System.currentTimeMillis();
+		final long startTime = System.currentTimeMillis();
 		compile(new ModuleName("/avail/Kernel/Tier-4"));
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
@@ -231,7 +231,7 @@ public class AvailCompilerTest
 	@Test
 	public void chevronTest () throws Exception
 	{
-		long startTime = System.currentTimeMillis();
+		final long startTime = System.currentTimeMillis();
 		compile(new ModuleName("/avail/Chevron-Test"));
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);

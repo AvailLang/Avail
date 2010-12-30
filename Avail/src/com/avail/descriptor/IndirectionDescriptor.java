@@ -34,7 +34,8 @@ package com.avail.descriptor;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.Interpreter;
-import com.avail.newcompiler.TokenDescriptor;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -151,7 +152,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor(IndirectionDescriptor.immutableDescriptor());
+			object.descriptor(IndirectionDescriptor.immutable());
 			object.target().makeImmutable();
 		}
 		return object;
@@ -195,7 +196,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	/**
 	 * The mutable {@link IndirectionDescriptor}.
 	 */
-	private final static IndirectionDescriptor mutableDescriptor = new IndirectionDescriptor(
+	private final static IndirectionDescriptor mutable = new IndirectionDescriptor(
 		true);
 
 	/**
@@ -203,15 +204,15 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	 *
 	 * @return The mutable {@link IndirectionDescriptor}.
 	 */
-	public static IndirectionDescriptor mutableDescriptor ()
+	public static IndirectionDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link IndirectionDescriptor}.
 	 */
-	private final static IndirectionDescriptor immutableDescriptor = new IndirectionDescriptor(
+	private final static IndirectionDescriptor immutable = new IndirectionDescriptor(
 		false);
 
 	/**
@@ -219,9 +220,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	 *
 	 * @return The immutable {@link IndirectionDescriptor}.
 	 */
-	public static IndirectionDescriptor immutableDescriptor ()
+	public static IndirectionDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 
 	// GENERATED reflex methods
@@ -4180,6 +4181,260 @@ public class IndirectionDescriptor extends AbstractDescriptor
 		final Continuation2<AvailObject, AvailObject> continuation)
 	{
 		o_Traversed(object).mapDo(continuation);
+	}
+
+	@Override
+	public void o_Expression (final AvailObject object, final AvailObject expression)
+	{
+		o_Traversed(object).expression(expression);
+	}
+
+	@Override
+	public AvailObject o_Expression (final AvailObject object)
+	{
+		return o_Traversed(object).expression();
+	}
+
+	@Override
+	public void o_Variable (
+		final AvailObject object,
+		final AvailObject variable)
+	{
+		o_Traversed(object).variable(variable);
+	}
+
+	@Override
+	public AvailObject o_Variable (final AvailObject object)
+	{
+		return o_Traversed(object).variable();
+	}
+
+	@Override
+	public void o_ArgumentsTuple (
+		final AvailObject object,
+		final AvailObject argumentsTuple)
+	{
+		o_Traversed(object).argumentsTuple(argumentsTuple);
+	}
+
+	@Override
+	public AvailObject o_ArgumentsTuple (final AvailObject object)
+	{
+		return o_Traversed(object).argumentsTuple();
+	}
+
+	@Override
+	public void o_StatementsTuple (
+		final AvailObject object,
+		final AvailObject statementsTuple)
+	{
+		o_Traversed(object).statementsTuple(statementsTuple);
+	}
+
+	@Override
+	public AvailObject o_StatementsTuple (final AvailObject object)
+	{
+		return o_Traversed(object).statementsTuple();
+	}
+
+	@Override
+	public void o_ResultType (final AvailObject object, final AvailObject resultType)
+	{
+		o_Traversed(object).defaultType(resultType);
+	}
+
+	@Override
+	public AvailObject o_ResultType (final AvailObject object)
+	{
+		return o_Traversed(object).defaultType();
+	}
+
+	@Override
+	public void o_NeededVariables (
+		final AvailObject object,
+		final AvailObject neededVariables)
+	{
+		o_Traversed(object).neededVariables(neededVariables);
+	}
+
+	@Override
+	public AvailObject o_NeededVariables (final AvailObject object)
+	{
+		return o_Traversed(object).neededVariables();
+	}
+
+	@Override
+	public void o_Primitive (final AvailObject object, final int primitive)
+	{
+		o_Traversed(object).primitive(primitive);
+	}
+
+	@Override
+	public int o_Primitive (final AvailObject object)
+	{
+		return o_Traversed(object).primitive();
+	}
+
+	@Override
+	public void o_DeclaredType (final AvailObject object, final AvailObject declaredType)
+	{
+		o_Traversed(object).declaredType(declaredType);
+	}
+
+	@Override
+	public AvailObject o_DeclaredType (final AvailObject object)
+	{
+		return o_Traversed(object).declaredType();
+	}
+
+	@Override
+	public void o_DeclarationKind (
+		final AvailObject object,
+		final DeclarationKind declarationKind)
+	{
+		o_Traversed(object).declarationKind(declarationKind);
+	}
+
+	@Override
+	public DeclarationKind o_DeclarationKind (final AvailObject object)
+	{
+		return o_Traversed(object).declarationKind();
+	}
+
+	@Override
+	public AvailObject o_InitializationExpression (final AvailObject object)
+	{
+		return o_Traversed(object).initializationExpression();
+	}
+
+	@Override
+	public void o_InitializationExpression (
+		final AvailObject object,
+		final AvailObject initializationExpression)
+	{
+		o_Traversed(object).initializationExpression(initializationExpression);
+	}
+
+	@Override
+	public AvailObject o_LiteralObject (final AvailObject object)
+	{
+		return o_Traversed(object).literalObject();
+	}
+
+	@Override
+	public void o_LiteralObject (final AvailObject object, final AvailObject literalObject)
+	{
+		o_Traversed(object).literalObject(literalObject);
+	}
+
+	@Override
+	public AvailObject o_Token (final AvailObject object)
+	{
+		return o_Traversed(object).token();
+	}
+
+	@Override
+	public void o_Token (final AvailObject object, final AvailObject token)
+	{
+		o_Traversed(object).token(token);
+	}
+
+	@Override
+	public AvailObject o_MarkerValue (final AvailObject object)
+	{
+		return o_Traversed(object).markerValue();
+	}
+
+	@Override
+	public void o_MarkerValue (final AvailObject object, final AvailObject markerValue)
+	{
+		o_Traversed(object).markerValue(markerValue);
+	}
+
+	@Override
+	public AvailObject o_Arguments (final AvailObject object)
+	{
+		return o_Traversed(object).arguments();
+	}
+
+	@Override
+	public void o_Arguments (final AvailObject object, final AvailObject arguments)
+	{
+		o_Traversed(object).arguments(arguments);
+	}
+
+	@Override
+	public AvailObject o_ImplementationSet (final AvailObject object)
+	{
+		return o_Traversed(object).implementationSet();
+	}
+
+	@Override
+	public void o_ImplementationSet (
+		final AvailObject object,
+		final AvailObject implementationSet)
+	{
+		o_Traversed(object).implementationSet(implementationSet);
+	}
+
+	@Override
+	public AvailObject o_SuperCastType (final AvailObject object)
+	{
+		return o_Traversed(object).superCastType();
+	}
+
+	@Override
+	public void o_SuperCastType (
+		final AvailObject object,
+		final AvailObject superCastType)
+	{
+		o_Traversed(object).superCastType(superCastType);
+	}
+
+
+	@Override
+	public AvailObject o_ExpressionsTuple (final AvailObject object)
+	{
+		return o_Traversed(object).expressionTuple();
+	}
+
+
+	@Override
+	public void o_ExpressionsTuple (
+		final AvailObject object,
+		final AvailObject expressionsTuple)
+	{
+		o_Traversed(object).expressionTuple(expressionsTuple);
+	}
+
+
+	@Override
+	public AvailObject o_TupleType (final AvailObject object)
+	{
+		return o_Traversed(object).tupleType();
+	}
+
+
+	@Override
+	public void o_TupleType (
+		final AvailObject object,
+		final AvailObject tupleType)
+	{
+		o_Traversed(object).tupleType(tupleType);
+	}
+
+
+	@Override
+	public AvailObject o_Declaration (final AvailObject object)
+	{
+		return o_Traversed(object).declaration();
+	}
+
+
+	@Override
+	public void o_Declaration (final AvailObject object, final AvailObject declaration)
+	{
+		o_Traversed(object).declaration(declaration);
 	}
 
 }

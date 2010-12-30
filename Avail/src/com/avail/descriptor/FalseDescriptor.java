@@ -124,30 +124,30 @@ public class FalseDescriptor extends BooleanDescriptor
 	/**
 	 * The mutable {@link FalseDescriptor}.
 	 */
-	private final static FalseDescriptor mutableDescriptor = new FalseDescriptor(true);
+	private final static FalseDescriptor mutable = new FalseDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link FalseDescriptor}.
 	 *
 	 * @return The mutable {@link FalseDescriptor}.
 	 */
-	public static FalseDescriptor mutableDescriptor ()
+	public static FalseDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link FalseDescriptor}.
 	 */
-	private final static FalseDescriptor immutableDescriptor = new FalseDescriptor(false);
+	private final static FalseDescriptor immutable = new FalseDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link FalseDescriptor}.
 	 *
 	 * @return The immutable {@link FalseDescriptor}.
 	 */
-	public static FalseDescriptor immutableDescriptor ()
+	public static FalseDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

@@ -177,7 +177,7 @@ public class DoubleDescriptor extends Descriptor
 	public static AvailObject objectFromDouble(double aDouble)
 	{
 		// We cannot return by reference if a new object might be constructed.
-		AvailObject result = AvailObject.newIndexedDescriptor(0, DoubleDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.rawQuad1((int)castAsLong);
 		result.rawQuad2((int)(castAsLong >> 32));
@@ -193,7 +193,7 @@ public class DoubleDescriptor extends Descriptor
 		}
 		else
 		{
-			result = AvailObject.newIndexedDescriptor(0, DoubleDescriptor.mutableDescriptor());
+			result = mutable().create();
 		}
 		long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.rawQuad1((int)castAsLong);
@@ -216,7 +216,7 @@ public class DoubleDescriptor extends Descriptor
 			}
 			else
 			{
-				result = AvailObject.newIndexedDescriptor(0, DoubleDescriptor.mutableDescriptor());
+				result = mutable().create();
 			}
 		}
 		long castAsLong = Double.doubleToRawLongBits(aDouble);
@@ -240,30 +240,30 @@ public class DoubleDescriptor extends Descriptor
 	/**
 	 * The mutable {@link DoubleDescriptor}.
 	 */
-	private final static DoubleDescriptor mutableDescriptor = new DoubleDescriptor(true);
+	private final static DoubleDescriptor mutable = new DoubleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link DoubleDescriptor}.
 	 *
 	 * @return The mutable {@link DoubleDescriptor}.
 	 */
-	public static DoubleDescriptor mutableDescriptor ()
+	public static DoubleDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link DoubleDescriptor}.
 	 */
-	private final static DoubleDescriptor immutableDescriptor = new DoubleDescriptor(false);
+	private final static DoubleDescriptor immutable = new DoubleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link DoubleDescriptor}.
 	 *
 	 * @return The immutable {@link DoubleDescriptor}.
 	 */
-	public static DoubleDescriptor immutableDescriptor ()
+	public static DoubleDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

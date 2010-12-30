@@ -292,9 +292,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		assert aNybble >= 0 && aNybble <= 15;
 		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
 		object.verifyToSpaceAddress();
-		int wordIndex = (nybbleIndex + 7) / 8;
+		final int wordIndex = (nybbleIndex + 7) / 8;
 		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		int leftShift = (nybbleIndex - 1 & 7) * 4;
+		final int leftShift = (nybbleIndex - 1 & 7) * 4;
 		word &= ~(0x0F << leftShift);
 		word |= aNybble << leftShift;
 		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
@@ -327,9 +327,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		// a nybble from it.  Fail if it's not a nybble.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		object.verifyToSpaceAddress();
-		int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		int shift = (nybbleIndex - 1 & 7) * 4;
+		final int wordIndex = (nybbleIndex + 7) / 8;
+		final int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int shift = (nybbleIndex - 1 & 7) * 4;
 		return (byte) (word>>>shift & 0x0F);
 	}
 
@@ -362,9 +362,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		// Answer the nybble at the given index in the nybble tuple object.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		object.verifyToSpaceAddress();
-		int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
-		int shift = (nybbleIndex - 1 & 7) * 4;
+		final int wordIndex = (nybbleIndex + 7) / 8;
+		final int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int shift = (nybbleIndex - 1 & 7) * 4;
 		return (byte) (word>>>shift & 0x0F);
 	}
 
@@ -497,16 +497,18 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	}
 
 
-
-	// private-copying
-
+	/**
+	 * Answer a mutable copy of object that holds bytes, as opposed to just
+	 * nybbles.
+	 */
 	AvailObject copyAsMutableByteTuple (
 			final AvailObject object)
 	{
-		//  Answer a mutable copy of object that holds bytes, as opposed to just nybbles.
-
-		final AvailObject result = AvailObject.newIndexedDescriptor(((object.tupleSize() + 3) / 4), ByteTupleDescriptor.isMutableSize(true, object.tupleSize()));
-		//  Transfer the leader information (the stuff before the tuple's first element)...
+		final AvailObject result =
+			ByteTupleDescriptor.isMutableSize(true, object.tupleSize()).create(
+				(object.tupleSize() + 3) / 4);
+		// Transfer the leading information (the stuff before the tuple's first
+		// element).
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = result.tupleSize(); i <= _end1; i++)
 		{
@@ -516,33 +518,36 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	}
 
 
-
-	// private-initialization
-
+	/**
+	 * Build a new object instance with room for size elements.
+	 *
+	 * @param size The number of elements for which to leave room.
+	 * @return A mutable {@linkplain NybbleTupleDescriptor nybble tuple}.
+	 */
 	AvailObject mutableObjectOfSize (
 			final int size)
 	{
-		//  Build a new object instance with room for size elements.
-
 		if (!isMutable)
 		{
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
 		assert (size + unusedNybblesOfLastWord & 7) == 0;
-		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 7) / 8), this);
+		final AvailObject result = this.create(((size + 7) / 8));
 		return result;
 	}
 
-	/* Descriptor lookup */
-	public static NybbleTupleDescriptor isMutableSize(final boolean flag, final int size)
+
+	public static NybbleTupleDescriptor isMutableSize(
+		final boolean flag,
+		final int size)
 	{
-		int delta = flag ? 0 : 1;
+		final int delta = flag ? 0 : 1;
 		return descriptors[(size & 7) * 2 + delta];
 	};
 
 	/**
-	 * Construct a new {@link ByteTupleDescriptor}.
+	 * Construct a new {@link NybbleTupleDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable

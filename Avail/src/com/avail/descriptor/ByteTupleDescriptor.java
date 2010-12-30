@@ -328,7 +328,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's an integer 0<=n<=255.
 		assert index >= 1 && index <= object.tupleSize();
-		short theByte = aByteObject.extractByte();
+		final short theByte = aByteObject.extractByte();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, theByte);
 	}
 
@@ -417,7 +417,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer a mutable copy of object that also only holds bytes.
 
-		final AvailObject result = AvailObject.newIndexedDescriptor(((object.tupleSize() + 3) / 4), ByteTupleDescriptor.isMutableSize(true, object.tupleSize()));
+		final AvailObject result = isMutableSize(true, object.tupleSize()).create(
+			(object.tupleSize() + 3) / 4);
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
@@ -447,7 +448,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			return VoidDescriptor.voidObject();
 		}
 		assert (size + _unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = AvailObject.newIndexedDescriptor(((size + 3) / 4), this);
+		final AvailObject result = this.create((size + 3) / 4);
 		return result;
 	}
 
@@ -458,7 +459,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	/* Descriptor lookup */
 	public static ByteTupleDescriptor isMutableSize(final boolean flag, final int size)
 	{
-		int delta = flag ? 0 : 1;
+		final int delta = flag ? 0 : 1;
 		return descriptors[delta + (size & 3) * 2];
 	};
 

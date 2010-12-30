@@ -590,7 +590,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			//  Unusual cases such as [INF..INF) give preference to exclusion over inclusion.
 			return Types.terminates.object();
 		}
-		AvailObject result = AvailObject.newIndexedDescriptor(0, IntegerRangeTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.lowerBound(low);
 		result.upperBound(high);
 		result.lowerInclusiveUpperInclusive(lowInc, highInc);
@@ -612,30 +612,30 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	private final static IntegerRangeTypeDescriptor mutableDescriptor = new IntegerRangeTypeDescriptor(true);
+	private final static IntegerRangeTypeDescriptor mutable = new IntegerRangeTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link IntegerRangeTypeDescriptor}.
 	 *
 	 * @return The mutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	public static IntegerRangeTypeDescriptor mutableDescriptor ()
+	public static IntegerRangeTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	private final static IntegerRangeTypeDescriptor immutableDescriptor = new IntegerRangeTypeDescriptor(false);
+	private final static IntegerRangeTypeDescriptor immutable = new IntegerRangeTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link IntegerRangeTypeDescriptor}.
 	 *
 	 * @return The immutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	public static IntegerRangeTypeDescriptor immutableDescriptor ()
+	public static IntegerRangeTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

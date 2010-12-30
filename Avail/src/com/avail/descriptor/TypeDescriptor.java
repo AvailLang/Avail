@@ -582,7 +582,7 @@ public abstract class TypeDescriptor extends Descriptor
 
 	public enum Types
 	{
-		voidType(null, "type", VoidTypeDescriptor.mutableDescriptor()),
+		voidType(null, "type", VoidTypeDescriptor.mutable()),
 		all(voidType, "type"),
 		booleanType(all),
 		trueType(booleanType),
@@ -638,8 +638,8 @@ public abstract class TypeDescriptor extends Descriptor
 		closureType(generalizedClosureType, "meta"),
 		setType(type, "meta"),
 		tupleType(type, "meta"),
-		terminatesType(null, "terminatesType", TerminatesMetaDescriptor.mutableDescriptor()),
-		terminates(null, "terminatesType", TerminatesTypeDescriptor.mutableDescriptor());
+		terminatesType(null, "terminatesType", TerminatesMetaDescriptor.mutable()),
+		terminates(null, "terminatesType", TerminatesTypeDescriptor.mutable());
 
 		protected final Types parent;
 		protected final String myTypeName;
@@ -659,7 +659,7 @@ public abstract class TypeDescriptor extends Descriptor
 			this(
 				parent,
 				myTypeName,
-				PrimitiveTypeDescriptor.mutableDescriptor());
+				PrimitiveTypeDescriptor.mutable());
 		}
 
 		Types (final Types parent)
@@ -683,7 +683,7 @@ public abstract class TypeDescriptor extends Descriptor
 		// Build all the objects with void fields.
 		for (Types spec : Types.values())
 		{
-			spec.object = AvailObject.newIndexedDescriptor(0, spec.descriptor);
+			spec.object = spec.descriptor.create();
 			assert spec.object.descriptorId() != 0;
 			spec.object.name(voidObject);
 			spec.object.parent(voidObject);

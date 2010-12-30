@@ -32,9 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IndirectionDescriptor;
-import com.avail.descriptor.VoidDescriptor;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 
 /**
@@ -55,24 +52,26 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * out in my _objectSlots and _intSlots.
 	 */
 	AbstractDescriptor _descriptor;
-	
+
 	/**
 	 * An array of all my references to other AvailObjects.
 	 */
 	AvailObject [] _objectSlots;
-	
+
 	/**
 	 * An int array encoding all of my digital state.
 	 */
 	int [] _intSlots;
 
 
+	/**
+	 * Turn me into an indirection to anotherObject.  WARNING: This alters my
+	 * slots and descriptor.
+	 */
 	@Override
 	public void becomeIndirectionTo (
 			final AvailObject anotherObject)
 	{
-		//  Turn me into an indirection to anotherObject.  WARNING: This alters my slots and descriptor.
-
 		verifyToSpaceAddress();
 		if (traversed().sameAddressAs(anotherObject.traversed()))
 		{
@@ -90,13 +89,13 @@ final public class AvailObjectUsingArrays extends AvailObject
 			{
 				scanSubobjects(new AvailMarkUnreachableSubobjectVisitor(anotherObject));
 			}
-			descriptor(IndirectionDescriptor.mutableDescriptor());
+			descriptor(IndirectionDescriptor.mutable());
 			target(anotherObject.traversed());
 		}
 		else
 		{
 			anotherObject.makeImmutable();
-			descriptor(IndirectionDescriptor.mutableDescriptor());
+			descriptor(IndirectionDescriptor.mutable());
 			target(anotherObject.traversed());
 			makeImmutable();
 		}
@@ -105,7 +104,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	/**
 	 * Extract the byte at the given one-based byte subscript within the
 	 * specified field.  Always use little endian encoding.
-	 * 
+	 *
 	 * @param e An enumeration value representing an integer field.
 	 * @param byteSubscript Which byte to extract.
 	 * @return The unsigned byte as a short.
@@ -116,15 +115,15 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final int byteSubscript)
 	{
 		verifyToSpaceAddress();
-		int word = _intSlots[e.ordinal() + (byteSubscript - 1) / 4];
-		return (short) ((word >>> (((byteSubscript - 1) & 0x03) * 8)) & 0xFF);
+		final int word = _intSlots[e.ordinal() + (byteSubscript - 1) / 4];
+		return (short) (word >>> ((byteSubscript - 1 & 0x03) << 3) & 0xFF);
 	}
 
 
 	/**
 	 * Replace the byte at the given one-based byte subscript within the
 	 * specified field.  Always use little endian encoding.
-	 * 
+	 *
 	 * @param e An enumeration value representing an integer field.
 	 * @param byteSubscript Which byte to extract.
 	 * @param aByte The unsigned byte to write, passed as a short.
@@ -138,20 +137,22 @@ final public class AvailObjectUsingArrays extends AvailObject
 		assert aByte == (aByte & 0xFF);
 		checkWriteForField(e);
 		verifyToSpaceAddress();
-		int wordIndex = e.ordinal() + (byteSubscript - 1) / 4;
+		final int wordIndex = e.ordinal() + (byteSubscript - 1) / 4;
 		int word = _intSlots[wordIndex];
-		int leftShift = ((byteSubscript - 1) & 3) * 8;
+		final int leftShift = (byteSubscript - 1 & 3) << 3;
 		word &= ~(0xFF << leftShift);
 		word |= aByte << leftShift;
 		_intSlots[wordIndex] = word;
 	}
 
 
+	/**
+	 * Check if my address is valid.  Throw an Error if it's outside all the
+	 * currently allocated memory regions.
+	 */
 	@Override
 	public void checkValidAddress ()
 	{
-		//  Check if my address is valid.  Fail if it's outside all the current pages.
-
 		return;
 	}
 
@@ -172,7 +173,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * Set up a freshly created {@link AvailObject} to have the specified
 	 * {@link Descriptor}, and the specified number of object and integer
 	 * slots.
-	 * 
+	 *
 	 * @param theDescriptor This object's {@link Descriptor}.
 	 * @param objectSlotsSize The number of object slots to allocate.
 	 * @param intSlotsCount The number of integer slots to allocate.
@@ -237,7 +238,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final int subscript)
 	{
 		//  Extract an int using the given Enum value that identifies the field.
-	
+
 		verifyToSpaceAddress();
 		return _intSlots[e.ordinal() + subscript - 1];
 	}
@@ -268,7 +269,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		// Extract the object at the subscript implied by the enumeration
 		// value's ordinal().
 		verifyToSpaceAddress();
-		AvailObject result = _objectSlots[e.ordinal()];
+		final AvailObject result = _objectSlots[e.ordinal()];
 		result.verifyToSpaceAddress();
 		return result;
 	}
@@ -291,7 +292,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final int subscript)
 	{
 		verifyToSpaceAddress();
-		AvailObject result = _objectSlots[e.ordinal() + subscript - 1];
+		final AvailObject result = _objectSlots[e.ordinal() + subscript - 1];
 		result.verifyToSpaceAddress();
 		return result;
 	}
@@ -327,8 +328,8 @@ final public class AvailObjectUsingArrays extends AvailObject
 		// little endian encoding.
 
 		verifyToSpaceAddress();
-		int word = _intSlots[e.ordinal() + (shortIndex - 1) / 2];
-		return (short)(word >>> (((shortIndex - 1) & 1) * 16));
+		final int word = _intSlots[e.ordinal() + (shortIndex - 1) / 2];
+		return (short)(word >>> ((shortIndex - 1 & 1) << 4));
 	}
 
 	@Override
@@ -341,8 +342,8 @@ final public class AvailObjectUsingArrays extends AvailObject
 
 		checkWriteForField(e);
 		verifyToSpaceAddress();
-		int shift = ((shortIndex - 1) & 1) * 16;
-		int wordIndex = e.ordinal() + (shortIndex - 1) / 2;
+		final int shift = (shortIndex - 1 & 1) << 4;
+		final int wordIndex = e.ordinal() + (shortIndex - 1) / 2;
 		int word = _intSlots[wordIndex];
 		word &= ~(0xFFFF << shift);
 		word |= aShort << shift;
@@ -369,13 +370,13 @@ final public class AvailObjectUsingArrays extends AvailObject
 		verifyToSpaceAddress();
 		// assert(objectSlotsCount > 0);
 		final int oldIntegerSlotsCount = integerSlotsCount();
-		assert(newIntegerSlotsCount < oldIntegerSlotsCount);
+		assert newIntegerSlotsCount < oldIntegerSlotsCount;
 		// final int fillerSlotCount = oldIntegerSlotsCount - newIntegerSlotsCount - 1;
 		// Here's where we would write a filler header into raw memory.
-		// Slots *filler = (Slots *)(_pointer.address() + 4 + (newIntegerSlotsCount * 4));
-		// filler->descriptorId() = FillerDescriptor.mutableDescriptor().id();
+		// Slots *filler = (Slots *)(_pointer.address() + 4 + (newIntegerSlotsCount << 2));
+		// filler->descriptorId() = FillerDescriptor.mutable().id();
 		//  filler->sizeInLongs() = fillerSlotCount;
-		int [] newIntSlots = new int [newIntegerSlotsCount];
+		final int [] newIntSlots = new int [newIntegerSlotsCount];
 		System.arraycopy(_intSlots, 0, newIntSlots, 0, newIntegerSlotsCount);
 		_intSlots = newIntSlots;
 	}
@@ -396,17 +397,17 @@ final public class AvailObjectUsingArrays extends AvailObject
 	public void truncateWithFillerForNewObjectSlotsCount (
 			final int newObjectSlotsCount)
 	{
- 
+
 		verifyToSpaceAddress();
-		assert(newObjectSlotsCount > 0);
+		assert newObjectSlotsCount > 0;
 		final int oldObjectSlotsCount = objectSlotsCount();
-		assert(newObjectSlotsCount < oldObjectSlotsCount);
+		assert newObjectSlotsCount < oldObjectSlotsCount;
 		// final int fillerSlotCount = oldObjectSlotsCount - newObjectSlotsCount - 1;
 		// Here's where we would write a filler header into raw memory.
-		// Slots *filler = (Slots *)(_pointer.address() + 4 + (newSlotsSize * 4));
-		// filler->descriptorId() = FillerDescriptor.mutableDescriptor().id();
+		// Slots *filler = (Slots *)(_pointer.address() + 4 + (newSlotsSize << 2));
+		// filler->descriptorId() = FillerDescriptor.mutable().id();
 		// filler->sizeInLongs() = fillerSlotCount;
-		AvailObject newObjectSlots [] = new AvailObject [newObjectSlotsCount];
+		final AvailObject newObjectSlots [] = new AvailObject [newObjectSlotsCount];
 		System.arraycopy(_objectSlots, 0, newObjectSlots, 0, newObjectSlotsCount);
 		_objectSlots = newObjectSlots;
 	}
@@ -428,10 +429,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 
-
-
-
-	public static AvailObject newIndexedDescriptor(int size, AbstractDescriptor descriptor)
+	public static AvailObject newIndexedDescriptor(
+		final int size,
+		final AbstractDescriptor descriptor)
 	{
 		assert CanAllocateObjects();
 		int objectSlotCount = descriptor.numberOfFixedObjectSlots();
@@ -444,7 +444,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		{
 			integerSlotCount += size;
 		}
-		AvailObjectUsingArrays object = new AvailObjectUsingArrays();
+		final AvailObjectUsingArrays object = new AvailObjectUsingArrays();
 		object.descriptorObjectSlotsSizeIntSlotsSize(
 			descriptor,
 			objectSlotCount,
@@ -453,14 +453,14 @@ final public class AvailObjectUsingArrays extends AvailObject
 	};
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
-			int variableObjectSlots,
-			int variableIntegerSlots,
-			AbstractDescriptor descriptor)
+			final int variableObjectSlots,
+			final int variableIntegerSlots,
+			final AbstractDescriptor descriptor)
 	{
 		assert CanAllocateObjects();
 		assert descriptor.hasVariableObjectSlots() || variableObjectSlots == 0;
 		assert descriptor.hasVariableIntegerSlots() || variableIntegerSlots == 0;
-		AvailObjectUsingArrays object = new AvailObjectUsingArrays();
+		final AvailObjectUsingArrays object = new AvailObjectUsingArrays();
 		object.descriptorObjectSlotsSizeIntSlotsSize(
 			descriptor,
 			descriptor.numberOfFixedObjectSlots() + variableObjectSlots,

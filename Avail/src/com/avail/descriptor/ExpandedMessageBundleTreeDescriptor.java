@@ -175,7 +175,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			final AvailObject object)
 	{
 
-		object.descriptor(immutableDescriptor());
+		object.descriptor(immutable());
 		// Don't bother scanning subobjects. They're allowed to be mutable even
 		// when object is immutable.
 		return object;
@@ -451,30 +451,30 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	/**
 	 * The mutable {@link ExpandedMessageBundleTreeDescriptor}.
 	 */
-	private final static ExpandedMessageBundleTreeDescriptor mutableDescriptor = new ExpandedMessageBundleTreeDescriptor(true);
+	private final static ExpandedMessageBundleTreeDescriptor mutable = new ExpandedMessageBundleTreeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ExpandedMessageBundleTreeDescriptor}.
 	 *
 	 * @return The mutable {@link ExpandedMessageBundleTreeDescriptor}.
 	 */
-	public static ExpandedMessageBundleTreeDescriptor mutableDescriptor ()
+	public static ExpandedMessageBundleTreeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link ExpandedMessageBundleTreeDescriptor}.
 	 */
-	private final static ExpandedMessageBundleTreeDescriptor immutableDescriptor = new ExpandedMessageBundleTreeDescriptor(false);
+	private final static ExpandedMessageBundleTreeDescriptor immutable = new ExpandedMessageBundleTreeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ExpandedMessageBundleTreeDescriptor}.
 	 *
 	 * @return The immutable {@link ExpandedMessageBundleTreeDescriptor}.
 	 */
-	public static ExpandedMessageBundleTreeDescriptor immutableDescriptor ()
+	public static ExpandedMessageBundleTreeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

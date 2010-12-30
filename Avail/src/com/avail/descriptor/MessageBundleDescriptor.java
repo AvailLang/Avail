@@ -333,9 +333,7 @@ public class MessageBundleDescriptor extends Descriptor
 		AvailObject parts,
 		AvailObject instructions)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(
-			0,
-			MessageBundleDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		assert message.isCyclicType();	
 		result.message(message);
 		result.messageParts(parts);
@@ -360,30 +358,30 @@ public class MessageBundleDescriptor extends Descriptor
 	/**
 	 * The mutable {@link MessageBundleDescriptor}.
 	 */
-	private final static MessageBundleDescriptor mutableDescriptor = new MessageBundleDescriptor(true);
+	private final static MessageBundleDescriptor mutable = new MessageBundleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link MessageBundleDescriptor}.
 	 *
 	 * @return The mutable {@link MessageBundleDescriptor}.
 	 */
-	public static MessageBundleDescriptor mutableDescriptor ()
+	public static MessageBundleDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link MessageBundleDescriptor}.
 	 */
-	private final static MessageBundleDescriptor immutableDescriptor = new MessageBundleDescriptor(false);
+	private final static MessageBundleDescriptor immutable = new MessageBundleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link MessageBundleDescriptor}.
 	 *
 	 * @return The immutable {@link MessageBundleDescriptor}.
 	 */
-	public static MessageBundleDescriptor immutableDescriptor ()
+	public static MessageBundleDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

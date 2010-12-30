@@ -234,26 +234,26 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The mutable {@link AbstractSignatureDescriptor}.
 	 */
-	private final static AbstractSignatureDescriptor mutableDescriptor = new AbstractSignatureDescriptor(true);
+	private final static AbstractSignatureDescriptor mutable = new AbstractSignatureDescriptor(true);
 
 	/**
 	 * @return The mutable {@link AbstractSignatureDescriptor}.
 	 */
-	public static AbstractSignatureDescriptor mutableDescriptor ()
+	public static AbstractSignatureDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link AbstractSignatureDescriptor}.
 	 */
-	private final static AbstractSignatureDescriptor immutableDescriptor = new AbstractSignatureDescriptor(false);
+	private final static AbstractSignatureDescriptor immutable = new AbstractSignatureDescriptor(false);
 
 	/**
 	 * @return The mutable {@link AbstractSignatureDescriptor}.
 	 */
-	public static AbstractSignatureDescriptor immutableDescriptor ()
+	public static AbstractSignatureDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }

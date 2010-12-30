@@ -282,7 +282,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	public static AvailObject forReturnType (
 			AvailObject returnType)
 	{
-		AvailObject result = AvailObject.newIndexedDescriptor(0, GeneralizedClosureTypeDescriptor.mutableDescriptor());
+		AvailObject result = mutable().create();
 		result.returnType(returnType);
 		return result;
 	};
@@ -302,30 +302,30 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link GeneralizedClosureTypeDescriptor}.
 	 */
-	private final static GeneralizedClosureTypeDescriptor mutableDescriptor = new GeneralizedClosureTypeDescriptor(true);
+	private final static GeneralizedClosureTypeDescriptor mutable = new GeneralizedClosureTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link GeneralizedClosureTypeDescriptor}.
 	 *
 	 * @return The mutable {@link GeneralizedClosureTypeDescriptor}.
 	 */
-	public static GeneralizedClosureTypeDescriptor mutableDescriptor ()
+	public static GeneralizedClosureTypeDescriptor mutable ()
 	{
-		return mutableDescriptor;
+		return mutable;
 	}
 
 	/**
 	 * The immutable {@link GeneralizedClosureTypeDescriptor}.
 	 */
-	private final static GeneralizedClosureTypeDescriptor immutableDescriptor = new GeneralizedClosureTypeDescriptor(false);
+	private final static GeneralizedClosureTypeDescriptor immutable = new GeneralizedClosureTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link GeneralizedClosureTypeDescriptor}.
 	 *
 	 * @return The immutable {@link GeneralizedClosureTypeDescriptor}.
 	 */
-	public static GeneralizedClosureTypeDescriptor immutableDescriptor ()
+	public static GeneralizedClosureTypeDescriptor immutable ()
 	{
-		return immutableDescriptor;
+		return immutable;
 	}
 }
