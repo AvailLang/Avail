@@ -32,8 +32,6 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailGetVariable;
-import com.avail.compiler.instruction.AvailPushVariable;
 
 public class AvailVariableAccessNote
 {

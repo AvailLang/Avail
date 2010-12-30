@@ -32,10 +32,8 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailGetType;
-import com.avail.compiler.instruction.AvailInstruction;
-import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
+import com.avail.interpreter.levelOne.L1Operation;
 
 /**
  * Push the type of the value that's N levels deep on the stack.  This is only
@@ -59,7 +57,7 @@ public class AvailGetType extends AvailInstruction
 	 * @param stackDepth The depth in the stack at which to find the object
 	 *                   whose type to extract.
 	 */
-	public AvailGetType (int stackDepth)
+	public AvailGetType (final int stackDepth)
 	{
 		this.stackDepth = stackDepth;
 	}
