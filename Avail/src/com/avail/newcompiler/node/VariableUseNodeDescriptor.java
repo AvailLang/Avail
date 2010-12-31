@@ -32,7 +32,9 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.newcompiler.scanner.TokenDescriptor;
 
 /**
@@ -118,6 +120,33 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.DECLARATION);
 	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return object.declaration().declaredType();
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return Types.variableUseNode.object();
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final AvailObject declaration = object.declaration();
+		declaration.declarationKind().emitVariableValueForOn(
+			declaration,
+			codeGenerator);
+	}
+
+
 
 
 	/**

@@ -32,7 +32,9 @@
 
 package com.avail.newcompiler.node;
 
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -133,6 +135,68 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return object.returnType();
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return Types.sendNode.object();
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		boolean anyCasts;
+		anyCasts = false;
+		final AvailObject arguments = object.arguments();
+		for (final AvailObject argNode : arguments)
+		{
+			argNode.emitValueOn(codeGenerator);
+			if (argNode.type().isSubtypeOf(Types.superCastNode.object()))
+			{
+				anyCasts = true;
+			}
+		}
+		final AvailObject implementationSet = object.implementationSet();
+		implementationSet.makeImmutable();
+		if (anyCasts)
+		{
+			for (final AvailObject argNode : arguments)
+			{
+				if (argNode.type().isSubtypeOf(Types.superCastNode.object()))
+				{
+					codeGenerator.emitPushLiteral(argNode.expressionType());
+				}
+				else
+				{
+					codeGenerator.emitGetType(arguments.tupleSize() - 1);
+				}
+			}
+			// We've pushed all argument values and all arguments types onto the
+			// stack.
+			codeGenerator.emitSuperCall(
+				arguments.tupleSize(),
+				implementationSet,
+				object.returnType());
+		}
+		else
+		{
+			codeGenerator.emitCall(
+				arguments.tupleSize(),
+				implementationSet,
+				object.returnType());
+		}
+	}
+
 
 
 	/**

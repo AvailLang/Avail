@@ -32,7 +32,10 @@
 
 package com.avail.newcompiler.node;
 
+import java.util.*;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances represent {@link ParseNodeDescriptor parse nodes} which will
@@ -104,6 +107,51 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.TUPLE_TYPE);
 	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		final AvailObject expressionsTuple = object.expressionsTuple();
+		final List<AvailObject> types = new ArrayList<AvailObject>(
+			expressionsTuple.tupleSize());
+		for (final AvailObject expr : expressionsTuple)
+		{
+			types.add(expr.expressionType());
+		}
+		final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
+			IntegerDescriptor.objectFromInt(types.size()));
+		final AvailObject tupleType =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizes,
+				TupleDescriptor.mutableObjectFromArray(types),
+				Types.terminates.object());
+		tupleType.makeImmutable();
+		return tupleType;
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		//  Answer the object's type.
+
+		return Types.tupleNode.object();
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final AvailObject childNodes = object.expressionsTuple();
+		for (final AvailObject expr : childNodes)
+		{
+			expr.emitValueOn(codeGenerator);
+		}
+		codeGenerator.emitMakeTuple(childNodes.tupleSize());
+	}
+
 
 
 	/**

@@ -169,21 +169,24 @@ public final class AvailRuntime
 		specialObjects[46] = Types.implementationSet.object();
 
 		// Parse nodes types
-		specialObjects[50] = Types.assignmentNode.object();
-		specialObjects[51] = Types.blockNode.object();
-		specialObjects[52] = Types.constantDeclarationNode.object();
-		specialObjects[53] = Types.initializingDeclarationNode.object();
-		specialObjects[54] = Types.labelNode.object();
-		specialObjects[55] = Types.createListNode.object();
-		specialObjects[56] = Types.literalNode.object();
-		specialObjects[57] = Types.parseNode.object();
-		specialObjects[58] = Types.referenceNode.object();
-		specialObjects[59] = Types.sendNode.object();
-		specialObjects[60] = Types.superCastNode.object();
-		specialObjects[61] = Types.syntheticConstantNode.object();
-		specialObjects[62] = Types.syntheticDeclarationNode.object();
-		specialObjects[63] = Types.variableDeclarationNode.object();
-		specialObjects[64] = Types.variableUseNode.object();
+		specialObjects[50] = Types.parseNode.object();
+		specialObjects[51] = Types.markerNode.object();
+		specialObjects[52] = Types.expressionNode.object();
+		specialObjects[53] = Types.assignmentNode.object();
+		specialObjects[54] = Types.blockNode.object();
+		specialObjects[55] = Types.literalNode.object();
+		specialObjects[56] = Types.referenceNode.object();
+		specialObjects[57] = Types.sendNode.object();
+		specialObjects[58] = Types.superCastNode.object();
+		specialObjects[59] = Types.tupleNode.object();
+		specialObjects[60] = Types.variableUseNode.object();
+		specialObjects[61] = Types.declarationNode.object();
+		specialObjects[62] = Types.argumentNode.object();
+		specialObjects[63] = Types.labelNode.object();
+		specialObjects[64] = Types.localVariableNode.object();
+		specialObjects[65] = Types.localConstantNode.object();
+		specialObjects[66] = Types.moduleVariableNode.object();
+		specialObjects[67] = Types.moduleConstantNode.object();
 
 		// Booleans
 		specialObjects[70] = BooleanDescriptor.objectFrom(true);

@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import java.io.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
@@ -5755,6 +5756,24 @@ implements Iterable<AvailObject>
 
 
 	/**
+	 * @param resultType
+	 */
+	public void resultType (final AvailObject resultType)
+	{
+		descriptor().o_ResultType(this, resultType);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject resultType ()
+	{
+		return descriptor().o_ResultType(this);
+	}
+
+
+	/**
 	 * @param neededVariables
 	 */
 	public void neededVariables (final AvailObject neededVariables)
@@ -5955,7 +5974,7 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public AvailObject expressionTuple ()
+	public AvailObject expressionsTuple ()
 	{
 		return descriptor().o_ExpressionsTuple(this);
 	}
@@ -5964,7 +5983,7 @@ implements Iterable<AvailObject>
 	/**
 	 * @param expressionsTuple
 	 */
-	public void expressionTuple (final AvailObject expressionsTuple)
+	public void expressionsTuple (final AvailObject expressionsTuple)
 	{
 		descriptor().o_ExpressionsTuple(this, expressionsTuple);
 	}
@@ -6003,6 +6022,33 @@ implements Iterable<AvailObject>
 	public void declaration (final AvailObject declaration)
 	{
 		descriptor().o_Declaration(this, declaration);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject expressionType ()
+	{
+		return descriptor().o_ExpressionType(this);
+	}
+
+
+	/**
+	 * @param codeGenerator
+	 */
+	public void emitEffectOn (final AvailCodeGenerator codeGenerator)
+	{
+		descriptor().o_EmitEffectOn(this, codeGenerator);
+	}
+
+
+	/**
+	 * @param codeGenerator
+	 */
+	public void emitValueOn (final AvailCodeGenerator codeGenerator)
+	{
+		descriptor().o_EmitValueOn(this, codeGenerator);
 	}
 
 }

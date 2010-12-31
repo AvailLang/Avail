@@ -984,8 +984,6 @@ public class AvailCompiler
 		{
 			throw new RuntimeException("Probable recursive parse error");
 		}
-		//TODO: This temporarily forces depth-first parsing.
-		//workStack.pop().value();
 	}
 
 	/**
@@ -1973,7 +1971,8 @@ public class AvailCompiler
 		}
 		final ParserState afterClose = afterStatements.afterToken();
 
-		final Mutable<AvailObject> lastStatementType = new Mutable<AvailObject>();
+		final Mutable<AvailObject> lastStatementType =
+			new Mutable<AvailObject>();
 		if (statements.size() > 0)
 		{
 			final AvailParseNode lastStatement = statements.get(

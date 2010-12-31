@@ -32,7 +32,8 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.Descriptor;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
 
 /**
  * I'm used to implement the abstract notion of parse nodes.  All concrete parse
@@ -53,5 +54,43 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	{
 		super(isMutable);
 	}
+
+	/**
+	 * Return the parse node's expression type, which is the type of object that
+	 * will be produced by this parse node.
+	 *
+	 * @return The {@link TypeDescriptor type} of the {@link AvailObject} that
+	 *         will be produced by this parse node.
+	 */
+	@Override
+	public abstract AvailObject o_ExpressionType (final AvailObject object);
+
+	/**
+	 * Emit the effect of this node.  By default that means to emit the value of
+	 * the node, then to pop the unwanted value from the stack.
+	 *
+	 * @param object The parse node.
+	 * @param codeGenerator Where to emit the code.
+	 */
+	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.emitValueOn(codeGenerator);
+		codeGenerator.emitPop();
+	}
+
+	/**
+	 * Emit the value of this node.  That means emit a sequence of instructions
+	 * that will cause this node's value to end up on the stack.
+	 *
+	 * @param object The parse node.
+	 * @param codeGenerator Where to emit the code.
+	 */
+	@Override
+	public abstract void o_EmitValueOn (
+		AvailObject object,
+		AvailCodeGenerator codeGenerator);
 
 }

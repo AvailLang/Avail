@@ -32,7 +32,10 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.error;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances represent a weakening of the type of an argument of a {@link
@@ -106,6 +109,37 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
+	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return object.superCastType();
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return Types.superCastNode.object();
+	}
+
+	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		error("A superCast can only be done to an argument of a call.");
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		// My parent (send) node deals with my altered semantics.
+		object.expression().emitValueOn(codeGenerator);
 	}
 
 

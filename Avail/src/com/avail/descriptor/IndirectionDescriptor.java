@@ -33,6 +33,7 @@ package com.avail.descriptor;
 
 import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
@@ -4240,13 +4241,13 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	@Override
 	public void o_ResultType (final AvailObject object, final AvailObject resultType)
 	{
-		o_Traversed(object).defaultType(resultType);
+		o_Traversed(object).resultType(resultType);
 	}
 
 	@Override
 	public AvailObject o_ResultType (final AvailObject object)
 	{
-		return o_Traversed(object).defaultType();
+		return o_Traversed(object).resultType();
 	}
 
 	@Override
@@ -4395,7 +4396,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	@Override
 	public AvailObject o_ExpressionsTuple (final AvailObject object)
 	{
-		return o_Traversed(object).expressionTuple();
+		return o_Traversed(object).expressionsTuple();
 	}
 
 
@@ -4404,7 +4405,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject expressionsTuple)
 	{
-		o_Traversed(object).expressionTuple(expressionsTuple);
+		o_Traversed(object).expressionsTuple(expressionsTuple);
 	}
 
 
@@ -4435,6 +4436,28 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public void o_Declaration (final AvailObject object, final AvailObject declaration)
 	{
 		o_Traversed(object).declaration(declaration);
+	}
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return o_Traversed(object).expressionType();
+	}
+
+	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		o_Traversed(object).emitEffectOn(codeGenerator);
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		o_Traversed(object).emitValueOn(codeGenerator);
 	}
 
 }

@@ -34,6 +34,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
@@ -4928,5 +4929,26 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_Declaration (AvailObject object);
+
+	/**
+	 * @return
+	 */
+	public abstract AvailObject o_ExpressionType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 */
+	public abstract void o_EmitEffectOn (
+		AvailObject object,
+		AvailCodeGenerator codeGenerator);
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 */
+	public abstract void o_EmitValueOn (
+		AvailObject object,
+		AvailCodeGenerator codeGenerator);
 
 }

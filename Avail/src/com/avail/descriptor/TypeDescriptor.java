@@ -599,26 +599,23 @@ public abstract class TypeDescriptor extends Descriptor
 		messageBundleTree(all),
 
 		parseNode(all),
-		listOfNodes(parseNode),
-		statementNode(parseNode),
-		expressionNode(statementNode),
+		markerNode(parseNode),
+		expressionNode(parseNode),
 		assignmentNode(expressionNode),
 		blockNode(expressionNode),
-		createListNode(parseNode),
-		literalNode(parseNode),
+		literalNode(expressionNode),
 		referenceNode(expressionNode),
 		sendNode(expressionNode),
 		superCastNode(expressionNode),
+		tupleNode(expressionNode),
 		variableUseNode(expressionNode),
 		declarationNode(expressionNode),
-		argumentDeclarationNode(declarationNode),
-		variableDeclarationNode(declarationNode),
-		syntheticConstantNode(variableDeclarationNode),
-		initializingDeclarationNode(variableDeclarationNode),
-		constantDeclarationNode(initializingDeclarationNode),
-		labelNode(variableDeclarationNode),
-		syntheticDeclarationNode(variableDeclarationNode),
-		variableNameNode(parseNode),
+		argumentNode(declarationNode),
+		labelNode(declarationNode),
+		localVariableNode(declarationNode),
+		localConstantNode(declarationNode),
+		moduleVariableNode(declarationNode),
+		moduleConstantNode(declarationNode),
 
 		process(all),
 		signature(all),
@@ -677,11 +674,11 @@ public abstract class TypeDescriptor extends Descriptor
 	{
 		//  Default implementation - subclasses may need more variations.
 
-		AvailObject voidObject = VoidDescriptor.voidObject();
+		final AvailObject voidObject = VoidDescriptor.voidObject();
 		assert voidObject != null;
 
 		// Build all the objects with void fields.
-		for (Types spec : Types.values())
+		for (final Types spec : Types.values())
 		{
 			spec.object = spec.descriptor.create();
 			assert spec.object.descriptorId() != 0;
@@ -691,7 +688,7 @@ public abstract class TypeDescriptor extends Descriptor
 			spec.object.hash(spec.name().hashCode());
 		}
 		// Connect and name the objects.
-		for (Types spec : Types.values())
+		for (final Types spec : Types.values())
 		{
 			spec.object.name(
 				ByteStringDescriptor.mutableObjectFromNativeByteString(
@@ -703,12 +700,12 @@ public abstract class TypeDescriptor extends Descriptor
 			spec.object.myType(
 				Types.valueOf(spec.myTypeName).object);
 		}
-		for (Types spec : Types.values())
+		for (final Types spec : Types.values())
 		{
 			spec.object.makeImmutable();
 		}
 		// Sanity check them for metacovariance: a<=b -> a.type<=b.type
-		for (Types spec : Types.values())
+		for (final Types spec : Types.values())
 		{
 			if (spec.parent != null)
 			{
@@ -721,7 +718,7 @@ public abstract class TypeDescriptor extends Descriptor
 
 	static void clearWellKnownObjects ()
 	{
-		for (Types spec : Types.values())
+		for (final Types spec : Types.values())
 		{
 			spec.object = null;
 		}

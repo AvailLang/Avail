@@ -32,8 +32,12 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.AvailObject;
+import java.util.*;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
+import com.avail.utility.Continuation1;
 
 /**
  * My instances represent occurrences of blocks (closures) encountered in code.
@@ -191,6 +195,187 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
+	@Override
+	public AvailObject o_Type (final AvailObject object)
+	{
+		return Types.blockNode.object();
+	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		List<AvailObject> argumentTypes;
+		argumentTypes = new ArrayList<AvailObject>(
+				object.argumentsTuple().tupleSize());
+		for (final AvailObject argDeclaration : object.argumentsTuple())
+		{
+			argumentTypes.add(argDeclaration.declaredType());
+		}
+		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			TupleDescriptor.mutableObjectFromArray(argumentTypes),
+			object.resultType());
+	}
+
+	/**
+	 * The expression '[expr]' has no effect, only a value.
+	 */
+	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		return;
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final AvailCodeGenerator newGenerator = new AvailCodeGenerator();
+		final AvailObject compiledBlock = generate(object, newGenerator);
+		if (object.neededVariables().tupleSize() == 0)
+		{
+			final AvailObject closure = ClosureDescriptor.create(
+				compiledBlock,
+				TupleDescriptor.empty());
+			closure.makeImmutable();
+			codeGenerator.emitPushLiteral(closure);
+		}
+		else
+		{
+			codeGenerator.emitCloseCode(
+				compiledBlock,
+				object.neededVariables());
+		}
+	}
+
+
+	/**
+	 * Evaluate the {@link Continuation1 block} for each of the {@link
+	 * BlockNodeDescriptor Avail block's} declared entities, which includes
+	 * arguments, locals, and labels.
+	 *
+	 * @param object
+	 *        The Avail block node to scan.
+	 * @param aBlock
+	 *        What to do with each variable that the Avail block node defines.
+	 */
+	private void allLocallyDefinedVariablesDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		for (final AvailObject argumentDeclaration : object.argumentsTuple())
+		{
+			aBlock.value(argumentDeclaration);
+		}
+		for (final AvailObject localDeclaration : locals(object))
+		{
+			aBlock.value(localDeclaration);
+		}
+		for (final AvailObject labelDeclaration : labels(object))
+		{
+			aBlock.value(labelDeclaration);
+		}
+	}
+
+
+	/**
+	 * Answer the labels present in this block's list of statements. There is
+	 * either zero or one label, and it must be the first statement.
+	 *
+	 * @param object The block node to examine.
+	 * @return A list of between zero and one labels.
+	 */
+	private static List<AvailObject> labels (final AvailObject object)
+	{
+		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
+		for (final AvailObject maybeLabel : object.statementsTuple())
+		{
+			if (maybeLabel.isInstanceOfSubtypeOf(Types.labelNode.object()))
+			{
+				labels.add(maybeLabel);
+			}
+		}
+		return labels;
+	}
+
+	/**
+	 * Answer the declarations of this block's local variables.  Do not include
+	 * the label declaration if present, nor argument declarations.
+	 *
+	 * @param object The block node to examine.
+	 * @return This block's local variable declarations.
+	 */
+	private static List<AvailObject> locals (final AvailObject object)
+	{
+		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
+		for (final AvailObject maybeLocal : object.statementsTuple())
+		{
+			if (maybeLocal.type().isSubtypeOf(Types.declarationNode.object())
+				&& !maybeLocal.type().isSubtypeOf(Types.labelNode.object()))
+			{
+				locals.add(maybeLocal);
+			}
+		}
+		return locals;
+	}
+
+
+	/**
+	 * Answer an Avail compiled block compiled from the given block node, using
+	 * the given {@link AvailCodeGenerator}.
+	 *
+	 * @param object The {@link BlockNodeDescriptor block node}.
+	 * @param codeGenerator
+	 *            A {@link AvailCodeGenerator code generator}
+	 * @return An {@link AvailObject} of type {@link ClosureDescriptor closure}.
+	 */
+	public static AvailObject generate (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		codeGenerator.startBlockWithArgumentsLocalsLabelsOuterVarsResultType(
+			object.argumentsTuple(),
+			locals(object),
+			labels(object),
+			object.neededVariables(),
+			object.resultType());
+		codeGenerator.stackShouldBeEmpty();
+		codeGenerator.primitive(object.primitive());
+		codeGenerator.stackShouldBeEmpty();
+		final AvailObject statementsTuple = object.statementsTuple();
+		final int statementsCount = statementsTuple.tupleSize();
+		if (statementsCount == 0)
+		{
+			codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+		}
+		else
+		{
+			for (int index = 1; index < statementsCount; index++)
+			{
+				statementsTuple.tupleAt(index).emitEffectOn(codeGenerator);
+				codeGenerator.stackShouldBeEmpty();
+			}
+			final AvailObject lastStatement =
+				statementsTuple.tupleAt(statementsCount);
+			final AvailObject lastStatementType = lastStatement.type();
+			if (lastStatementType.isSubtypeOf(Types.labelNode.object())
+				|| lastStatementType.isSubtypeOf(Types.assignmentNode.object()))
+			{
+				// The block ends with the label declaration or an assignment.
+				// Push the void object as the return value.
+				lastStatement.emitEffectOn(codeGenerator);
+				codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+			}
+			else
+			{
+				lastStatement.emitValueOn(codeGenerator);
+			}
+		}
+		return codeGenerator.endBlock();
+	}
 
 	/**
 	 * Construct a new {@link BlockNodeDescriptor}.

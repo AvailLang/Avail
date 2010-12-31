@@ -121,31 +121,42 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 		return;
 	}
 
+	/**
+	 * Emit an assignment to this variable.
+	 *
+	 * @param codeGenerator Where to emit the assignment.
+	 */
 	public void emitVariableAssignmentOn (
 			final AvailCodeGenerator codeGenerator)
 	{
-		//  Emit an assignment to this variable.
-
 		assert !isConstant();
 		assert !isArgument();
 		codeGenerator.emitSetLocalOrOuter(this);
 	}
 
+	/**
+	 * Emit a reference to this variable.
+	 *
+	 * @param codeGenerator Where to emit the reference to this variable.
+	 */
 	public void emitVariableReferenceOn (
 			final AvailCodeGenerator codeGenerator)
 	{
-		//  Emit a reference to this variable.
-
 		assert !isConstant();
 		assert !isArgument();
 		codeGenerator.emitPushLocalOrOuter(this);
 	}
 
+	/**
+	 * Emit the value of this variable (or argument or constant or label or
+	 * module variable or module constant).
+	 *
+	 * @param codeGenerator
+	 *        Where to emit code to extract the value of the variable.
+	 */
 	public void emitVariableValueOn (
-			final AvailCodeGenerator codeGenerator)
+		final AvailCodeGenerator codeGenerator)
 	{
-		//  Emit the value of this variable (or constant or label or module variable or module constant).
-
 		if (isArgument())
 		{
 			codeGenerator.emitPushLocalOrOuter(this);

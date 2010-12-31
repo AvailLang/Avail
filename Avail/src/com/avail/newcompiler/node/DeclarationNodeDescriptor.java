@@ -32,7 +32,10 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.error;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances represent assignment statements.
@@ -98,32 +101,154 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is an argument to a block.
 		 */
-		ARGUMENT,
+		ARGUMENT(false, Types.argumentNode),
 
 		/**
 		 * This is a label declaration at the start of a block.
 		 */
-		LABEL,
+		LABEL(false, Types.labelNode)
+		{
+			/**
+			 * Let the code generator know that the label occurs at the
+			 * current code position.
+			 */
+			@Override
+			public void emitEffectForOn (
+				final AvailObject object,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitLabelDeclaration(object);
+			}
+
+		},
 
 		/**
 		 * This is a local variable, declared within a block.
 		 */
-		LOCAL_VARIABLE,
+		LOCAL_VARIABLE(true, Types.localVariableNode),
 
 		/**
 		 * This is a local constant, declared within a block.
 		 */
-		LOCAL_CONSTANT,
+		LOCAL_CONSTANT(false, Types.localConstantNode),
 
 		/**
 		 * This is a variable declared at the outermost (module) scope.
 		 */
-		MODULE_VARIABLE,
+		MODULE_VARIABLE(true, Types.moduleVariableNode),
 
 		/**
 		 * This is a constant declared at the outermost (module) scope.
 		 */
-		MODULE_CONSTANT
+		MODULE_CONSTANT(false, Types.moduleConstantNode);
+
+
+		/**
+		 * Whether this entity can be modified.
+		 */
+		private final boolean canBeAssigned;
+
+		/**
+		 * The instance of the enumeration {@link TypeDescriptor.Types} that
+		 * is associated with this kind of declaration.
+		 */
+		private final Types typeEnumeration;
+
+		/**
+		 * Construct a {@link DeclarationKind}.  Can only be invoked implicitly
+		 * when constructing the enumeration values.
+		 *
+		 * @param canBeAssigned
+		 *        Whether it's legal to assign to this entity.
+		 * @param typeEnumeration
+		 *        The enumeration instance of {@link TypeDescriptor.Types} that
+		 *        is associated with this kind of declaration.
+		 */
+		DeclarationKind (
+			final boolean canBeAssigned,
+			final Types typeEnumeration)
+		{
+			this.canBeAssigned = canBeAssigned;
+			this.typeEnumeration = typeEnumeration;
+		}
+
+		/**
+		 * Return whether this entity can be written.
+		 *
+		 * @return Whether this entity is assignable.
+		 */
+		public boolean canBeAssigned ()
+		{
+			return canBeAssigned;
+		}
+
+		/**
+		 * Return the {@link PrimitiveTypeDescriptor primitive type} associated
+		 * with this kind of entity.
+		 *
+		 * @return The Avail {@link TypeDescriptor type} associated with this
+		 *         kind of entity.
+		 */
+		public AvailObject primitiveType ()
+		{
+			return typeEnumeration.object();
+		}
+
+		/**
+		 * Emit an assignment to this variable.
+		 *
+		 * @param declarationNode The declaration that has this declarationKind.
+		 * @param codeGenerator Where to generate the assignment.
+		 */
+		public final void emitVariableAssignmentForOn (
+			final AvailObject declarationNode,
+			final AvailCodeGenerator codeGenerator)
+		{
+			assert canBeAssigned();
+			codeGenerator.emitSetLocalOrOuter(declarationNode);
+		}
+
+		/**
+		 * Emit a reference to this variable.
+		 *
+		 * @param declarationNode The declaration that has this declarationKind.
+		 * @param codeGenerator Where to emit the reference to this variable.
+		 */
+		public void emitVariableReferenceForOn (
+			final AvailObject declarationNode,
+			final AvailCodeGenerator codeGenerator)
+		{
+			assert this == LOCAL_VARIABLE || this == MODULE_VARIABLE;
+			codeGenerator.emitPushLocalOrOuter(declarationNode);
+		}
+
+		/**
+		 * Emit a use of this variable.
+		 *
+		 * @param declarationNode The declaration that has this declarationKind.
+		 * @param codeGenerator Where to emit the use of this variable.
+		 */
+		public void emitVariableValueForOn (
+			final AvailObject declarationNode,
+			final AvailCodeGenerator codeGenerator)
+		{
+			assert this == LOCAL_VARIABLE || this == MODULE_VARIABLE;
+			codeGenerator.emitGetLocalOrOuter(declarationNode);
+		}
+
+		/**
+		 * If this is an ordinary declaration then it was handled on a separate
+		 * pass.  Do nothing.
+		 *
+		 * @param object The declaration node.
+		 * @param codeGenerator Where to emit the declaration.
+		 */
+		public void emitEffectForOn (
+			final AvailObject object,
+			final AvailCodeGenerator codeGenerator)
+		{
+			return;
+		}
 
 	}
 
@@ -237,6 +362,65 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			IntegerSlots.DECLARATION_KIND)];
 	}
 
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		error("Don't ask for the type of a variable declaration node");
+		return VoidDescriptor.voidObject();
+	}
+
+
+	/**
+	 * This is a declaration, so it was handled on a separate pass.  Do nothing.
+	 *
+	 * @param codeGenerator Where to emit the declaration.
+	 */
+	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.declarationKind().emitEffectForOn(object, codeGenerator);
+	}
+
+
+
+	/**
+	 * This is a declaration, so it shouldn't generally produce a value.
+	 */
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		error("Consistency error - declaration can't be last statement of "
+			+ "a value-returning block");
+		return;
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return object.declarationKind().primitiveType();
+	}
+
+
+	/**
+	 * Emit a reference to this variable.
+	 *
+	 * @param declarationNode The declaration that has this declarationKind.
+	 * @param codeGenerator Where to emit the reference to this variable.
+	 */
+	public static void emitVariableReferenceOn (
+		final AvailObject declarationNode,
+		final AvailCodeGenerator codeGenerator)
+	{
+		declarationNode.declarationKind().emitVariableReferenceForOn(
+			declarationNode,
+			codeGenerator);
+	}
 
 	/**
 	 * Construct a new {@link DeclarationNodeDescriptor}.

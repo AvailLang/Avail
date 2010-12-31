@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.error;
 import java.lang.reflect.Array;
 import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
@@ -8742,5 +8743,34 @@ public abstract class Descriptor extends AbstractDescriptor
 		subclassResponsibility("o_Declaration");
 		return null;
 	}
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		subclassResponsibility("o_ExpresionType");
+		return null;
+	}
+
+	@Override
+	public void o_EmitEffectOn (
+		 final AvailObject object,
+		 final AvailCodeGenerator codeGenerator)
+	{
+		subclassResponsibility("o_EmitEffectOn");
+	}
+
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 */
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		subclassResponsibility("o_EmitValueOn");
+	}
+
 
 }

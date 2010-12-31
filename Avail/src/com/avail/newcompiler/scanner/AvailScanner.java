@@ -494,36 +494,6 @@ public class AvailScanner
 	}
 
 	/**
-	 * Answer the {@linkplain List list} of {@linkplain TokenDescriptor tokens}
-	 * that comprise a {@linkplain ModuleDescriptor module}.
-	 *
-	 * @param string The text of an Avail {@linkplain ModuleDescriptor
-	 *               module} (or at least the prefix up to the <em>Names</em>
-	 *               token).
-	 * @param stopAfterNamesToken
-	 *        Stop scanning after encountering the <em>Names</em> token?
-	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
-	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
-	 */
-	public @NotNull List<AvailObject> scanString (
-		final @NotNull String string,
-		final boolean stopAfterNamesToken)
-	{
-		_inputString = string;
-		_position = 0;
-		_outputTokens = new ArrayList<AvailObject>(100);
-		_stopAfterNamesToken = stopAfterNamesToken;
-		while (!(stopAfterNamesToken ? _encounteredNamesToken : atEnd()))
-		{
-			_startOfToken = _position;
-			final int c = next();
-			ScannerAction.values()[DispatchTable[c]].scan(this);
-		}
-		addToken(TokenType.END_OF_FILE);
-		return _outputTokens;
-	}
-
-	/**
 	 * An enumeration of actions to be performed based on the next character
 	 * encountered.
 	 *
@@ -639,6 +609,36 @@ public class AvailScanner
 		 * @param scanner The scanner processing this character.
 		 */
 		abstract void scan (AvailScanner scanner);
+	}
+
+	/**
+	 * Answer the {@linkplain List list} of {@linkplain TokenDescriptor tokens}
+	 * that comprise a {@linkplain ModuleDescriptor module}.
+	 *
+	 * @param string The text of an Avail {@linkplain ModuleDescriptor
+	 *               module} (or at least the prefix up to the <em>Names</em>
+	 *               token).
+	 * @param stopAfterNamesToken
+	 *        Stop scanning after encountering the <em>Names</em> token?
+	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
+	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
+	 */
+	public @NotNull List<AvailObject> scanString (
+		final @NotNull String string,
+		final boolean stopAfterNamesToken)
+	{
+		_inputString = string;
+		_position = 0;
+		_outputTokens = new ArrayList<AvailObject>(100);
+		_stopAfterNamesToken = stopAfterNamesToken;
+		while (!(stopAfterNamesToken ? _encounteredNamesToken : atEnd()))
+		{
+			_startOfToken = _position;
+			final int c = next();
+			ScannerAction.values()[DispatchTable[c]].scan(this);
+		}
+		addToken(TokenType.END_OF_FILE);
+		return _outputTokens;
 	}
 
 	/**

@@ -32,7 +32,10 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -78,6 +81,29 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		final AvailObject token = object.token();
+		assert token.tokenType() == TokenType.LITERAL;
+		final AvailObject literal = token.literal();
+		return literal.type().makeImmutable();
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return Types.literalNode.object();
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		codeGenerator.emitPushLiteral(object.token().literal());
+	}
 
 	/**
 	 * Construct a new {@link LiteralNodeDescriptor}.

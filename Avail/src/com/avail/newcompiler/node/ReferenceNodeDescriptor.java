@@ -32,7 +32,9 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.oldcompiler.AvailParseNode;
 
 /**
@@ -79,6 +81,37 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE);
 	}
+
+
+	/**
+	 * The value I represent is a variable itself.  Answer an appropriate
+	 * variable type.
+	 */
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return ContainerTypeDescriptor.wrapInnerType(
+			object.variable().expressionType());
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return Types.referenceNode.object();
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final AvailObject declaration = object.variable().declaration();
+		declaration.declarationKind().emitVariableReferenceForOn(
+			declaration,
+			codeGenerator);
+	}
+
 
 
 	/**

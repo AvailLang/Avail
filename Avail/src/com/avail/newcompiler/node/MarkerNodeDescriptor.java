@@ -32,7 +32,9 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.oldcompiler.AvailParseNode;
 
 /**
@@ -79,6 +81,31 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.MARKER_VALUE);
 	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		assert false : "A marker node has no type.";
+		return null;
+	}
+
+	@Override
+	public AvailObject o_Type (
+			final AvailObject object)
+	{
+		return Types.markerNode.object();
+	}
+
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		assert false : "A marker node can not generate code.";
+	}
+
 
 
 	/**

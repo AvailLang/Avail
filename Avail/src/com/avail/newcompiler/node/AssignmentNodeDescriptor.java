@@ -32,7 +32,11 @@
 
 package com.avail.newcompiler.node;
 
-import com.avail.descriptor.AvailObject;
+import static com.avail.descriptor.AvailObject.error;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.oldcompiler.AvailParseNode;
 
 /**
@@ -50,7 +54,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@link AvailVariableUseNodeDescriptor variable} being assigned.
+		 * The {@link VariableUseNodeDescriptor variable} being assigned.
 		 */
 		VARIABLE,
 
@@ -103,6 +107,44 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSION);
 	}
+
+
+	@Override
+	public AvailObject o_ExpressionType (final AvailObject object)
+	{
+		return Types.voidType.object();
+	}
+
+	@Override
+	public AvailObject o_Type (final AvailObject object)
+	{
+		return Types.assignmentNode.object();
+	}
+
+	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final AvailObject declaration = object.variable().declaration();
+		final DeclarationKind declarationKind = declaration.declarationKind();
+		assert declarationKind.canBeAssigned();
+		object.expression().emitValueOn(codeGenerator);
+		declarationKind.emitVariableAssignmentForOn(
+			declaration,
+			codeGenerator);
+	}
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		// Assignments are only allowed to be top-level statements.
+		error("Pass-through (embedded) assignments are not supported");
+	}
+
+
 
 
 	/**
