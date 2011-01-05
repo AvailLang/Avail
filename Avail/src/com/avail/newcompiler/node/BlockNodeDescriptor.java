@@ -37,7 +37,9 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.Continuation1;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent occurrences of blocks (closures) encountered in code.
@@ -213,7 +215,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			argumentTypes.add(argDeclaration.declaredType());
 		}
 		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
-			TupleDescriptor.mutableObjectFromArray(argumentTypes),
+			TupleDescriptor.mutableObjectFromList(argumentTypes),
 			object.resultType());
 	}
 
@@ -253,31 +255,24 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Evaluate the {@link Continuation1 block} for each of the {@link
-	 * BlockNodeDescriptor Avail block's} declared entities, which includes
-	 * arguments, locals, and labels.
+	 * Return a {@linkplain List list} of all {@linkplain
+	 * DeclarationNodeDescriptor declaration nodes} defined by this block.
+	 * This includes arguments, locals, and labels.
 	 *
-	 * @param object
-	 *        The Avail block node to scan.
-	 * @param aBlock
-	 *        What to do with each variable that the Avail block node defines.
+	 * @param object The Avail block node to scan.
+	 * @return The list of declarations.
 	 */
-	private void allLocallyDefinedVariablesDo (
-		final AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+	private static List<AvailObject> allLocallyDefinedVariables (
+		final AvailObject object)
 	{
+		final List<AvailObject> declarations = new ArrayList<AvailObject>(10);
 		for (final AvailObject argumentDeclaration : object.argumentsTuple())
 		{
-			aBlock.value(argumentDeclaration);
+			declarations.add(argumentDeclaration);
 		}
-		for (final AvailObject localDeclaration : locals(object))
-		{
-			aBlock.value(localDeclaration);
-		}
-		for (final AvailObject labelDeclaration : labels(object))
-		{
-			aBlock.value(labelDeclaration);
-		}
+		declarations.addAll(locals(object));
+		declarations.addAll(labels(object));
+		return declarations;
 	}
 
 
@@ -301,6 +296,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		return labels;
 	}
 
+
 	/**
 	 * Answer the declarations of this block's local variables.  Do not include
 	 * the label declaration if present, nor argument declarations.
@@ -320,6 +316,97 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 		}
 		return locals;
+	}
+
+
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		AvailObject arguments = object.argumentsTuple();
+		for (int i = 0; i < arguments.tupleSize(); i++)
+		{
+			arguments = arguments.tupleAtPuttingCanDestroy(
+				i,
+				aBlock.value(arguments.tupleAt(i)),
+				true);
+		}
+		object.argumentsTuple(arguments);
+		AvailObject statements = object.statementsTuple();
+		for (int i = 0; i < statements.tupleSize(); i++)
+		{
+			statements = statements.tupleAtPuttingCanDestroy(
+				i,
+				aBlock.value(statements.tupleAt(i)),
+				true);
+		}
+		object.statementsTuple(statements);
+	}
+
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		// Make sure our neededVariables list has up-to-date information about
+		// the outer variables that are accessed in me, because they have to be
+		// captured when a closure is made for me.
+
+		collectNeededVariablesOfOuterBlocks(object);
+	}
+
+
+	/**
+	 * Figure out what outer variables will need to be captured when a closure
+	 * for me is built.
+	 *
+	 * @param object The current {@linkplain BlockNodeDescriptor block node}.
+	 */
+	private void collectNeededVariablesOfOuterBlocks (
+		final AvailObject object)
+	{
+		final Set<AvailObject> neededDeclarations = new HashSet<AvailObject>();
+		final Set<AvailObject> providedByMe = new HashSet<AvailObject>();
+		providedByMe.addAll(allLocallyDefinedVariables(object));
+		object.childrenMap(new Transformer1<AvailObject, AvailObject>()
+		{
+			@Override
+			public AvailObject value (final AvailObject node)
+			{
+				if (node.type().equals(Types.blockNode.object()))
+				{
+					for (final AvailObject declaration : node.neededVariables())
+					{
+						if (!providedByMe.contains(declaration))
+						{
+							neededDeclarations.add(declaration);
+						}
+					}
+					return node;
+				}
+				node.childrenMap(this);
+				if (!node.type().equals(Types.variableUseNode.object()))
+				{
+					return node;
+				}
+				final AvailObject declaration = node.declaration();
+				if (!providedByMe.contains(declaration)
+						&& declaration.declarationKind() !=
+							DeclarationKind.MODULE_VARIABLE)
+				{
+					neededDeclarations.add(declaration);
+				}
+				return node;
+			}
+		});
+		final List<AvailObject> neededList = new ArrayList<AvailObject>(
+				neededDeclarations);
+		object.neededVariables(
+			TupleDescriptor.mutableObjectFromList(neededList));
 	}
 
 

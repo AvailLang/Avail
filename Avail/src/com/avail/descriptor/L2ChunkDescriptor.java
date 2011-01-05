@@ -677,15 +677,15 @@ public class L2ChunkDescriptor extends Descriptor
 		final List<AvailObject> vectorTuples = new ArrayList<AvailObject>(arrayOfVectors.size());
 		for (final List<Integer> vector : arrayOfVectors)
 		{
-			final AvailObject vectorTuple = TupleDescriptor.mutableFromIntegerArray(vector);
+			final AvailObject vectorTuple = TupleDescriptor.mutableFromIntegerList(vector);
 			vectorTuple.makeImmutable();
 			vectorTuples.add(vectorTuple);
 		}
-		final AvailObject vectorTuplesTuple = TupleDescriptor.mutableObjectFromArray(
+		final AvailObject vectorTuplesTuple = TupleDescriptor.mutableObjectFromList(
 			vectorTuples);
 		vectorTuplesTuple.makeImmutable();
 		final AvailObject wordcodesTuple =
-			TupleDescriptor.mutableFromIntegerArray(theWordcodes);
+			TupleDescriptor.mutableFromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
 		final AvailObject chunk = mutable().create(
 			arrayOfLiterals.size());

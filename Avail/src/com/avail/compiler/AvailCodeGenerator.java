@@ -121,7 +121,7 @@ public class AvailCodeGenerator
 		{
 			nybbleIntegerArray.add(new Integer(nybble));
 		}
-		nybbleTuple = TupleDescriptor.mutableFromIntegerArray(
+		nybbleTuple = TupleDescriptor.mutableFromIntegerList(
 			nybbleIntegerArray);
 		nybbleTuple.makeImmutable();
 		assert _resultType.isType();
@@ -154,8 +154,8 @@ public class AvailCodeGenerator
 						argDeclType));
 			}
 		}
-		argsTuple = TupleDescriptor.mutableObjectFromArray(argsArray);
-		localsTuple = TupleDescriptor.mutableObjectFromArray(localsArray);
+		argsTuple = TupleDescriptor.mutableObjectFromList(argsArray);
+		localsTuple = TupleDescriptor.mutableObjectFromList(localsArray);
 		outerArray = new ArrayList<AvailObject>(
 				Arrays.asList(new AvailObject[_outerMap.size()]));
 		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry
@@ -176,7 +176,7 @@ public class AvailCodeGenerator
 						argDeclType));
 			}
 		}
-		outerTuple = TupleDescriptor.mutableObjectFromArray(outerArray);
+		outerTuple = TupleDescriptor.mutableObjectFromList(outerArray);
 		final AvailObject code = CompiledCodeDescriptor.create(
 			nybbleTuple,
 			_numArgs,
@@ -186,7 +186,7 @@ public class AvailCodeGenerator
 				argsTuple,
 				_resultType),
 			_primitive,
-			TupleDescriptor.mutableObjectFromArray(_literals),
+			TupleDescriptor.mutableObjectFromList(_literals),
 			localsTuple,
 			outerTuple);
 		code.makeImmutable();

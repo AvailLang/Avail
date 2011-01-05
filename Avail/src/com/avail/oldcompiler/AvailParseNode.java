@@ -38,7 +38,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
-public class AvailParseNode
+public abstract class AvailParseNode
 {
 
 	// accessing
@@ -65,22 +65,24 @@ public class AvailParseNode
 
 	// enumerating
 
-	public void childrenMap (
+	/**
+	 * Map my children through the (destructive) transformation specified by
+	 * aBlock.
+	 */
+	public abstract void childrenMap (
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock);
+
+
+	/**
+	 * Map the tree through the (destructive) transformation specified by
+	 * aBlock, children before parents. Answer the root of the resulting tree.
+	 *
+	 * @param aBlock
+	 * @return
+	 */
+	public final AvailParseNode treeMap (
 		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
 	{
-		// Map my children through the (destructive) transformation
-		// specified by aBlock. Answer the receiver.
-		//
-		// do nothing by default.
-
-	}
-
-	public AvailParseNode treeMap (
-		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
-	{
-		// Map the tree through the (destructive) transformation specified by
-		// aBlock, children
-		// before parents. Answer the resulting tree.
 
 		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
 		{
@@ -105,22 +107,25 @@ public class AvailParseNode
 	 *                   outermost to innermost.
 	 * @return A replacement for this node, possibly this node itself.
 	 */
-	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
-		final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
+	public AvailParseNode treeMapWithParent (
+		final Transformer3<
+				AvailParseNode,
+				AvailParseNode,
+				List<AvailBlockNode>,
+				AvailParseNode>
+			aBlock,
 		final AvailParseNode parent,
 		final List<AvailBlockNode> outerNodes)
 	{
-
 		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
 		{
 			@Override
 			public AvailParseNode value (final AvailParseNode child)
 			{
-				return child
-						.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
-							aBlock,
-							AvailParseNode.this,
-							outerNodes);
+				return child.treeMapWithParent(
+					aBlock,
+					AvailParseNode.this,
+					outerNodes);
 			}
 		});
 		return aBlock.value(this, parent, outerNodes);
@@ -213,7 +218,7 @@ public class AvailParseNode
 	{
 		final List<AvailBlockNode> initialBlockNodes =
 			new ArrayList<AvailBlockNode>(3);
-		return treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
+		return treeMapWithParent(
 			new Transformer3<
 				AvailParseNode,
 				AvailParseNode,

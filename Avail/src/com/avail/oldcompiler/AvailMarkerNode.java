@@ -34,6 +34,7 @@ package com.avail.oldcompiler;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
+import com.avail.utility.Transformer1;
 
 /**
  * An {@link AvailMarkerNode} represent a parsing marker that can be pushed onto
@@ -97,6 +98,14 @@ public class AvailMarkerNode extends AvailParseNode
 	{
 		aStream.append("Marker node: ");
 		aStream.append(markerValue.toString());
+	}
+
+
+	@Override
+	public void childrenMap (
+		final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+	{
+		// Do nothing.
 	}
 
 }

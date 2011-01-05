@@ -35,94 +35,73 @@ Extends
 Uses
 	"Kernel"
 Names
-	"parseNode",
-		"assignmentNode",
-		"blockNode",
-		"tupleNode",
-		"literalNode",
-		"referenceNode",
-		"sendNode",
-		"superCastNode",
-		"variableDeclarationNode",
-			"syntheticConstantNode",
-			"initializingDeclarationNode",
-				"constantDeclarationNode",
-			"labelNode",
-			"syntheticDeclarationNode",
-		"variableUseNode",
 
-	"_expression",
-	"_variable",
-	"_arguments",
-	"_primitive number",
-	"_statements",
-	"_node value type",
-	"_needed variables",
-	"_expressionType",
-	"_literal token",
-	"_literal value",
-	"_message",
-	"_bundle",
-	"_implementation set",
-	"_variable name",
-	"_is argument",
-	"_variable declaration",
-	"_is last use"
+	"parseNode",
+	"markerNode",
+	"expressionNode",
+	"assignmentNode",
+	"blockNode",
+	"literalNode",
+	"referenceNode",
+	"sendNode",
+	"superCastNode",
+	"tupleNode",
+	"variableUseNode",
+	"declarationNode",
+	"argumentNode",
+	"labelNode",
+	"localVariableNode",
+	"localConstantNode",
+	"moduleVariableNode",
+	"moduleConstantNode"
 
 Body
 
 
 /* This module deals with primitive parse nodes.  These are used for the macro
  * subsystem, which is ultimately used to define all of the syntax of Avail.
- * Still in development as of 2010.11.11.
+ * Still in development as of 2010.12.30.
  */
 
+privateParseNode          ::= Special Object 50;
+privateMarkerNode         ::= Special Object 51;
+privateExpressionNode     ::= Special Object 52;
+privateAssignmentNode     ::= Special Object 53;
+privateBlockNode          ::= Special Object 54;
+privateLiteralNode        ::= Special Object 55;
+privateReferenceNode      ::= Special Object 56;
+privateSendNode           ::= Special Object 57;
+privateSuperCastNode      ::= Special Object 58;
+privateTupleNode          ::= Special Object 59;
+privateVariableUseNode    ::= Special Object 60;
+privateDeclarationNode    ::= Special Object 61;
+privateArgumentNode       ::= Special Object 62;
+privateLabelNode          ::= Special Object 63;
+privateLocalVariableNode  ::= Special Object 64;
+privateLocalConstantNode  ::= Special Object 65;
+privateModuleVariableNode ::= Special Object 66;
+privateModuleConstantNode ::= Special Object 67;
 
-privateAssignmentNode              ::= Special Object 50;
-privateBlockNode                   ::= Special Object 51;
-privateConstantDeclarationNode     ::= Special Object 52;
-privateInitializingDeclarationNode ::= Special Object 53;
-privateLabelNode                   ::= Special Object 54;
-privateTupleNode                   ::= Special Object 55;
-privateLiteralNode                 ::= Special Object 56;
-privateParseNode                   ::= Special Object 57;
-privateReferenceNode               ::= Special Object 58;
-privateSendNode                    ::= Special Object 59;
-privateSuperCastNode               ::= Special Object 60;
-privateSyntheticConstantNode       ::= Special Object 61;
-privateSyntheticDeclarationNode    ::= Special Object 62;
-privateVariableDeclarationNode     ::= Special Object 63;
-privateVariableUseNode             ::= Special Object 64;
-
-
-Method "assignmentNode" is [privateAssignmentNode;] : primType;
-Method "blockNode" is [privateBlockNode;] : primType;
-Method "constantDeclarationNode" is [privateConstantDeclarationNode;] : primType;
-Method "initializingDeclarationNode" is [privateInitializingDeclarationNode;] : primType;
-Method "labelNode" is [privateLabelNode;] : primType;
-Method "tupleNode" is [privateTupleNode;] : primType;
-Method "literalNode" is [privateLiteralNode;] : primType;
-Method "parseNode" is [privateParseNode;] : primType;
-Method "referenceNode" is [privateReferenceNode;] : primType;
-Method "sendNode" is [privateSendNode;] : primType;
-Method "superCastNode" is [privateSuperCastNode;] : primType;
-Method "syntheticConstantNode" is [privateSyntheticConstantNode;] : primType;
-Method "syntheticDeclarationNode" is [privateSyntheticDeclarationNode;] : primType;
-Method "variableDeclarationNode" is [privateVariableDeclarationNode;] : primType;
-Method "variableUseNode" is [privateVariableUseNode;] : primType;
+Method "parseNode"          is [privateParseNode;] : primType;
+Method "markerNode"         is [privateMarkerNode;] : primType;
+Method "expressionNode"     is [privateExpressionNode;] : primType;
+Method "assignmentNode"     is [privateAssignmentNode;] : primType;
+Method "blockNode"          is [privateBlockNode;] : primType;
+Method "literalNode"        is [privateLiteralNode;] : primType;
+Method "referenceNode"      is [privateReferenceNode;] : primType;
+Method "sendNode"           is [privateSendNode;] : primType;
+Method "superCastNode"      is [privateSuperCastNode;] : primType;
+Method "tupleNode"          is [privateTupleNode;] : primType;
+Method "variableUseNode"    is [privateVariableUseNode;] : primType;
+Method "declarationNode"    is [privateDeclarationNode;] : primType;
+Method "argumentNode"       is [privateArgumentNode;] : primType;
+Method "labelNode"          is [privateLabelNode;] : primType;
+Method "localVariableNode"  is [privateLocalVariableNode;] : primType;
+Method "localConstantNode"  is [privateLocalConstantNode;] : primType;
+Method "moduleVariableNode" is [privateModuleVariableNode;] : primType;
+Method "moduleConstantNode" is [privateModuleConstantNode;] : primType;
 
 
 /* parseNode accessors */
 
-/* NOT YET IMPLEMENTED (cloned from the message bundle stuff as a template) */
-/*
-Method "_message" is [bundle : messageBundle |
-	Primitive 211;
-	Failed;
-] : cyclicType;
-
-Method "_message parts" is [bundle : messageBundle |
-	Primitive 212;
-	Failed;
-] : tuple of string;
-*/
+/* NOT YET IMPLEMENTED */

@@ -32,10 +32,13 @@
 
 package com.avail.newcompiler.node;
 
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -146,6 +149,24 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	public static LiteralNodeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		// Do nothing.
+	}
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		// Do nothing.
 	}
 
 }

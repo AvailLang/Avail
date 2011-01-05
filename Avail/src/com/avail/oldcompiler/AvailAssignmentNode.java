@@ -137,8 +137,8 @@ public class AvailAssignmentNode extends AvailParseNode
 			final int indent,
 			final AvailParseNode sendOrCastNode)
 	{
-		//  Either way we need brackets, as an arg of a send or as an expression being superCasted.
-
+		// Either way we need brackets, as an arg of a send or as an expression
+		// being superCasted.
 		aStream.append('(');
 		printOnIndent(aStream, indent);
 		aStream.append(')');

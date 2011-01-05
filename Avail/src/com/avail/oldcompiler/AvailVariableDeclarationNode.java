@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.ArrayList;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.utility.Transformer1;
 
 public class AvailVariableDeclarationNode extends AvailParseNode
 {
@@ -201,7 +202,11 @@ public class AvailVariableDeclarationNode extends AvailParseNode
 		return false;
 	}
 
-
+	@Override
+	public void childrenMap (final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+	{
+		// Do nothing.
+	}
 
 
 

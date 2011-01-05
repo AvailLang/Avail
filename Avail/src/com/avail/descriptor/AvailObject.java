@@ -37,6 +37,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
@@ -6049,6 +6050,36 @@ implements Iterable<AvailObject>
 	public void emitValueOn (final AvailCodeGenerator codeGenerator)
 	{
 		descriptor().o_EmitValueOn(this, codeGenerator);
+	}
+
+
+	/**
+	 * @param object
+	 * @param aBlock
+	 */
+	public void childrenMap (
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		descriptor().o_ChildrenMap(this, aBlock);
+	}
+
+
+	/**
+	 * @param object
+	 * @param parent
+	 * @param outerBlocks
+	 * @param anAvailInterpreter
+	 */
+	public void validateLocally (
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		descriptor().o_ValidateLocally(
+			this,
+			parent,
+			outerBlocks,
+			anAvailInterpreter);
 	}
 
 }

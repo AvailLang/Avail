@@ -35,6 +35,7 @@ package com.avail.oldcompiler;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.newcompiler.scanner.TokenDescriptor;
+import com.avail.utility.Transformer1;
 
 /**
  * I represent a literal occurring in the text of an Avail program.  At the
@@ -131,6 +132,14 @@ public class AvailLiteralNode extends AvailParseNode
 	public boolean isLiteralNode ()
 	{
 		return true;
+	}
+
+	@Override
+	public void childrenMap (
+		final Transformer1<AvailParseNode,
+		AvailParseNode> aBlock)
+	{
+		// Do nothing.
 	}
 
 }

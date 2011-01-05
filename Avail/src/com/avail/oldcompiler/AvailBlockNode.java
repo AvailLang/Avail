@@ -190,7 +190,7 @@ public class AvailBlockNode extends AvailParseNode
 			argumentTypes.add(arg.declaredType());
 		}
 		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
-			TupleDescriptor.mutableObjectFromArray(argumentTypes),
+			TupleDescriptor.mutableObjectFromList(argumentTypes),
 			_resultType);
 	}
 
@@ -301,9 +301,9 @@ public class AvailBlockNode extends AvailParseNode
 
 		for (int i = 0; i < _arguments.size(); i++)
 		{
-			_arguments
-					.set(i, (AvailVariableDeclarationNode) aBlock
-							.value(_arguments.get(i)));
+			_arguments.set(
+				i,
+				(AvailVariableDeclarationNode) aBlock.value(_arguments.get(i)));
 		}
 		for (int i = 0; i < _statements.size(); i++)
 		{
@@ -312,13 +312,18 @@ public class AvailBlockNode extends AvailParseNode
 	}
 
 	@Override
-	public AvailParseNode treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes (
-		final Transformer3<AvailParseNode, AvailParseNode, List<AvailBlockNode>, AvailParseNode> aBlock,
+	public AvailParseNode treeMapWithParent (
+		final Transformer3<
+				AvailParseNode,
+				AvailParseNode,
+				List<AvailBlockNode>,
+				AvailParseNode>
+			aBlock,
 		final AvailParseNode parent,
 		final List<AvailBlockNode> outerNodes)
 	{
-		final List<AvailBlockNode> outerNodesWithSelf = new ArrayList<AvailBlockNode>(
-			outerNodes.size() + 1);
+		final List<AvailBlockNode> outerNodesWithSelf =
+			new ArrayList<AvailBlockNode>(outerNodes.size() + 1);
 		outerNodesWithSelf.addAll(outerNodes);
 		outerNodesWithSelf.add(this);
 		childrenMap(new Transformer1<AvailParseNode, AvailParseNode>()
@@ -326,11 +331,10 @@ public class AvailBlockNode extends AvailParseNode
 			@Override
 			public AvailParseNode value (final AvailParseNode child)
 			{
-				return child
-						.treeMapAlsoPassingParentAndEnclosingBlocksMyParentOuterBlockNodes(
-							aBlock,
-							AvailBlockNode.this,
-							outerNodesWithSelf);
+				return child.treeMapWithParent(
+					aBlock,
+					AvailBlockNode.this,
+					outerNodesWithSelf);
 			}
 		});
 		return aBlock.value(this, parent, outerNodes);
@@ -341,8 +345,9 @@ public class AvailBlockNode extends AvailParseNode
 	public void printOnIndent (final StringBuilder aStream, final int indent)
 	{
 		// Optimize for one-liners...
-		if (_arguments.size() == 0 && _primitive == 0 && _statements
-				.size() == 1)
+		if (_arguments.size() == 0
+				&& _primitive == 0
+				&& _statements.size() == 1)
 		{
 			aStream.append('[');
 			_statements.get(0).printOnIndent(aStream, indent + 1);
@@ -355,7 +360,8 @@ public class AvailBlockNode extends AvailParseNode
 		if (_arguments.size() > 0)
 		{
 			_arguments.get(0).printOnIndent(aStream, indent + 1);
-			for (int argIndex = 2, _end1 = _arguments.size(); argIndex <= _end1; argIndex++)
+			final int argCount = _arguments.size();
+			for (int argIndex = 2; argIndex <= argCount; argIndex++)
 			{
 				aStream.append(", ");
 				_arguments.get(argIndex - 1).printOnIndent(aStream, indent + 1);
@@ -363,7 +369,7 @@ public class AvailBlockNode extends AvailParseNode
 			aStream.append(" |");
 		}
 		aStream.append('\n');
-		for (int _count2 = 1; _count2 <= indent; _count2++)
+		for (int i = 1; i <= indent; i++)
 		{
 			aStream.append('\t');
 		}
@@ -413,12 +419,15 @@ public class AvailBlockNode extends AvailParseNode
 	private void collectNeededVariablesOfOuterBlocks ()
 	{
 
-		final Set<AvailVariableDeclarationNode> needed = new HashSet<AvailVariableDeclarationNode>();
-		final Set<AvailVariableDeclarationNode> providedByMe = new HashSet<AvailVariableDeclarationNode>();
+		final Set<AvailVariableDeclarationNode> needed =
+			new HashSet<AvailVariableDeclarationNode>();
+		final Set<AvailVariableDeclarationNode> providedByMe =
+			new HashSet<AvailVariableDeclarationNode>();
 		allLocallyDefinedVariablesDo(new Continuation1<AvailVariableDeclarationNode>()
 		{
 			@Override
-			public void value (final AvailVariableDeclarationNode declarationNode)
+			public void value (
+				final AvailVariableDeclarationNode declarationNode)
 			{
 				providedByMe.add(declarationNode);
 			}

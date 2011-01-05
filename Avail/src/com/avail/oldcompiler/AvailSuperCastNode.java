@@ -144,8 +144,4 @@ public class AvailSuperCastNode extends AvailParseNode
 		return this;
 	}
 
-
-
-
-
 }

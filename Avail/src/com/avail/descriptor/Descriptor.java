@@ -38,6 +38,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
@@ -8773,4 +8774,26 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 
+	/**
+	 * Map my children through the (destructive) transformation specified by
+	 * aBlock.
+	 */
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		subclassResponsibility("o_ChildrenMap");
+	}
+
+
+	@Override
+	public void o_ValidateLocally (
+		 final AvailObject object,
+		 final AvailObject parent,
+		 final List<AvailObject> outerBlocks,
+		 final L2Interpreter anAvailInterpreter)
+	{
+		subclassResponsibility("o_ValidateLocally");
+	}
 }

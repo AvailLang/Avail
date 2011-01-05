@@ -35,6 +35,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
@@ -4458,6 +4459,27 @@ public class IndirectionDescriptor extends AbstractDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		o_Traversed(object).emitValueOn(codeGenerator);
+	}
+
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		o_Traversed(object).childrenMap(aBlock);
+	}
+
+	@Override
+	void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		o_Traversed(object).validateLocally(
+			parent,
+			outerBlocks,
+			anAvailInterpreter);
 	}
 
 }

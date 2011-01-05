@@ -32,10 +32,14 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.error;
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.oldcompiler.AvailParseNode;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
@@ -149,6 +153,24 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	public static MarkerNodeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		error("Marker nodes should not be mapped.");
+	}
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		error("Marker nodes should not validateLocally.");
 	}
 
 }

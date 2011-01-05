@@ -32,8 +32,11 @@
 
 package com.avail.newcompiler.node;
 
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.*;
 
 /**
  * I'm used to implement the abstract notion of parse nodes.  All concrete parse
@@ -92,5 +95,109 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	public abstract void o_EmitValueOn (
 		AvailObject object,
 		AvailCodeGenerator codeGenerator);
+
+	/**
+	 * Visit and transform every node constituting this parse tree.  Map this
+	 * {@linkplain ParseNodeDescriptor parse node}'s children through the
+	 * (destructive) transformation specified by aBlock, assigning them back
+	 * into my slots.
+	 *
+	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
+	 *               transform.
+	 * @param aBlock The {@link Transformer1 transformation} through which to
+	 *               map this parse node's children.
+	 */
+	@Override
+	public abstract void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock);
+
+
+	/**
+	 * Map the tree through the (destructive) transformation specified by
+	 * aBlock, children before parents. Answer the resulting tree.
+	 *
+	 * @param object The current {@linkplain ParseNodeDescriptor parse node}.
+	 * @param aBlock The destructive transformation to apply.
+	 * @return The resulting transformed tree.
+	 */
+	public static AvailObject treeMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		object.childrenMap(
+			new Transformer1<AvailObject, AvailObject>()
+			{
+				@Override
+				public AvailObject value (final AvailObject child)
+				{
+					return treeMap(child, aBlock);
+				}
+			});
+		return aBlock.value(object);
+	}
+
+
+	/**
+	 * Map the tree through the (destructive) transformation specified by
+	 * aBlock, children before parents. The block takes three arguments: the
+	 * node, its parent, and the list of enclosing block nodes. Answer the
+	 * resulting tree.
+	 *
+	 * @param object
+	 *        The current {@linkplain ParseNodeDescriptor parse node}.
+	 * @param aBlock
+	 *        What to do with each descendant.
+	 * @param parentNode
+	 *        This node's parent.
+	 * @param outerNodes
+	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
+	 *        this node, from outermost to innermost.
+	 * @return A replacement for this node, possibly this node itself.
+	 */
+	public AvailObject treeMapWithParent (
+		final AvailObject object,
+		final Transformer3<
+				AvailObject,
+				AvailObject,
+				List<AvailObject>,
+				AvailObject>
+			aBlock,
+		final AvailObject parentNode,
+		final List<AvailObject> outerNodes)
+	{
+		o_ChildrenMap(
+			object,
+			new Transformer1<AvailObject, AvailObject>()
+			{
+				@Override
+				public AvailObject value (final AvailObject child)
+				{
+					final ParseNodeDescriptor childDescriptor =
+						(ParseNodeDescriptor)child.descriptor();
+					return childDescriptor.treeMapWithParent(
+						child,
+						aBlock,
+						object,
+						outerNodes);
+				}
+			});
+		return aBlock.value(object, parentNode, outerNodes);
+	}
+
+	/**
+	 * Validate this node, throwing an exception if there is a problem.
+	 *
+	 * @param object
+	 * @param parent
+	 * @param outerBlocks
+	 * @param anAvailInterpreter
+	 */
+	@Override
+	public abstract void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter);
 
 }

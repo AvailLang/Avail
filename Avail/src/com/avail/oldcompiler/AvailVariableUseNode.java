@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 
 public class AvailVariableUseNode extends AvailParseNode
 {
@@ -120,6 +121,13 @@ public class AvailVariableUseNode extends AvailParseNode
 	public boolean isVariableUse ()
 	{
 		return true;
+	}
+
+
+	@Override
+	public void childrenMap (final Transformer1<AvailParseNode, AvailParseNode> aBlock)
+	{
+		// Do nothing.
 	}
 
 

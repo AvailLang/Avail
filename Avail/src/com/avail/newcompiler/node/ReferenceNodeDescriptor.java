@@ -32,10 +32,14 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.error;
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.oldcompiler.AvailParseNode;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
@@ -112,6 +116,14 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 			codeGenerator);
 	}
 
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		object.variable(aBlock.value(object.variable()));
+	}
+
 
 
 	/**
@@ -155,6 +167,33 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 	public static ReferenceNodeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		final AvailObject decl = object.variable().declaration();
+		switch (decl.declarationKind())
+		{
+			case ARGUMENT:
+				error("You can't take the reference of an argument");
+				break;
+			case LABEL:
+				error("You can't take the reference of a label");
+				break;
+			case LOCAL_CONSTANT:
+			case MODULE_CONSTANT:
+				error("You can't take the reference of a constant");
+				break;
+			case LOCAL_VARIABLE:
+			case MODULE_VARIABLE:
+				// Do nothing.
+				break;
+		}
 	}
 
 }

@@ -340,7 +340,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 				newTrees.add(
 					UnexpandedMessageBundleTreeDescriptor.newPc(successorPc));
 			}
-			subtrees = TupleDescriptor.mutableObjectFromArray(newTrees);
+			subtrees = TupleDescriptor.mutableObjectFromList(newTrees);
 			specials = specials.mapAtPuttingCanDestroy(
 				instructionObject,
 				subtrees,

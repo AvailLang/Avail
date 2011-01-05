@@ -36,6 +36,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.*;
@@ -4950,5 +4951,25 @@ public abstract class AbstractDescriptor
 	public abstract void o_EmitValueOn (
 		AvailObject object,
 		AvailCodeGenerator codeGenerator);
+
+	/**
+	 * Map my children through the (destructive) transformation specified by
+	 * aBlock.
+	 */
+	public abstract void o_ChildrenMap (
+		AvailObject object,
+		Transformer1<AvailObject, AvailObject> aBlock);
+
+	/**
+	 * @param object
+	 * @param parent
+	 * @param outerBlocks
+	 * @param anAvailInterpreter
+	 */
+	abstract void o_ValidateLocally (
+		 AvailObject object,
+		 AvailObject parent,
+		 List<AvailObject> outerBlocks,
+		 L2Interpreter anAvailInterpreter);
 
 }

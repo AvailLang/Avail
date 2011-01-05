@@ -33,9 +33,12 @@
 package com.avail.newcompiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent a weakening of the type of an argument of a {@link
@@ -141,6 +144,29 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		// My parent (send) node deals with my altered semantics.
 		object.expression().emitValueOn(codeGenerator);
 	}
+
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		object.expression(aBlock.value(object.expression()));
+	}
+
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		if (!parent.type().equals(Types.sendNode.object()))
+		{
+			error("Only use superCast notation as a message argument");
+		}
+	}
+
 
 
 

@@ -36,6 +36,8 @@ import java.util.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent {@link ParseNodeDescriptor parse nodes} which will
@@ -124,7 +126,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
-				TupleDescriptor.mutableObjectFromArray(types),
+				TupleDescriptor.mutableObjectFromList(types),
 				Types.terminates.object());
 		tupleType.makeImmutable();
 		return tupleType;
@@ -152,6 +154,32 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		codeGenerator.emitMakeTuple(childNodes.tupleSize());
 	}
 
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		AvailObject expressions = object.expressionsTuple();
+		for (int i = 0; i < expressions.tupleSize(); i++)
+		{
+			expressions = expressions.tupleAtPuttingCanDestroy(
+				i,
+				aBlock.value(expressions.tupleAt(i)),
+				true);
+		}
+		object.expressionsTuple(expressions);
+	}
+
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		// Do nothing.
+	}
 
 
 	/**

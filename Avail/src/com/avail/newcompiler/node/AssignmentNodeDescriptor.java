@@ -33,11 +33,14 @@
 package com.avail.newcompiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.oldcompiler.AvailParseNode;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent assignment statements.
@@ -128,7 +131,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	{
 		final AvailObject declaration = object.variable().declaration();
 		final DeclarationKind declarationKind = declaration.declarationKind();
-		assert declarationKind.canBeAssigned();
+		assert declarationKind.isVariable();
 		object.expression().emitValueOn(codeGenerator);
 		declarationKind.emitVariableAssignmentForOn(
 			declaration,
@@ -144,7 +147,41 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		error("Pass-through (embedded) assignments are not supported");
 	}
 
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		object.expression(aBlock.value(object.expression()));
+		object.variable(aBlock.value(object.variable()));
+	}
 
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		final AvailObject variable = object.variable();
+		final DeclarationKind kind = variable.declaration().declarationKind();
+		switch (kind)
+		{
+			case ARGUMENT:
+				error("Can't assign to argument");
+				break;
+			case LABEL:
+				error("Can't assign to label");
+				break;
+			case LOCAL_CONSTANT:
+			case MODULE_CONSTANT:
+				error("Can't assign to constant");
+				break;
+			case LOCAL_VARIABLE:
+			case MODULE_VARIABLE:
+				break;
+		}
+	}
 
 
 	/**

@@ -33,9 +33,12 @@
 package com.avail.newcompiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
+import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.utility.Transformer1;
 
 /**
  * My instances represent assignment statements.
@@ -146,7 +149,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * Whether this entity can be modified.
 		 */
-		private final boolean canBeAssigned;
+		private final boolean isVariable;
 
 		/**
 		 * The instance of the enumeration {@link TypeDescriptor.Types} that
@@ -158,17 +161,17 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 * Construct a {@link DeclarationKind}.  Can only be invoked implicitly
 		 * when constructing the enumeration values.
 		 *
-		 * @param canBeAssigned
+		 * @param isVariable
 		 *        Whether it's legal to assign to this entity.
 		 * @param typeEnumeration
 		 *        The enumeration instance of {@link TypeDescriptor.Types} that
 		 *        is associated with this kind of declaration.
 		 */
 		DeclarationKind (
-			final boolean canBeAssigned,
+			final boolean isVariable,
 			final Types typeEnumeration)
 		{
-			this.canBeAssigned = canBeAssigned;
+			this.isVariable = isVariable;
 			this.typeEnumeration = typeEnumeration;
 		}
 
@@ -177,9 +180,9 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 *
 		 * @return Whether this entity is assignable.
 		 */
-		public boolean canBeAssigned ()
+		public boolean isVariable ()
 		{
-			return canBeAssigned;
+			return isVariable;
 		}
 
 		/**
@@ -204,7 +207,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
-			assert canBeAssigned();
+			assert isVariable();
 			codeGenerator.emitSetLocalOrOuter(declarationNode);
 		}
 
@@ -218,7 +221,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
-			assert this == LOCAL_VARIABLE || this == MODULE_VARIABLE;
+			assert isVariable();
 			codeGenerator.emitPushLocalOrOuter(declarationNode);
 		}
 
@@ -232,7 +235,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
-			assert this == LOCAL_VARIABLE || this == MODULE_VARIABLE;
+			assert isVariable();
 			codeGenerator.emitGetLocalOrOuter(declarationNode);
 		}
 
@@ -420,6 +423,32 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		declarationNode.declarationKind().emitVariableReferenceForOn(
 			declarationNode,
 			codeGenerator);
+	}
+
+
+	@Override
+	public void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		AvailObject expression = object.initializationExpression();
+		if (!expression.equalsVoid())
+		{
+			expression = aBlock.value(expression);
+			object.initializationExpression(expression);
+		}
+	}
+
+
+
+	@Override
+	public void o_ValidateLocally (
+		final AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		// Do nothing.
 	}
 
 	/**

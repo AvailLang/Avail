@@ -88,7 +88,7 @@ public class AvailTupleNode extends AvailParseNode
 				IntegerDescriptor.objectFromInt(types.size()));
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
-				TupleDescriptor.mutableObjectFromArray(types),
+				TupleDescriptor.mutableObjectFromList(types),
 				Types.terminates.object());
 			tupleType.makeImmutable();
 		}

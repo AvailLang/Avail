@@ -910,7 +910,7 @@ public abstract class TupleDescriptor extends Descriptor
 		BackQuoteTuple = null;
 	}
 
-	public static AvailObject mutableObjectFromArray (
+	public static AvailObject mutableObjectFromList (
 		final List<AvailObject> list)
 	{
 		AvailObject tuple;
@@ -922,7 +922,7 @@ public abstract class TupleDescriptor extends Descriptor
 		return tuple;
 	}
 
-	public static AvailObject mutableFromIntegerArray (
+	public static AvailObject mutableFromIntegerList (
 		final List<Integer> list)
 	{
 		AvailObject tuple;
