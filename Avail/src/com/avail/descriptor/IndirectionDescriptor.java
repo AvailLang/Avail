@@ -4470,7 +4470,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ValidateLocally (
+	public void o_ValidateLocally (
 		final AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
@@ -4482,4 +4482,31 @@ public class IndirectionDescriptor extends AbstractDescriptor
 			anAvailInterpreter);
 	}
 
+	@Override
+	public AvailObject o_Generate (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		return o_Traversed(object).generate(codeGenerator);
+	}
+
+	@Override
+	public AvailObject o_CopyWith (
+		final AvailObject object,
+		final AvailObject newParseNode)
+	{
+		return o_Traversed(object).copyWith(newParseNode);
+	}
+
+	@Override
+	public void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	{
+		o_Traversed(object).isLastUse(isLastUse);
+	}
+
+	@Override
+	public boolean o_IsLastUse (final AvailObject object)
+	{
+		return o_Traversed(object).isLastUse();
+	}
 }

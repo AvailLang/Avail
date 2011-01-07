@@ -6082,4 +6082,44 @@ implements Iterable<AvailObject>
 			anAvailInterpreter);
 	}
 
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 * @return
+	 */
+	public AvailObject generate (
+		final AvailCodeGenerator codeGenerator)
+	{
+		return descriptor().o_Generate(this, codeGenerator);
+	}
+
+
+	/**
+	 * @param newParseNode
+	 * @return
+	 */
+	public AvailObject copyWith (final AvailObject newParseNode)
+	{
+		return descriptor().o_CopyWith(this, newParseNode);
+	}
+
+
+	/**
+	 * @param isLastUse
+	 */
+	public void isLastUse (final boolean isLastUse)
+	{
+		descriptor().o_IsLastUse(this, isLastUse);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isLastUse ()
+	{
+		return descriptor().o_IsLastUse(this);
+	}
+
 }

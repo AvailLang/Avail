@@ -33,9 +33,10 @@
 package com.avail.oldcompiler;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
+@Deprecated
 public class AvailVariableSyntheticDeclarationNode extends AvailVariableDeclarationNode
 {
 	AvailObject _availVariable;

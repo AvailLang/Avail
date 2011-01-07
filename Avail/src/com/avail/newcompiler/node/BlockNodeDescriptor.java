@@ -215,7 +215,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			argumentTypes.add(argDeclaration.declaredType());
 		}
 		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
-			TupleDescriptor.mutableObjectFromList(argumentTypes),
+			TupleDescriptor.fromList(argumentTypes),
 			object.resultType());
 	}
 
@@ -236,7 +236,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailCodeGenerator newGenerator = new AvailCodeGenerator();
-		final AvailObject compiledBlock = generate(object, newGenerator);
+		final AvailObject compiledBlock = object.generate(newGenerator);
 		if (object.neededVariables().tupleSize() == 0)
 		{
 			final AvailObject closure = ClosureDescriptor.create(
@@ -361,6 +361,61 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
+	 * Answer an Avail compiled block compiled from the given block node, using
+	 * the given {@link AvailCodeGenerator}.
+	 *
+	 * @param object The {@link BlockNodeDescriptor block node}.
+	 * @param codeGenerator
+	 *            A {@link AvailCodeGenerator code generator}
+	 * @return An {@link AvailObject} of type {@link ClosureDescriptor closure}.
+	 */
+	@Override
+	public AvailObject o_Generate (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		codeGenerator.startBlock(
+			object.argumentsTuple(),
+			locals(object),
+			labels(object),
+			object.neededVariables(),
+			object.resultType());
+		codeGenerator.stackShouldBeEmpty();
+		codeGenerator.primitive(object.primitive());
+		codeGenerator.stackShouldBeEmpty();
+		final AvailObject statementsTuple = object.statementsTuple();
+		final int statementsCount = statementsTuple.tupleSize();
+		if (statementsCount == 0)
+		{
+			codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+		}
+		else
+		{
+			for (int index = 1; index < statementsCount; index++)
+			{
+				statementsTuple.tupleAt(index).emitEffectOn(codeGenerator);
+				codeGenerator.stackShouldBeEmpty();
+			}
+			final AvailObject lastStatement =
+				statementsTuple.tupleAt(statementsCount);
+			final AvailObject lastStatementType = lastStatement.type();
+			if (lastStatementType.isSubtypeOf(Types.labelNode.object())
+				|| lastStatementType.isSubtypeOf(Types.assignmentNode.object()))
+			{
+				// The block ends with the label declaration or an assignment.
+				// Push the void object as the return value.
+				lastStatement.emitEffectOn(codeGenerator);
+				codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+			}
+			else
+			{
+				lastStatement.emitValueOn(codeGenerator);
+			}
+		}
+		return codeGenerator.endBlock();
+	}
+
+	/**
 	 * Figure out what outer variables will need to be captured when a closure
 	 * for me is built.
 	 *
@@ -406,63 +461,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> neededList = new ArrayList<AvailObject>(
 				neededDeclarations);
 		object.neededVariables(
-			TupleDescriptor.mutableObjectFromList(neededList));
+			TupleDescriptor.fromList(neededList));
 	}
 
-
-	/**
-	 * Answer an Avail compiled block compiled from the given block node, using
-	 * the given {@link AvailCodeGenerator}.
-	 *
-	 * @param object The {@link BlockNodeDescriptor block node}.
-	 * @param codeGenerator
-	 *            A {@link AvailCodeGenerator code generator}
-	 * @return An {@link AvailObject} of type {@link ClosureDescriptor closure}.
-	 */
-	public static AvailObject generate (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		codeGenerator.startBlockWithArgumentsLocalsLabelsOuterVarsResultType(
-			object.argumentsTuple(),
-			locals(object),
-			labels(object),
-			object.neededVariables(),
-			object.resultType());
-		codeGenerator.stackShouldBeEmpty();
-		codeGenerator.primitive(object.primitive());
-		codeGenerator.stackShouldBeEmpty();
-		final AvailObject statementsTuple = object.statementsTuple();
-		final int statementsCount = statementsTuple.tupleSize();
-		if (statementsCount == 0)
-		{
-			codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
-		}
-		else
-		{
-			for (int index = 1; index < statementsCount; index++)
-			{
-				statementsTuple.tupleAt(index).emitEffectOn(codeGenerator);
-				codeGenerator.stackShouldBeEmpty();
-			}
-			final AvailObject lastStatement =
-				statementsTuple.tupleAt(statementsCount);
-			final AvailObject lastStatementType = lastStatement.type();
-			if (lastStatementType.isSubtypeOf(Types.labelNode.object())
-				|| lastStatementType.isSubtypeOf(Types.assignmentNode.object()))
-			{
-				// The block ends with the label declaration or an assignment.
-				// Push the void object as the return value.
-				lastStatement.emitEffectOn(codeGenerator);
-				codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
-			}
-			else
-			{
-				lastStatement.emitValueOn(codeGenerator);
-			}
-		}
-		return codeGenerator.endBlock();
-	}
 
 	/**
 	 * Construct a new {@link BlockNodeDescriptor}.

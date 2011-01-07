@@ -942,7 +942,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
-			interpreter.primitiveResult(ContinuationTypeDescriptor.continuationTypeForClosureType(closureType));
+			interpreter.primitiveResult(ContinuationTypeDescriptor.forClosureType(closureType));
 			return SUCCESS;
 		}
 	},

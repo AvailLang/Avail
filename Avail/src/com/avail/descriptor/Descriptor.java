@@ -8796,4 +8796,57 @@ public abstract class Descriptor extends AbstractDescriptor
 	{
 		subclassResponsibility("o_ValidateLocally");
 	}
+
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 * @return
+	 */
+	@Override
+	public AvailObject o_Generate (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		subclassResponsibility("o_Generate");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param newParseNode
+	 * @return
+	 */
+	@Override
+	public AvailObject o_CopyWith (
+		final AvailObject object,
+		final AvailObject newParseNode)
+	{
+		subclassResponsibility("o_CopyWith");
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @param isLastUse
+	 */
+	@Override
+	public void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	{
+		subclassResponsibility("o_IsLastUse");
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public boolean o_IsLastUse (final AvailObject object)
+	{
+		subclassResponsibility("o_IsLastUse");
+		return false;
+	}
 }

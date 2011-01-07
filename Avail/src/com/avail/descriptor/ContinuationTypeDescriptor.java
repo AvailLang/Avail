@@ -239,7 +239,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		intersection.hashOrZero(0);
 		AvailObject.unlock(intersection);
-		return ContinuationTypeDescriptor.continuationTypeForClosureType(intersection);
+		return ContinuationTypeDescriptor.forClosureType(intersection);
 	}
 
 	@Override
@@ -287,7 +287,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		closureUnion.hashOrZero(0);
 		AvailObject.unlock(closureUnion);
-		return ContinuationTypeDescriptor.continuationTypeForClosureType(closureUnion);
+		return ContinuationTypeDescriptor.forClosureType(closureUnion);
 	}
 
 
@@ -295,7 +295,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 
 	/* Descriptor lookup */
-	public static AvailObject continuationTypeForClosureType (final AvailObject closureType)
+	public static AvailObject forClosureType (final AvailObject closureType)
 	{
 		final AvailObject result = mutable().create();
 		result.closureType(closureType.makeImmutable());

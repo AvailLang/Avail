@@ -79,7 +79,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		 * A flag indicating (with 0/1) whether this is the last use of the
 		 * mentioned entity.
 		 */
-		IS_LAST_USE
+		FLAGS
 	}
 
 	/**
@@ -122,6 +122,32 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DECLARATION);
+	}
+
+
+	/**
+	 * Setter for field declaration.
+	 */
+	@Override
+	public void o_IsLastUse (
+		final AvailObject object,
+		final boolean isLastUse)
+	{
+		int flags = object.integerSlot(IntegerSlots.FLAGS);
+		flags = flags & ~1 + (isLastUse ? 1 : 0);
+		object.integerSlotPut(
+			IntegerSlots.FLAGS,
+			flags & ~1 + (isLastUse ? 1 : 0));
+	}
+
+	/**
+	 * Getter for field declaration.
+	 */
+	@Override
+	public boolean o_IsLastUse (
+		final AvailObject object)
+	{
+		return (object.integerSlot(IntegerSlots.FLAGS) & 1) != 0;
 	}
 
 

@@ -33,14 +33,14 @@
 package com.avail.compiler;
 
 import com.avail.compiler.AvailCompiler.ParserState;
-import com.avail.oldcompiler.AvailParseNode;
+import com.avail.descriptor.AvailObject;
 
 public class AvailCompilerCachedSolution
 {
 
 	final ParserState endState;
 
-	final AvailParseNode parseNode;
+	final AvailObject parseNode;
 
 
 	ParserState endState ()
@@ -48,7 +48,7 @@ public class AvailCompilerCachedSolution
 		return endState;
 	}
 
-	AvailParseNode parseNode ()
+	AvailObject parseNode ()
 	{
 		return parseNode;
 	}
@@ -57,7 +57,7 @@ public class AvailCompilerCachedSolution
 	@Override
 	public String toString ()
 	{
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		builder.append("Solution(@");
 		builder.append(endState.position);
 		if (endState.scopeStack.name() == null)
@@ -75,7 +75,7 @@ public class AvailCompilerCachedSolution
 
 	AvailCompilerCachedSolution (
 		final ParserState endState,
-		final AvailParseNode parseNode)
+		final AvailObject parseNode)
 	{
 		this.endState = endState;
 		this.parseNode = parseNode;

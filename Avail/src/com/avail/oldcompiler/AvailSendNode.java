@@ -36,6 +36,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.utility.Transformer1;
 
+@Deprecated
 public class AvailSendNode extends AvailParseNode
 {
 	List<AvailParseNode> _arguments;

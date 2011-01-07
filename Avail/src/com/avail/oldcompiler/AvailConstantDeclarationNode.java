@@ -39,6 +39,7 @@ package com.avail.oldcompiler;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
+@Deprecated
 public class AvailConstantDeclarationNode extends AvailInitializingDeclarationNode
 {
 

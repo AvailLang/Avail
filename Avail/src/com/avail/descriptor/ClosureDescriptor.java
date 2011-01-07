@@ -109,7 +109,10 @@ public class ClosureDescriptor extends Descriptor
 		{
 			aStream.append("Immutable closure with code: ");
 		}
-		AvailDecompiler.parse(object).printOnIndent(aStream, indent + 1);
+		AvailDecompiler.parse(object).printOnAvoidingIndent(
+			aStream,
+			recursionList,
+			indent + 1);
 	}
 
 

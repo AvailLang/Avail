@@ -32,12 +32,12 @@
 
 package com.avail.oldcompiler;
 
+import static com.avail.descriptor.AvailObject.error;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
-import static com.avail.descriptor.AvailObject.*;
-
+@Deprecated
 public class AvailLabelNode extends AvailVariableDeclarationNode
 {
 

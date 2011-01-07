@@ -45,6 +45,7 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
+@Deprecated
 public class AvailBlockNode extends AvailParseNode
 {
 	/**
@@ -190,7 +191,7 @@ public class AvailBlockNode extends AvailParseNode
 			argumentTypes.add(arg.declaredType());
 		}
 		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
-			TupleDescriptor.mutableObjectFromList(argumentTypes),
+			TupleDescriptor.fromList(argumentTypes),
 			_resultType);
 	}
 
@@ -233,7 +234,7 @@ public class AvailBlockNode extends AvailParseNode
 	 */
 	public AvailObject generateOn (final AvailCodeGenerator codeGenerator)
 	{
-		codeGenerator.startBlockWithArgumentsLocalsLabelsOuterVarsResultType(
+		codeGenerator.startBlock(
 			_arguments,
 			locals(),
 			labels(),

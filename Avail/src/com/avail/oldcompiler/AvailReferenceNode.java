@@ -39,6 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
+@Deprecated
 public class AvailReferenceNode extends AvailParseNode
 {
 	AvailVariableUseNode _variable;

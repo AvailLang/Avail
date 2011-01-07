@@ -38,6 +38,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
+@Deprecated
 public class AvailVariableUseNode extends AvailParseNode
 {
 	AvailObject _nameToken;

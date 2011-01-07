@@ -114,21 +114,25 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject expressionsTuple = object.expressionsTuple();
-		final List<AvailObject> types = new ArrayList<AvailObject>(
-			expressionsTuple.tupleSize());
-		for (final AvailObject expr : expressionsTuple)
+		AvailObject tupleType = object.tupleType();
+		if (tupleType.equalsVoid())
 		{
-			types.add(expr.expressionType());
-		}
-		final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
-			IntegerDescriptor.objectFromInt(types.size()));
-		final AvailObject tupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			final AvailObject expressionsTuple = object.expressionsTuple();
+			final List<AvailObject> types = new ArrayList<AvailObject>(
+				expressionsTuple.tupleSize());
+			for (final AvailObject expr : expressionsTuple)
+			{
+				types.add(expr.expressionType());
+			}
+			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
+				IntegerDescriptor.objectFromInt(types.size()));
+			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
-				TupleDescriptor.mutableObjectFromList(types),
+				TupleDescriptor.fromList(types),
 				Types.terminates.object());
-		tupleType.makeImmutable();
+			tupleType.makeImmutable();
+			object.tupleType(tupleType);
+		}
 		return tupleType;
 	}
 
@@ -179,6 +183,37 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final L2Interpreter anAvailInterpreter)
 	{
 		// Do nothing.
+	}
+
+
+	/**
+	 * Create a new {@code TupleNodeDescriptor tuple node} with one more parse
+	 * node added to the end of the tuple.
+	 *
+	 * @param object
+	 *        The tuple node to extend.
+	 * @param newParseNode
+	 *        The parse node to append.
+	 * @return
+	 *         A new {@code TupleNodeDescriptor tuple node} with the parse node
+	 *         appended.
+	 */
+	@Override
+	public AvailObject o_CopyWith (
+		final AvailObject object,
+		final AvailObject newParseNode)
+	{
+		final List<AvailObject> newNodes = new ArrayList<AvailObject>(
+			object.expressionsTuple().tupleSize() + 1);
+		for (final AvailObject expression : object.expressionsTuple())
+		{
+			newNodes.add(expression);
+		}
+		newNodes.add(newParseNode);
+		final AvailObject newTupleNode = TupleNodeDescriptor.mutable().create();
+		newTupleNode.expressionsTuple(TupleDescriptor.fromList(newNodes));
+		newTupleNode.tupleType(VoidDescriptor.voidObject());
+		return newTupleNode;
 	}
 
 

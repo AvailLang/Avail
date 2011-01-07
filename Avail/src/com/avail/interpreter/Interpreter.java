@@ -774,7 +774,7 @@ public abstract class Interpreter
 	 *                  failure.
 	 * @return The return {@linkplain TypeDescriptor type}.
 	 */
-	public @NotNull AvailObject validateTypesOfMessageSendArgumentTypesIfFail (
+	public @NotNull AvailObject validateSendArgumentTypesIfFail (
 		final @NotNull AvailObject methodName,
 		final @NotNull List<AvailObject> argTypes,
 		final @NotNull Continuation1<Generator<String>> failBlock)

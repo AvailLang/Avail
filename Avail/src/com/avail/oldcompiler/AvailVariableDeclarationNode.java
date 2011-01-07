@@ -38,6 +38,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.utility.Transformer1;
 
+@Deprecated
 public class AvailVariableDeclarationNode extends AvailParseNode
 {
 	AvailObject _name;

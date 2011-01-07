@@ -361,7 +361,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 							{
 								successorsList.add(newPc(nextPc));
 							}
-							successors = TupleDescriptor.mutableObjectFromList(
+							successors = TupleDescriptor.fromList(
 								successorsList);
 							specialMap.value =
 								specialMap.value.mapAtPuttingCanDestroy(

@@ -617,6 +617,9 @@ public abstract class TypeDescriptor extends Descriptor
 		moduleVariableNode(declarationNode),
 		moduleConstantNode(declarationNode),
 
+		token(all),
+		literalToken(token),
+
 		process(all),
 		signature(all),
 		abstractSignature(signature),

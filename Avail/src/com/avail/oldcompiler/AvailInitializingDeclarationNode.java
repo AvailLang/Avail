@@ -36,6 +36,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.VoidDescriptor;
 import com.avail.utility.Transformer1;
 
+@Deprecated
 public class AvailInitializingDeclarationNode extends AvailVariableDeclarationNode
 {
 	AvailParseNode _initializingExpression;

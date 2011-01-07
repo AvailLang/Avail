@@ -32,6 +32,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.newcompiler.scanner.TokenDescriptor.TokenType.*;
 import java.io.*;
 import java.util.*;
@@ -41,9 +42,9 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.newcompiler.node.*;
 import com.avail.newcompiler.scanner.*;
 import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
-import com.avail.oldcompiler.*;
 import com.avail.utility.*;
 
 /**
@@ -147,12 +148,12 @@ public class AvailCompiler
 	 */
 	private void tryIfUnambiguousThen (
 		final ParserState start,
-		final Con<Con<AvailParseNode>> tryBlock,
-		final Con<AvailParseNode> continuation)
+		final Con<Con<AvailObject>> tryBlock,
+		final Con<AvailObject> continuation)
 	{
 		final Mutable<Integer> count = new Mutable<Integer>(0);
-		final Mutable<AvailParseNode> solution = new Mutable<AvailParseNode>();
-		final Mutable<AvailParseNode> another = new Mutable<AvailParseNode>();
+		final Mutable<AvailObject> solution = new Mutable<AvailObject>();
+		final Mutable<AvailObject> another = new Mutable<AvailObject>();
 		final Mutable<ParserState> where = new Mutable<ParserState>();
 		final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
 		attempt(
@@ -166,13 +167,12 @@ public class AvailCompiler
 			},
 			"Marker for try unambiguous",
 			start.position);
-		attempt(start, tryBlock, new Con<AvailParseNode>(
-			"Unambiguous statement")
+		attempt(start, tryBlock, new Con<AvailObject>("Unambiguous statement")
 		{
 			@Override
 			public void value (
 				final ParserState afterSolution,
-				final AvailParseNode aSolution)
+				final AvailObject aSolution)
 			{
 				if (count.value == 0)
 				{
@@ -249,8 +249,8 @@ public class AvailCompiler
 		 *            The {@link AvailCompilerScopeStack}.
 		 */
 		ParserState (
-				final int position,
-				final AvailCompilerScopeStack scopeStack)
+			final int position,
+			final AvailCompilerScopeStack scopeStack)
 		{
 			assert scopeStack != null;
 
@@ -273,7 +273,7 @@ public class AvailCompiler
 			}
 			final ParserState anotherState = (ParserState) another;
 			return position == anotherState.position
-					&& scopeStack.equals(anotherState.scopeStack);
+				&& scopeStack.equals(anotherState.scopeStack);
 		}
 
 		/**
@@ -327,7 +327,7 @@ public class AvailCompiler
 		{
 			final AvailObject token = peekToken();
 			return token.tokenType() == tokenType
-					&& token.string().asNativeString().equals(string);
+				&& token.string().asNativeString().equals(string);
 		}
 
 		/**
@@ -349,7 +349,7 @@ public class AvailCompiler
 		{
 			final AvailObject token = peekToken();
 			final boolean found = token.tokenType() == tokenType
-					&& token.string().asNativeString().equals(string);
+				&& token.string().asNativeString().equals(string);
 			if (!found)
 			{
 				expected(expected);
@@ -398,7 +398,7 @@ public class AvailCompiler
 		AvailObject peekStringLiteral ()
 		{
 			final AvailObject token = peekToken();
-			if (token.traversed().descriptor() instanceof LiteralTokenDescriptor)
+			if (token.isInstanceOfSubtypeOf(Types.literalNode.object()))
 			{
 				return token;
 			}
@@ -410,13 +410,13 @@ public class AvailCompiler
 		 * declaration added.
 		 *
 		 * @param declaration
-		 *            The {@link AvailVariableDeclarationNode declaration} to
+		 *            The {@link DeclarationNodeDescriptor declaration} to
 		 *            add to the resulting {@link AvailCompilerScopeStack scope
 		 *            stack}.
 		 * @return The new parser state including the declaration.
 		 */
 		ParserState withDeclaration (
-			final AvailVariableDeclarationNode declaration)
+			final AvailObject declaration)
 		{
 			return new ParserState(position, new AvailCompilerScopeStack(
 				declaration,
@@ -536,27 +536,27 @@ public class AvailCompiler
 		final ParserState start,
 		final boolean outermost,
 		final boolean canBeLabel,
-		final Con<AvailParseNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		assert !(outermost & canBeLabel);
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<AvailParseNode>>("Detect ambiguity")
+			new Con<Con<AvailObject>>("Detect ambiguity")
 			{
 				@Override
 				public void value (
 					final ParserState ignored,
-					final Con<AvailParseNode> whenFoundStatement)
+					final Con<AvailObject> whenFoundStatement)
 				{
 					parseDeclarationThen(
 						start,
-						new Con<AvailVariableDeclarationNode>(
+						new Con<AvailObject>(
 							"Semicolon after declaration")
 						{
 							@Override
 							public void value (
 								final ParserState afterDeclaration,
-								final AvailVariableDeclarationNode declaration)
+								final AvailObject declaration)
 							{
 								if (afterDeclaration.peekToken(
 									END_OF_STATEMENT,
@@ -578,13 +578,13 @@ public class AvailCompiler
 								}
 							}
 						});
-					parseAssignmentThen(start, new Con<AvailAssignmentNode>(
+					parseAssignmentThen(start, new Con<AvailObject>(
 						"Semicolon after assignment")
 					{
 						@Override
 						public void value (
 							final ParserState afterAssignment,
-							final AvailAssignmentNode assignment)
+							final AvailObject assignment)
 						{
 							if (afterAssignment.peekToken(
 								END_OF_STATEMENT,
@@ -597,13 +597,13 @@ public class AvailCompiler
 							}
 						}
 					});
-					parseExpressionThen(start, new Con<AvailParseNode>(
+					parseExpressionThen(start, new Con<AvailObject>(
 						"Semicolon after expression")
 					{
 						@Override
 						public void value (
 							final ParserState afterExpression,
-							final AvailParseNode expression)
+							final AvailObject expression)
 						{
 							if (!afterExpression.peekToken(
 								END_OF_STATEMENT,
@@ -622,20 +622,20 @@ public class AvailCompiler
 							}
 							else
 							{
-								afterExpression
-										.expected("outer level statement to have void type");
+								afterExpression.expected(
+									"outer level statement to have void type");
 							}
 						}
 					});
 					if (canBeLabel)
 					{
-						parseLabelThen(start, new Con<AvailLabelNode>(
+						parseLabelThen(start, new Con<AvailObject>(
 							"Semicolon after label")
 						{
 							@Override
 							public void value (
 								final ParserState afterDeclaration,
-								final AvailLabelNode label)
+								final AvailObject label)
 							{
 								if (afterDeclaration.peekToken(
 									END_OF_STATEMENT,
@@ -664,7 +664,7 @@ public class AvailCompiler
 	 */
 	void parseLabelThen (
 		final ParserState start,
-		final Con<AvailLabelNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		if (!start.peekToken(
 			OPERATOR,
@@ -705,11 +705,13 @@ public class AvailCompiler
 								final ParserState afterExpression,
 								final AvailObject contType)
 							{
-								final AvailLabelNode label = new AvailLabelNode();
-								label.name(token);
+								final AvailObject label =
+									DeclarationNodeDescriptor.mutable().create();
+								label.declarationKind(LABEL);
+								label.token(token);
 								label.declaredType(contType);
-								final ParserState afterDeclaration = afterExpression
-										.withDeclaration(label);
+								final ParserState afterDeclaration =
+									afterExpression.withDeclaration(label);
 								attempt(afterDeclaration, continuation, label);
 							}
 						});
@@ -741,13 +743,13 @@ public class AvailCompiler
 		final ParserState startWithoutScope = new ParserState(
 			start.position,
 			new AvailCompilerScopeStack(null, null));
-		parseExpressionThen(startWithoutScope, new Con<AvailParseNode>(
+		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
 			"Evaluate expression")
 		{
 			@Override
 			public void value (
 				final ParserState afterExpression,
-				final AvailParseNode expression)
+				final AvailObject expression)
 			{
 				if (expression.expressionType().isSubtypeOf(someType))
 				{
@@ -757,10 +759,11 @@ public class AvailCompiler
 					{
 						assert afterExpression.scopeStack == startWithoutScope.scopeStack
 						: "Subexpression should not have been able to cause declaration";
-						// Make sure we continue with the position after the expression,
-						// but the scope stack we started with. That's because the
-						// expression was parsed for execution, and as such was excluded
-						// from seeing things that would be in scope for regular
+						// Make sure we continue with the position after the
+						// expression, but the scope stack we started with.
+						// That's because the expression was parsed for
+						// execution, and as such was excluded from seeing
+						// things that would be in scope for regular
 						// subexpressions at this point.
 						attempt(
 							new ParserState(
@@ -783,7 +786,7 @@ public class AvailCompiler
 						public String value ()
 						{
 							return "expression to have type "
-									+ someType.toString();
+								+ someType.toString();
 						}
 					});
 				}
@@ -806,7 +809,7 @@ public class AvailCompiler
 	 */
 	void parseDeclarationThen (
 		final ParserState start,
-		final Con<AvailVariableDeclarationNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		final AvailObject localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
@@ -836,22 +839,24 @@ public class AvailCompiler
 			{
 				final ParserState afterEquals = afterSecondColon.afterToken();
 				parseExpressionThen(afterEquals,
-					new Con<AvailParseNode>("Complete var ::= expr")
+					new Con<AvailObject>("Complete var ::= expr")
 					{
 						@Override
 						public void value (
 							final ParserState afterInitExpression,
-							final AvailParseNode initExpression)
+							final AvailObject initExpression)
 						{
-							final AvailConstantDeclarationNode constantDeclaration = new AvailConstantDeclarationNode();
-							constantDeclaration.name(localName);
-							constantDeclaration.declaredType(initExpression.expressionType());
-							constantDeclaration
-									.initializingExpression(initExpression);
-							constantDeclaration.isArgument(false);
+							final AvailObject constantDeclaration =
+								DeclarationNodeDescriptor.mutable().create();
+							constantDeclaration.declarationKind(LOCAL_CONSTANT);
+							constantDeclaration.token(localName);
+							constantDeclaration.declaredType(
+								initExpression.expressionType());
+							constantDeclaration.initializationExpression(
+								initExpression);
 							attempt(
-								afterInitExpression
-										.withDeclaration(constantDeclaration),
+								afterInitExpression.withDeclaration(
+									constantDeclaration),
 								continuation,
 								constantDeclaration);
 						}
@@ -871,16 +876,16 @@ public class AvailCompiler
 					if (type.equals(Types.voidType.object())
 							|| type.equals(Types.terminates.object()))
 					{
-						afterType.expected(
-							"a type for the variable other than void or terminates");
+						afterType.expected("a type for the variable other than"
+							+ " void or terminates");
 						return;
 					}
 					// Try the simple declaration... var : type;
-					final AvailVariableDeclarationNode simpleDeclaration =
-						new AvailVariableDeclarationNode();
-					simpleDeclaration.name(localName);
+					final AvailObject simpleDeclaration =
+						DeclarationNodeDescriptor.mutable().create();
+					simpleDeclaration.declarationKind(LOCAL_VARIABLE);
+					simpleDeclaration.token(localName);
 					simpleDeclaration.declaredType(type);
-					simpleDeclaration.isArgument(false);
 					attempt(
 						afterType.withDeclaration(simpleDeclaration),
 						continuation,
@@ -906,31 +911,31 @@ public class AvailCompiler
 						afterSecondColon.afterToken();
 
 					parseExpressionThen(afterEquals,
-						new Con<AvailParseNode>("After expr of var : type := expr")
+						new Con<AvailObject>("After expr of var : type := expr")
 						{
 							@Override
 							public void value (
 								final ParserState afterInit,
-								final AvailParseNode initExpr)
+								final AvailObject initExpr)
 							{
 								if (initExpr.expressionType().isSubtypeOf(type))
 								{
-									final AvailInitializingDeclarationNode initializingDeclaration = new AvailInitializingDeclarationNode();
-									initializingDeclaration.name(localName);
-									initializingDeclaration.declaredType(type);
-									initializingDeclaration
-											.initializingExpression(initExpr);
-									initializingDeclaration.isArgument(false);
+									final AvailObject initDecl =
+										DeclarationNodeDescriptor.mutable()
+											.create();
+									initDecl.token(localName);
+									initDecl.declaredType(type);
+									initDecl.initializationExpression(initExpr);
 									attempt(
-										afterInit
-												.withDeclaration(initializingDeclaration),
+										afterInit.withDeclaration(initDecl),
 										continuation,
-										initializingDeclaration);
+										initDecl);
 								}
 								else
 								{
 									afterInit.expected(
-										"initializing expression's type to agree with declared type");
+										"initializing expression's type to "
+										+ "agree with declared type");
 								}
 							}
 						});
@@ -955,28 +960,12 @@ public class AvailCompiler
 		final String description,
 		final int position)
 	{
-//		for (int i = workStack.size(); i > 0; i--)
-//		{
-//			System.err.append("  ");
-//		}
-//		System.err.printf(
-//			"Pushing (%d): +%s%n",
-//			position,
-//			description);
 		workStack.push(
 			new Continuation0()
 			{
 				@Override
 				public void value ()
 				{
-//					for (int i = workStack.size(); i > 0; i--)
-//					{
-//						System.err.append("  ");
-//					}
-//					System.err.printf(
-//						"Running (%d): -%s%n",
-//						position,
-//						description);
 					continuation.value();
 				}
 			});
@@ -1012,14 +1001,6 @@ public class AvailCompiler
 				@Override
 				public void value ()
 				{
-//					for (int i = workStack.size(); i > 0; i--)
-//					{
-//						System.err.append("  ");
-//					}
-//					System.err.printf(
-//						"Invoking %s with %s%n",
-//						continuation.description,
-//						argument.toString());
 					continuation.value(here, argument);
 				}
 			},
@@ -1028,30 +1009,27 @@ public class AvailCompiler
 	}
 
 	/**
-	 * Evaluate an {@link AvailParseNode} in the module's context; lexically
-	 * enclosing variables are not considered in scope, but module variables and
-	 * constants are in scope.
+	 * Evaluate a {@link ParseNodeDescriptor parse node} in the module's
+	 * context; lexically enclosing variables are not considered in scope, but
+	 * module variables and constants are in scope.
 	 *
 	 * @param expressionNode
-	 *            An {@link AvailParseNode}.
+	 *        A {@link ParseNodeDescriptor parse node}.
 	 * @return The result of generating a {@link ClosureDescriptor closure} from
 	 *         the argument and evaluating it.
 	 */
-	AvailObject evaluate (final AvailParseNode expressionNode)
+	AvailObject evaluate (final AvailObject expressionNode)
 	{
-		// Evaluate a parse tree node.
-
-		AvailBlockNode block = new AvailBlockNode();
-		block.arguments(new ArrayList<AvailVariableDeclarationNode>());
+		final AvailObject block = BlockNodeDescriptor.mutable().create();
+		block.argumentsTuple(TupleDescriptor.empty());
 		block.primitive(0);
-		List<AvailParseNode> statements;
-		statements = new ArrayList<AvailParseNode>(1);
-		statements.add(expressionNode);
-		block.statements(statements);
+		block.statementsTuple(
+			TupleDescriptor.fromList(
+				Collections.singletonList(expressionNode)));
 		block.resultType(Types.voidType.object());
-		block = (AvailBlockNode) block.validatedWithInterpreter(interpreter);
+		validate(block);
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
-		final AvailObject compiledBlock = block.generateOn(codeGenerator);
+		final AvailObject compiledBlock = block.generate(codeGenerator);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
 		// code), so build a closure with no copied data.
@@ -1069,43 +1047,129 @@ public class AvailCompiler
 		return result;
 	}
 
+
+	/**
+	 * Ensure that the {@link BlockNodeDescriptor block node} is valid.  Throw
+	 * an appropriate exception if it is not.
+	 *
+	 * @param blockNode The block node to validate.
+	 */
+	public void validate (
+		final AvailObject blockNode)
+	{
+		final List<AvailObject> initialBlockNodes =
+			new ArrayList<AvailObject>(3);
+		treeMapWithParent(
+			blockNode,
+			new Transformer3<
+				AvailObject,
+				AvailObject,
+				List<AvailObject>,
+				AvailObject>()
+			{
+				@Override
+				public AvailObject value (
+					final AvailObject node,
+					final AvailObject parent,
+					final List<AvailObject> blockNodes)
+				{
+					node.validateLocally(
+						parent,
+						blockNodes,
+						interpreter);
+					return node;
+				}
+			},
+			null,
+			initialBlockNodes);
+	}
+
+
+	/**
+	 * Map the tree through the (destructive) transformation specified by
+	 * aBlock, children before parents. The block takes three arguments: the
+	 * node, its parent, and the list of enclosing block nodes. Answer the
+	 * resulting tree.
+	 *
+	 * @param object
+	 *        The current {@linkplain ParseNodeDescriptor parse node}.
+	 * @param aBlock
+	 *        What to do with each descendant.
+	 * @param parentNode
+	 *        This node's parent.
+	 * @param outerNodes
+	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
+	 *        this node, from outermost to innermost.
+	 * @return A replacement for this node, possibly this node itself.
+	 */
+	public static AvailObject treeMapWithParent (
+		final AvailObject object,
+		final Transformer3<
+				AvailObject,
+				AvailObject,
+				List<AvailObject>,
+				AvailObject>
+			aBlock,
+		final AvailObject parentNode,
+		final List<AvailObject> outerNodes)
+	{
+		object.childrenMap(
+			new Transformer1<AvailObject, AvailObject>()
+			{
+				@Override
+				public AvailObject value (final AvailObject child)
+				{
+					return treeMapWithParent(
+						child,
+						aBlock,
+						object,
+						outerNodes);
+				}
+			});
+		return aBlock.value(object, parentNode, outerNodes);
+	}
+
+
 	/**
 	 * Evaluate a parse tree node. It's a top-level statement in a module.
 	 * Declarations are handled differently - they cause a variable to be
 	 * declared in the module's scope.
 	 *
-	 * @param expressionNode
-	 *            The expression to compile and evaluate as a top-level
-	 *            statement in the module.
+	 * @param expr
+	 *        The expression to compile and evaluate as a top-level statement in
+	 *        the module.
 	 */
-	private void evaluateModuleStatement (final AvailParseNode expressionNode)
+	private void evaluateModuleStatement (final AvailObject expr)
 	{
-		if (!expressionNode.isDeclaration())
+		if (!expr.isInstanceOfSubtypeOf(Types.declarationNode.object()))
 		{
-			evaluate(expressionNode);
+			evaluate(expr);
 			return;
 		}
 		// It's a declaration...
-		final AvailVariableDeclarationNode declarationExpression = (AvailVariableDeclarationNode) expressionNode;
-		final AvailObject name = declarationExpression.name().string();
-		if (declarationExpression.isConstant())
+		final AvailObject name = expr.name().string();
+		if (expr.declarationKind() == MODULE_CONSTANT)
 		{
-			final AvailInitializingDeclarationNode declaration = (AvailInitializingDeclarationNode) declarationExpression;
-			final AvailObject val = evaluate(declaration.initializingExpression());
-			module.constantBindings(module.constantBindings()
-					.mapAtPuttingCanDestroy(name, val.makeImmutable(), true));
+			final AvailObject val = evaluate(expr.initializationExpression());
+			module.constantBindings(
+				module.constantBindings().mapAtPuttingCanDestroy(
+					name,
+					val.makeImmutable(),
+					true));
 		}
 		else
 		{
-			final AvailObject var = ContainerDescriptor
-					.forInnerType(declarationExpression.declaredType());
-			if (declarationExpression.isInitializing())
+			final AvailObject var = ContainerDescriptor.forInnerType(
+				expr.declaredType());
+			if (!expr.initializationExpression().equalsVoid())
 			{
-				final AvailInitializingDeclarationNode declaration = (AvailInitializingDeclarationNode) declarationExpression;
-				var.setValue(evaluate(declaration.initializingExpression()));
+				var.setValue(evaluate(expr.initializationExpression()));
 			}
-			module.variableBindings(module.variableBindings()
-					.mapAtPuttingCanDestroy(name, var.makeImmutable(), true));
+			module.variableBindings(
+				module.variableBindings().mapAtPuttingCanDestroy(
+					name,
+					var.makeImmutable(),
+					true));
 		}
 	}
 
@@ -1121,13 +1185,13 @@ public class AvailCompiler
 	 * @throws AvailCompilerException
 	 *             If tokenization failed for any reason.
 	 */
-	private @NotNull
-	ResolvedModuleName tokenize (
+	private @NotNull ResolvedModuleName tokenize (
 		final @NotNull ModuleName qualifiedName,
-		final boolean stopAfterNamesToken) throws AvailCompilerException
+		final boolean stopAfterNamesToken)
+	throws AvailCompilerException
 	{
-		final ModuleNameResolver resolver = interpreter.runtime()
-				.moduleNameResolver();
+		final ModuleNameResolver resolver =
+			interpreter.runtime().moduleNameResolver();
 		final ResolvedModuleName resolvedName = resolver.resolve(qualifiedName);
 		if (resolvedName == null)
 		{
@@ -1220,13 +1284,14 @@ public class AvailCompiler
 	 * @throws AvailCompilerException
 	 *             If compilation fails.
 	 */
-	private void parseModule (final @NotNull ResolvedModuleName qualifiedName)
-			throws AvailCompilerException
+	private void parseModule (
+		final @NotNull ResolvedModuleName qualifiedName)
+	throws AvailCompilerException
 	{
 		final AvailRuntime runtime = interpreter.runtime();
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
 		final long sourceLength = qualifiedName.fileReference().length();
-		final Mutable<AvailParseNode> interpretation = new Mutable<AvailParseNode>();
+		final Mutable<AvailObject> interpretation = new Mutable<AvailObject>();
 		final Mutable<ParserState> state = new Mutable<ParserState>();
 		interpreter.checkUnresolvedForwards();
 		greatestGuess = 0;
@@ -1240,20 +1305,23 @@ public class AvailCompiler
 		}
 		if (!state.value.atEnd())
 		{
-			progressBlock.value(qualifiedName, (long) state.value.peekToken()
-					.start(), sourceLength);
+			progressBlock.value(
+				qualifiedName,
+				(long)state.value.peekToken().start(),
+				sourceLength);
 		}
 		for (final AvailObject modName : extendedModules)
 		{
 			assert modName.isString();
-			final ModuleName ref = resolver.canonicalNameFor(qualifiedName
-					.asSibling(modName.asNativeString()));
-			final AvailObject availRef = ByteStringDescriptor.fromNativeString(ref
-					.qualifiedName());
+			final ModuleName ref = resolver.canonicalNameFor(
+				qualifiedName.asSibling(modName.asNativeString()));
+			final AvailObject availRef = ByteStringDescriptor.fromNativeString(
+				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
-				state.value.expected("module \"" + ref.qualifiedName()
-						+ "\" to be loaded already");
+				state.value.expected(
+					"module \"" + ref.qualifiedName()
+					+ "\" to be loaded already");
 				reportError(state.value, qualifiedName);
 				assert false;
 			}
@@ -1271,14 +1339,15 @@ public class AvailCompiler
 		for (final AvailObject modName : usedModules)
 		{
 			assert modName.isString();
-			final ModuleName ref = resolver.canonicalNameFor(qualifiedName
-					.asSibling(modName.asNativeString()));
-			final AvailObject availRef = ByteStringDescriptor.fromNativeString(ref
-					.qualifiedName());
+			final ModuleName ref = resolver.canonicalNameFor(
+				qualifiedName.asSibling(modName.asNativeString()));
+			final AvailObject availRef = ByteStringDescriptor.fromNativeString(
+				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
-				state.value.expected("module \"" + ref.qualifiedName()
-						+ "\" to be loaded already");
+				state.value.expected(
+					"module \"" + ref.qualifiedName()
+					+ "\" to be loaded already");
 				reportError(state.value, qualifiedName);
 				assert false;
 			}
@@ -1296,13 +1365,13 @@ public class AvailCompiler
 		for (final AvailObject stringObject : exportedNames)
 		{
 			assert stringObject.isString();
-			final AvailObject trueNameObject = CyclicTypeDescriptor
-					.create(stringObject);
+			final AvailObject trueNameObject = CyclicTypeDescriptor.create(
+				stringObject);
 			module.atNameAdd(stringObject, trueNameObject);
 			module.atNewNamePut(stringObject, trueNameObject);
 		}
-		module.buildFilteredBundleTreeFrom(interpreter.runtime()
-				.rootBundleTree());
+		module.buildFilteredBundleTreeFrom(
+			interpreter.runtime().rootBundleTree());
 		fragmentCache = new AvailCompilerFragmentCache();
 		while (!state.value.atEnd())
 		{
@@ -1313,14 +1382,15 @@ public class AvailCompiler
 				state.value,
 				true,
 				false,
-				new Con<AvailParseNode>("Outermost statement")
+				new Con<AvailObject>("Outermost statement")
 				{
 					@Override
 					public void value (
 						final ParserState afterStatement,
-						final AvailParseNode stmt)
+						final AvailObject stmt)
 					{
-						assert interpretation.value == null : "Statement parser was supposed to catch ambiguity";
+						assert interpretation.value == null
+						: "Statement parser was supposed to catch ambiguity";
 						interpretation.value = stmt;
 						state.value = afterStatement;
 					}
@@ -1363,7 +1433,7 @@ public class AvailCompiler
 	 *            {@linkplain ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
 	 *             If compilation fails.
-	 * @author Todd L Smith &lt;anarkul@gmail.com&gt;
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	void parseModuleHeader (final @NotNull ModuleName qualifiedName)
 			throws AvailCompilerException
@@ -1404,9 +1474,9 @@ public class AvailCompiler
 		extendedModules = new ArrayList<AvailObject>();
 		usedModules = new ArrayList<AvailObject>();
 		exportedNames = new ArrayList<AvailObject>();
-		ParserState state = new ParserState(0, new AvailCompilerScopeStack(
-			null,
-			null));
+		ParserState state = new ParserState(
+			0,
+			new AvailCompilerScopeStack(null, null));
 
 		if (!state.peekToken(KEYWORD, "Module", "initial Module keyword"))
 		{
@@ -1424,12 +1494,14 @@ public class AvailCompiler
 			final AvailObject localName = localNameToken.literal();
 			if (!qualifiedName.localName().equals(localName.asNativeString()))
 			{
-				state.expected("declared local module name to agree with "
-						+ "fully-qualified module name");
+				state.expected(
+					"declared local module name to agree with "
+					+ "fully-qualified module name");
 				return null;
 			}
-			module.name(ByteStringDescriptor.fromNativeString(qualifiedName
-					.qualifiedName()));
+			module.name(
+				ByteStringDescriptor.fromNativeString(
+					qualifiedName.qualifiedName()));
 		}
 		state = state.afterToken();
 
@@ -1447,7 +1519,8 @@ public class AvailCompiler
 				for (int index = 0; index < strings.size(); index++)
 				{
 					final AvailObject pragmaString = strings.get(index);
-					final String[] parts = pragmaString.asNativeString().split("=");
+					final String nativeString = pragmaString.asNativeString();
+					final String[] parts = nativeString.split("=");
 					assert parts.length == 2;
 					final String pragmaKey = parts[0].trim();
 					final String pragmaValue = parts[1].trim();
@@ -1501,7 +1574,7 @@ public class AvailCompiler
 		state = state.afterToken();
 		if (dependenciesOnly)
 		{
-			// We've parsed everything necessary for inter-module information.
+			// We've parsed everything necessary for intermodule information.
 			return state;
 		}
 		state = parseStringLiterals(state, exportedNames);
@@ -1539,7 +1612,8 @@ public class AvailCompiler
 	 */
 	private void reportError (
 		final ParserState state,
-		final @NotNull ModuleName qualifiedName) throws AvailCompilerException
+		final @NotNull ModuleName qualifiedName)
+	throws AvailCompilerException
 	{
 		final long charPos = tokens.get(greatestGuess).start();
 		final String sourceUpToError = source.substring(0, (int) charPos);
@@ -1608,24 +1682,22 @@ public class AvailCompiler
 	 */
 	void parseAdditionalBlockArgumentsAfterThen (
 		final ParserState start,
-		final List<AvailVariableDeclarationNode> argsSoFar,
-		final Con<List<AvailVariableDeclarationNode>> continuation)
+		final List<AvailObject> argsSoFar,
+		final Con<List<AvailObject>> continuation)
 	{
 		if (start.peekToken(OPERATOR, ",", "comma and more block arguments"))
 		{
 			parseBlockArgumentThen(
 				start.afterToken(),
-				new Con<AvailVariableDeclarationNode>(
-					"Additional block argument")
+				new Con<AvailObject>("Additional block argument")
 				{
 					@Override
 					public void value (
 						final ParserState afterArgument,
-						final AvailVariableDeclarationNode arg)
+						final AvailObject arg)
 					{
-						final List<AvailVariableDeclarationNode> newArgsSoFar =
-							new ArrayList<AvailVariableDeclarationNode>(
-								argsSoFar);
+						final List<AvailObject> newArgsSoFar =
+							new ArrayList<AvailObject>(argsSoFar);
 						newArgsSoFar.add(arg);
 						parseAdditionalBlockArgumentsAfterThen(
 							afterArgument,
@@ -1643,7 +1715,7 @@ public class AvailCompiler
 			attempt(
 				start.afterToken(),
 				continuation,
-				new ArrayList<AvailVariableDeclarationNode>(argsSoFar));
+				new ArrayList<AvailObject>(argsSoFar));
 		}
 	}
 
@@ -1651,13 +1723,13 @@ public class AvailCompiler
 	 * Parse an assignment statement.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param continuation
-	 *            What to do with the parsed assignment statement.
+	 *        What to do with the parsed assignment statement.
 	 */
 	void parseAssignmentThen (
 		final ParserState start,
-		final Con<AvailAssignmentNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		if (start.peekToken().tokenType() != KEYWORD)
 		{
@@ -1667,12 +1739,12 @@ public class AvailCompiler
 		parseVariableUseWithExplanationThen(
 			start,
 			"for an assignment",
-			new Con<AvailVariableUseNode>("Variable use for assignment")
+			new Con<AvailObject>("Variable use for assignment")
 			{
 				@Override
 				public void value (
 					final ParserState afterVar,
-					final AvailVariableUseNode varUse)
+					final AvailObject varUse)
 				{
 					if (!afterVar.peekToken(OPERATOR, ":", ":= for assignment"))
 					{
@@ -1690,52 +1762,50 @@ public class AvailCompiler
 					final ParserState afterEquals = afterColon.afterToken();
 					final Mutable<AvailObject> varType =
 						new Mutable<AvailObject>();
-					final AvailVariableDeclarationNode declaration = varUse
-							.associatedDeclaration();
-					boolean ok = true;
+					final AvailObject declaration = varUse.declaration();
+					boolean ok = false;
 					if (declaration == null)
 					{
-						ok = false;
 						start.expected("variable to have been declared");
-					}
-					else if (declaration.isSyntheticVariableDeclaration())
-					{
-						varType.value = declaration.declaredType();
 					}
 					else
 					{
-						if (declaration.isArgument())
+						String errorSuffix = null;
+						switch (declaration.declarationKind())
 						{
-							ok = false;
-							start.expected(
-								"assignment variable not to be an argument");
+							case ARGUMENT:
+								errorSuffix = "not to be an argument";
+								break;
+							case LABEL:
+								errorSuffix = "to be a variable, not a label";
+								break;
+							case LOCAL_CONSTANT:
+							case MODULE_CONSTANT:
+								errorSuffix = "not to be a constant";
+								break;
+							case MODULE_VARIABLE:
+							case LOCAL_VARIABLE:
+								varType.value = declaration.declaredType();
+								ok = true;
 						}
-						if (declaration.isLabel())
+						if (errorSuffix != null)
 						{
-							ok = false;
 							start.expected(
-								"assignment variable to be local, not label");
+								"assignment variable " + errorSuffix);
 						}
-						if (declaration.isConstant())
-						{
-							ok = false;
-							start.expected(
-								"assignment variable not to be constant");
-						}
-						varType.value = declaration.declaredType();
 					}
 
 					if (!ok)
 					{
 						return;
 					}
-					parseExpressionThen(afterEquals, new Con<AvailParseNode>(
+					parseExpressionThen(afterEquals, new Con<AvailObject>(
 						"Expression for right side of assignment")
 					{
 						@Override
 						public void value (
 							final ParserState afterExpr,
-							final AvailParseNode expr)
+							final AvailObject expr)
 						{
 							if (afterExpr.peekToken().tokenType()
 									!= END_OF_STATEMENT)
@@ -1744,10 +1814,11 @@ public class AvailCompiler
 									"; to end assignment statement");
 								return;
 							}
-							if (expr.expressionType().isSubtypeOf(varType.value))
+							if (expr.expressionType().isSubtypeOf(
+								varType.value))
 							{
-								final AvailAssignmentNode assignment =
-									new AvailAssignmentNode();
+								final AvailObject assignment =
+									AssignmentNodeDescriptor.mutable().create();
 								assignment.variable(varUse);
 								assignment.expression(expr);
 								attempt(afterExpr, continuation, assignment);
@@ -1760,10 +1831,9 @@ public class AvailCompiler
 									public String value ()
 									{
 										return "assignment expression's type ("
-												+ expr.expressionType().toString()
-												+ ") to match variable type ("
-												+ varType.value.toString()
-												+ ")";
+											+ expr.expressionType().toString()
+											+ ") to match variable type ("
+											+ varType.value.toString() + ")";
 									}
 								});
 							}
@@ -1778,29 +1848,28 @@ public class AvailCompiler
 	 * ("|") is required after the arguments if there are any.
 	 *
 	 * @param start
-	 *            Where to parse.
+	 *        Where to parse.
 	 * @param continuation
-	 *            What to do with the list of block arguments.
+	 *        What to do with the list of block arguments.
 	 */
 	private void parseBlockArgumentsThen (
 		final ParserState start,
-		final Con<List<AvailVariableDeclarationNode>> continuation)
+		final Con<List<AvailObject>> continuation)
 	{
 		// Try it with no arguments.
 		attempt(
 			start,
 			continuation,
-			new ArrayList<AvailVariableDeclarationNode>());
-		parseBlockArgumentThen(start, new Con<AvailVariableDeclarationNode>(
-			"Block argument")
+			new ArrayList<AvailObject>());
+		parseBlockArgumentThen(start, new Con<AvailObject>("Block argument")
 		{
 			@Override
 			public void value (
 				final ParserState afterFirstArg,
-				final AvailVariableDeclarationNode firstArg)
+				final AvailObject firstArg)
 			{
-				final List<AvailVariableDeclarationNode> argsList =
-					new ArrayList<AvailVariableDeclarationNode>(1);
+				final List<AvailObject> argsList =
+					new ArrayList<AvailObject>(1);
 				argsList.add(firstArg);
 				parseAdditionalBlockArgumentsAfterThen(
 					afterFirstArg,
@@ -1820,7 +1889,7 @@ public class AvailCompiler
 	 */
 	void parseBlockArgumentThen (
 		final ParserState start,
-		final Con<AvailVariableDeclarationNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		final AvailObject localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
@@ -1845,20 +1914,21 @@ public class AvailCompiler
 				{
 					if (type.equals(Types.voidType.object()))
 					{
-						afterArgType
-								.expected("a type for the argument other than void");
+						afterArgType.expected(
+							"a type for the argument other than void");
 					}
 					else if (type.equals(Types.terminates.object()))
 					{
-						afterArgType
-								.expected("a type for the argument other than terminates");
+						afterArgType.expected(
+							"a type for the argument other than terminates");
 					}
 					else
 					{
-						final AvailVariableDeclarationNode decl = new AvailVariableDeclarationNode();
-						decl.name(localName);
+						final AvailObject decl =
+							DeclarationNodeDescriptor.mutable().create();
+						decl.declarationKind(ARGUMENT);
+						decl.token(localName);
 						decl.declaredType(type);
-						decl.isArgument(true);
 						attempt(
 							afterArgType.withDeclaration(decl),
 							continuation,
@@ -1878,7 +1948,7 @@ public class AvailCompiler
 	 */
 	private void parseBlockThen (
 		final ParserState start,
-		final Con<AvailBlockNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		if (!start.peekToken(OPERATOR, "["))
 		{
@@ -1889,12 +1959,12 @@ public class AvailCompiler
 		final AvailCompilerScopeStack scopeOutsideBlock = start.scopeStack;
 		parseBlockArgumentsThen(
 			start.afterToken(),
-			new Con<List<AvailVariableDeclarationNode>>("Block arguments")
+			new Con<List<AvailObject>>("Block arguments")
 			{
 				@Override
 				public void value (
 					final ParserState afterArguments,
-					final List<AvailVariableDeclarationNode> arguments)
+					final List<AvailObject> arguments)
 				{
 					parseOptionalPrimitiveForArgCountThen(
 						afterArguments,
@@ -1908,13 +1978,13 @@ public class AvailCompiler
 							{
 								parseStatementsThen(
 									afterOptionalPrimitive,
-									new Con<List<AvailParseNode>>(
+									new Con<List<AvailObject>>(
 										"Block statements")
 									{
 										@Override
 										public void value (
 											final ParserState afterStatements,
-											final List<AvailParseNode> statements)
+											final List<AvailObject> statements)
 										{
 											finishBlockThen(
 												afterStatements,
@@ -1946,15 +2016,15 @@ public class AvailCompiler
 	 * @param scopeOutsideBlock
 	 *            The scope that existed before the block started to be parsed.
 	 * @param continuation
-	 *            What to do with the {@link AvailBlockNode}.
+	 *            What to do with the {@link BlockNodeDescriptor block}.
 	 */
 	void finishBlockThen (
 		final ParserState afterStatements,
-		final List<AvailVariableDeclarationNode> arguments,
+		final List<AvailObject> arguments,
 		final short primitive,
-		final List<AvailParseNode> statements,
+		final List<AvailObject> statements,
 		final AvailCompilerScopeStack scopeOutsideBlock,
-		final Con<AvailBlockNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		if (primitive != 0 && primitive != 256 && statements.isEmpty())
 		{
@@ -1975,15 +2045,15 @@ public class AvailCompiler
 			new Mutable<AvailObject>();
 		if (statements.size() > 0)
 		{
-			final AvailParseNode lastStatement = statements.get(
-				statements.size() - 1);
-			if (lastStatement.isDeclaration() || lastStatement.isAssignment())
+			final AvailObject stmt = statements.get(statements.size() - 1);
+			if (stmt.isInstanceOfSubtypeOf(Types.declarationNode.object())
+				|| stmt.isInstanceOfSubtypeOf(Types.assignmentNode.object()))
 			{
 				lastStatementType.value = Types.voidType.object();
 			}
 			else
 			{
-				lastStatementType.value = lastStatement.expressionType();
+				lastStatementType.value = stmt.expressionType();
 			}
 		}
 		else
@@ -2003,19 +2073,21 @@ public class AvailCompiler
 		else
 		{
 			boolean blockTypeGood = true;
-			if (statements.size() > 0 && statements.get(0).isLabel())
+			if (statements.size() > 0
+				&& statements.get(0).isInstanceOfSubtypeOf(
+					Types.labelNode.object()))
 			{
-				final AvailLabelNode labelNode = (AvailLabelNode) statements.get(0);
-				final AvailObject labelClosureType = labelNode.declaredType()
-						.closureType();
+				final AvailObject labelNode = statements.get(0);
+				final AvailObject labelClosureType =
+					labelNode.declaredType().closureType();
 				blockTypeGood = labelClosureType.numArgs() == arguments.size()
-						&& labelClosureType.returnType().equals(
-							lastStatementType.value);
+					&& labelClosureType.returnType().equals(
+						lastStatementType.value);
 				for (int i = 1; i <= arguments.size(); i++)
 				{
 					if (blockTypeGood
-							&& !labelClosureType.argTypeAt(i).equals(
-								arguments.get(i - 1).declaredType()))
+						&& !labelClosureType.argTypeAt(i).equals(
+							arguments.get(i - 1).declaredType()))
 					{
 						blockTypeGood = false;
 					}
@@ -2023,10 +2095,11 @@ public class AvailCompiler
 			}
 			if (blockTypeGood)
 			{
-				final AvailBlockNode blockNode = new AvailBlockNode();
-				blockNode.arguments(arguments);
+				final AvailObject blockNode =
+					BlockNodeDescriptor.mutable().create();
+				blockNode.argumentsTuple(TupleDescriptor.fromList(arguments));
 				blockNode.primitive(primitive);
-				blockNode.statements(statements);
+				blockNode.statementsTuple(TupleDescriptor.fromList(statements));
 				blockNode.resultType(lastStatementType.value);
 				attempt(stateOutsideBlock, continuation, blockNode);
 			}
@@ -2056,27 +2129,25 @@ public class AvailCompiler
 					final AvailObject returnType)
 				{
 					if (statements.isEmpty() && primitive != 0
-							|| lastStatementType.value.isSubtypeOf(returnType))
+						|| lastStatementType.value.isSubtypeOf(returnType))
 					{
 						boolean blockTypeGood = true;
 						if (statements.size() > 0
-								&& statements.get(0).isLabel())
+							&& statements.get(0).isInstanceOfSubtypeOf(
+								Types.labelNode.object()))
 						{
-							final AvailLabelNode labelNode = (AvailLabelNode) statements
-									.get(0);
-							final AvailObject labelClosureType = labelNode
-									.declaredType().closureType();
-							blockTypeGood = labelClosureType.numArgs() == arguments
-									.size()
+							final AvailObject labelNode = statements.get(0);
+							final AvailObject labelClosureType =
+								labelNode.declaredType().closureType();
+							blockTypeGood =
+								labelClosureType.numArgs() == arguments.size()
 									&& labelClosureType.returnType().equals(
 										returnType);
 							for (int i = 1; i <= arguments.size(); i++)
 							{
 								if (blockTypeGood
-										&& !labelClosureType.argTypeAt(i)
-												.equals(
-													arguments.get(i - 1)
-															.declaredType()))
+									&& !labelClosureType.argTypeAt(i).equals(
+										arguments.get(i - 1).declaredType()))
 								{
 									blockTypeGood = true;
 								}
@@ -2084,10 +2155,13 @@ public class AvailCompiler
 						}
 						if (blockTypeGood)
 						{
-							final AvailBlockNode blockNode = new AvailBlockNode();
-							blockNode.arguments(arguments);
+							final AvailObject blockNode =
+								BlockNodeDescriptor.mutable().create();
+							blockNode.argumentsTuple(
+								TupleDescriptor.fromList(arguments));
 							blockNode.primitive(primitive);
-							blockNode.statements(statements);
+							blockNode.statementsTuple(
+								TupleDescriptor.fromList(statements));
 							blockNode.resultType(returnType);
 							attempt(afterReturnType, continuation, blockNode);
 						}
@@ -2104,10 +2178,12 @@ public class AvailCompiler
 							@Override
 							public String value ()
 							{
-								return "last statement's type \""
-										+ lastStatementType.value.toString()
-										+ "\" to agree with block's declared result type \""
-										+ returnType.toString() + "\".";
+								return
+									"last statement's type \""
+									+ lastStatementType.value.toString()
+									+ "\" to agree with block's declared "
+									+ "result type \"" + returnType.toString()
+									+ "\".";
 							}
 						});
 					}
@@ -2126,15 +2202,15 @@ public class AvailCompiler
 	 */
 	void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con<AvailParseNode> continuation)
+		final Con<AvailObject> continuation)
 	{
-		parseLeadingKeywordSendThen(start, new Con<AvailSendNode>(
+		parseLeadingKeywordSendThen(start, new Con<AvailObject>(
 			"Uncached leading keyword send")
 		{
 			@Override
 			public void value (
 				final ParserState afterSendNode,
-				final AvailSendNode sendNode)
+				final AvailObject sendNode)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(
 					afterSendNode,
@@ -2142,13 +2218,13 @@ public class AvailCompiler
 					continuation);
 			}
 		});
-		parseSimpleThen(start, new Con<AvailParseNode>(
+		parseSimpleThen(start, new Con<AvailObject>(
 			"Uncached simple expression")
 		{
 			@Override
 			public void value (
 				final ParserState afterSimple,
-				final AvailParseNode simpleNode)
+				final AvailObject simpleNode)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(
 					afterSimple,
@@ -2156,13 +2232,12 @@ public class AvailCompiler
 					continuation);
 			}
 		});
-		parseBlockThen(start, new Con<AvailBlockNode>(
-			"Uncached block expression")
+		parseBlockThen(start, new Con<AvailObject>("Uncached block expression")
 		{
 			@Override
 			public void value (
 				final ParserState afterBlock,
-				final AvailBlockNode blockNode)
+				final AvailObject blockNode)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(
 					afterBlock,
@@ -2187,7 +2262,7 @@ public class AvailCompiler
 	 */
 	void parseExpressionThen (
 		final ParserState start,
-		final Con<AvailParseNode> originalContinuation)
+		final Con<AvailObject> originalContinuation)
 	{
 		if (!fragmentCache.hasComputedForState(start))
 		{
@@ -2204,13 +2279,13 @@ public class AvailCompiler
 				"Expression marker",
 				start.position);
 			fragmentCache.startComputingForState(start);
-			final Con<AvailParseNode> justRecord = new Con<AvailParseNode>(
+			final Con<AvailObject> justRecord = new Con<AvailObject>(
 				"Expression")
 			{
 				@Override
 				public void value (
 					final ParserState afterExpr,
-					final AvailParseNode expr)
+					final AvailObject expr)
 				{
 					fragmentCache.addSolution(
 						start,
@@ -2274,10 +2349,10 @@ public class AvailCompiler
 	void parseRestOfSendNode (
 		final ParserState start,
 		final AvailObject bundleTree,
-		final AvailParseNode firstArgOrNull,
+		final AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
-		final List<AvailParseNode> argsSoFar,
-		final Con<AvailSendNode> continuation)
+		final List<AvailObject> argsSoFar,
+		final Con<AvailObject> continuation)
 	{
 		final AvailObject complete = bundleTree.complete();
 		final AvailObject incomplete = bundleTree.incomplete();
@@ -2287,7 +2362,8 @@ public class AvailCompiler
 		final boolean anySpecial = special.mapSize() > 0;
 		assert anyComplete || anyIncomplete || anySpecial
 		: "Expected a nonempty list of possible messages";
-		if (anyComplete && firstArgOrNull == null
+		if (anyComplete
+				&& firstArgOrNull == null
 				&& start.position != initialTokenPosition.position)
 		{
 			// There are complete messages, we didn't leave a leading argument
@@ -2304,17 +2380,17 @@ public class AvailCompiler
 					if (interpreter.runtime().hasMethodsAt(message))
 					{
 						final Mutable<Boolean> valid = new Mutable<Boolean>();
-						final AvailObject impSet = interpreter.runtime()
-								.methodsAt(message);
+						final AvailObject impSet =
+							interpreter.runtime().methodsAt(message);
 						valid.value = true;
 						final List<AvailObject> argTypes =
 							new ArrayList<AvailObject>(argsSoFar.size());
-						for (final AvailParseNode arg : argsSoFar)
+						for (final AvailObject arg : argsSoFar)
 						{
 							argTypes.add(arg.expressionType());
 						}
-						final AvailObject returnType = interpreter
-							.validateTypesOfMessageSendArgumentTypesIfFail(
+						final AvailObject returnType =
+							interpreter.validateSendArgumentTypesIfFail(
 								message,
 								argTypes,
 								new Continuation1<Generator<String>>()
@@ -2345,8 +2421,8 @@ public class AvailCompiler
 						}
 						if (valid.value)
 						{
-							final String errorMessage = interpreter
-								.validateRequiresClauses(
+							final String errorMessage =
+								interpreter.validateRequiresClauses(
 									bundle.message(),
 									argTypes);
 							if (errorMessage != null)
@@ -2357,9 +2433,11 @@ public class AvailCompiler
 						}
 						if (valid.value)
 						{
-							final AvailSendNode sendNode = new AvailSendNode();
+							final AvailObject sendNode =
+								SendNodeDescriptor.mutable().create();
 							sendNode.implementationSet(impSet);
-							sendNode.arguments(argsSoFar);
+							sendNode.argumentsTuple(
+								TupleDescriptor.fromList(argsSoFar));
 							sendNode.returnType(returnType);
 							attempt(start, continuation, sendNode);
 						}
@@ -2462,16 +2540,17 @@ public class AvailCompiler
 	 *            The {@link MessageBundleTreeDescriptor bundle trees} at which
 	 *            to continue parsing.
 	 * @param continuation
-	 *            What to do with a complete {@link AvailSendNode message send}.
+	 *            What to do with a complete {@link SendNodeDescriptor message
+	 *            send}.
 	 */
 	void runParsingInstructionThen (
 		final ParserState start,
 		final int instruction,
-		final AvailParseNode firstArgOrNull,
-		final List<AvailParseNode> argsSoFar,
+		final AvailObject firstArgOrNull,
+		final List<AvailObject> argsSoFar,
 		final ParserState initialTokenPosition,
 		final AvailObject successorTrees,
-		final Con<AvailSendNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		switch (instruction)
 		{
@@ -2484,15 +2563,15 @@ public class AvailCompiler
 					" (an argument of some message)",
 					firstArgOrNull,
 					initialTokenPosition,
-					new Con<AvailParseNode>("Argument of message send")
+					new Con<AvailObject>("Argument of message send")
 					{
 						@Override
 						public void value (
 							final ParserState afterArg,
-							final AvailParseNode newArg)
+							final AvailObject newArg)
 						{
-							final List<AvailParseNode> newArgsSoFar =
-								new ArrayList<AvailParseNode>(argsSoFar);
+							final List<AvailObject> newArgsSoFar =
+								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
 							attempt(
 								new Continuation0()
@@ -2520,10 +2599,12 @@ public class AvailCompiler
 			{
 				// Push an empty list node and continue.
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailParseNode> newArgsSoFar =
-					new ArrayList<AvailParseNode>(argsSoFar);
-				final AvailTupleNode newTupleNode = new AvailTupleNode(
-					Collections.<AvailParseNode> emptyList());
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				final AvailObject newTupleNode =
+					TupleNodeDescriptor.mutable().create();
+				newTupleNode.expressionsTuple(TupleDescriptor.empty());
+				newTupleNode.tupleType(VoidDescriptor.voidObject());
 				newArgsSoFar.add(newTupleNode);
 				attempt(
 					new Continuation0()
@@ -2551,14 +2632,13 @@ public class AvailCompiler
 				// push the new list (the original list must not
 				// change), then continue.
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailParseNode> newArgsSoFar =
-					new ArrayList<AvailParseNode>(argsSoFar);
-				final AvailParseNode value = newArgsSoFar.remove(
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				final AvailObject value = newArgsSoFar.remove(
 					newArgsSoFar.size() - 1);
-				final AvailParseNode oldNode = newArgsSoFar.remove(
+				final AvailObject oldNode = newArgsSoFar.remove(
 					newArgsSoFar.size() - 1);
-				AvailTupleNode tupleNode = (AvailTupleNode) oldNode;
-				tupleNode = tupleNode.copyWith(value);
+				final AvailObject tupleNode = oldNode.copyWith(value);
 				newArgsSoFar.add(tupleNode);
 				attempt(
 					new Continuation0()
@@ -2583,11 +2663,12 @@ public class AvailCompiler
 			{
 				// Push current parse position.
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailParseNode> newArgsSoFar =
-					new ArrayList<AvailParseNode>(argsSoFar);
-				newArgsSoFar.add(
-					new AvailMarkerNode(
-						IntegerDescriptor.objectFromInt(start.position)));
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				final AvailObject marker = MarkerNodeDescriptor.mutable().create();
+				marker.markerValue(
+					IntegerDescriptor.objectFromInt(start.position));
+				newArgsSoFar.add(marker);
 				attempt(
 					new Continuation0()
 					{
@@ -2611,11 +2692,12 @@ public class AvailCompiler
 			{
 				// Underpop saved parse position (from 2nd-to-top of stack).
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailParseNode> newArgsSoFar =
-					new ArrayList<AvailParseNode>(argsSoFar);
-				final AvailParseNode marker =
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				final AvailObject marker =
 					newArgsSoFar.remove(newArgsSoFar.size() - 2);
-				assert marker instanceof AvailMarkerNode;
+				assert marker.traversed().descriptor()
+					instanceof MarkerNodeDescriptor;
 				attempt(
 					new Continuation0()
 					{
@@ -2641,19 +2723,21 @@ public class AvailCompiler
 				// to value at 2nd-to-top of stack).  Also update the entry to
 				// be the new parse position.
 				assert successorTrees.tupleSize() == 1;
-				final AvailParseNode shouldBeMarker =
+				final AvailObject marker =
 					argsSoFar.get(argsSoFar.size() - 2);
-				final AvailMarkerNode marker = (AvailMarkerNode) shouldBeMarker;
 				if (marker.markerValue().extractInt() == start.position)
 				{
 					return;
 				}
-				final List<AvailParseNode> newArgsSoFar =
-					new ArrayList<AvailParseNode>(argsSoFar);
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				final AvailObject newMarker =
+					MarkerNodeDescriptor.mutable().create();
+				newMarker.markerValue(
+					IntegerDescriptor.objectFromInt(start.position));
 				newArgsSoFar.set(
 					newArgsSoFar.size() - 2,
-					new AvailMarkerNode(
-						IntegerDescriptor.objectFromInt(start.position)));
+					newMarker);
 				attempt(
 					new Continuation0()
 					{
@@ -2726,18 +2810,18 @@ public class AvailCompiler
 	 */
 	void checkRestrictionsIfFail (
 		final AvailObject bundle,
-		final List<AvailParseNode> arguments,
+		final List<AvailObject> arguments,
 		final Continuation1<Generator<String>> ifFail)
 	{
 		for (int i = 1; i <= arguments.size(); i++)
 		{
 			final int index = i;
-			final AvailParseNode argument = arguments.get(index - 1);
-			if (argument.isSend())
+			final AvailObject argument = arguments.get(index - 1);
+			if (argument.isInstanceOfSubtypeOf(Types.sendNode.object()))
 			{
-				final AvailSendNode innerSend = (AvailSendNode) argument;
-				final AvailObject restrictions = bundle.restrictions().tupleAt(index);
-				if (restrictions.hasElement(innerSend.message()))
+				final AvailObject restrictions =
+					bundle.restrictions().tupleAt(index);
+				if (restrictions.hasElement(argument.message()))
 				{
 					ifFail.value(new Generator<String>()
 					{
@@ -2815,15 +2899,15 @@ public class AvailCompiler
 	 */
 	void parseLeadingArgumentSendAfterThen (
 		final ParserState start,
-		final AvailParseNode leadingArgument,
-		final Con<AvailSendNode> continuation)
+		final AvailObject leadingArgument,
+		final Con<AvailObject> continuation)
 	{
 		parseRestOfSendNode(
 			start,
 			interpreter.rootBundleTree(),
 			leadingArgument,
 			start,
-			Collections.<AvailParseNode> emptyList(),
+			Collections.<AvailObject> emptyList(),
 			continuation);
 	}
 
@@ -2840,14 +2924,14 @@ public class AvailCompiler
 	 */
 	private void parseLeadingKeywordSendThen (
 		final ParserState start,
-		final Con<AvailSendNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		parseRestOfSendNode(
 			start,
 			interpreter.rootBundleTree(),
 			null,
 			start,
-			Collections.<AvailParseNode> emptyList(),
+			Collections.<AvailObject> emptyList(),
 			continuation);
 	}
 
@@ -2866,8 +2950,8 @@ public class AvailCompiler
 	 */
 	void parseOptionalLeadingArgumentSendAfterThen (
 		final ParserState start,
-		final AvailParseNode node,
-		final Con<AvailParseNode> continuation)
+		final AvailObject node,
+		final Con<AvailObject> continuation)
 	{
 		// It's optional, so try it with no wrapping.
 		attempt(start, continuation, node);
@@ -2883,23 +2967,23 @@ public class AvailCompiler
 			start,
 			node,
 			" in case it's the first argument of a non-keyword-leading message",
-			new Con<AvailParseNode>("Optional supercast")
+			new Con<AvailObject>("Optional supercast")
 			{
 				@Override
 				public void value (
 					final ParserState afterCast,
-					final AvailParseNode cast)
+					final AvailObject cast)
 				{
 					parseLeadingArgumentSendAfterThen(
 						afterCast,
 						cast,
-						new Con<AvailSendNode>(
+						new Con<AvailObject>(
 							"Leading argument send after optional supercast")
 						{
 							@Override
 							public void value (
 								final ParserState afterSend,
-								final AvailSendNode leadingSend)
+								final AvailObject leadingSend)
 							{
 								parseOptionalLeadingArgumentSendAfterThen(
 									afterSend,
@@ -2962,9 +3046,9 @@ public class AvailCompiler
 		final short primitive = (short) token.literal().extractInt();
 		if (!interpreter.supportsPrimitive(primitive))
 		{
-			afterPrimitiveKeyword
-					.expected("a supported primitive number, not #"
-							+ Short.toString(primitive));
+			afterPrimitiveKeyword.expected(
+				"a supported primitive number, not #"
+				+ Short.toString(primitive));
 			return;
 		}
 
@@ -3011,9 +3095,9 @@ public class AvailCompiler
 	 */
 	void parseOptionalSuperCastAfterErrorSuffixThen (
 		final ParserState start,
-		final AvailParseNode expr,
+		final AvailObject expr,
 		final String errorSuffix,
-		final Con<? super AvailParseNode> continuation)
+		final Con<? super AvailObject> continuation)
 	{
 		// Optional, so try it without a super cast.
 		attempt(start, continuation, expr);
@@ -3054,8 +3138,9 @@ public class AvailCompiler
 							{
 								if (expr.expressionType().isSubtypeOf(type))
 								{
-									final AvailSuperCastNode cast =
-										new AvailSuperCastNode();
+									final AvailObject cast =
+										SuperCastNodeDescriptor.mutable()
+											.create();
 									cast.expression(expr);
 									cast.type(type);
 									attempt(afterType, continuation, cast);
@@ -3095,9 +3180,9 @@ public class AvailCompiler
 	void parseSendArgumentWithExplanationThen (
 		final ParserState start,
 		final String explanation,
-		final AvailParseNode firstArgOrNull,
+		final AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
-		final Con<AvailParseNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		if (firstArgOrNull == null)
 		{
@@ -3106,13 +3191,13 @@ public class AvailCompiler
 			// trying to parse a leading-keyword message send.
 			if (start.position != initialTokenPosition.position)
 			{
-				parseExpressionThen(start, new Con<AvailParseNode>(
+				parseExpressionThen(start, new Con<AvailObject>(
 					"Argument expression (irrespective of supercast)")
 				{
 					@Override
 					public void value (
 						final ParserState afterArgument,
-						final AvailParseNode argument)
+						final AvailObject argument)
 					{
 						parseOptionalSuperCastAfterErrorSuffixThen(
 							afterArgument,
@@ -3147,7 +3232,7 @@ public class AvailCompiler
 	 */
 	private void parseSimpleThen (
 		final ParserState start,
-		final Con<? super AvailParseNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		// Try a variable use.
 		parseVariableUseWithExplanationThen(start, "", continuation);
@@ -3155,7 +3240,8 @@ public class AvailCompiler
 		// Try a literal.
 		if (start.peekToken().tokenType() == LITERAL)
 		{
-			final AvailLiteralNode literalNode = new AvailLiteralNode();
+			final AvailObject literalNode =
+				LiteralNodeDescriptor.mutable().create();
 			literalNode.token(start.peekToken());
 			attempt(start.afterToken(), continuation, literalNode);
 		}
@@ -3167,35 +3253,45 @@ public class AvailCompiler
 			parseVariableUseWithExplanationThen(
 				afterAmpersand,
 				"in reference expression",
-				new Con<AvailVariableUseNode>("Variable for reference")
+				new Con<AvailObject>("Variable for reference")
 				{
 					@Override
 					public void value (
 						final ParserState afterVar,
-						final AvailVariableUseNode var)
+						final AvailObject var)
 					{
-						final AvailVariableDeclarationNode declaration = var
-								.associatedDeclaration();
+						final AvailObject declaration = var.declaration();
+						String suffix = null;
 						if (declaration == null)
 						{
-							afterAmpersand
-									.expected("reference variable to have been declared");
-						}
-						else if (declaration.isConstant())
-						{
-							afterAmpersand
-									.expected("reference variable not to be a constant");
-						}
-						else if (declaration.isArgument())
-						{
-							afterAmpersand
-									.expected("reference variable not to be an argument");
+							suffix = " to have been declared";
 						}
 						else
 						{
-							final AvailReferenceNode referenceNode = new AvailReferenceNode();
-							referenceNode.variable(var);
-							attempt(afterVar, continuation, referenceNode);
+							switch (declaration.declarationKind())
+							{
+								case LOCAL_CONSTANT:
+								case MODULE_CONSTANT:
+									suffix = " not to be a constant";
+									break;
+								case ARGUMENT:
+									suffix = " not to be an argument";
+									break;
+								case LABEL:
+									suffix = " not to be a label";
+									break;
+								case MODULE_VARIABLE:
+								case LOCAL_VARIABLE:
+									final AvailObject referenceNode =
+										ReferenceNodeDescriptor.mutable().create();
+									referenceNode.variable(var);
+									attempt(afterVar, continuation, referenceNode);
+							}
+							if (suffix != null)
+							{
+								afterAmpersand.expected(
+									"reference variable " + suffix);
+							}
 						}
 					}
 				});
@@ -3214,11 +3310,11 @@ public class AvailCompiler
 	 */
 	void parseStatementsThen (
 		final ParserState start,
-		final Con<List<AvailParseNode>> continuation)
+		final Con<List<AvailObject>> continuation)
 	{
 		parseMoreStatementsThen(
 			start,
-			Collections.<AvailParseNode>emptyList(),
+			Collections.<AvailObject>emptyList(),
 			continuation);
 	}
 
@@ -3231,8 +3327,8 @@ public class AvailCompiler
 	 */
 	void parseMoreStatementsThen (
 		final ParserState start,
-		final List <AvailParseNode> statements,
-		final Con<List<AvailParseNode>> continuation)
+		final List <AvailObject> statements,
+		final Con<List<AvailObject>> continuation)
 	{
 		// Try it with the current list of statements.
 		attempt(start, continuation, statements);
@@ -3240,16 +3336,16 @@ public class AvailCompiler
 		// See if more statements would be legal.
 		if (statements.size() > 0)
 		{
-			final AvailParseNode lastStatement = statements.get(
+			final AvailObject lastStatement = statements.get(
 				statements.size() - 1);
-			if (!lastStatement.isAssignment()
-					&& !lastStatement.isDeclaration()
-					&& !lastStatement.isLabel())
+			if (!lastStatement.isInstanceOfSubtypeOf(Types.assignmentNode.object())
+				&& !lastStatement.isInstanceOfSubtypeOf(Types.labelNode.object())
+				&& !lastStatement.isInstanceOfSubtypeOf(Types.declarationNode.object()))
 			{
 				if (lastStatement.expressionType().equals(Types.terminates.object()))
 				{
 					start.expected(
-						"end of statements since this one always terminates");
+						"end of statements, since this one always terminates");
 					return;
 				}
 				if (!lastStatement.expressionType().equals(Types.voidType.object()))
@@ -3276,15 +3372,15 @@ public class AvailCompiler
 			start,
 			false,
 			statements.isEmpty(),
-			new Con<AvailParseNode>("Another statement")
+			new Con<AvailObject>("Another statement")
 			{
 				@Override
 				public void value (
 					final ParserState afterStatement,
-					final AvailParseNode newStatement)
+					final AvailObject newStatement)
 				{
-					final List<AvailParseNode> newStatements =
-						new ArrayList<AvailParseNode>(statements);
+					final List<AvailObject> newStatements =
+						new ArrayList<AvailObject>(statements);
 					newStatements.add(newStatement);
 					parseMoreStatementsThen(
 						afterStatement,
@@ -3307,7 +3403,7 @@ public class AvailCompiler
 	private void parseVariableUseWithExplanationThen (
 		final ParserState start,
 		final String explanation,
-		final Con<? super AvailVariableUseNode> continuation)
+		final Con<AvailObject> continuation)
 	{
 		final AvailObject token = start.peekToken();
 		if (token.tokenType() != KEYWORD)
@@ -3316,14 +3412,15 @@ public class AvailCompiler
 		}
 		final ParserState afterVar = start.afterToken();
 		// First check if it's in a block scope...
-		final AvailVariableDeclarationNode localDecl = lookupDeclaration(
+		final AvailObject localDecl = lookupDeclaration(
 			start,
 			token.string());
 		if (localDecl != null)
 		{
-			final AvailVariableUseNode varUse = new AvailVariableUseNode();
-			varUse.name(token);
-			varUse.associatedDeclaration(localDecl);
+			final AvailObject varUse =
+				VariableUseNodeDescriptor.mutable().create();
+			varUse.token(token);
+			varUse.declaration(localDecl);
 			attempt(afterVar, continuation, varUse);
 			// Variables in inner scopes HIDE module variables.
 			return;
@@ -3333,17 +3430,18 @@ public class AvailCompiler
 		final AvailObject varName = token.string();
 		if (module.variableBindings().hasKey(varName))
 		{
-			final AvailObject variableObject = module.variableBindings().mapAt(
-				varName);
-			final AvailVariableSyntheticDeclarationNode moduleVarDecl =
-				new AvailVariableSyntheticDeclarationNode();
-			moduleVarDecl.name(token);
+			final AvailObject variableObject =
+				module.variableBindings().mapAt(varName);
+			final AvailObject moduleVarDecl =
+				DeclarationNodeDescriptor.mutable().create();
+			moduleVarDecl.declarationKind(MODULE_VARIABLE);
+			moduleVarDecl.token(token);
 			moduleVarDecl.declaredType(variableObject.type().innerType());
-			moduleVarDecl.isArgument(false);
-			moduleVarDecl.availVariable(variableObject);
-			final AvailVariableUseNode varUse = new AvailVariableUseNode();
-			varUse.name(token);
-			varUse.associatedDeclaration(moduleVarDecl);
+			moduleVarDecl.literalObject(variableObject);
+			final AvailObject varUse =
+				VariableUseNodeDescriptor.mutable().create();
+			varUse.token(token);
+			varUse.declaration(moduleVarDecl);
 			attempt(afterVar, continuation, varUse);
 			return;
 		}
@@ -3351,15 +3449,16 @@ public class AvailCompiler
 		{
 			final AvailObject valueObject = module.constantBindings().mapAt(
 				varName);
-			final AvailConstantSyntheticDeclarationNode moduleConstDecl =
-				new AvailConstantSyntheticDeclarationNode();
-			moduleConstDecl.name(token);
+			final AvailObject moduleConstDecl =
+				DeclarationNodeDescriptor.mutable().create();
+			moduleConstDecl.declarationKind(MODULE_CONSTANT);
+			moduleConstDecl.token(token);
 			moduleConstDecl.declaredType(valueObject.type());
-			moduleConstDecl.isArgument(false);
-			moduleConstDecl.availValue(valueObject);
-			final AvailVariableUseNode varUse = new AvailVariableUseNode();
-			varUse.name(token);
-			varUse.associatedDeclaration(moduleConstDecl);
+			moduleConstDecl.literalObject(valueObject);
+			final AvailObject varUse =
+				VariableUseNodeDescriptor.mutable().create();
+			varUse.token(token);
+			varUse.declaration(moduleConstDecl);
 			attempt(afterVar, continuation, varUse);
 			return;
 		}
@@ -3379,16 +3478,18 @@ public class AvailCompiler
 	 * ways, but we stop after two as it's already an error. Report the error.
 	 *
 	 * @param where
-	 *            Where the expressions were parsed from.
+	 *        Where the expressions were parsed from.
 	 * @param interpretation1
-	 *            The first interpretation as a {@link AvailParseNode}.
+	 *        The first interpretation as a {@link ParseNodeDescriptor parse
+	 *        node}.
 	 * @param interpretation2
-	 *            The second interpretation as a {@link AvailParseNode}.
+	 *        The second interpretation as a {@link ParseNodeDescriptor parse
+	 *        node}.
 	 */
 	private void ambiguousInterpretationsAnd (
 		final ParserState where,
-		final AvailParseNode interpretation1,
-		final AvailParseNode interpretation2)
+		final AvailObject interpretation1,
+		final AvailObject interpretation2)
 	{
 		where.expected(new Generator<String>()
 		{
@@ -3444,7 +3545,7 @@ public class AvailCompiler
 	 *            The name of the variable declaration for which to look.
 	 * @return The declaration or null.
 	 */
-	private AvailVariableDeclarationNode lookupDeclaration (
+	private AvailObject lookupDeclaration (
 		final ParserState start,
 		final AvailObject name)
 	{

@@ -43,6 +43,7 @@ import com.avail.utility.Transformer1;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
+@Deprecated
 public class AvailTupleNode extends AvailParseNode
 {
 
@@ -88,7 +89,7 @@ public class AvailTupleNode extends AvailParseNode
 				IntegerDescriptor.objectFromInt(types.size()));
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
-				TupleDescriptor.mutableObjectFromList(types),
+				TupleDescriptor.fromList(types),
 				Types.terminates.object());
 			tupleType.makeImmutable();
 		}

@@ -39,18 +39,19 @@ import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
-import com.avail.oldcompiler.*;
+import com.avail.newcompiler.node.*;
+import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 
 public class AvailCodeGenerator
 {
 	List<AvailInstruction> _instructions = new ArrayList<AvailInstruction>(10);
 	int _numArgs;
-	Map<AvailVariableDeclarationNode, Integer> _varMap;
-	Map<AvailVariableDeclarationNode, Integer> _outerMap;
+	Map<AvailObject, Integer> _varMap;
+	Map<AvailObject, Integer> _outerMap;
 	List<AvailObject> _literals = new ArrayList<AvailObject>(10);
 	int _depth = 0;
 	int _maxDepth = 0;
-	Map<AvailLabelNode, AvailLabel> _labelInstructions;
+	Map<AvailObject, AvailLabel> _labelInstructions;
 	AvailObject _resultType;
 	int _primitive = 0;
 
@@ -98,12 +99,12 @@ public class AvailCodeGenerator
 	public AvailObject endBlock ()
 	{
 		fixFinalUses();
-		ByteArrayOutputStream nybbles;
-		AvailObject nybbleTuple;
-		nybbles = new ByteArrayOutputStream(50);
+		final ByteArrayOutputStream nybbles = new ByteArrayOutputStream(50);
+		// Detect blocks that immediately return a constant and mark them with a
+		// special primitive number.
 		if (_primitive == 0 && _instructions.size() == 1)
 		{
-			AvailInstruction onlyInstruction = _instructions.get(0);
+			final AvailInstruction onlyInstruction = _instructions.get(0);
 			if (onlyInstruction instanceof AvailPushLiteral)
 			{
 				if (((AvailPushLiteral)onlyInstruction).index() == 1)
@@ -112,35 +113,27 @@ public class AvailCodeGenerator
 				}
 			}
 		}
-		for (AvailInstruction instruction : _instructions)
+		for (final AvailInstruction instruction : _instructions)
 		{
 			instruction.writeNybblesOn(nybbles);
 		}
-		List<Integer> nybbleIntegerArray = new ArrayList<Integer>();
-		for (byte nybble : nybbles.toByteArray())
+		final List<Integer> nybblesArray = new ArrayList<Integer>();
+		for (final byte nybble : nybbles.toByteArray())
 		{
-			nybbleIntegerArray.add(new Integer(nybble));
+			nybblesArray.add(new Integer(nybble));
 		}
-		nybbleTuple = TupleDescriptor.mutableFromIntegerList(
-			nybbleIntegerArray);
+		final AvailObject nybbleTuple = TupleDescriptor.fromIntegerList(
+			nybblesArray);
 		nybbleTuple.makeImmutable();
 		assert _resultType.isType();
-		List<AvailObject> outerArray;
-		AvailObject outerTuple;
-		List<AvailObject> argsArray;
-		AvailObject argsTuple;
-		List<AvailObject> localsArray;
-		AvailObject localsTuple;
-		argsArray = new ArrayList<AvailObject>(
-				Arrays.asList(new AvailObject[_numArgs]));
-		localsArray = new ArrayList<AvailObject>(
-				Arrays.asList(new AvailObject[_varMap.size() - _numArgs]));
-		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry
-				: _varMap.entrySet())
+		final List<AvailObject> argsArray = new ArrayList<AvailObject>(
+			Arrays.asList(new AvailObject[_numArgs]));
+		final List<AvailObject> localsArray = new ArrayList<AvailObject>(
+			Arrays.asList(new AvailObject[_varMap.size() - _numArgs]));
+		for (final Map.Entry<AvailObject, Integer> entry : _varMap.entrySet())
 		{
-			int i = entry.getValue();
-			AvailVariableDeclarationNode argDecl = entry.getKey();
-			AvailObject argDeclType = argDecl.declaredType();
+			final int i = entry.getValue();
+			final AvailObject argDeclType = entry.getKey().declaredType();
 			if (i <= _numArgs)
 			{
 				assert argDeclType.isInstanceOfSubtypeOf(Types.type.object());
@@ -150,21 +143,21 @@ public class AvailCodeGenerator
 			{
 				localsArray.set(
 					i - _numArgs - 1,
-					ContainerTypeDescriptor.wrapInnerType(
-						argDeclType));
+					ContainerTypeDescriptor.wrapInnerType(argDeclType));
 			}
 		}
-		argsTuple = TupleDescriptor.mutableObjectFromList(argsArray);
-		localsTuple = TupleDescriptor.mutableObjectFromList(localsArray);
-		outerArray = new ArrayList<AvailObject>(
+		final AvailObject argsTuple = TupleDescriptor.fromList(argsArray);
+		final AvailObject localsTuple = TupleDescriptor.fromList(localsArray);
+		final List<AvailObject> outerArray = new ArrayList<AvailObject>(
 				Arrays.asList(new AvailObject[_outerMap.size()]));
-		for (Map.Entry<AvailVariableDeclarationNode, Integer> entry
-				: _outerMap.entrySet())
+		for (final Map.Entry<AvailObject, Integer> entry : _outerMap.entrySet())
 		{
-			int i = entry.getValue();
-			AvailVariableDeclarationNode argDecl = entry.getKey();
-			AvailObject argDeclType = argDecl.declaredType();
-			if (argDecl.isArgument() || argDecl.isLabel())
+			final int i = entry.getValue();
+			final AvailObject argDecl = entry.getKey();
+			final AvailObject argDeclType = argDecl.declaredType();
+			final DeclarationKind kind = argDecl.declarationKind();
+			if (kind == DeclarationKind.ARGUMENT
+				|| kind == DeclarationKind.LABEL)
 			{
 				outerArray.set(i - 1, argDeclType);
 			}
@@ -172,61 +165,86 @@ public class AvailCodeGenerator
 			{
 				outerArray.set(
 					i - 1,
-					ContainerTypeDescriptor.wrapInnerType(
-						argDeclType));
+					ContainerTypeDescriptor.wrapInnerType(argDeclType));
 			}
 		}
-		outerTuple = TupleDescriptor.mutableObjectFromList(outerArray);
+		final AvailObject outerTuple = TupleDescriptor.fromList(outerArray);
 		final AvailObject code = CompiledCodeDescriptor.create(
 			nybbleTuple,
 			_numArgs,
-			(_varMap.size() - _numArgs),
+			_varMap.size() - _numArgs,
 			_maxDepth,
 			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				argsTuple,
 				_resultType),
 			_primitive,
-			TupleDescriptor.mutableObjectFromList(_literals),
+			TupleDescriptor.fromList(_literals),
 			localsTuple,
 			outerTuple);
 		code.makeImmutable();
 		return code;
 	}
 
-	public void startBlockWithArgumentsLocalsLabelsOuterVarsResultType (
-		final List<AvailVariableDeclarationNode> arguments,
-		final List<AvailVariableDeclarationNode> locals,
-		final List<AvailLabelNode> labels,
-		final List<AvailVariableDeclarationNode> outerVars,
-		final AvailObject resType)
+
+	/**
+	 * Start generation of a block.
+	 *
+	 * @param arguments
+	 *        The {@link TupleDescriptor tuple} of
+	 *        {@link DeclarationKind#ARGUMENT argument} {@link
+	 *        DeclarationNodeDescriptor declaration nodes}.
+	 * @param locals
+	 *        The {@link List} of {@link DeclarationKind#LOCAL_VARIABLE local
+	 *        variable} and {@link DeclarationKind#LOCAL_CONSTANT local
+	 *        constant} {@link DeclarationNodeDescriptor declaration nodes}.
+	 * @param labels
+	 *        The {@link List} of {@link DeclarationKind#LABEL label} {@link
+	 *        DeclarationNodeDescriptor declaration nodes}.
+	 * @param outerVars
+	 *        The {@link TupleDescriptor tuple} of lexically captured (outer)
+	 *        {@link DeclarationNodeDescriptor declarations}.
+	 * @param resultType
+	 *        A {@link CompiledCodeDescriptor compiled code} object.
+	 */
+	public void startBlock (
+		final AvailObject arguments,
+		final List<AvailObject> locals,
+		final List<AvailObject> labels,
+		final AvailObject outerVars,
+		final AvailObject resultType)
 	{
-		_numArgs = arguments.size();
-		_varMap = new HashMap<AvailVariableDeclarationNode, Integer>(
-				arguments.size() + locals.size());
-		for (AvailVariableDeclarationNode arg : arguments)
+		_numArgs = arguments.tupleSize();
+		_varMap = new HashMap<AvailObject, Integer>(
+			arguments.tupleSize() + locals.size());
+		for (final AvailObject argumentDeclaration : arguments)
 		{
-			_varMap.put(arg, _varMap.size() + 1);
+			_varMap.put(argumentDeclaration, _varMap.size() + 1);
 		}
-		for (AvailVariableDeclarationNode local : locals)
+		for (final AvailObject local : locals)
 		{
 			_varMap.put(local, _varMap.size() + 1);
 		}
-		_outerMap = new HashMap<AvailVariableDeclarationNode, Integer>(
-				outerVars.size());
-		for (AvailVariableDeclarationNode outerVar : outerVars)
+		_outerMap = new HashMap<AvailObject, Integer>(
+				outerVars.tupleSize());
+		for (final AvailObject outerVar : outerVars)
 		{
 			_outerMap.put(outerVar, _outerMap.size() + 1);
 		}
-		_labelInstructions = new HashMap<AvailLabelNode, AvailLabel>(
+		_labelInstructions = new HashMap<AvailObject, AvailLabel>(
 				labels.size());
-		for (AvailLabelNode label : labels)
+		for (final AvailObject label : labels)
 		{
 			_labelInstructions.put(label, new AvailLabel());
 		}
-		_resultType = resType;
+		_resultType = resultType;
 	}
 
 
+	/**
+	 * Decrease the tracked stack depth by the given amount.
+	 *
+	 * @param delta The number of things popped off the stack.
+	 */
 	public void decreaseDepth (
 		final int delta)
 	{
@@ -239,6 +257,11 @@ public class AvailCodeGenerator
 	}
 
 
+	/**
+	 * Increase the tracked stack depth by the given amount.
+	 *
+	 * @param delta The number of things pushed onto the stack.
+	 */
 	public void increaseDepth (
 		final int delta)
 	{
@@ -285,7 +308,8 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Write a multimethod call.  I expect my arguments to have been pushed.
+	 * Write a regular multimethod call.  I expect my arguments to have been
+	 * pushed already.
 	 *
 	 * @param nArgs The number of arguments that the method accepts.
 	 * @param implementationSet The implementation set in which to look up the
@@ -310,29 +334,33 @@ public class AvailCodeGenerator
 	 * Create a closure from {@code CompiledCodeDescriptor compiled code} and
 	 * the pushed outer (lexically bound) variables.
 	 *
-	 * @param compiledCode The code from which to make a closure.
-	 * @param copiedVars A {@link List} of {@link AvailVariableDeclarationNode
-	 *                   declarations} of variables that the code needs to
-	 *                   access.
+	 * @param compiledCode
+	 *        The code from which to make a closure.
+	 * @param neededVariables
+	 *        A {@link TupleDescriptor tuple} of {@link
+	 *        DeclarationNodeDescriptor declarations} of variables that the code
+	 *        needs to access.
 	 */
 	public void emitCloseCode (
 		final AvailObject compiledCode,
-		final List<AvailVariableDeclarationNode> copiedVars)
+		final AvailObject neededVariables)
 	{
-		for (int i = 1, _end1 = copiedVars.size(); i <= _end1; i++)
+		for (final AvailObject variableDeclaration : neededVariables)
 		{
-			emitPushLocalOrOuter(copiedVars.get(i - 1));
+			emitPushLocalOrOuter(variableDeclaration);
 		}
 		final int codeIndex = indexOfLiteral(compiledCode);
-		_instructions.add(new AvailCloseCode(copiedVars.size(), codeIndex));
+		_instructions.add(new AvailCloseCode(
+			neededVariables.tupleSize(),
+			codeIndex));
 		// Copied variables are popped.
-		decreaseDepth(copiedVars.size());
+		decreaseDepth(neededVariables.tupleSize());
 		// Closure is pushed.
 		increaseDepth(1);
 	}
 
 	/**
-	 * Get the value of a literal variable.
+	 * Emit code to get the value of a literal variable.
 	 *
 	 * @param aLiteral The {@link ContainerDescriptor variable} that should have
 	 *                 its value extracted.
@@ -347,13 +375,14 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Get the value of a local or outer (captured) variable.
+	 * Emit code to get the value of a local or outer (captured) variable.
 	 *
-	 * @param localOrOuter The {@link AvailVariableDeclarationNode declaration}
-	 *                     of the variable that should have its value extracted.
+	 * @param localOrOuter
+	 *        The {@link DeclarationNodeDescriptor declaration} of the variable
+	 *        that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
-		final AvailVariableDeclarationNode localOrOuter)
+		final AvailObject localOrOuter)
 	{
 		// Push one thing.
 		increaseDepth(1);
@@ -379,8 +408,11 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Push the type of the value N levels deep in the stack.
+	 * Emit code to push the type of the value N levels deep in the stack.
+	 *
 	 * @param stackDepth
+	 *        How far down the stack to look for the value whose type should be
+	 *        computed and pushed.
 	 */
 	public void emitGetType (
 		final int stackDepth)
@@ -395,14 +427,26 @@ public class AvailCodeGenerator
 		increaseDepth(1);
 	}
 
+	/**
+	 * Emit a {@link DeclarationNodeDescriptor declaration} of a {@link
+	 * DeclarationKind#LABEL label} for the current block.
+	 *
+	 * @param labelNode The label declaration.
+	 */
 	public void emitLabelDeclaration (
-		final AvailLabelNode labelNode)
+		final AvailObject labelNode)
 	{
 		assert _instructions.isEmpty() : "Label must be first statement in block";
 		//  stack is unaffected.
 		_instructions.add(_labelInstructions.get(labelNode));
 	}
 
+	/**
+	 * Emit code to create a {@link TupleDescriptor tuple} from the top N items
+	 * on the stack.
+	 *
+	 * @param count How many pushed items to pop for the new tuple.
+	 */
 	public void emitMakeTuple (
 		final int count)
 	{
@@ -411,6 +455,9 @@ public class AvailCodeGenerator
 		increaseDepth(1);
 	}
 
+	/**
+	 * Emit code to pop the top value from the stack.
+	 */
 	public void emitPop ()
 	{
 		_instructions.add(new AvailPop());
@@ -418,34 +465,45 @@ public class AvailCodeGenerator
 		decreaseDepth(1);
 	}
 
+	/**
+	 * Emit code to push a literal object onto the stack.
+	 *
+	 * @param aLiteral The object to push.
+	 */
 	public void emitPushLiteral (
 		final AvailObject aLiteral)
 	{
-		increaseDepth(1);
 		//  Push one thing.
+		increaseDepth(1);
 		final int index = indexOfLiteral(aLiteral);
 		_instructions.add(new AvailPushLiteral(index));
 	}
 
+	/**
+	 * Push a variable.  It can be local to the current block or defined in an
+	 * outer scope.
+	 *
+	 * @param variableDeclaration The variable declaration.
+	 */
 	public void emitPushLocalOrOuter (
-		final AvailVariableDeclarationNode localOrOuter)
+		final AvailObject variableDeclaration)
 	{
 		//  Push a variable.
 
 		increaseDepth(1);
-		if (_varMap.containsKey(localOrOuter))
+		if (_varMap.containsKey(variableDeclaration))
 		{
 			_instructions.add(
-				new AvailPushLocalVariable(_varMap.get(localOrOuter)));
+				new AvailPushLocalVariable(_varMap.get(variableDeclaration)));
 			return;
 		}
-		if (_outerMap.containsKey(localOrOuter))
+		if (_outerMap.containsKey(variableDeclaration))
 		{
 			_instructions.add(
-				new AvailPushOuterVariable(_outerMap.get(localOrOuter)));
+				new AvailPushOuterVariable(_outerMap.get(variableDeclaration)));
 			return;
 		}
-		if (_labelInstructions.containsKey(localOrOuter))
+		if (_labelInstructions.containsKey(variableDeclaration))
 		{
 			_instructions.add(new AvailPushLabel());
 			return;
@@ -454,6 +512,12 @@ public class AvailCodeGenerator
 		return;
 	}
 
+	/**
+	 * Emit code to pop the stack and write the popped value into a literal
+	 * variable.
+	 *
+	 * @param aLiteral The variable in which to write.
+	 */
 	public void emitSetLiteral (
 		final AvailObject aLiteral)
 	{
@@ -463,8 +527,16 @@ public class AvailCodeGenerator
 		decreaseDepth(1);
 	}
 
+	/**
+	 * Emit code to pop the stack and write into a local or outer variable.
+	 *
+	 * @param localOrOuter
+	 *        The {@link DeclarationNodeDescriptor declaration} of the {@link
+	 *        DeclarationKind#LOCAL_VARIABLE local} or outer variable in which
+	 *        to write.
+	 */
 	public void emitSetLocalOrOuter (
-		final AvailVariableDeclarationNode localOrOuter)
+		final AvailObject localOrOuter)
 	{
 		//  Set a variable to the value popped from the stack.
 

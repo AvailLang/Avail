@@ -33,24 +33,22 @@
 package com.avail.compiler;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.oldcompiler.AvailVariableDeclarationNode;
 
 public class AvailCompilerScopeStack
 {
 	AvailObject _name;
-	AvailVariableDeclarationNode _declaration;
+	AvailObject _declaration;
 	AvailCompilerScopeStack _next;
 
 
 	// accessing
 
-	AvailVariableDeclarationNode declaration ()
+	AvailObject declaration ()
 	{
 		return _declaration;
 	}
 
-	void declaration (
-			final AvailVariableDeclarationNode anAvailVariableDeclarationNode)
+	void declaration (final AvailObject anAvailVariableDeclarationNode)
 	{
 
 		_declaration = anAvailVariableDeclarationNode;
@@ -61,8 +59,7 @@ public class AvailCompilerScopeStack
 		return _name;
 	}
 
-	void name (
-			final AvailObject availString)
+	void name (final AvailObject availString)
 	{
 
 		_name = availString;
@@ -82,12 +79,8 @@ public class AvailCompilerScopeStack
 
 
 
-
-
-	// Constructor
-
 	AvailCompilerScopeStack (
-		final AvailVariableDeclarationNode declaration,
+		final AvailObject declaration,
 		final AvailCompilerScopeStack next)
 	{
 		if (declaration == null)

@@ -40,6 +40,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
+@Deprecated
 public class AvailAssignmentNode extends AvailParseNode
 {
 

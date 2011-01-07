@@ -4966,10 +4966,43 @@ public abstract class AbstractDescriptor
 	 * @param outerBlocks
 	 * @param anAvailInterpreter
 	 */
-	abstract void o_ValidateLocally (
+	public abstract void o_ValidateLocally (
 		 AvailObject object,
 		 AvailObject parent,
 		 List<AvailObject> outerBlocks,
 		 L2Interpreter anAvailInterpreter);
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 * @return
+	 */
+	public abstract AvailObject o_Generate (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator);
+
+	/**
+	 * @param object
+	 * @param newParseNode
+	 * @return
+	 */
+	public abstract AvailObject o_CopyWith (
+		AvailObject object,
+		AvailObject newParseNode);
+
+	/**
+	 * @param object
+	 * @param isLastUse
+	 */
+	public abstract void o_IsLastUse (
+		final AvailObject object,
+		final boolean isLastUse);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsLastUse (
+		AvailObject object);
 
 }

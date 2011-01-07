@@ -228,7 +228,7 @@ public class ContinuationDescriptor extends Descriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return ContinuationTypeDescriptor.continuationTypeForClosureType(
+		return ContinuationTypeDescriptor.forClosureType(
 			object.closure().type());
 	}
 

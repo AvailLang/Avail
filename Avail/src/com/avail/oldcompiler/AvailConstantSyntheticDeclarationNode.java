@@ -32,10 +32,11 @@
 
 package com.avail.oldcompiler;
 
+import static com.avail.descriptor.AvailObject.error;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
-import static com.avail.descriptor.AvailObject.*;
 
+@Deprecated
 public class AvailConstantSyntheticDeclarationNode extends AvailVariableDeclarationNode
 {
 	AvailObject _availValue;

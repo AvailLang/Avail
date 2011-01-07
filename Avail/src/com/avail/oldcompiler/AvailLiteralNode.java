@@ -43,6 +43,7 @@ import com.avail.utility.Transformer1;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
+@Deprecated
 public class AvailLiteralNode extends AvailParseNode
 {
 	/**

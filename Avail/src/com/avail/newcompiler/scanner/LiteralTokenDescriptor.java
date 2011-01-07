@@ -108,6 +108,13 @@ extends TokenDescriptor
 		return object.objectSlot(ObjectSlots.LITERAL);
 	}
 
+	@Override
+	public AvailObject o_Type (
+		final AvailObject object)
+	{
+		return TypeDescriptor.Types.literalToken.object();
+	}
+
 
 	/**
 	 * Construct a new {@link LiteralTokenDescriptor}.
