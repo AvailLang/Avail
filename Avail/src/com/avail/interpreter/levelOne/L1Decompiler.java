@@ -33,13 +33,13 @@
 package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.LABEL;
+import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LABEL;
 import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.newcompiler.node.*;
-import com.avail.newcompiler.scanner.*;
-import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
+import com.avail.compiler.node.*;
+import com.avail.compiler.scanning.*;
+import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
 public class L1Decompiler implements L1OperationDispatcher

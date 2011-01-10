@@ -30,10 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler.node;
+package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.util.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;

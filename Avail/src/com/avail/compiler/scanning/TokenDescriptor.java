@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler.scanner;
+package com.avail.compiler.scanning;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import com.avail.annotations.EnumField;

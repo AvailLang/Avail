@@ -38,8 +38,8 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.newcompiler.scanner.TokenDescriptor;
+import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 

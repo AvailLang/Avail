@@ -30,14 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler.scanner;
+package com.avail.compiler.scanning;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.newcompiler.scanner.AvailScanner.ScannerAction;
-import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
+import com.avail.compiler.scanning.AvailScanner.ScannerAction;
+import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}

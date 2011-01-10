@@ -35,8 +35,8 @@ package com.avail.compiler;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.newcompiler.node.*;
-import com.avail.newcompiler.scanner.AvailScanner;
+import com.avail.compiler.node.*;
+import com.avail.compiler.scanning.AvailScanner;
 
 /**
  * This class is used to split Avail message names into a sequence of

@@ -30,17 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler.node;
+package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.util.List;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.scanner.TokenDescriptor;
+import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.utility.Transformer1;
 
 /**

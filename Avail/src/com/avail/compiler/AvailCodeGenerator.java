@@ -39,8 +39,8 @@ import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
-import com.avail.newcompiler.node.*;
-import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.compiler.node.*;
+import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 
 public class AvailCodeGenerator
 {

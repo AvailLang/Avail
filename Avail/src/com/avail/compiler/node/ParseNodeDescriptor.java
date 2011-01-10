@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler.node;
+package com.avail.compiler.node;
 
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;

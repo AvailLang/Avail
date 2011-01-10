@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler.node/LiteralNodeDescriptor.java
+ * com.avail.newcompiler/MarkerNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,25 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler.node;
+package com.avail.compiler.node;
 
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
 /**
- * My instances are occurrences of literals parsed from Avail source code.  At
- * the moment only strings and non-negative numbers are supported.
+ * My instances represent a parsing marker that can be pushed onto the parse
+ * stack.  It should never occur as part of a composite {@link
+ * ParseNodeDescriptor parse node}, and is not capable of emitting code.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class LiteralNodeDescriptor extends ParseNodeDescriptor
+public class MarkerNodeDescriptor extends ParseNodeDescriptor
 {
-
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
@@ -57,59 +57,71 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The token that was transformed into this literal.
+		 * The {@link MarkerNodeDescriptor marker} being wrapped in a form
+		 * suitable for the parse stack.
 		 */
-		TOKEN,
+		MARKER_VALUE
 	}
 
+
 	/**
-	 * Setter for field token.
+	 * Setter for field markerValue.
 	 */
 	@Override
-	public void o_Token (
+	public void o_MarkerValue (
 		final AvailObject object,
-		final AvailObject token)
+		final AvailObject markerValue)
 	{
-		object.objectSlotPut(ObjectSlots.TOKEN, token);
+		object.objectSlotPut(ObjectSlots.MARKER_VALUE, markerValue);
 	}
 
 	/**
-	 * Getter for field token.
+	 * Getter for field markerValue.
 	 */
 	@Override
-	public AvailObject o_Token (
+	public AvailObject o_MarkerValue (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TOKEN);
+		return object.objectSlot(ObjectSlots.MARKER_VALUE);
 	}
 
 
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		final AvailObject token = object.token();
-		assert token.tokenType() == TokenType.LITERAL;
-		final AvailObject literal = token.literal();
-		return literal.type().makeImmutable();
+		assert false : "A marker node has no type.";
+		return null;
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
+	public AvailObject o_Type (
+			final AvailObject object)
 	{
-		return Types.literalNode.object();
+		return Types.markerNode.object();
 	}
 
 	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_ExactType (
+			final AvailObject object)
 	{
-		return Types.literalNode.object();
+		return Types.markerNode.object();
 	}
+
+
+	@Override
+	public void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		assert false : "A marker node can not generate code.";
+	}
+
 
 	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return
-			object.token().hash() ^ 0x9C860C0D;
+			object.markerValue().hash() ^ 0xCBCACACC;
 	}
 
 	@Override
@@ -118,71 +130,49 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject another)
 	{
 		return object.type().equals(another.type())
-			&& object.token().equals(another.token());
+			&& object.markerValue().equals(another.markerValue());
 	}
-
-	@Override
-	public void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		codeGenerator.emitPushLiteral(object.token().literal());
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
-	{
-		object.token().literal().printOnAvoidingIndent(
-			builder,
-			recursionList,
-			indent + 1);
-	}
-
 
 
 	/**
-	 * Construct a new {@link LiteralNodeDescriptor}.
+	 * Construct a new {@link MarkerNodeDescriptor}.
 	 *
 	 * @param isMutable Whether my {@linkplain AvailObject instances} can
 	 *                  change.
 	 */
-	public LiteralNodeDescriptor (final boolean isMutable)
+	public MarkerNodeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link LiteralNodeDescriptor}.
+	 * The mutable {@link MarkerNodeDescriptor}.
 	 */
-	private final static LiteralNodeDescriptor mutable =
-		new LiteralNodeDescriptor(true);
+	private final static MarkerNodeDescriptor mutable =
+		new MarkerNodeDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link LiteralNodeDescriptor}.
+	 * Answer the mutable {@link MarkerNodeDescriptor}.
 	 *
-	 * @return The mutable {@link LiteralNodeDescriptor}.
+	 * @return The mutable {@link MarkerNodeDescriptor}.
 	 */
-	public static LiteralNodeDescriptor mutable ()
+	public static MarkerNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link LiteralNodeDescriptor}.
+	 * The immutable {@link MarkerNodeDescriptor}.
 	 */
-	private final static LiteralNodeDescriptor immutable =
-		new LiteralNodeDescriptor(false);
+	private final static MarkerNodeDescriptor immutable =
+		new MarkerNodeDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link LiteralNodeDescriptor}.
+	 * Answer the immutable {@link MarkerNodeDescriptor}.
 	 *
-	 * @return The immutable {@link LiteralNodeDescriptor}.
+	 * @return The immutable {@link MarkerNodeDescriptor}.
 	 */
-	public static LiteralNodeDescriptor immutable ()
+	public static MarkerNodeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -192,7 +182,7 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		// Do nothing.
+		error("Marker nodes should not be mapped.");
 	}
 
 	@Override
@@ -202,7 +192,7 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
 	{
-		// Do nothing.
+		error("Marker nodes should not validateLocally.");
 	}
 
 }

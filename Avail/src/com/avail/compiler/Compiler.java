@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.newcompiler;
+package com.avail.compiler;
 
 
 public class Compiler

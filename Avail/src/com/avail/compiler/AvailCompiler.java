@@ -32,8 +32,8 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.LOCAL_CONSTANT;
-import static com.avail.newcompiler.scanner.TokenDescriptor.TokenType.*;
+import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LOCAL_CONSTANT;
+import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -42,9 +42,9 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.node.*;
-import com.avail.newcompiler.scanner.*;
-import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
+import com.avail.compiler.node.*;
+import com.avail.compiler.scanning.*;
+import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.utility.*;
 
 /**
