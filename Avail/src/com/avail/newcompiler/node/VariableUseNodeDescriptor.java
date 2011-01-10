@@ -32,6 +32,7 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
@@ -158,10 +159,36 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
 	{
 		return Types.variableUseNode.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.variableUseNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			((object.isLastUse() ? 1 : 0) * Multiplier
+				+ object.token().hash()) * Multiplier
+				+ object.declaration().hash()
+			^ 0x62CE7BA2;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.token().equals(another.token())
+			&& object.declaration().equals(another.declaration())
+			&& object.isLastUse() == another.isLastUse();
 	}
 
 	@Override
@@ -175,6 +202,40 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 			codeGenerator);
 	}
 
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append(
+			object.token().string().asNativeString());
+	}
+
+
+
+	/**
+	 * Construct a new {@link VariableUseNodeDescriptor variable use node}.
+	 *
+	 * @param token The token which is the use of the variable in the source.
+	 * @param declaration The declaration which is being used.
+	 * @return A new variable use node.
+	 */
+	public static AvailObject newUse (
+		final AvailObject token,
+		final AvailObject declaration)
+	{
+		assert token.isInstanceOfSubtypeOf(Types.token.object());
+		assert declaration.isInstanceOfSubtypeOf(
+			Types.declarationNode.object());
+
+		final AvailObject newUse = mutable().create();
+		newUse.token(token);
+		newUse.declaration(declaration);
+		newUse.isLastUse(false);
+		return newUse;
+	}
 
 
 

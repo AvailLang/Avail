@@ -3672,21 +3672,22 @@ public enum Primitive
 	prim255_PrecedenceDeclaration_stringSet_exclusionsTuple(255, 2, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject stringSet = args.get(0);
 			final AvailObject exclusionsTuple = args.get(1);
 			AvailObject disallowed = exclusionsTuple;
-			for (int i = 1, _end12 = disallowed.tupleSize(); i <= _end12; i++)
+			for (int i = disallowed.tupleSize(); i >= 1; i--)
 			{
-				final AvailObject exclusionSet = exclusionsTuple.tupleAt(i);
-				final AvailObject exclusionSetAsTuple = exclusionSet.asTuple();
 				AvailObject setOfCyclics = SetDescriptor.empty();
-				for (int k = 1, _end13 = exclusionSetAsTuple.tupleSize(); k <= _end13; k++)
+				for (final AvailObject string : exclusionsTuple.tupleAt(i))
 				{
-					final AvailObject string = exclusionSetAsTuple.tupleAt(k);
-					setOfCyclics = setOfCyclics.setWithElementCanDestroy(interpreter.lookupName(string), true);
+					setOfCyclics = setOfCyclics.setWithElementCanDestroy(
+						interpreter.lookupName(string),
+						true);
 				}
 				disallowed = disallowed.tupleAtPuttingCanDestroy(
 					i,
@@ -3695,10 +3696,12 @@ public enum Primitive
 			}
 			disallowed.makeImmutable();
 			final AvailObject stringSetAsTuple = stringSet.asTuple();
-			for (int i = 1, _end14 = stringSetAsTuple.tupleSize(); i <= _end14; i++)
+			for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
 			{
 				final AvailObject string = stringSetAsTuple.tupleAt(i);
-				interpreter.atDisallowArgumentMessages(interpreter.lookupName(string), disallowed);
+				interpreter.atDisallowArgumentMessages(
+					interpreter.lookupName(string),
+					disallowed);
 			}
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;

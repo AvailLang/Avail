@@ -35,8 +35,8 @@ package com.avail.compiler;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.newcompiler.node.*;
 import com.avail.newcompiler.scanner.AvailScanner;
-import com.avail.oldcompiler.*;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -624,44 +624,48 @@ public class MessageSplitter
 
 		/**
 		 * Pretty-print this part of the message, using the provided argument
-		 * {@link AvailParseNode nodes}.
+		 * {@link ParseNodeDescriptor nodes}.
 		 *
-		 * @param argumentsNode The arguments to this {@link Group}, organized
-		 *                      as either a single {@link AvailParseNode} or a
-		 *                      {@link AvailTupleNode} of parse nodes, depending
-		 *                      on {@code doubleWrap}.  The root group always
-		 *                      has doubleWrap true, and passes a synthetic
-		 *                      {@code AvailTupleNode}.
-		 * @param aStream The {@link StringBuilder} on which to print.
-		 * @param indent The indentation level.
-		 * @param completeGroup Whether to produce a complete group or just up
-		 *                      to the double-dagger.  The last repetition of a
-		 *                      subgroup uses false for this flag.
-		 * @param doubleWrap Whether to treat the arguments list as a tuple of
-		 *                   values or a single value.  True if the group's
-		 *                   {@code needsDoubleWrapping()} is true.  Forced to
-		 *                   true for the root group.
+		 * @param availObject
+		 *        The arguments to this {@link Group}, organized as either a
+		 *        single {@link ParseNodeDescriptor parse node} or a {@link
+		 *        TupleNodeDescriptor tuple node} of parse nodes, depending on
+		 *        {@code doubleWrap}.  The root group always has doubleWrap
+		 *        true, and passes a synthetic {@code TupleNodeDescriptor tuple
+		 *        node}.
+		 * @param aStream
+		 *        The {@link StringBuilder} on which to print.
+		 * @param indent
+		 *        The indentation level.
+		 * @param completeGroup
+		 *        Whether to produce a complete group or just up to the
+		 *        double-dagger.  The last repetition of a subgroup uses false
+		 *        for this flag.
+		 * @param doubleWrap
+		 *        Whether to treat the arguments list as a tuple of values or a
+		 *        single value.  True if the group's {@code
+		 *        needsDoubleWrapping()} is true.  Forced to true for the root
+		 *        group.
 		 */
 		public void printWithArguments (
-			final AvailParseNode argumentsNode,
+			final AvailObject availObject,
 			final StringBuilder aStream,
 			final int indent,
 			final boolean completeGroup,
 			final boolean doubleWrap)
 		{
-			aStream.append("«");
-			List<AvailParseNode> argumentNodes;
+			// aStream.append("«");
+			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
-				final AvailTupleNode tupleNode = (AvailTupleNode)argumentsNode;
-				argumentNodes = tupleNode.parseNodes();
+				argumentsIterator = availObject.iterator();
 			}
 			else
 			{
-				argumentNodes = Collections.singletonList(argumentsNode);
+				final List<AvailObject> argumentNodes =
+					Collections.singletonList(availObject);
+				argumentsIterator = argumentNodes.iterator();
 			}
-			final Iterator<AvailParseNode> argumentsIterator =
-				argumentNodes.iterator();
 			boolean isFirst = true;
 			final List<Expression> expressionsToVisit;
 			if (completeGroup)
@@ -691,35 +695,38 @@ public class MessageSplitter
 				}
 				else if (expr instanceof Argument)
 				{
-					final AvailParseNode argument = argumentsIterator.next();
-					argument.printOnIndentIn(aStream, indent, null);
+					final AvailObject argument = argumentsIterator.next();
+					argument.printOnAvoidingIndent(
+						aStream,
+						new ArrayList<AvailObject>(),
+						indent);
 				}
 				else
 				{
 					assert expr instanceof Group;
 					final Group subgroup = (Group)expr;
-					final AvailParseNode argument = argumentsIterator.next();
-					final AvailTupleNode arguments = (AvailTupleNode)argument;
-					final List<AvailParseNode> occurrences =
-						arguments.parseNodes();
-					for (int i = 0; i < occurrences.size(); i++)
+					final AvailObject argument = argumentsIterator.next();
+					final AvailObject arguments = argument;
+					final AvailObject occurrences =
+						arguments.expressionsTuple();
+					for (int i = 1; i <= occurrences.tupleSize(); i++)
 					{
-						if (i > 0)
+						if (i > 1)
 						{
 							aStream.append(" ");
 						}
 						subgroup.printWithArguments(
-							occurrences.get(i),
+							occurrences.tupleAt(i),
 							aStream,
 							indent,
-							i != occurrences.size() - 1,
+							i != occurrences.tupleSize(),
 							subgroup.needsDoubleWrapping());
 					}
 				}
 				isFirst = false;
 			}
 			assert !argumentsIterator.hasNext();
-			aStream.append("»");
+			// aStream.append("»");
 		}
 
 	}
@@ -808,18 +815,21 @@ public class MessageSplitter
 	/**
 	 * Pretty-print a send of this message with given argument nodes.
 	 *
-	 * @param sendNode The {@link AvailSendNode} that I'm trying to print.
-	 * @param aStream A {@link StringBuilder} on which to pretty-print the send
-	 *                of my message with the given arguments.
-	 * @param indent The current indentation level.
+	 * @param sendNode
+	 *        The {@link SendNodeDescriptor send node} that is being printed.
+	 * @param aStream
+	 *        A {@link StringBuilder} on which to pretty-print the send of my
+	 *        message with the given arguments.
+	 * @param indent
+	 *        The current indentation level.
 	 */
 	public void printSendNodeOnIndent(
-		final AvailSendNode sendNode,
+		final AvailObject sendNode,
 		final StringBuilder aStream,
 		final int indent)
 	{
 		rootGroup.printWithArguments(
-			new AvailTupleNode(sendNode.arguments()),
+			sendNode.arguments(),
 			aStream,
 			indent,
 			true,

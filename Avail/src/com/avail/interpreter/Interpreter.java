@@ -498,7 +498,7 @@ public abstract class Interpreter
 				TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
-			ByteStringDescriptor.fromNativeString(
+			ByteStringDescriptor.from(
 				defineMethodName);
 		final AvailObject realName = CyclicTypeDescriptor.create(
 			nameTuple);
@@ -543,7 +543,7 @@ public abstract class Interpreter
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
-			ByteStringDescriptor.fromNativeString(
+			ByteStringDescriptor.from(
 				specialObjectName);
 		final AvailObject realName = CyclicTypeDescriptor.create(
 			nameTuple);

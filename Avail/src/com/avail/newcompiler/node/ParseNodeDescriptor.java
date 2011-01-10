@@ -69,6 +69,22 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	public abstract AvailObject o_ExpressionType (final AvailObject object);
 
 	/**
+	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
+	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 */
+	@Override
+	public abstract int o_Hash (AvailObject object);
+
+	/**
+	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
+	 * AbstractDescriptor#o_Equals(AvailObject) equals}.
+	 */
+	@Override
+	public abstract boolean o_Equals (
+		AvailObject object,
+		AvailObject another);
+
+	/**
 	 * Emit the effect of this node.  By default that means to emit the value of
 	 * the node, then to pop the unwanted value from the stack.
 	 *
@@ -152,4 +168,9 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter);
 
+	@Override
+	public int maximumIndent ()
+	{
+		return Integer.MAX_VALUE;
+	}
 }

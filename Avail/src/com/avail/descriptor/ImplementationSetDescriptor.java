@@ -177,7 +177,12 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		final int size = object.implementationsTuple().tupleSize();
 		aStream.append(Integer.toString(size));
-		aStream.append(" implementations of ");
+		aStream.append(" implementation");
+		if (size != 1)
+		{
+			aStream.append('s');
+		}
+		aStream.append(" of ");
 		aStream.append(object.name().name().asNativeString());
 	}
 
@@ -301,17 +306,14 @@ public class ImplementationSetDescriptor extends Descriptor
 		AvailObject result;
 		if (possibilities.tupleSize() == 0)
 		{
-			for (int i = 1, _end1 = positiveTuple.tupleSize(); i <= _end1; i++)
+			for (final AvailObject index1 : positiveTuple)
 			{
 				boolean all = true;
-				for (int k = 1, _end2 = positiveTuple.tupleSize(); k <= _end2; k++)
+				for (final AvailObject index2 : positiveTuple)
 				{
-					all = all && imps.tupleAt(
-							positiveTuple.tupleAt(k).extractInt()
-						).bodySignature().acceptsArgTypesFromClosureType(
-							imps.tupleAt(
-								positiveTuple.tupleAt(i).extractInt()
-							).bodySignature());
+					all = all && imps.tupleAt(index2.extractInt())
+						.bodySignature().acceptsArgTypesFromClosureType(
+							imps.tupleAt(index1.extractInt()).bodySignature());
 				}
 				if (all)
 				{
@@ -321,13 +323,13 @@ public class ImplementationSetDescriptor extends Descriptor
 					result = result.tupleAtPuttingCanDestroy(
 						1,
 						IntegerDescriptor.objectFromInt(
-							positiveTuple.tupleAt(i).extractInt() * 2 + 1),
+							index1.extractInt() * 2 + 1),
 						true);
 					return result;
 				}
 			}
-			//  There was no most specific positive signature.  Indicate an ambiguity error at this
-			//  point in the tree.
+			// There was no most specific positive signature.  Indicate an
+			// ambiguity error at this point in the tree.
 			result = ByteTupleDescriptor.isMutableSize(true, 1).create(1);
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
@@ -336,33 +338,40 @@ public class ImplementationSetDescriptor extends Descriptor
 				true);
 			return result;
 		}
-		//  See if there are any solutions still possible.  Scan the list of possibilities (and known positives),
-		//  and for each one see if it's more specific than everything in the positive collection.  If there are
-		//  no such solutions, we are already at a point that represents an ambiguous lookup.
+		// See if there are any solutions still possible.  Scan the list of
+		// possibilities (and known positives), and for each one see if it's
+		// more specific than everything in the positive collection.  If there
+		// are no such solutions, we are already at a point that represents an
+		// ambiguous lookup.
 		boolean possibleSolutionExists = false;
 		AvailObject possibility;
-		for (int i = 1, _end3 = possibilities.tupleSize(); i <= _end3; i++)
+		for (final AvailObject possibleIndex : possibilities)
 		{
 			if (!possibleSolutionExists)
 			{
-				possibility = imps.tupleAt(possibilities.tupleAt(i).extractInt()).bodySignature();
+				possibility = imps.tupleAt(possibleIndex.extractInt())
+					.bodySignature();
 				boolean allPossibleAreParents = true;
-				for (int k = 1, _end4 = positiveTuple.tupleSize(); k <= _end4; k++)
+				for (final AvailObject index2 : positiveTuple)
 				{
-					allPossibleAreParents = allPossibleAreParents && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(possibility);
+					allPossibleAreParents = allPossibleAreParents
+						&& imps.tupleAt(index2.extractInt()).bodySignature()
+							.acceptsArgTypesFromClosureType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
 		}
-		for (int i = 1, _end5 = positiveTuple.tupleSize(); i <= _end5; i++)
+		for (final AvailObject index1 : positiveTuple)
 		{
 			if (!possibleSolutionExists)
 			{
-				possibility = imps.tupleAt(positiveTuple.tupleAt(i).extractInt()).bodySignature();
+				possibility = imps.tupleAt(index1.extractInt()).bodySignature();
 				boolean allPossibleAreParents = true;
-				for (int k = 1, _end6 = positiveTuple.tupleSize(); k <= _end6; k++)
+				for (final AvailObject index2 : positiveTuple)
 				{
-					allPossibleAreParents = allPossibleAreParents && imps.tupleAt(positiveTuple.tupleAt(k).extractInt()).bodySignature().acceptsArgTypesFromClosureType(possibility);
+					allPossibleAreParents = allPossibleAreParents &&
+						imps.tupleAt(index2.extractInt()).bodySignature()
+							.acceptsArgTypesFromClosureType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -380,14 +389,15 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  Compute a one-layer MinMax to find a good signature to check next.
 		int bestIndex = 0;
 		int bestMax = possibilities.tupleSize() + 2;
-		for (int i = 1, _end7 = possibilities.tupleSize(); i <= _end7; i++)
+		for (final AvailObject index1 : possibilities)
 		{
-			possibility = imps.tupleAt(possibilities.tupleAt(i).extractInt());
+			possibility = imps.tupleAt(index1.extractInt());
 			int trueCount = 0;
 			int falseCount = 0;
-			for (int k = 1, _end8 = possibilities.tupleSize(); k <= _end8; k++)
+			for (final AvailObject index2 : possibilities)
 			{
-				if (possibility.bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(possibilities.tupleAt(k).extractInt()).bodySignature()))
+				if (possibility.bodySignature().acceptsArgTypesFromClosureType(
+					imps.tupleAt(index2.extractInt()).bodySignature()))
 				{
 					trueCount++;
 				}
@@ -400,55 +410,78 @@ public class ImplementationSetDescriptor extends Descriptor
 			if (maxCount < bestMax)
 			{
 				bestMax = maxCount;
-				bestIndex = possibilities.tupleAt(i).extractInt();
+				bestIndex = index1.extractInt();
 			}
 		}
-		//  Ok, first recurse assuming the test came out true.  Move all ancestors of what was
-		//  tested into the positive collection and out of the possibilities collection.  Also remove
-		//  from the possibilities any signatures that are strictly disjoint from the tested signature.
-		//  By disjoint I mean that one or more arguments is terminates when the intersection of
-		//  the signatures is computed.
+		// First recurse assuming the test came out true.  Move all ancestors of
+		// what was tested into the positive collection and out of the
+		// possibilities collection.  Also remove from the possibilities any
+		// signatures that are strictly disjoint from the tested signature.  By
+		// disjoint I mean that one or more arguments is terminates when the
+		// intersection of the signatures is computed.
 		AvailObject newPossible = possibilities.asSet();
 		AvailObject newPositive = positiveTuple.asSet();
-		for (int i = 1, _end9 = possibilities.tupleSize(); i <= _end9; i++)
+		for (final AvailObject index1 : possibilities)
 		{
-			final AvailObject boxedIndex = possibilities.tupleAt(i);
-			possibility = imps.tupleAt(boxedIndex.extractInt());
-			if (possibility.bodySignature().acceptsArgTypesFromClosureType(imps.tupleAt(bestIndex).bodySignature()))
+			possibility = imps.tupleAt(index1.extractInt());
+			if (possibility.bodySignature().acceptsArgTypesFromClosureType(
+				imps.tupleAt(bestIndex).bodySignature()))
 			{
-				newPositive = newPositive.setWithElementCanDestroy(boxedIndex, true);
-				newPossible = newPossible.setWithoutElementCanDestroy(boxedIndex, true);
+				newPositive = newPositive.setWithElementCanDestroy(
+					index1,
+					true);
+				newPossible = newPossible.setWithoutElementCanDestroy(
+					index1,
+					true);
 			}
 			else
 			{
 				final AvailObject sig1 = possibility.bodySignature();
-				final AvailObject sig2 = imps.tupleAt(bestIndex).bodySignature();
-				for (int argIndex = 1, _end10 = sig1.numArgs(); argIndex <= _end10; argIndex++)
+				final AvailObject sig2 =
+					imps.tupleAt(bestIndex).bodySignature();
+				for (
+						int argIndex = 1, _end10 = sig1.numArgs();
+						argIndex <= _end10;
+						argIndex++)
 				{
-					if (sig1.argTypeAt(argIndex).typeIntersection(sig2.argTypeAt(argIndex)).equals(Types.terminates.object()))
+					if (sig1.argTypeAt(argIndex)
+							.typeIntersection(sig2.argTypeAt(argIndex))
+						.equals(Types.terminates.object()))
 					{
-						newPossible = newPossible.setWithoutElementCanDestroy(boxedIndex, true);
+						newPossible = newPossible.setWithoutElementCanDestroy(
+							index1,
+							true);
 					}
 				}
 			}
 		}
-		final AvailObject trueTree = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(newPositive.asTuple(), newPossible.asTuple());
-		//  Now recurse assuming the test came out false.  Remove all descendants of the
-		//  tested signature from the possibility collection.
+		final AvailObject trueTree = object
+			.createTestingTreeWithPositiveMatchesRemainingPossibilities(
+				newPositive.asTuple(),
+				newPossible.asTuple());
+		// Now recurse assuming the test came out false.  Remove all descendants
+		// of the tested signature from the possibility collection.
 		newPossible = possibilities.asSet();
-		for (int i = 1, _end11 = possibilities.tupleSize(); i <= _end11; i++)
+		for (final AvailObject index1 : possibilities)
 		{
-			final AvailObject boxedIndex = possibilities.tupleAt(i);
-			possibility = imps.tupleAt(boxedIndex.extractInt());
-			if (imps.tupleAt(bestIndex).bodySignature().acceptsArgTypesFromClosureType(possibility.bodySignature()))
+			possibility = imps.tupleAt(index1.extractInt());
+			if (imps.tupleAt(bestIndex).bodySignature()
+				.acceptsArgTypesFromClosureType(
+					possibility.bodySignature()))
 			{
-				newPossible = newPossible.setWithoutElementCanDestroy(boxedIndex, true);
+				newPossible = newPossible.setWithoutElementCanDestroy(
+					index1,
+					true);
 			}
 		}
-		final AvailObject falseTree = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(positiveTuple, newPossible.asTuple());
+		final AvailObject falseTree = object
+			.createTestingTreeWithPositiveMatchesRemainingPossibilities(
+				positiveTuple,
+				newPossible.asTuple());
 		//  Combine the subtrees together, preceded by a test-and-branch.
 		final int newSize = 2 + trueTree.tupleSize() + falseTree.tupleSize();
-		result = ByteTupleDescriptor.isMutableSize(true, newSize).mutableObjectOfSize(newSize);
+		result = ByteTupleDescriptor.isMutableSize(true, newSize)
+			.mutableObjectOfSize(newSize);
 		result.hashOrZero(0);
 		result = result.tupleAtPuttingCanDestroy(
 			1,
@@ -802,7 +835,8 @@ public class ImplementationSetDescriptor extends Descriptor
 			final Interpreter anAvailInterpreter,
 			final Continuation1<Generator<String>> failBlock)
 	{
-		final Mutable<List<AvailObject>> mostSpecific = new Mutable<List<AvailObject>>();
+		final Mutable<List<AvailObject>> mostSpecific =
+			new Mutable<List<AvailObject>>();
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
 			final int finalIndex = index;
@@ -813,7 +847,11 @@ public class ImplementationSetDescriptor extends Descriptor
 					@Override
 					public String value()
 					{
-						return "argument #" + Integer.toString(finalIndex) + " of message \"" + object.name().name().asNativeString() + "\" to have a type other than terminates";
+						return "argument #"
+							+ Integer.toString(finalIndex)
+							+ " of message \""
+							+ object.name().name().asNativeString()
+							+ "\" to have a type other than terminates";
 					}
 				});
 				return VoidDescriptor.voidObject();
@@ -821,7 +859,8 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		//  Filter the implementations down to those that are locally most
 		//  specific.  Fail if more than one survives.
-		final List<AvailObject> satisfyingTypes = object.filterByTypes(argTypes);
+		final List<AvailObject> satisfyingTypes =
+			object.filterByTypes(argTypes);
 		if (satisfyingTypes.size() == 1)
 		{
 			mostSpecific.value = satisfyingTypes;
@@ -829,20 +868,23 @@ public class ImplementationSetDescriptor extends Descriptor
 		else
 		{
 			mostSpecific.value = new ArrayList<AvailObject>(2);
-			for (int typeIndex = 1, _end2 = satisfyingTypes.size(); typeIndex <= _end2; typeIndex++)
+			for (final AvailObject imp : satisfyingTypes)
 			{
-				final AvailObject imp = satisfyingTypes.get(typeIndex - 1);
 				final AvailObject impType = imp.bodySignature();
 				boolean isBest = true;
-				for (int otherIndex = 1, _end3 = satisfyingTypes.size(); otherIndex <= _end3; otherIndex++)
+				for (final AvailObject other : satisfyingTypes)
 				{
-					final AvailObject other = satisfyingTypes.get(otherIndex - 1);
 					if (isBest && !imp.equals(other))
 					{
 						final AvailObject otherType = other.bodySignature();
-						for (int argIndex = 1, _end4 = impType.numArgs(); argIndex <= _end4; argIndex++)
+						for (
+								int argIndex = impType.numArgs();
+								argIndex >= 1;
+								argIndex--)
 						{
-							isBest = isBest && impType.argTypeAt(argIndex).isSubtypeOf(otherType.argTypeAt(argIndex));
+							isBest = isBest
+								&& impType.argTypeAt(argIndex)
+									.isSubtypeOf(otherType.argTypeAt(argIndex));
 						}
 					}
 				}
@@ -859,26 +901,28 @@ public class ImplementationSetDescriptor extends Descriptor
 				@Override
 				public String value()
 				{
-					final AvailObject implementationsTuple = object.implementationsTuple();
+					final AvailObject implementationsTuple =
+						object.implementationsTuple();
 					List<AvailObject> signatures;
 					signatures = new ArrayList<AvailObject>(2);
-					for (int i = 1, _end5 = implementationsTuple.tupleSize(); i <= _end5; i++)
+					for (final AvailObject imp : implementationsTuple)
 					{
-						signatures.add(implementationsTuple.tupleAt(i).bodySignature());
+						signatures.add(imp.bodySignature());
 					}
 					String string;
 					if (mostSpecific.value.size() == 0)
 					{
 						List<Integer> allFailedIndices;
 						allFailedIndices = new ArrayList<Integer>(3);
-						for (int index = 1, _end6 = argTypes.size(); index <= _end6; index++)
+						for (int index = argTypes.size(); index >= 1; index--)
 						{
 							boolean any = false;
-							for (int signatureIndex = 1, _end7 = signatures.size(); signatureIndex <= _end7; signatureIndex++)
+							for (final AvailObject signature : signatures)
 							{
 								if (!any)
 								{
-									if (argTypes.get(index - 1).isSubtypeOf(signatures.get(signatureIndex - 1).argTypeAt(index)))
+									if (argTypes.get(index - 1).isSubtypeOf(
+										signature.argTypeAt(index)))
 									{
 										any = true;
 									}
@@ -886,32 +930,47 @@ public class ImplementationSetDescriptor extends Descriptor
 							}
 							if (any)
 							{
-								allFailedIndices.add(index);
+								allFailedIndices.add(0, index);
 							}
 						}
-						if (allFailedIndices.size() >= 1 && allFailedIndices.size() <= argTypes.size() - 1)
+						if (allFailedIndices.size() >= 1
+								&& allFailedIndices.size()
+									<= argTypes.size() - 1)
 						{
-							string = "arguments at indices " + allFailedIndices.toString() + " of message " + object.name().name().asNativeString() + " to match a method.  I got: " + argTypes.toString();
+							string = "arguments at indices "
+								+ allFailedIndices.toString()
+								+ " of message "
+								+ object.name().name().asNativeString()
+								+ " to match a method.  I got: "
+								+ argTypes.toString();
 						}
 						else
 						{
-							string = "arguments of " + object.name().name().asNativeString() + " to have applicable types like " + signatures.toString() + ", ***not*** " + argTypes.toString();
+							string = "arguments of "
+							+ object.name().name().asNativeString()
+							+ " to have applicable types like "
+							+ signatures.toString()
+							+ ", ***not*** "
+							+ argTypes.toString();
 						}
 					}
 					else
 					{
-						string = "arguments of " + object.name().name().asNativeString() + " to unambiguously select method.  Choices are: " + signatures.toString();
+						string = "arguments of "
+							+ object.name().name().asNativeString()
+							+ " to unambiguously select method.  Choices are: "
+							+ signatures.toString();
 					}
 					return string;
 				}
 			});
 			return VoidDescriptor.voidObject();
 		}
-		//  The requires clauses are only checked after a top-level statement has been parsed and is being validated.
-		return mostSpecific.value.get(0)
-			.computeReturnTypeFromArgumentTypesInterpreter(
-				argTypes,
-				anAvailInterpreter);
+		// The requires clauses are only checked after a top-level statement has
+		// been parsed and is being validated.
+		return mostSpecific.value.get(0).computeReturnTypeFromArgumentTypes(
+			argTypes,
+			anAvailInterpreter);
 	}
 
 	/**
@@ -922,24 +981,26 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object)
 	{
 		assert object.implementationsTuple().tupleSize() >= 1;
-		return object.implementationsTuple().tupleAt(1).bodySignature().numArgs();
+		final AvailObject first = object.implementationsTuple().tupleAt(1);
+		return first.bodySignature().numArgs();
 	}
 
 
 	/**
-	 * Answer the cached privateTestingTree.  If there's a voidObject in that slot,
-	 * compute the testing tree based on implementationsSet.  The tree is flattened
-	 * into a tuple of integers.  Testing begins with the first element of the
-	 * tuple.  If it's odd, divide by two to get the index into implementationsTuple
-	 * (a zero index indicates an ambiguous lookup).  If it's even, divide by two to
-	 * get an index into implementationsTuple, then test the list of arguments
-	 * against it.  If the arguments agree with the signature, add 2 to the current
-	 * position (to skip the test number and an offset) and continue.  If the
-	 * arguments did not agree with the signature, add 2 + the value in the next
-	 * slot of the tuple to the current position, then continue.  We use a simple
-	 * one-layer MinMax algorithm to produce a reasonable testing tree, where the
-	 * choice of signature to test for is the one that minimizes the maximum number
-	 * of remaining possible solutions after a test.
+	 * Answer the cached privateTestingTree.  If there's a voidObject in that
+	 * slot, compute the testing tree based on implementationsSet.  The tree is
+	 * flattened into a tuple of integers.  Testing begins with the first
+	 * element of the tuple.  If it's odd, divide by two to get the index into
+	 * implementationsTuple (a zero index indicates an ambiguous lookup).  If
+	 * it's even, divide by two to get an index into implementationsTuple, then
+	 * test the list of arguments against it.  If the arguments agree with the
+	 * signature, add 2 to the current position (to skip the test number and an
+	 * offset) and continue.  If the arguments did not agree with the signature,
+	 * add 2 + the value in the next slot of the tuple to the current position,
+	 * then continue.  We use a simple one-layer MinMax algorithm to produce a
+	 * reasonable testing tree, where the choice of signature to test for is the
+	 * one that minimizes the maximum number of remaining possible solutions
+	 * after a test.
 	 */
 	@Override
 	public AvailObject o_TestingTree (
@@ -952,7 +1013,9 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 		//  Compute the tree.
 		final int indicesSize = object.implementationsTuple().tupleSize();
-		AvailObject indices = ByteTupleDescriptor.isMutableSize(true, indicesSize).mutableObjectOfSize(indicesSize);
+		final ByteTupleDescriptor descriptor =
+			ByteTupleDescriptor.isMutableSize(true, indicesSize);
+		AvailObject indices = descriptor.mutableObjectOfSize(indicesSize);
 		for (int i = 1; i <= indicesSize; i++)
 		{
 			indices = indices.tupleAtPuttingCanDestroy(

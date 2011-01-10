@@ -109,7 +109,7 @@ public class ClosureDescriptor extends Descriptor
 		{
 			aStream.append("Immutable closure with code: ");
 		}
-		AvailDecompiler.parse(object).printOnAvoidingIndent(
+		L1Decompiler.parse(object).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			indent + 1);
@@ -381,10 +381,10 @@ public class ClosureDescriptor extends Descriptor
 	{
 		final AvailObject object = mutable().create(
 			copiedTuple.tupleSize());
-		object.code (code);
+		object.code(code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)
 		{
-			object.outerVarAtPut (i, copiedTuple.tupleAt (i));
+			object.outerVarAtPut(i, copiedTuple.tupleAt(i));
 		}
 		return object;
 	};

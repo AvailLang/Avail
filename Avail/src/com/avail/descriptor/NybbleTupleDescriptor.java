@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -491,9 +491,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
 			final int itemHash = IntegerDescriptor.hashOfByte(object.rawNybbleAt(nybbleIndex)) ^ PreToggle;
-			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
+			hash = hash * Multiplier + itemHash;
 		}
-		return TupleDescriptor.multiplierTimes(hash);
+		return hash * Multiplier;
 	}
 
 

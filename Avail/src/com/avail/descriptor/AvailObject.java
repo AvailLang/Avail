@@ -514,6 +514,15 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.createWellKnownObjects();
 	}
 
+	/**
+	 * A good multiplier for a multiplicative random generator.  This constant
+	 * is a primitive element of (Z[2^32],*), specifically 1664525, as taken
+	 * from Knuth, The Art of Computer Programming, Vol. 2, 2nd ed., page 102,
+	 * row 26. See also pages 19, 20, theorems B and C. The period of the
+	 * cycle based on this multiplicative generator is 2^30.
+	 */
+	public static final int Multiplier = 1664525;
+
 	public static void error(final Object... args)
 	{
 		throw new RuntimeException((String)args[0]);
@@ -1400,7 +1409,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject computeReturnTypeFromArgumentTypesInterpreter (
+	public AvailObject computeReturnTypeFromArgumentTypes (
 		final List<AvailObject> argTypes,
 		final Interpreter anAvailInterpreter)
 	{

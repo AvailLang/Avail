@@ -275,8 +275,8 @@ public final class AvailBuilder
 				moduleName,
 				globalPosition.value,
 				globalCodeSize);
-			if (!runtime.includesModuleNamed(ByteStringDescriptor
-					.fromNativeString(moduleName.qualifiedName())))
+			if (!runtime.includesModuleNamed(
+				ByteStringDescriptor.from(moduleName.qualifiedName())))
 			{
 				compiler.parseModule(
 					moduleName,
@@ -299,8 +299,8 @@ public final class AvailBuilder
 						}
 					});
 			}
-			globalPosition.value += resolver.resolve(moduleName)
-					.fileReference().length();
+			final ResolvedModuleName resolved = resolver.resolve(moduleName);
+			globalPosition.value += resolved.fileReference().length();
 		}
 		assert globalPosition.value == globalCodeSize;
 		globalTracker.value(target, globalPosition.value, globalCodeSize);

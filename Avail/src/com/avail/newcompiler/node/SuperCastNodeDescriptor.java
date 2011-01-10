@@ -32,7 +32,7 @@
 
 package com.avail.newcompiler.node;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
@@ -122,10 +122,34 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
 	{
 		return Types.superCastNode.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.superCastNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			object.expression().hash() * Multiplier
+				+ object.superCastType().hash()
+			^ 0xD8CCD162;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.expression().equals(another.expression())
+			&& object.superCastType().equals(another.superCastType());
 	}
 
 	@Override

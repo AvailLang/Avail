@@ -91,7 +91,7 @@ public class AvailCompilerScopeStack
 		else
 		{
 			_declaration = declaration;
-			_name = declaration.name().string();
+			_name = declaration.token().string();
 			assert _name.isString();
 		}
 		_next = next;

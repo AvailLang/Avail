@@ -38,13 +38,12 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.oldcompiler.AvailParseNode;
 import com.avail.utility.Transformer1;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
- * stack.  It should never occur as part of a composite {@link AvailParseNode},
- * and is not capable of emitting code.
+ * stack.  It should never occur as part of a composite {@link
+ * ParseNodeDescriptor parse node}, and is not capable of emitting code.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -101,6 +100,13 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		return Types.markerNode.object();
 	}
 
+	@Override
+	public AvailObject o_ExactType (
+			final AvailObject object)
+	{
+		return Types.markerNode.object();
+	}
+
 
 	@Override
 	public void o_EmitValueOn (
@@ -110,6 +116,22 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		assert false : "A marker node can not generate code.";
 	}
 
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			object.markerValue().hash() ^ 0xCBCACACC;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.markerValue().equals(another.markerValue());
+	}
 
 
 	/**

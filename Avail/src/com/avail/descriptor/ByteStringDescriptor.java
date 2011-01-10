@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -381,10 +381,12 @@ public class ByteStringDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = CharacterDescriptor.hashOfByteCharacterWithCodePoint(object.rawByteForCharacterAt(index)) ^ PreToggle;
-			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
+			final int itemHash =
+				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
+					object.rawByteForCharacterAt(index)) ^ PreToggle;
+			hash = hash * Multiplier + itemHash;
 		}
-		return TupleDescriptor.multiplierTimes(hash);
+		return hash * Multiplier;
 	}
 
 
@@ -513,7 +515,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return descriptor.privateMutableObjectFromNativeByteString(aNativeByteString);
 	}
 
-	public static AvailObject fromNativeString(final String aNativeString)
+	public static AvailObject from(final String aNativeString)
 	{
 		for (int i = 0; i < aNativeString.length(); i++)
 		{

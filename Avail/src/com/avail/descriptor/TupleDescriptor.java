@@ -31,7 +31,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.min;
 import static java.util.Collections.max;
 import java.util.*;
@@ -775,9 +775,8 @@ public abstract class TupleDescriptor extends Descriptor
 		// H=h[1]a^1 + h[2]a^2 + h[3]a^3... + h[n]a^n
 		// This can be rewritten as sum(i=1..n)(a^i * h[i]). The constant 'a' is
 		// chosen as a primitive element of (Z[2^32],*), specifically 1664525,
-		// as
-		// taken from Knuth, The Art of Computer Programming, Vol. 2, 2nd ed.,
-		// page 102, row 26. See also pages 19, 20, theorems B and C. The
+		// as taken from Knuth, The Art of Computer Programming, Vol. 2, 2nd
+		// ed., page 102, row 26. See also pages 19, 20, theorems B and C. The
 		// period of this cycle is 2^30. The element hash values are xored with
 		// a random constant (16r9EE570A6) before being used, to help prevent
 		// similar nested tuples from producing equal hashes.
@@ -878,23 +877,23 @@ public abstract class TupleDescriptor extends Descriptor
 		EmptyTuple.makeImmutable();
 
 		UnderscoreTuple = ByteStringDescriptor
-				.fromNativeString("_");
+				.from("_");
 		UnderscoreTuple.makeImmutable();
 
 		OpenChevronTuple = ByteStringDescriptor
-				.fromNativeString("«");
+				.from("«");
 		OpenChevronTuple.makeImmutable();
 
 		CloseChevronTuple = ByteStringDescriptor
-				.fromNativeString("»");
+				.from("»");
 		CloseChevronTuple.makeImmutable();
 
 		DoubleDaggerTuple = ByteStringDescriptor
-				.fromNativeString("‡");
+				.from("‡");
 		DoubleDaggerTuple.makeImmutable();
 
 		BackQuoteTuple = ByteStringDescriptor
-				.fromNativeString("`");
+				.from("`");
 		BackQuoteTuple.makeImmutable();
 	}
 
@@ -1008,14 +1007,7 @@ public abstract class TupleDescriptor extends Descriptor
 		return BackQuoteTuple;
 	};
 
-	/* Value conversion... */
-	static int multiplierTimes (final int anInteger)
-	{
-		return Multiplier * anInteger;
-	};
-
 	/* Hash scrambling... */
-	static final int Multiplier = 1664525;
 	static final int PreToggle = 0xE570A6;
 
 	/**

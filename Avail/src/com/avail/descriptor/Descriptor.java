@@ -7643,9 +7643,9 @@ public abstract class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		//  Answer whether object is an instance of a subtype of aType.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
+		// Answer whether object is an instance of a subtype of aType.  Don't
+		// generate an approximate type and do the comparison, because the
+		// approximate type will just send this message recursively.
 
 		return object.exactType().isSubtypeOf(aType);
 	}

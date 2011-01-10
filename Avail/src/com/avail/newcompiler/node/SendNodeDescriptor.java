@@ -32,8 +32,9 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
-import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -147,10 +148,36 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
 	{
 		return Types.sendNode.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.sendNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			(object.arguments().hash() * Multiplier
+				+ object.implementationSet().hash()) * Multiplier
+				+ object.returnType().hash()
+			^ 0x90E39B4D;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.arguments().equals(another.arguments())
+			&& object.implementationSet().equals(another.implementationSet())
+			&& object.returnType().equals(another.returnType());
 	}
 
 	@Override
@@ -206,7 +233,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject arguments = object.arguments();
-		for (int i = 0; i < arguments.tupleSize(); i++)
+		for (int i = 1; i <= arguments.tupleSize(); i++)
 		{
 			arguments = arguments.tupleAtPuttingCanDestroy(
 				i,
@@ -224,6 +251,49 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final L2Interpreter anAvailInterpreter)
 	{
 		// Do nothing.
+	}
+
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		final boolean nicePrinting = true;  // convenient switch
+		if (nicePrinting)
+		{
+			final MessageSplitter splitter = new MessageSplitter(
+				object.implementationSet().name().name());
+			splitter.printSendNodeOnIndent(
+				object,
+				builder,
+				indent);
+		}
+		else
+		{
+			builder.append("SendNode[");
+			builder.append(object.implementationSet()
+				.name().name().asNativeString());
+			builder.append("](");
+			boolean isFirst = true;
+			for (final AvailObject arg : object.argumentsTuple())
+			{
+				if (!isFirst)
+				{
+					builder.append(",");
+				}
+				builder.append("\n");
+				for (int i = indent; i >= 0; i--)
+				{
+					builder.append("\t");
+				}
+				arg.printOnAvoidingIndent(builder, recursionList, indent + 1);
+				isFirst = false;
+			}
+			builder.append(")");
+		}
 	}
 
 

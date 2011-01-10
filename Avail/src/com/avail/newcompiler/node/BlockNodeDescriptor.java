@@ -32,13 +32,14 @@
 
 package com.avail.newcompiler.node;
 
+import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.util.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.utility.Transformer1;
 
 /**
@@ -205,6 +206,13 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.blockNode.object();
+	}
+
+
+	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
 		List<AvailObject> argumentTypes;
@@ -251,6 +259,31 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				compiledBlock,
 				object.neededVariables());
 		}
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			(((object.argumentsTuple().hash() * Multiplier
+				+ object.statementsTuple().hash()) * Multiplier
+				+ object.resultType().hash()) * Multiplier
+				+ object.neededVariables().hash()) * Multiplier
+				+ object.primitive()
+			^ 0x05E6A04A;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.argumentsTuple().equals(another.argumentsTuple())
+			&& object.statementsTuple().equals(another.statementsTuple())
+			&& object.resultType().equals(another.resultType())
+			&& object.neededVariables().equals(another.neededVariables())
+			&& object.primitive() == another.primitive();
 	}
 
 
@@ -325,7 +358,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject arguments = object.argumentsTuple();
-		for (int i = 0; i < arguments.tupleSize(); i++)
+		for (int i = 1; i <= arguments.tupleSize(); i++)
 		{
 			arguments = arguments.tupleAtPuttingCanDestroy(
 				i,
@@ -334,7 +367,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		}
 		object.argumentsTuple(arguments);
 		AvailObject statements = object.statementsTuple();
-		for (int i = 0; i < statements.tupleSize(); i++)
+		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
 				i,
@@ -416,6 +449,38 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
+	 * Construct a {@linkplain BlockNodeDescriptor block node}.
+	 *
+	 * @param argumentsTuple
+	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *        DeclarationNodeDescriptor argument declarations}.
+	 * @param primitive
+	 *        The index of the primitive that the resulting block will invoke.
+	 * @param statementsTuple
+	 *        The {@linkplain TupleDescriptor tuple} of statement {@linkplain
+	 *        ParseNodeDescriptor nodes}.
+	 * @param resultType
+	 *        The {@linkplain TypeDescriptor type} that will be returned by the
+	 *        block.
+	 * @return A block node.
+	 */
+	public static AvailObject newBlockNode (
+		final AvailObject argumentsTuple,
+		final short primitive,
+		final AvailObject statementsTuple,
+		final AvailObject resultType)
+	{
+		final AvailObject block = mutable().create();
+		block.argumentsTuple(argumentsTuple);
+		block.primitive(primitive);
+		block.statementsTuple(statementsTuple);
+		block.resultType(resultType);
+		block.neededVariables(VoidDescriptor.voidObject());
+		return block;
+
+	}
+
+	/**
 	 * Figure out what outer variables will need to be captured when a closure
 	 * for me is built.
 	 *
@@ -450,20 +515,97 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				}
 				final AvailObject declaration = node.declaration();
 				if (!providedByMe.contains(declaration)
-						&& declaration.declarationKind() !=
-							DeclarationKind.MODULE_VARIABLE)
+						&& declaration.declarationKind() != MODULE_VARIABLE
+						&& declaration.declarationKind() != MODULE_CONSTANT)
 				{
 					neededDeclarations.add(declaration);
 				}
 				return node;
 			}
 		});
-		final List<AvailObject> neededList = new ArrayList<AvailObject>(
-				neededDeclarations);
 		object.neededVariables(
-			TupleDescriptor.fromList(neededList));
+			TupleDescriptor.fromList(
+				new ArrayList<AvailObject>(neededDeclarations)));
 	}
 
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		// Optimize for one-liners...
+		final AvailObject argumentsTuple = object.argumentsTuple();
+		final int argCount = argumentsTuple.tupleSize();
+		final int primitive = object.primitive();
+		final AvailObject statementsTuple = object.statementsTuple();
+		if (argCount == 0
+				&& primitive == 0
+				&& statementsTuple.tupleSize() == 1)
+		{
+			builder.append('[');
+			statementsTuple.tupleAt(1).printOnAvoidingIndent(
+				builder,
+				recursionList,
+				indent + 1);
+			builder.append(";]");
+			return;
+		}
+
+		// Use multiple lines instead...
+		builder.append('[');
+		if (argCount > 0)
+		{
+			argumentsTuple.tupleAt(1).printOnAvoidingIndent(
+				builder,
+				recursionList,
+				indent + 2);
+			for (int argIndex = 2; argIndex <= argCount; argIndex++)
+			{
+				builder.append(", ");
+				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 2);
+			}
+			builder.append(" |");
+		}
+		builder.append('\n');
+		for (int i = 1; i <= indent; i++)
+		{
+			builder.append('\t');
+		}
+		if (primitive != 0)
+		{
+			builder.append('\t');
+			builder.append("Primitive ");
+			builder.append(primitive);
+			builder.append(";");
+			builder.append('\n');
+			for (int _count3 = 1; _count3 <= indent; _count3++)
+			{
+				builder.append('\t');
+			}
+		}
+		for (final AvailObject statement : statementsTuple)
+		{
+			builder.append('\t');
+			statement.printOnAvoidingIndent(builder, recursionList, indent + 2);
+			builder.append(';');
+			builder.append('\n');
+			for (int _count5 = 1; _count5 <= indent; _count5++)
+			{
+				builder.append('\t');
+			}
+		}
+		builder.append(']');
+		if (object.resultType() != null)
+		{
+			builder.append(" : ");
+			builder.append(object.resultType().toString());
+		}
+	}
 
 	/**
 	 * Construct a new {@link BlockNodeDescriptor}.

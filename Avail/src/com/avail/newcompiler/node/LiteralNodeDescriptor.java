@@ -94,10 +94,31 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
 	{
 		return Types.literalNode.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.literalNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			object.token().hash() ^ 0x9C860C0D;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.token().equals(another.token());
 	}
 
 	@Override
@@ -107,6 +128,21 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	{
 		codeGenerator.emitPushLiteral(object.token().literal());
 	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		object.token().literal().printOnAvoidingIndent(
+			builder,
+			recursionList,
+			indent + 1);
+	}
+
+
 
 	/**
 	 * Construct a new {@link LiteralNodeDescriptor}.

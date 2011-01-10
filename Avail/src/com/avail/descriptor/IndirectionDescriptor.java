@@ -726,7 +726,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 		final Interpreter anAvailInterpreter)
 	{
 		return o_Traversed(object)
-				.computeReturnTypeFromArgumentTypesInterpreter(
+				.computeReturnTypeFromArgumentTypes(
 					argTypes,
 					anAvailInterpreter);
 	}

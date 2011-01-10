@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/AvailDecompiler.java
+ * interpreter/levelOne/L1Decompiler.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.LABEL;
 import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -42,7 +42,7 @@ import com.avail.newcompiler.scanner.*;
 import com.avail.newcompiler.scanner.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
-public class AvailDecompiler implements L1OperationDispatcher
+public class L1Decompiler implements L1OperationDispatcher
 {
 	AvailObject _code;
 	List<AvailObject> _outers;
@@ -53,7 +53,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 	Transformer1<String, String> _tempGenerator;
 	List<AvailObject> _expressionStack = new ArrayList<AvailObject>();
 	List<AvailObject> _statements = new ArrayList<AvailObject>();
-	int _primitive;
+	short _primitive;
 
 
 
@@ -98,13 +98,11 @@ public class AvailDecompiler implements L1OperationDispatcher
 		L1Implied_doReturn();
 		assert _expressionStack.size() == 0 : "There should be nothing on the stack after the final return";
 
-		final AvailObject blockNode = BlockNodeDescriptor.mutable().create();
-		blockNode.argumentsTuple(TupleDescriptor.fromList(_args));
-		blockNode.primitive(_primitive);
-		blockNode.statementsTuple(TupleDescriptor.fromList(_statements));
-		blockNode.resultType(aCodeObject.closureType().returnType());
-
-		return blockNode;
+		return BlockNodeDescriptor.newBlockNode(
+			TupleDescriptor.fromList(_args),
+			_primitive,
+			TupleDescriptor.fromList(_statements),
+			aCodeObject.closureType().returnType());
 	}
 
 
@@ -223,20 +221,16 @@ public class AvailDecompiler implements L1OperationDispatcher
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(
-			ByteStringDescriptor.fromNativeString("SomeGlobal"));
+			ByteStringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = _code.literalAt(getInteger());
 
-		final AvailObject decl = DeclarationNodeDescriptor.mutable().create();
-		decl.declarationKind(MODULE_VARIABLE);
-		decl.name(globalToken);
-		decl.declaredType(globalVar.type().innerType());
-		decl.initializationExpression(VoidDescriptor.voidObject());
-		decl.literalObject(globalVar);
-
-		final AvailObject varUse = VariableUseNodeDescriptor.mutable().create();
-		varUse.token(globalToken);
-		varUse.declaration(decl);
+		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
+			globalToken,
+			globalVar);
+		final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			globalToken,
+			decl);
 		pushExpression(varUse);
 	}
 
@@ -269,26 +263,20 @@ public class AvailDecompiler implements L1OperationDispatcher
 			final AvailObject labelToken = TokenDescriptor.mutable().create();
 			labelToken.tokenType(TokenType.KEYWORD);
 			labelToken.string(
-				ByteStringDescriptor.fromNativeString(
+				ByteStringDescriptor.from(
 					_tempGenerator.value("label")));
 			labelToken.start(0);
 
-			label = DeclarationNodeDescriptor.mutable().create();
-			label.declarationKind(LABEL);
-			label.name(labelToken);
-			label.declaredType(
-				ContinuationTypeDescriptor.forClosureType(
-					_code.closureType()));
-			label.initializationExpression(VoidDescriptor.voidObject());
-			label.literalObject(VoidDescriptor.voidObject());
+			label = DeclarationNodeDescriptor.newLabel(
+				labelToken,
+				ContinuationTypeDescriptor.forClosureType(_code.closureType()));
 
 			_statements.add(0, label);
 		}
 
-		final AvailObject useNode = VariableUseNodeDescriptor.mutable().create();
-		useNode.token(label.name());
-		useNode.declaration(label);
-
+		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
+			label.token(),
+			label);
 		pushExpression(useNode);
 	}
 
@@ -309,22 +297,17 @@ public class AvailDecompiler implements L1OperationDispatcher
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(
-			ByteStringDescriptor.fromNativeString("SomeGlobal"));
+			ByteStringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = _code.literalAt(getInteger());
 
-		final AvailObject decl = DeclarationNodeDescriptor.mutable().create();
-		decl.declarationKind(MODULE_VARIABLE);
-		decl.name(globalToken);
-		decl.declaredType(globalVar.type().innerType());
-		decl.initializationExpression(VoidDescriptor.voidObject());
-		decl.literalObject(globalVar);
+		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
+			globalToken,
+			globalVar);
 
-		final AvailObject varUse = VariableUseNodeDescriptor.mutable().create();
-		varUse.declaration(decl);
-		varUse.token(globalToken);
-		// varUse.isLastUse(false);
-
+		final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			globalToken,
+			decl);
 		final AvailObject assignmentNode =
 			AssignmentNodeDescriptor.mutable().create();
 		assignmentNode.variable(varUse);
@@ -455,7 +438,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				|| outer.type() == Types.literalNode.object();
 		}
 		final AvailObject blockNode =
-			new AvailDecompiler().parseWithOuterVarsTempGenerator(
+			new L1Decompiler().parseWithOuterVarsTempGenerator(
 				theCode,
 				theOuters,
 				_tempGenerator);
@@ -480,10 +463,10 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
 
 		final AvailObject localDecl =
-			_locals.get((getInteger() - _code.numArgs() - 1));
-		final AvailObject useNode = VariableUseNodeDescriptor.mutable().create();
-		useNode.token(localDecl.name());
-		useNode.declaration(localDecl);
+			_locals.get(getInteger() - _code.numArgs() - 1);
+		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
+			localDecl.token(),
+			localDecl);
 		pushExpression(useNode);
 	}
 
@@ -495,11 +478,10 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  If the variable itself is mutable, clear it now - nobody will know.
 
 		final AvailObject localDecl =
-			_locals.get((getInteger() - _code.numArgs() - 1));
-
-		final AvailObject useNode =
-			VariableUseNodeDescriptor.mutable().create();
-		useNode.declaration(localDecl);
+			_locals.get(getInteger() - _code.numArgs() - 1);
+		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
+			localDecl.token(),
+			localDecl);
 		useNode.isLastUse(true);
 		pushExpression(useNode);
 	}
@@ -510,7 +492,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 	{
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
 
-		final AvailObject use = VariableUseNodeDescriptor.mutable().create();
+		final AvailObject use;
 		final AvailObject outer = _outers.get(getInteger() - 1);
 		if (outer.type().equals(Types.literalNode.object()))
 		{
@@ -520,19 +502,17 @@ public class AvailDecompiler implements L1OperationDispatcher
 			synthToken.start(0);
 
 			final AvailObject synthDecl =
-				DeclarationNodeDescriptor.mutable().create();
-			synthDecl.declarationKind(MODULE_VARIABLE);
-			synthDecl.name(synthToken);
-			synthDecl.declaredType(outer.token().literal().type().innerType());
-			synthDecl.literalObject(outer.token().literal());
-			use.declaration(synthDecl);
-			use.token(synthToken);
+				DeclarationNodeDescriptor.newModuleVariable(
+					synthToken,
+					outer.token().literal());
+			use = VariableUseNodeDescriptor.newUse(synthToken, synthDecl);
 		}
 		else
 		{
 			final AvailObject outerDecl = outer.variable().declaration();
-			use.declaration(outerDecl);
-			use.token(outerDecl.name());
+			use = VariableUseNodeDescriptor.newUse(
+				outerDecl.token(),
+				outerDecl);
 		}
 		pushExpression(use);
 	}
@@ -544,7 +524,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 		//  [n] - Push the value of the outer variable indexed by n in the current closure.
 		//  If the variable itself is mutable, clear it at this time - nobody will know.
 
-		final AvailObject use = VariableUseNodeDescriptor.mutable().create();
+		final AvailObject use;
 		final AvailObject outer = _outers.get(getInteger() - 1);
 		if (outer.type().equals(Types.literalNode.object()))
 		{
@@ -554,19 +534,17 @@ public class AvailDecompiler implements L1OperationDispatcher
 			synthToken.start(0);
 
 			final AvailObject synthDecl =
-				DeclarationNodeDescriptor.mutable().create();
-			synthDecl.declarationKind(MODULE_VARIABLE);
-			synthDecl.name(synthToken);
-			synthDecl.declaredType(outer.token().literal().type().innerType());
-			synthDecl.literalObject(outer.token().literal());
-			use.declaration(synthDecl);
-			use.name(synthToken);
+				DeclarationNodeDescriptor.newModuleVariable(
+					synthToken,
+					outer.token().literal());
+			use = VariableUseNodeDescriptor.newUse(synthToken, synthDecl);
 		}
 		else
 		{
 			final AvailObject outerDecl = outer.variable().declaration();
-			use.declaration(outerDecl);
-			use.token(outerDecl.name());
+			use = VariableUseNodeDescriptor.newUse(
+				outerDecl.token(),
+				outerDecl);
 		}
 		pushExpression(use);
 	}
@@ -605,9 +583,9 @@ public class AvailDecompiler implements L1OperationDispatcher
 		final AvailObject decl = isArg
 			? _args.get(index - 1)
 			: _locals.get(index - _code.numArgs() - 1);
-		final AvailObject use = VariableUseNodeDescriptor.mutable().create();
-		use.declaration(decl);
-		use.token(decl.name());
+		final AvailObject use = VariableUseNodeDescriptor.newUse(
+			decl.token(),
+			decl);
 		use.isLastUse(true);
 		if (isArg)
 		{
@@ -649,7 +627,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 					LiteralTokenDescriptor.mutable().create();
 				token.tokenType(TokenType.LITERAL);
 				token.string(
-					ByteStringDescriptor.fromNativeString(
+					ByteStringDescriptor.from(
 						"AnOuter" + Integer.toString(i)));
 				token.start(0);
 				token.literal(var);
@@ -659,7 +637,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 				closureOuterLiterals.add(outerLiteral);
 			}
 			final AvailObject blockNode =
-				new AvailDecompiler().parseWithOuterVarsTempGenerator(
+				new L1Decompiler().parseWithOuterVarsTempGenerator(
 					value.code(),
 					closureOuterLiterals,
 					_tempGenerator);
@@ -670,7 +648,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
 			token.string(
-				ByteStringDescriptor.fromNativeString(
+				ByteStringDescriptor.from(
 					value.toString()));
 			token.start(0);
 			token.literal(value);
@@ -691,9 +669,9 @@ public class AvailDecompiler implements L1OperationDispatcher
 		final AvailObject decl = isArg
 			? _args.get(index - 1)
 			: _locals.get(index - _code.numArgs() - 1);
-		final AvailObject use = VariableUseNodeDescriptor.mutable().create();
-		use.declaration(decl);
-		use.token(decl.name());
+		final AvailObject use = VariableUseNodeDescriptor.newUse(
+			decl.token(),
+			decl);
 		if (isArg)
 		{
 			pushExpression(use);
@@ -722,10 +700,9 @@ public class AvailDecompiler implements L1OperationDispatcher
 		final AvailObject localDecl = _locals.get(
 			getInteger() - _code.numArgs() - 1);
 		final AvailObject valueNode = popExpression();
-		final AvailObject variableUse =
-			VariableUseNodeDescriptor.mutable().create();
-		variableUse.declaration(localDecl);
-		variableUse.token(localDecl.name());
+		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
+			localDecl.token(),
+			valueNode);
 		final AvailObject assignment =
 			AssignmentNodeDescriptor.mutable().create();
 		assignment.variable(variableUse);
@@ -738,8 +715,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 	{
 		// [n] - Pop the stack and assign this value to the outer variable
 		// indexed by n in the current closure.
-		final AvailObject variableUse =
-			VariableUseNodeDescriptor.mutable().create();
+		final AvailObject variableUse;
 		final AvailObject outerExpr = _outers.get(getInteger() - 1);
 		if (outerExpr.isInstanceOfSubtypeOf(Types.literalNode.object()))
 		{
@@ -749,22 +725,21 @@ public class AvailDecompiler implements L1OperationDispatcher
 			synthToken.string(outerLiteral.token().string());
 			synthToken.start(0);
 			final AvailObject moduleVarDecl =
-				DeclarationNodeDescriptor.mutable().create();
-			moduleVarDecl.declarationKind(MODULE_VARIABLE);
-			moduleVarDecl.token(synthToken);
-			moduleVarDecl.declaredType(
-				outerLiteral.literal().type().innerType());
-			moduleVarDecl.literalObject(outerLiteral.token().literal());
-			variableUse.declaration(moduleVarDecl);
-			variableUse.token(synthToken);
+				DeclarationNodeDescriptor.newModuleVariable(
+					synthToken,
+					outerLiteral.token().literal());
+			variableUse = VariableUseNodeDescriptor.newUse(
+				synthToken,
+				moduleVarDecl);
 		}
 		else
 		{
 			final AvailObject referenceNode = outerExpr;
 			final AvailObject outerDecl =
 				referenceNode.variable().declaration();
-			variableUse.declaration(outerDecl);
-			variableUse.token(outerDecl.name());
+			variableUse = VariableUseNodeDescriptor.newUse(
+				outerDecl.token(),
+				outerDecl);
 		}
 		final AvailObject valueExpr = popExpression();
 		final AvailObject assignment =
@@ -788,13 +763,11 @@ public class AvailDecompiler implements L1OperationDispatcher
 			final String argName = _tempGenerator.value("arg");
 			final AvailObject token = TokenDescriptor.mutable().create();
 			token.tokenType(TokenType.KEYWORD);
-			token.string(ByteStringDescriptor.fromNativeString(argName));
+			token.string(ByteStringDescriptor.from(argName));
 			token.start(0);
-			final AvailObject decl =
-				DeclarationNodeDescriptor.mutable().create();
-			decl.declarationKind(ARGUMENT);
-			decl.token(token);
-			decl.declaredType(_code.closureType().argTypeAt(i));
+			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
+				token,
+				_code.closureType().argTypeAt(i));
 			_args.add(decl);
 		}
 		for (int i = 1, _end2 = _code.numLocals(); i <= _end2; i++)
@@ -802,13 +775,11 @@ public class AvailDecompiler implements L1OperationDispatcher
 			final String localName = _tempGenerator.value("local");
 			final AvailObject token = TokenDescriptor.mutable().create();
 			token.tokenType(TokenType.KEYWORD);
-			token.string(ByteStringDescriptor.fromNativeString(localName));
+			token.string(ByteStringDescriptor.from(localName));
 			token.start(0);
-			final AvailObject decl =
-				DeclarationNodeDescriptor.mutable().create();
-			decl.declarationKind(LOCAL_VARIABLE);
-			decl.token(token);
-			decl.declaredType(_code.localTypeAt(i).innerType());
+			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
+				token,
+				_code.localTypeAt(i).innerType());
 			_locals.add(decl);
 		}
 	}
@@ -848,7 +819,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.fromNativeString("AnOuter" + i));
+			token.string(ByteStringDescriptor.from("AnOuter" + i));
 			token.start(0);
 			token.literal(varObject);
 			final AvailObject literalNode =
@@ -856,7 +827,7 @@ public class AvailDecompiler implements L1OperationDispatcher
 			literalNode.token(token);
 			closureOuters.add(literalNode);
 		}
-		return new AvailDecompiler().parseWithOuterVarsTempGenerator(
+		return new L1Decompiler().parseWithOuterVarsTempGenerator(
 			aClosure.code(),
 			closureOuters,
 			generator);

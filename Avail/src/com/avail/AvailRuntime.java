@@ -234,7 +234,8 @@ public final class AvailRuntime
 			for (final AvailObject name : aModule.visibleNames())
 			{
 				assert name.isCyclicType();
-				final MessageSplitter splitter = new MessageSplitter(name.name());
+				final MessageSplitter splitter =
+					new MessageSplitter(name.name());
 				final AvailObject messageParts = splitter.messageParts();
 				final AvailObject instructions = splitter.instructionsTuple();
 				final AvailObject rootBundle = rootBundleTree.includeBundle(

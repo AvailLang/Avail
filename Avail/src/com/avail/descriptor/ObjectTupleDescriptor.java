@@ -32,11 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.SpliceTupleDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 import static com.avail.descriptor.AvailObject.*;
 
 public class ObjectTupleDescriptor extends TupleDescriptor
@@ -86,7 +81,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 		return anotherObject.compareFromToWithObjectTupleStartingAt(
 			startIndex2,
-			((startIndex2 + endIndex1) - startIndex1),
+			(startIndex2 + endIndex1 - startIndex1),
 			object,
 			startIndex1);
 	}
@@ -101,7 +96,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	{
 		//  Compare sections of two object tuples.
 
-		if ((object.sameAddressAs(anObjectTuple) && (startIndex1 == startIndex2)))
+		if (object.sameAddressAs(anObjectTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
@@ -208,18 +203,18 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  tuple that don't make it into the subrange.  Replace these clobbered fields with the
 		//  integer 0 (always immutable) after dropping the refcount on replaced objects.
 
-		assert (1 <= start && start <= (end + 1));
-		assert (0 <= end && end <= object.tupleSize());
+		assert 1 <= start && start <= end + 1;
+		assert 0 <= end && end <= object.tupleSize();
 		if (isMutable && canDestroy)
 		{
-			if (((start - 1) == end))
+			if (start - 1 == end)
 			{
 				object.assertObjectUnreachableIfMutable();
 				return TupleDescriptor.empty();
 			}
 			final AvailObject zeroObject = IntegerDescriptor.zero();
 			object.hashOrZero(0);
-			if (((start == 1) || ((end - start) < 30)))
+			if (start == 1 || end - start < 30)
 			{
 				if (start != 1)
 				{
@@ -227,16 +222,16 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 					{
 						object.tupleAt(i).assertObjectUnreachableIfMutable();
 					}
-					for (int i = 1, _end2 = (end - start + 1); i <= _end2; i++)
+					for (int i = 1, _end2 = end - start + 1; i <= _end2; i++)
 					{
 						object.tupleAtPut(i, object.tupleAt(start + i - 1));
 					}
-					for (int i = (end - start + 2); i <= end; i++)
+					for (int i = end - start + 2; i <= end; i++)
 					{
 						object.tupleAtPut(i, zeroObject);
 					}
 				}
-				for (int i = (end + 1), _end3 = object.tupleSize(); i <= _end3; i++)
+				for (int i = end + 1, _end3 = object.tupleSize(); i <= _end3; i++)
 				{
 					object.tupleAt(i).assertObjectUnreachableIfMutable();
 					object.tupleAtPut(i, zeroObject);
@@ -250,13 +245,13 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
 			}
-			for (int i = (end + 1), _end5 = object.tupleSize(); i <= _end5; i++)
+			for (int i = end + 1, _end5 = object.tupleSize(); i <= _end5; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
 			}
 		}
-		if (((start - 1) == end))
+		if (start - 1 == end)
 		{
 			return TupleDescriptor.empty();
 		}
@@ -266,11 +261,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  This is just to assist the type deducer.
 		newHash = object.computeHashFromTo(start, end);
 		AvailObject result;
-		if (((end - start) < 10))
+		if (end - start < 10)
 		{
 			result = mutable().create(end - start + 1);
 			result.hashOrZero(newHash);
-			for (int i = 1, _end6 = (end - start + 1); i <= _end6; i++)
+			for (int i = 1, _end6 = end - start + 1; i <= _end6; i++)
 			{
 				result.tupleAtPut(i, object.tupleAt(i + start - 1).makeImmutable());
 			}
@@ -317,9 +312,9 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 			return object;
 		}
 		final int oldSlotsSize = object.objectSlotsCount();
-		assert (oldSlotsSize > 0);
+		assert oldSlotsSize > 0;
 		final int newSlotsCount = oldSlotsSize - delta;
-		assert (newSlotsCount > 0);
+		assert newSlotsCount > 0;
 		object.truncateWithFillerForNewObjectSlotsCount(newSlotsCount);
 		return object;
 	}
@@ -334,7 +329,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		//  Answer a tuple with all the elements of object except at the given index we should
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
 
-		assert ((index >= 1) && (index <= object.tupleSize()));
+		assert index >= 1 && index <= object.tupleSize();
 		if (!canDestroy || !isMutable)
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
@@ -355,7 +350,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the integer element at the given index in the tuple object.
 
-		if (((index < 1) || (index > object.tupleSize())))
+		if (index < 1 || index > object.tupleSize())
 		{
 			error("Out of bounds access to o_Tuple", object);
 			return 0;
@@ -369,7 +364,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (object.objectSlotsCount() - numberOfFixedObjectSlots());
+		return object.objectSlotsCount() - numberOfFixedObjectSlots();
 	}
 
 
@@ -400,10 +395,10 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = (object.tupleAt(index).hash() ^ PreToggle);
-			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
+			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
+			hash = hash * Multiplier + itemHash;
 		}
-		return TupleDescriptor.multiplierTimes(hash);
+		return hash * Multiplier;
 	}
 
 	/**

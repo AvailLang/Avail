@@ -137,12 +137,36 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return Types.tupleNode.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		//  Answer the object's type.
+
+		return Types.tupleNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			object.expressionsTuple().hash()
+			^ 0xC143E977;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.expressionsTuple().equals(another.expressionsTuple());
 	}
 
 	@Override
@@ -164,7 +188,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject expressions = object.expressionsTuple();
-		for (int i = 0; i < expressions.tupleSize(); i++)
+		for (int i = 1; i <= expressions.tupleSize(); i++)
 		{
 			expressions = expressions.tupleAtPuttingCanDestroy(
 				i,
@@ -216,6 +240,23 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		return newTupleNode;
 	}
 
+
+	/**
+	 * Create a new {@link TupleNodeDescriptor tuple node} from the given {@link
+	 * TupleDescriptor tuple} of {@link ParseNodeDescriptor expressions}.
+	 *
+	 * @param arguments
+	 *        The expressions to assemble into a {@link TupleNodeDescriptor
+	 *        tuple node}.
+	 * @return The resulting tuple node.
+	 */
+	public static AvailObject newExpressions (final AvailObject arguments)
+	{
+		final AvailObject instance = mutable().create();
+		instance.expressionsTuple(arguments);
+		instance.tupleType(VoidDescriptor.voidObject());
+		return instance;
+	}
 
 	/**
 	 * Construct a new {@link TupleNodeDescriptor}.

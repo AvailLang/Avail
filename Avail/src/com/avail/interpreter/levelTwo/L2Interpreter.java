@@ -140,6 +140,9 @@ implements L2OperationDispatcher
 					cont.stackp());
 			if (matching.equalsVoid())
 			{
+				//TODO: Debug
+				System.out.print(cont);
+				System.out.print(cont.closure());
 				error("Ambiguous or invalid lookup");
 				return;
 			}

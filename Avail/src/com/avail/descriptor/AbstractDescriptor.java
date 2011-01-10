@@ -32,6 +32,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import java.lang.reflect.Field;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -304,7 +305,9 @@ public abstract class AbstractDescriptor
 	{
 		builder.append('a');
 		final String className = getClass().getSimpleName();
-		final String shortenedName = className.substring(0, className.length() - 10);
+		final String shortenedName = className.substring(
+			0,
+			className.length() - 10);
 		switch (shortenedName.codePointAt(0))
 		{
 			case 'A':
@@ -365,9 +368,40 @@ public abstract class AbstractDescriptor
 			}
 			builder.append(" = ");
 			builder.append(value);
-			builder.append(" = 0x");
-			builder.append(
-				new Formatter().format("%08X", value & 0xFFFFFFFFL));
+			try
+			{
+				final Field slotMirror = slot.getClass().getField(slot.name());
+				final EnumField annotation =
+					slotMirror.getAnnotation(EnumField.class);
+				if (annotation == null)
+				{
+					builder.append(
+						new Formatter().format(
+							" = 0x%08X",
+							value & 0xFFFFFFFFL));
+				}
+				else
+				{
+					final Class<? extends Enum<?>> describingClass =
+						annotation.describedBy();
+					final Enum<?>[] allValues = describingClass.getEnumConstants();
+					if (0 <= value && value < allValues.length)
+					{
+						builder.append(" = ");
+						builder.append(allValues[value].name());
+					}
+					else
+					{
+						builder.append(
+							new Formatter().format(
+								"(enum out of range: 0x%08X)",
+								value & 0xFFFFFFFFL));
+					}
+				}
+			}
+			catch (final NoSuchFieldException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		try

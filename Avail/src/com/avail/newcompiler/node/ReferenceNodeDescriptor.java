@@ -38,13 +38,12 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.oldcompiler.AvailParseNode;
 import com.avail.utility.Transformer1;
 
 /**
- * My instances represent a parsing marker that can be pushed onto the parse
- * stack.  It should never occur as part of a composite {@link AvailParseNode},
- * and is not capable of emitting code.
+ * My instances represent a reference-taking expression.  A variable itself is
+ * to be pushed on the stack.  Note that this does not work for arguments or
+ * constants or labels, as no actual variable object is created for those.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -99,10 +98,31 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
 	{
 		return Types.referenceNode.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.referenceNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			object.variable().hash() ^ 0xE7FA9B3F;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.variable().equals(another.variable());
 	}
 
 	@Override
@@ -122,6 +142,19 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.variable(aBlock.value(object.variable()));
+	}
+
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("&");
+		builder.append(
+			object.variable().token().string().asNativeString());
 	}
 
 

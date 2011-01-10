@@ -32,7 +32,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.LOCAL_CONSTANT;
 import static com.avail.newcompiler.scanner.TokenDescriptor.TokenType.*;
 import java.io.*;
 import java.util.*;
@@ -398,7 +398,7 @@ public class AvailCompiler
 		AvailObject peekStringLiteral ()
 		{
 			final AvailObject token = peekToken();
-			if (token.isInstanceOfSubtypeOf(Types.literalNode.object()))
+			if (token.isInstanceOfSubtypeOf(Types.literalToken.object()))
 			{
 				return token;
 			}
@@ -706,10 +706,9 @@ public class AvailCompiler
 								final AvailObject contType)
 							{
 								final AvailObject label =
-									DeclarationNodeDescriptor.mutable().create();
-								label.declarationKind(LABEL);
-								label.token(token);
-								label.declaredType(contType);
+									DeclarationNodeDescriptor.newLabel(
+										token,
+										contType);
 								final ParserState afterDeclaration =
 									afterExpression.withDeclaration(label);
 								attempt(afterDeclaration, continuation, label);
@@ -847,13 +846,9 @@ public class AvailCompiler
 							final AvailObject initExpression)
 						{
 							final AvailObject constantDeclaration =
-								DeclarationNodeDescriptor.mutable().create();
-							constantDeclaration.declarationKind(LOCAL_CONSTANT);
-							constantDeclaration.token(localName);
-							constantDeclaration.declaredType(
-								initExpression.expressionType());
-							constantDeclaration.initializationExpression(
-								initExpression);
+								DeclarationNodeDescriptor.newConstant(
+									localName,
+									initExpression);
 							attempt(
 								afterInitExpression.withDeclaration(
 									constantDeclaration),
@@ -882,10 +877,9 @@ public class AvailCompiler
 					}
 					// Try the simple declaration... var : type;
 					final AvailObject simpleDeclaration =
-						DeclarationNodeDescriptor.mutable().create();
-					simpleDeclaration.declarationKind(LOCAL_VARIABLE);
-					simpleDeclaration.token(localName);
-					simpleDeclaration.declaredType(type);
+						DeclarationNodeDescriptor.newVariable(
+							localName,
+							type);
 					attempt(
 						afterType.withDeclaration(simpleDeclaration),
 						continuation,
@@ -921,11 +915,10 @@ public class AvailCompiler
 								if (initExpr.expressionType().isSubtypeOf(type))
 								{
 									final AvailObject initDecl =
-										DeclarationNodeDescriptor.mutable()
-											.create();
-									initDecl.token(localName);
-									initDecl.declaredType(type);
-									initDecl.initializationExpression(initExpr);
+										DeclarationNodeDescriptor.newVariable(
+											localName,
+											type,
+											initExpr);
 									attempt(
 										afterInit.withDeclaration(initDecl),
 										continuation,
@@ -1020,19 +1013,19 @@ public class AvailCompiler
 	 */
 	AvailObject evaluate (final AvailObject expressionNode)
 	{
-		final AvailObject block = BlockNodeDescriptor.mutable().create();
-		block.argumentsTuple(TupleDescriptor.empty());
-		block.primitive(0);
-		block.statementsTuple(
+		final AvailObject block = BlockNodeDescriptor.newBlockNode(
+			TupleDescriptor.empty(),
+			(short)0,
 			TupleDescriptor.fromList(
-				Collections.singletonList(expressionNode)));
-		block.resultType(Types.voidType.object());
+				Collections.singletonList(expressionNode)),
+				Types.voidType.object());
 		validate(block);
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = block.generate(codeGenerator);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
 		// code), so build a closure with no copied data.
+		assert compiledBlock.numOuters() == 0;
 		final AvailObject closure = ClosureDescriptor.create(
 			compiledBlock,
 			TupleDescriptor.empty());
@@ -1046,7 +1039,6 @@ public class AvailCompiler
 		// expressionNode.toString() + ") = " + result.toString());
 		return result;
 	}
-
 
 	/**
 	 * Ensure that the {@link BlockNodeDescriptor block node} is valid.  Throw
@@ -1147,8 +1139,8 @@ public class AvailCompiler
 			return;
 		}
 		// It's a declaration...
-		final AvailObject name = expr.name().string();
-		if (expr.declarationKind() == MODULE_CONSTANT)
+		final AvailObject name = expr.token().string();
+		if (expr.declarationKind() == LOCAL_CONSTANT)
 		{
 			final AvailObject val = evaluate(expr.initializationExpression());
 			module.constantBindings(
@@ -1315,7 +1307,7 @@ public class AvailCompiler
 			assert modName.isString();
 			final ModuleName ref = resolver.canonicalNameFor(
 				qualifiedName.asSibling(modName.asNativeString()));
-			final AvailObject availRef = ByteStringDescriptor.fromNativeString(
+			final AvailObject availRef = ByteStringDescriptor.from(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
@@ -1341,7 +1333,7 @@ public class AvailCompiler
 			assert modName.isString();
 			final ModuleName ref = resolver.canonicalNameFor(
 				qualifiedName.asSibling(modName.asNativeString()));
-			final AvailObject availRef = ByteStringDescriptor.fromNativeString(
+			final AvailObject availRef = ByteStringDescriptor.from(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
@@ -1444,7 +1436,11 @@ public class AvailCompiler
 		final ResolvedModuleName resolvedName = tokenize(qualifiedName, true);
 		if (parseHeader(resolvedName, true) == null)
 		{
-			reportError(new ParserState(0, null), resolvedName);
+			reportError(
+				new ParserState(
+					0,
+					new AvailCompilerScopeStack(null, null)),
+				resolvedName);
 			assert false;
 		}
 	}
@@ -1500,7 +1496,7 @@ public class AvailCompiler
 				return null;
 			}
 			module.name(
-				ByteStringDescriptor.fromNativeString(
+				ByteStringDescriptor.from(
 					qualifiedName.qualifiedName()));
 		}
 		state = state.afterToken();
@@ -1925,10 +1921,9 @@ public class AvailCompiler
 					else
 					{
 						final AvailObject decl =
-							DeclarationNodeDescriptor.mutable().create();
-						decl.declarationKind(ARGUMENT);
-						decl.token(localName);
-						decl.declaredType(type);
+							DeclarationNodeDescriptor.newArgument(
+								localName,
+								type);
 						attempt(
 							afterArgType.withDeclaration(decl),
 							continuation,
@@ -2095,12 +2090,11 @@ public class AvailCompiler
 			}
 			if (blockTypeGood)
 			{
-				final AvailObject blockNode =
-					BlockNodeDescriptor.mutable().create();
-				blockNode.argumentsTuple(TupleDescriptor.fromList(arguments));
-				blockNode.primitive(primitive);
-				blockNode.statementsTuple(TupleDescriptor.fromList(statements));
-				blockNode.resultType(lastStatementType.value);
+				final AvailObject blockNode = BlockNodeDescriptor.newBlockNode(
+					TupleDescriptor.fromList(arguments),
+					primitive,
+					TupleDescriptor.fromList(statements),
+					lastStatementType.value);
 				attempt(stateOutsideBlock, continuation, blockNode);
 			}
 			else
@@ -2156,13 +2150,11 @@ public class AvailCompiler
 						if (blockTypeGood)
 						{
 							final AvailObject blockNode =
-								BlockNodeDescriptor.mutable().create();
-							blockNode.argumentsTuple(
-								TupleDescriptor.fromList(arguments));
-							blockNode.primitive(primitive);
-							blockNode.statementsTuple(
-								TupleDescriptor.fromList(statements));
-							blockNode.resultType(returnType);
+								BlockNodeDescriptor.newBlockNode(
+									TupleDescriptor.fromList(arguments),
+									primitive,
+									TupleDescriptor.fromList(statements),
+									returnType);
 							attempt(afterReturnType, continuation, blockNode);
 						}
 						else
@@ -2436,7 +2428,7 @@ public class AvailCompiler
 							final AvailObject sendNode =
 								SendNodeDescriptor.mutable().create();
 							sendNode.implementationSet(impSet);
-							sendNode.argumentsTuple(
+							sendNode.arguments(
 								TupleDescriptor.fromList(argsSoFar));
 							sendNode.returnType(returnType);
 							attempt(start, continuation, sendNode);
@@ -2821,7 +2813,8 @@ public class AvailCompiler
 			{
 				final AvailObject restrictions =
 					bundle.restrictions().tupleAt(index);
-				if (restrictions.hasElement(argument.message()))
+				if (restrictions.hasElement(
+					argument.implementationSet().name()))
 				{
 					ifFail.value(new Generator<String>()
 					{
@@ -3417,10 +3410,9 @@ public class AvailCompiler
 			token.string());
 		if (localDecl != null)
 		{
-			final AvailObject varUse =
-				VariableUseNodeDescriptor.mutable().create();
-			varUse.token(token);
-			varUse.declaration(localDecl);
+			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+				token,
+				localDecl);
 			attempt(afterVar, continuation, varUse);
 			// Variables in inner scopes HIDE module variables.
 			return;
@@ -3433,11 +3425,9 @@ public class AvailCompiler
 			final AvailObject variableObject =
 				module.variableBindings().mapAt(varName);
 			final AvailObject moduleVarDecl =
-				DeclarationNodeDescriptor.mutable().create();
-			moduleVarDecl.declarationKind(MODULE_VARIABLE);
-			moduleVarDecl.token(token);
-			moduleVarDecl.declaredType(variableObject.type().innerType());
-			moduleVarDecl.literalObject(variableObject);
+				DeclarationNodeDescriptor.newModuleVariable(
+					token,
+					variableObject);
 			final AvailObject varUse =
 				VariableUseNodeDescriptor.mutable().create();
 			varUse.token(token);
@@ -3450,11 +3440,9 @@ public class AvailCompiler
 			final AvailObject valueObject = module.constantBindings().mapAt(
 				varName);
 			final AvailObject moduleConstDecl =
-				DeclarationNodeDescriptor.mutable().create();
-			moduleConstDecl.declarationKind(MODULE_CONSTANT);
-			moduleConstDecl.token(token);
-			moduleConstDecl.declaredType(valueObject.type());
-			moduleConstDecl.literalObject(valueObject);
+				DeclarationNodeDescriptor.newModuleConstant(
+					token,
+					valueObject);
 			final AvailObject varUse =
 				VariableUseNodeDescriptor.mutable().create();
 			varUse.token(token);

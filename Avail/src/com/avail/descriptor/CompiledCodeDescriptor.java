@@ -33,7 +33,9 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.CanAllocateObjects;
+import java.util.List;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelOne.L1Disassembler;
 
 public class CompiledCodeDescriptor extends Descriptor
 {
@@ -518,6 +520,33 @@ public class CompiledCodeDescriptor extends Descriptor
 			object.invocationCount(L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
 	}
+
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		super.printObjectOnAvoidingIndent(
+			object,
+			builder,
+			recursionList,
+			indent);
+		builder.append('\n');
+		for (int i = indent; i > 0; i--)
+		{
+			builder.append('\t');
+		}
+		builder.append("Nybblecodes:\n");
+		new L1Disassembler().disassemble(
+			object,
+			builder,
+			recursionList,
+			indent + 1);
+	}
+
 
 
 	/**

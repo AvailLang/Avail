@@ -109,8 +109,13 @@ extends TokenDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-		final AvailObject object)
+	public AvailObject o_Type (final AvailObject object)
+	{
+		return TypeDescriptor.Types.literalToken.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
 	{
 		return TypeDescriptor.Types.literalToken.object();
 	}

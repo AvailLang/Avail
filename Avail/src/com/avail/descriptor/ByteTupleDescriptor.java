@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -402,10 +402,11 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfByte(object.rawByteAt(index)) ^ PreToggle;
-			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
+			final int itemHash = IntegerDescriptor.hashOfByte(
+				object.rawByteAt(index)) ^ PreToggle;
+			hash = hash * Multiplier + itemHash;
 		}
-		return TupleDescriptor.multiplierTimes(hash);
+		return hash * Multiplier;
 	}
 
 

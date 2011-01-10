@@ -32,14 +32,13 @@
 
 package com.avail.newcompiler.node;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.oldcompiler.AvailParseNode;
 import com.avail.utility.Transformer1;
 
 /**
@@ -62,7 +61,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		VARIABLE,
 
 		/**
-		 * The actual {@link AvailParseNode expression} providing the value to
+		 * The actual {@link ParseNodeDescriptor expression} providing the value to
 		 * assign.
 		 */
 		EXPRESSION
@@ -125,6 +124,31 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.assignmentNode.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			object.variable().hash() * Multiplier
+				+ object.expression().hash()
+			^ 0xA71EA854;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.variable().equals(another.variable())
+			&& object.expression().equals(another.expression());
+	}
+
+	@Override
 	public void o_EmitEffectOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
@@ -183,6 +207,21 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		}
 	}
 
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append(
+			object.variable().declaration().token().string().asNativeString());
+		builder.append(" := ");
+		object.expression().printOnAvoidingIndent(
+			builder,
+			recursionList,
+			indent + 1);
+	}
 
 	/**
 	 * Construct a new {@link AssignmentNodeDescriptor}.

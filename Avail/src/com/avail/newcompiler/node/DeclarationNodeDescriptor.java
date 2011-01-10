@@ -32,12 +32,15 @@
 
 package com.avail.newcompiler.node;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
+import static com.avail.newcompiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.util.List;
+import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.newcompiler.scanner.TokenDescriptor;
 import com.avail.utility.Transformer1;
 
 /**
@@ -55,9 +58,10 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@link ByteStringDescriptor name} of the variable being declared.
+		 * The {@link TokenDescriptor token} containing the name of the entity
+		 * being declared.
 		 */
-		NAME,
+		TOKEN,
 
 		/**
 		 * The {@link TypeDescriptor type} of the variable being declared.
@@ -88,6 +92,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * Flags encoded as an {@code int}.
 		 */
+		@EnumField(describedBy=DeclarationKind.class)
 		DECLARATION_KIND
 	}
 
@@ -104,7 +109,31 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is an argument to a block.
 		 */
-		ARGUMENT(false, Types.argumentNode),
+		ARGUMENT(false, Types.argumentNode)
+		{
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitPushLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void print (
+				final AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append(object.token().string().asNativeString());
+				builder.append(" : ");
+				object.declaredType().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		},
 
 		/**
 		 * This is a label declaration at the start of a block.
@@ -123,27 +152,209 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 				codeGenerator.emitLabelDeclaration(object);
 			}
 
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitPushLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void print (
+				final AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append('$');
+				builder.append(object.token().string().asNativeString());
+				builder.append(':');
+				object.declaredType().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
 		},
 
 		/**
 		 * This is a local variable, declared within a block.
 		 */
-		LOCAL_VARIABLE(true, Types.localVariableNode),
+		LOCAL_VARIABLE(true, Types.localVariableNode)
+		{
+			@Override
+			public void emitEffectForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				final AvailObject expr = declarationNode.initializationExpression();
+				if (!expr.equalsVoid())
+				{
+					expr.emitValueOn(codeGenerator);
+					codeGenerator.emitSetLocalOrOuter(declarationNode);
+				}
+			}
+
+			@Override
+			public void emitVariableAssignmentForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitSetLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void emitVariableReferenceForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitPushLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitGetLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void print (
+				final AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append(object.token().string().asNativeString());
+				builder.append(" : ");
+				object.declaredType().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+				if (!object.initializationExpression().equalsVoid())
+				{
+					builder.append(" := ");
+					object.initializationExpression().printOnAvoidingIndent(
+						builder,
+						recursionList,
+						indent + 1);
+				}
+			}
+		},
 
 		/**
 		 * This is a local constant, declared within a block.
 		 */
-		LOCAL_CONSTANT(false, Types.localConstantNode),
+		LOCAL_CONSTANT(false, Types.localConstantNode)
+		{
+			@Override
+			public void emitEffectForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				declarationNode.initializationExpression()
+					.emitValueOn(codeGenerator);
+				codeGenerator.emitSetLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitGetLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void print (
+				final AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append(object.token().string().asNativeString());
+				builder.append(" ::= ");
+				object.initializationExpression().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		},
 
 		/**
 		 * This is a variable declared at the outermost (module) scope.
 		 */
-		MODULE_VARIABLE(true, Types.moduleVariableNode),
+		MODULE_VARIABLE(true, Types.moduleVariableNode)
+		{
+			@Override
+			public void emitVariableAssignmentForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitSetLiteral(declarationNode.literalObject());
+			}
+
+			@Override
+			public void emitVariableReferenceForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitPushLiteral(declarationNode.literalObject());
+			}
+
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitGetLiteral(declarationNode.literalObject());
+			}
+
+			@Override
+			public void print (
+				final AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append(object.token().string().asNativeString());
+				builder.append(" : ");
+				object.declaredType().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		},
 
 		/**
 		 * This is a constant declared at the outermost (module) scope.
 		 */
-		MODULE_CONSTANT(false, Types.moduleConstantNode);
+		MODULE_CONSTANT(false, Types.moduleConstantNode)
+		{
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitPushLiteral(declarationNode.literalObject());
+			}
+
+			@Override
+			public void print (
+				final AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append(object.token().string().asNativeString());
+				builder.append(" ::= ");
+				object.literalObject().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		};
 
 
 		/**
@@ -197,18 +408,18 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			return typeEnumeration.object();
 		}
 
+
 		/**
 		 * Emit an assignment to this variable.
 		 *
 		 * @param declarationNode The declaration that has this declarationKind.
 		 * @param codeGenerator Where to generate the assignment.
 		 */
-		public final void emitVariableAssignmentForOn (
+		public void emitVariableAssignmentForOn (
 			final AvailObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
-			assert isVariable();
-			codeGenerator.emitSetLocalOrOuter(declarationNode);
+			error("Cannot assign to this " + name());
 		}
 
 		/**
@@ -221,8 +432,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
-			assert isVariable();
-			codeGenerator.emitPushLocalOrOuter(declarationNode);
+			error("Cannot take a reference to this " + name());
 		}
 
 		/**
@@ -235,13 +445,12 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject declarationNode,
 			final AvailCodeGenerator codeGenerator)
 		{
-			assert isVariable();
-			codeGenerator.emitGetLocalOrOuter(declarationNode);
+			error("Cannot extract the value of this " + name());
 		}
 
 		/**
 		 * If this is an ordinary declaration then it was handled on a separate
-		 * pass.  Do nothing.
+		 * pass.  Do nothing by default.
 		 *
 		 * @param object The declaration node.
 		 * @param codeGenerator Where to emit the declaration.
@@ -253,27 +462,40 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			return;
 		}
 
+		/**
+		 * Print a declaration of this kind.
+		 *
+		 * @param object The declaration.
+		 * @param builder Where to print.
+		 * @param recursionList A list of parent objects that are printing.
+		 * @param indent The indentation depth.
+		 */
+		public abstract void print (
+			final AvailObject object,
+			final StringBuilder builder,
+			final List<AvailObject> recursionList,
+			final int indent);
 	}
 
 	/**
 	 * Setter for field name.
 	 */
 	@Override
-	public void o_Name (
+	public void o_Token (
 		final AvailObject object,
-		final AvailObject name)
+		final AvailObject token)
 	{
-		object.objectSlotPut(ObjectSlots.NAME, name);
+		object.objectSlotPut(ObjectSlots.TOKEN, token);
 	}
 
 	/**
 	 * Getter for field name.
 	 */
 	@Override
-	public AvailObject o_Name (
+	public AvailObject o_Token (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NAME);
+		return object.objectSlot(ObjectSlots.TOKEN);
 	}
 
 	/**
@@ -388,7 +610,6 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-
 	/**
 	 * This is a declaration, so it shouldn't generally produce a value.
 	 */
@@ -397,9 +618,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		error("Consistency error - declaration can't be last statement of "
-			+ "a value-returning block");
-		return;
+		object.emitEffectOn(codeGenerator);
+		codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
 	}
 
 	@Override
@@ -409,6 +629,38 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		return object.declarationKind().primitiveType();
 	}
 
+	@Override
+	public AvailObject o_ExactType (
+			final AvailObject object)
+	{
+		return object.declarationKind().primitiveType();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			(((object.token().hash() * Multiplier
+				+ object.declaredType().hash()) * Multiplier
+				+ object.initializationExpression().hash()) * Multiplier
+				+ object.literalObject().hash()) * Multiplier
+				+ object.declarationKind().ordinal()
+			^ 0x4C27EB37;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.token().equals(another.token())
+			&& object.declaredType().equals(another.declaredType())
+			&& object.initializationExpression().equals(
+				another.initializationExpression())
+			&& object.literalObject().equals(another.literalObject())
+			&& object.declarationKind() == another.declarationKind();
+	}
 
 	/**
 	 * Emit a reference to this variable.
@@ -450,6 +702,125 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	{
 		// Do nothing.
 	}
+
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		object.declarationKind().print(
+			object,
+			builder,
+			recursionList,
+			indent);
+	}
+
+
+	private static AvailObject newDeclaration (
+		final DeclarationKind declarationKind,
+		final AvailObject token,
+		final AvailObject declaredType,
+		final AvailObject initializationExpression,
+		final AvailObject literalObject)
+	{
+		final AvailObject declaration = mutable().create();
+		declaration.declarationKind(declarationKind);
+		declaration.token(token);
+		declaration.declaredType(declaredType);
+		declaration.initializationExpression(initializationExpression);
+		declaration.literalObject(literalObject);
+		// System.out.println(declaration);
+		return declaration;
+	}
+
+	public static AvailObject newArgument (
+		final AvailObject token,
+		final AvailObject declaredType)
+	{
+		return newDeclaration(
+			ARGUMENT,
+			token,
+			declaredType,
+			VoidDescriptor.voidObject(),
+			VoidDescriptor.voidObject());
+	}
+
+	public static AvailObject newVariable (
+		final AvailObject token,
+		final AvailObject declaredType,
+		final AvailObject initializationExpression)
+	{
+		return newDeclaration(
+			LOCAL_VARIABLE,
+			token,
+			declaredType,
+			initializationExpression,
+			VoidDescriptor.voidObject());
+	}
+
+	public static AvailObject newVariable (
+		final AvailObject token,
+		final AvailObject declaredType)
+	{
+		return newDeclaration(
+			LOCAL_VARIABLE,
+			token,
+			declaredType,
+			VoidDescriptor.voidObject(),
+			VoidDescriptor.voidObject());
+	}
+
+	public static AvailObject newConstant (
+		final AvailObject token,
+		final AvailObject initializationExpression)
+	{
+		return newDeclaration(
+			LOCAL_CONSTANT,
+			token,
+			initializationExpression.expressionType(),
+			initializationExpression,
+			VoidDescriptor.voidObject());
+	}
+
+	public static AvailObject newLabel (
+		final AvailObject token,
+		final AvailObject declaredType)
+	{
+		return newDeclaration(
+			LABEL,
+			token,
+			declaredType,
+			VoidDescriptor.voidObject(),
+			VoidDescriptor.voidObject());
+	}
+
+	public static AvailObject newModuleVariable(
+		final AvailObject token,
+		final AvailObject literalObject)
+	{
+		return newDeclaration(
+			MODULE_VARIABLE,
+			token,
+			literalObject.type().innerType(),
+			VoidDescriptor.voidObject(),
+			literalObject);
+	}
+
+	public static AvailObject newModuleConstant(
+		final AvailObject token,
+		final AvailObject literalObject)
+	{
+		return newDeclaration(
+			MODULE_CONSTANT,
+			token,
+			literalObject.type(),
+			VoidDescriptor.voidObject(),
+			literalObject);
+	}
+
 
 	/**
 	 * Construct a new {@link DeclarationNodeDescriptor}.

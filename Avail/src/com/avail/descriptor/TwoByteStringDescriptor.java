@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.*;
 import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -402,9 +402,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
 					object.rawShortForCharacterAt(index))
 				^ PreToggle;
-			hash = TupleDescriptor.multiplierTimes(hash) + itemHash;
+			hash = hash * Multiplier + itemHash;
 		}
-		return TupleDescriptor.multiplierTimes(hash);
+		return hash * Multiplier;
 	}
 
 

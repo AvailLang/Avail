@@ -32,7 +32,10 @@
 
 package com.avail.newcompiler.scanner;
 
+import static com.avail.descriptor.AvailObject.Multiplier;
+import com.avail.annotations.EnumField;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 
 /**
@@ -73,6 +76,7 @@ extends Descriptor
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
 		 * indicates what basic kind of token this is.
 		 */
+		@EnumField(describedBy=TokenType.class)
 		TOKEN_TYPE_CODE
 	}
 
@@ -139,6 +143,39 @@ extends Descriptor
 	{
 		final int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
 		return TokenDescriptor.TokenType.values()[index];
+	}
+
+	@Override
+	public AvailObject o_Type (final AvailObject object)
+	{
+		return Types.token.object();
+	}
+
+	@Override
+	public AvailObject o_ExactType (final AvailObject object)
+	{
+		return Types.token.object();
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return
+			(object.string().hash() * Multiplier
+				+ object.start()) * Multiplier
+				+ object.tokenType().ordinal()
+			^ 0x62CE7BA2;
+	}
+
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final AvailObject another)
+	{
+		return object.type().equals(another.type())
+			&& object.string().equals(another.string())
+			&& object.start() == another.start()
+			&& object.tokenType() == another.tokenType();
 	}
 
 
