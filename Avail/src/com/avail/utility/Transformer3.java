@@ -32,7 +32,25 @@
 
 package com.avail.utility;
 
+/**
+ * Implementors of {@code Transformer3} provide a single arbitrary operation
+ * that accepts three arguments and produces a result.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ *
+ * @param <W> The type of the first argument to the operation.
+ * @param <X> The type of the second argument to the operation.
+ * @param <Y> The type of the third argument to the operation.
+ * @param <Z> The type of value produced by the operation.
+ */
 public abstract class Transformer3 <W,X,Y,Z>
 {
+	/**
+	 * Perform the operation.
+	 * @param arg1 The first argument to the operation.
+	 * @param arg2 The second argument to the operation.
+	 * @param arg3 The third argument to the operation.
+	 * @return The result of performing the operation.
+	 */
 	public abstract Z value (W arg1, X arg2, Y arg3);
 }

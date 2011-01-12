@@ -40,6 +40,9 @@ import java.util.List;
 public class FloatDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		RAW_QUAD_1

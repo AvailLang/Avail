@@ -44,6 +44,9 @@ import static java.lang.Math.*;
 public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		FIRST_TUPLE_TYPE,

@@ -40,6 +40,9 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public class NybbleTupleDescriptor extends TupleDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		HASH_OR_ZERO,

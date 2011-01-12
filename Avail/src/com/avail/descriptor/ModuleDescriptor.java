@@ -39,6 +39,9 @@ import com.avail.interpreter.Interpreter;
 public class ModuleDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		NAME,

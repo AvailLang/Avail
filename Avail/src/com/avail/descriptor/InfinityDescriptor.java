@@ -45,6 +45,9 @@ import static com.avail.descriptor.AvailObject.*;
 public class InfinityDescriptor extends ExtendedNumberDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		WHICH_ONE

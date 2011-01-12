@@ -37,11 +37,17 @@ import java.util.List;
 public class PrimitiveTypeDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		HASH
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		NAME,

@@ -42,6 +42,9 @@ import static com.avail.descriptor.AvailObject.*;
 public class ProcessDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		HASH_OR_ZERO,
@@ -51,6 +54,9 @@ public class ProcessDescriptor extends Descriptor
 		INTERRUPT_REQUEST_FLAG
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		CONTINUATION,

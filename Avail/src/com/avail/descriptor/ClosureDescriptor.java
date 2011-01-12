@@ -41,6 +41,9 @@ import com.avail.interpreter.levelOne.*;
 public class ClosureDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		CODE,

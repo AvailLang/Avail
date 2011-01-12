@@ -32,12 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.Interpreter;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.interpreter.Interpreter;
 
 /**
  * This is a specialization of {@link SignatureDescriptor} that is an abstract
@@ -48,10 +45,31 @@ import static com.avail.descriptor.AvailObject.*;
 public class AbstractSignatureDescriptor extends SignatureDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances.
+	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The {@link ClosureTypeDescriptor closure type} for which this
+		 * signature is being specified.
+		 */
 		SIGNATURE,
+
+		/**
+		 * A closure that takes argument types at a call site and answers
+		 * whether this is a legal call.  This is necessary because some usage
+		 * conditions on methods, even though they may be inherently static,
+		 * cannot be expressed solely in terms of a lattice of types.  Sometimes
+		 * the relationship between the types of different arguments must also
+		 * be taken into account.
+		 */
 		REQUIRES_BLOCK,
+
+		/**
+		 * A closure that maps argument types at a call site into a return type
+		 * for that call.
+		 */
 		RETURNS_BLOCK
 	}
 
@@ -195,7 +213,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer a 32-bit hash value.
 
-		final int hash = (((object.signature().hash() * 13) + (object.requiresBlock().hash() * 7)) + (object.returnsBlock().hash() * 11));
+		final int hash = object.signature().hash() * 13 + object.requiresBlock().hash() * 7 + object.returnsBlock().hash() * 11;
 		return hash;
 	}
 

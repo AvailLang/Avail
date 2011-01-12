@@ -42,6 +42,9 @@ import static com.avail.descriptor.AvailObject.*;
 public class MethodSignatureDescriptor extends SignatureDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		BODY_BLOCK,

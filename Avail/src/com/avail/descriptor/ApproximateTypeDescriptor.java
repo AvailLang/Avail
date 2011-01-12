@@ -51,6 +51,9 @@ import java.util.List;
 public class ApproximateTypeDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		INSTANCE

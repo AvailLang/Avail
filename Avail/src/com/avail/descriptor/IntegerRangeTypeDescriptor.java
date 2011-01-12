@@ -38,11 +38,17 @@ import java.util.List;
 public class IntegerRangeTypeDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		INCLUSIVE_FLAGS
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		LOWER_BOUND,

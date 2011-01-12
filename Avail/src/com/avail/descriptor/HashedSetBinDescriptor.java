@@ -38,6 +38,9 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public class HashedSetBinDescriptor extends SetBinDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		BIN_HASH,
@@ -45,6 +48,9 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		BIT_VECTOR
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		BIN_UNION_TYPE,

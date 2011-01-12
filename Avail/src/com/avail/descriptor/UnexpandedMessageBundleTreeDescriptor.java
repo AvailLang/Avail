@@ -40,11 +40,17 @@ import com.avail.utility.*;
 public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		PARSING_PC
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		UNCLASSIFIED,

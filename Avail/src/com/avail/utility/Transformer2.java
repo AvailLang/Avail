@@ -32,7 +32,23 @@
 
 package com.avail.utility;
 
+/**
+ * Implementors of {@code Transformer2} provide a single arbitrary operation
+ * that accepts two arguments and produces a result.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ *
+ * @param <X> The type of the first argument to the operation.
+ * @param <Y> The type of the second argument to the operation.
+ * @param <Z> The type of value produced by the operation.
+ */
 public abstract class Transformer2 <X,Y,Z>
 {
+	/**
+	 * Perform the operation.
+	 * @param arg1 The first argument to the operation.
+	 * @param arg2 The second argument to the operation.
+	 * @return The result of performing the operation.
+	 */
 	public abstract Z value (X arg1, Y arg2);
 }

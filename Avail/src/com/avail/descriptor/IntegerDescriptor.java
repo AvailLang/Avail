@@ -42,6 +42,9 @@ import com.avail.descriptor.TypeDescriptor.Types;
 public class IntegerDescriptor extends ExtendedNumberDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		RAW_SIGNED_INT_AT_

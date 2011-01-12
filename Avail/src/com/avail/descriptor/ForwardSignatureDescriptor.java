@@ -40,6 +40,9 @@ import java.util.List;
 public class ForwardSignatureDescriptor extends SignatureDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		SIGNATURE

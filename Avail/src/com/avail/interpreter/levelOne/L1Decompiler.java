@@ -32,28 +32,77 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LABEL;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.Transformer1;
 
+/**
+ * The {@link L1Decompiler} converts a {@link CompiledCodeDescriptor compiled
+ * code} object into an equivalent {@link ParseNodeDescriptor parse tree}.
+ *
+ * @author Mark van Gulik &lt;anarakul@gmail.com&gt;
+ */
 public class L1Decompiler implements L1OperationDispatcher
 {
+	/**
+	 * The {@link CompiledCodeDescriptor compiled code} which is being
+	 * decompiled.
+	 */
 	AvailObject _code;
+
+	/**
+	 * {@link ParseNodeDescriptor Parse nodes} which correspond with the
+	 * lexically captured variables.  These can be {@link
+	 * DeclarationNodeDescriptor declaration nodes} or {@link
+	 * LiteralNodeDescriptor literal nodes}, but the latter may be phased out
+	 * in favor of module constants and module variables.
+	 */
 	List<AvailObject> _outers;
+
+	/**
+	 * The {@link DeclarationNodeDescriptor.DeclarationKind#ARGUMENT arguments
+	 * declarations} for this code.
+	 */
 	List<AvailObject> _args;
+
+	/**
+	 * The {@link DeclarationNodeDescriptor.DeclarationKind#LOCAL_VARIABLE}
+	 * local variables} defined by this code.
+	 */
 	List<AvailObject> _locals;
+
+	/**
+	 * The tuple of nybblecodes to decode.
+	 */
 	AvailObject _nybbles;
+
+	/**
+	 * The current position in the instruction stream at which decompilation is
+	 * currently occurring.
+	 */
 	int _pc;
+
+	/**
+	 * Something to generate unique variable names from a prefix.
+	 */
 	Transformer1<String, String> _tempGenerator;
+
+	/**
+	 * The stack of expressions roughly corresponding to the subexpressions that
+	 * have been parsed but not yet integrated into their parent expressions.
+	 */
 	List<AvailObject> _expressionStack = new ArrayList<AvailObject>();
+
+	/**
+	 * The list of completely decompiled {@link ParseNodeDescriptor statements}.
+	 */
 	List<AvailObject> _statements = new ArrayList<AvailObject>();
-	short _primitive;
 
 
 
@@ -80,7 +129,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 
 		_code = aCodeObject;
-		_primitive = _code.primitiveNumber();
 		_outers = outerVars;
 		_tempGenerator = tempBlock;
 		buildArgsAndLocals();
@@ -96,11 +144,12 @@ public class L1Decompiler implements L1OperationDispatcher
 			L1Operation.values()[nybble].dispatch(this);
 		}
 		L1Implied_doReturn();
-		assert _expressionStack.size() == 0 : "There should be nothing on the stack after the final return";
+		assert _expressionStack.size() == 0
+		: "There should be nothing on the stack after the final return";
 
 		return BlockNodeDescriptor.newBlockNode(
 			TupleDescriptor.fromList(_args),
-			_primitive,
+			_code.primitiveNumber(),
 			TupleDescriptor.fromList(_statements),
 			aCodeObject.closureType().returnType());
 	}
@@ -211,13 +260,9 @@ public class L1Decompiler implements L1OperationDispatcher
 
 
 
-	// private-nybblecodes
-
 	@Override
 	public void L1Ext_doGetLiteral ()
 	{
-		//  [n] - Push the value of the variable that's literal number n in the current compiledCode.
-
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(
@@ -237,13 +282,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doGetType ()
 	{
-		//  [n] - Push the (n+1)st stack element's type.  This is only used by the supercast
-		//  mechanism to produce types for arguments not being cast.  See #doSuperCall.
-		//
-		//  A null value is pushed and explicitly checked for when the call-by-types nybblecode
-		//  is encountered later.  It should also make other (invalid) attempts to use this value
-		//  stand out like a sore thumb.
-
 		getInteger();
 		pushExpression(null);
 	}
@@ -251,8 +289,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doPushLabel ()
 	{
-		//  Build a continuation which, when restarted, will be just like restarting the current continuation.
-
 		AvailObject label;
 		if (_statements.size() > 0 && _statements.get(0).declarationKind() == LABEL)
 		{
@@ -283,17 +319,13 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doReserved ()
 	{
-		//  An illegal nybblecode.
-
-		error("Illegal extended nybblecode: F+" + _nybbles.extractNybbleFromTupleAt(_pc - 1));
+		error("Illegal extended nybblecode: F+"
+			+ _nybbles.extractNybbleFromTupleAt(_pc - 1));
 	}
 
 	@Override
 	public void L1Ext_doSetLiteral ()
 	{
-		//  [n] - Pop the stack and assign this value to the variable that's the literal
-		//  indexed by n in the current compiledCode.
-
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(
@@ -315,21 +347,6 @@ public class L1Decompiler implements L1OperationDispatcher
 		_statements.add(assignmentNode);
 	}
 
-	/**
-	 * [n] - Send the message at index n in the compiledCode's literals.  Like
-	 * the call instruction, the arguments will have been pushed on the stack in
-	 * order, but unlike call, each argument's type will also have been pushed
-	 * (all arguments are pushed, then all argument types).  These are either
-	 * the arguments' exact types, or constant types (that must be supertypes of
-	 * the arguments' types), or any mixture of the two.  These types will be
-	 * used for method lookup, rather than the argument types.  This supports a
-	 * 'super'-like mechanism in the presence of multi-methods.  Like the call
-	 * instruction, all arguments (and types) are popped, then the expected
-	 * return type is pushed, and the looked up method is started.  When the
-	 * invoked method returns via an implied return instruction, the value will
-	 * be checked against this type, and the type's slot on the stack will be
-	 * replaced by the actual return value.
-	 */
 	@Override
 	public void L1Ext_doSuperCall ()
 	{
@@ -338,7 +355,8 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject cyclicType = impSet.name();
 		int nArgs = 0;
 		final AvailObject str = cyclicType.name();
-		final AvailObject underscore = TupleDescriptor.underscoreTuple().tupleAt(1);
+		final AvailObject underscore =
+			TupleDescriptor.underscoreTuple().tupleAt(1);
 		for (int i = 1, _end1 = str.tupleSize(); i <= _end1; i++)
 		{
 			if (str.tupleAt(i).equals(underscore))
@@ -372,28 +390,12 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1Implied_doReturn ()
 	{
-		//  Return to the calling continuation with top of stack.  Must be the last instruction in block.
-		//  Note that the calling continuation has automatically pre-pushed a void object as a
-		//  sentinel, which should simply be replaced by this value (to avoid manipulating the stackp).
-
 		assert _pc == _nybbles.tupleSize() + 1;
 		_statements.add(popExpression());
-		assert _expressionStack.size() == 0 : "There should be nothing on the stack after a return";
+		assert _expressionStack.size() == 0
+		: "There should be nothing on the stack after a return";
 	}
 
-	/**
-	 * [n] - Send the message at index n in the compiledCode's literals.  Pop
-	 * the arguments for this message off the stack (the message itself knows
-	 * how many to expect).  The first argument was pushed first, and is the
-	 * deepest on the stack.  Use these arguments to look up the method
-	 * dynamically.  Before invoking the method, push the expected return type
-	 * onto the stack.  Its presence will help distinguish continuations
-	 * produced by the pushLabel instruction from their senders.  When the call
-	 * completes (if ever), it will use the implied return instruction, which
-	 * will have the effect of checking the proposed return value against the
-	 * type, then replacing the stack slot containing the type with the actual
-	 * result of the call.
-	 */
 	@Override
 	public void L1_doCall ()
 	{
@@ -402,7 +404,8 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject cyclicType = impSet.name();
 		int nArgs = 0;
 		final AvailObject str = cyclicType.name();
-		final AvailObject underscore = TupleDescriptor.underscoreTuple().tupleAt(1);
+		final AvailObject underscore =
+			TupleDescriptor.underscoreTuple().tupleAt(1);
 		for (int i = 1, _end1 = str.tupleSize(); i <= _end1; i++)
 		{
 			if (str.tupleAt(i).equals(underscore))
@@ -423,10 +426,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doClose ()
 	{
-		//  [n,m] - Pop the top n items off the stack, and use them as outer variables in the
-		//  construction of a closure based on the compiledCode that's the literal at index m
-		//  of the current compiledCode.
-
 		final int nOuters = getInteger();
 		final AvailObject theCode = _code.literalAt(getInteger());
 		final List<AvailObject> theOuters = popExpressions(nOuters);
@@ -449,8 +448,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doExtension ()
 	{
-		//  The extension nybblecode was encountered.  Read another nybble and dispatch it through ExtendedSelectors.
-
 		final byte nybble = _nybbles.extractNybbleFromTupleAt(_pc);
 		_pc++;
 		L1Operation.values()[nybble + 16].dispatch(this);
@@ -460,8 +457,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doGetLocal ()
 	{
-		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
-
 		final AvailObject localDecl =
 			_locals.get(getInteger() - _code.numArgs() - 1);
 		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
@@ -474,9 +469,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doGetLocalClearing ()
 	{
-		//  [n] - Push the value of the local variable (not an argument) indexed by n (index 1 is first argument).
-		//  If the variable itself is mutable, clear it now - nobody will know.
-
 		final AvailObject localDecl =
 			_locals.get(getInteger() - _code.numArgs() - 1);
 		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
@@ -490,8 +482,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuter ()
 	{
-		//  [n] - Push the value of the outer variable indexed by n in the current closure.
-
 		final AvailObject use;
 		final AvailObject outer = _outers.get(getInteger() - 1);
 		if (outer.type().equals(Types.literalNode.object()))
@@ -521,9 +511,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		//  [n] - Push the value of the outer variable indexed by n in the current closure.
-		//  If the variable itself is mutable, clear it at this time - nobody will know.
-
 		final AvailObject use;
 		final AvailObject outer = _outers.get(getInteger() - 1);
 		if (outer.type().equals(Types.literalNode.object()))
@@ -565,8 +552,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPop ()
 	{
-		//  Remove the top item from the stack.
-
 		_statements.add(popExpression());
 	}
 
@@ -574,10 +559,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastLocal ()
 	{
-		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
-		//  Since this is known to be the last use (nondebugger) of the argument or local, void that
-		//  slot of the current continuation (and the variable's value if appropriate).
-
 		final int index = getInteger();
 		final boolean isArg = index <= _code.numArgs();
 		final AvailObject decl = isArg
@@ -602,18 +583,12 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		//  [n] - Push the outer variable indexed by n in the current closure.  If the variable is
-		//  mutable, clear it (no one will know).  If the variable and closure are both mutable,
-		//  remove the variable from the closure by voiding it.
-
 		pushExpression(_outers.get(getInteger() - 1));
 	}
 
 	@Override
 	public void L1_doPushLiteral ()
 	{
-		//  [n] - Push the literal indexed by n in the current compiledCode.
-
 		final AvailObject value = _code.literalAt(getInteger());
 		if (value.isInstanceOfSubtypeOf(Types.closure.object()))
 		{
@@ -662,8 +637,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLocal ()
 	{
-		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
-
 		final int index = getInteger();
 		final boolean isArg = index <= _code.numArgs();
 		final AvailObject decl = isArg
@@ -687,16 +660,12 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushOuter ()
 	{
-		//  [n] - Push the outer variable indexed by n in the current closure.
-
 		pushExpression(_outers.get(getInteger() - 1));
 	}
 
 	@Override
 	public void L1_doSetLocal ()
 	{
-		//  [n] - Pop the stack and assign this value to the local variable (not an argument) indexed by n (index 1 is first argument).
-
 		final AvailObject localDecl = _locals.get(
 			getInteger() - _code.numArgs() - 1);
 		final AvailObject valueNode = popExpression();
@@ -713,8 +682,6 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doSetOuter ()
 	{
-		// [n] - Pop the stack and assign this value to the outer variable
-		// indexed by n in the current closure.
 		final AvailObject variableUse;
 		final AvailObject outerExpr = _outers.get(getInteger() - 1);
 		if (outerExpr.isInstanceOfSubtypeOf(Types.literalNode.object()))

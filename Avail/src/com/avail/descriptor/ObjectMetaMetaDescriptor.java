@@ -38,6 +38,9 @@ import com.avail.descriptor.TypeDescriptor;
 public class ObjectMetaMetaDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		MY_OBJECT_META

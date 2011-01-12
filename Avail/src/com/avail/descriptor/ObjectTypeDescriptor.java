@@ -42,6 +42,9 @@ import static java.lang.Math.*;
 public class ObjectTypeDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		FIELD_TYPE_MAP

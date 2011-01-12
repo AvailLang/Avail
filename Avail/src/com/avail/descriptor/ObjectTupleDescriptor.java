@@ -37,11 +37,17 @@ import static com.avail.descriptor.AvailObject.*;
 public class ObjectTupleDescriptor extends TupleDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		HASH_OR_ZERO
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		TUPLE_AT_

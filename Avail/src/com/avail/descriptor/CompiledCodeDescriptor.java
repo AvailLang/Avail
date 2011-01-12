@@ -40,6 +40,9 @@ import com.avail.interpreter.levelOne.L1Disassembler;
 public class CompiledCodeDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		HASH,
@@ -49,6 +52,9 @@ public class CompiledCodeDescriptor extends Descriptor
 		INVOCATION_COUNT
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		NYBBLES,

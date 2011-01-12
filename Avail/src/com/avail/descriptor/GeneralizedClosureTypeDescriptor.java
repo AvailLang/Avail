@@ -40,6 +40,9 @@ import java.util.List;
 public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		RETURN_TYPE

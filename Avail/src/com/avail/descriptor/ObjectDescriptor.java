@@ -43,6 +43,9 @@ import com.avail.utility.*;
 public class ObjectDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		FIELD_MAP

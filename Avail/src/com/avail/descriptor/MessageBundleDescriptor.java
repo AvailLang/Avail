@@ -42,6 +42,9 @@ import java.util.List;
 public class MessageBundleDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		MESSAGE,

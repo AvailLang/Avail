@@ -39,6 +39,9 @@ import com.avail.interpreter.levelTwo.*;
 public class L2ChunkDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		INDEX,
@@ -50,6 +53,9 @@ public class L2ChunkDescriptor extends Descriptor
 		PREVIOUS_INDEX
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		CONTINGENT_IMP_SETS,

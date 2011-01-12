@@ -51,6 +51,9 @@ public class CharacterDescriptor
 extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		CODE_POINT

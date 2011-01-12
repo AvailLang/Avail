@@ -38,6 +38,9 @@ import java.util.List;
 public class ContinuationDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		PC,
@@ -45,6 +48,9 @@ public class ContinuationDescriptor extends Descriptor
 		HI_LEVEL_TWO_CHUNK_LOW_OFFSET
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		CALLER,

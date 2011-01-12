@@ -47,6 +47,9 @@ import com.avail.utility.*;
 public class MapDescriptor extends Descriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		INTERNAL_HASH,
@@ -54,6 +57,9 @@ public class MapDescriptor extends Descriptor
 		NUM_BLANKS
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		DATA_AT_INDEX_

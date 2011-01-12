@@ -46,11 +46,17 @@ public class VoidTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		HASH
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		NAME,

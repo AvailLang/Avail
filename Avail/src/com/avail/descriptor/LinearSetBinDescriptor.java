@@ -37,11 +37,17 @@ import static java.lang.Integer.bitCount;
 public class LinearSetBinDescriptor extends SetBinDescriptor
 {
 
+	/**
+	 * The layout of integer slots for my instances
+	 */
 	public enum IntegerSlots
 	{
 		BIN_HASH
 	}
 
+	/**
+	 * The layout of object slots for my instances
+	 */
 	public enum ObjectSlots
 	{
 		BIN_ELEMENT_AT_
