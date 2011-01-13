@@ -32,24 +32,41 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
+import java.util.List;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
-import java.util.List;
 
-public class ForwardSignatureDescriptor extends SignatureDescriptor
+/**
+ * This is a forward declaration of a method.  An actual method must be declared
+ * with the same signature before the end of the current module.
+ *
+ * <p>While a call to this method signature can be compiled after the forward
+ * declaration, an attempt to actually call the method will result in an error
+ * indicating this problem.</p>
+ *
+ * <p>Because of the nature of forward declarations, it is meaningless to
+ * forward declare a macro, so this facility is not provided.  It's
+ * meaningless because a "call-site" for a macro causes the body to execute
+ * immediately.</p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class ForwardSignatureDescriptor
+extends SignatureDescriptor
 {
 
 	/**
-	 * The layout of object slots for my instances
+	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The signature being forward-declared.  This is a {@linkplain
+		 * ClosureTypeDescriptor closure type}.
+		 */
 		SIGNATURE
 	}
 
-
-	// accessing
 
 	@Override
 	public void o_BodySignature (
@@ -60,33 +77,38 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		object.ensureMetacovariant();
 	}
 
+	/**
+	 * This is just a forward declaration, so just say the actual
+	 * implementation's result will agree with our signature's return type.
+	 * This will be replaced by a real implementation by the time the module has
+	 * finished loading, but calls encountered before the real declaration
+	 * occurs will not be able to use the returns clause to parameterize the
+	 * return type, and the basic return type of the signature will have to
+	 * suffice.
+	 */
 	@Override
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final Interpreter anAvailInterpreter)
 	{
-		//  We're just a forward declaration, so just say the actual implementation's result will
-		//  agree with our signature's return type.  We wiil be replaced by a real implementation
-		//  by the time the module has finished loading, but calls encountered before the real
-		//  declaration occurs will not be able to use the 'returns' clause to parameterize the
-		//  return type, and the basic return type of the signature will have to suffice.
-
 		return object.bodySignature().returnType();
 	}
 
+	/**
+	 * This is just a forward declaration, so just say our implementation
+	 * accepts the argument types.  There is an issue similar to that mentioned
+	 * in {@link #o_ComputeReturnTypeFromArgumentTypesInterpreter} in that all
+	 * call sites encountered before the actual method definition occurs will
+	 * not have a chance to test the requires clause.  This problem is local to
+	 * a method, and is a result of the one-pass parsing scheme.
+	 */
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final Interpreter interpreter)
 	{
-		//  We're just a forward declaration, so just say our implementation accepts the argument types.  There
-		//  is an issue similar to that mentioned in computeReturnTypeFromArgumentTypes:interpreter:.  All
-		//  call sites encountered before the actual method definition occurs will not have a chance to try the
-		//  'requires' clause.  This problem is local to a method, and is a result of the one-pass multi-tiered
-		//  parsing scheme.
-
 		return true;
 	}
 
@@ -97,9 +119,6 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 		return object.signature();
 	}
 
-
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field signature.
@@ -124,14 +143,10 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 
 
 
-	// operations
-
 	@Override
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
 		return Types.forwardSignature.object();
 	}
 
@@ -139,9 +154,7 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	public int o_Hash (
 			final AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-
-		final int hash = (object.signature().hash() * 19);
+		final int hash = object.signature().hash() * 19;
 		return hash;
 	}
 
@@ -149,14 +162,9 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return Types.forwardSignature.object();
 	}
 
-
-
-	// testing
 
 	@Override
 	public boolean o_IsForward (
@@ -166,18 +174,16 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	}
 
 
-
-	// validation
-
+	/**
+	 * Make sure my requires clauses and returns clauses are expecting the right
+	 * types, based on the declaration of the body.  Do nothing because a
+	 * forward declaration can't declare requires and returns clauses.
+	 */
 	@Override
 	public void o_EnsureMetacovariant (
 			final AvailObject object)
 	{
-		//  Make sure my requires clauses and returns clauses are expecting the
-		//  right types, based on the declaration of the body.  Do nothing because
-		//  a forward declaration can't declare requires and returns clauses.
-
-
+		return;
 	}
 
 	/**
@@ -195,7 +201,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The mutable {@link ForwardSignatureDescriptor}.
 	 */
-	private final static ForwardSignatureDescriptor mutable = new ForwardSignatureDescriptor(true);
+	private final static ForwardSignatureDescriptor mutable =
+		new ForwardSignatureDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ForwardSignatureDescriptor}.
@@ -210,7 +217,8 @@ public class ForwardSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The immutable {@link ForwardSignatureDescriptor}.
 	 */
-	private final static ForwardSignatureDescriptor immutable = new ForwardSignatureDescriptor(false);
+	private final static ForwardSignatureDescriptor immutable =
+		new ForwardSignatureDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ForwardSignatureDescriptor}.

@@ -41,7 +41,7 @@ public class SetDescriptor extends Descriptor
 {
 
 	/**
-	 * The layout of object slots for my instances
+	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
 	{

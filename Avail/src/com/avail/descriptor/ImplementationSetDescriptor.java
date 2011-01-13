@@ -192,8 +192,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject another)
 	{
-		//  ImplementationSets compare by identity.
-
+		// ImplementationSets compare by identity.
 		return another.traversed().sameAddressAs(object);
 	}
 
@@ -201,8 +200,6 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
 		return Types.implementationSet.object();
 	}
 
@@ -210,26 +207,22 @@ public class ImplementationSetDescriptor extends Descriptor
 	public int o_Hash (
 			final AvailObject object)
 	{
-		//  Answer a 32-bit hash value.  The hash can just depend on
-		//  the name (a cyclicType), because the name's hash is random and permanent,
-		//  and an implementationSet's name is permanent, too.
-
 		return object.name().hash() + 0x61AF3FC;
 	}
 
+	/**
+	 * Make the object immutable so it can be shared safely.  If I was mutable I
+	 * have to scan my children and make them immutable as well (recursively
+	 * down to immutable descendants).  Actually, I allow my
+	 * implementationsTuple, my privateTestingTree, and my dependentsChunks
+	 * slots to be mutable even when I'm immutable.
+	 */
 	@Override
 	public AvailObject o_MakeImmutable (
 			final AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.  If I was mutable I have to
-		//  scan my children and make them immutable as well (recursively down to immutable
-		//  descendants).  Actually, I allow my implementationsTuple, my privateTestingTree,
-		//  and my dependentsChunks slots to be mutable even when I'm immutable.
-
 		object.descriptor(ImplementationSetDescriptor.immutable());
 		object.name().makeImmutable();
-		//  Don't bother scanning implementationsTuple, privateTestingTree and dependentChunks.
-		//  They're allowed to be mutable even when object is immutable.
 		return object;
 	}
 
@@ -243,9 +236,6 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 
-
-	// operations-implementation sets
-
 	@Override
 	public void o_AddDependentChunkId (
 			final AvailObject object,
@@ -253,8 +243,10 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		//  Record the fact that the chunk indexed by aChunkIndex depends on
 		//  this implementationSet not changing.
-
-		object.dependentChunks(object.dependentChunks().setWithElementCanDestroy(IntegerDescriptor.objectFromInt(aChunkIndex), true));
+		object.dependentChunks(
+			object.dependentChunks().setWithElementCanDestroy(
+				IntegerDescriptor.objectFromInt(aChunkIndex),
+				true));
 	}
 
 	@Override
@@ -262,9 +254,13 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject implementation)
 	{
-		//  Add the implementation to me.  Causes dependent chunks to be invalidated.
-
-		object.implementationsTuple(object.implementationsTuple().asSet().setWithElementCanDestroy(implementation, true).asTuple());
+		// Add the implementation to me.  Causes dependent chunks to be
+		// invalidated.
+		object.implementationsTuple(
+			object.implementationsTuple().asSet().setWithElementCanDestroy(
+				implementation,
+				true)
+			.asTuple());
 		final AvailObject chunks = object.dependentChunks();
 		if (chunks.setSize() > 0)
 		{
@@ -272,9 +268,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			for (int i = 1, _end1 = chunksAsTuple.tupleSize(); i <= _end1; i++)
 			{
 				final AvailObject chunkId = chunksAsTuple.tupleAt(i);
-				L2ChunkDescriptor.chunkFromId(chunkId.extractInt()).necessaryImplementationSetChanged(object);
+				L2ChunkDescriptor.chunkFromId(chunkId.extractInt())
+					.necessaryImplementationSetChanged(object);
 			}
-			assert chunks.traversed().sameAddressAs(object.dependentChunks().traversed()) : "dependentChunks must not change shape during invalidation loop";
+			assert chunks.traversed().sameAddressAs(
+				object.dependentChunks().traversed())
+			: "dependentChunks must not change shape during invalidation loop";
 			object.dependentChunks(SetDescriptor.empty());
 		}
 		//  Clear the privateTestingTree cache.
@@ -297,7 +296,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * the maximum number of remaining possible solutions after a test.
 	 */
 	@Override
-	public AvailObject o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
+	public AvailObject
+		o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 			final AvailObject object,
 			final AvailObject positiveTuple,
 			final AvailObject possibilities)
@@ -603,9 +603,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
+				return test == 0
+					? VoidDescriptor.voidObject()
+					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsArrayOfArgTypes(argumentTypeArray))
+			if (impsTuple.tupleAt(test).bodySignature()
+				.acceptsArrayOfArgTypes(argumentTypeArray))
 			{
 				index += 2;
 			}
@@ -637,9 +640,14 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
+				return test == 0
+					? VoidDescriptor.voidObject()
+					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsArgumentTypesFromContinuationStackp(continuation, stackp))
+			if (impsTuple.tupleAt(test).bodySignature()
+				.acceptsArgumentTypesFromContinuationStackp(
+					continuation,
+					stackp))
 			{
 				index += 2;
 			}
@@ -670,9 +678,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
+				return test == 0
+					? VoidDescriptor.voidObject()
+					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsTupleOfArgTypes(argumentTypeTuple))
+			if (impsTuple.tupleAt(test).bodySignature()
+				.acceptsTupleOfArgTypes(argumentTypeTuple))
 			{
 				index += 2;
 			}
@@ -703,9 +714,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
+				return test == 0
+					? VoidDescriptor.voidObject()
+					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsArrayOfArgValues(argumentArray))
+			if (impsTuple.tupleAt(test).bodySignature()
+					.acceptsArrayOfArgValues(argumentArray))
 			{
 				index += 2;
 			}
@@ -737,9 +751,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
+				return test == 0
+					? VoidDescriptor.voidObject()
+					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsArgumentsFromContinuationStackp(continuation, stackp))
+			if (impsTuple.tupleAt(test).bodySignature()
+				.acceptsArgumentsFromContinuationStackp(continuation, stackp))
 			{
 				index += 2;
 			}
@@ -771,9 +788,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
-				return test == 0 ? VoidDescriptor.voidObject() : impsTuple.tupleAt(test);
+				return test == 0
+					? VoidDescriptor.voidObject()
+					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsTupleOfArguments(argumentTuple))
+			if (impsTuple.tupleAt(test).bodySignature().acceptsTupleOfArguments(
+				argumentTuple))
 			{
 				index += 2;
 			}
@@ -795,7 +815,9 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final int aChunkIndex)
 	{
-		object.dependentChunks(object.dependentChunks().setWithoutElementCanDestroy(IntegerDescriptor.objectFromInt(aChunkIndex), true));
+		object.dependentChunks(
+			object.dependentChunks().setWithoutElementCanDestroy(
+				IntegerDescriptor.objectFromInt(aChunkIndex), true));
 	}
 
 	/**
@@ -807,7 +829,9 @@ public class ImplementationSetDescriptor extends Descriptor
 			final AvailObject object,
 			final AvailObject implementation)
 	{
-		object.implementationsTuple(object.implementationsTuple().asSet().setWithoutElementCanDestroy(implementation, true).asTuple());
+		object.implementationsTuple(
+			object.implementationsTuple().asSet().setWithoutElementCanDestroy(
+				implementation, true).asTuple());
 		final AvailObject chunks = object.dependentChunks();
 		if (chunks.setSize() > 0)
 		{
@@ -815,9 +839,12 @@ public class ImplementationSetDescriptor extends Descriptor
 			for (int i = 1, _end1 = chunksAsTuple.tupleSize(); i <= _end1; i++)
 			{
 				final AvailObject chunkId = chunksAsTuple.tupleAt(i);
-				L2ChunkDescriptor.chunkFromId(chunkId.extractInt()).necessaryImplementationSetChanged(object);
+				L2ChunkDescriptor.chunkFromId(chunkId.extractInt())
+					.necessaryImplementationSetChanged(object);
 			}
-			assert chunks.traversed().sameAddressAs(object.dependentChunks().traversed()) : "dependentChunks must not change shape during invalidation loop";
+			assert chunks.traversed().sameAddressAs(
+				object.dependentChunks().traversed())
+			: "dependentChunks must not change shape during invalidation loop";
 			object.dependentChunks(SetDescriptor.empty());
 		}
 		//  Clear the privateTestingTree cache.
@@ -1023,7 +1050,9 @@ public class ImplementationSetDescriptor extends Descriptor
 				IntegerDescriptor.objectFromInt(i),
 				true);
 		}
-		result = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(TupleDescriptor.empty(), indices);
+		result = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(
+			TupleDescriptor.empty(),
+			indices);
 		object.privateTestingTree(result);
 		return result;
 	}
@@ -1066,7 +1095,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ImplementationSetDescriptor}.
 	 */
-	private final static ImplementationSetDescriptor mutable = new ImplementationSetDescriptor(true);
+	private final static ImplementationSetDescriptor mutable =
+		new ImplementationSetDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ImplementationSetDescriptor}.
@@ -1081,7 +1111,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	/**
 	 * The immutable {@link ImplementationSetDescriptor}.
 	 */
-	private final static ImplementationSetDescriptor immutable = new ImplementationSetDescriptor(false);
+	private final static ImplementationSetDescriptor immutable =
+		new ImplementationSetDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ImplementationSetDescriptor}.

@@ -41,7 +41,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 {
 
 	/**
-	 * The layout of integer slots for my instances
+	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{
@@ -49,7 +49,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	/**
-	 * The layout of object slots for my instances
+	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
 	{

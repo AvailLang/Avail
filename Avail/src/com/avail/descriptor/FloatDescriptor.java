@@ -41,7 +41,7 @@ public class FloatDescriptor extends Descriptor
 {
 
 	/**
-	 * The layout of integer slots for my instances
+	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{

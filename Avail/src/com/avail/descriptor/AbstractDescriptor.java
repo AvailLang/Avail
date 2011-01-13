@@ -36,10 +36,10 @@ import java.lang.reflect.Field;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -60,6 +60,19 @@ public abstract class AbstractDescriptor
 	final short myId;
 
 	/**
+	 * Answer a unique short, monotonically allocated and set automatically by
+	 * the constructor.  It equals the {@linkplain AbstractDescriptor
+	 * descriptor's} index into {@link #allDescriptors}, which is also populated
+	 * by the constructor.
+	 *
+	 * @return The {@linkplain AbstractDescriptor descriptor's} identifier.
+	 */
+	public final short id ()
+	{
+		return myId;
+	}
+
+	/**
 	 * A flag indicating whether instances of me can be modified in place.
 	 * Generally, as soon as there are two references from {@link AvailObject
 	 * Avail objects}.
@@ -67,16 +80,59 @@ public abstract class AbstractDescriptor
 	protected final boolean isMutable;
 
 	/**
+	 * Can instances of me be modified in place?
+	 *
+	 * @return {@code true} if it is permissible to modify the object in place,
+	 *         {@code false} otherwise.
+	 */
+	public final boolean isMutable ()
+	{
+		return isMutable;
+	}
+
+	/**
 	 * The minimum number of object slots an {@link AvailObject} can have if it
-	 * uses this descriptor.  Populated automatically by the constructor.
+	 * uses this {@linkplain AbstractDescriptor descriptor}. Does not include
+	 * indexed slots possibly at the end. Populated automatically by the
+	 * constructor.
 	 */
 	protected final int numberOfFixedObjectSlots;
 
 	/**
+	 * Answer the minimum number of object slots an {@link AvailObject} can have
+	 * if it uses this {@linkplain AbstractDescriptor descriptor}. Does not
+	 * include indexed slots possibly at the end. Populated automatically by the
+	 * constructor.
+	 *
+	 * @return The minimum number of object slots featured by an object using
+	 *         this {@linkplain AbstractDescriptor descriptor}.
+	 */
+	public int numberOfFixedObjectSlots ()
+	{
+		return numberOfFixedObjectSlots;
+	}
+
+	/**
 	 * The minimum number of integer slots an {@link AvailObject} can have if it
-	 * uses this descriptor.  Populated automatically by the constructor.
+	 * uses this {@linkplain AbstractDescriptor descriptor}. Does not include
+	 * indexed slots possibly at the end. Populated automatically by the
+	 * constructor.
 	 */
 	protected final int numberOfFixedIntegerSlots;
+
+	/**
+	 * Answer the minimum number of integer slots an {@link AvailObject} can
+	 * have if it uses this {@linkplain AbstractDescriptor descriptor}. Does not
+	 * include indexed slots possibly at the end. Populated automatically by the
+	 * constructor.
+	 *
+	 * @return The minimum number of integer slots featured by an object using
+	 *         this {@linkplain AbstractDescriptor descriptor}.
+	 */
+	public int numberOfFixedIntegerSlots ()
+	{
+		return numberOfFixedIntegerSlots;
+	}
 
 	/**
 	 * Whether an {@link AvailObject} using this descriptor can have more than
@@ -86,12 +142,42 @@ public abstract class AbstractDescriptor
 	final boolean hasVariableObjectSlots;
 
 	/**
+	 * Can an {@linkplain AvailObject object} using this {@linkplain
+	 * AbstractDescriptor descriptor} have more than the {@linkplain
+	 * #numberOfFixedObjectSlots() minimum number of object slots}?
+	 *
+	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
+	 *         object} using this {@linkplain AbstractDescriptor descriptor}
+	 *         to have more than the {@linkplain #numberOfFixedObjectSlots()
+	 *         minimum number of object slots}, {@code false} otherwise.
+	 */
+	protected boolean hasVariableObjectSlots ()
+	{
+		return hasVariableObjectSlots;
+	}
+
+	/**
 	 * Whether an {@link AvailObject} using this descriptor can have more than
 	 * the minimum number of integer slots.  Populated automatically by the
 	 * constructor.
 	 */
 	final boolean hasVariableIntegerSlots;
 
+
+	/**
+	 * Can an {@linkplain AvailObject object} using this {@linkplain
+	 * AbstractDescriptor descriptor} have more than the {@linkplain
+	 * #numberOfFixedIntegerSlots() minimum number of integer slots}?
+	 *
+	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
+	 *         object} using this {@linkplain AbstractDescriptor descriptor}
+	 *         to have more than the {@linkplain #numberOfFixedIntegerSlots()
+	 *         minimum number of integer slots}, {@code false} otherwise.
+	 */
+	protected boolean hasVariableIntegerSlots ()
+	{
+		return hasVariableIntegerSlots;
+	}
 
 	/**
 	 * The registry of all {@linkplain AbstractDescriptor descriptors}.
@@ -180,44 +266,6 @@ public abstract class AbstractDescriptor
 
 	}
 
-	public final short id ()
-	{
-		return myId;
-	}
-
-	public final boolean isMutable ()
-	{
-		return isMutable;
-	}
-
-	protected boolean hasVariableIntegerSlots ()
-	{
-		//  Answer whether I have a variable number of integer slots.
-
-		return hasVariableIntegerSlots;
-	}
-
-	protected boolean hasVariableObjectSlots ()
-	{
-		//  Answer whether I have a variable number of object slots.
-
-		return hasVariableObjectSlots;
-	}
-
-	public int numberOfFixedIntegerSlots ()
-	{
-		//  Answer how many named integer slots I have, excluding the indexed slots that may be at the end.
-
-		return numberOfFixedIntegerSlots;
-	}
-
-	public int numberOfFixedObjectSlots ()
-	{
-		//  Answer how many named object slots I have, excluding the indexed slots that may be at the end.
-
-		return numberOfFixedObjectSlots;
-	}
-
 	/**
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
@@ -244,6 +292,11 @@ public abstract class AbstractDescriptor
 		return 5;
 	}
 
+	/**
+	 * Ensure that the specified field is writable.
+	 *
+	 * @param e An {@code enum} value whose ordinal is the field position.
+	 */
 	public final void checkWriteForField (final Enum<?> e)
 	{
 		if (isMutable())
