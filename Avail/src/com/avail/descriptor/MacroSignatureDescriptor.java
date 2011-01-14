@@ -135,28 +135,6 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * Setter for field requiresBlock.
-	 */
-	@Override
-	public void o_RequiresBlock (
-			final AvailObject object,
-			final AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, value);
-	}
-
-	/**
-	 * Setter for field returnsBlock.
-	 */
-	@Override
-	public void o_ReturnsBlock (
-			final AvailObject object,
-			final AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.RETURNS_BLOCK, value);
-	}
-
-	/**
 	 * Getter for field bodyBlock.
 	 */
 	@Override
@@ -166,47 +144,19 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 		return object.objectSlot(ObjectSlots.BODY_BLOCK);
 	}
 
-	/**
-	 * Getter for field requiresBlock.
-	 */
-	@Override
-	public AvailObject o_RequiresBlock (
-			final AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.REQUIRES_BLOCK);
-	}
-
-	/**
-	 * Getter for field returnsBlock.
-	 */
-	@Override
-	public AvailObject o_ReturnsBlock (
-			final AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.RETURNS_BLOCK);
-	}
-
-
-
-	// operations
 
 	@Override
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
-		return Types.methodSignature.object();
+		return Types.macroSignature.object();
 	}
 
 	@Override
 	public int o_Hash (
 			final AvailObject object)
 	{
-		final int hash =
-			object.bodyBlock().hash() * 19
-			+ object.requiresBlock().hash() * 13
-			+ object.returnsBlock().hash() * 3;
+		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56;
 		return hash;
 	}
 
@@ -214,15 +164,13 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.methodSignature.object();
+		return Types.macroSignature.object();
 	}
 
 
 
-	// testing
-
 	@Override
-	public boolean o_IsImplementation (
+	public boolean o_IsMacro (
 			final AvailObject object)
 	{
 		return true;

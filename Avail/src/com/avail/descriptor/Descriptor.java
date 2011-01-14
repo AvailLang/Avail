@@ -37,10 +37,10 @@ import java.lang.reflect.Array;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 
@@ -59,7 +59,7 @@ import com.avail.visitor.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public abstract class Descriptor extends AbstractDescriptor
+public class Descriptor extends AbstractDescriptor
 {
 
 	/**
@@ -5935,7 +5935,7 @@ public abstract class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsImplementation (
+	public boolean o_IsMethod (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -8761,10 +8761,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 
-	/**
-	 * @param object
-	 * @param codeGenerator
-	 */
 	@Override
 	public void o_EmitValueOn (
 		final AvailObject object,
@@ -8798,11 +8794,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 
-	/**
-	 * @param object
-	 * @param codeGenerator
-	 * @return
-	 */
 	@Override
 	public AvailObject o_Generate (
 		final AvailObject object,
@@ -8813,11 +8804,6 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 
-	/**
-	 * @param object
-	 * @param newParseNode
-	 * @return
-	 */
 	@Override
 	public AvailObject o_CopyWith (
 		final AvailObject object,
@@ -8828,25 +8814,44 @@ public abstract class Descriptor extends AbstractDescriptor
 	}
 
 
-	/**
-	 * @param object
-	 * @param isLastUse
-	 */
 	@Override
-	public void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	public void o_IsLastUse (
+		final AvailObject object,
+		final boolean isLastUse)
 	{
 		subclassResponsibility("o_IsLastUse");
 	}
 
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	public boolean o_IsLastUse (final AvailObject object)
 	{
 		subclassResponsibility("o_IsLastUse");
 		return false;
+	}
+
+
+	@Override
+	public boolean o_IsMacro (final AvailObject object)
+	{
+		subclassResponsibility("o_IsMacro");
+		return false;
+	}
+
+
+	@Override
+	public void o_Macros (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		subclassResponsibility("o_Macros");
+	}
+
+
+	@Override
+	public AvailObject o_Macros (final AvailObject object)
+	{
+		subclassResponsibility("o_Macros");
+		return null;
 	}
 }

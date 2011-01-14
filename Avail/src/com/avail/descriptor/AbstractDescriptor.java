@@ -3559,7 +3559,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsImplementation (final AvailObject object);
+	public abstract boolean o_IsMethod (final AvailObject object);
 
 	/**
 	 * @param object
@@ -5091,5 +5091,26 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract boolean o_IsLastUse (
 		AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsMacro (
+		AvailObject object);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_Macros (
+		AvailObject object,
+		AvailObject value);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Macros (AvailObject object);
 
 }

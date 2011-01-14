@@ -36,10 +36,10 @@ import java.io.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 
@@ -2778,9 +2778,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isImplementation ()
+	public boolean isMethod ()
 	{
-		return descriptor().o_IsImplementation(this);
+		return descriptor().o_IsMethod(this);
 	}
 
 	/**
@@ -6129,6 +6129,33 @@ implements Iterable<AvailObject>
 	public boolean isLastUse ()
 	{
 		return descriptor().o_IsLastUse(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isMacro ()
+	{
+		return descriptor().o_IsMacro(this);
+	}
+
+
+	/**
+	 * @param value
+	 */
+	public void macros (final AvailObject value)
+	{
+		descriptor().o_Macros(this, value);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject macros ()
+	{
+		return descriptor().o_Macros(this);
 	}
 
 }

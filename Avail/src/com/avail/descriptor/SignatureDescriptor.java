@@ -32,12 +32,10 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.Interpreter;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Interpreter;
 
 public abstract class SignatureDescriptor extends Descriptor
 {
@@ -138,7 +136,14 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsImplementation (
+	public boolean o_IsMethod (
+			final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsMacro (
 			final AvailObject object)
 	{
 		return false;
@@ -159,8 +164,8 @@ public abstract class SignatureDescriptor extends Descriptor
 		final AvailObject sig = object.bodySignature();
 		final AvailObject req = object.requiresBlock().type();
 		final AvailObject ret = object.returnsBlock().type();
-		assert (req.numArgs() == sig.numArgs()) : "Wrong number of arguments in requires block";
-		assert (ret.numArgs() == sig.numArgs()) : "Wrong number of arguments in returns block.";
+		assert req.numArgs() == sig.numArgs() : "Wrong number of arguments in requires block";
+		assert ret.numArgs() == sig.numArgs() : "Wrong number of arguments in returns block.";
 		assert req.returnType().isSubtypeOf(Types.booleanType.object()) : "Wrong return type in requires block";
 		assert ret.returnType().isSubtypeOf(Types.type.object()) : "Wrong return type in returns block";
 		for (int i = 1, _end1 = sig.numArgs(); i <= _end1; i++)

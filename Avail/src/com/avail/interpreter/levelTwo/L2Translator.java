@@ -438,7 +438,7 @@ public class L2Translator implements L1OperationDispatcher
 		for (AvailObject bundle : imps)
 		{
 			// If a forward or abstract method is possible, don't inline.
-			if (!bundle.isImplementation())
+			if (!bundle.isMethod())
 			{
 				return null;
 			}

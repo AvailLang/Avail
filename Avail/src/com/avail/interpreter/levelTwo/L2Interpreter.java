@@ -2136,7 +2136,7 @@ implements L2OperationDispatcher
 			error("Unable to find unique implementation for call");
 			return;
 		}
-		if (!signatureToCall.isImplementation())
+		if (!signatureToCall.isMethod())
 		{
 			error("Attempted to call a non-implementation signature");
 			return;
@@ -2197,7 +2197,7 @@ implements L2OperationDispatcher
 			error("Unable to find unique implementation for call");
 			return;
 		}
-		if (!signatureToCall.isImplementation())
+		if (!signatureToCall.isMethod())
 		{
 			error("Attempted to call a non-implementation signature");
 			return;

@@ -34,10 +34,10 @@ package com.avail.descriptor;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -3524,9 +3524,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsImplementation (final AvailObject object)
+	public boolean o_IsMethod (final AvailObject object)
 	{
-		return o_Traversed(object).isImplementation();
+		return o_Traversed(object).isMethod();
 	}
 
 	@Override
@@ -4508,5 +4508,25 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public boolean o_IsLastUse (final AvailObject object)
 	{
 		return o_Traversed(object).isLastUse();
+	}
+
+	@Override
+	public boolean o_IsMacro (final AvailObject object)
+	{
+		return o_Traversed(object).isMacro();
+	}
+
+	@Override
+	public void o_Macros (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		o_Traversed(object).macros(value);
+	}
+
+	@Override
+	public AvailObject o_Macros (final AvailObject object)
+	{
+		return o_Traversed(object).macros();
 	}
 }

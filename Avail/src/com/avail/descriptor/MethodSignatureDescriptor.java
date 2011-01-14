@@ -211,7 +211,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	// testing
 
 	@Override
-	public boolean o_IsImplementation (
+	public boolean o_IsMethod (
 			final AvailObject object)
 	{
 		return true;

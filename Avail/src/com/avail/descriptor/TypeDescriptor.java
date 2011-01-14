@@ -625,6 +625,7 @@ public abstract class TypeDescriptor extends Descriptor
 		abstractSignature(signature),
 		forwardSignature(signature),
 		methodSignature(signature),
+		macroSignature(signature),
 		type(all, "meta"),
 		integerType(type, "meta"),
 		mapType(type, "meta"),

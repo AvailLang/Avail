@@ -50,6 +50,7 @@ public class ModuleDescriptor extends Descriptor
 		PRIVATE_NAMES,
 		VISIBLE_NAMES,
 		METHODS,
+		MACROS,
 		RESTRICTIONS,
 		VARIABLE_BINDINGS,
 		CONSTANT_BINDINGS,
@@ -65,7 +66,8 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
 	{
-		assert !object.restrictions().hasKey(methodName) : "Don't declare multiple restrictions on same message separately in module.";
+		assert !object.restrictions().hasKey(methodName)
+		: "Don't declare multiple restrictions on same message separately in module.";
 		object.restrictions(object.restrictions().mapAtPuttingCanDestroy(
 			methodName,
 			illegalArgMsgs,
@@ -270,6 +272,17 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	/**
+	 * Setter for field macros.
+	 */
+	@Override
+	public void o_Macros (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		object.objectSlotPut(ObjectSlots.MACROS, value);
+	}
+
+	/**
 	 * Setter for field name.
 	 */
 	@Override
@@ -374,6 +387,16 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.METHODS);
+	}
+
+	/**
+	 * Getter for field macros.
+	 */
+	@Override
+	public AvailObject o_Macros (
+		final AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.MACROS);
 	}
 
 	/**
