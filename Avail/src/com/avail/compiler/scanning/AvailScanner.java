@@ -32,12 +32,12 @@
 
 package com.avail.compiler.scanning;
 
+import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
-import com.avail.compiler.scanning.AvailScanner.ScannerAction;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
+import com.avail.descriptor.*;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
@@ -635,7 +635,7 @@ public class AvailScanner
 		{
 			_startOfToken = _position;
 			final int c = next();
-			ScannerAction.values()[DispatchTable[c]].scan(this);
+			values()[DispatchTable[c]].scan(this);
 		}
 		addToken(TokenType.END_OF_FILE);
 		return _outputTokens;
@@ -649,63 +649,63 @@ public class AvailScanner
 	 */
 	public static boolean isOperatorCharacter (final char c)
 	{
-		return DispatchTable[c] == (byte)ScannerAction.OPERATOR.ordinal();
+		return DispatchTable[c] == (byte)OPERATOR.ordinal();
 	}
 
 	/**
 	 * A table whose indices are Unicode characters (up to 65535) and whose
-	 * values are {@link ScannerAction scanner actions}.
+	 * values are {@link AvailScanner.ScannerAction scanner actions}.
 	 */
 	static byte[] DispatchTable = new byte [65536];
 
 	/**
 	 * Statically initialize the {@link DispatchTable} with suitable {@link
-	 * ScannerAction scanner actions}.  Note that this happens as part of class
-	 * loading.
+	 * AvailScanner.ScannerAction scanner actions}.  Note that this happens as
+	 * part of class loading.
 	 */
 	static
 	{
 		for (int i = 0; i < 65536; i++)
 		{
 			final char c = (char) i;
-			ScannerAction action;
+			AvailScanner.ScannerAction action;
 			if (Character.isDigit(c))
 			{
-				action = ScannerAction.DIGIT;
+				action = DIGIT;
 			}
 			else if (c == '\"')
 			{
-				action = ScannerAction.DOUBLE_QUOTE;
+				action = DOUBLE_QUOTE;
 			}
 			else if (Character.isUnicodeIdentifierStart(c))
 			{
-				action = ScannerAction.IDENTIFIER_START;
+				action = IDENTIFIER_START;
 			}
 			else if (c == ';')
 			{
-				action = ScannerAction.SEMICOLON;
+				action = SEMICOLON;
 			}
 			else if (c == '/')
 			{
-				action = ScannerAction.SLASH;
+				action = SLASH;
 			}
 			else if (!Character.isSpaceChar(c)
 				&& !Character.isWhitespace(c)
 				&& (c < 32 || c > 126 && c < 160 || c >= 65534))
 			{
-				action = ScannerAction.UNKNOWN;
+				action = UNKNOWN;
 			}
 			else if (Character.isSpaceChar(c) || Character.isWhitespace(c))
 			{
-				action = ScannerAction.WHITESPACE;
+				action = WHITESPACE;
 			}
 			else if (c == '\ufeff')
 			{
-				action = ScannerAction.ZEROWIDTHWHITESPACE;
+				action = ZEROWIDTHWHITESPACE;
 			}
 			else
 			{
-				action = ScannerAction.OPERATOR;
+				action = OPERATOR;
 			}
 			DispatchTable[i] = (byte)action.ordinal();
 		}
