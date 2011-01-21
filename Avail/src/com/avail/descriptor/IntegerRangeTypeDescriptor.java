@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class IntegerRangeTypeDescriptor extends TypeDescriptor
@@ -183,7 +184,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.integerType.object();
+		return INTEGER_TYPE.o();
 	}
 
 	@Override
@@ -210,7 +211,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.integerType.object();
+		return INTEGER_TYPE.o();
 	}
 
 
@@ -589,12 +590,12 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		}
 		if (high.lessThan(low))
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		if (high.equals(low) && (!highInc || !lowInc))
 		{
 			//  Unusual cases such as [INF..INF) give preference to exclusion over inclusion.
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		AvailObject result = mutable().create();
 		result.lowerBound(low);

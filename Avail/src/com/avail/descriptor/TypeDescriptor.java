@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public abstract class TypeDescriptor extends Descriptor
 {
@@ -238,7 +239,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -250,7 +251,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -262,7 +263,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -286,7 +287,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -298,7 +299,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -310,7 +311,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -323,7 +324,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * terminates, we must be very careful to override this properly.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -359,7 +360,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -371,7 +372,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -383,7 +384,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -407,7 +408,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.closure.object());
+		return object.typeUnion(CLOSURE.o());
 	}
 
 	@Override
@@ -419,7 +420,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.container.object());
+		return object.typeUnion(CONTAINER.o());
 	}
 
 	@Override
@@ -431,7 +432,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.continuation.object());
+		return object.typeUnion(CONTINUATION.o());
 	}
 
 	@Override
@@ -443,7 +444,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.cyclicType.object());
+		return object.typeUnion(CYCLIC_TYPE.o());
 	}
 
 	@Override
@@ -455,7 +456,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.  "all" is the nearest supertype of [...]->void.
 		 */
 
-		return object.typeUnion(Types.all.object());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -467,7 +468,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.all.object());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -479,7 +480,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.all.object());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -492,7 +493,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * type.
 		 */
 
-		return object.typeUnion(Types.type.object());
+		return object.typeUnion(TYPE.o());
 	}
 
 	@Override
@@ -505,7 +506,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * primitive type.
 		 */
 
-		return object.typeUnion(Types.meta.object());
+		return object.typeUnion(META.o());
 	}
 
 	@Override
@@ -517,7 +518,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.  Because type 'object' is also an objectType.
 		 */
 
-		return object.typeUnion(Types.all.object());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -529,7 +530,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(Types.all.object());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -542,7 +543,7 @@ public abstract class TypeDescriptor extends Descriptor
 		 * range.
 		 */
 
-		return object.typeUnion(Types.all.object());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -582,73 +583,82 @@ public abstract class TypeDescriptor extends Descriptor
 
 	public enum Types
 	{
-		voidType(null, "type", VoidTypeDescriptor.mutable()),
-		all(voidType, "type"),
-		booleanType(all),
-		trueType(booleanType),
-		falseType(booleanType),
-		character(all),
-		closure(all),
-		compiledCode(all),
-		container(all, "containerType"),
-		continuation(all),
-		doubleObject(all),
-		floatObject(all),
-		implementationSet(all),
-		messageBundle(all),
-		messageBundleTree(all),
+		VOID_TYPE(null, "TYPE", VoidTypeDescriptor.mutable()),
+		ALL(VOID_TYPE, "TYPE"),
+		BOOLEAN_TYPE(ALL),
+		TRUE_TYPE(BOOLEAN_TYPE),
+		FALSE_TYPE(BOOLEAN_TYPE),
+		CHARACTER(ALL),
+		CLOSURE(ALL),
+		COMPILED_CODE(ALL),
+		CONTAINER(ALL, "CONTAINER_TYPE"),
+		CONTINUATION(ALL),
+		DOUBLE(ALL),
+		FLOAT(ALL),
+		IMPLEMENTATION_SET(ALL),
+		MESSAGE_BUNDLE(ALL),
+		MESSAGE_BUNDLE_TREE(ALL),
 
-		parseNode(all),
-		markerNode(parseNode),
-		expressionNode(parseNode),
-		assignmentNode(expressionNode),
-		blockNode(expressionNode),
-		literalNode(expressionNode),
-		referenceNode(expressionNode),
-		sendNode(expressionNode),
-		superCastNode(expressionNode),
-		tupleNode(expressionNode),
-		variableUseNode(expressionNode),
-		declarationNode(expressionNode),
-		argumentNode(declarationNode),
-		labelNode(declarationNode),
-		localVariableNode(declarationNode),
-		localConstantNode(declarationNode),
-		moduleVariableNode(declarationNode),
-		moduleConstantNode(declarationNode),
+		PARSE_NODE(ALL),
+		MARKER_NODE(PARSE_NODE),
+		EXPRESSION_NODE(PARSE_NODE),
+		ASSIGNMENT_NODE(EXPRESSION_NODE),
+		BLOCK_NODE(EXPRESSION_NODE),
+		LITERAL_NODE(EXPRESSION_NODE),
+		REFERENCE_NODE(EXPRESSION_NODE),
+		SEND_NODE(EXPRESSION_NODE),
+		SUPER_CAST_NODE(EXPRESSION_NODE),
+		TUPLE_NODE(EXPRESSION_NODE),
+		VARIABLE_USE_NODE(EXPRESSION_NODE),
+		DECLARATION_NODE(EXPRESSION_NODE),
+		ARGUMENT_NODE(DECLARATION_NODE),
+		LABEL_NODE(DECLARATION_NODE),
+		LOCAL_VARIABLE_NODE(DECLARATION_NODE),
+		LOCAL_CONSTANT_NODE(DECLARATION_NODE),
+		MODULE_VARIABLE_NODE(DECLARATION_NODE),
+		MODULE_CONSTANT_NODE(DECLARATION_NODE),
 
-		token(all),
-		literalToken(token),
+		TOKEN(ALL),
+		LITERAL_TOKEN(TOKEN),
 
-		process(all),
-		signature(all),
-		abstractSignature(signature),
-		forwardSignature(signature),
-		methodSignature(signature),
-		macroSignature(signature),
-		type(all, "meta"),
-		integerType(type, "meta"),
-		mapType(type, "meta"),
-		meta(type, "meta"),
-		cyclicType(meta, "cyclicType"),
-		objectMetaMeta(meta, "meta"),
-		containerType(type, "meta"),
-		continuationType(type, "meta"),
-		primType(type, "meta"),
-		generalizedClosureType(primType, "meta"),
-		closureType(generalizedClosureType, "meta"),
-		setType(type, "meta"),
-		tupleType(type, "meta"),
-		terminatesType(null, "terminatesType", TerminatesMetaDescriptor.mutable()),
-		terminates(null, "terminatesType", TerminatesTypeDescriptor.mutable());
+		PROCESS(ALL),
+		SIGNATURE(ALL),
+		ABSTRACT_SIGNATURE(SIGNATURE),
+		FORWARD_SIGNATURE(SIGNATURE),
+		METHOD_SIGNATURE(SIGNATURE),
+		MACRO_SIGNATURE(SIGNATURE),
+		TYPE(ALL, "META"),
+		INTEGER_TYPE(TYPE, "META"),
+		MAP_TYPE(TYPE, "META"),
+		META(TYPE, "META"),
+		CYCLIC_TYPE(META, "CYCLIC_TYPE"),
+		OBJECT_META_META(META, "META"),
+		CONTAINER_TYPE(TYPE, "META"),
+		CONTINUATION_TYPE(TYPE, "META"),
+		PRIMITIVE_TYPE(TYPE, "META"),
+		GENERALIZED_CLOSURE_TYPE(PRIMITIVE_TYPE, "META"),
+		CLOSURE_TYPE(GENERALIZED_CLOSURE_TYPE, "META"),
+		SET_TYPE(TYPE, "META"),
+		TUPLE_TYPE(TYPE, "META"),
+		TERMINATES_TYPE(
+			null,
+			"TERMINATES_TYPE",
+			TerminatesMetaDescriptor.mutable()),
+		TERMINATES(
+			null,
+			"TERMINATES_TYPE",
+			TerminatesTypeDescriptor.mutable());
 
 		protected final Types parent;
 		protected final String myTypeName;
 		protected final AbstractDescriptor descriptor;
-		protected AvailObject object;
+		private AvailObject o;
 
 		// Constructors
-		Types (final Types parent, final String myTypeName, final AbstractDescriptor descriptor)
+		Types (
+			final Types parent,
+			final String myTypeName,
+			final AbstractDescriptor descriptor)
 		{
 			this.parent = parent;
 			this.myTypeName = myTypeName;
@@ -665,12 +675,17 @@ public abstract class TypeDescriptor extends Descriptor
 
 		Types (final Types parent)
 		{
-			this(parent,"primType");
+			this(parent,"PRIMITIVE_TYPE");
 		}
 
-		public AvailObject object ()
+		public AvailObject o ()
 		{
-			return object;
+			return o;
+		}
+
+		void o (final AvailObject object)
+		{
+			this.o = object;
 		}
 	};
 
@@ -684,38 +699,40 @@ public abstract class TypeDescriptor extends Descriptor
 		// Build all the objects with void fields.
 		for (final Types spec : Types.values())
 		{
-			spec.object = spec.descriptor.create();
-			assert spec.object.descriptorId() != 0;
-			spec.object.name(voidObject);
-			spec.object.parent(voidObject);
-			spec.object.myType(voidObject);
-			spec.object.hash(spec.name().hashCode());
+			final AvailObject o = spec.descriptor.create();
+			assert o.descriptorId() != 0;
+			o.name(voidObject);
+			o.parent(voidObject);
+			o.myType(voidObject);
+			o.hash(spec.name().hashCode());
+			spec.o(o);
 		}
 		// Connect and name the objects.
 		for (final Types spec : Types.values())
 		{
-			spec.object.name(
+			final AvailObject o = spec.o();
+			o.name(
 				ByteStringDescriptor.mutableObjectFromNativeByteString(
 					spec.name()));
-			spec.object.parent(
+			o.parent(
 				spec.parent == null
 				? voidObject
-						: spec.parent.object);
-			spec.object.myType(
-				Types.valueOf(spec.myTypeName).object);
+				: spec.parent.o());
+			o.myType(
+				Types.valueOf(spec.myTypeName).o());
 		}
 		for (final Types spec : Types.values())
 		{
-			spec.object.makeImmutable();
+			spec.o().makeImmutable();
 		}
 		// Sanity check them for metacovariance: a<=b -> a.type<=b.type
 		for (final Types spec : Types.values())
 		{
 			if (spec.parent != null)
 			{
-				assert spec.object.isSubtypeOf(spec.parent.object);
-				assert spec.object.type().isSubtypeOf(
-					spec.parent.object.type());
+				assert spec.o().isSubtypeOf(spec.parent.o());
+				assert spec.o().type().isSubtypeOf(
+					spec.parent.o().type());
 			}
 		}
 	}
@@ -724,7 +741,7 @@ public abstract class TypeDescriptor extends Descriptor
 	{
 		for (final Types spec : Types.values())
 		{
-			spec.object = null;
+			spec.o(null);
 		}
 	}
 

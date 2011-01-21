@@ -33,10 +33,10 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
@@ -97,14 +97,14 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.markerNode.object();
+		return MARKER_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.markerNode.object();
+		return MARKER_NODE.o();
 	}
 
 

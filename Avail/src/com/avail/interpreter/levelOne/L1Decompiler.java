@@ -34,12 +34,12 @@ package com.avail.interpreter.levelOne;
 
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LABEL;
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.Transformer1;
 
 /**
@@ -432,9 +432,9 @@ public class L1Decompiler implements L1OperationDispatcher
 		for (final AvailObject outer : theOuters)
 		{
 			assert
-				outer.type() == Types.referenceNode.object()
-				|| outer.type() == Types.variableUseNode.object()
-				|| outer.type() == Types.literalNode.object();
+				outer.type() == REFERENCE_NODE.o()
+				|| outer.type() == VARIABLE_USE_NODE.o()
+				|| outer.type() == LITERAL_NODE.o();
 		}
 		final AvailObject blockNode =
 			new L1Decompiler().parseWithOuterVarsTempGenerator(
@@ -484,7 +484,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject use;
 		final AvailObject outer = _outers.get(getInteger() - 1);
-		if (outer.type().equals(Types.literalNode.object()))
+		if (outer.type().equals(LITERAL_NODE.o()))
 		{
 			final AvailObject synthToken = TokenDescriptor.mutable().create();
 			synthToken.tokenType(TokenType.KEYWORD);
@@ -513,7 +513,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject use;
 		final AvailObject outer = _outers.get(getInteger() - 1);
-		if (outer.type().equals(Types.literalNode.object()))
+		if (outer.type().equals(LITERAL_NODE.o()))
 		{
 			final AvailObject synthToken = TokenDescriptor.mutable().create();
 			synthToken.tokenType(TokenType.KEYWORD);
@@ -590,7 +590,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPushLiteral ()
 	{
 		final AvailObject value = _code.literalAt(getInteger());
-		if (value.isInstanceOfSubtypeOf(Types.closure.object()))
+		if (value.isInstanceOfSubtypeOf(CLOSURE.o()))
 		{
 			List<AvailObject> closureOuterLiterals;
 			closureOuterLiterals = new ArrayList<AvailObject>(
@@ -684,7 +684,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject variableUse;
 		final AvailObject outerExpr = _outers.get(getInteger() - 1);
-		if (outerExpr.isInstanceOfSubtypeOf(Types.literalNode.object()))
+		if (outerExpr.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
 		{
 			final AvailObject outerLiteral = outerExpr;
 			final AvailObject synthToken = TokenDescriptor.mutable().create();

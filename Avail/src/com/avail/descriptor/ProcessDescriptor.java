@@ -32,12 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ProcessDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-
+import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 public class ProcessDescriptor extends Descriptor
 {
@@ -64,7 +61,7 @@ public class ProcessDescriptor extends Descriptor
 		PROCESS_GLOBALS
 	}
 
-	
+
 	// GENERATED accessors
 
 	/**
@@ -241,39 +238,14 @@ public class ProcessDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.CONTINUATION)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.BREAKPOINT_BLOCK)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.PROCESS_GLOBALS)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.HASH_OR_ZERO)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.PRIORITY)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.EXECUTION_MODE)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.EXECUTION_STATE)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.INTERRUPT_REQUEST_FLAG)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.CONTINUATION
+			|| e == ObjectSlots.BREAKPOINT_BLOCK
+			|| e == ObjectSlots.PROCESS_GLOBALS
+			|| e == IntegerSlots.HASH_OR_ZERO
+			|| e == IntegerSlots.PRIORITY
+			|| e == IntegerSlots.EXECUTION_MODE
+			|| e == IntegerSlots.EXECUTION_STATE
+			|| e == IntegerSlots.INTERRUPT_REQUEST_FLAG;
 	}
 
 
@@ -296,7 +268,7 @@ public class ProcessDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return Types.process.object();
+		return Types.PROCESS.o();
 	}
 
 	@Override
@@ -333,7 +305,7 @@ public class ProcessDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return Types.process.object();
+		return Types.PROCESS.o();
 	}
 
 
@@ -385,8 +357,10 @@ public class ProcessDescriptor extends Descriptor
 				result = 0;
 				{
 					for (int i = 1; i <= 4; ++ i)
+					{
 						result = result * 16
 							+ nybblesObject.extractNybbleFromTupleAt(pc+i);
+					}
 				}
 				pc += 5;
 				break;
@@ -394,8 +368,10 @@ public class ProcessDescriptor extends Descriptor
 				result = 0;
 				{
 					for (int i = 1; i <= 8; ++ i)
+					{
 						result = result * 16
 							+ nybblesObject.extractNybbleFromTupleAt(pc+i);
+					}
 				}
 				pc += 9;
 				break;

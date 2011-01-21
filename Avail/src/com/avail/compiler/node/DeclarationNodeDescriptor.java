@@ -32,15 +32,15 @@
 
 package com.avail.compiler.node;
 
-import static com.avail.descriptor.AvailObject.*;
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.utility.Transformer1;
 
 /**
@@ -109,7 +109,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is an argument to a block.
 		 */
-		ARGUMENT(false, Types.argumentNode)
+		ARGUMENT(false, Types.ARGUMENT_NODE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -138,7 +138,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a label declaration at the start of a block.
 		 */
-		LABEL(false, Types.labelNode)
+		LABEL(false, Types.LABEL_NODE)
 		{
 			/**
 			 * Let the code generator know that the label occurs at the
@@ -180,7 +180,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a local variable, declared within a block.
 		 */
-		LOCAL_VARIABLE(true, Types.localVariableNode)
+		LOCAL_VARIABLE(true, Types.LOCAL_VARIABLE_NODE)
 		{
 			@Override
 			public void emitEffectForOn (
@@ -246,7 +246,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a local constant, declared within a block.
 		 */
-		LOCAL_CONSTANT(false, Types.localConstantNode)
+		LOCAL_CONSTANT(false, Types.LOCAL_CONSTANT_NODE)
 		{
 			@Override
 			public void emitEffectForOn (
@@ -285,7 +285,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a variable declared at the outermost (module) scope.
 		 */
-		MODULE_VARIABLE(true, Types.moduleVariableNode)
+		MODULE_VARIABLE(true, Types.MODULE_VARIABLE_NODE)
 		{
 			@Override
 			public void emitVariableAssignmentForOn (
@@ -330,7 +330,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * This is a constant declared at the outermost (module) scope.
 		 */
-		MODULE_CONSTANT(false, Types.moduleConstantNode)
+		MODULE_CONSTANT(false, Types.MODULE_CONSTANT_NODE)
 		{
 			@Override
 			public void emitVariableValueForOn (
@@ -405,7 +405,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 */
 		public AvailObject primitiveType ()
 		{
-			return typeEnumeration.object();
+			return typeEnumeration.o();
 		}
 
 

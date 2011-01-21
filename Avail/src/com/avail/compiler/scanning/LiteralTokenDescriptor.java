@@ -32,6 +32,7 @@
 
 package com.avail.compiler.scanning;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.descriptor.*;
 
 /**
@@ -111,13 +112,13 @@ extends TokenDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return TypeDescriptor.Types.literalToken.object();
+		return LITERAL_TOKEN.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return TypeDescriptor.Types.literalToken.object();
+		return LITERAL_TOKEN.o();
 	}
 
 

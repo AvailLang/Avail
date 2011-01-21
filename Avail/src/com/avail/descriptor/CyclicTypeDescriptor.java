@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 
 public class CyclicTypeDescriptor extends TypeDescriptor
@@ -102,11 +103,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.HASH_OR_ZERO)
-		{
-			return true;
-		}
-		return false;
+		return e == IntegerSlots.HASH_OR_ZERO;
 	}
 
 
@@ -231,7 +228,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return Types.terminatesType.object();
+		return TERMINATES_TYPE.o();
 	}
 
 	@Override
@@ -245,7 +242,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		//  being equal or one being a subtype of the other have already been dealt
 		//  with (in Object:typeIntersection:), so don't test for them here.
 
-		return Types.terminatesType.object();
+		return TERMINATES_TYPE.o();
 	}
 
 	@Override
@@ -277,7 +274,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return Types.cyclicType.object();
+		return CYCLIC_TYPE.o();
 	}
 
 	@Override

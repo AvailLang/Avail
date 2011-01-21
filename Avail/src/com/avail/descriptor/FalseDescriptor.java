@@ -32,8 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class FalseDescriptor extends BooleanDescriptor
 {
@@ -64,7 +63,7 @@ public class FalseDescriptor extends BooleanDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.falseType.object();
+		return FALSE_TYPE.o();
 	}
 
 	@Override
@@ -83,7 +82,7 @@ public class FalseDescriptor extends BooleanDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.falseType.object();
+		return FALSE_TYPE.o();
 	}
 
 
@@ -104,7 +103,7 @@ public class FalseDescriptor extends BooleanDescriptor
 
 
 	/* Object creation */
-	public static AvailObject objectFromBoolean (boolean b)
+	public static AvailObject objectFromBoolean (final boolean b)
 	{
 		return b ? TrueBooleanObject : FalseBooleanObject;
 	};

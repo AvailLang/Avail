@@ -33,12 +33,12 @@
 package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.List;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.utility.*;
@@ -131,7 +131,8 @@ public abstract class Interpreter
 		final short primitiveNumber,
 		final int argCount)
 	{
-		final int expected = Primitive.byPrimitiveNumber(primitiveNumber).argCount();
+		final int expected =
+			Primitive.byPrimitiveNumber(primitiveNumber).argCount();
 		return expected == -1 || expected == argCount;
 	}
 
@@ -231,6 +232,76 @@ public abstract class Interpreter
 			requiresBlock,
 			returnsBlock);
 	}
+
+
+	/**
+	 * Add the macro implementation.  The precedence rules can not change after
+	 * the first implementation is encountered, so set them to 'no restrictions'
+	 * if they're not set already.
+	 *
+	 * @param methodName
+	 *        The macro's name, a {@link CyclicTypeDescriptor cyclic type}.
+	 * @param macroBody
+	 *        A {@link ClosureDescriptor closure} that manipulates parse nodes.
+	 */
+	public void atAddMacroBody (
+		final AvailObject methodName,
+		final AvailObject macroBody)
+	{
+		assert methodName.isCyclicType();
+		assert macroBody.isClosure();
+
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final int numArgs = splitter.numberOfArguments();
+		assert macroBody.type().numArgs() == numArgs
+		: "Wrong number of arguments in macro definition";
+		//  Make it so we can safely hold onto these things in the VM
+		methodName.makeImmutable();
+		macroBody.makeImmutable();
+		//  Add the macro implementation.
+		final AvailObject newImp = MacroSignatureDescriptor.mutable().create();
+		newImp.bodyBlock(macroBody);
+		newImp.makeImmutable();
+		module.atAddMethodImplementation(methodName, newImp);
+		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject macroBodyType = macroBody.type();
+		for (AvailObject existingImp : imps.implementationsTuple())
+		{
+			final AvailObject existingType = existingImp.bodySignature();
+			boolean same = true;
+			for (int k = 1, _end2 = macroBodyType.numArgs(); k <= _end2; k++)
+			{
+				if (!existingType.argTypeAt(k).equals(
+					macroBodyType.argTypeAt(k)))
+				{
+					same = false;
+				}
+			}
+			if (same)
+			{
+				error("Attempted to redefine macro with same argument types");
+			}
+			if (existingImp.bodySignature().acceptsArgTypesFromClosureType(
+				macroBodyType))
+			{
+				if (!macroBodyType.returnType().isSubtypeOf(
+					existingImp.bodySignature().returnType()))
+				{
+					error(
+						"Specialized macro should return at least as special "
+						+ "a result as more general macro");
+					return;
+				}
+			}
+		}
+		imps.addImplementation(newImp);
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
+	}
+
 
 	/**
 	 * Add the method implementation. The precedence rules can change at any
@@ -383,10 +454,8 @@ public abstract class Interpreter
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		AvailObject forward = null;
-		final AvailObject impsTuple = imps.implementationsTuple();
-		for (int i = 1, _end1 = impsTuple.tupleSize(); i <= _end1; i++)
+		for (AvailObject existingImp : imps.implementationsTuple())
 		{
-			final AvailObject existingImp = impsTuple.tupleAt(i);
 			final AvailObject existingType = existingImp.bodySignature();
 			boolean same = true;
 			for (int k = 1, _end2 = bodySignature.numArgs(); k <= _end2; k++)
@@ -487,11 +556,11 @@ public abstract class Interpreter
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(VoidDescriptor.voidObject())));
 		writer.argumentTypes(
-			TupleTypeDescriptor.stringTupleType(), Types.closure.object());
+			TupleTypeDescriptor.stringTupleType(), CLOSURE.o());
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration_string_block
 			.primitiveNumber);
-		writer.returnType(Types.voidType.object());
+		writer.returnType(VOID_TYPE.o());
 		final AvailObject newClosure =
 			ClosureDescriptor.create(
 				writer.compiledCode(),
@@ -537,7 +606,7 @@ public abstract class Interpreter
 		writer.argumentTypes(naturalNumbers);
 		writer.primitiveNumber(
 			Primitive.prim240_SpecialObject_index.primitiveNumber);
-		writer.returnType(Types.all.object());
+		writer.returnType(ALL.o());
 		newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
@@ -577,12 +646,12 @@ public abstract class Interpreter
 		final AvailObject firstPiece)
 	{
 
-		final AvailObject all = module.filteredBundleTree().incomplete();
-		if (!all.hasKey(firstPiece))
+		final AvailObject allBundles = module.filteredBundleTree().incomplete();
+		if (!allBundles.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
 		}
-		return all.mapAt(firstPiece).complete();
+		return allBundles.mapAt(firstPiece).complete();
 	}
 
 	/**
@@ -597,12 +666,12 @@ public abstract class Interpreter
 	public AvailObject incompleteBundlesStartingWith (
 		final AvailObject firstPiece)
 	{
-		final AvailObject all = module.filteredBundleTree().incomplete();
-		if (!all.hasKey(firstPiece))
+		final AvailObject allBundles = module.filteredBundleTree().incomplete();
+		if (!allBundles.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
 		}
-		return all.mapAt(firstPiece).incomplete();
+		return allBundles.mapAt(firstPiece).incomplete();
 	}
 
 	/**
@@ -767,19 +836,27 @@ public abstract class Interpreter
 	 * Answers the return type. Fails if no applicable implementation (or more
 	 * than one).
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
-	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
-	 *                 of the message send.
-	 * @param failBlock A {@linkplain Continuation1 continuation} to invoke on
-	 *                  failure.
+	 * @param methodName
+	 *        A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param argumentExpressions
+	 *        The {@linkplain TypeDescriptor types} of the arguments of the
+	 *        message send.
+	 * @param failBlock
+	 *        A {@linkplain Continuation1 continuation} to invoke on failure.
 	 * @return The return {@linkplain TypeDescriptor type}.
 	 */
-	public @NotNull AvailObject validateSendArgumentTypesIfFail (
+	public @NotNull AvailObject validateSendArgumentExpressions (
 		final @NotNull AvailObject methodName,
-		final @NotNull List<AvailObject> argTypes,
+		final @NotNull List<AvailObject> argumentExpressions,
 		final @NotNull Continuation1<Generator<String>> failBlock)
 	{
 		final AvailObject impSet = runtime.methodsAt(methodName);
+		final List<AvailObject> argTypes =
+			new ArrayList<AvailObject>(argumentExpressions.size());
+		for (final AvailObject argumentExpression : argumentExpressions)
+		{
+			argTypes.add(argumentExpression.expressionType());
+		}
 		return impSet.validateArgumentTypesInterpreterIfFail(
 			argTypes,
 			this,

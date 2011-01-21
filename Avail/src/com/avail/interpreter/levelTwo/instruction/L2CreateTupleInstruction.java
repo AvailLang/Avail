@@ -32,20 +32,12 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2CreateTupleInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_;
+import java.util.*;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2CreateTupleInstruction extends L2Instruction
 {
@@ -126,13 +118,13 @@ public class L2CreateTupleInstruction extends L2Instruction
 			}
 			else
 			{
-				types.add(Types.all.object());
+				types.add(ALL.o());
 			}
 		}
 		final AvailObject tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			sizeRange,
 			TupleDescriptor.fromList(types),
-			Types.terminates.object());
+			TERMINATES.o());
 		tupleType.makeImmutable();
 		anL2Translator.registerTypeAtPut(_dest, tupleType);
 		if (_sourceVector.allRegistersAreConstantsIn(anL2Translator))

@@ -33,10 +33,10 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class TwoByteStringDescriptor extends TupleDescriptor
 {
@@ -209,11 +209,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			final AvailObject object,
 			final AvailObject aType)
 	{
-		if (aType.equals(Types.voidType.object()))
+		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aType.equals(Types.all.object()))
+		if (aType.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -233,7 +233,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		final int limit = min(object.tupleSize(), (typeTuple.tupleSize() + 1));
 		for (int i = 1; i <= limit; i++)
 		{
-			if (!Types.character.object().isSubtypeOf(aType.typeAtIndex(i)))
+			if (!CHARACTER.o().isSubtypeOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -465,7 +465,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	// Descriptor lookup
-	static TwoByteStringDescriptor isMutableSize(final boolean flag, final int size)
+	static TwoByteStringDescriptor isMutableSize(
+		final boolean flag,
+		final int size)
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors [delta + (size & 1) * 2];

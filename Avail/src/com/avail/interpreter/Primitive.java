@@ -33,6 +33,7 @@
 package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.*;
@@ -42,7 +43,6 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
 
@@ -71,7 +71,9 @@ public enum Primitive
 	prim1_Addition_a_b(1, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -88,7 +90,9 @@ public enum Primitive
 	prim2_Subtraction_a_b(2, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -105,7 +109,9 @@ public enum Primitive
 	prim3_Multiplication_a_b(3, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -122,7 +128,9 @@ public enum Primitive
 	prim4_Division_a_b(4, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -144,7 +152,9 @@ public enum Primitive
 	prim5_LessThan_a_b(5, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -163,7 +173,9 @@ public enum Primitive
 	prim6_LessOrEqual_a_b(6, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -183,7 +195,9 @@ public enum Primitive
 	prim7_CreateIntegerRange_min_minInc_max_maxInc(7, 4, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject min = args.get(0);
@@ -208,7 +222,9 @@ public enum Primitive
 	prim8_LowerBound_range(8, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject range = args.get(0);
@@ -225,7 +241,9 @@ public enum Primitive
 	prim9_UpperBound_range(9, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject range = args.get(0);
@@ -246,7 +264,9 @@ public enum Primitive
 	prim10_GetValue_var(10, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
@@ -267,7 +287,9 @@ public enum Primitive
 	prim11_SetValue_var_value(11, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject var = args.get(0);
@@ -285,7 +307,9 @@ public enum Primitive
 	prim12_ClearValue_var(12, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
@@ -303,11 +327,14 @@ public enum Primitive
 	prim13_CreateContainerType_type(13, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
-			interpreter.primitiveResult(ContainerTypeDescriptor.wrapInnerType(type));
+			interpreter.primitiveResult(
+				ContainerTypeDescriptor.wrapInnerType(type));
 			return SUCCESS;
 		}
 	},
@@ -320,7 +347,9 @@ public enum Primitive
 	prim14_InnerType_type(14, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
@@ -336,7 +365,9 @@ public enum Primitive
 	prim15_Swap_var1_var2(15, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject var1 = args.get(0);
@@ -357,11 +388,14 @@ public enum Primitive
 	prim16_CreateContainer_innerType(16, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject innerType = args.get(0);
-			interpreter.primitiveResult(ContainerDescriptor.forInnerType(innerType));
+			interpreter.primitiveResult(
+				ContainerDescriptor.forInnerType(innerType));
 			return SUCCESS;
 		}
 	},
@@ -374,11 +408,14 @@ public enum Primitive
 	prim17_HasNoValue_var(17, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(var.value().equalsVoid()));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(var.value().equalsVoid()));
 			return SUCCESS;
 		}
 	},
@@ -393,7 +430,9 @@ public enum Primitive
 	prim18_GetClearing_var(18, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
@@ -411,11 +450,14 @@ public enum Primitive
 	prim20_GetPriority_processObject(20, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject processObject = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(processObject.priority()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(processObject.priority()));
 			return SUCCESS;
 		}
 	},
@@ -427,7 +469,9 @@ public enum Primitive
 	prim21_SetPriority_processObject_newPriority(21, 2, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject processObject = args.get(0);
@@ -446,10 +490,13 @@ public enum Primitive
 	prim22_Suspend_processObject(22, 1, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			@SuppressWarnings("unused") final AvailObject processObject = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject processObject = args.get(0);
 			error("process suspend is not yet implemented");
 			return FAILURE;
 		}
@@ -463,10 +510,13 @@ public enum Primitive
 	prim23_Resume_processObject(23, 1, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			@SuppressWarnings("unused") final AvailObject processObject = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject processObject = args.get(0);
 			error("process resume is not yet implemented");
 			return FAILURE;
 		}
@@ -480,10 +530,13 @@ public enum Primitive
 	prim24_Terminate_processObject(24, 1, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			@SuppressWarnings("unused") final AvailObject processObject = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject processObject = args.get(0);
 			error("process terminate is not yet implemented");
 			return FAILURE;
 		}
@@ -496,10 +549,13 @@ public enum Primitive
 	prim25_CurrentProcess(25, 0, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
-			interpreter.primitiveResult(interpreter.process().makeImmutable());
+			interpreter.primitiveResult(
+				interpreter.process().makeImmutable());
 			return SUCCESS;
 		}
 	},
@@ -512,12 +568,15 @@ public enum Primitive
 	prim26_LookupProcessVariable_processObject_key(26, 2, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject processObject = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(processObject.processGlobals().mapAt(key).makeImmutable());
+			interpreter.primitiveResult(
+				processObject.processGlobals().mapAt(key).makeImmutable());
 			return SUCCESS;
 		}
 	},
@@ -530,16 +589,19 @@ public enum Primitive
 	prim27_SetProcessVariable_processObject_key_value(27, 3, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject processObject = args.get(0);
 			final AvailObject key = args.get(1);
 			final AvailObject value = args.get(2);
-			processObject.processGlobals(processObject.processGlobals().mapAtPuttingCanDestroy(
-				key.makeImmutable(),
-				value.makeImmutable(),
-				true));
+			processObject.processGlobals(
+				processObject.processGlobals().mapAtPuttingCanDestroy(
+					key.makeImmutable(),
+					value.makeImmutable(),
+					true));
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
@@ -552,10 +614,13 @@ public enum Primitive
 	prim28_SemaphoreWait_semaphore(28, 1, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			@SuppressWarnings("unused") final AvailObject semaphore = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject semaphore = args.get(0);
 			error("This semaphore primitive is not yet implemented");
 			return FAILURE;
 		}
@@ -568,10 +633,13 @@ public enum Primitive
 	prim29_SemaphoreSignal_semaphore(29, 1, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			@SuppressWarnings("unused") final AvailObject semaphore = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject semaphore = args.get(0);
 			error("This semaphore primitive is not yet implemented");
 			return FAILURE;
 		}
@@ -584,7 +652,9 @@ public enum Primitive
 	prim30_Type_value(30, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject value = args.get(0);
@@ -601,12 +671,15 @@ public enum Primitive
 	prim31_TypeUnion_type1_type2(31, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
 			final AvailObject type2 = args.get(1);
-			interpreter.primitiveResult(type1.typeUnion(type2).makeImmutable());
+			interpreter.primitiveResult(
+				type1.typeUnion(type2).makeImmutable());
 			return SUCCESS;
 		}
 	},
@@ -620,7 +693,9 @@ public enum Primitive
 	prim32_TypeIntersection_type1_type2(32, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
@@ -639,12 +714,15 @@ public enum Primitive
 	prim33_IsSubtypeOf_type1_type2(33, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
 			final AvailObject type2 = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(type1.isSubtypeOf(type2)));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(type1.isSubtypeOf(type2)));
 			return SUCCESS;
 		}
 	},
@@ -657,7 +735,9 @@ public enum Primitive
 	prim34_CreateClosureType_argTypes_returnType(34, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject argTypes = args.get(0);
@@ -665,9 +745,9 @@ public enum Primitive
 			for (int i = 1, _end1 = argTypes.tupleSize(); i <= _end1; i++)
 			{
 				assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(
-					Types.type.object());
+					TYPE.o());
 			}
-			assert returnType.isInstanceOfSubtypeOf(Types.type.object());
+			assert returnType.isInstanceOfSubtypeOf(TYPE.o());
 			interpreter.primitiveResult(
 				ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 					argTypes,
@@ -684,11 +764,14 @@ public enum Primitive
 	prim35_ClosureTypeNumArgs_closureType(35, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(closureType.numArgs()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(closureType.numArgs()));
 			return SUCCESS;
 		}
 	},
@@ -701,12 +784,15 @@ public enum Primitive
 	prim36_ArgTypeAt_closureType_index(36, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject closureType = args.get(0);
 			final AvailObject index = args.get(1);
-			interpreter.primitiveResult(closureType.argTypeAt(index.extractInt()));
+			interpreter.primitiveResult(
+				closureType.argTypeAt(index.extractInt()));
 			return SUCCESS;
 		}
 	},
@@ -719,7 +805,9 @@ public enum Primitive
 	prim37_ReturnType_closureType(37, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
@@ -736,11 +824,13 @@ public enum Primitive
 	prim38_UnionOfTupleOfTypes_tupleOfTypes(38, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleOfTypes = args.get(0);
-			AvailObject unionObject = Types.terminates.object();
+			AvailObject unionObject = TERMINATES.o();
 			for (int i = 1, _end2 = tupleOfTypes.tupleSize(); i <= _end2; i++)
 			{
 				unionObject = unionObject.typeUnion(tupleOfTypes.tupleAt(i));
@@ -758,7 +848,9 @@ public enum Primitive
 	prim39_CreateGeneralizedClosureType_returnType(39, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject returnType = args.get(0);
@@ -777,7 +869,9 @@ public enum Primitive
 	prim40_InvokeWithTuple_block_argTuple(40, 2, Invokes)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject block = args.get(0);
@@ -788,7 +882,8 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			final List<AvailObject> callArgs = new ArrayList<AvailObject>(numArgs);
+			final List<AvailObject> callArgs =
+				new ArrayList<AvailObject>(numArgs);
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final AvailObject anArg = argTuple.tupleAt(i);
@@ -813,7 +908,9 @@ public enum Primitive
 	prim43_IfThenElse_aBoolean_trueBlock_falseBlock(43, 3, Invokes)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject aBoolean = args.get(0);
@@ -841,7 +938,9 @@ public enum Primitive
 	prim44_IfThen_aBoolean_trueBlock(44, 2, Invokes)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject aBoolean = args.get(0);
@@ -866,10 +965,13 @@ public enum Primitive
 	prim45_ShortCircuitHelper_ignoredBool_block(45, 2, Invokes)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			@SuppressWarnings("unused") final AvailObject ignoredBool = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject ignoredBool = args.get(0);
 			final AvailObject block = args.get(1);
 			assert block.type().numArgs() == 0;
 			return interpreter.invokeClosureArguments (
@@ -886,7 +988,9 @@ public enum Primitive
 	prim49_CreateContinuation_callerHolder_closure_pc_stackp_stack(49, 5, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 5;
 			final AvailObject callerHolder = args.get(0);
@@ -921,11 +1025,14 @@ public enum Primitive
 	prim50_ContinuationTypeToClosureType_continuationType(50, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject continuationType = args.get(0);
-			interpreter.primitiveResult(continuationType.closureType());
+			interpreter.primitiveResult(
+				continuationType.closureType());
 			return SUCCESS;
 		}
 	},
@@ -938,11 +1045,14 @@ public enum Primitive
 	prim51_ClosureTypeToContinuationType_closureType(51, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
-			interpreter.primitiveResult(ContinuationTypeDescriptor.forClosureType(closureType));
+			interpreter.primitiveResult(
+				ContinuationTypeDescriptor.forClosureType(closureType));
 			return SUCCESS;
 		}
 	},
@@ -955,7 +1065,9 @@ public enum Primitive
 	prim52_ContinuationCaller_con(52, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -976,7 +1088,9 @@ public enum Primitive
 	prim53_ContinuationClosure_con(53, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -994,11 +1108,14 @@ public enum Primitive
 	prim54_ContinuationPC_con(54, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(con.pc()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(con.pc()));
 			return SUCCESS;
 		}
 	},
@@ -1014,11 +1131,14 @@ public enum Primitive
 	prim55_ContinuationStackPointer_con(55, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(con.stackp()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(con.stackp()));
 			return SUCCESS;
 		}
 	},
@@ -1036,15 +1156,20 @@ public enum Primitive
 	prim56_RestartContinuationWithArguments_con_arguments(56, 2, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject con = args.get(0);
 			final AvailObject code = con.closure().code();
 			final AvailObject arguments = args.get(1);
 			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than call-continuation";
-			assert con.pc() == 1 : "Labels must only occur at the start of a block.  Only restart that kind of continuation.";
+			: "Outer continuation should have been a label- rather than "
+				+ "call-continuation";
+			assert con.pc() == 1
+			: "Labels must only occur at the start of a block.  "
+				+ "Only restart that kind of continuation.";
 			// The arguments will be referenced by the continuation.
 
 			// No need to make it immutable because current continuation's
@@ -1071,7 +1196,9 @@ public enum Primitive
 			}
 			for (int i = 1, _end5 = itsCode.numLocals(); i <= _end5; i++)
 			{
-				conCopy.localOrArgOrStackAtPut((itsCode.numArgs() + i), ContainerDescriptor.forOuterType(itsCode.localTypeAt(i)));
+				conCopy.localOrArgOrStackAtPut(
+					itsCode.numArgs() + i,
+					ContainerDescriptor.forOuterType(itsCode.localTypeAt(i)));
 			}
 			interpreter.prepareToExecuteContinuation(conCopy);
 			return CONTINUATION_CHANGED;
@@ -1086,13 +1213,19 @@ public enum Primitive
 	prim57_ExitContinuationWithResult_con_result(57, 2, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject con = args.get(0);
 			final AvailObject result = args.get(1);
-			assert con.stackp() == con.objectSlotsCount() + 1 : "Outer continuation should have been a label- rather than call- continuation";
-			assert con.pc() == 1 : "Labels must only occur at the start of a block.  Only exit that kind of continuation.";
+			assert con.stackp() == con.objectSlotsCount() + 1
+			: "Outer continuation should have been a label- rather than "
+				+ "call- continuation";
+			assert con.pc() == 1
+			: "Labels must only occur at the start of a block.  "
+				+ "Only exit that kind of continuation.";
 			// No need to make it immutable because current continuation's
 			// reference is lost by this.  We go ahead and make a mutable copy
 			// (if necessary) because the interpreter requires the current
@@ -1119,15 +1252,19 @@ public enum Primitive
 	prim58_RestartContinuation_con(58, 1, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			final AvailObject code = con.closure().code();
 			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than call-continuation";
+			: "Outer continuation should have been a label- rather than "
+				+ "call-continuation";
 			assert con.pc() == 1
-			: "Labels must only occur at the start of a block.  Only restart that kind of continuation.";
+			: "Labels must only occur at the start of a block.  "
+				+ "Only restart that kind of continuation.";
 			// Funny twist - destroy previous continuation in place of one
 			// being restarted
 
@@ -1158,7 +1295,9 @@ public enum Primitive
 	prim59_ContinuationStackData_con(59, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -1188,12 +1327,15 @@ public enum Primitive
 	prim60_Equality_a_b(60, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(a.equals(b)));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(a.equals(b)));
 			return SUCCESS;
 		}
 	},
@@ -1206,11 +1348,14 @@ public enum Primitive
 	prim61_MapToObject_map(61, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(ObjectDescriptor.objectFromMap(map));
+			interpreter.primitiveResult(
+				ObjectDescriptor.objectFromMap(map));
 			return SUCCESS;
 		}
 	},
@@ -1223,7 +1368,9 @@ public enum Primitive
 	prim62_ObjectToMap_object(62, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject object = args.get(0);
@@ -1240,11 +1387,14 @@ public enum Primitive
 	prim63_MapToObjectType_map(63, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(ObjectTypeDescriptor.objectTypeFromMap(map));
+			interpreter.primitiveResult(
+				ObjectTypeDescriptor.objectTypeFromMap(map));
 			return SUCCESS;
 		}
 	},
@@ -1257,7 +1407,9 @@ public enum Primitive
 	prim64_ObjectTypeToMap_objectType(64, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectType = args.get(0);
@@ -1274,7 +1426,9 @@ public enum Primitive
 	prim65_ObjectMetaInstance_objectMeta(65, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectMeta = args.get(0);
@@ -1291,7 +1445,9 @@ public enum Primitive
 	prim66_ObjectMetaMetaInstance_objectMetaMeta(66, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectMetaMeta = args.get(0);
@@ -1307,7 +1463,9 @@ public enum Primitive
 	prim67_NameOfPrimitiveType_primType(67, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject primType = args.get(0);
@@ -1377,12 +1535,17 @@ public enum Primitive
 	prim70_CreateConstantBlock_numArgs_constantResult(70, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject numArgs = args.get(0);
 			final AvailObject constantResult = args.get(1);
-			interpreter.primitiveResult(ClosureDescriptor.createStubForNumArgsConstantResult(numArgs.extractInt(), constantResult));
+			interpreter.primitiveResult(
+				ClosureDescriptor.createStubForNumArgsConstantResult(
+					numArgs.extractInt(),
+					constantResult));
 			return SUCCESS;
 		}
 	},
@@ -1399,7 +1562,9 @@ public enum Primitive
 	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple_argTypes_message_firstArg_resultType(71, 4, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject argTypes = args.get(0);
@@ -1424,7 +1589,9 @@ public enum Primitive
 	prim72_CompiledCodeOfClosure_aClosure(72, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
@@ -1441,7 +1608,9 @@ public enum Primitive
 	prim73_OuterVariables_aClosure(73, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
@@ -1475,12 +1644,15 @@ public enum Primitive
 	prim74_CreateClosure_compiledCode_outers(74, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject compiledCode = args.get(0);
 			final AvailObject outers = args.get(1);
-			interpreter.primitiveResult(ClosureDescriptor.create(compiledCode, outers));
+			interpreter.primitiveResult(
+				ClosureDescriptor.create(compiledCode, outers));
 			return SUCCESS;
 		}
 	},
@@ -1493,11 +1665,14 @@ public enum Primitive
 	prim80_MapSize_map(80, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(map.mapSize()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(map.mapSize()));
 			return SUCCESS;
 		}
 	},
@@ -1509,12 +1684,15 @@ public enum Primitive
 	prim81_MapHasKey_map_key(81, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(map.hasKey(key)));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(map.hasKey(key)));
 			return SUCCESS;
 		}
 	},
@@ -1527,7 +1705,9 @@ public enum Primitive
 	prim82_MapAtKey_map_key(82, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
@@ -1546,7 +1726,9 @@ public enum Primitive
 	prim83_MapReplacingKey_map_key_value(83, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject map = args.get(0);
@@ -1568,12 +1750,15 @@ public enum Primitive
 	prim84_MapWithoutKey_map_key(84, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(map.mapWithoutKeyCanDestroy(key, true));
+			interpreter.primitiveResult(
+				map.mapWithoutKeyCanDestroy(key, true));
 			return SUCCESS;
 		}
 	},
@@ -1585,7 +1770,9 @@ public enum Primitive
 	prim85_CreateEmptyMap(85, 0, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			interpreter.primitiveResult(MapDescriptor.empty());
@@ -1600,7 +1787,9 @@ public enum Primitive
 	prim86_MapKeysAsSet_map(86, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -1617,16 +1806,19 @@ public enum Primitive
 	prim87_CreateMapType_Sizes_keyType_valueType(87, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject sizes = args.get(0);
 			final AvailObject keyType = args.get(1);
 			final AvailObject valueType = args.get(2);
-			interpreter.primitiveResult(MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				sizes,
-				keyType,
-				valueType));
+			interpreter.primitiveResult(
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					sizes,
+					keyType,
+					valueType));
 			return SUCCESS;
 		}
 	},
@@ -1641,7 +1833,9 @@ public enum Primitive
 	prim88_MapTypeSizes_mapType(88, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
@@ -1657,7 +1851,9 @@ public enum Primitive
 	prim89_MapTypeKeyType_mapType(89, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
@@ -1673,7 +1869,9 @@ public enum Primitive
 	prim90_MapTypeValueType_mapType(90, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
@@ -1690,7 +1888,9 @@ public enum Primitive
 	prim91_MapValuesAsTuple_map(91, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -1706,11 +1906,14 @@ public enum Primitive
 	prim100_SetSize_set(100, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(set.setSize()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(set.setSize()));
 			return SUCCESS;
 		}
 	},
@@ -1723,12 +1926,15 @@ public enum Primitive
 	prim101_SetHasElement_set_element(101, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
 			final AvailObject element = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(set.hasElement(element)));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(set.hasElement(element)));
 			return SUCCESS;
 		}
 	},
@@ -1740,12 +1946,15 @@ public enum Primitive
 	prim102_SetUnion_set1_set2(102, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(set1.setUnionCanDestroy(set2, true));
+			interpreter.primitiveResult(
+				set1.setUnionCanDestroy(set2, true));
 			return SUCCESS;
 		}
 	},
@@ -1757,12 +1966,15 @@ public enum Primitive
 	prim103_SetIntersection_set1_set2(103, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(set1.setIntersectionCanDestroy(set2, true));
+			interpreter.primitiveResult(
+				set1.setIntersectionCanDestroy(set2, true));
 			return SUCCESS;
 		}
 	},
@@ -1775,12 +1987,15 @@ public enum Primitive
 	prim104_SetDifference_set1_set2(104, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(set1.setMinusCanDestroy(set2, true));
+			interpreter.primitiveResult(
+				set1.setMinusCanDestroy(set2, true));
 			return SUCCESS;
 		}
 	},
@@ -1793,12 +2008,15 @@ public enum Primitive
 	prim105_SetWith_set_newElement(105, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
 			final AvailObject newElement = args.get(1);
-			interpreter.primitiveResult(set.setWithElementCanDestroy(newElement, true));
+			interpreter.primitiveResult(
+				set.setWithElementCanDestroy(newElement, true));
 			return SUCCESS;
 		}
 	},
@@ -1811,12 +2029,15 @@ public enum Primitive
 	prim106_SetWithout_set_excludedElement(106, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
 			final AvailObject excludedElement = args.get(1);
-			interpreter.primitiveResult(set.setWithoutElementCanDestroy(excludedElement, true));
+			interpreter.primitiveResult(
+				set.setWithoutElementCanDestroy(excludedElement, true));
 			return SUCCESS;
 		}
 	},
@@ -1828,12 +2049,15 @@ public enum Primitive
 	prim107_SetIsSubset_set1_set2(107, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(set1.isSubsetOf(set2)));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(set1.isSubsetOf(set2)));
 			return SUCCESS;
 		}
 	},
@@ -1845,7 +2069,9 @@ public enum Primitive
 	prim108_CreateEmptySet(108, 0, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			interpreter.primitiveResult(SetDescriptor.empty());
@@ -1861,7 +2087,9 @@ public enum Primitive
 	prim109_TupleToSet_tuple(109, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
@@ -1879,7 +2107,9 @@ public enum Primitive
 	prim110_SetToTuple_set(110, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
@@ -1895,12 +2125,17 @@ public enum Primitive
 	prim111_CreateSetType_sizeRange_contentType(111, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject sizeRange = args.get(0);
 			final AvailObject contentType = args.get(1);
-			interpreter.primitiveResult(SetTypeDescriptor.setTypeForSizesContentType(sizeRange, contentType));
+			interpreter.primitiveResult(
+				SetTypeDescriptor.setTypeForSizesContentType(
+					sizeRange,
+					contentType));
 			return SUCCESS;
 		}
 	},
@@ -1915,7 +2150,9 @@ public enum Primitive
 	prim112_SetTypeSizes_setType(112, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject setType = args.get(0);
@@ -1931,7 +2168,9 @@ public enum Primitive
 	prim113_SetTypeElementType_setType(113, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject setType = args.get(0);
@@ -1948,7 +2187,9 @@ public enum Primitive
 	prim120_CreateCyclicType_name(120, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject name = args.get(0);
@@ -1964,7 +2205,9 @@ public enum Primitive
 	prim121_CyclicTypeName_cyclicType(121, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cyclicType = args.get(0);
@@ -1980,11 +2223,14 @@ public enum Primitive
 	prim130_TupleSize_tuple(130, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(tuple.tupleSize()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.objectFromInt(tuple.tupleSize()));
 			return SUCCESS;
 		}
 	},
@@ -1996,7 +2242,9 @@ public enum Primitive
 	prim131_TupleAt_tuple_index(131, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject tuple = args.get(0);
@@ -2014,7 +2262,9 @@ public enum Primitive
 	prim132_TupleReplaceAt_tuple_index_value(132, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tuple = args.get(0);
@@ -2035,11 +2285,14 @@ public enum Primitive
 	prim133_CreateTupleSizeOne_soleElement(133, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject soleElement = args.get(0);
-			final AvailObject newTupleObject = ObjectTupleDescriptor.mutable().create(1);
+			final AvailObject newTupleObject =
+				ObjectTupleDescriptor.mutable().create(1);
 			newTupleObject.hashOrZero(0);
 			newTupleObject.tupleAtPut(1, soleElement);
 			interpreter.primitiveResult(newTupleObject);
@@ -2054,7 +2307,9 @@ public enum Primitive
 	prim134_CreateEmptyTuple(134, 0, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			interpreter.primitiveResult(TupleDescriptor.empty());
@@ -2070,7 +2325,9 @@ public enum Primitive
 	prim135_ExtractSubtuple_tuple_start_end(135, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tuple = args.get(0);
@@ -2092,11 +2349,14 @@ public enum Primitive
 	prim136_ConcatenateTuples_tuples(136, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tuples = args.get(0);
-			interpreter.primitiveResult(tuples.concatenateTuplesCanDestroy(true));
+			interpreter.primitiveResult(
+				tuples.concatenateTuplesCanDestroy(true));
 			return SUCCESS;
 		}
 	},
@@ -2109,16 +2369,19 @@ public enum Primitive
 	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(137, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject sizeRange = args.get(0);
 			final AvailObject typeTuple = args.get(1);
 			final AvailObject defaultType = args.get(2);
-			interpreter.primitiveResult(TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizeRange,
-				typeTuple,
-				defaultType));
+			interpreter.primitiveResult(
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					sizeRange,
+					typeTuple,
+					defaultType));
 			return SUCCESS;
 		}
 	},
@@ -2133,7 +2396,9 @@ public enum Primitive
 	prim138_TupleTypeSizes_tupleType(138, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
@@ -2150,7 +2415,9 @@ public enum Primitive
 	prim139_TupleTypeLeadingTypes_tupleType(139, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
@@ -2167,7 +2434,9 @@ public enum Primitive
 	prim140_TupleTypeDefaultType_tupleType(140, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
@@ -2184,7 +2453,9 @@ public enum Primitive
 	prim141_TupleTypeAt_tupleType_index(141, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject tupleType = args.get(0);
@@ -2203,7 +2474,9 @@ public enum Primitive
 	prim142_TupleTypeSequenceOfTypes_tupleType_startIndex_endIndex(142, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tupleType = args.get(0);
@@ -2238,7 +2511,9 @@ public enum Primitive
 	prim143_TupleTypeAtThrough_tupleType_startIndex_endIndex(143, 3, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tupleType = args.get(0);
@@ -2258,7 +2533,9 @@ public enum Primitive
 	prim144_TupleTypeConcatenate_tupleType1_tupleType2(144, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject tupleType1 = args.get(0);
@@ -2983,7 +3260,9 @@ public enum Primitive
 	prim180_CompiledCodeNumArgs_cc(180, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3000,7 +3279,9 @@ public enum Primitive
 	prim181_CompiledCodeNumLocals_cc(181, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3017,7 +3298,9 @@ public enum Primitive
 	prim182_CompiledCodeNumOuters_cc(182, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3034,7 +3317,9 @@ public enum Primitive
 	prim183_CompiledCodeNumStackSlots_cc(183, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3051,7 +3336,9 @@ public enum Primitive
 	prim184_CompiledCodeNybbles_cc(184, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3068,7 +3355,9 @@ public enum Primitive
 	prim185_CompiledCodeClosureType_cc(185, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3085,7 +3374,9 @@ public enum Primitive
 	prim186_CompiledCodePrimitiveNumber_cc(186, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3102,7 +3393,9 @@ public enum Primitive
 	prim187_CompiledCodeLiterals_cc(187, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -3139,7 +3432,9 @@ public enum Primitive
 	prim188_CreateCompiledCode_numArgs_locals_outers_stack_nybs_closureType_prim_literals(188, 8, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 8;
 			final AvailObject numArgs = args.get(0);
@@ -3177,7 +3472,9 @@ public enum Primitive
 	prim200_CatchException_bodyBlock_handlerBlock(200, 2, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			@SuppressWarnings("unused") final AvailObject bodyBlock = args.get(0);
@@ -3201,7 +3498,9 @@ public enum Primitive
 	prim201_RaiseException_exceptionValue(201, 1, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject exceptionValue = args.get(0);
@@ -3219,7 +3518,9 @@ public enum Primitive
 	prim207_CompleteMessages_bundleTree(207, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
@@ -3238,7 +3539,9 @@ public enum Primitive
 	prim208_IncompleteMessages_bundleTree(208, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
@@ -3256,7 +3559,9 @@ public enum Primitive
 	prim209_CompleteMessagesStartingWith_leadingPart(209, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
@@ -3274,7 +3579,9 @@ public enum Primitive
 	prim210_IncompleteMessagesStartingWith_leadingPart(210, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
@@ -3294,7 +3601,9 @@ public enum Primitive
 	prim211_BundleMessage_bundle(211, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -3311,7 +3620,9 @@ public enum Primitive
 	prim212_BundleMessageParts_bundle(212, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -3329,7 +3640,9 @@ public enum Primitive
 	prim213_BundleSignatures_bundle(213, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -3351,7 +3664,9 @@ public enum Primitive
 	prim214_BundleHasRestrictions_bundle(214, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -3368,7 +3683,9 @@ public enum Primitive
 	prim215_BundleRestrictions_bundle(215, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -3385,7 +3702,9 @@ public enum Primitive
 	prim216_SignatureBodyType_sig(216, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
@@ -3402,7 +3721,9 @@ public enum Primitive
 	prim217_SignatureBodyBlock_methSig(217, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject methSig = args.get(0);
@@ -3419,7 +3740,9 @@ public enum Primitive
 	prim218_SignatureRequiresBlock_sig(218, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
@@ -3436,7 +3759,9 @@ public enum Primitive
 	prim219_SignatureReturnsBlock_sig(219, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
@@ -3455,7 +3780,9 @@ public enum Primitive
 	prim220_ImplementationSetFromName_name(220, 1, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject aCyclicType = args.get(0);
@@ -3475,7 +3802,9 @@ public enum Primitive
 	prim221_ImplementationSetName_name(221, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject anImplementationSet = args.get(0);
@@ -3483,6 +3812,7 @@ public enum Primitive
 			return SUCCESS;
 		}
 	},
+
 
 	/**
 	 * <strong>Primitive 240:</strong> Retrieve the {@linkplain
@@ -3520,6 +3850,7 @@ public enum Primitive
 		}
 	},
 
+
 	/**
 	 * <strong>Primitive 245:</strong> Look up the {@linkplain
 	 * CyclicTypeDescriptor true name} bound to the specified {@linkplain
@@ -3547,6 +3878,34 @@ public enum Primitive
 		}
 	},
 
+
+	/**
+	 * <strong>Primitive 249:</strong> Simple macro definition.
+	 */
+	prim249_SimpleMacroDeclaration_string_block(249, 2, Unknown)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject string = args.get(0);
+			final AvailObject block = args.get(1);
+			final AvailObject blockType = block.type();
+			for (int i = 1; i <= blockType.numArgs(); i++)
+			{
+				assert blockType.argTypeAt(i).isSubtypeOf(
+					PARSE_NODE.o());
+			}
+			assert blockType.returnType().isSubtypeOf(
+				PARSE_NODE.o());
+			interpreter.atAddMacroBody(interpreter.lookupName(string), block);
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return SUCCESS;
+		}
+	},
+
 	/**
 	 * <strong>Primitive 250:</strong> Is there a {@linkplain Primitive
 	 * primitive} with the specified ordinal?
@@ -3554,7 +3913,9 @@ public enum Primitive
 	prim250_IsPrimitiveDefined_index(250, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 
@@ -3584,7 +3945,9 @@ public enum Primitive
 	prim251_AbstractMethodDeclaration_string_blockSignature_requiresBlock_returnsBlock(251, 4, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject string = args.get(0);
@@ -3609,7 +3972,9 @@ public enum Primitive
 	prim252_ForwardMethodDeclaration_string_blockSignature(252, 2, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
@@ -3628,7 +3993,9 @@ public enum Primitive
 	prim253_SimpleMethodDeclaration_string_block(253, 2, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
@@ -3647,7 +4014,9 @@ public enum Primitive
 	prim254_MethodDeclaration_string_block_requiresBlock_returnsBlock(254, 4, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject string = args.get(0);
@@ -3734,7 +4103,9 @@ public enum Primitive
 	prim257_BreakPoint(257, 0, Unknown)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3782,7 +4153,9 @@ public enum Primitive
 	prim260_CreateLibrarySpec(260, 0, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
@@ -3804,7 +4177,9 @@ public enum Primitive
 	prim261_OpenLibrary_handle_filename(261, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3839,7 +4214,9 @@ public enum Primitive
 	prim262_ParseDeclarations_libraryHandle_declaration(262, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3873,7 +4250,9 @@ public enum Primitive
 	prim263_ExtractEntryPoint_handle_functionName(263, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3907,7 +4286,9 @@ public enum Primitive
 	prim264_EntryPointClosureType_entryPointHandle(264, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3926,7 +4307,9 @@ public enum Primitive
 	prim265_InvokeEntryPoint_arguments(265, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3978,7 +4361,9 @@ public enum Primitive
 	prim266_IntegralType_from(266, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -3998,7 +4383,9 @@ public enum Primitive
 	prim267_IntegralType_to_write(267, 3, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -4021,7 +4408,9 @@ public enum Primitive
 	prim268_BigEndian(268, 0, CanInline)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			// PLATFORM-DEPENDENT -- rewrite more portably some day
@@ -4037,7 +4426,9 @@ public enum Primitive
 	prim280_FloatAddition_a_b(280, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4057,7 +4448,9 @@ public enum Primitive
 	prim281_FloatSubtraction_a_b(281, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4077,7 +4470,9 @@ public enum Primitive
 	prim282_FloatMultiplication_a_b(282, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4097,7 +4492,9 @@ public enum Primitive
 	prim283_FloatDivision_a_b(283, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4122,7 +4519,9 @@ public enum Primitive
 	prim284_FloatLessThan_a_b(284, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4142,7 +4541,9 @@ public enum Primitive
 	prim285_FloatLessOrEqual_a_b(285, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4161,7 +4562,9 @@ public enum Primitive
 	prim286_FloatLn_a(286, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4181,7 +4584,9 @@ public enum Primitive
 	prim287_FloatExp_a(287, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4201,7 +4606,9 @@ public enum Primitive
 	prim288_FloatModulus_a_b(288, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4228,7 +4635,9 @@ public enum Primitive
 	prim289_FloatTruncatedAsInteger_a(289, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4273,7 +4682,9 @@ public enum Primitive
 	prim290_FloatFromInteger_a(290, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4316,7 +4727,9 @@ public enum Primitive
 	prim291_FloatTimesTwoPower_a_b(291, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4338,7 +4751,9 @@ public enum Primitive
 	prim310_DoubleAddition_a_b(310, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4358,7 +4773,9 @@ public enum Primitive
 	prim311_DoubleSubtraction_a_b(311, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4378,7 +4795,9 @@ public enum Primitive
 	prim312_DoubleMultiplication_a_b(312, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4398,7 +4817,9 @@ public enum Primitive
 	prim313_DoubleDivision_a_b(313, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4423,7 +4844,9 @@ public enum Primitive
 	prim314_DoubleLessThan_a_b(314, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4441,7 +4864,9 @@ public enum Primitive
 	prim315_DoubleLessOrEqual_a_b(315, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4459,7 +4884,9 @@ public enum Primitive
 	prim316_DoubleLn_a(316, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4477,7 +4904,9 @@ public enum Primitive
 	prim317_DoubleExp_a(317, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4495,7 +4924,9 @@ public enum Primitive
 	prim318_DoubleModulus_a_b(318, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4522,7 +4953,9 @@ public enum Primitive
 	prim319_DoubleTruncatedAsInteger_a(319, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			final AvailObject a = args.get(0);
 			assert args.size() == 1;
@@ -4567,7 +5000,9 @@ public enum Primitive
 	prim320_DoubleFromInteger_a(320, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -4622,7 +5057,9 @@ public enum Primitive
 	prim321_DoubleTimesTwoPower_a_b(321, 2, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -4645,7 +5082,9 @@ public enum Primitive
 	prim330_CharacterCodePoint_character(330, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject character = args.get(0);
@@ -4662,7 +5101,9 @@ public enum Primitive
 	prim331_CharacterFromCodePoint_codePoint(331, 1, CanFold)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject codePoint = args.get(0);
@@ -4684,7 +5125,9 @@ public enum Primitive
 	prim340_PushConstant_ignoreArgs(340, -1, SpecialReturnConstant)
 	{
 		@Override
-		public Result attempt (final List<AvailObject> args, final Interpreter interpreter)
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
 		{
 			return FAILURE;
 		}

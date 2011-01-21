@@ -33,12 +33,12 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
 /**
@@ -114,19 +114,19 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return Types.voidType.object();
+		return VOID_TYPE.o();
 	}
 
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.assignmentNode.object();
+		return ASSIGNMENT_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.assignmentNode.object();
+		return ASSIGNMENT_NODE.o();
 	}
 
 	@Override

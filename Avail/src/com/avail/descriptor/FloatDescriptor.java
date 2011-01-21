@@ -32,9 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
-
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class FloatDescriptor extends Descriptor
@@ -115,7 +113,7 @@ public class FloatDescriptor extends Descriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.floatObject.object();
+		return FLOAT.o();
 	}
 
 	@Override
@@ -125,14 +123,14 @@ public class FloatDescriptor extends Descriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return (object.rawQuad1() ^ 0x16AE2BFD);
+		return object.rawQuad1() ^ 0x16AE2BFD;
 	}
 
 	@Override
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.floatObject.object();
+		return FLOAT.o();
 	}
 
 
@@ -154,14 +152,14 @@ public class FloatDescriptor extends Descriptor
 
 
 	/* Special instance accessing */
-	public static AvailObject objectFromFloat(float aFloat)
+	public static AvailObject objectFromFloat(final float aFloat)
 	{
 		AvailObject result = mutable().create();
 		result.rawQuad1(Float.floatToRawIntBits(aFloat));
 		return result;
 	};
 
-	public static AvailObject objectFromFloatRecycling(float aFloat, AvailObject recyclable1)
+	public static AvailObject objectFromFloatRecycling(final float aFloat, final AvailObject recyclable1)
 	{
 		AvailObject result;
 		if (recyclable1.descriptor().isMutable())
@@ -176,7 +174,7 @@ public class FloatDescriptor extends Descriptor
 		return result;
 	};
 
-	public static AvailObject objectWithRecycling(float aFloat, AvailObject recyclable1, AvailObject recyclable2)
+	public static AvailObject objectWithRecycling(final float aFloat, final AvailObject recyclable1, final AvailObject recyclable2)
 	{
 		AvailObject result;
 		if (recyclable1.descriptor().isMutable())

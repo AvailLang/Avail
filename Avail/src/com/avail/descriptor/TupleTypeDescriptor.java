@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
 
@@ -132,12 +133,12 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		{
 			if (object.sizeRange().equals(IntegerRangeTypeDescriptor.wholeNumbers()))
 			{
-				if (object.defaultType().equals(Types.all.object()))
+				if (object.defaultType().equals(ALL.o()))
 				{
 					aStream.append("tuple");
 					return;
 				}
-				if (object.defaultType().equals(Types.character.object()))
+				if (object.defaultType().equals(CHARACTER.o()))
 				{
 					aStream.append("string");
 					return;
@@ -258,7 +259,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.tupleType.object();
+		return TUPLE_TYPE.o();
 	}
 
 	@Override
@@ -304,7 +305,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.tupleType.object();
+		return TUPLE_TYPE.o();
 	}
 
 
@@ -321,12 +322,12 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 		if (index <= 0)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.lessThan(IntegerDescriptor.objectFromInt(index)))
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject leading = object.typeTuple();
 		if (index <= leading.tupleSize())
@@ -353,12 +354,12 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.isFinite() && startIndex > upper.extractInt())
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject leading = object.typeTuple();
 		final int interestingLimit = leading.tupleSize() + 1;
@@ -480,9 +481,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
 			final AvailObject intersectionObject = object.typeAtIndex(i).typeIntersection(aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(Types.terminates.object()))
+			if (intersectionObject.equals(TERMINATES.o()))
 			{
-				return Types.terminates.object();
+				return TERMINATES.o();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -493,12 +494,12 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		//  of its arguments.
 		newLeading.makeSubobjectsImmutable();
 		final AvailObject newDefault = object.typeAtIndex(newLeadingSize + 1).typeIntersection(aTupleType.typeAtIndex(newLeadingSize + 1));
-		if (newDefault.equals(Types.terminates.object()))
+		if (newDefault.equals(TERMINATES.o()))
 		{
 			final AvailObject newLeadingSizeObject = IntegerDescriptor.objectFromInt(newLeadingSize);
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
-				return Types.terminates.object();
+				return TERMINATES.o();
 			}
 			if (newLeadingSizeObject.lessThan(newSizesObject.upperBound()))
 			{
@@ -594,9 +595,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			final AvailObject typeTuple,
 			final AvailObject defaultType)
 	{
-		if (sizeRange.equals(Types.terminates.object()))
+		if (sizeRange.equals(TERMINATES.o()))
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
@@ -606,7 +607,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		{
 			assert typeTuple.tupleSize() == 0;
 			return privateTupleTypeForSizesTypesDefaultType(
-				sizeRange, typeTuple, Types.terminates.object());
+				sizeRange, typeTuple, TERMINATES.o());
 		}
 		if (sizeRange.upperInclusive() && sizeRange.upperBound().extractInt() == typeTuple.tupleSize())
 		{
@@ -645,7 +646,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		assert sizeRange.lowerBound().extractInt() >= 0;
 		if (sizeRange.lowerBound().extractInt() > typeTuple.tupleSize())
 		{
-			if (defaultType.equals(Types.terminates.object()))
+			if (defaultType.equals(TERMINATES.o()))
 			{
 				error("Illegal tuple type construction (the defaultType)");
 			}
@@ -653,7 +654,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		final int limit = min(sizeRange.lowerBound().extractInt(), typeTuple.tupleSize());
 		for (int i = 1; i <= limit; i++)
 		{
-			if (typeTuple.tupleAt(i).equals(Types.terminates.object()))
+			if (typeTuple.tupleAt(i).equals(TERMINATES.o()))
 			{
 				error("Illegal tuple type construction (some element type)");
 			}
@@ -674,7 +675,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 				InfinityDescriptor.positiveInfinity(),
 				false),
 			TupleDescriptor.empty(),
-			Types.all.object());
+			ALL.o());
 		// Note that non-all elements (i.e., lists) are not allowed inside a tuple.
 	}
 
@@ -687,7 +688,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 				InfinityDescriptor.positiveInfinity(),
 				false),
 			TupleDescriptor.empty(),
-			Types.character.object());
+			CHARACTER.o());
 	}
 
 	static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (

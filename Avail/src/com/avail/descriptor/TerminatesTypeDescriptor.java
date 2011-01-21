@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 {
@@ -104,7 +105,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -114,7 +115,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
 		//  terminates, answer the degenerate integerType called terminates.
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -124,7 +125,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 
@@ -140,7 +141,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  terminates if the index is out of bounds, which is always because I'm the degenerate
 		//  tupleType called terminates.
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -153,7 +154,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		//  Answer terminates if the index is out of bounds, which is always because I'm the degenerate
 		//  tupleType called terminates.
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -162,7 +163,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	{
 		//  To support the tupleType protocol, I must answer terminates now.
 
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override

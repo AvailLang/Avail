@@ -33,9 +33,9 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.CanAllocateObjects;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class SetDescriptor extends Descriptor
 {
@@ -140,11 +140,11 @@ public class SetDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(Types.voidType.object()))
+		if (aTypeObject.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(Types.all.object()))
+		if (aTypeObject.equals(ALL.o()))
 		{
 			return true;
 		}

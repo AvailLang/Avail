@@ -148,15 +148,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.UNCLASSIFIED)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.PARSING_PC)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.UNCLASSIFIED
+			|| e == IntegerSlots.PARSING_PC;
 	}
 
 
@@ -229,7 +222,9 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		unclassified.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (final AvailObject message, final AvailObject bundle)
+			public void value (
+				final AvailObject message,
+				final AvailObject bundle)
 			{
 				if (visibleNames.hasElement(message))
 				{
@@ -384,7 +379,9 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 				}
 			}
 		});
-		assert numberOfFixedObjectSlots() == ExpandedMessageBundleTreeDescriptor.immutable().numberOfFixedObjectSlots();
+		assert numberOfFixedObjectSlots() ==
+			ExpandedMessageBundleTreeDescriptor.immutable()
+				.numberOfFixedObjectSlots();
 		object.descriptor(
 			ExpandedMessageBundleTreeDescriptor.immutable());
 		object.complete(complete.value);
@@ -436,7 +433,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	/**
 	 * The mutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 */
-	private final static UnexpandedMessageBundleTreeDescriptor mutable = new UnexpandedMessageBundleTreeDescriptor(true);
+	private final static UnexpandedMessageBundleTreeDescriptor mutable =
+		new UnexpandedMessageBundleTreeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link UnexpandedMessageBundleTreeDescriptor}.
@@ -451,7 +449,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	/**
 	 * The immutable {@link UnexpandedMessageBundleTreeDescriptor}.
 	 */
-	private final static UnexpandedMessageBundleTreeDescriptor immutable = new UnexpandedMessageBundleTreeDescriptor(false);
+	private final static UnexpandedMessageBundleTreeDescriptor immutable =
+		new UnexpandedMessageBundleTreeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link UnexpandedMessageBundleTreeDescriptor}.

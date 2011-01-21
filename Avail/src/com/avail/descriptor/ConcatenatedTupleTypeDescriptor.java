@@ -32,13 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.ObjectTupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 
 public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
@@ -162,7 +156,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.tupleType.object();
+		return TUPLE_TYPE.o();
 	}
 
 	@Override
@@ -195,7 +189,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.tupleType.object();
+		return TUPLE_TYPE.o();
 	}
 
 
@@ -212,7 +206,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 		if (index <= 0)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject firstUpper = object.firstTupleType().sizeRange().upperBound();
 		final AvailObject secondUpper = object.secondTupleType().sizeRange().upperBound();
@@ -222,11 +216,11 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			final AvailObject indexObject = IntegerDescriptor.objectFromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
-				return Types.terminates.object();
+				return TERMINATES.o();
 			}
 		}
 		final AvailObject firstLower = object.firstTupleType().sizeRange().lowerBound();
-		if ((index <= firstLower.extractInt()))
+		if (index <= firstLower.extractInt())
 		{
 			return object.firstTupleType().typeAtIndex(index);
 		}
@@ -245,7 +239,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 			startIndex = 1;
 		}
 		final int endIndex = index - firstLower.extractInt();
-		assert (endIndex >= startIndex);
+		assert endIndex >= startIndex;
 		return unionType.typeUnion(object.secondTupleType().unionOfTypesAtThrough(startIndex, endIndex));
 	}
 
@@ -259,28 +253,28 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		//  given range of indices.  Out-of-range indices are treated as terminates,
 		//  which don't affect the union (unless all indices are out of range).
 
-		assert (startIndex <= endIndex);
+		assert startIndex <= endIndex;
 		if (startIndex == endIndex)
 		{
 			return object.typeAtIndex(startIndex);
 		}
 		if (endIndex <= 0)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject firstUpper = object.firstTupleType().sizeRange().upperBound();
 		final AvailObject secondUpper = object.secondTupleType().sizeRange().upperBound();
 		final AvailObject totalUpper = firstUpper.plusCanDestroy(secondUpper, false);
 		if (totalUpper.isFinite())
 		{
-			if ((startIndex > totalUpper.extractInt()))
+			if (startIndex > totalUpper.extractInt())
 			{
-				return Types.terminates.object();
+				return TERMINATES.o();
 			}
 		}
 		AvailObject unionType = object.firstTupleType().unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
-		final int endInSecond = (endIndex - object.firstTupleType().sizeRange().lowerBound().extractInt());
+		final int endInSecond = endIndex - object.firstTupleType().sizeRange().lowerBound().extractInt();
 		unionType = unionType.typeUnion(object.secondTupleType().unionOfTypesAtThrough(startInSecond, endInSecond));
 		return unionType;
 	}
@@ -312,7 +306,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		}
 		else
 		{
-			limit2 = (part2.typeTuple().tupleSize() + 1);
+			limit2 = part2.typeTuple().tupleSize() + 1;
 		}
 		final int total = limit1 + limit2;
 		final AvailObject typeTuple = ObjectTupleDescriptor.mutable().create(total);
@@ -365,7 +359,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		}
 		else
 		{
-			highIndexInB = (b.typeTuple().tupleSize() + 1);
+			highIndexInB = b.typeTuple().tupleSize() + 1;
 		}
 		final AvailObject unionType = a.defaultType().typeUnion(b.unionOfTypesAtThrough(1, highIndexInB));
 		return unionType;
@@ -441,7 +435,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		for (int i = 1, _end1 = max(subTuple.tupleSize(), superTuple.tupleSize()); i <= _end1; i++)
 		{
 			AvailObject subType;
-			if ((i <= subTuple.tupleSize()))
+			if (i <= subTuple.tupleSize())
 			{
 				subType = subTuple.tupleAt(i);
 			}
@@ -450,7 +444,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 				subType = aTupleType.defaultType();
 			}
 			AvailObject superType;
-			if ((i <= superTuple.tupleSize()))
+			if (i <= superTuple.tupleSize())
 			{
 				superType = superTuple.tupleAt(i);
 			}
@@ -495,7 +489,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		final AvailObject lead1 = object.typeTuple();
 		final AvailObject lead2 = aTupleType.typeTuple();
 		AvailObject newLeading;
-		if ((lead1.tupleSize() > lead2.tupleSize()))
+		if (lead1.tupleSize() > lead2.tupleSize())
 		{
 			newLeading = lead1;
 		}
@@ -509,9 +503,9 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
 			final AvailObject intersectionObject = object.typeAtIndex(i).typeIntersection(aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(Types.terminates.object()))
+			if (intersectionObject.equals(TERMINATES.o()))
 			{
-				return Types.terminates.object();
+				return TERMINATES.o();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -558,7 +552,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		final AvailObject lead1 = object.typeTuple();
 		final AvailObject lead2 = aTupleType.typeTuple();
 		AvailObject newLeading;
-		if ((lead1.tupleSize() > lead2.tupleSize()))
+		if (lead1.tupleSize() > lead2.tupleSize())
 		{
 			newLeading = lead1;
 		}
@@ -603,15 +597,15 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 
 	/* Object creation */
 	public static AvailObject concatenatingAnd (
-			AvailObject firstObject,
-			AvailObject secondObject)
+			final AvailObject firstObject,
+			final AvailObject secondObject)
 	{
 		//  Construct a lazy concateneated tuple type object to represent
 		//  the type that is the concatenation of the two tuple types.  Make
 		//  the objects be immutable, because the new type represents
 		//  the concatenation of the objects *at the time it was built*.
 
-		assert(firstObject.isTupleType() && secondObject.isTupleType());
+		assert firstObject.isTupleType() && secondObject.isTupleType();
 		AvailObject result = mutable().create();
 		result.firstTupleType(firstObject.makeImmutable());
 		result.secondTupleType(secondObject.makeImmutable());

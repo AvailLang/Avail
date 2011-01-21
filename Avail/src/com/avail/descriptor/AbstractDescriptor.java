@@ -44,7 +44,37 @@ import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
 /**
- * {@linkplain AbstractDescriptor} is
+ * {@link AbstractDescriptor} is the base descriptor type.  An {@link
+ * AvailObject} contains a descriptor, to which it delegates nearly all of its
+ * behavior.  That allows interesting operations like effective type mutation
+ * (within a language that does not support it directly, such as Java).  It also
+ * allows multiple representations of equivalent objects, such as more than one
+ * representation for the tuple {@code <1,2,3>}.  It can be represented as an
+ * AvailObject using either an {@link ObjectTupleDescriptor}, a {@link
+ * ByteTupleDescriptor}, a {@link NybbleTupleDescriptor}, or a {@link
+ * SpliceTupleDescriptor}.  It could even be an {@link IndirectionDescriptor} if
+ * there is another object that already represents this tuple.
+ *
+ * <p>In particular, {@link AbstractDescriptor} is abstract and has two
+ * children, the class {@link Descriptor} and the class {@link
+ * IndirectionDescriptor}, the latter of which has no classes.  When a new
+ * operation is added in an ordinary descriptor class (below {@code Descriptor
+ * }), it should be added with an {@code @Override} annotation.  A quick fix on
+ * that error allows an implementation to be generated in AbstractDescriptor,
+ * which should be converted manually to an abstract method.  That will make
+ * both {@code Descriptor} and {@code IndirectionDescriptor} (and all subclasses
+ * of {@code Descriptor} except the one in which the new method first appeared)
+ * to indicate an error, in that they need to implement this method.  A quick
+ * fix can add it to {@code Descriptor}, after which it can be tweaked to
+ * indicate a runtime error.  Another quick fix adds it to {@code
+ * IndirectionDescriptor}, and copying nearby implementations leads it to
+ * invoke the non "o_" method in {@link AvailObject}.  This will show up as an
+ * error, and one more quick fix can generate the corresponding method in
+ * {@code AvailObject} whose implementation, like methods near it, extracts the
+ * {@link AvailObject#descriptor() descriptor} and invokes upon it the
+ * original message (that started with "o_"), passing {@code this} as the first
+ * argument.  Code generation will eventually make this relatively onerous task
+ * more tractable and less error prone.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -62,10 +92,10 @@ public abstract class AbstractDescriptor
 	/**
 	 * Answer a unique short, monotonically allocated and set automatically by
 	 * the constructor.  It equals the {@linkplain AbstractDescriptor
-	 * descriptor's} index into {@link #allDescriptors}, which is also populated
+	 * descriptor}'s index into {@link #allDescriptors}, which is also populated
 	 * by the constructor.
 	 *
-	 * @return The {@linkplain AbstractDescriptor descriptor's} identifier.
+	 * @return The {@linkplain AbstractDescriptor descriptor}'s identifier.
 	 */
 	public final short id ()
 	{
@@ -3214,11 +3244,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 */
 	public abstract void o_CleanUpAfterCompile (final AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	public abstract void o_ClearModule (final AvailObject object);
 
 	/**
 	 * @param object

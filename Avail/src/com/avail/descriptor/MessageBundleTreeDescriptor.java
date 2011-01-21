@@ -32,8 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public abstract class MessageBundleTreeDescriptor extends Descriptor
 {
@@ -55,7 +54,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return Types.messageBundleTree.object();
+		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	@Override
@@ -75,7 +74,7 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return Types.messageBundleTree.object();
+		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	/**

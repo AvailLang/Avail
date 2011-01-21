@@ -33,13 +33,13 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.compiler.instruction.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 
 /**
@@ -190,7 +190,7 @@ public class AvailCodeGenerator
 			final AvailObject argDeclType = entry.getKey().declaredType();
 			if (i <= _numArgs)
 			{
-				assert argDeclType.isInstanceOfSubtypeOf(Types.type.object());
+				assert argDeclType.isInstanceOfSubtypeOf(TYPE.o());
 				argsArray.set(i - 1, argDeclType);
 			}
 			else

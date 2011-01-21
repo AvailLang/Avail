@@ -32,15 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InfinityDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 public class InfinityDescriptor extends ExtendedNumberDescriptor
 {
@@ -114,7 +108,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	{
 		//  Compare infinities by their whichOne fields.
 
-		return (object.whichOne() == anInfinity.whichOne());
+		return object.whichOne() == anInfinity.whichOne();
 	}
 
 	@Override
@@ -131,7 +125,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject another)
 	{
 		//  1=+inf, 2=-inf
-		return (object.whichOne() < another.whichOne());
+		return object.whichOne() < another.whichOne();
 	}
 
 	@Override
@@ -143,11 +137,11 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(Types.voidType.object()))
+		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aType.equals(Types.all.object()))
+		if (aType.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -157,9 +151,9 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 		}
 		if (object.isPositive())
 		{
-			return (aType.upperBound().equals(object) && aType.upperInclusive());
+			return aType.upperBound().equals(object) && aType.upperInclusive();
 		}
-		return (aType.lowerBound().equals(object) && aType.lowerInclusive());
+		return aType.lowerBound().equals(object) && aType.lowerInclusive();
 	}
 
 	@Override
@@ -227,7 +221,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	{
 		//  Answer the object's hash value.
 
-		return (object.whichOne() == 1) ? 0x14B326DA : (0xBF9302D);
+		return object.whichOne() == 1 ? 0x14B326DA : 0xBF9302D;
 	}
 
 	@Override
@@ -314,7 +308,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 	{
 		//  Double-dispatch it.
 
-		return (object.whichOne() == 1);
+		return object.whichOne() == 1;
 	}
 
 
@@ -327,7 +321,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
-		if ((anInfinity.isPositive() == object.isPositive()))
+		if (anInfinity.isPositive() == object.isPositive())
 		{
 			return object;
 		}
@@ -369,7 +363,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
-		return ((anInfinity.isPositive() == object.isPositive()) ? InfinityDescriptor.positiveInfinity() : InfinityDescriptor.negativeInfinity());
+		return anInfinity.isPositive() == object.isPositive() ? InfinityDescriptor.positiveInfinity() : InfinityDescriptor.negativeInfinity();
 	}
 
 	@Override
@@ -383,7 +377,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			error("Can't multiply infinity by zero", object);
 			return VoidDescriptor.voidObject();
 		}
-		return ((anInteger.greaterThan(IntegerDescriptor.zero()) ^ object.isPositive()) ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity());
+		return anInteger.greaterThan(IntegerDescriptor.zero()) ^ object.isPositive() ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity();
 	}
 
 	@Override
@@ -392,7 +386,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject anInfinity,
 			final boolean canDestroy)
 	{
-		if ((anInfinity.isPositive() ^ object.isPositive()))
+		if (anInfinity.isPositive() ^ object.isPositive())
 		{
 			return anInfinity;
 		}
@@ -406,7 +400,7 @@ public class InfinityDescriptor extends ExtendedNumberDescriptor
 			final AvailObject anInteger,
 			final boolean canDestroy)
 	{
-		return (object.isPositive() ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity());
+		return object.isPositive() ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity();
 	}
 
 

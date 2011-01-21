@@ -58,3 +58,4 @@ proxy
 multimethod
 hygienic
 multimethods
+multimacro

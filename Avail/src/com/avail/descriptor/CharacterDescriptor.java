@@ -32,14 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-
-import java.util.Formatter;
-import java.util.List;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.*;
+import com.avail.annotations.*;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail code points
@@ -237,14 +232,14 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int otherCodePoint)
 	{
-		return (object.codePoint() == otherCodePoint);
+		return object.codePoint() == otherCodePoint;
 	}
 
 	@Override
 	@ThreadSafe
 	public @NotNull AvailObject o_ExactType (final @NotNull AvailObject object)
 	{
-		return Types.character.object();
+		return CHARACTER.o();
 	}
 
 	@Override
@@ -270,7 +265,7 @@ extends Descriptor
 	@ThreadSafe
 	public AvailObject o_Type (final @NotNull AvailObject object)
 	{
-		return Types.character.object();
+		return CHARACTER.o();
 	}
 
 	/**

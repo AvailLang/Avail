@@ -33,10 +33,10 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class ByteStringDescriptor extends TupleDescriptor
 {
@@ -204,11 +204,11 @@ public class ByteStringDescriptor extends TupleDescriptor
 		//  will just send this message recursively.  Note that because object is a string,
 		//  it is already known that each element is a character.
 
-		if (aType.equals(Types.voidType.object()))
+		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aType.equals(Types.all.object()))
+		if (aType.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -229,7 +229,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		final int limit = min(object.tupleSize(), (typeTuple.tupleSize() + 1));
 		for (int i = 1; i <= limit; i++)
 		{
-			if (!Types.character.object().isSubtypeOf(aType.typeAtIndex(i)))
+			if (!CHARACTER.o().isSubtypeOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -245,7 +245,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor(ByteStringDescriptor.isMutableSize(false, object.tupleSize()));
+			object.descriptor(
+				ByteStringDescriptor.isMutableSize(false, object.tupleSize()));
 			object.makeSubobjectsImmutable();
 		}
 		return object;
@@ -472,10 +473,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 
 
-
-
-	// Descriptor lookup
-	static ByteStringDescriptor isMutableSize(final boolean flag, final int size)
+	static ByteStringDescriptor isMutableSize(
+		final boolean flag,
+		final int size)
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors[delta + (size & 3) * 2];

@@ -150,23 +150,10 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.COMPLETE)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.INCOMPLETE)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.SPECIAL_ACTIONS)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.PARSING_PC)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.COMPLETE
+			|| e == ObjectSlots.INCOMPLETE
+			|| e == ObjectSlots.SPECIAL_ACTIONS
+			|| e == IntegerSlots.PARSING_PC;
 	}
 
 
@@ -249,7 +236,9 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (final AvailObject message, final AvailObject bundle)
+			public void value (
+				final AvailObject message,
+				final AvailObject bundle)
 			{
 				if (visibleNames.hasElement(message))
 				{
@@ -261,11 +250,15 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (final AvailObject message, final AvailObject subtree)
+			public void value (
+				final AvailObject message,
+				final AvailObject subtree)
 			{
 				if (!subtree.equalsVoid())
 				{
-					subtree.copyToRestrictedTo(filteredBundleTree, visibleNames);
+					subtree.copyToRestrictedTo(
+						filteredBundleTree,
+						visibleNames);
 				}
 			}
 		});

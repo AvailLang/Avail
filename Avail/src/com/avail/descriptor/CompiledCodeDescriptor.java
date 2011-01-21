@@ -33,8 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.CanAllocateObjects;
+import static com.avail.descriptor.TypeDescriptor.Types.COMPILED_CODE;
 import java.util.List;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1Disassembler;
 
 public class CompiledCodeDescriptor extends Descriptor
@@ -235,15 +235,8 @@ public class CompiledCodeDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.INVOCATION_COUNT)
-		{
-			return true;
-		}
-		return false;
+		return e == IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS
+			|| e == IntegerSlots.INVOCATION_COUNT;
 	}
 
 
@@ -312,7 +305,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return Types.compiledCode.object();
+		return COMPILED_CODE.o();
 	}
 
 	@Override
@@ -321,7 +314,7 @@ public class CompiledCodeDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return Types.compiledCode.object();
+		return COMPILED_CODE.o();
 	}
 
 

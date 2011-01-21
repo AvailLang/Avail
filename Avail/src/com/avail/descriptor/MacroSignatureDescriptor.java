@@ -33,9 +33,9 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.compiler.node.TupleNodeDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 
 /**
@@ -149,7 +149,7 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.macroSignature.object();
+		return MACRO_SIGNATURE.o();
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.macroSignature.object();
+		return MACRO_SIGNATURE.o();
 	}
 
 

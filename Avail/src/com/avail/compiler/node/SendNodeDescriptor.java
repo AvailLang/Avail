@@ -150,13 +150,13 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.sendNode.object();
+		return Types.SEND_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.sendNode.object();
+		return Types.SEND_NODE.o();
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		for (final AvailObject argNode : arguments)
 		{
 			argNode.emitValueOn(codeGenerator);
-			if (argNode.type().isSubtypeOf(Types.superCastNode.object()))
+			if (argNode.type().isSubtypeOf(Types.SUPER_CAST_NODE.o()))
 			{
 				anyCasts = true;
 			}
@@ -202,7 +202,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		{
 			for (final AvailObject argNode : arguments)
 			{
-				if (argNode.type().isSubtypeOf(Types.superCastNode.object()))
+				if (argNode.type().isSubtypeOf(Types.SUPER_CAST_NODE.o()))
 				{
 					codeGenerator.emitPushLiteral(argNode.expressionType());
 				}

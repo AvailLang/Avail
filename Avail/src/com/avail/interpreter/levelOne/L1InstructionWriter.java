@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.levelOne;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class L1InstructionWriter
 {
@@ -78,7 +78,7 @@ public class L1InstructionWriter
 	public int createLocal (final AvailObject localType)
 	{
 		assert argumentTypes != null : "Must declare argument types before allocating locals";
-		assert localType.isInstanceOfSubtypeOf(Types.type.object());
+		assert localType.isInstanceOfSubtypeOf(TYPE.o());
 		localTypes.add(localType);
 		return localTypes.size();
 	}

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 {
@@ -69,11 +69,11 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		//  terminatesType is not a subtype of terminates, even though terminates is a meta
 		//  (remember, terminates inherits from type and meta and every other type).
 
-		if (aType.equals(Types.terminates.object()))
+		if (aType.equals(TERMINATES.o()))
 		{
 			return false;
 		}
-		return (aType.isSubtypeOf(Types.type.object()) || Types.type.object().isSubtypeOf(aType));
+		return aType.isSubtypeOf(TYPE.o()) || TYPE.o().isSubtypeOf(aType);
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		//  meta except terminates, and it's a supertype of terminates, we have a
 		//  non-meta and terminatesType being intersected.  Answer terminates,
 		//  as it's the highest common subtype.
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		//  being equal or one being a subtype of the other have already been dealt
 		//  with (in Object:typeIntersection:), so don't test for them here.
 
-		return Types.terminatesType.object();
+		return TERMINATES_TYPE.o();
 	}
 
 	@Override
@@ -142,7 +142,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		//  It's terminatesType and a type unrelated to terminatesType.
 		//  Therefore the other type can't be above or below meta, so
 		//  answer the nearest ancestor of another and meta.
-		return Types.meta.object().typeUnion(another);
+		return META.o().typeUnion(another);
 	}
 
 	@Override

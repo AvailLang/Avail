@@ -32,9 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ObjectMetaMetaDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class ObjectMetaDescriptor extends TypeDescriptor
 {
@@ -91,7 +89,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	{
 		//  The hash value is always recomputed from the objectMeta's instance (an objectType).
 
-		return object.myObjectType().hash() ^ (0x1317C873);
+		return object.myObjectType().hash() ^ 0x1317C873;
 	}
 
 	@Override
@@ -188,7 +186,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 		//  being equal or one being a subtype of the other have already been dealt
 		//  with (in Object:typeIntersection:), so don't test for them here.
 
-		return Types.terminatesType.object();
+		return TERMINATES_TYPE.o();
 	}
 
 	@Override
@@ -235,7 +233,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 
 	/* Object creation */
-	static AvailObject fromObjectType (AvailObject objectType)
+	static AvailObject fromObjectType (final AvailObject objectType)
 	{
 		AvailObject result = mutable().create();
 		result.myObjectType(objectType);

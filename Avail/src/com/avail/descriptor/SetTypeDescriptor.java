@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class SetTypeDescriptor extends TypeDescriptor
@@ -150,7 +151,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.setType.object();
+		return SET_TYPE.o();
 	}
 
 	@Override
@@ -189,7 +190,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.setType.object();
+		return SET_TYPE.o();
 	}
 
 
@@ -293,9 +294,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 			final AvailObject sizeRange,
 			final AvailObject contentType)
 	{
-		if (sizeRange.equals(Types.terminates.object()))
+		if (sizeRange.equals(TERMINATES.o()))
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
@@ -304,9 +305,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 		if (sizeRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			result.sizeRange(sizeRange);
-			result.contentType(Types.terminates.object());
+			result.contentType(TERMINATES.o());
 		}
-		else if (contentType.equals(Types.terminates.object()))
+		else if (contentType.equals(TERMINATES.o()))
 		{
 			if (sizeRange.lowerBound().equals(IntegerDescriptor.zero()))
 			{
@@ -314,12 +315,12 @@ public class SetTypeDescriptor extends TypeDescriptor
 				result.sizeRange(
 					IntegerRangeTypeDescriptor.singleInteger(
 						IntegerDescriptor.zero()));
-				result.contentType(Types.terminates.object());
+				result.contentType(TERMINATES.o());
 			}
 			else
 			{
 				//  sizeRange does not include 0, and terminates is not the content type, so the whole type is inconsistent.  Answer terminates
-				return Types.terminates.object();
+				return TERMINATES.o();
 			}
 		}
 		else

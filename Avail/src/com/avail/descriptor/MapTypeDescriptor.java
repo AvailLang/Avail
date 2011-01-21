@@ -32,11 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.MapTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class MapTypeDescriptor extends TypeDescriptor
@@ -169,7 +165,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 		{
 			return true;
 		}
-		return (object.sizeRange().equals(aMapType.sizeRange()) && (object.keyType().equals(aMapType.keyType()) && object.valueType().equals(aMapType.valueType())));
+		return object.sizeRange().equals(aMapType.sizeRange()) && object.keyType().equals(aMapType.keyType()) && object.valueType().equals(aMapType.valueType());
 	}
 
 	@Override
@@ -178,7 +174,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.mapType.object();
+		return MAP_TYPE.o();
 	}
 
 	@Override
@@ -231,7 +227,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.mapType.object();
+		return MAP_TYPE.o();
 	}
 
 
@@ -256,7 +252,7 @@ public class MapTypeDescriptor extends TypeDescriptor
 		//  Map type A is a subtype of B if and only if their size ranges are covariant
 		//  and their key types and value types are each covariant.
 
-		return (aMapType.sizeRange().isSubtypeOf(object.sizeRange()) && (aMapType.keyType().isSubtypeOf(object.keyType()) && aMapType.valueType().isSubtypeOf(object.valueType())));
+		return aMapType.sizeRange().isSubtypeOf(object.sizeRange()) && aMapType.keyType().isSubtypeOf(object.keyType()) && aMapType.valueType().isSubtypeOf(object.valueType());
 	}
 
 	@Override
@@ -340,39 +336,39 @@ public class MapTypeDescriptor extends TypeDescriptor
 	/* Hashing helper */
 
 	static int computeHashForSizeRangeHashKeyTypeHashValueTypeHash (
-			int sizesHash,
-			int keyTypeHash,
-			int valueTypeHash)
+			final int sizesHash,
+			final int keyTypeHash,
+			final int valueTypeHash)
 	{
-		return ((sizesHash * 3) + (keyTypeHash * 5) + (valueTypeHash * 13));
+		return sizesHash * 3 + keyTypeHash * 5 + valueTypeHash * 13;
 	};
 
 	/* Object creation */
 
 	public static AvailObject mapTypeForSizesKeyTypeValueType (
-			AvailObject sizes,
-			AvailObject keyType,
-			AvailObject valueType)
+			final AvailObject sizes,
+			final AvailObject keyType,
+			final AvailObject valueType)
 	{
-		if (sizes.equals(Types.terminates.object()))
+		if (sizes.equals(TERMINATES.o()))
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
-		assert(sizes.lowerBound().isFinite());
-		assert(IntegerDescriptor.zero().lessOrEqual(sizes.lowerBound()));
-		assert(sizes.upperBound().isFinite() || !sizes.upperInclusive());
+		assert sizes.lowerBound().isFinite();
+		assert IntegerDescriptor.zero().lessOrEqual(sizes.lowerBound());
+		assert sizes.upperBound().isFinite() || !sizes.upperInclusive();
 		AvailObject result = mutable().create();
 		if (sizes.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			result.sizeRange(sizes);
-			result.keyType(Types.terminates.object());
-			result.valueType(Types.terminates.object());
+			result.keyType(TERMINATES.o());
+			result.valueType(TERMINATES.o());
 		}
-		else if (keyType.equals(Types.terminates.object()) || valueType.equals(Types.terminates.object()))
+		else if (keyType.equals(TERMINATES.o()) || valueType.equals(TERMINATES.o()))
 		{
 			result.sizeRange(IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.zero()));
-			result.keyType(Types.terminates.object());
-			result.valueType(Types.terminates.object());
+			result.keyType(TERMINATES.o());
+			result.valueType(TERMINATES.o());
 		}
 		else
 		{

@@ -32,10 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
-
-import java.lang.Double;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class DoubleDescriptor extends Descriptor
@@ -138,7 +135,7 @@ public class DoubleDescriptor extends Descriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.doubleObject.object();
+		return DOUBLE.o();
 	}
 
 	@Override
@@ -148,14 +145,14 @@ public class DoubleDescriptor extends Descriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		return ((object.rawQuad1() ^ 0x16AE2BFD) - (object.rawQuad2() ^ 0x7C453FD));
+		return (object.rawQuad1() ^ 0x16AE2BFD) - (object.rawQuad2() ^ 0x7C453FD);
 	}
 
 	@Override
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.doubleObject.object();
+		return DOUBLE.o();
 	}
 
 
@@ -168,7 +165,7 @@ public class DoubleDescriptor extends Descriptor
 	{
 		//  Extract a Smalltalk Double from object.
 
-		long castAsLong = object.rawQuad1() + (((long)object.rawQuad2()) << 32);
+		long castAsLong = object.rawQuad1() + ((long)object.rawQuad2() << 32);
 		return Double.longBitsToDouble(castAsLong);
 	}
 
@@ -177,7 +174,7 @@ public class DoubleDescriptor extends Descriptor
 
 
 	/* Special instance accessing */
-	public static AvailObject objectFromDouble(double aDouble)
+	public static AvailObject objectFromDouble(final double aDouble)
 	{
 		// We cannot return by reference if a new object might be constructed.
 		AvailObject result = mutable().create();
@@ -187,7 +184,7 @@ public class DoubleDescriptor extends Descriptor
 		return result;
 	};
 
-	public static AvailObject objectFromDoubleRecycling(double aDouble, AvailObject recyclable1)
+	public static AvailObject objectFromDoubleRecycling(final double aDouble, final AvailObject recyclable1)
 	{
 		AvailObject result;
 		if (recyclable1.descriptor().isMutable())
@@ -204,7 +201,7 @@ public class DoubleDescriptor extends Descriptor
 		return result;
 	};
 
-	public static AvailObject objectFromDoubleRecyclingOr(double aDouble, AvailObject recyclable1, AvailObject recyclable2)
+	public static AvailObject objectFromDoubleRecyclingOr(final double aDouble, final AvailObject recyclable1, final AvailObject recyclable2)
 	{
 		AvailObject result;
 		if (recyclable1.descriptor().isMutable())

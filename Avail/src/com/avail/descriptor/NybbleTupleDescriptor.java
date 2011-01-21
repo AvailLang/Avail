@@ -33,9 +33,9 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class NybbleTupleDescriptor extends TupleDescriptor
 {
@@ -241,11 +241,11 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(Types.voidType.object()))
+		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aType.equals(Types.all.object()))
+		if (aType.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -311,7 +311,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor(NybbleTupleDescriptor.isMutableSize(false, object.tupleSize()));
+			object.descriptor(
+				NybbleTupleDescriptor.isMutableSize(false, object.tupleSize()));
 			object.makeSubobjectsImmutable();
 		}
 		return object;

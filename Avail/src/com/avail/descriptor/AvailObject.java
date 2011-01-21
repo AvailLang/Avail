@@ -1176,14 +1176,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void clearModule ()
-	{
-		descriptor().o_ClearModule(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void clearValue ()
 	{
 		descriptor().o_ClearValue(this);

@@ -1,0 +1,291 @@
+/**
+ * .../Tier-0/Tier-0.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Basics"
+Extends
+	"Pragmas"
+Uses
+Names
+	"all",
+	"boolean",
+	"character", "closure", "closureType","compiledCode",
+	"container", "containerType", "continuation", "continuationType",
+	"cyclicType",
+	"double",
+	"extended integer",
+	"falseType", "float",
+	"generalizedClosureType",
+	"integer", "integerType",
+	"mapType", "meta",
+	"objectMeta", "objectMetaMeta", "objectType",
+	"primType", "process",
+	"set", "setType", "string",
+	"terminates", "terminatesType", "trueType", "tuple",
+	"tupleType", "type",
+	"void",
+
+	"parseNode",
+	"markerNode",
+	"expressionNode",
+	"assignmentNode",
+	"blockNode",
+	"literalNode",
+	"referenceNode",
+	"sendNode",
+	"superCastNode",
+	"tupleNode",
+	"variableUseNode",
+	"declarationNode",
+	"argumentNode",
+	"labelNode",
+	"localVariableNode",
+	"localConstantNode",
+	"moduleVariableNode",
+	"moduleConstantNode",
+
+	"true", "false",
+
+	"Failed", "Crash_", "Print_", "Discard_",
+	"Halt", "_can't have_", "_=_", "_<=_",
+	
+	"Macro_is_"
+
+Body
+
+/* Define the private module variables.  These are here simply to allow the
+   types to be strengthened by the 0-ary method definitions below them. */
+
+
+privateAll                         ::= Special Object 1;
+privateBoolean                     ::= Special Object 2;
+privateCharacter                   ::= Special Object 3;
+privateClosure                     ::= Special Object 4;
+privateClosureType                 ::= Special Object 5;
+privateCompiledCode                ::= Special Object 6;
+privateContainer                   ::= Special Object 7;
+privateContainerType               ::= Special Object 8;
+privateContinuation                ::= Special Object 9;
+privateContinuationType            ::= Special Object 10;
+privateCyclicType                  ::= Special Object 11;
+privateDouble                      ::= Special Object 12;
+privateExtendedInteger             ::= Special Object 13;
+privateFalseType                   ::= Special Object 14;
+privateFloat                       ::= Special Object 15;
+privateGeneralizedClosureType      ::= Special Object 16;
+privateInteger                     ::= Special Object 17;
+privateIntegerType                 ::= Special Object 18;
+privateMapType                     ::= Special Object 19;
+privateMeta                        ::= Special Object 20;
+privateObjectMeta                  ::= Special Object 21;
+privateObjectMetaMeta              ::= Special Object 22;
+privateObjectType                  ::= Special Object 23;
+privatePrimType                    ::= Special Object 24;
+privateProcess                     ::= Special Object 25;
+privateSet                         ::= Special Object 26;
+privateSetType                     ::= Special Object 27;
+privateString                      ::= Special Object 28;
+privateTerminates                  ::= Special Object 29;
+privateTerminatesType              ::= Special Object 30;
+privateTrueType                    ::= Special Object 31;
+privateTuple                       ::= Special Object 32;
+privateTupleType                   ::= Special Object 33;
+privateType                        ::= Special Object 34;
+privateVoid                        ::= Special Object 35;
+
+privateParseNode                   ::= Special Object 50;
+privateMarkerNode                  ::= Special Object 51;
+privateExpressionNode              ::= Special Object 52;
+privateAssignmentNode              ::= Special Object 53;
+privateBlockNode                   ::= Special Object 54;
+privateLiteralNode                 ::= Special Object 55;
+privateReferenceNode               ::= Special Object 56;
+privateSendNode                    ::= Special Object 57;
+privateSuperCastNode               ::= Special Object 58;
+privateTupleNode                   ::= Special Object 59;
+privateVariableUseNode             ::= Special Object 60;
+privateDeclarationNode             ::= Special Object 61;
+privateArgumentNode                ::= Special Object 62;
+privateLabelNode                   ::= Special Object 63;
+privateLocalVariableNode           ::= Special Object 64;
+privateLocalConstantNode           ::= Special Object 65;
+privateModuleVariableNode          ::= Special Object 66;
+privateModuleConstantNode          ::= Special Object 67;
+
+privateTrue                        ::= Special Object 70;
+privateFalse                       ::= Special Object 71;
+
+
+
+/* First define all the primitive types... */
+Method "all"                    is [privateAll;] : privateType;
+Method "boolean"                is [privateBoolean;] : privatePrimType;
+Method "character"              is [privateCharacter;] : privatePrimType;
+Method "closure"                is [privateClosure;] : privatePrimType;
+Method "compiledCode"           is [privateCompiledCode;] : privatePrimType;
+Method "container"              is [privateContainer;] : privateContainerType;
+Method "continuation"           is [privateContinuation;] : privatePrimType;
+Method "double"                 is [privateDouble;] : privatePrimType;
+Method "extended integer"       is [privateExtendedInteger;] : privateIntegerType;
+Method "falseType"              is [privateFalseType;] : privatePrimType;
+Method "float"                  is [privateFloat;] : privatePrimType;
+Method "integer"                is [privateInteger;] : privateIntegerType;
+Method "process"                is [privateProcess;] : privatePrimType;
+Method "set"                    is [privateSet;] : privateSetType;
+Method "string"                 is [privateString;] : privateTupleType;
+Method "terminates"             is [privateTerminates;] : privateTerminatesType;
+Method "trueType"               is [privateTrueType;] : privatePrimType;
+Method "tuple"                  is [privateTuple;] : privateTupleType;
+Method "void"                   is [privateVoid;] : privateType;
+
+/* And the meta-types... */
+Method "integerType"            is [privateIntegerType;] : privateMeta;
+Method "tupleType"              is [privateTupleType;] : privateMeta;
+Method "setType"                is [privateSetType;] : privateMeta;
+Method "mapType"                is [privateMapType;] : privateMeta;
+Method "closureType"            is [privateClosureType;] : privateMeta;
+Method "containerType"          is [privateContainerType;] : privateMeta;
+Method "continuationType"       is [privateContinuationType;] : privateMeta;
+Method "generalizedClosureType" is [privateGeneralizedClosureType;] : privateMeta;
+Method "objectType"             is [privateObjectType;] : privateObjectMeta;
+Method "primType"               is [privatePrimType;] : privateMeta;
+Method "terminatesType"         is [privateTerminatesType;] : privateMeta;
+Method "type"                   is [privateType;] : privateMeta;
+
+/* And the meta-meta-types... */
+Method "cyclicType"             is [privateCyclicType;] : privateCyclicType;
+Method "meta"                   is [privateMeta;] : privateMeta;
+Method "objectMeta"             is [privateObjectMeta;] : privateObjectMetaMeta;
+Method "objectMetaMeta"         is [privateObjectMetaMeta;] : privateMeta;
+
+
+/* Parse node types... */
+Method "parseNode"              is [privateParseNode;] : primType;
+Method "markerNode"             is [privateMarkerNode;] : primType;
+Method "expressionNode"         is [privateExpressionNode;] : primType;
+Method "assignmentNode"         is [privateAssignmentNode;] : primType;
+Method "blockNode"              is [privateBlockNode;] : primType;
+Method "literalNode"            is [privateLiteralNode;] : primType;
+Method "referenceNode"          is [privateReferenceNode;] : primType;
+Method "sendNode"               is [privateSendNode;] : primType;
+Method "superCastNode"          is [privateSuperCastNode;] : primType;
+Method "tupleNode"              is [privateTupleNode;] : primType;
+Method "variableUseNode"        is [privateVariableUseNode;] : primType;
+Method "declarationNode"        is [privateDeclarationNode;] : primType;
+Method "argumentNode"           is [privateArgumentNode;] : primType;
+Method "labelNode"              is [privateLabelNode;] : primType;
+Method "localVariableNode"      is [privateLocalVariableNode;] : primType;
+Method "localConstantNode"      is [privateLocalConstantNode;] : primType;
+Method "moduleVariableNode"     is [privateModuleVariableNode;] : primType;
+Method "moduleConstantNode"     is [privateModuleConstantNode;] : primType;
+
+
+/* Now the intrinsic constants... */
+Method "true"                   is [privateTrue;] : privateTrueType;
+Method "false"                  is [privateFalse;] : privateFalseType;
+
+
+
+/* Totally raw bootstrap - deal with system failures. */
+
+Method "Crash_" is [finalClue : all |
+	Primitive 256;
+	/* Special case - primitive 256 does not require failure code.  If it did, we
+	   could never build the primitive methods, because there is no direct
+	   language support other than primitives for bootstrapping the ability to
+	   terminate (by looping, killing a process, raising an exception, or resuming
+	   a continuation - these are all effectively implemented via primitives).  */
+] : terminates;
+
+
+/* Primitive failure reporting. */
+
+Method "Failed" is [
+	Crash "An Avail primitive has failed";
+] : terminates;
+
+
+
+/* Add support for defining precedence rules.  For example,
+	"{op1,op2...} can't have <{op3,op4...},{op5,op6,...},...>"
+   means that op1 and op2 aren't weakly binding enough to allow op3 or op4
+   as the top-level operation for the first argument, nor either op5 or op6 for
+   the second argument, etc.  To state, for example, that addition is to be
+   parsed left-recursive, we say:  {"_+_"} can't have <{} , {"_+_"}>.   */
+
+Method "_can't have_" is [names : set, except : tuple |
+	Primitive 255;
+	Failed;
+] : void;
+
+
+
+
+Method "Print_" is [something : all |
+	Primitive 258;
+	Failed;
+] : void;
+
+
+/* Explicitly disregard a return result */
+
+Method "Discard_" is [somethingToIgnore : all |
+] : void;
+
+
+/* Pause the VM for debugging. */
+
+Method "Halt" is [
+	Primitive 257;
+	Failed;
+] : void;
+
+
+/* General purpose primitive... */
+
+Method "_=_" is [a : all, b : all |
+	Primitive 60;
+	Failed;
+] : boolean;
+
+
+/* The subtype relation... */
+Method "_<=_" is [a : type, b : type |
+	Primitive 33;
+	Failed;
+] : boolean;
+
+
+/* Macros... */
+Method "Macro_is_" is [name : string, block : closure |
+	Primitive 249;
+	Failed;
+] : void;

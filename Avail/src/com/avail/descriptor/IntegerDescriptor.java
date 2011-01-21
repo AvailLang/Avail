@@ -33,11 +33,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class IntegerDescriptor extends ExtendedNumberDescriptor
 {
@@ -238,11 +238,11 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(Types.voidType.object()))
+		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aType.equals(Types.all.object()))
+		if (aType.equals(ALL.o()))
 		{
 			return true;
 		}

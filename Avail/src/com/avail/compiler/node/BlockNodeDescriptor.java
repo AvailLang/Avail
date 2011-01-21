@@ -32,12 +32,12 @@
 
 package com.avail.compiler.node;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
@@ -201,14 +201,14 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.blockNode.object();
+		return BLOCK_NODE.o();
 	}
 
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.blockNode.object();
+		return BLOCK_NODE.o();
 	}
 
 
@@ -321,7 +321,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
 		{
-			if (maybeLabel.isInstanceOfSubtypeOf(Types.labelNode.object()))
+			if (maybeLabel.isInstanceOfSubtypeOf(LABEL_NODE.o()))
 			{
 				labels.add(maybeLabel);
 			}
@@ -342,8 +342,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
 		{
-			if (maybeLocal.type().isSubtypeOf(Types.declarationNode.object())
-				&& !maybeLocal.type().isSubtypeOf(Types.labelNode.object()))
+			if (maybeLocal.type().isSubtypeOf(DECLARATION_NODE.o())
+				&& !maybeLocal.type().isSubtypeOf(LABEL_NODE.o()))
 			{
 				locals.add(maybeLocal);
 			}
@@ -432,8 +432,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject lastStatement =
 				statementsTuple.tupleAt(statementsCount);
 			final AvailObject lastStatementType = lastStatement.type();
-			if (lastStatementType.isSubtypeOf(Types.labelNode.object())
-				|| lastStatementType.isSubtypeOf(Types.assignmentNode.object()))
+			if (lastStatementType.isSubtypeOf(LABEL_NODE.o())
+				|| lastStatementType.isSubtypeOf(ASSIGNMENT_NODE.o()))
 			{
 				// The block ends with the label declaration or an assignment.
 				// Push the void object as the return value.
@@ -497,7 +497,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			@Override
 			public AvailObject value (final AvailObject node)
 			{
-				if (node.type().equals(Types.blockNode.object()))
+				if (node.type().equals(BLOCK_NODE.o()))
 				{
 					for (final AvailObject declaration : node.neededVariables())
 					{
@@ -509,7 +509,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 					return node;
 				}
 				node.childrenMap(this);
-				if (!node.type().equals(Types.variableUseNode.object()))
+				if (!node.type().equals(VARIABLE_USE_NODE.o()))
 				{
 					return node;
 				}

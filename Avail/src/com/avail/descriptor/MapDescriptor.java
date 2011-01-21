@@ -33,8 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.*;
 
 /**
@@ -241,11 +241,11 @@ public class MapDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(Types.voidType.object()))
+		if (aTypeObject.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(Types.all.object()))
+		if (aTypeObject.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -291,9 +291,9 @@ public class MapDescriptor extends Descriptor
 		//  Answer the object's type.
 
 		final Mutable<AvailObject> keyType = new Mutable<AvailObject>(
-				Types.terminates.object());
+				TERMINATES.o());
 		final Mutable<AvailObject> valueType = new Mutable<AvailObject>(
-				Types.terminates.object());
+				TERMINATES.o());
 		object.mapDo(new Continuation2<AvailObject, AvailObject>()
 			{
 			@Override

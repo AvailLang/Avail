@@ -31,20 +31,20 @@
 
 package com.avail.compiler;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LOCAL_CONSTANT;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -398,7 +398,7 @@ public class AvailCompiler
 		AvailObject peekStringLiteral ()
 		{
 			final AvailObject token = peekToken();
-			if (token.isInstanceOfSubtypeOf(Types.literalToken.object()))
+			if (token.isInstanceOfSubtypeOf(LITERAL_TOKEN.o()))
 			{
 				return token;
 			}
@@ -614,7 +614,7 @@ public class AvailCompiler
 							}
 							if (!outermost
 									|| expression.expressionType().equals(
-										Types.voidType.object()))
+										VOID_TYPE.o()))
 							{
 								whenFoundStatement.value(
 									afterExpression.afterToken(),
@@ -697,7 +697,7 @@ public class AvailCompiler
 				{
 					parseAndEvaluateExpressionYieldingInstanceOfThen(
 						afterColon,
-						Types.continuationType.object(),
+						CONTINUATION_TYPE.o(),
 						new Con<AvailObject>("Check label type expression")
 						{
 							@Override
@@ -860,7 +860,7 @@ public class AvailCompiler
 		}
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			afterFirstColon,
-			Types.type.object(),
+			TYPE.o(),
 			new Con<AvailObject>("Type expression of var : type")
 			{
 				@Override
@@ -868,8 +868,8 @@ public class AvailCompiler
 					final ParserState afterType,
 					final AvailObject type)
 				{
-					if (type.equals(Types.voidType.object())
-							|| type.equals(Types.terminates.object()))
+					if (type.equals(VOID_TYPE.o())
+							|| type.equals(TERMINATES.o()))
 					{
 						afterType.expected("a type for the variable other than"
 							+ " void or terminates");
@@ -1016,9 +1016,8 @@ public class AvailCompiler
 		final AvailObject block = BlockNodeDescriptor.newBlockNode(
 			TupleDescriptor.empty(),
 			(short)0,
-			TupleDescriptor.fromList(
-				Collections.singletonList(expressionNode)),
-				Types.voidType.object());
+			TupleDescriptor.fromList(Collections.singletonList(expressionNode)),
+			VOID_TYPE.o());
 		validate(block);
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = block.generate(codeGenerator);
@@ -1133,7 +1132,7 @@ public class AvailCompiler
 	 */
 	private void evaluateModuleStatement (final AvailObject expr)
 	{
-		if (!expr.isInstanceOfSubtypeOf(Types.declarationNode.object()))
+		if (!expr.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
 		{
 			evaluate(expr);
 			return;
@@ -1251,8 +1250,8 @@ public class AvailCompiler
 		greatestGuess = -1;
 		greatExpectations.clear();
 		final ResolvedModuleName resolvedName = tokenize(qualifiedName, false);
-
-		startModuleTransaction();
+		startModuleTransaction(ByteStringDescriptor.from(
+			qualifiedName.qualifiedName()));
 		try
 		{
 			parseModule(resolvedName);
@@ -1292,7 +1291,9 @@ public class AvailCompiler
 		state.value = parseHeader(qualifiedName, false);
 		if (state.value == null)
 		{
-			reportError(new ParserState(0, null), qualifiedName);
+			reportError(
+				new ParserState(0, new AvailCompilerScopeStack(null, null)),
+				qualifiedName);
 			assert false;
 		}
 		if (!state.value.atEnd())
@@ -1495,9 +1496,6 @@ public class AvailCompiler
 					+ "fully-qualified module name");
 				return null;
 			}
-			module.name(
-				ByteStringDescriptor.from(
-					qualifiedName.qualifiedName()));
 		}
 		state = state.afterToken();
 
@@ -1900,7 +1898,7 @@ public class AvailCompiler
 		}
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			afterArgName.afterToken(),
-			Types.type.object(),
+			TYPE.o(),
 			new Con<AvailObject>("Type of block argument")
 			{
 				@Override
@@ -1908,12 +1906,12 @@ public class AvailCompiler
 					final ParserState afterArgType,
 					final AvailObject type)
 				{
-					if (type.equals(Types.voidType.object()))
+					if (type.equals(VOID_TYPE.o()))
 					{
 						afterArgType.expected(
 							"a type for the argument other than void");
 					}
-					else if (type.equals(Types.terminates.object()))
+					else if (type.equals(TERMINATES.o()))
 					{
 						afterArgType.expected(
 							"a type for the argument other than terminates");
@@ -2041,10 +2039,10 @@ public class AvailCompiler
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);
-			if (stmt.isInstanceOfSubtypeOf(Types.declarationNode.object())
-				|| stmt.isInstanceOfSubtypeOf(Types.assignmentNode.object()))
+			if (stmt.isInstanceOfSubtypeOf(DECLARATION_NODE.o())
+				|| stmt.isInstanceOfSubtypeOf(ASSIGNMENT_NODE.o()))
 			{
-				lastStatementType.value = Types.voidType.object();
+				lastStatementType.value = VOID_TYPE.o();
 			}
 			else
 			{
@@ -2053,7 +2051,7 @@ public class AvailCompiler
 		}
 		else
 		{
-			lastStatementType.value = Types.voidType.object();
+			lastStatementType.value = VOID_TYPE.o();
 		}
 		final ParserState stateOutsideBlock = new ParserState(
 			afterClose.position,
@@ -2070,7 +2068,7 @@ public class AvailCompiler
 			boolean blockTypeGood = true;
 			if (statements.size() > 0
 				&& statements.get(0).isInstanceOfSubtypeOf(
-					Types.labelNode.object()))
+					LABEL_NODE.o()))
 			{
 				final AvailObject labelNode = statements.get(0);
 				final AvailObject labelClosureType =
@@ -2114,7 +2112,7 @@ public class AvailCompiler
 		}
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			stateOutsideBlock.afterToken(),
-			Types.type.object(),
+			TYPE.o(),
 			new Con<AvailObject>("Block return type declaration")
 			{
 				@Override
@@ -2128,7 +2126,7 @@ public class AvailCompiler
 						boolean blockTypeGood = true;
 						if (statements.size() > 0
 							&& statements.get(0).isInstanceOfSubtypeOf(
-								Types.labelNode.object()))
+								LABEL_NODE.o()))
 						{
 							final AvailObject labelNode = statements.get(0);
 							final AvailObject labelClosureType =
@@ -2371,68 +2369,11 @@ public class AvailCompiler
 				{
 					if (interpreter.runtime().hasMethodsAt(message))
 					{
-						final Mutable<Boolean> valid = new Mutable<Boolean>();
-						final AvailObject impSet =
-							interpreter.runtime().methodsAt(message);
-						valid.value = true;
-						final List<AvailObject> argTypes =
-							new ArrayList<AvailObject>(argsSoFar.size());
-						for (final AvailObject arg : argsSoFar)
-						{
-							argTypes.add(arg.expressionType());
-						}
-						final AvailObject returnType =
-							interpreter.validateSendArgumentTypesIfFail(
-								message,
-								argTypes,
-								new Continuation1<Generator<String>>()
-								{
-									@Override
-									public void value (
-										final Generator<String> errorGenerator)
-									{
-										valid.value = false;
-										start.expected(errorGenerator);
-									}
-								});
-						if (valid.value)
-						{
-							checkRestrictionsIfFail(
-								bundle,
-								argsSoFar,
-								new Continuation1<Generator<String>>()
-								{
-									@Override
-									public void value (
-										final Generator<String> errorGenerator)
-									{
-										valid.value = false;
-										start.expected(errorGenerator);
-									}
-								});
-						}
-						if (valid.value)
-						{
-							final String errorMessage =
-								interpreter.validateRequiresClauses(
-									bundle.message(),
-									argTypes);
-							if (errorMessage != null)
-							{
-								valid.value = false;
-								start.expected(errorMessage);
-							}
-						}
-						if (valid.value)
-						{
-							final AvailObject sendNode =
-								SendNodeDescriptor.mutable().create();
-							sendNode.implementationSet(impSet);
-							sendNode.arguments(
-								TupleDescriptor.fromList(argsSoFar));
-							sendNode.returnType(returnType);
-							attempt(start, continuation, sendNode);
-						}
+						completedSendNode(
+							start,
+							argsSoFar,
+							bundle,
+							continuation);
 					}
 				}
 			});
@@ -2441,7 +2382,7 @@ public class AvailCompiler
 		{
 			final AvailObject keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
-					|| keywordToken.tokenType() == OPERATOR)
+				|| keywordToken.tokenType() == OPERATOR)
 			{
 				final AvailObject keywordString = keywordToken.string();
 				if (incomplete.hasKey(keywordString))
@@ -2788,6 +2729,88 @@ public class AvailCompiler
 		}
 	}
 
+
+	/**
+	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
+	 * Create the send node and invoke the continuation.
+	 *
+	 * <p>If this is a macro, invoke the body immediately with the argument
+	 * expressions to produce a parse node.</p>
+	 *
+	 * @param start
+	 * @param argumentExpressions
+	 * @param message
+	 * @param bundle
+	 * @param continuation
+	 */
+	void completedSendNode (
+		final ParserState start,
+		final List<AvailObject> argumentExpressions,
+		final AvailObject bundle,
+		final Con<AvailObject> continuation)
+	{
+		final Mutable<Boolean> valid = new Mutable<Boolean>();
+		AvailObject message = bundle.message();
+		final AvailObject impSet =
+			interpreter.runtime().methodsAt(message);
+		valid.value = true;
+		final AvailObject returnType =
+			interpreter.validateSendArgumentExpressions(
+				message,
+				argumentExpressions,
+				new Continuation1<Generator<String>>()
+				{
+					@Override
+					public void value (
+						final Generator<String> errorGenerator)
+					{
+						valid.value = false;
+						start.expected(errorGenerator);
+					}
+				});
+		if (valid.value)
+		{
+			checkRestrictionsIfFail(
+				bundle,
+				argumentExpressions,
+				new Continuation1<Generator<String>>()
+				{
+					@Override
+					public void value (
+						final Generator<String> errorGenerator)
+					{
+						valid.value = false;
+						start.expected(errorGenerator);
+					}
+				});
+		}
+		if (valid.value)
+		{
+			final List<AvailObject> argTypes =
+				new ArrayList<AvailObject>(argumentExpressions.size());
+			for (final AvailObject argumentExpression : argumentExpressions)
+			{
+				argTypes.add(argumentExpression.expressionType());
+			}
+			final String errorMessage = interpreter.validateRequiresClauses(
+				bundle.message(),
+				argTypes);
+			if (errorMessage != null)
+			{
+				valid.value = false;
+				start.expected(errorMessage);
+			}
+		}
+		if (valid.value)
+		{
+			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
+			sendNode.implementationSet(impSet);
+			sendNode.arguments(TupleDescriptor.fromList(argumentExpressions));
+			sendNode.returnType(returnType);
+			attempt(start, continuation, sendNode);
+		}
+	}
+
 	/**
 	 * Make sure none of my arguments are message sends that have been
 	 * disallowed in that position by a negative precedence declaration.
@@ -2809,7 +2832,7 @@ public class AvailCompiler
 		{
 			final int index = i;
 			final AvailObject argument = arguments.get(index - 1);
-			if (argument.isInstanceOfSubtypeOf(Types.sendNode.object()))
+			if (argument.isInstanceOfSubtypeOf(SEND_NODE.o()))
 			{
 				final AvailObject restrictions =
 					bundle.restrictions().tupleAt(index);
@@ -2950,7 +2973,7 @@ public class AvailCompiler
 		attempt(start, continuation, node);
 
 		// Don't wrap it if its type is void.
-		if (node.expressionType().equals(Types.voidType.object()))
+		if (node.expressionType().equals(VOID_TYPE.o()))
 		{
 			return;
 		}
@@ -3121,7 +3144,7 @@ public class AvailCompiler
 				{
 					parseAndEvaluateExpressionYieldingInstanceOfThen(
 						afterSecondColon,
-						Types.type.object(),
+						TYPE.o(),
 						new Con<AvailObject>("Type expression of supercast")
 						{
 							@Override
@@ -3331,17 +3354,17 @@ public class AvailCompiler
 		{
 			final AvailObject lastStatement = statements.get(
 				statements.size() - 1);
-			if (!lastStatement.isInstanceOfSubtypeOf(Types.assignmentNode.object())
-				&& !lastStatement.isInstanceOfSubtypeOf(Types.labelNode.object())
-				&& !lastStatement.isInstanceOfSubtypeOf(Types.declarationNode.object()))
+			if (!lastStatement.isInstanceOfSubtypeOf(ASSIGNMENT_NODE.o())
+				&& !lastStatement.isInstanceOfSubtypeOf(LABEL_NODE.o())
+				&& !lastStatement.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
 			{
-				if (lastStatement.expressionType().equals(Types.terminates.object()))
+				if (lastStatement.expressionType().equals(TERMINATES.o()))
 				{
 					start.expected(
 						"end of statements, since this one always terminates");
 					return;
 				}
-				if (!lastStatement.expressionType().equals(Types.voidType.object()))
+				if (!lastStatement.expressionType().equals(VOID_TYPE.o()))
 				{
 					start.expected(new Generator<String>()
 					{
@@ -3555,17 +3578,20 @@ public class AvailCompiler
 	 * interpreter}'s context module will contain all methods and precedence
 	 * rules defined between the transaction start and the rollback (or commit).
 	 * Committing simply clears this information.
+	 *
+	 * @param moduleName The name of the {@linkplain ModuleDescriptor module}.
 	 */
-	private void startModuleTransaction ()
+	private void startModuleTransaction (
+		final AvailObject moduleName)
 	{
 		assert module == null;
-		module = ModuleDescriptor.newModule();
+		module = ModuleDescriptor.newModule(moduleName);
 		interpreter.setModule(module);
 	}
 
 	/**
 	 * Rollback the {@linkplain ModuleDescriptor module} that was defined since
-	 * the most recent {@link #startModuleTransaction() startModuleTransaction}.
+	 * the most recent {@link #startModuleTransaction(AvailObject)}.
 	 */
 	private void rollbackModuleTransaction ()
 	{
@@ -3577,8 +3603,8 @@ public class AvailCompiler
 
 	/**
 	 * Commit the {@linkplain ModuleDescriptor module} that was defined since
-	 * the most recent {@link #startModuleTransaction() startModuleTransaction}.
-	 * Simply clear the "{@linkplain #module module}" instance variable.
+	 * the most recent {@link #startModuleTransaction(AvailObject)}.  Simply
+	 * clear the {@linkplain #module} field.
 	 */
 	private void commitModuleTransaction ()
 	{

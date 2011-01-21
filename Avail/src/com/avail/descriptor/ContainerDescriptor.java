@@ -129,17 +129,8 @@ public class ContainerDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		//  GENERATED special mutable slots method.
-
-		if (e == ObjectSlots.VALUE)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.HASH_OR_ZERO)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.VALUE
+			|| e == IntegerSlots.HASH_OR_ZERO;
 	}
 
 

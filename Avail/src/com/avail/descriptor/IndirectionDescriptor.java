@@ -113,14 +113,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
 	{
-		if (e == ObjectSlots.TARGET)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.TARGET;
 	}
 
-	// java printing
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -3082,12 +3077,6 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	public void o_CleanUpAfterCompile (final AvailObject object)
 	{
 		o_Traversed(object).cleanUpAfterCompile();
-	}
-
-	@Override
-	public void o_ClearModule (final AvailObject object)
-	{
-		o_Traversed(object).clearModule();
 	}
 
 	@Override

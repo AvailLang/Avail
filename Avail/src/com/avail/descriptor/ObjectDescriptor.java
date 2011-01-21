@@ -32,12 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.ApproximateTypeDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.ObjectDescriptor;
-import com.avail.descriptor.ObjectTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.utility.*;
 
 public class ObjectDescriptor extends Descriptor
@@ -108,11 +103,11 @@ public class ObjectDescriptor extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(Types.voidType.object()))
+		if (aTypeObject.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(Types.all.object()))
+		if (aTypeObject.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -132,7 +127,7 @@ public class ObjectDescriptor extends Descriptor
 		valueMap.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject key, AvailObject value)
+			public void value (final AvailObject key, final AvailObject value)
 			{
 				typeMap.value = typeMap.value.mapAtPuttingCanDestroy(
 					key,
@@ -178,7 +173,7 @@ public class ObjectDescriptor extends Descriptor
 
 
 	/* Object creation */
-	public static AvailObject objectFromMap (AvailObject map)
+	public static AvailObject objectFromMap (final AvailObject map)
 	{
 		AvailObject result = mutable().create();
 		result.fieldMap(map);
@@ -186,9 +181,9 @@ public class ObjectDescriptor extends Descriptor
 	};
 
 	/* Hashing */
-	static int computeHashFromFieldMapHash (int fieldMapHash)
+	static int computeHashFromFieldMapHash (final int fieldMapHash)
 	{
-		return ((fieldMapHash + 0x1099BE88) ^ 0x38547ADE);
+		return fieldMapHash + 0x1099BE88 ^ 0x38547ADE;
 	};
 
 	/**

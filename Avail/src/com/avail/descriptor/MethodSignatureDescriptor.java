@@ -33,8 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 
 public class MethodSignatureDescriptor extends SignatureDescriptor
@@ -184,7 +184,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		return Types.methodSignature.object();
+		return METHOD_SIGNATURE.o();
 	}
 
 	@Override
@@ -203,7 +203,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.methodSignature.object();
+		return METHOD_SIGNATURE.o();
 	}
 
 

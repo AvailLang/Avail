@@ -32,16 +32,12 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doGetType_destObject_;
+import java.util.*;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2GetTypeInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2GetTypeInstruction extends L2Instruction
 {
@@ -119,7 +115,7 @@ public class L2GetTypeInstruction extends L2Instruction
 		}
 		else
 		{
-			anL2Translator.registerTypeAtPut(_dest, Types.type.object());
+			anL2Translator.registerTypeAtPut(_dest, TYPE.o());
 		}
 		if (anL2Translator.registerHasConstantAt(_source))
 		{

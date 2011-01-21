@@ -34,10 +34,10 @@ package com.avail.compiler.node;
 
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
 /**
@@ -96,13 +96,13 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.literalNode.object();
+		return Types.LITERAL_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.literalNode.object();
+		return Types.LITERAL_NODE.o();
 	}
 
 	@Override

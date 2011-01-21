@@ -33,10 +33,11 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.descriptor.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.AvailScanner;
+import com.avail.descriptor.*;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -247,12 +248,12 @@ public class MessageSplitter
 		/**
 		 * A simple underscore can be arbitrarily restricted, other than when
 		 * it is restricted to the uninstantiable type {@link
-		 * TypeDescriptor.Types#terminates terminates}.
+		 * TypeDescriptor.Types#TERMINATES terminates}.
 		 */
 		@Override
 		public void checkType (final AvailObject argumentType)
 		{
-			if (argumentType.equals(TypeDescriptor.Types.terminates.object()))
+			if (argumentType.equals(TERMINATES.o()))
 			{
 				error("Method argument type should not be \"terminates\".");
 			}
@@ -537,7 +538,7 @@ public class MessageSplitter
 		public void checkType (final AvailObject argumentType)
 		{
 			// Always expect a tuple of solutions here.
-			if (argumentType.equals(TypeDescriptor.Types.terminates.object()))
+			if (argumentType.equals(TERMINATES.o()))
 			{
 				error("Method argument type should not be \"terminates\".");
 			}

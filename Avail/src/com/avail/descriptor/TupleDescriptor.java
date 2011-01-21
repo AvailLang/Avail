@@ -32,11 +32,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
 import static java.util.Collections.max;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public abstract class TupleDescriptor extends Descriptor
 {
@@ -72,14 +72,9 @@ public abstract class TupleDescriptor extends Descriptor
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
 	{
-		if (e == IntegerSlots.HASH_OR_ZERO)
-		{
-			return true;
-		}
-		return false;
+		return e == IntegerSlots.HASH_OR_ZERO;
 	}
 
-	// java printing
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -248,11 +243,11 @@ public abstract class TupleDescriptor extends Descriptor
 		// type
 		// will just send this message recursively.
 
-		if (aTypeObject.equals(Types.voidType.object()))
+		if (aTypeObject.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(Types.all.object()))
+		if (aTypeObject.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -306,7 +301,7 @@ public abstract class TupleDescriptor extends Descriptor
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerDescriptor.objectFromInt(object.tupleSize()).type(),
 			tupleOfTypes,
-			Types.terminates.object());
+			TERMINATES.o());
 	}
 
 	@Override

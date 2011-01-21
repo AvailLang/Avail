@@ -33,9 +33,25 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.node.*;
 import com.avail.interpreter.Interpreter;
 
+/**
+ * A [@linkplain {@link ModuleDescriptor module} is the mechanism by which Avail
+ * code is organized.  Modules are parsed from files with the extension ".avail"
+ * which contain information about
+ * <ul>
+ * <li>the module's prerequisites,</li>
+ * <li>the names to be exported from the module,</li>
+ * <li>methods and macros defined in this module,</li>
+ * <li>negative-precedence rules to help disambiguate complex expressions,</li>
+ * <li>variables and constants private to the module</li>
+ * </ul>
+ *
+ * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ */
 public class ModuleDescriptor extends Descriptor
 {
 
@@ -44,16 +60,102 @@ public class ModuleDescriptor extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * A {@link ByteStringDescriptor string} that names the {@linkplain
+		 * ModuleDescriptor module}.
+		 */
 		NAME,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * ByteStringDescriptor strings} to {@link CyclicTypeDescriptor cyclic
+		 * types} which act as true names.  The true names are identity-based
+		 * identifiers that prevent or at least clarify name conflicts.  This
+		 * field holds only those names that are newly added by this module.
+		 */
 		NEW_NAMES,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * ByteStringDescriptor strings} to {@link CyclicTypeDescriptor cyclic
+		 * types} which act as true names.  The true names are identity-based
+		 * identifiers that prevent or at least clarify name conflicts.  This
+		 * field holds only those names that have been imported from other
+		 * modules.
+		 */
 		NAMES,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * ByteStringDescriptor strings} to {@link CyclicTypeDescriptor cyclic
+		 * types} which act as true names.  The true names are identity-based
+		 * identifiers that prevent or at least clarify name conflicts.  This
+		 * field holds only those names that are neither imported from another
+		 * module nor exported from the current module.
+		 */
 		PRIVATE_NAMES,
+
+		/**
+		 * A {@linkplain SetDescriptor set} of {@linkplain CyclicTypeDescriptor
+		 * true names} that are visible within this module.
+		 */
 		VISIBLE_NAMES,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * CyclicTypeDescriptor true names} to {@linkplain SignatureDescriptor
+		 * signatures} which implement (or forward or declare abstract} that
+		 * true name.
+		 */
 		METHODS,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * CyclicTypeDescriptor true names} to {@linkplain
+		 * MacroSignatureDescriptor macro signatures} which have that true name.
+		 */
 		MACROS,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from a parent {@linkplain
+		 * CyclicTypeDescriptor true names} to a {@linkplain
+		 * TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of child
+		 * true names.  An argument of a {@linkplain SendNodeDescriptor send}
+		 * of the parent true name must not be a send of a child name at the
+		 * corresponding argument position in the tuple.
+		 */
 		RESTRICTIONS,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * ByteStringDescriptor string} to a {@linkplain ContainerDescriptor
+		 * container (variable)}.  Since {@linkplain
+		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE module
+		 * variables} are never accessible outside the module in which they are
+		 * defined, this slot is overwritten with {@linkplain
+		 * VoidDescriptor#voidObject() the void object} when module compilation
+		 * is complete.
+		 */
 		VARIABLE_BINDINGS,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain
+		 * ByteStringDescriptor string} to an {@linkplain AvailObject}.  Since a
+		 * {@linkplain DeclarationNodeDescriptor.DeclarationKind#MODULE_CONSTANT
+		 * module constants} are never accessible outside the module in which
+		 * they are defined, this slot is overwritten with {@linkplain
+		 * VoidDescriptor#voidObject() the void object} when module compilation
+		 * is complete.
+		 */
 		CONSTANT_BINDINGS,
+
+		/**
+		 * The {@linkplain MessageBundleTreeDescriptor bundle tree} used to
+		 * parse multimethod {@linkplain SendNodeDescriptor sends} while
+		 * compiling this module.  When the module has been fully compiled, this
+		 * slot is overwritten with {@linkplain VoidDescriptor#voidObject() the
+		 * void object}.
+		 */
 		FILTERED_BUNDLE_TREE
 	}
 
@@ -67,11 +169,13 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject illegalArgMsgs)
 	{
 		assert !object.restrictions().hasKey(methodName)
-		: "Don't declare multiple restrictions on same message separately in module.";
-		object.restrictions(object.restrictions().mapAtPuttingCanDestroy(
-			methodName,
-			illegalArgMsgs,
-			true));
+		: "Don't declare multiple restrictions on same message separately"
+			+ " in module.";
+		object.restrictions(
+			object.restrictions().mapAtPuttingCanDestroy(
+				methodName,
+				illegalArgMsgs,
+				true));
 	}
 
 	@Override
@@ -90,10 +194,11 @@ public class ModuleDescriptor extends Descriptor
 			set = SetDescriptor.empty();
 		}
 		set = set.setWithElementCanDestroy(implementation, true);
-		object.methods(object.methods().mapAtPuttingCanDestroy(
-			methodName,
-			set,
-			true));
+		object.methods(
+			object.methods().mapAtPuttingCanDestroy(
+				methodName,
+				set,
+				true));
 	}
 
 	@Override
@@ -161,10 +266,11 @@ public class ModuleDescriptor extends Descriptor
 			set = SetDescriptor.empty();
 		}
 		set = set.setWithElementCanDestroy(trueName, true);
-		object.privateNames(object.privateNames().mapAtPuttingCanDestroy(
-			stringName,
-			set,
-			true));
+		object.privateNames(
+			object.privateNames().mapAtPuttingCanDestroy(
+				stringName,
+				set,
+				true));
 		object.visibleNames(
 			object.visibleNames().setWithElementCanDestroy(trueName, true));
 	}
@@ -179,39 +285,63 @@ public class ModuleDescriptor extends Descriptor
 		return object.visibleNames().hasElement(trueName);
 	}
 
+	/**
+	 * The interpreter is in the process of resolving this forward declaration.
+	 * Record the fact that this implementation no longer needs to be cleaned up
+	 * if the rest of the module compilation fails.
+	 *
+	 * @param object
+	 *        The module.
+	 * @param forwardImplementation
+	 *        The {@linkplain ForwardSignatureDescriptor forward declaration
+	 *        signature} to be removed.
+	 * @param methodName
+	 *        The {@linkplain CyclicTypeDescriptor true name} of the {@linkplain
+	 *        ForwardSignatureDescriptor forward declaration signature} being
+	 *        removed.
+	 */
 	@Override
 	public void o_ResolvedForwardWithName (
 		final AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
 	{
-		//  The interpreter is in the process of resolving this forward declaration.  Record the
-		//  fact that this implementation no longer needs to be cleaned up if the rest of the
-		//  module compilation fails.
-		//
-		//  [forwardImplementation smalltalkDescriptor isKindOf: ForwardSignatureDescriptor] assert.
-
+		assert forwardImplementation.isInstanceOfSubtypeOf(
+			FORWARD_SIGNATURE.o());
 		assert object.methods().hasKey(methodName);
 		AvailObject group = object.methods().mapAt(methodName);
 		assert group.hasElement(forwardImplementation);
 		group = group.setWithoutElementCanDestroy(forwardImplementation, true);
-		object.methods(object.methods().mapAtPuttingCanDestroy(
-			methodName,
-			group,
-			true));
+		object.methods(
+			object.methods().mapAtPuttingCanDestroy(
+				methodName,
+				group,
+				true));
 	}
 
+	/**
+	 * Check what true names are visible in this module under the given string
+	 * name.
+	 *
+	 * @param object The module.
+	 * @param stringName
+	 *        A string whose corresponding {@linkplain CyclicTypeDescriptor true
+	 *        names} are to be looked up in this module.
+	 * @return The {@linkplain SetDescriptor set} of {@linkplain
+	 *         CyclicTypeDescriptor true names} that have the given stringName
+	 *         and are visible in this module.
+	 */
 	@Override
 	public AvailObject o_TrueNamesForStringName (
 		final AvailObject object,
 		final AvailObject stringName)
 	{
-		//  Check what true names are visible in this module under the given string name.
-
 		assert stringName.isTuple();
 		if (object.newNames().hasKey(stringName))
 		{
-			return SetDescriptor.empty().setWithElementCanDestroy(object.newNames().mapAt(stringName), false);
+			return SetDescriptor.empty().setWithElementCanDestroy(
+				object.newNames().mapAt(stringName),
+				false);
 		}
 		AvailObject publics;
 		if (object.names().hasKey(stringName))
@@ -235,8 +365,6 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field constantBindings.
@@ -475,59 +603,41 @@ public class ModuleDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 		final Enum<?> e)
 	{
-		if (e == ObjectSlots.NEW_NAMES)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.NAMES)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.PRIVATE_NAMES)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.VISIBLE_NAMES)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.METHODS)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.RESTRICTIONS)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.VARIABLE_BINDINGS)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.CONSTANT_BINDINGS)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.FILTERED_BUNDLE_TREE)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.NEW_NAMES
+			|| e == ObjectSlots.NAMES
+			|| e == ObjectSlots.PRIVATE_NAMES
+			|| e == ObjectSlots.VISIBLE_NAMES
+			|| e == ObjectSlots.METHODS
+			|| e == ObjectSlots.MACROS
+			|| e == ObjectSlots.RESTRICTIONS
+			|| e == ObjectSlots.VARIABLE_BINDINGS
+			|| e == ObjectSlots.CONSTANT_BINDINGS
+			|| e == ObjectSlots.FILTERED_BUNDLE_TREE;
 	}
 
 
 
-	// initialization
-
+	/**
+	 * Construct a {@linkplain MessageBundleTreeDescriptor bundle tree} that has
+	 * been filtered to contain just those {@linkplain MessageBundleDescriptor
+	 * message bundles} that are visible in the current module.  Store the
+	 * resulting bundle tree as this module's {@linkplain
+	 * ObjectSlots#FILTERED_BUNDLE_TREE filtered bundle tree}.
+	 *
+	 * @param object The module.
+	 * @param bundleTree
+	 *        The root {@linkplain MessageBundleTreeDescriptor bundle tree} for
+	 *        which to make a filtered copy.
+	 */
 	@Override
 	public void o_BuildFilteredBundleTreeFrom (
 		final AvailObject object,
 		final AvailObject bundleTree)
 	{
-		//  Construct a bundle tree that has been prefiltered to contain just method bundles
-		//  that are visible to the current module.
-
-		object.filteredBundleTree(UnexpandedMessageBundleTreeDescriptor.newPc(1));
-		bundleTree.copyToRestrictedTo(object.filteredBundleTree(), object.visibleNames());
+		object.filteredBundleTree(
+			UnexpandedMessageBundleTreeDescriptor.newPc(1));
+		bundleTree.copyToRestrictedTo(
+			object.filteredBundleTree(), object.visibleNames());
 	}
 
 	@Override
@@ -539,32 +649,13 @@ public class ModuleDescriptor extends Descriptor
 		object.filteredBundleTree(VoidDescriptor.voidObject());
 	}
 
-	@Override
-	public void o_ClearModule (
-		final AvailObject object)
-	{
-		object.newNames(MapDescriptor.empty());
-		object.names(MapDescriptor.empty());
-		object.privateNames(MapDescriptor.empty());
-		object.visibleNames(SetDescriptor.empty());
-		object.methods(MapDescriptor.empty());
-		object.restrictions(MapDescriptor.empty());
-		object.variableBindings(MapDescriptor.empty());
-		object.constantBindings(MapDescriptor.empty());
-		object.filteredBundleTree(UnexpandedMessageBundleTreeDescriptor.newPc(1));
-	}
-
-
-
-	// operations
 
 	@Override
 	public boolean o_Equals (
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  Compare by address (identity).
-
+		// Compare by address (identity).
 		return another.traversed().sameAddressAs(object);
 	}
 
@@ -572,14 +663,10 @@ public class ModuleDescriptor extends Descriptor
 	public int o_Hash (
 		final AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-
-		return object.name().hash() * 13;
+		return object.name().hash() * 173 ^ 0xDF383F8C;
 	}
 
 
-
-	// removing
 
 	@Override
 	public void o_RemoveFrom (
@@ -600,14 +687,20 @@ public class ModuleDescriptor extends Descriptor
 
 
 
-
-	/* Object creation */
-
-	public static AvailObject newModule ()
+	/**
+	 * Construct a new empty {@linkplain ModuleDescriptor module}.
+	 *
+	 * @param moduleName
+	 *        The {@linkplain ByteStringDescriptor name} of the module.
+	 * @return The new module.
+	 */
+	public static AvailObject newModule (
+		final AvailObject moduleName)
 	{
 		AvailObject emptyMap = MapDescriptor.empty();
 		AvailObject unexpanded = UnexpandedMessageBundleTreeDescriptor.newPc(1);
 		AvailObject object = mutable().create();
+		object.name(moduleName);
 		object.newNames(emptyMap);
 		object.names(emptyMap);
 		object.privateNames(emptyMap);

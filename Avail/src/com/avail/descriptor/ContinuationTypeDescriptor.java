@@ -119,7 +119,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.continuationType.object();
+		return Types.CONTINUATION_TYPE.o();
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.continuationType.object();
+		return Types.CONTINUATION_TYPE.o();
 	}
 
 
@@ -230,7 +230,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		if (closType1.numArgs() != closType2.numArgs())
 		{
-			return Types.terminates.object();
+			return Types.TERMINATES.o();
 		}
 		final AvailObject intersection = ClosureTypeDescriptor.mutable().create(
 			closType1.numArgs());
@@ -278,7 +278,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		if (closType1.numArgs() != closType2.numArgs())
 		{
-			return Types.continuation.object();
+			return Types.CONTINUATION.o();
 		}
 		final AvailObject closureUnion = ClosureTypeDescriptor.mutable().create(
 			closType1.numArgs());

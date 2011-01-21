@@ -5148,19 +5148,6 @@ public class Descriptor extends AbstractDescriptor
 	 * @param object
 	 */
 	@Override
-	public void o_ClearModule (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_ClearModule:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 */
-	@Override
 	public void o_ClearValue (
 		final AvailObject object)
 	{

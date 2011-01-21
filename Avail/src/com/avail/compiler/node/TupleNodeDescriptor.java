@@ -129,7 +129,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
 				TupleDescriptor.fromList(types),
-				Types.terminates.object());
+				Types.TERMINATES.o());
 			tupleType.makeImmutable();
 			object.tupleType(tupleType);
 		}
@@ -141,7 +141,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.tupleNode.object();
+		return Types.TUPLE_NODE.o();
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.tupleNode.object();
+		return Types.TUPLE_NODE.o();
 	}
 
 	@Override

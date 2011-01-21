@@ -33,10 +33,10 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
@@ -124,13 +124,13 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.superCastNode.object();
+		return SUPER_CAST_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.superCastNode.object();
+		return SUPER_CAST_NODE.o();
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
 	{
-		if (!parent.type().equals(Types.sendNode.object()))
+		if (!parent.type().equals(SEND_NODE.o()))
 		{
 			error("Only use superCast notation as a message argument");
 		}

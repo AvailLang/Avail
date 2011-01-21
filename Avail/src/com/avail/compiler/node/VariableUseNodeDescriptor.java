@@ -35,10 +35,10 @@ package com.avail.compiler.node;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.utility.Transformer1;
 
 /**
@@ -161,13 +161,13 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.variableUseNode.object();
+		return Types.VARIABLE_USE_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.variableUseNode.object();
+		return Types.VARIABLE_USE_NODE.o();
 	}
 
 	@Override
@@ -218,20 +218,20 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a new {@link VariableUseNodeDescriptor variable use node}.
 	 *
-	 * @param token The token which is the use of the variable in the source.
+	 * @param theToken The token which is the use of the variable in the source.
 	 * @param declaration The declaration which is being used.
 	 * @return A new variable use node.
 	 */
 	public static AvailObject newUse (
-		final AvailObject token,
+		final AvailObject theToken,
 		final AvailObject declaration)
 	{
-		assert token.isInstanceOfSubtypeOf(Types.token.object());
+		assert theToken.isInstanceOfSubtypeOf(Types.TOKEN.o());
 		assert declaration.isInstanceOfSubtypeOf(
-			Types.declarationNode.object());
+			Types.DECLARATION_NODE.o());
 
 		final AvailObject newUse = mutable().create();
-		newUse.token(token);
+		newUse.token(theToken);
 		newUse.declaration(declaration);
 		newUse.isLastUse(false);
 		return newUse;

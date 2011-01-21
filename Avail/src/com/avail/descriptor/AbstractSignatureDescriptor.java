@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
+
 
 /**
  * This is a specialization of {@link SignatureDescriptor} that is an abstract
@@ -74,7 +76,6 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 
-	// accessing
 
 	@Override
 	public void o_BodySignatureRequiresBlockReturnsBlock (
@@ -89,14 +90,16 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		object.ensureMetacovariant();
 	}
 
+	/**
+	 * We simply run the 'returns' block, passing in the static argument types
+	 * from the call site.
+	 */
 	@Override
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final Interpreter anAvailInterpreter)
 	{
-		//  We simply run the 'returns' block, passing in the static argument types from the call site.
-
 		final AvailObject result = anAvailInterpreter.runClosureArguments(object.returnsBlock(), argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
 		{
@@ -106,17 +109,22 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 		return result;
 	}
 
+	/**
+	 * We simply run the 'requires' block, passing in the static arguments types
+	 * from the call site.  The result of the 'requires' block is an Avail
+	 * boolean, which we convert before answering it.
+	 */
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
 			final AvailObject object,
 			final List<AvailObject> argTypes,
 			final Interpreter interpreter)
 	{
-		//  We simply run the 'requires' block, passing in the static arguments types from the call site.  The result of
-		//  the 'requires' block is an Avail boolean, which we convert before answering it.
-
-		final AvailObject result = interpreter.runClosureArguments(object.requiresBlock(), argTypes);
-		//  Make sure this is a valid Avail boolean, convert it to a Smalltalk boolean, and return it.
+		final AvailObject result = interpreter.runClosureArguments(
+			object.requiresBlock(),
+			argTypes);
+		// Make sure this is a valid Avail boolean, convert it to a Java
+		// boolean, and return it.
 		return result.extractBoolean();
 	}
 
@@ -202,18 +210,16 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
-		return TypeDescriptor.Types.abstractSignature.object();
+		return Types.ABSTRACT_SIGNATURE.o();
 	}
 
 	@Override
 	public int o_Hash (
 			final AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-
-		final int hash = object.signature().hash() * 13 + object.requiresBlock().hash() * 7 + object.returnsBlock().hash() * 11;
+		final int hash = object.signature().hash() * 19
+			+ object.requiresBlock().hash() * 37
+			+ object.returnsBlock().hash() * 131;
 		return hash;
 	}
 
@@ -221,9 +227,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		//  Answer the object's type.
-
-		return TypeDescriptor.Types.abstractSignature.object();
+		return Types.ABSTRACT_SIGNATURE.o();
 	}
 
 
@@ -252,7 +256,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The mutable {@link AbstractSignatureDescriptor}.
 	 */
-	private final static AbstractSignatureDescriptor mutable = new AbstractSignatureDescriptor(true);
+	private final static AbstractSignatureDescriptor mutable =
+		new AbstractSignatureDescriptor(true);
 
 	/**
 	 * @return The mutable {@link AbstractSignatureDescriptor}.
@@ -265,7 +270,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	/**
 	 * The immutable {@link AbstractSignatureDescriptor}.
 	 */
-	private final static AbstractSignatureDescriptor immutable = new AbstractSignatureDescriptor(false);
+	private final static AbstractSignatureDescriptor immutable =
+		new AbstractSignatureDescriptor(false);
 
 	/**
 	 * @return The mutable {@link AbstractSignatureDescriptor}.

@@ -32,8 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class ContainerTypeDescriptor extends TypeDescriptor
@@ -121,7 +120,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.containerType.object();
+		return CONTAINER_TYPE.o();
 	}
 
 	@Override
@@ -130,7 +129,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's hash value.
 
-		return ((object.innerType().hash() * 17) ^ 0x613E420);
+		return object.innerType().hash() * 17 ^ 0x613E420;
 	}
 
 	@Override
@@ -151,7 +150,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.containerType.object();
+		return CONTAINER_TYPE.o();
 	}
 
 
@@ -208,7 +207,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -240,7 +239,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		{
 			return object;
 		}
-		return Types.container.object();
+		return CONTAINER.o();
 	}
 
 
@@ -248,7 +247,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 
 	/* Descriptor lookup */
-	public static AvailObject wrapInnerType (AvailObject innerType)
+	public static AvailObject wrapInnerType (final AvailObject innerType)
 	{
 		AvailObject result = mutable().create();
 		result.innerType(innerType.makeImmutable());

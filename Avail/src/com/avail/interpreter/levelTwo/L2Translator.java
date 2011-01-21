@@ -33,61 +33,18 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.SpecialReturnConstant;
-import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
-import static com.avail.interpreter.Primitive.Result.FAILURE;
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.max;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ClosureDescriptor;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ImplementationSetDescriptor;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.Primitive;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.levelOne.L1OperationDispatcher;
-import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2CallInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2ClearObjectInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2CreateClosureInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2CreateContinuationInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2CreateSimpleContinuation;
-import com.avail.interpreter.levelTwo.instruction.L2CreateTupleInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2CreateVariableInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2DecrementToZeroThenOptimizeInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2ExplodeInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2ExtractOuterInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2GetClearingInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2GetInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2GetTypeInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
-import com.avail.interpreter.levelTwo.instruction.L2InterpretOneInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2JumpIfNotInterruptInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2JumpInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2LabelInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2LoadConstantInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2MakeImmutableInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2MakeSubobjectsImmutableInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2MoveInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2ProcessInterruptNowInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2ReturnInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2SetInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2SuperCallInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterIdentity;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelTwo.instruction.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2Translator implements L1OperationDispatcher
 {
@@ -222,7 +179,7 @@ public class L2Translator implements L1OperationDispatcher
 		while (n >= architecturalRegisters.size())
 		{
 			architecturalRegisters.add(new L2ObjectRegister());
-			(architecturalRegisters.get(architecturalRegisters.size() - 1).identity()).finalIndex(
+			architecturalRegisters.get(architecturalRegisters.size() - 1).identity().finalIndex(
 				architecturalRegisters.size());
 		}
 
@@ -295,13 +252,13 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		if (tag <= 12)
 		{
-			value = (((tag * 16) - 150) + nybbles.extractNybbleFromTupleAt(pc + 1));
+			value = tag * 16 - 150 + nybbles.extractNybbleFromTupleAt(pc + 1);
 			pc += 2;
 			return value;
 		}
 		if (tag == 13)
 		{
-			value = (((nybbles.extractNybbleFromTupleAt(pc + 1) << 4) + nybbles.extractNybbleFromTupleAt(pc + 2)) + 58);
+			value = (nybbles.extractNybbleFromTupleAt(pc + 1) << 4) + nybbles.extractNybbleFromTupleAt(pc + 2) + 58;
 			pc += 3;
 			return value;
 		}
@@ -310,7 +267,7 @@ public class L2Translator implements L1OperationDispatcher
 			value = 0;
 			for (int _count1 = 1; _count1 <= 4; _count1++)
 			{
-				value = ((value << 4) + nybbles.extractNybbleFromTupleAt(++pc));
+				value = (value << 4) + nybbles.extractNybbleFromTupleAt(++pc);
 			}
 			//  making 5 nybbles total
 			pc++;
@@ -321,7 +278,7 @@ public class L2Translator implements L1OperationDispatcher
 			value = 0;
 			for (int _count2 = 1; _count2 <= 8; _count2++)
 			{
-				value = ((value << 4) + nybbles.extractNybbleFromTupleAt(++pc));
+				value = (value << 4) + nybbles.extractNybbleFromTupleAt(++pc);
 			}
 			//  making 9 nybbles total
 			pc++;
@@ -357,7 +314,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * number.  Return one of the method implementation bodies if it's
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
-	 * 
+	 *
 	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param args A {@link List} of {@link L2ObjectRegister registers} holding
@@ -376,7 +333,7 @@ public class L2Translator implements L1OperationDispatcher
 			AvailObject type;
 			type = registerHasTypeAt(arg)
 			? registerTypeAt(arg)
-					: Types.voidType.object();
+					: VOID_TYPE.o();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
@@ -388,7 +345,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * number.  Return one of the method implementation bodies if it's
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
-	 * 
+	 *
 	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypeRegisters A {@link List} of {@link L2ObjectRegister
@@ -411,7 +368,7 @@ public class L2Translator implements L1OperationDispatcher
 			AvailObject type;
 			type = registerHasConstantAt(argTypeRegister)
 			? registerConstantAt(argTypeRegister)
-					: Types.voidType.object();
+					: VOID_TYPE.o();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
@@ -423,7 +380,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * implementation sets where every possible method uses the same primitive
 	 * number.  Return the primitive number if it's unambiguous and can be
 	 * inlined, otherwise zero.
-	 * 
+	 *
 	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypes The types of the arguments to the call.
@@ -496,7 +453,7 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * Answer the register representing the slot of the stack associated with
 	 * the given index.
-	 * 
+	 *
 	 * @param stackIndex A stack position, for example stackp.
 	 * @return A {@link L2ObjectRegister register} representing the stack at the
 	 *         given position.
@@ -512,7 +469,7 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * Answer the register representing the slot of the stack associated with
 	 * the current value of stackp.
-	 * 
+	 *
 	 * @return A {@link L2ObjectRegister register} representing the top of the
 	 *         stack right now.
 	 */
@@ -531,7 +488,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * <p>
 	 * Special case if the flag {@link Primitive.Flag#SpecialReturnConstant} is
 	 * specified:  Always fold it, since it's just a constant.
-	 * 
+	 *
 	 * @param primitiveClosure A {@link ClosureDescriptor closure} for which
 	 *                         its primitive might be inlined, or even folded if
 	 *                         possible.
@@ -600,9 +557,9 @@ public class L2Translator implements L1OperationDispatcher
 					topOfStackRegister()));
 				return value;
 			}
-			assert (success != CONTINUATION_CHANGED)
+			assert success != CONTINUATION_CHANGED
 			: "This foldable primitive changed the continuation!";
-			assert (success == FAILURE);
+			assert success == FAILURE;
 		}
 		final L2LabelInstruction postPrimitiveLabel = newLabel();
 		addInstruction(new L2AttemptPrimitiveInstruction().primitiveArgumentsDestinationIfFail(
@@ -642,7 +599,7 @@ public class L2Translator implements L1OperationDispatcher
 
 		final int index = getInteger();
 		stackp--;
-		addInstruction(new L2GetTypeInstruction().sourceDestination(stackRegister(((stackp + 1) + index)), topOfStackRegister()));
+		addInstruction(new L2GetTypeInstruction().sourceDestination(stackRegister((stackp + 1 + index)), topOfStackRegister()));
 	}
 
 	@Override
@@ -1303,9 +1260,9 @@ public class L2Translator implements L1OperationDispatcher
 		instructions.add(new L2JumpInstruction().target(label));
 		optimize();
 		final AvailObject chunk = createChunk();
-		assert (chunk.index() == 1);
-		assert (label.offset() == L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-		assert (pausePoint.offset() == L2ChunkDescriptor.offsetToPauseUnoptimizedChunk());
+		assert chunk.index() == 1;
+		assert label.offset() == L2ChunkDescriptor.offsetToContinueUnoptimizedChunk();
+		assert pausePoint.offset() == L2ChunkDescriptor.offsetToPauseUnoptimizedChunk();
 		return chunk;
 	}
 
@@ -1428,8 +1385,8 @@ public class L2Translator implements L1OperationDispatcher
 		// Translate the implicit L1_doReturn instruction that terminates the
 		// instruction sequence.
 		L1Operation.L1Implied_Return.dispatch(this);
-		assert (pc == (nybbles.tupleSize() + 1));
-		assert (stackp == -0x29A);
+		assert pc == nybbles.tupleSize() + 1;
+		assert stackp == -0x29A;
 		optimize();
 		final AvailObject newChunk = createChunk();
 		return newChunk;

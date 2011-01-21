@@ -33,9 +33,9 @@
 package com.avail.compiler.scanning;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.EnumField;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 
 /**
@@ -148,13 +148,13 @@ extends Descriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.token.object();
+		return TOKEN.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.token.object();
+		return TOKEN.o();
 	}
 
 	@Override

@@ -32,9 +32,9 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.max;
 import java.util.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.*;
 
@@ -47,6 +47,10 @@ import com.avail.utility.*;
  * membership causes an immediate invalidation of optimized level two code that
  * depends on the previous membership.
  *
+ * <p>To support macros safely, an implementation set must contain either all
+ * {@linkplain MacroSignatureDescriptor macro signatures} or all non-macro
+ * {@linkplain SignatureDescriptor signatures}, but not both.</p>
+ *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class ImplementationSetDescriptor extends Descriptor
@@ -57,9 +61,31 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The {@linkplain SetDescriptor set} of {@linkplain L2ChunkDescriptor
+		 * level two chunks} that depend on the membership of this {@linkplain
+		 * ImplementationSetDescriptor implementation set}.  A change to the
+		 * membership should cause these chunks to be invalidated.
+		 */
 		DEPENDENT_CHUNKS,
+
+		/**
+		 * The {@linkplain TupleDescriptor tuple} of {@link SignatureDescriptor
+		 * signatures} that constitute this multimethod (or multimacro).
+		 */
 		IMPLEMENTATIONS_TUPLE,
+
+		/**
+		 * The {@link CyclicTypeDescriptor cyclic type} that acts as the true
+		 * name of this {@link ImplementationSetDescriptor implementation set}.
+		 */
 		NAME,
+
+		/**
+		 * A {@link TupleDescriptor tuple} of {@link IntegerDescriptor integers}
+		 * that encodes a decision tree for selecting the most specific
+		 * multimethod appropriate for the argument types.
+		 */
 		PRIVATE_TESTING_TREE
 	}
 
@@ -151,19 +177,9 @@ public class ImplementationSetDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.IMPLEMENTATIONS_TUPLE)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.PRIVATE_TESTING_TREE)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.DEPENDENT_CHUNKS)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
+			|| e == ObjectSlots.PRIVATE_TESTING_TREE
+			|| e == ObjectSlots.DEPENDENT_CHUNKS;
 	}
 
 
@@ -200,7 +216,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.implementationSet.object();
+		return IMPLEMENTATION_SET.o();
 	}
 
 	@Override
@@ -232,7 +248,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		//  Answer the object's type.
 
-		return Types.implementationSet.object();
+		return IMPLEMENTATION_SET.o();
 	}
 
 
@@ -249,25 +265,38 @@ public class ImplementationSetDescriptor extends Descriptor
 				true));
 	}
 
+	/**
+	 * Add the {@linkplain SignatureDescriptor signature implementation} to me.
+	 * Causes dependent chunks to be invalidated.
+	 *
+	 * <p>Macro signatures and non-macro signatures should not be combined in
+	 * the same implementation set.
+	 *
+	 * @param object The implementation set.
+	 * @param implementation A {@linkplain SignatureDescriptor signature} to be
+	 *
+	 */
 	@Override
 	public void o_AddImplementation (
 			final AvailObject object,
 			final AvailObject implementation)
 	{
-		// Add the implementation to me.  Causes dependent chunks to be
-		// invalidated.
-		object.implementationsTuple(
-			object.implementationsTuple().asSet().setWithElementCanDestroy(
+		AvailObject oldTuple = object.implementationsTuple();
+		if (oldTuple.tupleSize() > 0)
+		{
+			// Ensure that we're not mixing macro and non-macro signatures.
+			assert implementation.isMacro() == oldTuple.tupleAt(1).isMacro();
+		}
+		AvailObject set =
+			oldTuple.asSet().setWithElementCanDestroy(
 				implementation,
-				true)
-			.asTuple());
+				true);
+		object.implementationsTuple(set.asTuple());
 		final AvailObject chunks = object.dependentChunks();
 		if (chunks.setSize() > 0)
 		{
-			final AvailObject chunksAsTuple = chunks.asTuple();
-			for (int i = 1, _end1 = chunksAsTuple.tupleSize(); i <= _end1; i++)
+			for (AvailObject chunkId : chunks.asTuple())
 			{
-				final AvailObject chunkId = chunksAsTuple.tupleAt(i);
 				L2ChunkDescriptor.chunkFromId(chunkId.extractInt())
 					.necessaryImplementationSetChanged(object);
 			}
@@ -276,7 +305,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			: "dependentChunks must not change shape during invalidation loop";
 			object.dependentChunks(SetDescriptor.empty());
 		}
-		//  Clear the privateTestingTree cache.
+		// Clear the privateTestingTree cache.
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
@@ -355,7 +384,8 @@ public class ImplementationSetDescriptor extends Descriptor
 				for (final AvailObject index2 : positiveTuple)
 				{
 					allPossibleAreParents = allPossibleAreParents
-						&& imps.tupleAt(index2.extractInt()).bodySignature()
+						&& imps.tupleAt(index2.extractInt())
+							.bodySignature()
 							.acceptsArgTypesFromClosureType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
@@ -370,7 +400,8 @@ public class ImplementationSetDescriptor extends Descriptor
 				for (final AvailObject index2 : positiveTuple)
 				{
 					allPossibleAreParents = allPossibleAreParents &&
-						imps.tupleAt(index2.extractInt()).bodySignature()
+						imps.tupleAt(index2.extractInt())
+							.bodySignature()
 							.acceptsArgTypesFromClosureType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
@@ -446,7 +477,7 @@ public class ImplementationSetDescriptor extends Descriptor
 				{
 					if (sig1.argTypeAt(argIndex)
 							.typeIntersection(sig2.argTypeAt(argIndex))
-						.equals(Types.terminates.object()))
+						.equals(TERMINATES.o()))
 					{
 						newPossible = newPossible.setWithoutElementCanDestroy(
 							index1,
@@ -867,7 +898,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
 			final int finalIndex = index;
-			if (argTypes.get(finalIndex - 1).equals(Types.terminates.object()))
+			if (argTypes.get(finalIndex - 1).equals(TERMINATES.o()))
 			{
 				failBlock.value(new Generator<String> ()
 				{

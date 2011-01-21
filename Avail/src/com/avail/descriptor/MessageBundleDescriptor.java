@@ -32,11 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class MessageBundleDescriptor extends Descriptor
@@ -251,16 +247,12 @@ public class MessageBundleDescriptor extends Descriptor
 		return object.objectSlot(ObjectSlots.PARSING_INSTRUCTIONS);
 	}
 
-	
+
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.MY_RESTRICTIONS)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.MY_RESTRICTIONS;
 	}
 
 
@@ -301,21 +293,21 @@ public class MessageBundleDescriptor extends Descriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.messageBundle.object();
+		return MESSAGE_BUNDLE.o();
 	}
 
 	@Override
 	public int o_Hash (
 			final AvailObject object)
 	{
-		return (object.message().hash() ^ 0x312CAB9);
+		return object.message().hash() ^ 0x312CAB9;
 	}
 
 	@Override
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.messageBundle.object();
+		return MESSAGE_BUNDLE.o();
 	}
 
 
@@ -324,7 +316,7 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Create a new {@link MessageBundleDescriptor message bundle} for the
 	 * given message.  Also use the provided tuple of message parts and parsing
 	 * instructions.
-	 * 
+	 *
 	 * @param message The message name, a {@link CyclicTypeDescriptor cyclic
 	 *                type}.
 	 * @param parts A tuple of strings constituting the message name.
@@ -332,12 +324,12 @@ public class MessageBundleDescriptor extends Descriptor
 	 * @return A new {@link MessageBundleDescriptor message bundle}.
 	 */
 	public static AvailObject newBundle (
-		AvailObject message,
-		AvailObject parts,
-		AvailObject instructions)
+		final AvailObject message,
+		final AvailObject parts,
+		final AvailObject instructions)
 	{
 		AvailObject result = mutable().create();
-		assert message.isCyclicType();	
+		assert message.isCyclicType();
 		result.message(message);
 		result.messageParts(parts);
 		result.myRestrictions(VoidDescriptor.voidObject());

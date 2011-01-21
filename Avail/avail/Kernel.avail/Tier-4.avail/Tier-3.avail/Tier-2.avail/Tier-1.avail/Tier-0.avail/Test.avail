@@ -30,11 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tier-0"
+Module "Test"
 Extends
 	"Pragmas",
 	"Basics"
 Uses
-	"Test"
 Names
 Body
+
+
+/* Test the basic bootstrap modules. */
+
+
+Method "Assert_" is [b : trueType |
+	/* Do nothing - the assertion is true. */
+] : void;
+
+Method "Assert_" is [b : boolean |
+	Crash "A runtime assertion has failed";
+] : void;
+
+
+/* Disabled for the moment...
+
+
+Macro "_first_" is [a : variableUseNode, b : variableUseNode | a;];
+Macro "_second_" is [a : variableUseNode, b : variableUseNode | b;];
+
+Assert 5 = 5;
+
+Assert true first false;
+Assert false second true;
+*/

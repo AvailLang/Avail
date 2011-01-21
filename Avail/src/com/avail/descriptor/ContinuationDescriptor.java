@@ -428,11 +428,7 @@ public class ContinuationDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET)
-		{
-			return true;
-		}
-		return false;
+		return e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET;
 	}
 
 	/**

@@ -32,9 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.GeneralizedClosureTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 
 public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
@@ -130,7 +128,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.generalizedClosureType.object();
+		return GENERALIZED_CLOSURE_TYPE.o();
 	}
 
 	@Override
@@ -139,7 +137,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  The hash value is always recomputed from the argTypeTuple and returnType.
 
-		return ((object.returnType().hash() * 13) + 0x359991);
+		return object.returnType().hash() * 13 + 0x359991;
 	}
 
 	@Override
@@ -148,7 +146,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	{
 		//  Answer the object's type.
 
-		return Types.generalizedClosureType.object();
+		return GENERALIZED_CLOSURE_TYPE.o();
 	}
 
 
@@ -283,7 +281,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	/* Descriptor lookup */
 	public static AvailObject forReturnType (
-			AvailObject returnType)
+			final AvailObject returnType)
 	{
 		AvailObject result = mutable().create();
 		result.returnType(returnType);

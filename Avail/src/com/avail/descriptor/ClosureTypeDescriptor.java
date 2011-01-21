@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 
 public class ClosureTypeDescriptor extends TypeDescriptor
@@ -122,11 +123,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == IntegerSlots.HASH_OR_ZERO)
-		{
-			return true;
-		}
-		return false;
+		return e == IntegerSlots.HASH_OR_ZERO;
 	}
 
 
@@ -245,7 +242,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject o_ExactType (
 			final AvailObject object)
 	{
-		return Types.closureType.object();
+		return CLOSURE_TYPE.o();
 	}
 
 
@@ -280,7 +277,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	public AvailObject o_Type (
 			final AvailObject object)
 	{
-		return Types.closureType.object();
+		return CLOSURE_TYPE.o();
 	}
 
 
@@ -478,7 +475,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			final AvailObject argType = object.argTypeAt(i);
 			final AvailObject actualType = argTypes.get(i - 1);
 			final AvailObject intersection = argType.typeIntersection(actualType);
-			if (intersection.equals(Types.terminates.object()))
+			if (intersection.equals(TERMINATES.o()))
 			{
 				return false;
 			}
@@ -581,7 +578,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 		if (object.numArgs() != aClosureType.numArgs())
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		if (!canDestroy || !isMutable)
 		{

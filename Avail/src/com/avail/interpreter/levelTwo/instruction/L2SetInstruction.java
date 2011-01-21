@@ -32,16 +32,12 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doSetVariable_sourceObject_;
+import java.util.*;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2SetInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2SetInstruction extends L2Instruction
 {
@@ -116,11 +112,11 @@ public class L2SetInstruction extends L2Instruction
 		if (anL2Translator.registerHasTypeAt(_variable))
 		{
 			varType = anL2Translator.registerTypeAt(_variable);
-			varType = varType.typeIntersection(Types.container.object());
+			varType = varType.typeIntersection(CONTAINER.o());
 		}
 		else
 		{
-			varType = Types.container.object();
+			varType = CONTAINER.o();
 		}
 		anL2Translator.registerTypeAtPut(_variable, varType);
 	}

@@ -32,8 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2ChunkDescriptor extends Descriptor
@@ -300,39 +300,14 @@ public class L2ChunkDescriptor extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 			final Enum<?> e)
 	{
-		if (e == ObjectSlots.CONTINGENT_IMP_SETS)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.WORDCODES)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.VECTORS)
-		{
-			return true;
-		}
-		if (e == ObjectSlots.LITERAL_AT_)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.INDEX)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.VALIDITY)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.NEXT_INDEX)
-		{
-			return true;
-		}
-		if (e == IntegerSlots.PREVIOUS_INDEX)
-		{
-			return true;
-		}
-		return false;
+		return e == ObjectSlots.CONTINGENT_IMP_SETS
+			|| e == ObjectSlots.WORDCODES
+			|| e == ObjectSlots.VECTORS
+			|| e == ObjectSlots.LITERAL_AT_
+			|| e == IntegerSlots.INDEX
+			|| e == IntegerSlots.VALIDITY
+			|| e == IntegerSlots.NEXT_INDEX
+			|| e == IntegerSlots.PREVIOUS_INDEX;
 	}
 
 
@@ -605,7 +580,7 @@ public class L2ChunkDescriptor extends Descriptor
 		assert head.nextIndex() == 0;
 		assert head.previousIndex() == 0;
 		final AvailObject allChunks = ContainerDescriptor.forInnerType(
-			Types.all.object());
+			ALL.o());
 		allChunks.setValue(TupleDescriptor.empty());
 		HeadOfRing = head;
 		AllChunks = allChunks;

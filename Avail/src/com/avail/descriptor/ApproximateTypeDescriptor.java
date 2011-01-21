@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
 
@@ -727,7 +728,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		{
 			return object.instance().tupleAt(index).type();
 		}
-		return Types.terminates.object();
+		return TERMINATES.o();
 	}
 
 	@Override
@@ -748,15 +749,15 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		final AvailObject tupleObject = object.instance();
 		final int upperIndex = tupleObject.tupleSize();
 		if (startIndex > upperIndex)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
-		AvailObject unionType = Types.terminates.object();
+		AvailObject unionType = TERMINATES.o();
 		for (int i = max(startIndex, 1), _end1 = min(endIndex, upperIndex); i <= _end1; i++)
 		{
 			unionType = unionType.typeUnion(tupleObject.tupleAt(i).type());
@@ -775,7 +776,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 		}
 		if (object.instance().tupleSize() == 0)
 		{
-			return Types.terminates.object();
+			return TERMINATES.o();
 		}
 		return object.instance().tupleAt(object.instance().tupleSize()).type();
 	}

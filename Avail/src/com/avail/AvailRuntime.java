@@ -32,6 +32,7 @@
 
 package com.avail;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -39,7 +40,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 
 /**
@@ -115,78 +115,78 @@ public final class AvailRuntime
 	 */
 	{
 		// Basic types
-		specialObjects[1] = Types.all.object();
-		specialObjects[2] = Types.booleanType.object();
-		specialObjects[3] = Types.character.object();
-		specialObjects[4] = Types.closure.object();
-		specialObjects[5] = Types.closureType.object();
-		specialObjects[6] = Types.compiledCode.object();
-		specialObjects[7] = Types.container.object();
-		specialObjects[8] = Types.containerType.object();
-		specialObjects[9] = Types.continuation.object();
-		specialObjects[10] = Types.continuationType.object();
-		specialObjects[11] = Types.cyclicType.object();
-		specialObjects[12] = Types.doubleObject.object();
+		specialObjects[1] = ALL.o();
+		specialObjects[2] = BOOLEAN_TYPE.o();
+		specialObjects[3] = CHARACTER.o();
+		specialObjects[4] = CLOSURE.o();
+		specialObjects[5] = CLOSURE_TYPE.o();
+		specialObjects[6] = COMPILED_CODE.o();
+		specialObjects[7] = CONTAINER.o();
+		specialObjects[8] = CONTAINER_TYPE.o();
+		specialObjects[9] = CONTINUATION.o();
+		specialObjects[10] = CONTINUATION_TYPE.o();
+		specialObjects[11] = CYCLIC_TYPE.o();
+		specialObjects[12] = DOUBLE.o();
 		specialObjects[13] =
 			IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable();
-		specialObjects[14] = Types.falseType.object();
-		specialObjects[15] = Types.floatObject.object();
-		specialObjects[16] = Types.generalizedClosureType.object();
+		specialObjects[14] = FALSE_TYPE.o();
+		specialObjects[15] = FLOAT.o();
+		specialObjects[16] = GENERALIZED_CLOSURE_TYPE.o();
 		specialObjects[17] =
 			IntegerRangeTypeDescriptor.integers().makeImmutable();
-		specialObjects[18] = Types.integerType.object();
-		specialObjects[19] = Types.mapType.object();
-		specialObjects[20] = Types.meta.object();
+		specialObjects[18] = INTEGER_TYPE.o();
+		specialObjects[19] = MAP_TYPE.o();
+		specialObjects[20] = META.o();
 		specialObjects[21] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().type().makeImmutable();
 		specialObjects[22] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().type().type().makeImmutable();
 		specialObjects[23] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().makeImmutable();
-		specialObjects[24] = Types.primType.object();
-		specialObjects[25] = Types.process.object();
+		specialObjects[24] = PRIMITIVE_TYPE.o();
+		specialObjects[25] = PROCESS.o();
 		specialObjects[26] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.wholeNumbers(), Types.all.object())
+			IntegerRangeTypeDescriptor.wholeNumbers(), ALL.o())
 				.makeImmutable();
-		specialObjects[27] = Types.setType.object();
+		specialObjects[27] = SET_TYPE.o();
 		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
-		specialObjects[29] = Types.terminates.object();
-		specialObjects[30] = Types.terminatesType.object();
-		specialObjects[31] = Types.trueType.object();
+		specialObjects[29] = TERMINATES.o();
+		specialObjects[30] = TERMINATES_TYPE.o();
+		specialObjects[31] = TRUE_TYPE.o();
 		specialObjects[32] =
 			TupleTypeDescriptor.mostGeneralTupleType().makeImmutable();
-		specialObjects[33] = Types.tupleType.object();
-		specialObjects[34] = Types.type.object();
-		specialObjects[35] = Types.voidType.object();
+		specialObjects[33] = TUPLE_TYPE.o();
+		specialObjects[34] = TYPE.o();
+		specialObjects[35] = VOID_TYPE.o();
 
 		// Code reflection
-		specialObjects[40] = Types.messageBundle.object();
-		specialObjects[41] = Types.signature.object();
-		specialObjects[42] = Types.abstractSignature.object();
-		specialObjects[43] = Types.forwardSignature.object();
-		specialObjects[44] = Types.methodSignature.object();
-		specialObjects[45] = Types.messageBundleTree.object();
-		specialObjects[46] = Types.implementationSet.object();
+		specialObjects[40] = MESSAGE_BUNDLE.o();
+		specialObjects[41] = SIGNATURE.o();
+		specialObjects[42] = ABSTRACT_SIGNATURE.o();
+		specialObjects[43] = FORWARD_SIGNATURE.o();
+		specialObjects[44] = METHOD_SIGNATURE.o();
+		specialObjects[45] = MESSAGE_BUNDLE_TREE.o();
+		specialObjects[46] = IMPLEMENTATION_SET.o();
 
 		// Parse nodes types
-		specialObjects[50] = Types.parseNode.object();
-		specialObjects[51] = Types.markerNode.object();
-		specialObjects[52] = Types.expressionNode.object();
-		specialObjects[53] = Types.assignmentNode.object();
-		specialObjects[54] = Types.blockNode.object();
-		specialObjects[55] = Types.literalNode.object();
-		specialObjects[56] = Types.referenceNode.object();
-		specialObjects[57] = Types.sendNode.object();
-		specialObjects[58] = Types.superCastNode.object();
-		specialObjects[59] = Types.tupleNode.object();
-		specialObjects[60] = Types.variableUseNode.object();
-		specialObjects[61] = Types.declarationNode.object();
-		specialObjects[62] = Types.argumentNode.object();
-		specialObjects[63] = Types.labelNode.object();
-		specialObjects[64] = Types.localVariableNode.object();
-		specialObjects[65] = Types.localConstantNode.object();
-		specialObjects[66] = Types.moduleVariableNode.object();
-		specialObjects[67] = Types.moduleConstantNode.object();
+		specialObjects[50] = PARSE_NODE.o();
+		specialObjects[51] = MARKER_NODE.o();
+		specialObjects[52] = EXPRESSION_NODE.o();
+		specialObjects[53] = ASSIGNMENT_NODE.o();
+		specialObjects[54] = BLOCK_NODE.o();
+		specialObjects[55] = LITERAL_NODE.o();
+		specialObjects[56] = REFERENCE_NODE.o();
+		specialObjects[57] = SEND_NODE.o();
+		specialObjects[58] = SUPER_CAST_NODE.o();
+		specialObjects[59] = TUPLE_NODE.o();
+		specialObjects[60] = VARIABLE_USE_NODE.o();
+		specialObjects[61] = DECLARATION_NODE.o();
+		specialObjects[62] = ARGUMENT_NODE.o();
+		specialObjects[63] = LABEL_NODE.o();
+		specialObjects[64] = LOCAL_VARIABLE_NODE.o();
+		specialObjects[65] = LOCAL_CONSTANT_NODE.o();
+		specialObjects[66] = MODULE_VARIABLE_NODE.o();
+		specialObjects[67] = MODULE_CONSTANT_NODE.o();
 
 		// Booleans
 		specialObjects[70] = BooleanDescriptor.objectFrom(true);

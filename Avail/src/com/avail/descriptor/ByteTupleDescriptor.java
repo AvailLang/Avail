@@ -33,10 +33,10 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 public class ByteTupleDescriptor extends TupleDescriptor
 {
@@ -229,11 +229,11 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aType.equals(Types.voidType.object()))
+		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
-		if (aType.equals(Types.all.object()))
+		if (aType.equals(ALL.o()))
 		{
 			return true;
 		}
@@ -280,7 +280,8 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor(ByteTupleDescriptor.isMutableSize(false, object.tupleSize()));
+			object.descriptor(
+				ByteTupleDescriptor.isMutableSize(false, object.tupleSize()));
 			object.makeSubobjectsImmutable();
 		}
 		return object;
@@ -461,7 +462,9 @@ public class ByteTupleDescriptor extends TupleDescriptor
 
 
 	/* Descriptor lookup */
-	public static ByteTupleDescriptor isMutableSize(final boolean flag, final int size)
+	public static ByteTupleDescriptor isMutableSize(
+		final boolean flag,
+		final int size)
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors[delta + (size & 3) * 2];

@@ -32,9 +32,9 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.util.Arrays.fill;
 import java.util.List;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 
@@ -293,7 +293,7 @@ public class ClosureDescriptor extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter();
 
 		final AvailObject [] argTypes = new AvailObject [numArgs];
-		fill(argTypes, Types.all.object());
+		fill(argTypes, ALL.o());
 		writer.argumentTypes(argTypes);
 		writer.returnType(constantResult.type());
 		writer.write(
@@ -338,7 +338,7 @@ public class ClosureDescriptor extends Descriptor
 		for (int i = 1; i <= numArgs; i++)
 		{
 			assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(
-				Types.type.object());
+				TYPE.o());
 			argTypesArray[i - 1] = argTypes.tupleAt(i);
 		}
 
