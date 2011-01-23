@@ -51,14 +51,12 @@ Method "Assert_" is [b : boolean |
 ] : void;
 
 
-/* Disabled for the moment...
 
 
-Macro "_first_" is [a : variableUseNode, b : variableUseNode | a;];
-Macro "_second_" is [a : variableUseNode, b : variableUseNode | b;];
+Macro "_first_" is [a : parseNode, b : parseNode | a;];
+Macro "_second_" is [a : parseNode, b : parseNode | b;];
 
 Assert 5 = 5;
 
 Assert true first false;
 Assert false second true;
-*/

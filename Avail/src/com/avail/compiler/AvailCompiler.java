@@ -2691,10 +2691,6 @@ public class AvailCompiler
 				break;
 			}
 			case 6:
-			{
-				assert false : "Reserved parsing instruction";
-				break;
-			}
 			case 7:
 			{
 				assert false : "Reserved parsing instruction";
@@ -2738,10 +2734,15 @@ public class AvailCompiler
 	 * expressions to produce a parse node.</p>
 	 *
 	 * @param start
+	 *        The initial parsing state.
 	 * @param argumentExpressions
-	 * @param message
+	 *        The {@linkplain ParseNodeDescriptor parse nodes} that will be
+	 *        arguments of the new send node.
 	 * @param bundle
+	 *        The {@link MessageBundleDescriptor message bundle} that identifies
+	 *        the message to be sent.
 	 * @param continuation
+	 *        What to do with the resulting send node.
 	 */
 	void completedSendNode (
 		final ParserState start,
@@ -2749,11 +2750,42 @@ public class AvailCompiler
 		final AvailObject bundle,
 		final Con<AvailObject> continuation)
 	{
-		final Mutable<Boolean> valid = new Mutable<Boolean>();
 		AvailObject message = bundle.message();
 		final AvailObject impSet =
 			interpreter.runtime().methodsAt(message);
-		valid.value = true;
+		AvailObject implementationsTuple = impSet.implementationsTuple();
+		assert implementationsTuple.tupleSize() > 0;
+		if (implementationsTuple.tupleAt(1).isMacro())
+		{
+			// Macro definitions and non-macro definitions are not allowed to
+			// mix within an implementation set.
+			AvailObject macro = impSet.lookupByValuesFromArray(
+				argumentExpressions);
+			if (macro.equalsVoid())
+			{
+				start.expected(
+					"Macro ("
+					+ impSet.name().name()
+					+ ") to have suitable types");
+				return;
+			}
+			AvailObject substitution = interpreter.runClosureArguments(
+				macro.bodyBlock(),
+				argumentExpressions);
+			if (substitution.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+			{
+				attempt(start, continuation, substitution);
+			}
+			else
+			{
+				start.expected(
+					"Macro body ("
+					+ impSet.name().name()
+					+ ") to produce a parse node");
+			}
+			return;
+		}
+		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject returnType =
 			interpreter.validateSendArgumentExpressions(
 				message,
