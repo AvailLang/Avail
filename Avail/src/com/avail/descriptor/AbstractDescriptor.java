@@ -80,7 +80,6 @@ import com.avail.visitor.AvailSubobjectVisitor;
  */
 public abstract class AbstractDescriptor
 {
-
 	/**
 	 * A unique short, monotonically allocated and set automatically by the
 	 * constructor.  It equals the {@linkplain AbstractDescriptor descriptor's}
@@ -243,6 +242,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Construct a new {@link AbstractDescriptor descriptor}.
+	 *
 	 * @param isMutable Does the {@linkplain AbstractDescriptor descriptor}
 	 *                  represent a mutable object?
 	 */
@@ -327,7 +327,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param e An {@code enum} value whose ordinal is the field position.
 	 */
-	public final void checkWriteForField (final Enum<?> e)
+	public final void checkWriteForField (final @NotNull Enum<?> e)
 	{
 		if (isMutable())
 		{
@@ -361,7 +361,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The new uninitialized object.
 	 */
-	public final AvailObject create ()
+	public final @NotNull AvailObject create ()
 	{
 		return create(0);
 	}
@@ -534,6 +534,11 @@ public abstract class AbstractDescriptor
 		}
 	}
 
+	/**
+	 * @param object
+	 * @param closureType
+	 * @return
+	 */
 	public abstract boolean o_AcceptsArgTypesFromClosureType (
 		final AvailObject object,
 		final AvailObject closureType);
