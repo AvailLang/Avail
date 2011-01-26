@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
 import java.util.List;
 import com.avail.compiler.node.TupleNodeDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -84,7 +84,8 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	}
 
 	/**
-	 * This operation is not appropriate for a macro.
+	 * This operation is not appropriate for a macro.  Just return the void
+	 * object to keep things simple.
 	 */
 	@Override
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
@@ -92,8 +93,7 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 			final List<AvailObject> argTypes,
 			final Interpreter anAvailInterpreter)
 	{
-		error("Do not ask for the return type of a macro.");
-		return null;
+		return VoidDescriptor.voidObject();
 	}
 
 	/**

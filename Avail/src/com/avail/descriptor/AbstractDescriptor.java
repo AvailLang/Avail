@@ -5143,4 +5143,10 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract AvailObject o_Macros (AvailObject object);
 
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_CopyMutableParseNode (AvailObject object);
+
 }

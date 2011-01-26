@@ -4518,4 +4518,10 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	{
 		return o_Traversed(object).macros();
 	}
+
+	@Override
+	public AvailObject o_CopyMutableParseNode (final AvailObject object)
+	{
+		return o_Traversed(object).copyMutableParseNode();
+	}
 }

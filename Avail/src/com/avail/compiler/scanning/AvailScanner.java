@@ -478,7 +478,11 @@ public class AvailScanner
 	 */
 	boolean peekIsDigit ()
 	{
-		return Character.isDigit(peek());
+		if (!atEnd())
+		{
+			return Character.isDigit(peek());
+		}
+		return false;
 	}
 
 	/**

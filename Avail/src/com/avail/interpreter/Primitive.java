@@ -42,6 +42,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.node.AssignmentNodeDescriptor;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
@@ -4122,7 +4123,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 258:</strong> Print an object to System.out.
 	 */
-	prim258_Print_value(258, 1, Unknown)
+	prim258_PrintToConsole_value(258, 1, Unknown)
 	{
 		@Override
 		public Result attempt (
@@ -4134,6 +4135,27 @@ public enum Primitive
 			final AvailObject objectToPrint = args.get(0);
 			System.out.println(objectToPrint);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return SUCCESS;
+		}
+	},
+
+
+	/**
+	 * <strong>Primitive 259:</strong> Produce a {@linkplain
+	 * ByteStringDescriptor string} description of the sole argument.
+	 */
+	prim259_ToString_value(259, 1, Unknown)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject objectToPrint = args.get(0);
+			final String string = objectToPrint.toString();
+			final AvailObject availString = ByteStringDescriptor.from(string);
+			interpreter.primitiveResult(availString);
 			return SUCCESS;
 		}
 	},
@@ -5131,8 +5153,85 @@ public enum Primitive
 		{
 			return FAILURE;
 		}
-	};
+	},
 
+	/**
+	 * <strong>Primitive 350:</strong>  Transform a variable reference and an
+	 * expression into an assignment node.
+	 */
+	prim350_MacroAssignment_variable_expression(350, 2, CanFold)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject variable = args.get(0);
+			final AvailObject expression = args.get(1);
+			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o())
+				|| !expression.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			if (!expression.expressionType().isSubtypeOf(
+				variable.expressionType()))
+			{
+				return FAILURE;
+			}
+			final AvailObject assignment =
+				AssignmentNodeDescriptor.mutable().create();
+			assignment.variable(variable);
+			assignment.expression(expression);
+			interpreter.primitiveResult(assignment);
+			return SUCCESS;
+		}
+	},
+
+	/**
+	 * <strong>Primitive 351:</strong>  Extract the result type of a parse node.
+	 */
+	prim351_ParseNodeExpressionType_parseNode(351, 2, CanFold)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject parseNode = args.get(0);
+			if (!parseNode.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			interpreter.primitiveResult(parseNode.expressionType());
+			return SUCCESS;
+		}
+	},
+
+	/**
+	 * <strong>Primitive 352:</strong>  Reject current macro substitution with
+	 * the specified error string.
+	 */
+	prim352_RejectParsing_errorString(352, 1, CanFold)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject parseNode = args.get(0);
+			if (!parseNode.isInstanceOfSubtypeOf(
+					TupleTypeDescriptor.stringTupleType()))
+			{
+				return FAILURE;
+			}
+			assert false : "Here's where the parser could reject stuff.";
+			interpreter.primitiveResult(VoidDescriptor.voidObject());
+			return SUCCESS;
+		}
+	};
 
 	/**
 	 * The success state of a primitive attempt.

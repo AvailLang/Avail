@@ -8841,4 +8841,11 @@ public class Descriptor extends AbstractDescriptor
 		subclassResponsibility("o_Macros");
 		return null;
 	}
+
+	@Override
+	public AvailObject o_CopyMutableParseNode (final AvailObject object)
+	{
+		subclassResponsibility("o_CopyMutableParseNode");
+		return null;
+	}
 }

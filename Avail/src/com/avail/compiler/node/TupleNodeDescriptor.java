@@ -120,9 +120,14 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject expressionsTuple = object.expressionsTuple();
 			final List<AvailObject> types = new ArrayList<AvailObject>(
 				expressionsTuple.tupleSize());
-			for (final AvailObject expr : expressionsTuple)
+			for (final AvailObject expression : expressionsTuple)
 			{
-				types.add(expr.expressionType());
+				AvailObject expressionType = expression.expressionType();
+				if (expressionType.equals(Types.TERMINATES.o()))
+				{
+					return Types.TERMINATES.o();
+				}
+				types.add(expressionType);
 			}
 			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
 				IntegerDescriptor.objectFromInt(types.size()));
@@ -155,9 +160,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public int o_Hash (final AvailObject object)
 	{
-		return
-			object.expressionsTuple().hash()
-			^ 0xC143E977;
+		return object.expressionsTuple().hash() ^ 0xC143E977;
 	}
 
 	@Override

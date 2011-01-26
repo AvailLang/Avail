@@ -44,6 +44,7 @@ import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -325,6 +326,10 @@ public class AvailCompiler
 		 */
 		boolean peekToken (final TokenType tokenType, final String string)
 		{
+			if (atEnd())
+			{
+				return false;
+			}
 			final AvailObject token = peekToken();
 			return token.tokenType() == tokenType
 				&& token.string().asNativeString().equals(string);
@@ -1104,7 +1109,8 @@ public class AvailCompiler
 		final AvailObject parentNode,
 		final List<AvailObject> outerNodes)
 	{
-		object.childrenMap(
+		final AvailObject objectCopy = object.copyMutableParseNode();
+		objectCopy.childrenMap(
 			new Transformer1<AvailObject, AvailObject>()
 			{
 				@Override
@@ -1113,11 +1119,11 @@ public class AvailCompiler
 					return treeMapWithParent(
 						child,
 						aBlock,
-						object,
+						objectCopy,
 						outerNodes);
 				}
 			});
-		return aBlock.value(object, parentNode, outerNodes);
+		return aBlock.value(objectCopy, parentNode, outerNodes);
 	}
 
 
@@ -1655,10 +1661,16 @@ public class AvailCompiler
 			}
 		}
 		text.append("\n>>>---------------------------------------------------------------------");
+		int endOfLine = source.indexOf('\n', (int) charPos);
+		if (endOfLine == -1)
+		{
+			source = source + "\n";
+			endOfLine = source.length() - 1;
+		}
 		throw new AvailCompilerException(
 			qualifiedName,
 			charPos,
-			source.indexOf('\n', (int) charPos),
+			endOfLine,
 			text.toString());
 	}
 
@@ -2378,7 +2390,7 @@ public class AvailCompiler
 				}
 			});
 		}
-		if (anyIncomplete && firstArgOrNull == null)
+		if (anyIncomplete && firstArgOrNull == null && !start.atEnd())
 		{
 			final AvailObject keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
@@ -2598,7 +2610,8 @@ public class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar =
 					new ArrayList<AvailObject>(argsSoFar);
-				final AvailObject marker = MarkerNodeDescriptor.mutable().create();
+				final AvailObject marker =
+					MarkerNodeDescriptor.mutable().create();
 				marker.markerValue(
 					IntegerDescriptor.objectFromInt(start.position));
 				newArgsSoFar.add(marker);
@@ -2750,6 +2763,7 @@ public class AvailCompiler
 		final AvailObject bundle,
 		final Con<AvailObject> continuation)
 	{
+		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		AvailObject message = bundle.message();
 		final AvailObject impSet =
 			interpreter.runtime().methodsAt(message);
@@ -2759,19 +2773,56 @@ public class AvailCompiler
 		{
 			// Macro definitions and non-macro definitions are not allowed to
 			// mix within an implementation set.
-			AvailObject macro = impSet.lookupByValuesFromArray(
-				argumentExpressions);
-			if (macro.equalsVoid())
+			List<AvailObject> argumentNodeTypes =
+				new ArrayList<AvailObject>(argumentExpressions.size());
+			for (AvailObject argExpr : argumentExpressions)
 			{
-				start.expected(
-					"Macro ("
-					+ impSet.name().name()
-					+ ") to have suitable types");
+				argumentNodeTypes.add(argExpr.type());
+			}
+			impSet.validateArgumentTypesInterpreterIfFail(
+				argumentNodeTypes,
+				interpreter,
+				new Continuation1<Generator<String>>()
+				{
+					@Override
+					public void value (final Generator<String> arg)
+					{
+						start.expected(
+							"parse node types to agree with macro types");
+						valid.value = false;
+					}
+				});
+			if (!valid.value)
+			{
 				return;
 			}
+			// Construct code to invoke the method, since it might be a
+			// primitive and we can't invoke that directly as the outermost
+			// closure.
+			final L1InstructionWriter writer = new L1InstructionWriter();
+			for (final AvailObject arg : argumentExpressions)
+			{
+				writer.write(
+					new L1Instruction(
+						L1Operation.L1_doPushLiteral,
+						writer.addLiteral(arg)));
+			}
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(impSet),
+					writer.addLiteral(PARSE_NODE.o())));
+			writer.argumentTypes();
+			writer.primitiveNumber(0);
+			writer.returnType(PARSE_NODE.o());
+			final AvailObject newClosure =
+				ClosureDescriptor.create(
+					writer.compiledCode(),
+					TupleDescriptor.empty());
+			newClosure.makeImmutable();
 			AvailObject substitution = interpreter.runClosureArguments(
-				macro.bodyBlock(),
-				argumentExpressions);
+				newClosure,
+				Collections.<AvailObject>emptyList());
 			if (substitution.isInstanceOfSubtypeOf(PARSE_NODE.o()))
 			{
 				attempt(start, continuation, substitution);
@@ -2779,13 +2830,28 @@ public class AvailCompiler
 			else
 			{
 				start.expected(
-					"Macro body ("
+					"macro body ("
 					+ impSet.name().name()
 					+ ") to produce a parse node");
 			}
 			return;
 		}
-		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
+		// It invokes a method (not a macro).
+		for (AvailObject arg : argumentExpressions)
+		{
+			if (arg.expressionType().equals(TERMINATES.o()))
+			{
+				start.expected(
+					"argument to have type other than terminates");
+				return;
+			}
+			if (arg.expressionType().equals(VOID_TYPE.o()))
+			{
+				start.expected(
+					"argument to have type other than void");
+				return;
+			}
+		}
 		final AvailObject returnType =
 			interpreter.validateSendArgumentExpressions(
 				message,

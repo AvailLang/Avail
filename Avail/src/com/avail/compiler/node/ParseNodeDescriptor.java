@@ -112,6 +112,77 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		AvailObject object,
 		AvailCodeGenerator codeGenerator);
 
+
+	/**
+	 * A special enumeration used to visit all object slots for copying.
+	 */
+	enum FakeObjectSlots {
+		/**
+		 * An indexed object slot that makes it easy to visit all object slots.
+		 */
+		ALL_OBJECT_SLOTS_
+	}
+
+	/**
+	 * A special enumeration used to visit all integer slots for copying.
+	 */
+	enum FakeIntegerSlots {
+		/**
+		 * An indexed integer slot that makes it easy to visit all integer slots.
+		 */
+		ALL_INTEGER_SLOTS_
+	}
+
+	/**
+	 * If the receiver is immutable, make an equivalent mutable copy of that
+	 * parse node.  Otherwise, answer the receiver itself.
+	 *
+	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
+	 *               transform.
+	 * @param aBlock The {@link Transformer1 transformation} through which to
+	 *               map this parse node's children.
+	 */
+	@Override
+	public AvailObject o_CopyMutableParseNode (
+		final AvailObject object)
+	{
+		if (isMutable())
+		{
+			return object;
+		}
+		int objectCount = object.objectSlotsCount();
+		int integerCount = object.integerSlotsCount();
+
+		short descriptorId = (short)(object.descriptorId() & ~1);
+		AbstractDescriptor mutableDescriptor = allDescriptors.get(descriptorId);
+		assert mutableDescriptor.getClass() == object.descriptor().getClass();
+
+		AvailObject copy = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+			objectCount - numberOfFixedObjectSlots,
+			integerCount - numberOfFixedIntegerSlots,
+			mutableDescriptor);
+		for (int i = 1; i <= objectCount; i++)
+		{
+			final AvailObject slotValue = object.objectSlotAt(
+				FakeObjectSlots.ALL_OBJECT_SLOTS_,
+				i);
+			// Potentially share the object.
+			slotValue.makeImmutable();
+			copy.objectSlotAtPut(
+				FakeObjectSlots.ALL_OBJECT_SLOTS_,
+				i,
+				slotValue);
+		}
+		for (int i = 1; i <= integerCount; i++)
+		{
+			copy.integerSlotAtPut(
+				FakeIntegerSlots.ALL_INTEGER_SLOTS_,
+				i,
+				object.integerSlotAt(FakeIntegerSlots.ALL_INTEGER_SLOTS_, i));
+		}
+		return copy;
+	}
+
 	/**
 	 * Visit and transform every node constituting this parse tree.  Map this
 	 * {@linkplain ParseNodeDescriptor parse node}'s children through the
@@ -141,7 +212,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		object.childrenMap(
+		AvailObject copy = object.copyMutableParseNode();
+		copy.childrenMap(
 			new Transformer1<AvailObject, AvailObject>()
 			{
 				@Override
@@ -150,7 +222,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 					return treeMap(child, aBlock);
 				}
 			});
-		return aBlock.value(object);
+		return aBlock.value(copy);
 	}
 
 	/**

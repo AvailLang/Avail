@@ -609,7 +609,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 			return privateTupleTypeForSizesTypesDefaultType(
 				sizeRange, typeTuple, TERMINATES.o());
 		}
-		if (sizeRange.upperInclusive() && sizeRange.upperBound().extractInt() == typeTuple.tupleSize())
+		if (sizeRange.upperInclusive()
+				&& sizeRange.upperBound().extractInt() == typeTuple.tupleSize())
 		{
 			//  The (nonempty) tuple hits the end of the range- disregard the passed defaultType and
 			//  use the final element of the tuple as the defaultType, while removing it from the tuple.
@@ -619,7 +620,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 				typeTuple.copyTupleFromToCanDestroy(1, typeTuple.tupleSize() - 1, false),
 				typeTuple.tupleAt(typeTuple.tupleSize()).makeImmutable());
 		}
-		if (typeTuple.tupleSize() > 0 && typeTuple.tupleAt(typeTuple.tupleSize()).equals(defaultType))
+		if (typeTuple.tupleSize() > 0
+				&& typeTuple.tupleAt(typeTuple.tupleSize()).equals(defaultType))
 		{
 			//  See how many other redundant entries we can drop.
 			int index = typeTuple.tupleSize() - 1;
@@ -651,7 +653,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 				error("Illegal tuple type construction (the defaultType)");
 			}
 		}
-		final int limit = min(sizeRange.lowerBound().extractInt(), typeTuple.tupleSize());
+		final int limit = min(
+			sizeRange.lowerBound().extractInt(),
+			typeTuple.tupleSize());
 		for (int i = 1; i <= limit; i++)
 		{
 			if (typeTuple.tupleAt(i).equals(TERMINATES.o()))

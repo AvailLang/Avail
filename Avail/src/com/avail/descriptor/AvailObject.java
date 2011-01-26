@@ -6150,4 +6150,13 @@ implements Iterable<AvailObject>
 		return descriptor().o_Macros(this);
 	}
 
+
+	/**
+	 * @return
+	 */
+	public AvailObject copyMutableParseNode ()
+	{
+		return descriptor().o_CopyMutableParseNode(this);
+	}
+
 }

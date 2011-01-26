@@ -100,10 +100,13 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 			final List<AvailObject> argTypes,
 			final Interpreter anAvailInterpreter)
 	{
-		final AvailObject result = anAvailInterpreter.runClosureArguments(object.returnsBlock(), argTypes);
+		final AvailObject result = anAvailInterpreter.runClosureArguments(
+			object.returnsBlock(),
+			argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
 		{
-			error("The 'returns' block should produce a type more specific than the body's basic return type", object);
+			error("The 'returns' block should produce a type more specific"
+				+ " than the body's basic return type", object);
 			return VoidDescriptor.voidObject();
 		}
 		return result;

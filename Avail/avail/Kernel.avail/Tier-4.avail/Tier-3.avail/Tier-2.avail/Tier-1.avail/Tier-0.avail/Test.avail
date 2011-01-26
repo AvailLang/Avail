@@ -51,6 +51,32 @@ Method "Assert_" is [b : boolean |
 ] : void;
 
 
+Method "_to string" is [x : all |
+	Primitive 259;
+	"Unprintable object";
+] : string;
+
+
+Method "«_‡then»" is [t : tuple |
+	Primitive 136;
+	Failed;
+] : string;
+
+
+Method "if_then_else_" is [
+		condition : boolean,
+		thenBlock : closure,
+		elseBlock : closure |
+	Primitive 43;
+	Failed;
+] : all;
+
+
+Method "Fail parse_" is [
+		problem : string |
+	Primitive 352;
+	Failed;
+] : terminates;
 
 
 Macro "_first_" is [a : parseNode, b : parseNode | a;];
@@ -60,3 +86,45 @@ Assert 5 = 5;
 
 Assert true first false;
 Assert false second true;
+
+
+Macro "_<-_" is [v : variableUseNode, e : parseNode |
+	Primitive 350;
+	Crash "Failed assignment creation";
+];
+
+x : integer;
+x <- 10;
+Assert x = 10;
+
+
+Method "make assignment variable_expression_" is [
+		v : variableUseNode,
+		e : parseNode |
+	Primitive 350;
+	Crash "Failed to create assignment";
+] : assignmentNode;
+
+
+Method "_expression type" is [
+		e : parseNode |
+	Primitive 351;
+	Crash "Failed to extract type of expression";
+] : type;
+
+Macro "_->_" is [e : parseNode, v : variableUseNode |
+	if e expression type <= v expression type then [
+		make assignment variable v expression e;
+	] else [
+		Fail parse
+			"Expression type ("
+			then e expression type to string
+			then " to agree with variable type "
+			then v expression type to string;
+	];
+];
+
+20 -> x;
+Assert x = 20;
+
+"cheese" -> x;
