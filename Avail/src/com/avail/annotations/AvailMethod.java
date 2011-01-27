@@ -1,6 +1,6 @@
 /**
- * com.avail.annotations/SlotAnnotationProcessor.java
- * Copyright (c) 2010, Mark van Gulik.
+ * com.avail.annotations/AvailMethod.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,40 +32,25 @@
 
 package com.avail.annotations;
 
-import java.util.Set;
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.TypeElement;
+import java.lang.annotation.*;
+import com.avail.descriptor.AvailObject;
 
 /**
- * The purpose of the {@linkplain SlotAnnotationProcessor} is to let
- * Eclipse/Java know that it's supposed to transform ObjectSlots and
- * IntegerSlots annotated classes by generated getters/setters as necessary.
+ * {@code AvailMethod} indicates that the annotated target is a method that
+ * should be available for all {@link AvailObject}s.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-@SupportedAnnotationTypes(value = {
-	"com.avail.annotations.IntegerSlots",
-	"com.avail.annotations.ObjectSlots"})
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
-public class SlotAnnotationProcessor extends AbstractProcessor
+@Retention(RetentionPolicy.CLASS)
+@Target({ ElementType.METHOD })
+public @interface AvailMethod
 {
-
-	@Override
-	public boolean process (
-		Set<? extends TypeElement> annotations,
-		RoundEnvironment roundEnv)
-	{
-		System.out.println("Running the SlotAnnotationProcessor");
-		for (TypeElement element : annotations)
-		{
-			//TODO: Write this for real.
-			System.out.println(element.getQualifiedName());
-		}
-		return false;
-	}
-
+	/**
+	 * Answer the canonical name of the method. This is the name by which it
+	 * should be accessible from an {@link AvailObject}.
+	 *
+	 * @return The canonical name of the method, or {@code null} if the name
+	 *         should be inferred directly from the annotated method.
+	 */
+	public String value () default "";
 }

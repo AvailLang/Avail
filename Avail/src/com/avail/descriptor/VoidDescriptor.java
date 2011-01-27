@@ -230,26 +230,23 @@ extends Descriptor
 		super(isMutable);
 	}
 
-	final static @NotNull VoidDescriptor mutable =
+	/** The mutable {@link VoidDescriptor}. */
+	private final static @NotNull VoidDescriptor mutable =
 		new VoidDescriptor(true);
 
-	/**
-	 * Answer a mutable {@link VoidDescriptor}.
-	 *
-	 * @return A mutable {@link VoidDescriptor}.
-	 */
-	@ThreadSafe
 	/**
 	 * Answer the mutable {@link VoidDescriptor}.
 	 *
 	 * @return The mutable {@link VoidDescriptor}.
 	 */
+	@ThreadSafe
 	public static VoidDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	final static VoidDescriptor immutable =
+	/** The immutable {@link VoidDescriptor}. */
+	private final static VoidDescriptor immutable =
 		new VoidDescriptor(false);
 
 	/**
@@ -262,5 +259,4 @@ extends Descriptor
 	{
 		return immutable;
 	}
-
 }
