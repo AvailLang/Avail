@@ -89,9 +89,4 @@ public class L2MakeSubobjectsImmutableInstruction extends L2Instruction
 		_register = reg;
 		return this;
 	}
-
-
-
-
-
 }

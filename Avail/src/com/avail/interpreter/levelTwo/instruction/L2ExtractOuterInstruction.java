@@ -121,9 +121,4 @@ public class L2ExtractOuterInstruction extends L2Instruction
 		anL2Translator.removeTypeForRegister(_dest);
 		anL2Translator.removeConstantForRegister(_dest);
 	}
-
-
-
-
-
 }

@@ -76,9 +76,4 @@ public class L2RegisterVector
 		}
 		return true;
 	}
-
-
-
-
-
 }

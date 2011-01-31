@@ -98,9 +98,4 @@ public class L2TestTypeAndJumpInstruction extends L2AbstractJumpInstruction
 		_constantType = constant;
 		return this;
 	}
-
-
-
-
-
 }

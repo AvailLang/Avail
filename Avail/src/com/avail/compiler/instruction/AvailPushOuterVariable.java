@@ -128,5 +128,4 @@ public class AvailPushOuterVariable extends AvailPushVariable
 	{
 		return true;
 	}
-
 }

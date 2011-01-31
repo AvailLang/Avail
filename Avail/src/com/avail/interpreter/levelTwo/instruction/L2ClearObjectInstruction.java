@@ -106,9 +106,4 @@ public class L2ClearObjectInstruction extends L2Instruction
 		anL2Translator.removeTypeForRegister(_dest);
 		anL2Translator.registerConstantAtPut(_dest, VoidDescriptor.voidObject());
 	}
-
-
-
-
-
 }

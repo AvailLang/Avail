@@ -236,5 +236,4 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	{
 		return immutable;
 	}
-
 }

@@ -163,6 +163,4 @@ extends TokenDescriptor
 	{
 		return immutable;
 	}
-
-
 }

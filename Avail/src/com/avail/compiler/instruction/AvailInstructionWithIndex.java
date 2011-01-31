@@ -69,5 +69,4 @@ public abstract class AvailInstructionWithIndex extends AvailInstruction
 	{
 		this.index = index;
 	}
-	
 }

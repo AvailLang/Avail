@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
 import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.AvailScanner;
@@ -60,7 +60,8 @@ import com.avail.descriptor.*;
  * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
  *             instruction)</li>
  * <li>8*N+2 - parseKeyword at part N</li>
- * <li>8*N+3 - (reserved)</li>
+ * <li>8*N+3 - copyArgumentForCheck for Nth underscore (position corresponds
+ *             with negative precedence restrictions</li>
  * <li>8*N+4 - (reserved)</li>
  * <li>8*N+5 - (reserved)</li>
  * <li>8*N+6 - (reserved)</li>
@@ -94,6 +95,11 @@ public class MessageSplitter
 	int messagePartPosition;
 
 	/**
+	 * The number of non-backquoted underscores encountered so far.
+	 */
+	int numberOfUnderscores;
+
+	/**
 	 * A list of integers representing parsing instructions.  These instructions
 	 * can parse a specific keyword, recursively parse an argument, branch for
 	 * backtracking, and manipulate a stack of parse nodes.
@@ -123,43 +129,51 @@ public class MessageSplitter
 
 		/**
 		 * Answer whether or not this an argument or group.
-		 * @return True iff this is an argument or group.
+		 * @return True if and only if this is an argument or group.
 		 */
 		boolean isArgumentOrGroup ()
 		{
 			return false;
 		}
 
+		/**
+		 * Answer the number of non-backquoted underscores that occur in this
+		 * section of the method name.
+		 *
+		 * @return The number of non-backquoted underscores in the receiver.
+		 */
+		int underscoreCount ()
+		{
+			return 0;
+		}
 
 		/**
 		 * Check that the given type signature is appropriate for this message
 		 * expression.  If not, throw a suitable exception.
-		 * <p>
-		 * This is also called recursively on subcomponents, and it checks that
-		 * group arguments have the correct structure for what will be parsed.
-		 * The method may reject parses based on the number of repetitions of a
-		 * group at a call site, but not the number of arguments actually
-		 * delivered by each repetition.  For example, the message "«_:_‡,»" can
-		 * limit the number of _:_ pairs to at most 5 by declaring the tuple
-		 * type's size to be [5..5].  However, the message "«_:_‡[_]»" will
-		 * always produce a tuple of 3-tuples followed by a 2-tuple (if any
-		 * elements at all occur).  Attempting to add a method implementation
-		 * for this message that only accepted a tuple of 7-tuples would be
-		 * inappropriate (and ineffective).  Instead, it should be required to
-		 * accept a tuple whose size is in the range [2..3].
-		 * <p>
-		 * Note that the outermost (pseudo)group represents the entire message,
-		 * so the caller should synthesize a fixed-length {@link
-		 * TupleTypeDescriptor tuple type} for the outermost check.
 		 *
-		 * @param argumentType A {@link TupleTypeDescriptor tuple type}
-		 *                     describing the types of arguments that a method
-		 *                     being added will accept.
+		 * <p>This is also called recursively on subcomponents, and it checks
+		 * that group arguments have the correct structure for what will be
+		 * parsed.  The method may reject parses based on the number of
+		 * repetitions of a group at a call site, but not the number of
+		 * arguments actually delivered by each repetition.  For example, the
+		 * message "«_:_‡,»" can limit the number of _:_ pairs to at most 5 by
+		 * declaring the tuple type's size to be [5..5].  However, the message
+		 * "«_:_‡[_]»" will always produce a tuple of 3-tuples followed by a
+		 * 2-tuple (if any elements at all occur).  Attempting to add a method
+		 * implementation for this message that only accepted a tuple of
+		 * 7-tuples would be inappropriate (and ineffective).  Instead, it
+		 * should be required to accept a tuple whose size is in the range
+		 * [2..3].</p>
+		 *
+		 * <p>Note that the outermost (pseudo)group represents the entire
+		 * message, so the caller should synthesize a fixed-length {@link
+		 * TupleTypeDescriptor tuple type} for the outermost check.</p>
+		 *
+		 * @param argumentType
+		 *        A {@link TupleTypeDescriptor tuple type} describing the types
+		 *        of arguments that a method being added will accept.
 		 */
-		public void checkType (final AvailObject argumentType)
-		{
-			return;
-		}
+		public abstract void checkType (final AvailObject argumentType);
 
 
 		@Override
@@ -221,7 +235,6 @@ public class MessageSplitter
 			assert false : "checkType() should not be called for Simple" +
 					" expressions";
 		}
-
 	}
 
 
@@ -231,6 +244,22 @@ public class MessageSplitter
 	 */
 	final class Argument extends Expression
 	{
+		/**
+		 * The one-based index for this argument.  In particular, it's one plus
+		 * the number of non-backquoted underscores that occur anywhere to the
+		 * left of this one in the message name.
+		 */
+		final int absoluteUnderscoreIndex;
+
+		/**
+		 * Construct an argument.
+		 */
+		Argument ()
+		{
+			numberOfUnderscores++;
+			absoluteUnderscoreIndex = numberOfUnderscores;
+		}
+
 		@Override
 		boolean isArgumentOrGroup ()
 		{
@@ -239,9 +268,25 @@ public class MessageSplitter
 
 
 		@Override
+		int underscoreCount ()
+		{
+			return 1;
+		}
+
+
+		@Override
 		void emitOn (final List<Integer> list)
 		{
-			list.add(0);  // parseArgument
+			// First, parse an argument subexpression.  Next, record it in a
+			// list of lists that will later be used to check negative
+			// precedence restrictions.  In particular, it will be recorded at
+			// position N if this argument is for the Nth non-backquoted
+			// underscore of this message.  This is done with two instructions
+			// to simplify processing of the recursive expression parse, as well
+			// as to make a completely non-recursive parallel-shift-reduce
+			// parsing engine easier to build eventually.
+			list.add(0);
+			list.add(absoluteUnderscoreIndex * 8 + 3);
 		}
 
 
@@ -368,6 +413,22 @@ public class MessageSplitter
 		boolean isArgumentOrGroup ()
 		{
 			return true;
+		}
+
+
+		@Override
+		int underscoreCount ()
+		{
+			int count = 0;
+			for (Expression expr : expressionsBeforeDagger)
+			{
+				count += expr.underscoreCount();
+			}
+			for (Expression expr : expressionsAfterDagger)
+			{
+				count += expr.underscoreCount();
+			}
+			return count;
 		}
 
 
@@ -562,9 +623,9 @@ public class MessageSplitter
 				// size ranges from the number of arguments left of the dagger
 				// up to that plus the number of arguments right of the dagger.
 				assert argumentType.isTupleType();
-				final AvailObject expectedLower = IntegerDescriptor.objectFromInt(
+				final AvailObject expectedLower = IntegerDescriptor.fromInt(
 					argumentsBeforeDagger);
-				final AvailObject expectedUpper = IntegerDescriptor.objectFromInt(
+				final AvailObject expectedUpper = IntegerDescriptor.fromInt(
 					argumentsBeforeDagger + argumentsAfterDagger);
 				for (int i = 1, limit = argumentType.typeTuple().tupleSize();
 					i <= limit;
@@ -729,7 +790,6 @@ public class MessageSplitter
 			assert !argumentsIterator.hasNext();
 			// aStream.append("»");
 		}
-
 	}
 
 
@@ -1016,7 +1076,9 @@ public class MessageSplitter
 
 	/**
 	 * Return the number of arguments a {@link MethodSignatureDescriptor method}
-	 * implementing this name would accept.
+	 * implementing this name would accept.  Note that this is not necessarily
+	 * the number of underscores, as a chevron group may contain zero or more
+	 * underscores (and other chevron groups) but count as one argument.
 	 *
 	 * @return The number of arguments this message takes.
 	 */
@@ -1024,6 +1086,26 @@ public class MessageSplitter
 	{
 		return rootGroup.argumentsBeforeDagger + rootGroup.argumentsAfterDagger;
 	}
+
+
+	/**
+	 * Return the number of underscores present in the method name.  This is not
+	 * the same as the number of arguments that a method implementing this name
+	 * would accept, as a top-level chevron group with N recursively embedded
+	 * underscores is counted as N, not one.
+	 *
+	 * <p>This count of underscores is essential for expressing negative
+	 * precedence rules in the presence of repeated arguments.  Also note that
+	 * backquoted underscores are not counted, since they don't represent a
+	 * position at which a subexpression must occur.</p>
+	 *
+	 * @return The number of non-backquoted underscores within this method name.
+	 */
+	public int numberOfUnderscores ()
+	{
+		return numberOfUnderscores;
+	}
+
 
 	/**
 	 * Answer whether the specified character is an operator character, space,

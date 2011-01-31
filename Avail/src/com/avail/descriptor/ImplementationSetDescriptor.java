@@ -261,7 +261,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		//  this implementationSet not changing.
 		object.dependentChunks(
 			object.dependentChunks().setWithElementCanDestroy(
-				IntegerDescriptor.objectFromInt(aChunkIndex),
+				IntegerDescriptor.fromInt(aChunkIndex),
 				true));
 	}
 
@@ -351,7 +351,7 @@ public class ImplementationSetDescriptor extends Descriptor
 					result.hashOrZero(0);
 					result = result.tupleAtPuttingCanDestroy(
 						1,
-						IntegerDescriptor.objectFromInt(
+						IntegerDescriptor.fromInt(
 							index1.extractInt() * 2 + 1),
 						true);
 					return result;
@@ -363,7 +363,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
-				IntegerDescriptor.objectFromInt((0 * 2 + 1)),
+				IntegerDescriptor.fromInt((0 * 2 + 1)),
 				true);
 			return result;
 		}
@@ -413,7 +413,7 @@ public class ImplementationSetDescriptor extends Descriptor
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
-				IntegerDescriptor.objectFromInt((0 * 2 + 1)),
+				IntegerDescriptor.fromInt((0 * 2 + 1)),
 				true);
 			return result;
 		}
@@ -516,11 +516,11 @@ public class ImplementationSetDescriptor extends Descriptor
 		result.hashOrZero(0);
 		result = result.tupleAtPuttingCanDestroy(
 			1,
-			IntegerDescriptor.objectFromInt(bestIndex * 2),
+			IntegerDescriptor.fromInt(bestIndex * 2),
 			true);
 		result = result.tupleAtPuttingCanDestroy(
 			2,
-			IntegerDescriptor.objectFromInt(trueTree.tupleSize()),
+			IntegerDescriptor.fromInt(trueTree.tupleSize()),
 			true);
 		for (int i = 1, _end12 = trueTree.tupleSize(); i <= _end12; i++)
 		{
@@ -848,7 +848,7 @@ public class ImplementationSetDescriptor extends Descriptor
 	{
 		object.dependentChunks(
 			object.dependentChunks().setWithoutElementCanDestroy(
-				IntegerDescriptor.objectFromInt(aChunkIndex), true));
+				IntegerDescriptor.fromInt(aChunkIndex), true));
 	}
 
 	/**
@@ -1078,7 +1078,7 @@ public class ImplementationSetDescriptor extends Descriptor
 		{
 			indices = indices.tupleAtPuttingCanDestroy(
 				i,
-				IntegerDescriptor.objectFromInt(i),
+				IntegerDescriptor.fromInt(i),
 				true);
 		}
 		result = object.createTestingTreeWithPositiveMatchesRemainingPossibilities(

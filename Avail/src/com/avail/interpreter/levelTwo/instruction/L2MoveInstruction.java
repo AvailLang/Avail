@@ -124,9 +124,4 @@ public class L2MoveInstruction extends L2Instruction
 			anL2Translator.removeConstantForRegister(_dest);
 		}
 	}
-
-
-
-
-
 }

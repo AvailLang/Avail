@@ -4488,19 +4488,23 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	public void o_IsLastUse (
+		final AvailObject object,
+		final boolean isLastUse)
 	{
 		o_Traversed(object).isLastUse(isLastUse);
 	}
 
 	@Override
-	public boolean o_IsLastUse (final AvailObject object)
+	public boolean o_IsLastUse (
+		final AvailObject object)
 	{
 		return o_Traversed(object).isLastUse();
 	}
 
 	@Override
-	public boolean o_IsMacro (final AvailObject object)
+	public boolean o_IsMacro (
+		final AvailObject object)
 	{
 		return o_Traversed(object).isMacro();
 	}
@@ -4514,14 +4518,53 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_Macros (final AvailObject object)
+	public AvailObject o_Macros (
+		final AvailObject object)
 	{
 		return o_Traversed(object).macros();
 	}
 
 	@Override
-	public AvailObject o_CopyMutableParseNode (final AvailObject object)
+	public AvailObject o_CopyMutableParseNode (
+		final AvailObject object)
 	{
 		return o_Traversed(object).copyMutableParseNode();
+	}
+
+	@Override
+	public void o_MacroName (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		o_Traversed(object).macroName(value);
+	}
+
+	@Override
+	public AvailObject o_MacroName (
+		final AvailObject object)
+	{
+		return o_Traversed(object).macroName();
+	}
+
+	@Override
+	public void o_OutputParseNode (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		o_Traversed(object).outputParseNode(value);
+	}
+
+	@Override
+	public AvailObject o_OutputParseNode (
+		final AvailObject object)
+	{
+		return o_Traversed(object).outputParseNode();
+	}
+
+	@Override
+	public AvailObject o_ApparentSendName (
+		final AvailObject object)
+	{
+		return o_Traversed(object).apparentSendName();
 	}
 }

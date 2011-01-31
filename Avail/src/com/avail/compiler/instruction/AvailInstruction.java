@@ -174,5 +174,4 @@ public abstract class AvailInstruction
 	{
 		return false;
 	}
-
 }

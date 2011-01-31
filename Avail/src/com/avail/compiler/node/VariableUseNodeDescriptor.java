@@ -299,5 +299,4 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	{
 		// Do nothing.
 	}
-
 }

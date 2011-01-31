@@ -79,5 +79,4 @@ public class AvailCompilerFragmentCache
 		assert !hasComputedForState(state);
 		solutions.put(state, new ArrayList<AvailCompilerCachedSolution>(3));
 	}
-
 }

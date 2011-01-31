@@ -432,7 +432,6 @@ public class L2Translator implements L1OperationDispatcher
 						return null;
 					}
 				}
-
 			}
 		}
 		if (firstBody == null)

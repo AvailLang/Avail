@@ -153,7 +153,7 @@ public class SetDescriptor extends Descriptor
 			return false;
 		}
 		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.objectFromInt(object.setSize());
+		final AvailObject size = IntegerDescriptor.fromInt(object.setSize());
 		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
@@ -169,7 +169,7 @@ public class SetDescriptor extends Descriptor
 		//  Answer the object's type.  Not very efficient - usually optimized out via '_type<=_'.
 
 		final int size = object.setSize();
-		final AvailObject sizeRange = IntegerDescriptor.objectFromInt(size).type();
+		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
 		final AvailObject unionType = object.rootBin().binUnionType();
 		unionType.makeImmutable();
 		return SetTypeDescriptor.setTypeForSizesContentType(sizeRange, unionType);

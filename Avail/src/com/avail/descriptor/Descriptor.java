@@ -8811,7 +8811,8 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public boolean o_IsLastUse (final AvailObject object)
+	public boolean o_IsLastUse (
+		final AvailObject object)
 	{
 		subclassResponsibility("o_IsLastUse");
 		return false;
@@ -8819,7 +8820,8 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public boolean o_IsMacro (final AvailObject object)
+	public boolean o_IsMacro (
+		final AvailObject object)
 	{
 		subclassResponsibility("o_IsMacro");
 		return false;
@@ -8836,16 +8838,63 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_Macros (final AvailObject object)
+	public AvailObject o_Macros (
+		final AvailObject object)
 	{
 		subclassResponsibility("o_Macros");
 		return null;
 	}
 
 	@Override
-	public AvailObject o_CopyMutableParseNode (final AvailObject object)
+	public AvailObject o_CopyMutableParseNode (
+		final AvailObject object)
 	{
 		subclassResponsibility("o_CopyMutableParseNode");
+		return null;
+	}
+
+
+	@Override
+	public void o_MacroName (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		subclassResponsibility("o_MacroName");
+	}
+
+
+	@Override
+	public AvailObject o_MacroName (
+		final AvailObject object)
+	{
+		subclassResponsibility("o_MacroName");
+		return null;
+	}
+
+
+	@Override
+	public void o_OutputParseNode (
+		final AvailObject object,
+		final AvailObject value)
+	{
+		subclassResponsibility("o_OutputParseNode");
+	}
+
+
+	@Override
+	public AvailObject o_OutputParseNode (
+		final AvailObject object)
+	{
+		subclassResponsibility("o_OutputParseNode");
+		return null;
+	}
+
+
+	@Override
+	public AvailObject o_ApparentSendName (
+		final AvailObject object)
+	{
+		subclassResponsibility("o_ApparentSendName");
 		return null;
 	}
 }

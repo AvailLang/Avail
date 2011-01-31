@@ -129,5 +129,4 @@ public class AvailPushLabel extends AvailInstruction
 	{
 		return true;
 	}
-
 }

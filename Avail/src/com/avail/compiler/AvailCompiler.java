@@ -467,7 +467,6 @@ public class AvailCompiler
 		{
 			expected(generate(aString));
 		}
-
 	}
 
 	/**
@@ -1729,9 +1728,9 @@ public class AvailCompiler
 	 * Parse an assignment statement.
 	 *
 	 * @param start
-	 *        Where to start parsing.
+	 *            Where to start parsing.
 	 * @param continuation
-	 *        What to do with the parsed assignment statement.
+	 *            What to do with the parsed assignment statement.
 	 */
 	void parseAssignmentThen (
 		final ParserState start,
@@ -2344,7 +2343,16 @@ public class AvailCompiler
 	 *            processed. Does not count the position of the first argument
 	 *            if there are no leading keywords.
 	 * @param argsSoFar
-	 *            The collection of arguments parsed so far. I do not modify it.
+	 *            The list of arguments parsed so far. I do not modify it.  This
+	 *            is a stack of expressions that the parsing instructions will
+	 *            assemble into a list that correlates with the top-level
+	 *            non-backquoted underscores and chevron groups in the message
+	 *            name.
+	 * @param innerArgsSoFar
+	 *            The list of lists of innermost arguments.  I do not modify it,
+	 *            nor any of its contained lists.  The positions in the outer
+	 *            list correspond to non-backquoted underscores in the message
+	 *            name.
 	 * @param continuation
 	 *            What to do with a fully parsed send node.
 	 */
@@ -2354,6 +2362,7 @@ public class AvailCompiler
 		final AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final List<AvailObject> argsSoFar,
+		final List<List<AvailObject>> innerArgsSoFar,
 		final Con<AvailObject> continuation)
 	{
 		final AvailObject complete = bundleTree.complete();
@@ -2384,6 +2393,7 @@ public class AvailCompiler
 						completedSendNode(
 							start,
 							argsSoFar,
+							innerArgsSoFar,
 							bundle,
 							continuation);
 					}
@@ -2412,6 +2422,7 @@ public class AvailCompiler
 									null,
 									initialTokenPosition,
 									argsSoFar,
+									innerArgsSoFar,
 									continuation);
 							}
 						},
@@ -2449,6 +2460,7 @@ public class AvailCompiler
 									instructionObject.extractInt(),
 									firstArgOrNull,
 									argsSoFar,
+									innerArgsSoFar,
 									initialTokenPosition,
 									successorTrees,
 									continuation);
@@ -2476,6 +2488,10 @@ public class AvailCompiler
 	 *            reject attempts to start with an argument (before a keyword).
 	 * @param argsSoFar
 	 *            The message arguments that have been parsed so far.
+	 * @param innerArgsSoFar
+	 *            The list of lists of innermost arguments that have been parsed
+	 *            so far.  These correlate with the complete list of
+	 *            non-backquoted underscores within the message name.
 	 * @param initialTokenPosition
 	 *            The position at which parsing of this message started. If it
 	 *            was parsed as a leading argument send (i.e., firtArgOrNull
@@ -2493,6 +2509,7 @@ public class AvailCompiler
 		final int instruction,
 		final AvailObject firstArgOrNull,
 		final List<AvailObject> argsSoFar,
+		final List<List<AvailObject>> innerArgsSoFar,
 		final ParserState initialTokenPosition,
 		final AvailObject successorTrees,
 		final Con<AvailObject> continuation)
@@ -2531,6 +2548,7 @@ public class AvailCompiler
 											initialTokenPosition,
 											Collections.unmodifiableList(
 												newArgsSoFar),
+											innerArgsSoFar,
 											continuation);
 									}
 								},
@@ -2563,6 +2581,7 @@ public class AvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
+								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -2597,6 +2616,7 @@ public class AvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
+								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -2613,7 +2633,7 @@ public class AvailCompiler
 				final AvailObject marker =
 					MarkerNodeDescriptor.mutable().create();
 				marker.markerValue(
-					IntegerDescriptor.objectFromInt(start.position));
+					IntegerDescriptor.fromInt(start.position));
 				newArgsSoFar.add(marker);
 				attempt(
 					new Continuation0()
@@ -2627,6 +2647,7 @@ public class AvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
+								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -2656,6 +2677,7 @@ public class AvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
+								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -2680,7 +2702,7 @@ public class AvailCompiler
 				final AvailObject newMarker =
 					MarkerNodeDescriptor.mutable().create();
 				newMarker.markerValue(
-					IntegerDescriptor.objectFromInt(start.position));
+					IntegerDescriptor.fromInt(start.position));
 				newArgsSoFar.set(
 					newArgsSoFar.size() - 2,
 					newMarker);
@@ -2696,6 +2718,7 @@ public class AvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
+								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -2711,28 +2734,79 @@ public class AvailCompiler
 			}
 			default:
 			{
-				// Branch or jump, or else we shouldn't be here. Continue along
-				// each available path.
-				assert instruction >= 8 && (instruction & 7) <= 1;
-				for (final AvailObject successorTree : successorTrees)
+				assert instruction >= 8;
+				switch (instruction & 7)
 				{
-					attempt(
-						new Continuation0()
+					case 0:
+					case 1:
+						for (final AvailObject successorTree : successorTrees)
 						{
-							@Override
-							public void value ()
+							attempt(
+								new Continuation0()
+								{
+									@Override
+									public void value ()
+									{
+										parseRestOfSendNode(
+											start,
+											successorTree,
+											firstArgOrNull,
+											initialTokenPosition,
+											argsSoFar,
+											innerArgsSoFar,
+											continuation);
+									}
+								},
+								"Continue send after branch or jump",
+								start.position);
+						}
+						break;
+					case 2:
+						assert false :
+							"parse-token instruction should not be dispatched";
+						break;
+					case 3:
+						// An inner argument has just been parsed.  Record it in
+						// a copy of innerArgsSoFar at position
+						// (instruction-3)/8 and continue.  Actually subtract
+						// one from that to make it a List index.
+						assert successorTrees.tupleSize() == 1;
+						final int position = (instruction - 3 >> 3) - 1;
+						List<List<AvailObject>> newInnerArgs =
+							new ArrayList<List<AvailObject>>(innerArgsSoFar);
+						while (position >= newInnerArgs.size())
+						{
+							newInnerArgs.add(
+								Collections.<AvailObject>emptyList());
+						}
+						final List<AvailObject> subList =
+							new ArrayList<AvailObject>(
+								newInnerArgs.get(position));
+						subList.add(argsSoFar.get(argsSoFar.size() - 1));
+						newInnerArgs.set(position, subList);
+						final List<List<AvailObject>> finalNewInnerArgs =
+							newInnerArgs;
+						attempt(
+							new Continuation0()
 							{
-								parseRestOfSendNode(
-									start,
-									successorTree,
-									firstArgOrNull,
-									initialTokenPosition,
-									Collections.unmodifiableList(argsSoFar),
-									continuation);
-							}
-						},
-						"Continue send after branch or jump",
-						start.position);
+								@Override
+								public void value ()
+								{
+									parseRestOfSendNode(
+										start,
+										successorTrees.tupleAt(1),
+										firstArgOrNull,
+										initialTokenPosition,
+										argsSoFar,
+										finalNewInnerArgs,
+										continuation);
+								}
+							},
+							"Continue send after copyArgumentForCheck",
+							start.position);
+						break;
+					default:
+						assert false : "Reserved parsing instruction";
 				}
 			}
 		}
@@ -2751,6 +2825,10 @@ public class AvailCompiler
 	 * @param argumentExpressions
 	 *        The {@linkplain ParseNodeDescriptor parse nodes} that will be
 	 *        arguments of the new send node.
+	 * @param innerArgumentExpressions
+	 *        The {@link List lists} of {@linkplain ParseNodeDescriptor parse
+	 *        nodes} that will correspond to restriction positions, which are
+	 *        at the non-backquoted underscores of the bundle's message name.
 	 * @param bundle
 	 *        The {@link MessageBundleDescriptor message bundle} that identifies
 	 *        the message to be sent.
@@ -2760,6 +2838,7 @@ public class AvailCompiler
 	void completedSendNode (
 		final ParserState start,
 		final List<AvailObject> argumentExpressions,
+		final List<List<AvailObject>> innerArgumentExpressions,
 		final AvailObject bundle,
 		final Con<AvailObject> continuation)
 	{
@@ -2769,6 +2848,7 @@ public class AvailCompiler
 			interpreter.runtime().methodsAt(message);
 		AvailObject implementationsTuple = impSet.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
+
 		if (implementationsTuple.tupleAt(1).isMacro())
 		{
 			// Macro definitions and non-macro definitions are not allowed to
@@ -2796,6 +2876,28 @@ public class AvailCompiler
 			{
 				return;
 			}
+
+			// Check for excluded messages in arguments.  Don't just forbid
+			// conflicting send nodes, but also forbid macro substitution nodes,
+			// depending on their macroName.
+			checkRestrictionsIfFail(
+				bundle,
+				innerArgumentExpressions,
+				new Continuation1<Generator<String>>()
+				{
+					@Override
+					public void value (
+						final Generator<String> errorGenerator)
+					{
+						valid.value = false;
+						start.expected(errorGenerator);
+					}
+				});
+			if (!valid.value)
+			{
+				return;
+			}
+
 			// Construct code to invoke the method, since it might be a
 			// primitive and we can't invoke that directly as the outermost
 			// closure.
@@ -2820,19 +2922,30 @@ public class AvailCompiler
 					writer.compiledCode(),
 					TupleDescriptor.empty());
 			newClosure.makeImmutable();
-			AvailObject substitution = interpreter.runClosureArguments(
-				newClosure,
-				Collections.<AvailObject>emptyList());
-			if (substitution.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+			try
 			{
-				attempt(start, continuation, substitution);
+				final AvailObject replacement = interpreter.runClosureArguments(
+					newClosure,
+					Collections.<AvailObject>emptyList());
+				if (replacement.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+				{
+					final AvailObject substitution =
+						MacroSubstitutionNodeDescriptor.mutable().create();
+					substitution.macroName(message);
+					substitution.outputParseNode(replacement);
+					attempt(start, continuation, replacement);
+				}
+				else
+				{
+					start.expected(
+						"macro body ("
+						+ impSet.name().name()
+						+ ") to produce a parse node");
+				}
 			}
-			else
+			catch (AvailRejectedParseException e)
 			{
-				start.expected(
-					"macro body ("
-					+ impSet.name().name()
-					+ ") to produce a parse node");
+				start.expected(e.rejectionString().asNativeString());
 			}
 			return;
 		}
@@ -2870,7 +2983,7 @@ public class AvailCompiler
 		{
 			checkRestrictionsIfFail(
 				bundle,
-				argumentExpressions,
+				innerArgumentExpressions,
 				new Continuation1<Generator<String>>()
 				{
 					@Override
@@ -2916,37 +3029,44 @@ public class AvailCompiler
 	 * @param bundle
 	 *            The bundle for which a send node was just parsed. It contains
 	 *            information about any negative precedence restrictions.
-	 * @param arguments
-	 *            The argument expressions for the send that was just parsed.
+	 * @param innerArguments
+	 *            The inner argument expressions for the send that was just
+	 *            parsed.  These correspond to all non-backquoted underscores
+	 *            anywhere in the message name.
 	 * @param ifFail
 	 *            What to do when a negative precedence rule inhibits a parse.
 	 */
 	void checkRestrictionsIfFail (
 		final AvailObject bundle,
-		final List<AvailObject> arguments,
+		final List<List<AvailObject>> innerArguments,
 		final Continuation1<Generator<String>> ifFail)
 	{
-		for (int i = 1; i <= arguments.size(); i++)
+		for (int i = 1; i <= innerArguments.size(); i++)
 		{
 			final int index = i;
-			final AvailObject argument = arguments.get(index - 1);
-			if (argument.isInstanceOfSubtypeOf(SEND_NODE.o()))
+			List<AvailObject> argumentOccurrences =
+				innerArguments.get(index - 1);
+			for (AvailObject argument : argumentOccurrences)
 			{
-				final AvailObject restrictions =
-					bundle.restrictions().tupleAt(index);
-				if (restrictions.hasElement(
-					argument.implementationSet().name()))
+				if (argument.isInstanceOfSubtypeOf(SEND_NODE.o())
+					|| argument.isInstanceOfSubtypeOf(
+						MACRO_SUBSTITUTION_NODE.o()))
 				{
-					ifFail.value(new Generator<String>()
+					final AvailObject restrictions =
+						bundle.restrictions().tupleAt(index);
+					if (restrictions.hasElement(argument.apparentSendName()))
 					{
-						@Override
-						public String value ()
+						ifFail.value(new Generator<String>()
 						{
-							return "different nesting for argument #"
+							@Override
+							public String value ()
+							{
+								return "different nesting for argument #"
 									+ Integer.toString(index) + " in "
-									+ bundle.message().toString();
-						}
-					});
+									+ bundle.message().name().toString();
+							}
+						});
+					}
 				}
 			}
 		}
@@ -2973,9 +3093,9 @@ public class AvailCompiler
 			public String value ()
 			{
 				final StringBuilder builder = new StringBuilder(200);
-				builder.append("one of the following internal keywords: ");
-				final List<String> sorted = new ArrayList<String>(incomplete
-						.mapSize());
+				builder.append("one of the following internal keywords:");
+				final List<String> sorted =
+					new ArrayList<String>(incomplete.mapSize());
 				incomplete.mapDo(new Continuation2<AvailObject, AvailObject>()
 				{
 					@Override
@@ -2987,14 +3107,27 @@ public class AvailCompiler
 					}
 				});
 				Collections.sort(sorted);
-				if (incomplete.mapSize() > 5)
-				{
-					builder.append("\n\t");
-				}
+				boolean startOfLine = true;
+				builder.append("\n\t");
+				final int leftColumn = 4 + 4;  // ">>> " and a tab.
+				int column = leftColumn;
 				for (final String s : sorted)
 				{
+					if (!startOfLine)
+					{
+						builder.append("  ");
+						column += 2;
+					}
+					startOfLine = false;
+					final int lengthBefore = builder.length();
 					builder.append(s);
-					builder.append("  ");
+					column += builder.length() - lengthBefore;
+					if (column + 2 + s.length() > 80)
+					{
+						builder.append("\n\t");
+						column = leftColumn;
+						startOfLine = true;
+					}
 				}
 				return builder.toString();
 			}
@@ -3022,6 +3155,7 @@ public class AvailCompiler
 			leadingArgument,
 			start,
 			Collections.<AvailObject> emptyList(),
+			Collections.<List<AvailObject>> emptyList(),
 			continuation);
 	}
 
@@ -3046,6 +3180,7 @@ public class AvailCompiler
 			null,
 			start,
 			Collections.<AvailObject> emptyList(),
+			Collections.<List<AvailObject>> emptyList(),
 			continuation);
 	}
 
@@ -3712,5 +3847,4 @@ public class AvailCompiler
 		module = null;
 		interpreter.setModule(null);
 	}
-
 }

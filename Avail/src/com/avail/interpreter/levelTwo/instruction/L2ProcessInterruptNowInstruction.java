@@ -87,9 +87,4 @@ public class L2ProcessInterruptNowInstruction extends L2Instruction
 		_continuationReg = contReg;
 		return this;
 	}
-
-
-
-
-
 }

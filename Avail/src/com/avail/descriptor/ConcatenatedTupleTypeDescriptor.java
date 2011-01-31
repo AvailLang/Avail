@@ -213,7 +213,7 @@ public class ConcatenatedTupleTypeDescriptor extends TypeDescriptor
 		final AvailObject totalUpper = firstUpper.plusCanDestroy(secondUpper, false);
 		if (totalUpper.isFinite())
 		{
-			final AvailObject indexObject = IntegerDescriptor.objectFromInt(index);
+			final AvailObject indexObject = IntegerDescriptor.fromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
 				return TERMINATES.o();

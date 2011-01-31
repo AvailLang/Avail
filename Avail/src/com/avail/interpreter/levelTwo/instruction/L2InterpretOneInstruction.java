@@ -89,9 +89,4 @@ public class L2InterpretOneInstruction extends L2Instruction
 
 
 	}
-
-
-
-
-
 }

@@ -62,9 +62,4 @@ public class AvailVariableAccessNote
 	{
 		_previousPush = aPushInstruction;
 	}
-
-
-
-
-
 }

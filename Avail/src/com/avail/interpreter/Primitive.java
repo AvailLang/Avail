@@ -41,7 +41,7 @@ import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.*;
 import com.avail.compiler.node.AssignmentNodeDescriptor;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
@@ -458,7 +458,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject processObject = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(processObject.priority()));
+				IntegerDescriptor.fromInt(processObject.priority()));
 			return SUCCESS;
 		}
 	},
@@ -772,7 +772,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(closureType.numArgs()));
+				IntegerDescriptor.fromInt(closureType.numArgs()));
 			return SUCCESS;
 		}
 	},
@@ -1116,7 +1116,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(con.pc()));
+				IntegerDescriptor.fromInt(con.pc()));
 			return SUCCESS;
 		}
 	},
@@ -1139,7 +1139,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(con.stackp()));
+				IntegerDescriptor.fromInt(con.stackp()));
 			return SUCCESS;
 		}
 	},
@@ -1673,7 +1673,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(map.mapSize()));
+				IntegerDescriptor.fromInt(map.mapSize()));
 			return SUCCESS;
 		}
 	},
@@ -1914,7 +1914,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(set.setSize()));
+				IntegerDescriptor.fromInt(set.setSize()));
 			return SUCCESS;
 		}
 	},
@@ -2231,7 +2231,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
 			interpreter.primitiveResult(
-				IntegerDescriptor.objectFromInt(tuple.tupleSize()));
+				IntegerDescriptor.fromInt(tuple.tupleSize()));
 			return SUCCESS;
 		}
 	},
@@ -3267,7 +3267,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(cc.numArgs()));
+			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numArgs()));
 			return SUCCESS;
 		}
 	},
@@ -3286,7 +3286,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(cc.numLocals()));
+			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numLocals()));
 			return SUCCESS;
 		}
 	},
@@ -3305,7 +3305,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(cc.numOuters()));
+			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numOuters()));
 			return SUCCESS;
 		}
 	},
@@ -3324,7 +3324,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(cc.maxStackDepth()));
+			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.maxStackDepth()));
 			return SUCCESS;
 		}
 	},
@@ -3381,7 +3381,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(cc.primitiveNumber()));
+			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.primitiveNumber()));
 			return SUCCESS;
 		}
 	},
@@ -4037,7 +4037,11 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 255:</strong> Message precedence declaration with tuple
-	 * of sets of messages to exclude for each argument position.
+	 * of sets of messages to exclude for each argument position.  Note that the
+	 * tuple's elements should correspond with occurrences of underscore in the
+	 * method names, *not* with the (top-level) arguments of the method.  This
+	 * distinction is only apparent when chevron notation is used to accept
+	 * tuples of arguments.
 	 */
 	prim255_PrecedenceDeclaration_stringSet_exclusionsTuple(255, 2, Unknown)
 	{
@@ -4669,7 +4673,7 @@ public enum Primitive
 			if (f >= -0x80000000L && f <= 0x7FFFFFFFL)
 			{
 				// Common case -- it fits in an int.
-				interpreter.primitiveResult(IntegerDescriptor.objectFromInt((int)f));
+				interpreter.primitiveResult(IntegerDescriptor.fromInt((int)f));
 				return SUCCESS;
 			}
 			final boolean neg = f < 0.0f;
@@ -4987,7 +4991,7 @@ public enum Primitive
 			if (d >= -0x80000000L && d <= 0x7FFFFFFFL)
 			{
 				// Common case -- it fits in an int.
-				interpreter.primitiveResult(IntegerDescriptor.objectFromInt((int)d));
+				interpreter.primitiveResult(IntegerDescriptor.fromInt((int)d));
 				return SUCCESS;
 			}
 			final boolean neg = d < 0.0d;
@@ -5110,7 +5114,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject character = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.objectFromInt(character.codePoint()));
+			interpreter.primitiveResult(IntegerDescriptor.fromInt(character.codePoint()));
 			return SUCCESS;
 		}
 	},
@@ -5227,9 +5231,7 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			assert false : "Here's where the parser could reject stuff.";
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			throw new AvailRejectedParseException(parseNode);
 		}
 	};
 
@@ -5479,5 +5481,4 @@ public enum Primitive
 			PrimitiveCounter.maxPrimitiveNumber = this.primitiveNumber;
 		}
 	}
-
 }

@@ -254,7 +254,7 @@ public class MapDescriptor extends Descriptor
 			return false;
 		}
 		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.objectFromInt(object.mapSize());
+		final AvailObject size = IntegerDescriptor.fromInt(object.mapSize());
 		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
@@ -304,7 +304,7 @@ public class MapDescriptor extends Descriptor
 			}
 			});
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerDescriptor.objectFromInt(object.mapSize()).type(),
+			IntegerDescriptor.fromInt(object.mapSize()).type(),
 			keyType.value,
 			valueType.value);
 	}

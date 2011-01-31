@@ -130,7 +130,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 				types.add(expressionType);
 			}
 			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
-				IntegerDescriptor.objectFromInt(types.size()));
+				IntegerDescriptor.fromInt(types.size()));
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
 				TupleDescriptor.fromList(types),
@@ -303,5 +303,4 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	{
 		return immutable;
 	}
-
 }

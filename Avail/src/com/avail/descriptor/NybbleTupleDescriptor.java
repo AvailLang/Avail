@@ -254,7 +254,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 			return false;
 		}
 		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
+		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
 		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
 		{
 			return false;
@@ -294,7 +294,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		assert aNybble >= 0 && aNybble <= 15;
 		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
-		object.verifyToSpaceAddress();
+		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
 		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		final int leftShift = (nybbleIndex - 1 & 7) * 4;
@@ -330,7 +330,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		// Get the element at the given index in the tuple object, and extract
 		// a nybble from it.  Fail if it's not a nybble.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		object.verifyToSpaceAddress();
+		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
 		final int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		final int shift = (nybbleIndex - 1 & 7) * 4;
@@ -365,7 +365,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		// Answer the nybble at the given index in the nybble tuple object.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		object.verifyToSpaceAddress();
+		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
 		final int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		final int shift = (nybbleIndex - 1 & 7) * 4;
@@ -379,7 +379,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the element at the given index in the nybble tuple object.
 
-		return IntegerDescriptor.objectFromByte(object.rawNybbleAt(index));
+		return IntegerDescriptor.fromUnsignedByte(object.rawNybbleAt(index));
 	}
 
 	@Override
@@ -494,7 +494,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfByte(object.rawNybbleAt(nybbleIndex)) ^ PreToggle;
+			int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+				object.rawNybbleAt(nybbleIndex));
+			itemHash ^= PreToggle;
 			hash = hash * Multiplier + itemHash;
 		}
 		return hash * Multiplier;

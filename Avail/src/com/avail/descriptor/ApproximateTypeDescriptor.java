@@ -790,7 +790,7 @@ public class ApproximateTypeDescriptor extends TypeDescriptor
 			error("Don't send sizeRange to a non-tupleType", object);
 			return VoidDescriptor.voidObject();
 		}
-		return IntegerDescriptor.objectFromInt(object.instance().tupleSize()).type();
+		return IntegerDescriptor.fromInt(object.instance().tupleSize()).type();
 	}
 
 	@Override

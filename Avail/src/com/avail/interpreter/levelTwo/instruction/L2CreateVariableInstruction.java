@@ -112,9 +112,4 @@ public class L2CreateVariableInstruction extends L2Instruction
 		//  ...but the instance is new so it can't be a constant...
 		anL2Translator.removeConstantForRegister(_dest);
 	}
-
-
-
-
-
 }

@@ -251,7 +251,7 @@ public class AvailScanner
 			while (peekIsDigit()) {
 				result = result.timesCanDestroy(ten, true);
 				result = result.plusCanDestroy(
-					IntegerDescriptor.objectFromByte(nextDigitValue()), true);
+					IntegerDescriptor.fromUnsignedByte(nextDigitValue()), true);
 			}
 		}
 		addTokenForLiteral(result);
@@ -714,5 +714,4 @@ public class AvailScanner
 			DispatchTable[i] = (byte)action.ordinal();
 		}
 	}
-
 }

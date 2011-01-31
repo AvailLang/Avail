@@ -109,9 +109,4 @@ public class L2CreateSimpleContinuation extends L2Instruction
 		anL2Translator.registerTypeAtPut(_dest, ContinuationTypeDescriptor.forClosureType(anL2Translator.code().closureType()));
 		anL2Translator.removeConstantForRegister(_dest);
 	}
-
-
-
-
-
 }

@@ -78,5 +78,4 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 		writeIntegerOn(numCopiedVars, aStream);
 		writeIntegerOn(index, aStream);
 	}
-	
 }

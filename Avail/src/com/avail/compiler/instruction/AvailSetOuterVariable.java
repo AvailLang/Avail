@@ -109,9 +109,4 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 			previousPush.isLastAccess(false);
 		}
 	}
-
-
-
-
-
 }

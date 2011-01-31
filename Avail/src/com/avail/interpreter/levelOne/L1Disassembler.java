@@ -91,7 +91,6 @@ public class L1Disassembler
 		{
 			error("Extension nybblecode should be dealt with another way.");
 		}
-
 	};
 
 	/**
@@ -218,5 +217,4 @@ public class L1Disassembler
 		error("Impossible nybble");
 		return 0;
 	}
-
 }

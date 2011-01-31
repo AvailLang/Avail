@@ -70,5 +70,4 @@ public class AvailGetType extends AvailInstruction
 		L1Operation.L1Ext_doGetType.writeTo(aStream);
 		writeIntegerOn(stackDepth, aStream);
 	}
-
 }

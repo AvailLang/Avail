@@ -754,5 +754,4 @@ public class ModuleDescriptor extends Descriptor
 	{
 		return immutable;
 	}
-
 }

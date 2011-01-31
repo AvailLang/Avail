@@ -72,9 +72,4 @@ public class L2BreakpointInstruction extends L2Instruction
 
 		anL2CodeGenerator.emitWord(L2_doBreakpoint.ordinal());
 	}
-
-
-
-
-
 }

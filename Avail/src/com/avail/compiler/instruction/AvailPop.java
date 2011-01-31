@@ -50,9 +50,4 @@ public class AvailPop extends AvailInstruction
 
 		L1Operation.L1_doPop.writeTo(aStream);
 	}
-
-
-
-
-
 }

@@ -80,5 +80,4 @@ public class AvailCompilerCachedSolution
 		this.endState = endState;
 		this.parseNode = parseNode;
 	}
-
 }

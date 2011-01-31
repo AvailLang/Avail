@@ -89,9 +89,4 @@ public class L2MakeImmutableInstruction extends L2Instruction
 		_register = reg;
 		return this;
 	}
-
-
-
-
-
 }

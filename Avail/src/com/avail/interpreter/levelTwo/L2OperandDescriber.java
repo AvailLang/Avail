@@ -186,6 +186,4 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		}
 		_description.append(")[read/write]");
 	}
-
-
 };

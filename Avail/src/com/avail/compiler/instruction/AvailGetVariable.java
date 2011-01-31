@@ -76,5 +76,4 @@ public abstract class AvailGetVariable extends AvailInstructionWithIndex
 	{
 		canClear = newFlag;
 	}
-
 }

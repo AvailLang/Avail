@@ -107,7 +107,7 @@ public class L2CreateTupleInstruction extends L2Instruction
 		//  Propagate type information due to this instruction.
 
 		final int size = _sourceVector.registers().size();
-		final AvailObject sizeRange = IntegerDescriptor.objectFromInt(size).type();
+		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
 		List<AvailObject> types;
 		types = new ArrayList<AvailObject>(_sourceVector.registers().size());
 		for (L2Register reg : _sourceVector.registers())
@@ -144,9 +144,4 @@ public class L2CreateTupleInstruction extends L2Instruction
 			anL2Translator.removeConstantForRegister(_dest);
 		}
 	}
-
-
-
-
-
 }

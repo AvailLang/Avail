@@ -50,9 +50,4 @@ public class AvailLabel extends AvailInstruction
 
 
 	}
-
-
-
-
-
 }

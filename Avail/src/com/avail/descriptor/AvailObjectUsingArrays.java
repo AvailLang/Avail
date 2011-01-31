@@ -72,7 +72,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	public void becomeIndirectionTo (
 			final AvailObject anotherObject)
 	{
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		if (traversed().sameAddressAs(anotherObject.traversed()))
 		{
 			return;
@@ -114,7 +114,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final Enum<?> e,
 			final int byteSubscript)
 	{
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		final int word = _intSlots[e.ordinal() + (byteSubscript - 1) / 4];
 		return (short) (word >>> ((byteSubscript - 1 & 0x03) << 3) & 0xFF);
 	}
@@ -136,7 +136,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		assert aByte == (aByte & 0xFF);
 		checkWriteForField(e);
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		final int wordIndex = e.ordinal() + (byteSubscript - 1) / 4;
 		int word = _intSlots[wordIndex];
 		final int leftShift = (byteSubscript - 1 & 3) << 3;
@@ -157,7 +157,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public AbstractDescriptor descriptor ()
+	public final AbstractDescriptor descriptor ()
 	{
 		return _descriptor;
 	}
@@ -216,7 +216,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Extract an int using the given Enum value that identifies the field.
 
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		return _intSlots[e.ordinal()];
 	}
 
@@ -228,7 +228,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		//  Set an int using the given Enum value that identifies the field.
 
 		checkWriteForField(e);
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		_intSlots[e.ordinal()] = anInteger;
 	}
 
@@ -239,7 +239,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Extract an int using the given Enum value that identifies the field.
 
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		return _intSlots[e.ordinal() + subscript - 1];
 	}
 
@@ -252,7 +252,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		//  Set an int using the given Enum value that identifies the field.
 
 		checkWriteForField(e);
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		_intSlots[e.ordinal() + subscript - 1] = anInteger;
 	}
 
@@ -268,9 +268,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		// Extract the object at the subscript implied by the enumeration
 		// value's ordinal().
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		final AvailObject result = _objectSlots[e.ordinal()];
-		result.verifyToSpaceAddress();
+		// result.verifyToSpaceAddress();
 		return result;
 	}
 
@@ -281,7 +281,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Store the object at the given byte-index.
 
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		checkWriteForField(e);
 		_objectSlots[e.ordinal()] = anAvailObject;
 	}
@@ -291,9 +291,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final Enum<?> e,
 			final int subscript)
 	{
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		final AvailObject result = _objectSlots[e.ordinal() + subscript - 1];
-		result.verifyToSpaceAddress();
+		// result.verifyToSpaceAddress();
 		return result;
 	}
 
@@ -303,7 +303,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final int subscript,
 			final AvailObject anAvailObject)
 	{
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		checkWriteForField(e);
 		_objectSlots[e.ordinal() + subscript - 1] = anAvailObject;
 	}
@@ -314,8 +314,8 @@ final public class AvailObjectUsingArrays extends AvailObject
 	{
 		//  Answer whether the objects occupy the same memory addresses.
 
-		verifyToSpaceAddress();
-		anotherObject.verifyToSpaceAddress();
+		// verifyToSpaceAddress();
+		// anotherObject.verifyToSpaceAddress();
 		return this == anotherObject;
 	}
 
@@ -327,7 +327,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		// Extract the 16-bit signed integer at the given short-index.  Use
 		// little endian encoding.
 
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		final int word = _intSlots[e.ordinal() + (shortIndex - 1) / 2];
 		return (short)(word >>> ((shortIndex - 1 & 1) << 4));
 	}
@@ -341,7 +341,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 		//  Store the byte at the given byte-index.
 
 		checkWriteForField(e);
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		final int shift = (shortIndex - 1 & 1) << 4;
 		final int wordIndex = e.ordinal() + (shortIndex - 1) / 2;
 		int word = _intSlots[wordIndex];
@@ -367,7 +367,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	public void truncateWithFillerForNewIntegerSlotsCount (
 			final int newIntegerSlotsCount)
 	{
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		// assert(objectSlotsCount > 0);
 		final int oldIntegerSlotsCount = integerSlotsCount();
 		assert newIntegerSlotsCount < oldIntegerSlotsCount;
@@ -398,7 +398,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final int newObjectSlotsCount)
 	{
 
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		assert newObjectSlotsCount > 0;
 		final int oldObjectSlotsCount = objectSlotsCount();
 		assert newObjectSlotsCount < oldObjectSlotsCount;
@@ -410,22 +410,6 @@ final public class AvailObjectUsingArrays extends AvailObject
 		final AvailObject newObjectSlots [] = new AvailObject [newObjectSlotsCount];
 		System.arraycopy(_objectSlots, 0, newObjectSlots, 0, newObjectSlotsCount);
 		_objectSlots = newObjectSlots;
-	}
-
-	@Override
-	public void verifyFromSpaceAddress ()
-	{
-		//  Check that my address is a valid pointer to FromSpace.
-
-		return;
-	}
-
-	@Override
-	public void verifyToSpaceAddress ()
-	{
-		//  Check that my address is a valid pointer to ToSpace.
-
-		return;
 	}
 
 

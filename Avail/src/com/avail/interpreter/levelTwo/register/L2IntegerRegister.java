@@ -45,5 +45,4 @@ public class L2IntegerRegister extends L2Register implements Cloneable
 	{
 		return (L2IntegerRegister)super.clone();
 	}
-
 }

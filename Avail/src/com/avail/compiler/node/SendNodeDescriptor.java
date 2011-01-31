@@ -181,6 +181,12 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
+	public AvailObject o_ApparentSendName (final AvailObject object)
+	{
+		return object.implementationSet().name();
+	}
+
+	@Override
 	public void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
@@ -339,5 +345,4 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	{
 		return immutable;
 	}
-
 }

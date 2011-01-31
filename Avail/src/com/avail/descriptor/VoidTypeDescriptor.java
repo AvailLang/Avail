@@ -148,5 +148,4 @@ extends PrimitiveTypeDescriptor
 	{
 		return immutable;
 	}
-
 }

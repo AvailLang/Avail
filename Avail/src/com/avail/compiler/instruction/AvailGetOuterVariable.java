@@ -116,5 +116,4 @@ public class AvailGetOuterVariable extends AvailGetVariable
 			previousPush.isLastAccess(false);
 		}
 	}
-
 }

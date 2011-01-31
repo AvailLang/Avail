@@ -124,9 +124,4 @@ public class L2GetClearingInstruction extends L2Instruction
 		}
 		anL2Translator.removeConstantForRegister(_dest);
 	}
-
-
-
-
-
 }

@@ -92,7 +92,7 @@ public class L2InstructionWriter
 			for (int source = 0; source < byteArray.length; source += 2)
 			{
 				final int value = (byteArray[source] & 0xFF) << 8 + (byteArray[source + 1] & 0xFF);
-				words.tupleAtPut(dest++, IntegerDescriptor.objectFromInt(value));
+				words.tupleAtPut(dest++, IntegerDescriptor.fromInt(value));
 			}
 		}
 		words.hashOrZero(0);

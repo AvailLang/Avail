@@ -60,5 +60,4 @@ public class AvailSetLiteralVariable extends AvailInstructionWithIndex
 		L1Operation.L1Ext_doSetLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);
 	}
-
 }

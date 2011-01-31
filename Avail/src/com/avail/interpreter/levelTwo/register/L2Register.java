@@ -108,5 +108,4 @@ public class L2Register implements Cloneable
 	{
 		return (L2Register)super.clone();
 	}
-
 }

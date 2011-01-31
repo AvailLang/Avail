@@ -77,7 +77,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 
 	/**
 	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
-	 * AbstractDescriptor#o_Equals(AvailObject) equals}.
+	 * AbstractDescriptor#o_Equals(AvailObject, AvailObject) equals}.
 	 */
 	@Override
 	public abstract boolean o_Equals (
@@ -137,10 +137,10 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * If the receiver is immutable, make an equivalent mutable copy of that
 	 * parse node.  Otherwise, answer the receiver itself.
 	 *
-	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
-	 *               transform.
-	 * @param aBlock The {@link Transformer1 transformation} through which to
-	 *               map this parse node's children.
+	 * @param object The {@linkplain ParseNodeDescriptor parse node} of which to
+	 *               create a mutable copy.
+	 * @return A mutable {@linkplain ParseNodeDescriptor parse node} equivalent
+	 *         to the passed parse node, possibly the same object.
 	 */
 	@Override
 	public AvailObject o_CopyMutableParseNode (
@@ -229,9 +229,15 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * Validate this node, throwing an exception if there is a problem.
 	 *
 	 * @param object
+	 *        The {@linkplain ParseNodeDescriptor parse node} to validate.
 	 * @param parent
+	 *        The {@linkplain ParseNodeDescriptor parse node} which contains the
+	 *        parse node to validate.
 	 * @param outerBlocks
+	 *        A list of {@linkplain BlockNodeDescriptor block nodes} that
+	 *        enclose the parse node to validate.
 	 * @param anAvailInterpreter
+	 *        An {@linkplain L2Interpreter interpreter} to use for validation.
 	 */
 	@Override
 	public abstract void o_ValidateLocally (

@@ -56,6 +56,4 @@ public class AvailBeImmutableSubobjectVisitor extends AvailSubobjectVisitor
 	{
 		childObject.makeImmutable();
 	}
-
-
 }

@@ -236,5 +236,4 @@ public class AvailCompilerTest
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
-
 }

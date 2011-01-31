@@ -67,9 +67,6 @@ import com.avail.interpreter.Interpreter;
  */
 public class MacroSignatureDescriptor extends SignatureDescriptor
 {
-	// TODO: Implement a clean mechanism for throwing/catching compiler
-	// exceptions related to rejecting malformed arguments, etc.
-
 	/**
 	 * The layout of object slots for my instances.
 	 */

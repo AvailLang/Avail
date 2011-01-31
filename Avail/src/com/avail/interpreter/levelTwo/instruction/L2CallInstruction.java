@@ -110,9 +110,4 @@ public class L2CallInstruction extends L2Instruction
 
 		anL2Translator.restrictPropagationInformationToArchitecturalRegisters();
 	}
-
-
-
-
-
 }

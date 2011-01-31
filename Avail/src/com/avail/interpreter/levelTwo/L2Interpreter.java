@@ -2557,5 +2557,4 @@ implements L2OperationDispatcher
 	{
 		_pointers[index] = anAvailObject;
 	}
-
 }

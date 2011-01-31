@@ -94,5 +94,4 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 	{
 		_exceptMe = excludedObject;
 	}
-
 }

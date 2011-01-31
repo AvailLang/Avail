@@ -86,9 +86,4 @@ public class L2JumpIfNotInterruptInstruction extends L2AbstractJumpInstruction
 		_target = targetLabel;
 		return this;
 	}
-
-
-
-
-
 }

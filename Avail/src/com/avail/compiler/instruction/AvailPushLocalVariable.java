@@ -125,5 +125,4 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	{
 		return true;
 	}
-
 }

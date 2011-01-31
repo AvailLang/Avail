@@ -388,7 +388,7 @@ implements Iterable<AvailObject>
 	 */
 	public void setToInvalidDescriptor ()
 	{
-		verifyToSpaceAddress();
+		// verifyToSpaceAddress();
 		descriptor(FillerDescriptor.mutable());
 	}
 
@@ -441,42 +441,44 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * Check that my address is a valid pointer to FromSpace.
+	 * Check that my address is a valid pointer to ToSpace.
 	 */
-	abstract public void verifyFromSpaceAddress ();
+	public final void verifyToSpaceAddress ()
+	{
+		return;
+	}
+
 
 
 	/**
-	 * Check that my address is a valid pointer to ToSpace.
+	 * Compute the 32-bit hash of the receiver.
+	 *
+	 * @return An {@code int} hash value.
 	 */
-	abstract public void verifyToSpaceAddress ();
-
-
-
-	// special methods
-
-	public int hash ()
+	public final int hash ()
 	{
-		//  Object also implements hash.
-
 		return descriptor().o_Hash(this);
 	}
 
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Set the 32-bit hash in the receiver.
+	 *
+	 * @param value The {@code int} to store as the receiver's hash value.
 	 */
-	public void hash (
+	public final void hash (
 		final int value)
 	{
 		descriptor().o_Hash(this, value);
 	}
 
+	/**
+	 * The receiver implements {@link #hashCode()} so Java can use an {@link
+	 * AvailObject} in a Java {@link Set} or {@link Map}.
+	 */
 	@Override
-	public int hashCode ()
+	public final int hashCode ()
 	{
-		//  Implemented so Java can use AvailObjects in Sets and Maps.
-
 		return descriptor().o_Hash(this);
 	}
 
@@ -546,6 +548,7 @@ implements Iterable<AvailObject>
 			descriptor);
 	};
 
+	@Deprecated
 	static int scanAnObject()
 	{
 		// Scan the next object, saving its subobjects and removing its barrier.
@@ -6159,4 +6162,48 @@ implements Iterable<AvailObject>
 		return descriptor().o_CopyMutableParseNode(this);
 	}
 
+
+	/**
+	 * @param value
+	 */
+	public void macroName (final AvailObject value)
+	{
+		descriptor().o_MacroName(this, value);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject macroName ()
+	{
+		return descriptor().o_MacroName(this);
+	}
+
+
+	/**
+	 * @param value
+	 */
+	public void outputParseNode (final AvailObject value)
+	{
+		descriptor().o_OutputParseNode(this, value);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject outputParseNode ()
+	{
+		return descriptor().o_OutputParseNode(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject apparentSendName ()
+	{
+		return descriptor().o_ApparentSendName(this);
+	}
 }

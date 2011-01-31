@@ -109,9 +109,4 @@ public class L2LoadConstantInstruction extends L2Instruction
 		anL2Translator.registerTypeAtPut(_dest, _constant.type());
 		anL2Translator.registerConstantAtPut(_dest, _constant);
 	}
-
-
-
-
-
 }

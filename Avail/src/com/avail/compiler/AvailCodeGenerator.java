@@ -662,5 +662,4 @@ public class AvailCodeGenerator
 				this);
 		}
 	}
-
 }

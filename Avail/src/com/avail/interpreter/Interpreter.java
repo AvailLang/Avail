@@ -520,15 +520,15 @@ public abstract class Interpreter
 		final @NotNull AvailObject illegalArgMsgs)
 	{
 		methodName.makeImmutable();
-		//  So we can safely hold onto it in the VM
+		// So we can safely hold onto it in the VM
 		illegalArgMsgs.makeImmutable();
-		//  So we can safely hold this data in the VM
+		// So we can safely hold this data in the VM
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final int numArgs = splitter.numberOfArguments();
+		final int numArgs = splitter.numberOfUnderscores();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
 		assert methodName.isCyclicType();
-		//  Fix precedence.
+		// Fix precedence.
 		final AvailObject bundle =
 			module.filteredBundleTree().includeBundle(
 				MessageBundleDescriptor.newBundle(

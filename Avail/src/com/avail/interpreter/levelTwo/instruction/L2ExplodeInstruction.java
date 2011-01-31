@@ -132,9 +132,4 @@ public class L2ExplodeInstruction extends L2Instruction
 		anL2Translator.registerTypeAtPut(_destClosure, anL2Translator.code().closureType());
 		anL2Translator.clearRegisterConstants();
 	}
-
-
-
-
-
 }

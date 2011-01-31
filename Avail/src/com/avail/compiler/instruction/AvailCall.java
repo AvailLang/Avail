@@ -75,5 +75,4 @@ public class AvailCall extends AvailInstructionWithIndex
 		writeIntegerOn(index, aStream);
 		writeIntegerOn(verifyIndex, aStream);
 	}
-
 }

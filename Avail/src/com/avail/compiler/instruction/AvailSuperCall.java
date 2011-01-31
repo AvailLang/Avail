@@ -81,5 +81,4 @@ public class AvailSuperCall extends AvailInstructionWithIndex
 		writeIntegerOn(index, aStream);
 		writeIntegerOn(verifyIndex, aStream);
 	}
-
 }

@@ -649,5 +649,4 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	{
 		return immutable;
 	}
-
 }

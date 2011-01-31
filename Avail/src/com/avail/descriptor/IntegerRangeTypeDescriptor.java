@@ -454,7 +454,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		PositiveShorts = create(
 			IntegerDescriptor.one(),
 			true,
-			IntegerDescriptor.objectFromInt(Short.MAX_VALUE),
+			IntegerDescriptor.fromInt(Short.MAX_VALUE),
 			true);
 		NaturalNumbers = create(
 			IntegerDescriptor.one(),
@@ -469,17 +469,17 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		Bytes = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.objectFromByte(((short)255)),
+			IntegerDescriptor.fromUnsignedByte(((short)255)),
 			true);
 		Nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.objectFromByte(((short)15)),
+			IntegerDescriptor.fromUnsignedByte(((short)15)),
 			true);
 		Characters = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.objectFromInt(0xFFFF),
+			IntegerDescriptor.fromInt(0xFFFF),
 			true);
 	}
 

@@ -242,7 +242,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 			return false;
 		}
 		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
+		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
 		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
 		{
 			return false;
@@ -319,7 +319,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 	{
 		//  Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return IntegerDescriptor.objectFromByte(
+		return IntegerDescriptor.fromUnsignedByte(
 			object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index));
 	}
 
@@ -406,7 +406,7 @@ public class ByteTupleDescriptor extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfByte(
+			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
 				object.rawByteAt(index)) ^ PreToggle;
 			hash = hash * Multiplier + itemHash;
 		}

@@ -194,5 +194,4 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	{
 		error("Marker nodes should not validateLocally.");
 	}
-
 }

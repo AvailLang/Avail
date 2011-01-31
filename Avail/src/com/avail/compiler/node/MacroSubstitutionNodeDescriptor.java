@@ -1,6 +1,6 @@
 /**
- * com.avail.newcompiler/AssignmentNodeDescriptor.java
- * Copyright (c) 2010, Mark van Gulik.
+ * com.avail.newcompiler/MacroSubstitutionNodeDescriptor.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,23 @@
 
 package com.avail.compiler.node;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
 /**
- * My instances represent assignment statements.
+ * A {@linkplain MacroSubstitutionNodeDescriptor macro substitution node}
+ * represents the result of applying a {@linkplain MacroSignatureDescriptor
+ * macro} to its argument {@linkplain ParseNodeDescriptor expressions} to
+ * produce an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output parse node}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AssignmentNodeDescriptor extends ParseNodeDescriptor
+public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -56,86 +58,88 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@link VariableUseNodeDescriptor variable} being assigned.
+		 * The {@linkplain CyclicTypeDescriptor true name} of the macro that was
+		 * invoked to produce this {@linkplain MacroSubstitutionNodeDescriptor
+		 * macro substitution node}.
 		 */
-		VARIABLE,
+		MACRO_NAME,
 
 		/**
-		 * The actual {@link ParseNodeDescriptor expression} providing the value to
-		 * assign.
+		 * The {@linkplain ParseNodeDescriptor parse node} that is the result of
+		 * transforming the input parse node through a {@linkplain
+		 * MacroSignatureDescriptor macro substitution}.
 		 */
-		EXPRESSION
+		OUTPUT_PARSE_NODE
 	}
 
-
 	/**
-	 * Setter for field variable.
+	 * Setter for field macroName.
 	 */
 	@Override
-	public void o_Variable (
+	public void o_MacroName (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.VARIABLE, value);
+		object.objectSlotPut(ObjectSlots.MACRO_NAME, value);
 	}
 
 	/**
-	 * Getter for field variable.
+	 * Getter for field macroName.
 	 */
 	@Override
-	public AvailObject o_Variable (
+	public AvailObject o_MacroName (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.VARIABLE);
+		return object.objectSlot(ObjectSlots.MACRO_NAME);
 	}
 
 	/**
-	 * Setter for field expression.
+	 * Setter for field outputParseNode.
 	 */
 	@Override
-	public void o_Expression (
+	public void o_OutputParseNode (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.EXPRESSION, value);
+		object.objectSlotPut(ObjectSlots.OUTPUT_PARSE_NODE, value);
 	}
 
 	/**
-	 * Getter for field expression.
+	 * Getter for field outputParseNode.
 	 */
 	@Override
-	public AvailObject o_Expression (
+	public AvailObject o_OutputParseNode (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.EXPRESSION);
+		return object.objectSlot(ObjectSlots.OUTPUT_PARSE_NODE);
 	}
 
 
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return VOID_TYPE.o();
+		return object.outputParseNode().expressionType();
 	}
 
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return ASSIGNMENT_NODE.o();
+		return Types.MACRO_SUBSTITUTION_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return ASSIGNMENT_NODE.o();
+		return Types.MACRO_SUBSTITUTION_NODE.o();
 	}
 
 	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return
-			object.variable().hash() * Multiplier
-				+ object.expression().hash()
-			^ 0xA71EA854;
+			object.macroName().hash() * Multiplier
+				+ object.outputParseNode().hash()
+			^ 0x1d50d7f9;
 	}
 
 	@Override
@@ -143,9 +147,14 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
-			&& object.variable().equals(another.variable())
-			&& object.expression().equals(another.expression());
+		return object.macroName().equals(another.macroName())
+			&& object.outputParseNode().equals(another.outputParseNode());
+	}
+
+	@Override
+	public AvailObject o_ApparentSendName (final AvailObject object)
+	{
+		return object.macroName();
 	}
 
 	@Override
@@ -153,13 +162,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject declaration = object.variable().declaration();
-		final DeclarationKind declarationKind = declaration.declarationKind();
-		assert declarationKind.isVariable();
-		object.expression().emitValueOn(codeGenerator);
-		declarationKind.emitVariableAssignmentForOn(
-			declaration,
-			codeGenerator);
+		object.outputParseNode().emitEffectOn(codeGenerator);
 	}
 
 	@Override
@@ -167,8 +170,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		// Assignments are only allowed to be top-level statements.
-		error("Pass-through (embedded) assignments are not supported");
+		object.outputParseNode().emitValueOn(codeGenerator);
 	}
 
 	@Override
@@ -176,8 +178,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		object.expression(aBlock.value(object.expression()));
-		object.variable(aBlock.value(object.variable()));
+		object.outputParseNode(aBlock.value(object.outputParseNode()));
 	}
 
 	@Override
@@ -187,24 +188,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
 	{
-		final AvailObject variable = object.variable();
-		final DeclarationKind kind = variable.declaration().declarationKind();
-		switch (kind)
-		{
-			case ARGUMENT:
-				error("Can't assign to argument");
-				break;
-			case LABEL:
-				error("Can't assign to label");
-				break;
-			case LOCAL_CONSTANT:
-			case MODULE_CONSTANT:
-				error("Can't assign to constant");
-				break;
-			case LOCAL_VARIABLE:
-			case MODULE_VARIABLE:
-				break;
-		}
+		// Do nothing.
 	}
 
 	@Override
@@ -214,54 +198,54 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append(
-			object.variable().declaration().token().string().asNativeString());
-		builder.append(" := ");
-		object.expression().printOnAvoidingIndent(
+		builder.append("MACRO TRANSFORMATION (");
+		builder.append(object.macroName());
+		builder.append(") = ");
+		object.outputParseNode().printOnAvoidingIndent(
 			builder,
 			recursionList,
-			indent + 1);
+			indent);
 	}
 
 	/**
-	 * Construct a new {@link AssignmentNodeDescriptor}.
+	 * Construct a new {@link MacroSubstitutionNodeDescriptor}.
 	 *
 	 * @param isMutable Whether my {@linkplain AvailObject instances} can
 	 *                  change.
 	 */
-	public AssignmentNodeDescriptor (final boolean isMutable)
+	public MacroSubstitutionNodeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link AssignmentNodeDescriptor}.
+	 * The mutable {@link MacroSubstitutionNodeDescriptor}.
 	 */
-	private final static AssignmentNodeDescriptor mutable =
-		new AssignmentNodeDescriptor(true);
+	private final static MacroSubstitutionNodeDescriptor mutable =
+		new MacroSubstitutionNodeDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link AssignmentNodeDescriptor}.
+	 * Answer the mutable {@link MacroSubstitutionNodeDescriptor}.
 	 *
-	 * @return The mutable {@link AssignmentNodeDescriptor}.
+	 * @return The mutable {@link MacroSubstitutionNodeDescriptor}.
 	 */
-	public static AssignmentNodeDescriptor mutable ()
+	public static MacroSubstitutionNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link AssignmentNodeDescriptor}.
+	 * The immutable {@link MacroSubstitutionNodeDescriptor}.
 	 */
-	private final static AssignmentNodeDescriptor immutable =
-		new AssignmentNodeDescriptor(false);
+	private final static MacroSubstitutionNodeDescriptor immutable =
+		new MacroSubstitutionNodeDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link AssignmentNodeDescriptor}.
+	 * Answer the immutable {@link MacroSubstitutionNodeDescriptor}.
 	 *
-	 * @return The immutable {@link AssignmentNodeDescriptor}.
+	 * @return The immutable {@link MacroSubstitutionNodeDescriptor}.
 	 */
-	public static AssignmentNodeDescriptor immutable ()
+	public static MacroSubstitutionNodeDescriptor immutable ()
 	{
 		return immutable;
 	}

@@ -325,7 +325,6 @@ public enum L1Operation
 			assert false
 			: "The implied return instruction should not be output";
 		}
-
 	};
 
 

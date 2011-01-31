@@ -67,5 +67,4 @@ public class L2RawInstructionDescriber
 		}
 		stream.append(")");
 	}
-
 };

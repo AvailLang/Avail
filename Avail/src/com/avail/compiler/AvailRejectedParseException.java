@@ -1,6 +1,6 @@
 /**
- * interpreter/levelTwo/register/L2FloatRegister.java
- * Copyright (c) 2010, Mark van Gulik.
+ * compiler/AvailRejectedParseException.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+package com.avail.compiler;
 
-import java.lang.Cloneable;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 
-public class L2FloatRegister extends L2Register implements Cloneable
+/**
+ * An {@code AvailCompilerException} is thrown by the {@linkplain AvailCompiler
+ * Avail compiler} when compilation fails for any reason.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class AvailRejectedParseException
+extends RuntimeException
 {
+	/**
+	 * The serial version identifier.
+	 */
+	private static final long serialVersionUID = -5638050952579212324L;
 
+	/**
+	 * The {@linkplain ByteStringDescriptor error message} indicating why a
+	 * particular parse was rejected.
+	 */
+	final AvailObject rejectionString;
 
-
-
-	@Override
-	public L2FloatRegister clone () throws CloneNotSupportedException
+	/**
+	 * Return the {@linkplain ByteStringDescriptor error mesasge} indicating why
+	 * a particular parse was rejected.
+	 *
+	 * @return The reason the parse was rejected.
+	 */
+	public @NotNull AvailObject rejectionString ()
 	{
-		return (L2FloatRegister)super.clone();
+		return rejectionString;
+	}
+
+	/**
+	 * Construct a new {@link AvailRejectedParseException}.
+	 *
+	 * @param rejectionString
+	 *        The {@linkplain ByteStringDescriptor error message} indicating why
+	 *        a particular parse was rejected.
+	 */
+	public AvailRejectedParseException (
+		final @NotNull AvailObject rejectionString)
+	{
+		this.rejectionString = rejectionString;
 	}
 }

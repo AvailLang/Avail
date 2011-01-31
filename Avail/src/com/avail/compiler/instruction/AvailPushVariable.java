@@ -77,5 +77,4 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 	{
 		super(variableIndex);
 	}
-
 }

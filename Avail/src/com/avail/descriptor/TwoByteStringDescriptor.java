@@ -222,7 +222,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 			return false;
 		}
 		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.objectFromInt(object.tupleSize());
+		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
 		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
 		{
 			// This tuple's size is out of range.

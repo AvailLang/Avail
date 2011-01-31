@@ -110,5 +110,4 @@ public class L2Instruction
 	{
 		_offset = -1;
 	}
-
 }

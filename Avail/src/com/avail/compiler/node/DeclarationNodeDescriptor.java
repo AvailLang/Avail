@@ -719,6 +719,28 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
+	/**
+	 * Construct a {@linkplain DeclarationNodeDescriptor declaration node} of
+	 * some {@linkplain DeclarationKind kind}.
+	 *
+	 * @param declarationKind
+	 *        The {@linkplain DeclarationKind kind} of {@linkplain
+	 *        DeclarationNodeDescriptor declaration} to create.
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the entity being declared.
+	 * @param declaredType
+	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
+	 * @param initializationExpression
+	 *        An {@linkplain ParseNodeDescriptor expression} used for
+	 *        initializing the entity being declared, or {@linkplain
+	 *        VoidDescriptor#voidObject() the void object} if none.
+	 * @param literalObject
+	 *        An {@link AvailObject} that is the actual variable or constant
+	 *        being defined, or {@linkplain VoidDescriptor#voidObject() the void
+	 *        object} if none.
+	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
+	 */
 	private static AvailObject newDeclaration (
 		final DeclarationKind declarationKind,
 		final AvailObject token,
@@ -732,10 +754,20 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		declaration.declaredType(declaredType);
 		declaration.initializationExpression(initializationExpression);
 		declaration.literalObject(literalObject);
-		// System.out.println(declaration);
 		return declaration;
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * block or method {@linkplain DeclarationKind#ARGUMENT argument}.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the entity being declared.
+	 * @param declaredType
+	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
+	 * @return The argument declaration.
+	 */
 	public static AvailObject newArgument (
 		final AvailObject token,
 		final AvailObject declaredType)
@@ -748,6 +780,22 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			VoidDescriptor.voidObject());
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#LOCAL_VARIABLE local variable}.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the local variable being declared.
+	 * @param declaredType
+	 *        The {@linkplain TypeDescriptor type} of the local variable being
+	 *        declared.
+	 * @param initializationExpression
+	 *        An {@linkplain ParseNodeDescriptor expression} used for
+	 *        initializing the local variable, or {@linkplain
+	 *        VoidDescriptor#voidObject() the void object} if none.
+	 * @return The new local variable declaration.
+	 */
 	public static AvailObject newVariable (
 		final AvailObject token,
 		final AvailObject declaredType,
@@ -761,6 +809,19 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			VoidDescriptor.voidObject());
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#LOCAL_VARIABLE local variable} without an
+	 * initialization expression.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the local variable being declared.
+	 * @param declaredType
+	 *        The {@linkplain TypeDescriptor type} of the local variable being
+	 *        declared.
+	 * @return The new local variable declaration.
+	 */
 	public static AvailObject newVariable (
 		final AvailObject token,
 		final AvailObject declaredType)
@@ -773,6 +834,18 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			VoidDescriptor.voidObject());
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#LOCAL_CONSTANT local constant}.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the local constant being declared.
+	 * @param initializationExpression
+	 *        An {@linkplain ParseNodeDescriptor expression} used to
+	 *        provide the value of the local constant.
+	 * @return The new local constant declaration.
+	 */
 	public static AvailObject newConstant (
 		final AvailObject token,
 		final AvailObject initializationExpression)
@@ -785,6 +858,21 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			VoidDescriptor.voidObject());
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#LABEL label}.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the label being declared.
+	 * @param declaredType
+	 *        The {@linkplain TypeDescriptor type} of the label being declared,
+	 *        which must be a {@linkplain ContinuationTypeDescriptor
+	 *        continuation type} whose contained {@linkplain
+	 *        ClosureTypeDescriptor closure type} agrees with the block in which
+	 *        the label occurs.
+	 * @return The new label declaration.
+	 */
 	public static AvailObject newLabel (
 		final AvailObject token,
 		final AvailObject declaredType)
@@ -797,6 +885,19 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			VoidDescriptor.voidObject());
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#MODULE_VARIABLE module variable} without an
+	 * initialization expression.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the module variable being declared.
+	 * @param literalObject
+	 *        The actual {@linkplain ContainerDescriptor container} to be used
+	 *        as a module variable.
+	 * @return The new module variable declaration.
+	 */
 	public static AvailObject newModuleVariable(
 		final AvailObject token,
 		final AvailObject literalObject)
@@ -809,6 +910,18 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			literalObject);
 	}
 
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#MODULE_CONSTANT module constant}.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the module constant being declared.
+	 * @param literalObject
+	 *        The actual {@link AvailObject} that the new module constant has as
+	 *        its value.
+	 * @return The new module constant declaration.
+	 */
 	public static AvailObject newModuleConstant(
 		final AvailObject token,
 		final AvailObject literalObject)
@@ -864,5 +977,4 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	{
 		return immutable;
 	}
-
 }

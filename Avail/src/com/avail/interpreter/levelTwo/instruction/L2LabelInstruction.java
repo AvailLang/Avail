@@ -73,9 +73,4 @@ public class L2LabelInstruction extends L2Instruction
 
 
 	}
-
-
-
-
-
 }

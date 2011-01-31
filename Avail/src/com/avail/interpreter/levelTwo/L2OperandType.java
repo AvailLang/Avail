@@ -160,5 +160,4 @@ public enum L2OperandType
 		this.isSource = isSource;
 		this.isDestination = isDestination;
 	}
-
 };

@@ -346,7 +346,7 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 						// It's a special instruction.
 						AvailObject successors;
 						AvailObject instructionObject =
-							IntegerDescriptor.objectFromInt(instruction);
+							IntegerDescriptor.fromInt(instruction);
 						List<Integer> nextPcs =
 							MessageSplitter.successorPcs(instruction, pc);
 						if (specialMap.value.hasKey(instructionObject))

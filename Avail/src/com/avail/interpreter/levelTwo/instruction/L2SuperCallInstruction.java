@@ -115,9 +115,4 @@ public class L2SuperCallInstruction extends L2Instruction
 
 		anL2Translator.restrictPropagationInformationToArchitecturalRegisters();
 	}
-
-
-
-
-
 }

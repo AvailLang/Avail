@@ -62,14 +62,42 @@ Method "«_‡then»" is [t : tuple |
 	Failed;
 ] : string;
 
+Method "<«_‡,»>" is [t : tuple |
+	t;
+] : tuple;
 
-Method "if_then_else_" is [
+Method "{«_‡,»}" is [t : tuple |
+	Primitive 109;
+	Failed;
+] : set;
+
+{"«_‡then»"} can't have <{"«_‡then»"}>;
+{"_to string"} can't have <{"«_‡then»"}>;
+
+
+Method "If_then_else_" is [
 		condition : boolean,
 		thenBlock : closure,
 		elseBlock : closure |
 	Primitive 43;
 	Failed;
-] : all;
+] : void;
+
+
+Method "not_" is [
+		b : boolean |
+	Crash "Missing definition of not_";
+] : boolean;
+
+Method "not_" is [
+		f : falseType |
+	true;
+] : trueType;
+
+Method "not_" is [
+		t : trueType |
+	false;
+] : falseType;
 
 
 Method "Fail parse_" is [
@@ -113,18 +141,17 @@ Method "_expression type" is [
 ] : type;
 
 Macro "_->_" is [e : parseNode, v : variableUseNode |
-	if e expression type <= v expression type then [
-		make assignment variable v expression e;
-	] else [
+	If not e expression type <= v expression type then [
 		Fail parse
-			"Expression type ("
+			"expression type ("
 			then e expression type to string
-			then " to agree with variable type "
+			then ") to agree with variable type "
 			then v expression type to string;
-	];
-];
+	] else [];
+	make assignment variable v expression e;
+] : parseNode;
 
 20 -> x;
 Assert x = 20;
 
-"cheese" -> x;
+/* "cheese" -> x; */

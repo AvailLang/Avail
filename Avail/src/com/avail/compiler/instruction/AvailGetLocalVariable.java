@@ -118,5 +118,4 @@ public class AvailGetLocalVariable extends AvailGetVariable
 			previousPush.isLastAccess(false);
 		}
 	}
-
 }

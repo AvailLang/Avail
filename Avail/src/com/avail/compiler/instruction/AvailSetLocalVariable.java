@@ -106,5 +106,4 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 			previousPush.isLastAccess(false);
 		}
 	}
-
 }

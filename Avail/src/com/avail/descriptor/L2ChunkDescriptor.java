@@ -698,7 +698,7 @@ public class L2ChunkDescriptor extends Descriptor
 				}
 				for (int i = newChunks.tupleSize(); i > oldChunks.tupleSize(); i--)
 				{
-					newChunks.tupleAtPut(i, IntegerDescriptor.objectFromInt(NextFreeChunkIndex));
+					newChunks.tupleAtPut(i, IntegerDescriptor.fromInt(NextFreeChunkIndex));
 					NextFreeChunkIndex = i;
 				}
 				allChunks().setValue(newChunks);

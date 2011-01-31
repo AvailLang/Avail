@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.List;
 
 public class MessageBundleDescriptor extends Descriptor
@@ -49,8 +49,6 @@ public class MessageBundleDescriptor extends Descriptor
 		PARSING_INSTRUCTIONS
 	}
 
-
-	// accessing
 
 	@Override
 	public void o_AddRestrictions (

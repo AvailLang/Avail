@@ -263,5 +263,4 @@ extends Descriptor
 		 */
 		OPERATOR;
 	}
-
 }

@@ -56,5 +56,4 @@ public class AvailPushLiteral extends AvailInstructionWithIndex
 		L1Operation.L1_doPushLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);
 	}
-
 }

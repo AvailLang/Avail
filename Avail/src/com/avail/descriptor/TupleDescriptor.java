@@ -256,7 +256,7 @@ public abstract class TupleDescriptor extends Descriptor
 			return false;
 		}
 		// See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.objectFromInt(object
+		final AvailObject size = IntegerDescriptor.fromInt(object
 				.tupleSize());
 		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
@@ -299,7 +299,7 @@ public abstract class TupleDescriptor extends Descriptor
 				true);
 		}
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerDescriptor.objectFromInt(object.tupleSize()).type(),
+			IntegerDescriptor.fromInt(object.tupleSize()).type(),
 			tupleOfTypes,
 			TERMINATES.o());
 	}
@@ -949,7 +949,7 @@ public abstract class TupleDescriptor extends Descriptor
 			{
 				tuple.tupleAtPut(
 					i,
-					IntegerDescriptor.objectFromInt(
+					IntegerDescriptor.fromInt(
 						list.get(i - 1).intValue()));
 			}
 		}
@@ -1019,5 +1019,4 @@ public abstract class TupleDescriptor extends Descriptor
 	{
 		super(isMutable);
 	}
-
 }

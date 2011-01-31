@@ -799,5 +799,4 @@ public class L1Decompiler implements L1OperationDispatcher
 			closureOuters,
 			generator);
 	}
-
 }

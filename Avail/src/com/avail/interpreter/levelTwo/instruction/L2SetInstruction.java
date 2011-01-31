@@ -120,9 +120,4 @@ public class L2SetInstruction extends L2Instruction
 		}
 		anL2Translator.registerTypeAtPut(_variable, varType);
 	}
-
-
-
-
-
 }

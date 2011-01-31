@@ -204,5 +204,4 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	{
 		// Do nothing.
 	}
-
 }

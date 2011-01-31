@@ -72,9 +72,4 @@ public class L2TranslateCodeInstruction extends L2Instruction
 
 		anL2CodeGenerator.emitWord(L2_doTranslateCode.ordinal());
 	}
-
-
-
-
-
 }

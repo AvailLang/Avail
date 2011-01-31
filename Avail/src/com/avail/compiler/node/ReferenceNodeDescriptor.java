@@ -228,5 +228,4 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 				break;
 		}
 	}
-
 }

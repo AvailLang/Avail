@@ -93,9 +93,4 @@ public class L2ReturnInstruction extends L2Instruction
 		_valueReg = valReg;
 		return this;
 	}
-
-
-
-
-
 }
