@@ -36,6 +36,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -1129,13 +1130,9 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_ExecutionMode (final AvailObject object, final int value)
-	{
-		o_Traversed(object).executionMode(value);
-	}
-
-	@Override
-	public void o_ExecutionState (final AvailObject object, final int value)
+	public void o_ExecutionState (
+		final AvailObject object,
+		final ExecutionState value)
 	{
 		o_Traversed(object).executionState(value);
 	}
@@ -3242,13 +3239,7 @@ public class IndirectionDescriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_ExecutionMode (final AvailObject object)
-	{
-		return o_Traversed(object).executionMode();
-	}
-
-	@Override
-	public int o_ExecutionState (final AvailObject object)
+	public ExecutionState o_ExecutionState (final AvailObject object)
 	{
 		return o_Traversed(object).executionState();
 	}

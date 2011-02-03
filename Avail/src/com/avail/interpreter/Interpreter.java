@@ -39,6 +39,8 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.ProcessDescriptor.InterruptRequestFlag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.utility.*;
@@ -863,44 +865,10 @@ public abstract class Interpreter
 			failBlock);
 	}
 
-	public class ExecutionMode
-	{
-		// Process is not running in debug mode.
-		public static final int noDebug = 0x0000;
-
-		// Interrupt between *nybblecodes*, and avoid optimized code.
-		public static final int singleStep = 0x0001;
-	}
-
-	public class ExecutionState
-	{
-		// Process is running or waiting for another process to yield.
-		public static final int running = 0x0001;
-
-		// Process has been suspended (always on a semaphore)
-		public static final int suspended = 0x0002;
-
-		// Process has terminated.  This state is final.
-		public static final int terminated = 0x0004;
-	}
-
-	public class InterruptRequestFlag
-	{
-		// No interrupt is pending.
-		public static final int noInterrupt = 0x0000;
-
-		// Out of gas.
-		public static final int outOfGas = 0x0001;
-
-		// Another process should run instead.
-		public static final int higherPriorityReady = 0x0002;
-	}
-
 	{
 		process = ProcessDescriptor.mutable().create();
 		process.priority(50);
 		process.continuation(VoidDescriptor.voidObject());
-		process.executionMode(ExecutionMode.noDebug);
 		process.executionState(ExecutionState.running);
 		process.interruptRequestFlag(InterruptRequestFlag.noInterrupt);
 		process.breakpointBlock(VoidDescriptor.voidObject());

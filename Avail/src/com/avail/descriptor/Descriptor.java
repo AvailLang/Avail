@@ -39,6 +39,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -1312,24 +1313,9 @@ public class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_ExecutionMode (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:executionMode:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_ExecutionState (
 		final AvailObject object,
-		final int value)
+		final ExecutionState value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -5439,27 +5425,13 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_ExecutionMode (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_ExecutionMode:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_ExecutionState (
+	public ExecutionState o_ExecutionState (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_ExecutionState:", object);
-		return 0;
+		return null;
 	}
 
 	/**
@@ -8897,4 +8869,5 @@ public class Descriptor extends AbstractDescriptor
 		subclassResponsibility("o_ApparentSendName");
 		return null;
 	}
+
 }

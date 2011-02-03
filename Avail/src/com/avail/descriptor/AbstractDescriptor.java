@@ -38,6 +38,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -1220,13 +1221,9 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_ExecutionMode (final AvailObject object, final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_ExecutionState (final AvailObject object, final int value);
+	public abstract void o_ExecutionState (
+		final AvailObject object,
+		final ExecutionState value);
 
 	/**
 	 * @param object
@@ -3376,13 +3373,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_ExecutionMode (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_ExecutionState (final AvailObject object);
+	public abstract ExecutionState o_ExecutionState (final AvailObject object);
 
 	/**
 	 * @param object

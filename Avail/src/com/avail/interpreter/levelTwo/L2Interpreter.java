@@ -39,6 +39,8 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.ProcessDescriptor.InterruptRequestFlag;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -148,7 +150,8 @@ implements L2OperationDispatcher
 			}
 			if (matching.isForward())
 			{
-				error("Attempted to execute forward method before it was defined.");
+				error("Attempted to execute forward method " +
+					"before it was defined.");
 				return;
 			}
 			if (matching.isAbstract())
@@ -176,10 +179,11 @@ implements L2OperationDispatcher
 			final short primNum = theCode.primitiveNumber();
 			if (primNum != 0)
 			{
-				assert _chunk ==
-					L2ChunkDescriptor.chunkFromId (
+				assert _chunk == L2ChunkDescriptor.chunkFromId (
 						_pointers[callerRegister()].levelTwoChunkIndex());
-				final Result primResult = attemptPrimitive(primNum, _argsBuffer);
+				final Result primResult = attemptPrimitive(
+					primNum,
+					_argsBuffer);
 				if (primResult == CONTINUATION_CHANGED)
 				{
 					return;
@@ -189,7 +193,8 @@ implements L2OperationDispatcher
 					if (!primitiveResult.isInstanceOfSubtypeOf(
 						expectedReturnType))
 					{
-						error("Primitive result did not agree with expected type");
+						error("Primitive result did not agree " +
+							"with expected type");
 					}
 					final AvailObject callerCont = _pointers[callerRegister()];
 					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
@@ -211,14 +216,14 @@ implements L2OperationDispatcher
 			final AvailObject constant = cont.closure().code().literalAt(index);
 			final int stackp = cont.stackp() - 1;
 			cont.stackp(stackp);
-			// We don't need to make constant beImmutable because *code objects* are
-			// always immutable.
+			// We don't need to make constant beImmutable because *code objects*
+			// are always immutable.
 			cont.stackAtPut(stackp, constant);
 		}
 
 		/**
-		 * [n] - Push the argument (actual value) or local variable (the variable
-		 * itself) indexed by n. Since this is known to be the last use
+		 * [n] - Push the argument (actual value) or local variable (the
+		 * variable itself) indexed by n. Since this is known to be the last use
 		 * (nondebugger) of the argument or local, void that slot of the current
 		 * continuation.
 		 */
@@ -235,8 +240,8 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Push the argument (actual value) or local variable (the variable
-		 * itself) indexed by n.
+		 * [n] - Push the argument (actual value) or local variable (the
+		 * variable itself) indexed by n.
 		 */
 		@Override
 		public void L1_doPushLocal ()
@@ -251,10 +256,10 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Push the outer variable indexed by n in the current closure. If the
-		 * variable is mutable, clear it (no one will know). If the variable and
-		 * closure are both mutable, remove the variable from the closure by voiding
-		 * it.
+		 * [n] - Push the outer variable indexed by n in the current closure. If
+		 * the variable is mutable, clear it (no one will know). If the variable
+		 * and closure are both mutable, remove the variable from the closure by
+		 * voiding it.
 		 */
 		@Override
 		public void L1_doPushLastOuter ()
@@ -302,18 +307,19 @@ implements L2OperationDispatcher
 			}
 			/*
 			 * We don't assert assertObjectUnreachableIfMutable: on the popped
-			 * copied vars because each copied var's new reference from the closure
-			 * balances the lost reference from the wiped stack. Likewise we don't
-			 * tell them makeImmutable(). The closure itself should remain mutable
-			 * at this point, otherwise the copied vars would have to
-			 * makeImmutable() to be referenced by an immutable closure.
+			 * copied vars because each copied var's new reference from the
+			 * closure balances the lost reference from the wiped stack.
+			 * Likewise we don't tell them makeImmutable(). The closure itself
+			 * should remain mutable at this point, otherwise the copied vars
+			 * would have to makeImmutable() to be referenced by an immutable
+			 * closure.
 			 */
 			cont.stackAtPut(stackp, newClosure);
 		}
 
 		/**
-		 * [n] - Pop the stack and assign this value to the local variable (not an
-		 * argument) indexed by n (index 1 is first argument).
+		 * [n] - Pop the stack and assign this value to the local variable (not
+		 * an argument) indexed by n (index 1 is first argument).
 		 */
 		@Override
 		public void L1_doSetLocal ()
@@ -331,9 +337,9 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Push the value of the local variable (not an argument) indexed by n
-		 * (index 1 is first argument). If the variable itself is mutable, clear it
-		 * now - nobody will know.
+		 * [n] - Push the value of the local variable (not an argument) indexed
+		 * by n (index 1 is first argument). If the variable itself is mutable,
+		 * clear it now - nobody will know.
 		 */
 		@Override
 		public void L1_doGetLocalClearing ()
@@ -389,9 +395,9 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Push the value of the outer variable indexed by n in the current
-		 * closure. If the variable itself is mutable, clear it at this time -
-		 * nobody will know.
+		 * [n] - Push the value of the outer variable indexed by n in the
+		 * current closure. If the variable itself is mutable, clear it at this
+		 * time - nobody will know.
 		 */
 		@Override
 		public void L1_doGetOuterClearing ()
@@ -415,8 +421,8 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Pop the stack and assign this value to the outer variable indexed
-		 * by n in the current closure.
+		 * [n] - Pop the stack and assign this value to the outer variable
+		 * indexed by n in the current closure.
 		 */
 		@Override
 		public void L1_doSetOuter ()
@@ -438,8 +444,8 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Push the value of the local variable (not an argument) indexed by n
-		 * (index 1 is first argument).
+		 * [n] - Push the value of the local variable (not an argument) indexed
+		 * by n (index 1 is first argument).
 		 */
 		@Override
 		public void L1_doGetLocal ()
@@ -475,8 +481,8 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Push the value of the outer variable indexed by n in the current
-		 * closure.
+		 * [n] - Push the value of the outer variable indexed by n in the
+		 * current closure.
 		 */
 		@Override
 		public void L1_doGetOuter ()
@@ -506,8 +512,8 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * Build a continuation which, when restarted, will be just like restarting
-		 * the current continuation.
+		 * Build a continuation which, when restarted, will be just like
+		 * restarting the current continuation.
 		 */
 		@Override
 		public void L1Ext_doPushLabel ()
@@ -515,13 +521,13 @@ implements L2OperationDispatcher
 			final AvailObject cont = pointerAt(callerRegister());
 			final AvailObject code = cont.closure().code();
 			int stackp = cont.stackp();
+
 			// Always copy it.
 			final AvailObject newContinuation = cont.copyAsMutableContinuation();
-			/*
-			 * Fix up this new continuation. It needs to have its pc set, its stackp
-			 * reset, its stack area and non-argument locals cleared, and its
-			 * caller, closure, and args made immutable.
-			 */
+
+			// Fix up this new continuation. It needs to have its pc set, its
+			// stackp reset, its stack area and non-argument locals cleared, and
+			// its caller, closure, and args made immutable.
 
 			// Set the new continuation's pc to the first instruction...
 			newContinuation.pc(1);
@@ -539,8 +545,8 @@ implements L2OperationDispatcher
 					i,
 					VoidDescriptor.voidObject());
 			}
-			// Freeze all fields of the new object, including its caller, closure,
-			// and args.
+			// Freeze all fields of the new object, including its caller,
+			// closure, and args.
 			newContinuation.makeSubobjectsImmutable();
 			// ...always a fresh copy, always mutable (uniquely owned).
 			assert newContinuation.caller().equalsVoid()
@@ -588,18 +594,19 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * [n] - Send the message at index n in the compiledCode's literals. Like
-		 * the call instruction, the arguments will have been pushed on the stack in
-		 * order, but unlike call, each argument's type will also have been pushed
-		 * (all arguments are pushed, then all argument types). These are either the
-		 * arguments' exact types, or constant types (that must be supertypes of the
-		 * arguments' types), or any mixture of the two. These types will be used
-		 * for method lookup, rather than the argument types. This supports a
-		 * 'super'-like mechanism in the presence of multimethods. Like the call
-		 * instruction, all arguments (and types) are popped, then a sentinel void
-		 * object is pushed, and the looked up method is started. When the invoked
-		 * method returns (via an implicit return instruction), this sentinel will
-		 * be replaced by the result of the call.
+		 * [n] - Send the message at index n in the compiledCode's literals.
+		 * Like the call instruction, the arguments will have been pushed on the
+		 * stack in order, but unlike call, each argument's type will also have
+		 * been pushed (all arguments are pushed, then all argument types).
+		 * These are either the arguments' exact types, or constant types (that
+		 * must be supertypes of the arguments' types), or any mixture of the
+		 * two. These types will be used for method lookup, rather than the
+		 * argument types. This supports a 'super'-like mechanism in the
+		 * presence of multimethods. Like the call instruction, all arguments
+		 * (and types) are popped, then a sentinel void object is pushed, and
+		 * the looked up method is started. When the invoked method returns (via
+		 * an implicit return instruction), this sentinel will be replaced by
+		 * the result of the call.
 		 */
 		@Override
 		public void L1Ext_doSuperCall ()
@@ -619,7 +626,8 @@ implements L2OperationDispatcher
 			}
 			if (matching.isForward())
 			{
-				error("Attempted to execute forward method before it was defined.");
+				error("Attempted to execute forward method " +
+					"before it was defined.");
 				return;
 			}
 			if (matching.isAbstract())
@@ -642,8 +650,10 @@ implements L2OperationDispatcher
 				_argsBuffer.add(cont.stackAt(base - i));
 				cont.stackAtPut(base - i, VoidDescriptor.voidObject());
 			}
-			// Remove types and arguments, but then leave one (void) slot on stack
-			// to distinguish label/call continuations.
+			// Remove types and arguments, but then leave the expected return
+			// type pushed.  This allows the return type to be verified when the
+			// called method returns, and it also helps distinguish label/call
+			// kinds of continuations.
 			cont.stackp(base - 1);
 			cont.stackAtPut(base - 1, expectedReturnType);
 			final short primNum = theCode.primitiveNumber();
@@ -662,7 +672,8 @@ implements L2OperationDispatcher
 					if (!primitiveResult.isInstanceOfSubtypeOf(
 						expectedReturnType))
 					{
-						error("Primitive result did not agree with expected type");
+						error("Primitive result did not agree " +
+							"with expected type");
 					}
 					final AvailObject callerCont = _pointers[callerRegister()];
 					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
@@ -675,12 +686,12 @@ implements L2OperationDispatcher
 
 		/**
 		 * [n] - Push the (n+1)st stack element's type. This is only used by the
-		 * supercast mechanism to produce types for arguments not being cast. See
-		 * #doSuperCall. This implies the type will be used for a lookup and then
-		 * discarded. We therefore don't treat the type as acquiring a new reference
-		 * from the stack, so it doesn't have to become immutable. This could be a
-		 * sticky point with the garbage collector if it finds only one reference to
-		 * the type, but I think it's ok still.
+		 * supercast mechanism to produce types for arguments not being cast.
+		 * See #doSuperCall. This implies the type will be used for a lookup and
+		 * then discarded. We therefore don't treat the type as acquiring a new
+		 * reference from the stack, so it doesn't have to become immutable.
+		 * This could be a sticky point with the garbage collector if it finds
+		 * only one reference to the type, but I think it's ok still.
 		 */
 		@Override
 		public void L1Ext_doGetType ()
@@ -695,7 +706,8 @@ implements L2OperationDispatcher
 		}
 
 		/**
-		 * This shouldn't happen unless the compiler is out of sync with the interpreter.
+		 * This shouldn't happen unless the compiler is out of sync with the
+		 * interpreter.
 		 */
 		@Override
 		public  void L1Ext_doReserved ()
@@ -794,20 +806,18 @@ implements L2OperationDispatcher
 		}
 		_chunk = L2ChunkDescriptor.chunkFromId(continuation
 			.levelTwoChunkIndex());
-		if ((process.executionMode() & ExecutionMode.singleStep) != 0
-				|| !_chunk.isValid())
+		if (!_chunk.isValid())
 		{
-			// Either we're single-stepping or the chunk was invalidated, but
-			// the continuation still refers to it.
-			// The garbage collector will reclaim the chunk only when all such
-			// continuations have let the chunk
-			// go (therefore, let it go). Fall back on single-stepping the Level
-			// One code.
+			// The chunk has been invalidated, but the continuation still refers
+			// to it.  The garbage collector will reclaim the chunk only when
+			// all such continuations have let the chunk go -- therefore, let it
+			// go.  Fall back to the default level two chunk that steps over
+			// nybblecodes.
 			continuation.levelTwoChunkIndexOffset(
 				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 				L2ChunkDescriptor.offsetToPauseUnoptimizedChunk());
-			_chunk = L2ChunkDescriptor.chunkFromId(continuation
-				.levelTwoChunkIndex());
+			_chunk = L2ChunkDescriptor.chunkFromId(
+				continuation.levelTwoChunkIndex());
 		}
 		_chunkWords = _chunk.wordcodes();
 		_chunkVectors = _chunk.vectors();
@@ -825,7 +835,9 @@ implements L2OperationDispatcher
 	 *                 invoked.
 	 * @param theCode The code about to be invoked.
 	 */
-	void makeRoomForChunkRegisters (final AvailObject theChunk, final AvailObject theCode)
+	void makeRoomForChunkRegisters (
+		final AvailObject theChunk,
+		final AvailObject theCode)
 	{
 		final int neededObjectCount = max(
 			theChunk.numObjects(),
@@ -845,7 +857,8 @@ implements L2OperationDispatcher
 		}
 		if (theChunk.numDoubles() > _doubles.length)
 		{
-			final double[] newDoubles = new double[theChunk.numDoubles() * 2 + 10];
+			final double[] newDoubles =
+				new double[theChunk.numDoubles() * 2 + 10];
 			System.arraycopy(_doubles, 0, newDoubles, 0, _doubles.length);
 			_doubles = newDoubles;
 		}
@@ -949,32 +962,20 @@ implements L2OperationDispatcher
 		final AvailObject aClosure,
 		final List<AvailObject> args)
 	{
-		if ((process.executionMode() & ExecutionMode.singleStep) != 0)
+		_chunk = L2ChunkDescriptor.chunkFromId(aClosure.code()
+			.startingChunkIndex());
+		if (!_chunk.isValid())
 		{
-			// When single-stepping, never start up a chunk other than the
-			// unoptimized one.
+			// The chunk is invalid, so use the default chunk and patch up
+			// aClosure's code.
 			_chunk = L2ChunkDescriptor.chunkFromId(L2ChunkDescriptor
 				.indexOfUnoptimizedChunk());
-			// skip the decrement-and-optimize instruction
-			offset(L2ChunkDescriptor.offsetToSingleStepUnoptimizedChunk());
+			aClosure.code().startingChunkIndex(_chunk.index());
+			aClosure.code().invocationCount(
+				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
-		else
-		{
-			_chunk = L2ChunkDescriptor.chunkFromId(aClosure.code()
-				.startingChunkIndex());
-			if (!_chunk.isValid())
-			{
-				// The chunk is invalid, so use the default chunk and patch up
-				// aClosure's code.
-				_chunk = L2ChunkDescriptor.chunkFromId(L2ChunkDescriptor
-					.indexOfUnoptimizedChunk());
-				aClosure.code().startingChunkIndex(_chunk.index());
-				aClosure.code().invocationCount(
-					L2ChunkDescriptor.countdownForInvalidatedCode());
-			}
-			_chunk.moveToHead();
-			offset(1);
-		}
+		_chunk.moveToHead();
+		offset(1);
 
 		makeRoomForChunkRegisters(_chunk, aClosure.code());
 
@@ -1005,20 +1006,6 @@ implements L2OperationDispatcher
 		interruptRequestFlag = InterruptRequestFlag.noInterrupt;
 		_exitNow = false;
 		prepareToExecuteContinuation(continuationTemp);
-
-		if ((process.executionMode() & ExecutionMode.singleStep) != 0)
-		{
-			// We're single-stepping, so force the use of level one emulation.
-			// Note that only the first step of a run is allowed to also execute
-			// the first nybblecode after a prepareToExecuteContinuation().
-			assert _chunk.index() == L2ChunkDescriptor
-			.indexOfUnoptimizedChunk();
-			offset(L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-			process.continuation().levelTwoChunkIndexOffset(
-				_chunk.index(),
-				offset());
-			interruptRequestFlag = InterruptRequestFlag.outOfGas;
-		}
 
 		// The caches are set up. Start dispatching nybblecodes.
 		do
@@ -1148,7 +1135,10 @@ implements L2OperationDispatcher
 				i,
 				pointerAt(argumentRegister(i)));
 		}
-		for (int i = nArgs + 1, _end1 = theCode.numArgsAndLocalsAndStack(); i <= _end1; i++)
+		for (
+				int i = nArgs + 1, _end1 = theCode.numArgsAndLocalsAndStack();
+				i <= _end1;
+				i++)
 		{
 			newContinuation.localOrArgOrStackAtPut(
 				i,
@@ -1211,7 +1201,8 @@ implements L2OperationDispatcher
 		{
 			theCode.invocationCount(L2ChunkDescriptor
 				.countdownForNewlyOptimizedCode());
-			final AvailObject newChunk = privateTranslateCodeOptimization(theCode, 3);
+			final AvailObject newChunk =
+				privateTranslateCodeOptimization(theCode, 3);
 			assert theCode.startingChunkIndex() == newChunk.index();
 			_argsBuffer.clear();
 			final int nArgs = theCode.numArgs();
@@ -1227,17 +1218,16 @@ implements L2OperationDispatcher
 	public void L2_doTranslateCode ()
 	{
 		// The callerRegister contains the calling continuation, and the
-		// closureRegister contains the code
-		// being invoked. Do a naive translation of this code into Level Two.
-		// Don't do any inlining or register
-		// coloring, but insert instrumentation that will eventually trigger a
-		// reoptimization of this code.
+		// closureRegister contains the code being invoked. Do a naive
+		// translation of this code into Level Two. Don't do any inlining or
+		// register coloring, but insert instrumentation that will eventually
+		// trigger a reoptimization of this code.
 
 		final AvailObject theClosure = _pointers[closureRegister()];
 		final AvailObject theCode = theClosure.code();
-		final AvailObject newChunk = privateTranslateCodeOptimization(theCode, 1); // initial
-		// simplistic
-		// translation
+		// Do an initial simplistic translation.
+		final AvailObject newChunk =
+			privateTranslateCodeOptimization(theCode, 1);
 		assert theCode.startingChunkIndex() == newChunk.index();
 		_argsBuffer.clear();
 		final int nArgs = theCode.numArgs();
@@ -2049,7 +2039,8 @@ implements L2OperationDispatcher
 			code.numArgsAndLocalsAndStack()
 			- code.maxStackDepth()
 			+ stackpIndex);
-		continuation.hiLevelTwoChunkLowOffset((_chunk.index() << 16) + wordcodeOffset);
+		continuation.hiLevelTwoChunkLowOffset(
+			(_chunk.index() << 16) + wordcodeOffset);
 		final AvailObject slots = _chunkVectors.tupleAt(slotsIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{
@@ -2409,20 +2400,17 @@ implements L2OperationDispatcher
 		return;
 	}
 
+	/**
+	 * Attempt the specified primitive with the given arguments. If the
+	 * primitive fails, jump to the given code offset. If it succeeds, store the
+	 * result in the specified register. Note that some primitives should never
+	 * be inlined. For example, block invocation assumes the callerRegister has
+	 * been set up to hold the context that is calling the primitive. This is
+	 * not the case for an <em>inlined</em> primitive.
+	 */
 	@Override
 	public void L2_doAttemptPrimitive_withArguments_result_ifFail_ ()
 	{
-		// Attempt the specified primitive with the given arguments. If the
-		// primitive fails,
-		// jump to the given code offset. If it succeeds, store the result in
-		// the specified
-		// register. Note that some primitives should never be inlined. For
-		// example, block
-		// invocation assumes the callerRegister has been set up to hold the
-		// context that
-		// is calling the primitive. This is not the case for an *inlined*
-		// primitive.
-
 		final int primNumber = nextWord();
 		final int argsVector = nextWord();
 		final int resultRegister = nextWord();
@@ -2441,7 +2429,8 @@ implements L2OperationDispatcher
 		else if (res == CONTINUATION_CHANGED)
 		{
 			error(
-				"attemptPrimitive wordcode should never set up a new continuation",
+				"attemptPrimitive wordcode should never set up "
+				+ "a new continuation",
 				primNumber);
 		}
 		else if (res == FAILURE)

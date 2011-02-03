@@ -34,10 +34,46 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
+import com.avail.annotations.EnumField;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 public class ProcessDescriptor extends Descriptor
 {
+
+	/**
+	 * These are the possible execution states of a {@link ProcessDescriptor
+	 * process}.
+	 */
+	public enum ExecutionState
+	{
+		/**
+		 * The process is running or waiting for another process to yield.
+		 */
+		running,
+
+		/**
+		 * The process has been suspended (always on a semaphore).
+		 */
+		suspended,
+
+		/**
+		 * The process has terminated.  This state is final.
+		 */
+		terminated;
+	}
+
+	public class InterruptRequestFlag
+	{
+		// No interrupt is pending.
+		public static final int noInterrupt = 0x0000;
+
+		// Out of gas.
+		public static final int outOfGas = 0x0001;
+
+		// Another process should run instead.
+		public static final int higherPriorityReady = 0x0002;
+	}
+
 
 	/**
 	 * The layout of integer slots for my instances.
@@ -46,7 +82,7 @@ public class ProcessDescriptor extends Descriptor
 	{
 		HASH_OR_ZERO,
 		PRIORITY,
-		EXECUTION_MODE,
+		@EnumField(describedBy=ExecutionState.class)
 		EXECUTION_STATE,
 		INTERRUPT_REQUEST_FLAG
 	}
@@ -61,8 +97,6 @@ public class ProcessDescriptor extends Descriptor
 		PROCESS_GLOBALS
 	}
 
-
-	// GENERATED accessors
 
 	/**
 	 * Setter for field breakpointBlock.
@@ -86,16 +120,6 @@ public class ProcessDescriptor extends Descriptor
 		object.objectSlotPut(ObjectSlots.CONTINUATION, value);
 	}
 
-	/**
-	 * Setter for field executionMode.
-	 */
-	@Override
-	public void o_ExecutionMode (
-			final AvailObject object,
-			final int value)
-	{
-		object.integerSlotPut(IntegerSlots.EXECUTION_MODE, value);
-	}
 
 	/**
 	 * Setter for field executionState.
@@ -103,9 +127,9 @@ public class ProcessDescriptor extends Descriptor
 	@Override
 	public void o_ExecutionState (
 			final AvailObject object,
-			final int value)
+			final ExecutionState value)
 	{
-		object.integerSlotPut(IntegerSlots.EXECUTION_STATE, value);
+		object.integerSlotPut(IntegerSlots.EXECUTION_STATE, value.ordinal());
 	}
 
 	/**
@@ -173,23 +197,14 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	/**
-	 * Getter for field executionMode.
-	 */
-	@Override
-	public int o_ExecutionMode (
-			final AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.EXECUTION_MODE);
-	}
-
-	/**
 	 * Getter for field executionState.
 	 */
 	@Override
-	public int o_ExecutionState (
+	public ExecutionState o_ExecutionState (
 			final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.EXECUTION_STATE);
+		return ExecutionState.values()
+			[object.integerSlot(IntegerSlots.EXECUTION_STATE)];
 	}
 
 	/**
@@ -243,7 +258,6 @@ public class ProcessDescriptor extends Descriptor
 			|| e == ObjectSlots.PROCESS_GLOBALS
 			|| e == IntegerSlots.HASH_OR_ZERO
 			|| e == IntegerSlots.PRIORITY
-			|| e == IntegerSlots.EXECUTION_MODE
 			|| e == IntegerSlots.EXECUTION_STATE
 			|| e == IntegerSlots.INTERRUPT_REQUEST_FLAG;
 	}
