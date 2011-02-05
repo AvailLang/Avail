@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.VOID_TYPE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.max;
@@ -571,9 +571,15 @@ public class L2Translator implements L1OperationDispatcher
 		return null;
 	}
 
-
-
-	// private-nybblecodes
+	@Override
+	public void L1Ext_doDuplicate ()
+	{
+		final L2ObjectRegister originalTopOfStack = topOfStackRegister();
+		addInstruction(new L2MakeImmutableInstruction(originalTopOfStack));
+		stackp--;
+		addInstruction(new L2MoveInstruction().sourceDestination(
+			originalTopOfStack, topOfStackRegister()));
+	}
 
 	@Override
 	public void L1Ext_doGetLiteral ()
@@ -1122,7 +1128,7 @@ public class L2Translator implements L1OperationDispatcher
 			closureRegister(),
 			outerIndex,
 			topOfStackRegister()));
-		addInstruction(new L2MakeImmutableInstruction().register(
+		addInstruction(new L2MakeImmutableInstruction(
 			topOfStackRegister()));
 	}
 
@@ -1148,7 +1154,7 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(new L2MoveInstruction().sourceDestination(
 			localOrArgumentRegister(localIndex),
 			topOfStackRegister()));
-		addInstruction(new L2MakeImmutableInstruction().register(
+		addInstruction(new L2MakeImmutableInstruction(
 			topOfStackRegister()));
 	}
 
@@ -1164,7 +1170,7 @@ public class L2Translator implements L1OperationDispatcher
 			closureRegister(),
 			outerIndex,
 			topOfStackRegister()));
-		addInstruction(new L2MakeImmutableInstruction().register(
+		addInstruction(new L2MakeImmutableInstruction(
 			topOfStackRegister()));
 	}
 
@@ -1206,7 +1212,7 @@ public class L2Translator implements L1OperationDispatcher
 
 		int outerIndex = getInteger();
 		L2ObjectRegister tempReg = newRegister();
-		addInstruction(new L2MakeImmutableInstruction().register(
+		addInstruction(new L2MakeImmutableInstruction(
 			topOfStackRegister()));
 		addInstruction(new L2ExtractOuterInstruction()
 		.closureRegisterOuterNumberDestination(

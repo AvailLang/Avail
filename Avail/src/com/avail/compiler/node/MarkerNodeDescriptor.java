@@ -33,7 +33,7 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.MARKER_NODE;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
@@ -89,7 +89,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		assert false : "A marker node has no type.";
+		assert false : "A marker node has no expression type.";
 		return null;
 	}
 

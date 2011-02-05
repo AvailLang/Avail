@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/L1OperationDispatcher.java
+ * test/InnerAccess.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -29,38 +29,24 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.annotations;
 
-package com.avail.interpreter.levelOne;
+import java.lang.annotation.*;
 
-
-public interface L1OperationDispatcher
+/**
+ * Annotation indicating that a package-visible class or instance field or
+ * method should not be accessed outside the scope of the enclosing class. This
+ * is primarily useful to indicate that fields and methods should be accessible
+ * by inner classes but not other classes defined in the same file or package.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+@Retention(RetentionPolicy.CLASS)
+@Target({
+	ElementType.FIELD,
+	ElementType.METHOD,
+	ElementType.CONSTRUCTOR})
+public @interface InnerAccess
 {
-	void L1_doCall();
-	void L1_doPushLiteral();
-	void L1_doPushLastLocal();
-	void L1_doPushLocal();
-	void L1_doPushLastOuter();
-	void L1_doClose();
-	void L1_doSetLocal();
-	void L1_doGetLocalClearing();
-	void L1_doPushOuter();
-	void L1_doPop();
-	void L1_doGetOuterClearing();
-	void L1_doSetOuter();
-	void L1_doGetLocal();
-
-	/**
-	 * [n] - Make a tuple from n values popped from the stack.  Push the tuple.
-	 */
-	void L1_doMakeTuple();
-	void L1_doGetOuter();
-	void L1_doExtension();
-	void L1Ext_doPushLabel();
-	void L1Ext_doGetLiteral();
-	void L1Ext_doSetLiteral();
-	void L1Ext_doSuperCall();
-	void L1Ext_doGetType();
-	void L1Ext_doReserved();
-	void L1Implied_doReturn();
-	void L1Ext_doDuplicate ();
+	// No implementation required.
 }

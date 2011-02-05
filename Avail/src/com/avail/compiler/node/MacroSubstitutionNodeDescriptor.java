@@ -36,7 +36,6 @@ import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.Transformer1;
 
@@ -124,13 +123,13 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.MACRO_SUBSTITUTION_NODE.o();
+		return object.outputParseNode().type();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.MACRO_SUBSTITUTION_NODE.o();
+		return object.outputParseNode().exactType();
 	}
 
 	@Override

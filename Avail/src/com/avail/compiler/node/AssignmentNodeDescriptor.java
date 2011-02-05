@@ -33,7 +33,7 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ASSIGNMENT_NODE;
 import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
@@ -46,7 +46,8 @@ import com.avail.utility.Transformer1;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AssignmentNodeDescriptor extends ParseNodeDescriptor
+public class AssignmentNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -61,8 +62,8 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		VARIABLE,
 
 		/**
-		 * The actual {@link ParseNodeDescriptor expression} providing the value to
-		 * assign.
+		 * The actual {@link ParseNodeDescriptor expression} providing the value
+		 * to assign.
 		 */
 		EXPRESSION
 	}
@@ -114,7 +115,7 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return VOID_TYPE.o();
+		return object.expression().expressionType();
 	}
 
 	@Override
@@ -167,8 +168,14 @@ public class AssignmentNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		// Assignments are only allowed to be top-level statements.
-		error("Pass-through (embedded) assignments are not supported");
+		final AvailObject declaration = object.variable().declaration();
+		final DeclarationKind declarationKind = declaration.declarationKind();
+		assert declarationKind.isVariable();
+		object.expression().emitValueOn(codeGenerator);
+		codeGenerator.emitDuplicate();
+		declarationKind.emitVariableAssignmentForOn(
+			declaration,
+			codeGenerator);
 	}
 
 	@Override

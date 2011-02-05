@@ -258,7 +258,26 @@ public class L1Decompiler implements L1OperationDispatcher
 		_expressionStack.add(expression);
 	}
 
-
+	/**
+	 * The presence of the {@linkplain L1Operation operation} indicates that
+	 * an assignment is being used as a subexpression or final statement from a
+	 * non-void valued {@linkplain ClosureDescriptor block}.
+	 *
+	 * <p>Pop the expression (that represents the right hand side of the
+	 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
+	 * whose markerValue is the {@linkplain VoidDescriptor#voidObject() void
+	 * object}, then push the right-hand side expression back onto the
+	 * expression stack.</p>
+	 */
+	@Override
+	public void L1Ext_doDuplicate ()
+	{
+		final AvailObject rightSide = popExpression();
+		final AvailObject marker = MarkerNodeDescriptor.mutable().create();
+		marker.markerValue(VoidDescriptor.voidObject());
+		pushExpression(marker);
+		pushExpression(rightSide);
+	}
 
 	@Override
 	public void L1Ext_doGetLiteral ()
@@ -290,7 +309,8 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1Ext_doPushLabel ()
 	{
 		AvailObject label;
-		if (_statements.size() > 0 && _statements.get(0).declarationKind() == LABEL)
+		if (_statements.size() > 0
+			&& _statements.get(0).declarationKind() == LABEL)
 		{
 			label = _statements.get(0);
 		}
@@ -328,8 +348,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
-		globalToken.string(
-			ByteStringDescriptor.from("SomeGlobal"));
+		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = _code.literalAt(getInteger());
 
@@ -344,7 +363,20 @@ public class L1Decompiler implements L1OperationDispatcher
 			AssignmentNodeDescriptor.mutable().create();
 		assignmentNode.variable(varUse);
 		assignmentNode.expression(popExpression());
-		_statements.add(assignmentNode);
+		if (_expressionStack.isEmpty())
+		{
+			_statements.add(assignmentNode);
+		}
+		else
+		{
+			// We had better see a marker with a void markerValue, otherwise the
+			// code generator didn't do what we expected.  Remove that bogus
+			// marker and replace it with the (embedded) assignment node itself.
+			final AvailObject duplicateExpression = popExpression();
+			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.markerValue().equalsVoid();
+			_expressionStack.add(assignmentNode);
+		}
 	}
 
 	@Override
@@ -553,6 +585,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPop ()
 	{
 		_statements.add(popExpression());
+		assert _expressionStack.isEmpty();
 	}
 
 
@@ -672,11 +705,24 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
 			localDecl.token(),
 			valueNode);
-		final AvailObject assignment =
+		final AvailObject assignmentNode =
 			AssignmentNodeDescriptor.mutable().create();
-		assignment.variable(variableUse);
-		assignment.expression(valueNode);
-		_statements.add(assignment);
+		assignmentNode.variable(variableUse);
+		assignmentNode.expression(valueNode);
+		if (_expressionStack.isEmpty())
+		{
+			_statements.add(assignmentNode);
+		}
+		else
+		{
+			// We had better see a marker with a void markerValue, otherwise the
+			// code generator didn't do what we expected.  Remove that bogus
+			// marker and replace it with the (embedded) assignment node itself.
+			final AvailObject duplicateExpression = popExpression();
+			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.markerValue().equalsVoid();
+			_expressionStack.add(assignmentNode);
+		}
 	}
 
 	@Override
@@ -709,11 +755,24 @@ public class L1Decompiler implements L1OperationDispatcher
 				outerDecl);
 		}
 		final AvailObject valueExpr = popExpression();
-		final AvailObject assignment =
+		final AvailObject assignmentNode =
 			AssignmentNodeDescriptor.mutable().create();
-		assignment.variable(variableUse);
-		assignment.expression(valueExpr);
-		_statements.add(assignment);
+		assignmentNode.variable(variableUse);
+		assignmentNode.expression(valueExpr);
+		if (_expressionStack.isEmpty())
+		{
+			_statements.add(assignmentNode);
+		}
+		else
+		{
+			// We had better see a marker with a void markerValue, otherwise the
+			// code generator didn't do what we expected.  Remove that bogus
+			// marker and replace it with the (embedded) assignment node itself.
+			final AvailObject duplicateExpression = popExpression();
+			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.markerValue().equalsVoid();
+			_expressionStack.add(assignmentNode);
+		}
 	}
 
 

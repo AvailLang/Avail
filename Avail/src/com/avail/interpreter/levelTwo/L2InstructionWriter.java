@@ -35,11 +35,25 @@ package com.avail.interpreter.levelTwo;
 import java.io.ByteArrayOutputStream;
 import com.avail.descriptor.*;
 
+/**
+ * An {@code L2InstructionWriter} provides a mechanism for writing a sequence of
+ * {@linkplain L2RawInstruction level two wordcode instructions}.
+ */
 public class L2InstructionWriter
 {
 
+	/**
+	 * The stream of bytes on which to write the wordcodes.  Each wordcode must
+	 * be in the range 0..65535, as must each operand.
+	 */
 	final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
+	/**
+	 * Write an operand in the range 0..65535.  Write it as two bytes in
+	 * big endian order.
+	 *
+	 * @param operand The operand to write.
+	 */
 	private void writeOperand(final int operand)
 	{
 		assert operand == (operand & 0xFFFF);
@@ -47,6 +61,12 @@ public class L2InstructionWriter
 		stream.write(operand & 0xFF);
 	};
 
+	/**
+	 * Write the given {@link L2RawInstruction}, including the operation code
+	 * and the operands.
+	 *
+	 * @param instruction The {@link L2RawInstruction} to write.
+	 */
 	public void write(final L2RawInstruction instruction)
 	{
 		final int opcode = instruction.operation().ordinal();
@@ -60,6 +80,17 @@ public class L2InstructionWriter
 		}
 	};
 
+	/**
+	 * Extract the previously {@linkplain
+	 * L2InstructionWriter#write(L2RawInstruction) written} wordcodes as a tuple
+	 * of integers.  Use a compact representation if the result can be expressed
+	 * as a {@linkplain ByteTupleDescriptor tuple of bytes}.
+	 *
+	 * @return The {@link TupleDescriptor tuple} of integers representing the
+	 *         operations and operands of the {@link L2RawInstruction}s
+	 *         previously {@link #write(L2RawInstruction) written} to the
+	 *         receiver.
+	 */
 	public AvailObject words()
 	{
 		final byte [] byteArray = stream.toByteArray();
@@ -91,7 +122,9 @@ public class L2InstructionWriter
 			int dest = 1;
 			for (int source = 0; source < byteArray.length; source += 2)
 			{
-				final int value = (byteArray[source] & 0xFF) << 8 + (byteArray[source + 1] & 0xFF);
+				final int value =
+					(byteArray[source] & 0xFF) << 8
+					+ (byteArray[source + 1] & 0xFF);
 				words.tupleAtPut(dest++, IntegerDescriptor.fromInt(value));
 			}
 		}

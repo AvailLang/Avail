@@ -433,10 +433,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				statementsTuple.tupleAt(statementsCount);
 			final AvailObject lastStatementType = lastStatement.type();
 			if (lastStatementType.isSubtypeOf(LABEL_NODE.o())
-				|| lastStatementType.isSubtypeOf(ASSIGNMENT_NODE.o()))
+				|| lastStatementType.isSubtypeOf(ASSIGNMENT_NODE.o())
+						&& object.resultType().equals(VOID_TYPE.o()))
 			{
-				// The block ends with the label declaration or an assignment.
-				// Push the void object as the return value.
+				// Either the block 1) ends with the label declaration or
+				// 2) is void-valued and ends with an assignment. Push the void
+				// object as the return value.
 				lastStatement.emitEffectOn(codeGenerator);
 				codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
 			}

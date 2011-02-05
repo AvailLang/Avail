@@ -32,20 +32,20 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doMakeImmutableObject_;
+import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.instruction.L2MakeImmutableInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2MakeImmutableInstruction extends L2Instruction
 {
-	L2ObjectRegister _register;
+	private final @NotNull L2ObjectRegister register;
 
-
-	// accessing
+	public L2MakeImmutableInstruction (final L2ObjectRegister register)
+	{
+		this.register = register;
+	}
 
 	@Override
 	public List<L2Register> destinationRegisters ()
@@ -61,13 +61,9 @@ public class L2MakeImmutableInstruction extends L2Instruction
 		//  Answer a collection of registers read by this instruction.
 
 		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_register);
+		result.add(register);
 		return result;
 	}
-
-
-
-	// code generation
 
 	@Override
 	public void emitOn (
@@ -76,17 +72,6 @@ public class L2MakeImmutableInstruction extends L2Instruction
 		//  Emit this instruction to the code generator.
 
 		anL2CodeGenerator.emitWord(L2_doMakeImmutableObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_register);
-	}
-
-
-
-	// initialization
-
-	public L2MakeImmutableInstruction register (
-			final L2ObjectRegister reg)
-	{
-		_register = reg;
-		return this;
+		anL2CodeGenerator.emitObjectRegister(register);
 	}
 }

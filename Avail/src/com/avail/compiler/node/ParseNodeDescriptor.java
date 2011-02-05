@@ -69,6 +69,18 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	public abstract AvailObject o_ExpressionType (final AvailObject object);
 
 	/**
+	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
+	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
+	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
+	 * always the {@link VoidDescriptor#voidObject() void} object.
+	 */
+	@Override
+	public AvailObject o_ApparentSendName (final AvailObject object)
+	{
+		return VoidDescriptor.voidObject();
+	}
+
+	/**
 	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
 	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
@@ -128,7 +140,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	enum FakeIntegerSlots {
 		/**
-		 * An indexed integer slot that makes it easy to visit all integer slots.
+		 * An indexed integer slot that makes it easy to visit all integer
+		 * slots.
 		 */
 		ALL_INTEGER_SLOTS_
 	}

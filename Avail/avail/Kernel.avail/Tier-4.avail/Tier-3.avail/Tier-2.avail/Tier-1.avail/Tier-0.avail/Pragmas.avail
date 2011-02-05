@@ -33,7 +33,9 @@
 Module "Pragmas"
 Pragma
 	"bootstrapDefiningMethod = Method_is_",
-	"bootstrapSpecialObject = Special Object_"
+	"bootstrapSpecialObject = Special Object_",
+	"bootstrapParseFailure = Failed parsing_",
+	"bootstrapAssignment = _:=_"
 Extends
 Uses
 Names

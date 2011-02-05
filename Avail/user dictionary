@@ -60,3 +60,5 @@ hygienic
 multimethods
 multimacro
 backquoted
+schedulable
+memoization

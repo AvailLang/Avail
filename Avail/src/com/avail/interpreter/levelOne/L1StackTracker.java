@@ -61,7 +61,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		return reachable;
 	}
 
-	void track (L1Instruction instruction)
+	void track (final L1Instruction instruction)
 	{
 		assert reachable;
 		assert currentDepth >= 0;
@@ -78,117 +78,146 @@ abstract class L1StackTracker implements L1OperationDispatcher
 
 	// Operation dispatching
 
-	@Override public void L1_doCall ()
+	@Override
+	public void L1_doCall ()
 	{
 		currentDepth += 1 - literalAt(currentOperands[0]).numArgs();
 	}
 
-	@Override public void L1_doPushLiteral ()
+	@Override
+	public void L1_doPushLiteral ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1_doPushLastLocal ()
+	@Override
+	public void L1_doPushLastLocal ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1_doPushLocal ()
+	@Override
+	public void L1_doPushLocal ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1_doPushLastOuter ()
+	@Override
+	public void L1_doPushLastOuter ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1_doClose ()
-	{
-		currentDepth += 1 - currentOperands[0];
-	}
-
-	@Override public void L1_doSetLocal ()
-	{
-		currentDepth -= 1;
-	}
-
-	@Override public void L1_doGetLocalClearing ()
-	{
-		currentDepth += 1;
-	}
-
-	@Override public void L1_doPushOuter ()
-	{
-		currentDepth += 1;
-	}
-
-	@Override public void L1_doPop ()
-	{
-		currentDepth -= 1;
-	}
-
-	@Override public void L1_doGetOuterClearing ()
-	{
-		currentDepth += 1;
-	}
-
-	@Override public void L1_doSetOuter ()
-	{
-		currentDepth -= 1;
-	}
-
-	@Override public void L1_doGetLocal ()
-	{
-		currentDepth += 1;
-	}
-
-	@Override public void L1_doMakeTuple ()
+	@Override
+	public void L1_doClose ()
 	{
 		currentDepth += 1 - currentOperands[0];
 	}
 
-	@Override public void L1_doGetOuter ()
+	@Override
+	public void L1_doSetLocal ()
 	{
-		currentDepth += 1;
+		currentDepth--;
 	}
 
-	@Override public void L1_doExtension ()
+	@Override
+	public void L1_doGetLocalClearing ()
+	{
+		currentDepth++;
+	}
+
+	@Override
+	public void L1_doPushOuter ()
+	{
+		currentDepth++;
+	}
+
+	@Override
+	public void L1_doPop ()
+	{
+		currentDepth--;
+	}
+
+	@Override
+	public void L1_doGetOuterClearing ()
+	{
+		currentDepth++;
+	}
+
+	@Override
+	public void L1_doSetOuter ()
+	{
+		currentDepth--;
+	}
+
+	@Override
+	public void L1_doGetLocal ()
+	{
+		currentDepth++;
+	}
+
+	@Override
+	public void L1_doMakeTuple ()
+	{
+		currentDepth += 1 - currentOperands[0];
+	}
+
+	@Override
+	public void L1_doGetOuter ()
+	{
+		currentDepth++;
+	}
+
+	@Override
+	public void L1_doExtension ()
 	{
 		error("The extension nybblecode should not be dispatched.");
 	}
 
-	@Override public void L1Ext_doPushLabel ()
+	@Override
+	public void L1Ext_doPushLabel ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1Ext_doGetLiteral ()
+	@Override
+	public void L1Ext_doGetLiteral ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1Ext_doSetLiteral ()
+	@Override
+	public void L1Ext_doSetLiteral ()
 	{
-		currentDepth -= 1;
+		currentDepth--;
 	}
 
-	@Override public void L1Ext_doSuperCall ()
+	@Override
+	public void L1Ext_doSuperCall ()
 	{
-		currentDepth += 1 - (literalAt(currentOperands[0]).numArgs() * 2);
+		currentDepth += 1 - literalAt(currentOperands[0]).numArgs() * 2;
 	}
 
-	@Override public void L1Ext_doGetType ()
+	@Override
+	public void L1Ext_doGetType ()
 	{
-		currentDepth += 1;
+		currentDepth++;
 	}
 
-	@Override public void L1Ext_doReserved ()
+	@Override
+	public void L1Ext_doDuplicate ()
+	{
+		currentDepth++;
+	}
+
+	@Override
+	public void L1Ext_doReserved ()
 	{
 		error("Reserved nybblecode");
 	}
 
-	@Override public void L1Implied_doReturn ()
+	@Override
+	public void L1Implied_doReturn ()
 	{
 		assert currentDepth == 1;
 		currentDepth = 0;

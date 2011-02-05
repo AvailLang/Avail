@@ -38,9 +38,9 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
+import com.avail.compiler.node.AssignmentNodeDescriptor;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import com.avail.descriptor.ProcessDescriptor.InterruptRequestFlag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.utility.*;
@@ -599,7 +599,6 @@ public abstract class Interpreter
 				true,
 				InfinityDescriptor.positiveInfinity(),
 				false);
-		AvailObject newClosure;
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
 			new L1Instruction(
@@ -609,18 +608,82 @@ public abstract class Interpreter
 		writer.primitiveNumber(
 			Primitive.prim240_SpecialObject_index.primitiveNumber);
 		writer.returnType(ALL.o());
-		newClosure = ClosureDescriptor.create(
+		final AvailObject newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
-			ByteStringDescriptor.from(
-				specialObjectName);
-		final AvailObject realName = CyclicTypeDescriptor.create(
-			nameTuple);
+			ByteStringDescriptor.from(specialObjectName);
+		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
+	}
+
+	/**
+	 * Create the one-argument parse failure method.  It takes a message string
+	 * and invokes {@linkplain Primitive#prim352_RejectParsing_errorString
+	 * primitive 352} to feed a failed expectation back to the compiler.
+	 *
+	 * @param parseFailureName
+	 *        The name of the parse failure method.
+	 */
+	public void bootstrapParseFailure (
+		final @NotNull String parseFailureName)
+	{
+		assert module != null;
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(VoidDescriptor.voidObject())));
+		writer.argumentTypes(TupleTypeDescriptor.stringTupleType());
+		writer.primitiveNumber(
+			Primitive.prim352_RejectParsing_errorString.primitiveNumber);
+		writer.returnType(TERMINATES.o());
+		final AvailObject newClosure = ClosureDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newClosure.makeImmutable();
+		final AvailObject nameTuple =
+			ByteStringDescriptor.from(parseFailureName);
+		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
+		module.atNameAdd(nameTuple, realName);
+		module.atNewNamePut(nameTuple, realName);
+		atAddMethodBody(realName, newClosure);
+	}
+
+	/**
+	 * Create the two-argument {@linkplain AssignmentNodeDescriptor assignment}
+	 * {@linkplain MacroSignatureDescriptor macro definition}.
+	 *
+	 * @param assignmentName
+	 *        The name of the assignment macro.
+	 */
+	public void bootstrapAssignment (
+		final @NotNull String assignmentName)
+	{
+		assert module != null;
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(VoidDescriptor.voidObject())));
+		writer.argumentTypes(VARIABLE_USE_NODE.o(), PARSE_NODE.o());
+		writer.primitiveNumber(
+			Primitive.prim350_MacroAssignment_variable_expression
+			.primitiveNumber);
+		writer.returnType(ASSIGNMENT_NODE.o());
+		final AvailObject newClosure = ClosureDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newClosure.makeImmutable();
+		final AvailObject nameTuple =
+			ByteStringDescriptor.from(assignmentName);
+		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
+		module.atNameAdd(nameTuple, realName);
+		module.atNewNamePut(nameTuple, realName);
+		atAddMacroBody(realName, newClosure);
 	}
 
 	/**
@@ -870,7 +933,7 @@ public abstract class Interpreter
 		process.priority(50);
 		process.continuation(VoidDescriptor.voidObject());
 		process.executionState(ExecutionState.running);
-		process.interruptRequestFlag(InterruptRequestFlag.noInterrupt);
+		process.interruptRequestFlag(0);
 		process.breakpointBlock(VoidDescriptor.voidObject());
 		process.processGlobals(MapDescriptor.empty());
 	}

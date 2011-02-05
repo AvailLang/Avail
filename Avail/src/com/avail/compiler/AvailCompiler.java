@@ -38,7 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
@@ -59,19 +59,65 @@ public class AvailCompiler
 	 * The {@linkplain L2Interpreter interpreter} to use when evaluating
 	 * top-level expressions.
 	 */
-	final @NotNull
-	L2Interpreter interpreter;
+	@InnerAccess final @NotNull L2Interpreter interpreter;
 
+	/**
+	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
+	 */
+	private AvailObject module;
+
+	/**
+	 * The source text of the Avail {@linkplain ModuleDescriptor module}
+	 * undergoing compilation.
+	 */
 	private String source;
-	List<AvailObject> tokens;
-	int greatestGuess;
-	final List<Generator<String>> greatExpectations =
+
+	/**
+	 * The complete {@linkplain List list} of {@linkplain TokenDescriptor
+	 * tokens} parsed from the source text.
+	 */
+	@InnerAccess List<AvailObject> tokens;
+
+	/**
+	 * The position of the rightmost {@linkplain TokenDescriptor token} reached
+	 * by any parsing attempt.
+	 */
+	@InnerAccess int greatestGuess;
+
+	/**
+	 * The {@linkplain List list} of {@linkplain String} {@linkplain Generator
+	 * generators} that describe what was expected (but not found) at the
+	 * {@linkplain #greatestGuess rightmost reached position}.
+	 */
+	@InnerAccess final @NotNull List<Generator<String>> greatExpectations =
 		new ArrayList<Generator<String>>(10);
-	AvailObject module;
-	AvailCompilerFragmentCache fragmentCache;
-	List<AvailObject> extendedModules;
-	List<AvailObject> usedModules;
-	List<AvailObject> exportedNames;
+
+	/** The memoization of results of previous parsing attempts. */
+	@InnerAccess AvailCompilerFragmentCache fragmentCache;
+
+	/**
+	 * The {@linkplain ModuleDescriptor modules} extended by the module
+	 * undergoing compilation.
+	 */
+	@InnerAccess List<AvailObject> extendedModules;
+
+	/**
+	 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
+	 * compilation.
+	 */
+	@InnerAccess List<AvailObject> usedModules;
+
+	/**
+	 * The {@linkplain CyclicTypeDescriptor names} defined and exported by the
+	 * {@linkplain ModuleDescriptor module} undergoing compilation.
+	 */
+	@InnerAccess List<AvailObject> exportedNames;
+
+	/**
+	 * The {@linkplain Continuation3 action} that should be performed
+	 * repeatedly by the {@linkplain AvailCompiler compiler} to report
+	 * compilation progress.
+	 */
 	private Continuation3<ModuleName, Long, Long> progressBlock;
 
 	/**
@@ -582,25 +628,25 @@ public class AvailCompiler
 								}
 							}
 						});
-					parseAssignmentThen(start, new Con<AvailObject>(
-						"Semicolon after assignment")
-					{
-						@Override
-						public void value (
-							final ParserState afterAssignment,
-							final AvailObject assignment)
-						{
-							if (afterAssignment.peekToken(
-								END_OF_STATEMENT,
-								";",
-								"; to end assignment statement"))
-							{
-								whenFoundStatement.value(
-									afterAssignment.afterToken(),
-									assignment);
-							}
-						}
-					});
+//					parseAssignmentThen(start, new Con<AvailObject>(
+//						"Semicolon after assignment")
+//					{
+//						@Override
+//						public void value (
+//							final ParserState afterAssignment,
+//							final AvailObject assignment)
+//						{
+//							if (afterAssignment.peekToken(
+//								END_OF_STATEMENT,
+//								";",
+//								"; to end assignment statement"))
+//							{
+//								whenFoundStatement.value(
+//									afterAssignment.afterToken(),
+//									assignment);
+//							}
+//						}
+//					});
 					parseExpressionThen(start, new Con<AvailObject>(
 						"Semicolon after expression")
 					{
@@ -617,8 +663,10 @@ public class AvailCompiler
 								return;
 							}
 							if (!outermost
-									|| expression.expressionType().equals(
-										VOID_TYPE.o()))
+								|| expression.expressionType().equals(
+									VOID_TYPE.o())
+								|| expression.isInstanceOfSubtypeOf(
+									ASSIGNMENT_NODE.o()))
 							{
 								whenFoundStatement.value(
 									afterExpression.afterToken(),
@@ -1519,7 +1567,7 @@ public class AvailCompiler
 				{
 					final AvailObject pragmaString = strings.get(index);
 					final String nativeString = pragmaString.asNativeString();
-					final String[] parts = nativeString.split("=");
+					final String[] parts = nativeString.split("=", 2);
 					assert parts.length == 2;
 					final String pragmaKey = parts[0].trim();
 					final String pragmaValue = parts[1].trim();
@@ -1539,6 +1587,14 @@ public class AvailCompiler
 					else if (pragmaKey.equals("bootstrapSpecialObject"))
 					{
 						interpreter.bootstrapSpecialObject(pragmaValue);
+					}
+					else if (pragmaKey.equals("bootstrapParseFailure"))
+					{
+						interpreter.bootstrapParseFailure(pragmaValue);
+					}
+					else if (pragmaKey.equals("bootstrapAssignment"))
+					{
+						interpreter.bootstrapAssignment(pragmaValue);
 					}
 				}
 			}
@@ -2050,8 +2106,7 @@ public class AvailCompiler
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);
-			if (stmt.isInstanceOfSubtypeOf(DECLARATION_NODE.o())
-				|| stmt.isInstanceOfSubtypeOf(ASSIGNMENT_NODE.o()))
+			if (stmt.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
 			{
 				lastStatementType.value = VOID_TYPE.o();
 			}
@@ -3043,19 +3098,19 @@ public class AvailCompiler
 	{
 		for (int i = 1; i <= innerArguments.size(); i++)
 		{
-			final int index = i;
 			List<AvailObject> argumentOccurrences =
-				innerArguments.get(index - 1);
+				innerArguments.get(i - 1);
 			for (AvailObject argument : argumentOccurrences)
 			{
-				if (argument.isInstanceOfSubtypeOf(SEND_NODE.o())
-					|| argument.isInstanceOfSubtypeOf(
-						MACRO_SUBSTITUTION_NODE.o()))
+				final AvailObject argumentSendName =
+					argument.apparentSendName();
+				if (!argumentSendName.equalsVoid())
 				{
 					final AvailObject restrictions =
-						bundle.restrictions().tupleAt(index);
-					if (restrictions.hasElement(argument.apparentSendName()))
+						bundle.restrictions().tupleAt(i);
+					if (restrictions.hasElement(argumentSendName))
 					{
+						final int index = i;
 						ifFail.value(new Generator<String>()
 						{
 							@Override
@@ -3587,31 +3642,27 @@ public class AvailCompiler
 		{
 			final AvailObject lastStatement = statements.get(
 				statements.size() - 1);
-			if (!lastStatement.isInstanceOfSubtypeOf(ASSIGNMENT_NODE.o())
-				&& !lastStatement.isInstanceOfSubtypeOf(LABEL_NODE.o())
-				&& !lastStatement.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
+			if (lastStatement.expressionType().equals(TERMINATES.o()))
 			{
-				if (lastStatement.expressionType().equals(TERMINATES.o()))
+				start.expected(
+					"end of statements, since this one always terminates");
+				return;
+			}
+			if (!lastStatement.expressionType().equals(VOID_TYPE.o())
+				&& !lastStatement.isInstanceOfSubtypeOf(ASSIGNMENT_NODE.o()))
+			{
+				start.expected(new Generator<String>()
 				{
-					start.expected(
-						"end of statements, since this one always terminates");
-					return;
-				}
-				if (!lastStatement.expressionType().equals(VOID_TYPE.o()))
-				{
-					start.expected(new Generator<String>()
+					@Override
+					public String value ()
 					{
-						@Override
-						public String value ()
-						{
-							return "non-last statement \""
-									+ lastStatement.toString()
-									+ "\" to have type void, not \""
-									+ lastStatement.expressionType().toString()
-									+ "\".";
-						}
-					});
-				}
+						return "non-last statement \""
+								+ lastStatement.toString()
+								+ "\" to have type void, not \""
+								+ lastStatement.expressionType().toString()
+								+ "\".";
+					}
+				});
 			}
 		}
 		start.expected("more statements");

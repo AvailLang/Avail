@@ -34,9 +34,21 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
+import java.util.concurrent.ThreadPoolExecutor;
 import com.avail.annotations.EnumField;
 import com.avail.descriptor.TypeDescriptor.Types;
 
+/**
+ * An Avail {@linkplain ProcessDescriptor process} represents an independently
+ * schedulable flow of control.  Its primary feature is a continuation which is
+ * repeatedly replaced with continuations representing successively more
+ * advanced states, thereby effecting execution.
+ *
+ * <p>At the moment (2011.02.03), only one process can be executing at a time,
+ * but the ultimate goal is to support very many Avail processes running on top
+ * of a (smaller) {@link ThreadPoolExecutor}, each thread of which will be
+ * executing an Avail process.</p>
+ */
 public class ProcessDescriptor extends Descriptor
 {
 
@@ -57,20 +69,33 @@ public class ProcessDescriptor extends Descriptor
 		suspended,
 
 		/**
-		 * The process has terminated.  This state is final.
+		 * The process has terminated.  This state is permanent.
 		 */
 		terminated;
 	}
 
+	/**
+	 * Definitions of static flags that indicate why a {@linkplain
+	 * ProcessDescriptor process} is being interrupted.  These flags are
+	 * single-bit masks that can be set or cleared in the process's {@linkplain
+	 * IntegerSlots#INTERRUPT_REQUEST_FLAG interrupt request flags}.  If
+	 * <em>any</em> bits are set then an inter-nybblecode interrupt will take
+	 * place at the next convenient time.
+	 */
 	public class InterruptRequestFlag
 	{
-		// No interrupt is pending.
-		public static final int noInterrupt = 0x0000;
-
-		// Out of gas.
+		/**
+		 * Interrupt because this process has executed the specified number of
+		 * nybblecodes.  This can be used to implement single-stepping.
+		 */
 		public static final int outOfGas = 0x0001;
 
-		// Another process should run instead.
+		/**
+		 * Either this process's priority has been lowered or another process's
+		 * priority has been increased.  Either way, a higher priority process
+		 * than the current one may be ready to schedule, and the process
+		 * scheduling machinery should have an opportunity for determining this.
+		 */
 		public static final int higherPriorityReady = 0x0002;
 	}
 
@@ -80,10 +105,29 @@ public class ProcessDescriptor extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash of this process, which is chosen randomly on demand.
+		 */
 		HASH_OR_ZERO,
+
+		/**
+		 * The priority of this process, where processes with larger values get
+		 * at least as much opportunity to run as processes with lower values.
+		 */
 		PRIORITY,
+
+		/**
+		 * The {@link ExecutionState execution state} of the process, indicating
+		 * whether the process is {@linkplain ExecutionState#running running},
+		 * {@linkplain ExecutionState#suspended suspended} or {@linkplain
+		 * ExecutionState#terminated terminated}.
+		 */
 		@EnumField(describedBy=ExecutionState.class)
 		EXECUTION_STATE,
+
+		/**
+		 *
+		 */
 		INTERRUPT_REQUEST_FLAG
 	}
 

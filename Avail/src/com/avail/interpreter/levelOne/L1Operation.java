@@ -301,7 +301,16 @@ public enum L1Operation
 	},
 
 
-	L1Ext_doReserved(21)
+	L1Ext_doDuplicate(21)
+	{
+		@Override
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L1Ext_doDuplicate();
+		}
+	},
+
+	L1Ext_doReserved(22)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)
@@ -310,8 +319,7 @@ public enum L1Operation
 		}
 	},
 
-
-	L1Implied_Return(22)
+	L1Implied_Return(23)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)

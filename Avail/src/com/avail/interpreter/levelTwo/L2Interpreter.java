@@ -40,7 +40,6 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import com.avail.descriptor.ProcessDescriptor.InterruptRequestFlag;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -696,13 +695,27 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Ext_doGetType ()
 		{
-
 			final AvailObject cont = pointerAt(callerRegister());
 			final int index = getInteger();
 			final int stackp = cont.stackp() - 1;
 			final AvailObject value = cont.stackAt(stackp + index + 1);
 			cont.stackp(stackp);
 			cont.stackAtPut(stackp, value.type());
+		}
+
+		/**
+		 * Duplicate the element at the top of the stack. Make the element
+		 * immutable since there are now at least two references.
+		 */
+		@Override
+		public void L1Ext_doDuplicate ()
+		{
+			final AvailObject cont = pointerAt(callerRegister());
+			final int stackp = cont.stackp() - 1;
+			final AvailObject value = cont.stackAt(stackp + 1);
+			value.makeImmutable();
+			cont.stackAtPut(stackp, value);
+			cont.stackp(stackp);
 		}
 
 		/**
@@ -1002,8 +1015,7 @@ implements L2OperationDispatcher
 	{
 		process = aProcess;
 		final AvailObject continuationTemp = aProcess.continuation();
-
-		interruptRequestFlag = InterruptRequestFlag.noInterrupt;
+		interruptRequestFlag = 0;
 		_exitNow = false;
 		prepareToExecuteContinuation(continuationTemp);
 
@@ -1980,7 +1992,7 @@ implements L2OperationDispatcher
 	public void L2_doJumpIfInterrupt_ ()
 	{
 		final int ifIndex = nextWord();
-		if (interruptRequestFlag != InterruptRequestFlag.noInterrupt)
+		if (interruptRequestFlag != 0)
 		{
 			offset(ifIndex);
 		}
@@ -1990,7 +2002,7 @@ implements L2OperationDispatcher
 	public void L2_doJumpIfNotInterrupt_ ()
 	{
 		final int ifNotIndex = nextWord();
-		if (interruptRequestFlag == InterruptRequestFlag.noInterrupt)
+		if (interruptRequestFlag == 0)
 		{
 			offset(ifNotIndex);
 		}

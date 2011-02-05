@@ -34,6 +34,7 @@ package com.avail.compiler.node;
 
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.TypeDescriptor.Types.VOID_TYPE;
 import java.util.List;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
@@ -591,8 +592,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		error("Don't ask for the type of a variable declaration node");
-		return VoidDescriptor.voidObject();
+		return VOID_TYPE.o();
 	}
 
 

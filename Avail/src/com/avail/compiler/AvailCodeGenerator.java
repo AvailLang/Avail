@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.compiler.instruction.*;
@@ -426,6 +426,15 @@ public class AvailCodeGenerator
 		increaseDepth(1);
 		final int index = indexOfLiteral(aLiteral);
 		_instructions.add(new AvailGetLiteralVariable(index));
+	}
+
+	/**
+	 * Emit code to duplicate the element at the top of the stack.
+	 */
+	public void emitDuplicate ()
+	{
+		increaseDepth(1);
+		_instructions.add(new AvailDuplicate());
 	}
 
 	/**
