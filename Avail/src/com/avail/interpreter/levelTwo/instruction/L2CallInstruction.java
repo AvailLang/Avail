@@ -32,82 +32,91 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2CallInstruction;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doSend_argumentsVector_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2CallInstruction extends L2Instruction
+/**
+ * {@code L2CallInstruction} attempts to execute a specific {@linkplain
+ * MethodSignatureDescriptor method} by matching the actual {@linkplain
+ * AvailObject arguments} against an {@linkplain ImplementationSetDescriptor
+ * implementation set}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2CallInstruction
+extends L2Instruction
 {
-	AvailObject _impSet;
-	L2RegisterVector _argsVector;
+	/**
+	 * The {@linkplain ImplementationSetDescriptor implementation set} from
+	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
+	 * and called based on the exact {@linkplain #arguments arguments}.
+	 */
+	private final @NotNull AvailObject implementationSet;
 
+	/**
+	 * The {@linkplain AvailObject arguments} of the {@linkplain
+	 * MethodSignatureDescriptor method} call.
+	 */
+	private final @NotNull L2RegisterVector arguments;
 
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2CallInstruction}.
+	 *
+	 * @param implementationSet
+	 *        The {@linkplain ImplementationSetDescriptor implementation set}
+	 *        from which a {@linkplain MethodSignatureDescriptor method} should
+	 *        be selected and called based on the exact {@linkplain #arguments
+	 *        arguments}.
+	 * @param arguments
+	 *        The {@linkplain AvailObject arguments} of the {@linkplain
+	 *        MethodSignatureDescriptor method} call.
+	 */
+	public L2CallInstruction (
+		final @NotNull AvailObject implementationSet,
+		final @NotNull L2RegisterVector arguments)
 	{
-		//  Answer a collection of registers written to by this instruction.  Since a call can clear all registers,
-		//  we could try to list all registers as destinations.  Instead, we treat calls as the ends of the basic
-		//  blocks during flow analysis.
-
-		return new ArrayList<L2Register>();
+		this.implementationSet = implementationSet;
+		this.arguments = arguments;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(_argsVector.registers().size());
-		result.addAll(_argsVector.registers());
+		List<L2Register> result = new ArrayList<L2Register>(
+			arguments.registers().size());
+		result.addAll(arguments.registers());
 		return result;
 	}
 
-
-
-	// code generation
-
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Since a call can clear all registers, we could try to list all
+	 * registers as destinations. Instead, we treat calls as the ends of the
+	 * basic blocks during flow analysis.</p>
+	 */
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doSend_argumentsVector_.ordinal());
-		anL2CodeGenerator.emitLiteral(_impSet);
-		anL2CodeGenerator.emitVector(_argsVector);
+		return Collections.emptyList();
 	}
 
-
-
-	// initialization
-
-	public L2CallInstruction selectorArgsVector (
-			final AvailObject theImpSet,
-			final L2RegisterVector args)
+	@Override
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		_impSet = theImpSet;
-		_argsVector = args;
-		return this;
+		codeGenerator.emitWord(L2_doSend_argumentsVector_.ordinal());
+		codeGenerator.emitLiteral(implementationSet);
+		codeGenerator.emitVector(arguments);
 	}
 
-
-
-	// typing
-
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Propagate type information due to this instruction.
-
-		anL2Translator.restrictPropagationInformationToArchitecturalRegisters();
+		translator.restrictPropagationInformationToArchitecturalRegisters();
 	}
 }

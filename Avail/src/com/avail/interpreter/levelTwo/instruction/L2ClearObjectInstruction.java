@@ -32,78 +32,62 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doClearObject_;
+import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.VoidDescriptor;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2ClearObjectInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2ClearObjectInstruction extends L2Instruction
+/**
+ * {@code L2ClearObjectInstruction} causes the destination {@linkplain
+ * L2Register register} to be cleared.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2ClearObjectInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _dest;
+	/** The {@linkplain L2ObjectRegister register} that should be cleared. */
+	private final L2ObjectRegister destinationRegister;
 
-
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2ClearObjectInstruction}.
+	 *
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} that should be cleared.
+	 */
+	public L2ClearObjectInstruction (
+		final @NotNull L2ObjectRegister destinationRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
-		return result;
+		this.destinationRegister = destinationRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		return new ArrayList<L2Register>();
+		return Collections.emptyList();
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doClearObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2ClearObjectInstruction destination (
-			final L2ObjectRegister anObjectRegister)
-	{
-
-		_dest = anObjectRegister;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Propagate type information due to this instruction.
+		codeGenerator.emitWord(L2_doClearObject_.ordinal());
+		codeGenerator.emitObjectRegister(destinationRegister);
+	}
 
-		anL2Translator.removeTypeForRegister(_dest);
-		anL2Translator.registerConstantAtPut(_dest, VoidDescriptor.voidObject());
+	@Override
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	{
+		translator.removeTypeForRegister(destinationRegister);
+		translator.registerConstantAtPut(
+			destinationRegister, VoidDescriptor.voidObject());
 	}
 }

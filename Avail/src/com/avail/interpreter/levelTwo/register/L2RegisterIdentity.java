@@ -32,60 +32,94 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import java.util.concurrent.atomic.AtomicLong;
+import com.avail.interpreter.levelTwo.*;
+
+/**
+ * {@code L2RegisterIdentity} is used by the {@linkplain L2Translator level two
+ * Avail translator} to color {@linkplain L2Register registers}. It maps a
+ * conceptual register, i.e. fast value storage location, to a runtime work slot
+ * within an {@linkplain L2Interpreter interpreter}. Two registers having the
+ * same identity are considered synonymous.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
 public class L2RegisterIdentity
 {
-	int _finalIndex = -1;
-	long _printId = -1;
+	/**
+	 * A coloring number to be used by the {@linkplain L2Interpreter
+	 * interpreter} at runtime to identify the storage location of a
+	 * {@linkplain L2Register register}.
+	 */
+	private int finalIndex = -1;
 
-
-	// accessing
-
+	/**
+	 * Answer the coloring number to be used by the {@linkplain L2Interpreter
+	 * interpreter} at runtime to identify the storage location of a {@linkplain
+	 * L2Register register}.
+	 *
+	 * @return A {@linkplain L2Register register} coloring number.
+	 */
 	public int finalIndex ()
 	{
-		//  Answer which (virtual) machine register this conceptual register is mapped to.
-
-		return _finalIndex;
+		return finalIndex;
 	}
 
-	public void finalIndex (
-			final int anInteger)
+	/**
+	 * Set the coloring number to be used by the {@linkplain L2Interpreter
+	 * interpreter} at runtime to identify the storage location of a {@linkplain
+	 * L2Register register}.
+	 *
+	 * @param finalIndex
+	 *        A {@linkplain L2Register register} coloring number.
+	 */
+	public void setFinalIndex (final int finalIndex)
 	{
-		//  Set which (virtual) machine register to map this conceptual register to.
-
-		assert _finalIndex == -1 : "Only set the finalIndex of an L2RegisterIdentity once";
-		_finalIndex = anInteger;
+		assert this.finalIndex == -1
+			: "Only set the finalIndex of an L2RegisterIdentity once";
+		this.finalIndex = finalIndex;
 	}
 
+	/** The generator of {@linkplain #printId print identifiers}. */
+	private static AtomicLong idGenerator = new AtomicLong(0);
 
+	/**
+	 * The lazily set print identifier that uniquely identifies a {@linkplain
+	 * L2Register register} for the lifetime of the {@linkplain
+	 * L2Interpreter interpreter}. This facility is provided for debugging
+	 * purposes only.
+	 */
+	private long printId = -1;
 
-	// java printing
-
-	public long printId ()
+	/**
+	 * Answer the print identifier that uniquely identifies a {@linkplain
+	 * L2Register register} for the lifetime of the {@linkplain L2Interpreter
+	 * interpreter}.
+	 *
+	 * @return The print identifier.
+	 */
+	long printId ()
 	{
-		if (_printId == -1)
+		if (printId == -1)
 		{
-			_printId = UniqueId++;
+			printId = idGenerator.incrementAndGet();
 		}
-		return _printId;
+		return printId;
 	}
 
-	public void printOn (
-			final StringBuilder aStream)
+	@Override
+	public String toString ()
 	{
-		aStream.append("Id#");
-		aStream.append(_printId);
-		if (_finalIndex != -1)
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Id#");
+		builder.append(printId());
+		if (finalIndex != -1)
 		{
-			aStream.append("[");
-			aStream.append(_finalIndex);
-			aStream.append("]");
+			builder.append("[");
+			builder.append(finalIndex);
+			builder.append("]");
 		}
+		return builder.toString();
 	}
-
-
-
-
-
-	static long UniqueId = 1;
-
 }

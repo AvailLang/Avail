@@ -32,87 +32,108 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2SuperCallInstruction;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doSuperSend_argumentsVector_argumentTypesVector_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2SuperCallInstruction extends L2Instruction
+/**
+ * {@code L2SuperCallInstruction} attempts to execute a super call by construing
+ * the actual {@linkplain AvailObject arguments} to have the specified
+ * {@linkplain TypeDescriptor types} and then querying the {@linkplain
+ * ImplementationSetDescriptor implementation set} to find the best matching
+ * {@linkplain MethodSignatureDescriptor method}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2SuperCallInstruction
+extends L2Instruction
 {
-	AvailObject _impSet;
-	L2RegisterVector _argsVector;
-	L2RegisterVector _argTypesVector;
+	/**
+	 * The {@linkplain ImplementationSetDescriptor implementation set} from
+	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
+	 * and called based on the {@linkplain #argumentsVector arguments} and
+	 * {@linkplain #typesVector types}.
+	 */
+	private final @NotNull AvailObject implementationSet;
 
+	/**
+	 * The {@linkplain AvailObject arguments} of the {@linkplain
+	 * MethodSignatureDescriptor method} call.
+	 */
+	private final @NotNull L2RegisterVector argumentsVector;
 
-	// accessing
+	/**
+	 * The {@linkplain TypeDescriptor types} which the exact {@linkplain
+	 * #argumentsVector arguments} should be construed to have.
+	 */
+	private final @NotNull L2RegisterVector typesVector;
 
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 *
+	 * Construct a new {@link L2SuperCallInstruction}.
+	 *
+	 * @param implementationSet
+	 *        The {@linkplain ImplementationSetDescriptor implementation set}
+	 *        from which a {@linkplain MethodSignatureDescriptor method} should
+	 *        be selected and called based on the {@linkplain #argumentsVector
+	 *        arguments} and {@linkplain #typesVector types}.
+	 * @param argumentsVector
+	 *        The {@linkplain AvailObject arguments} of the {@linkplain
+	 *        MethodSignatureDescriptor method} call.
+	 * @param typesVector
+	 *        The {@linkplain TypeDescriptor types} which the exact {@linkplain
+	 *        #argumentsVector arguments} should be construed to have.
+	 */
+	public L2SuperCallInstruction (
+		final @NotNull AvailObject implementationSet,
+		final @NotNull L2RegisterVector argumentsVector,
+		final @NotNull L2RegisterVector typesVector)
 	{
-		//  Answer a collection of registers written to by this instruction.  Since a call can clear all registers,
-		//  we could try to list all registers as destinations.  Instead, we treat calls as the ends of the basic
-		//  blocks during flow analysis.
-
-		return new ArrayList<L2Register>();
+		this.implementationSet = implementationSet;
+		this.argumentsVector = argumentsVector;
+		this.typesVector = typesVector;
 	}
 
 	@Override
 	public List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(_argsVector.registers().size() * 2);
-		result.addAll(_argsVector.registers());
-		result.addAll(_argTypesVector.registers());
+		final List<L2Register> result = new ArrayList<L2Register>(
+			argumentsVector.registers().size() << 1);
+		result.addAll(argumentsVector.registers());
+		result.addAll(typesVector.registers());
 		return result;
 	}
 
-
-
-	// code generation
-
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Since a call can clear all registers, we could try to list all
+	 * registers as destinations. Instead, we treat calls as the ends of the
+	 * basic blocks during flow analysis.</p>
+	 */
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doSuperSend_argumentsVector_argumentTypesVector_.ordinal());
-		anL2CodeGenerator.emitLiteral(_impSet);
-		anL2CodeGenerator.emitVector(_argsVector);
-		anL2CodeGenerator.emitVector(_argTypesVector);
+		return Collections.emptyList();
 	}
 
-
-
-	// initialization
-
-	public L2SuperCallInstruction selectorArgsVectorArgTypesVector (
-			final AvailObject theImpSet,
-			final L2RegisterVector args,
-			final L2RegisterVector argTypes)
+	@Override
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		_impSet = theImpSet;
-		_argsVector = args;
-		_argTypesVector = argTypes;
-		return this;
+		codeGenerator.emitWord(
+			L2_doSuperSend_argumentsVector_argumentTypesVector_.ordinal());
+		codeGenerator.emitLiteral(implementationSet);
+		codeGenerator.emitVector(argumentsVector);
+		codeGenerator.emitVector(typesVector);
 	}
 
-
-
-	// typing
-
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Propagate type information due to this instruction.
-
-		anL2Translator.restrictPropagationInformationToArchitecturalRegisters();
+		translator.restrictPropagationInformationToArchitecturalRegisters();
 	}
 }

@@ -32,84 +32,81 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2CreateVariableInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateVariableTypeConstant_destObject_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2CreateVariableInstruction extends L2Instruction
+/**
+ * {@code L2CreateVariableInstruction} creates a new {@linkplain
+ * ContainerDescriptor container} given a statically determined {@linkplain
+ * TypeDescriptor type}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2CreateVariableInstruction
+extends L2Instruction
 {
-	AvailObject _constantType;
-	L2ObjectRegister _dest;
+	/**
+	 * The constant {@linkplain TypeDescriptor type} with which the {@linkplain
+	 * ContainerDescriptor container} should be created.
+	 */
+	private final @NotNull AvailObject constantType;
 
+	/**
+	 * The {@linkplain L2ObjectRegister register} into which the new {@linkplain
+	 * ContainerDescriptor container} will be written.
+	 */
+	private final @NotNull L2ObjectRegister destinationRegister;
 
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2CreateVariableInstruction}.
+	 *
+	 * @param constantType
+	 *        The constant {@linkplain TypeDescriptor type} with which the
+	 *        {@linkplain ContainerDescriptor variable} should be created.
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} into which the new
+	 *        {@linkplain ContainerDescriptor variable} will be written.
+	 */
+	public L2CreateVariableInstruction (
+		final @NotNull AvailObject constantType,
+		final @NotNull L2ObjectRegister destinationRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
-		return result;
+		this.constantType = constantType;
+		this.destinationRegister = destinationRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		return new ArrayList<L2Register>();
+		return Collections.emptyList();
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doCreateVariableTypeConstant_destObject_.ordinal());
-		anL2CodeGenerator.emitLiteral(_constantType);
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2CreateVariableInstruction typeDestination (
-			final AvailObject type,
-			final L2ObjectRegister destination)
-	{
-		_constantType = type;
-		_dest = destination;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Propagate type information due to this instruction.
-		//
+		codeGenerator.emitWord(
+			L2_doCreateVariableTypeConstant_destObject_.ordinal());
+		codeGenerator.emitLiteral(constantType);
+		codeGenerator.emitObjectRegister(destinationRegister);
+	}
+
+	@Override
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	{
 		//  We know the exact type...
-
-		anL2Translator.registerTypeAtPut(_dest, _constantType);
-		//  ...but the instance is new so it can't be a constant...
-		anL2Translator.removeConstantForRegister(_dest);
+		translator.registerTypeAtPut(destinationRegister, constantType);
+		//  ...but the instance is new so it can't be a constant.
+		translator.removeConstantForRegister(destinationRegister);
 	}
 }

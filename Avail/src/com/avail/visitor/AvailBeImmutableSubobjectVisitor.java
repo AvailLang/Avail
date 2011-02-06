@@ -32,6 +32,7 @@
 
 package com.avail.visitor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -42,17 +43,13 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AvailBeImmutableSubobjectVisitor extends AvailSubobjectVisitor
+public final class AvailBeImmutableSubobjectVisitor
+extends AvailSubobjectVisitor
 {
-
-	/**
-	 * This is a visitor call from a subobject iterator running on some object.
-	 * The subobject has already been extracted from the parent.
-	 */
 	@Override
 	public void invoke (
-			final AvailObject parentObject,
-			final AvailObject childObject)
+		final @NotNull AvailObject parentObject,
+		final @NotNull AvailObject childObject)
 	{
 		childObject.makeImmutable();
 	}

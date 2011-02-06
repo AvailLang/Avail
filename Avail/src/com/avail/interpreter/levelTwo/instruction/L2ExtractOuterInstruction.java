@@ -32,93 +32,102 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2ExtractOuterInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doMoveFromOuterVariable_ofClosureObject_destObject_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2ExtractOuterInstruction extends L2Instruction
+/**
+ * {@code L2ExtractOuterInstruction} extracts a captured {@linkplain AvailObject
+ * object} from the source {@linkplain ClosureDescriptor closure}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2ExtractOuterInstruction
+extends L2Instruction
 {
-	int _outerNumber;
-	L2ObjectRegister _closureReg;
-	L2ObjectRegister _dest;
+	/**
+	 * The source {@linkplain L2ObjectRegister register} containing the
+	 * {@linkplain ClosureDescriptor closure}.
+	 */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
+	/**
+	 * The one-based index of the captured {@linkplain AvailObject object}
+	 * within the {@linkplain ClosureDescriptor closure}.
+	 */
+	private final int outerIndex;
 
-	// accessing
+	/**
+	 * The {@linkplain L2ObjectRegister register} into which the captured
+	 * {@linkplain AvailObject object} will be written.
+	 */
+	private final @NotNull L2ObjectRegister destinationRegister;
 
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2ExtractOuterInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The source {@linkplain L2ObjectRegister register} containing the
+	 *        {@linkplain ClosureDescriptor closure}.
+	 * @param outerIndex
+	 *        The one-based index of the captured {@linkplain AvailObject
+	 *        object} within the {@linkplain ClosureDescriptor closure}.
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} into which the captured
+	 *        {@linkplain AvailObject object} will be written.
+	 */
+	public L2ExtractOuterInstruction (
+		final @NotNull L2ObjectRegister sourceRegister,
+		final int outerIndex,
+		final @NotNull L2ObjectRegister destinationRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
-		return result;
+		this.sourceRegister = sourceRegister;
+		this.outerIndex = outerIndex;
+		this.destinationRegister = destinationRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_closureReg);
-		return result;
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doMoveFromOuterVariable_ofClosureObject_destObject_.ordinal());
-		anL2CodeGenerator.emitWord(_outerNumber);
-		anL2CodeGenerator.emitObjectRegister(_closureReg);
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2ExtractOuterInstruction closureRegisterOuterNumberDestination (
-			final L2ObjectRegister closureRegister,
-			final int outerNum,
-			final L2ObjectRegister destRegister)
-	{
-		_closureReg = closureRegister;
-		_outerNumber = outerNum;
-		_dest = destRegister;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Propagate type information due to this instruction.
-		//
-		//  Outer variables are treated as untyped here, because the same code object may
-		//  occur within multiple parent code objects.  That's because of the coalescing garbage
-		//  collector, which can merge equal code objects.  In different parent code objects, the
-		//  child code object may have different type expectations.  This isn't as bad as it seems,
-		//  as closures are very profitable to inline anyhow, greatly reducing occurrences of this
-		//  lack of type information.
+		codeGenerator.emitWord(
+			L2_doMoveFromOuterVariable_ofClosureObject_destObject_.ordinal());
+		codeGenerator.emitWord(outerIndex);
+		codeGenerator.emitObjectRegister(sourceRegister);
+		codeGenerator.emitObjectRegister(destinationRegister);
+	}
 
-		anL2Translator.removeTypeForRegister(_dest);
-		anL2Translator.removeConstantForRegister(_dest);
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Outer variables are treated as untyped here, because the same
+	 * {@linkplain CompiledCodeDescriptor code object} may occur within multiple
+	 * parent code objects. That's because of the (eventual) coalescing garbage
+	 * collector, which can merge equal code objects. In different parent code
+	 * objects, the child code object may have different type expectations. This
+	 * isn't as bad as it seems, as {@linkplain ClosureDescriptor closures} are
+	 * very profitable to inline anyhow, greatly reducing occurrences of this
+	 * lack of type information.</p>
+	 */
+	@Override
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	{
+		translator.removeTypeForRegister(destinationRegister);
+		translator.removeConstantForRegister(destinationRegister);
 	}
 }

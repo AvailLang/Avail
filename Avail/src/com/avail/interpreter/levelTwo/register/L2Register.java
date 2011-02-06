@@ -32,80 +32,128 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.interpreter.levelTwo.register.L2RegisterIdentity;
-import java.lang.Cloneable;
+import com.avail.annotations.NotNull;
+import com.avail.interpreter.levelTwo.*;
 
-public class L2Register implements Cloneable
+/**
+ * {@code L2Register} models the conceptual use of a register by a {@linkplain
+ * L2Operation level two Avail operation} in the {@linkplain L2Translator
+ * translator}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class L2Register
 {
-	final L2RegisterIdentity _identity = new L2RegisterIdentity();
-	boolean _isLast = false;
-	boolean _knowsIsLast = false;
+	/**
+	 * The {@linkplain L2RegisterIdentity identity} of this {@linkplain
+	 * L2Register register}.
+	 */
+	private final @NotNull L2RegisterIdentity identity;
 
-
-	// accessing
-
-	public int finalIndex ()
-	{
-		//  Answer which (virtual) machine register number to use.  This is only valid after the register assignment phase.
-
-		return _identity.finalIndex();
-	}
-
+	/**
+	 * Answer the {@linkplain L2RegisterIdentity identity} of this {@linkplain
+	 * L2Register register}.
+	 *
+	 * @return The {@linkplain L2RegisterIdentity identity} of this {@linkplain
+	 *         L2Register register}.
+	 */
 	public L2RegisterIdentity identity ()
 	{
-		return _identity;
+		return identity;
 	}
 
+	/**
+	 * Construct a new {@link L2Register}.
+	 */
+	public L2Register ()
+	{
+		identity = new L2RegisterIdentity();
+	}
+
+	/**
+	 * Construct a new {@link L2Register} identical to the specified register.
+	 *
+	 * @param register A {@linkplain L2Register register}.
+	 */
+	protected L2Register (final @NotNull L2Register register)
+	{
+		this.identity = register.identity;
+		this.isLast = register.isLast;
+		this.knowsIsLast = register.knowsIsLast;
+	}
+
+	/**
+	 * Has the {@linkplain L2Register register} been used for the last time?
+	 * This flag is set during flow analysis by the {@linkplain L2Translator
+	 * translator}.
+	 */
+	boolean isLast = false;
+
+	/**
+	 * Does the {@linkplain L2Register register} know whether it has been used
+	 * for the last time? This flag is set automatically by {@link
+	 * #setIsLastUse(boolean)}.
+	 */
+	boolean knowsIsLast = false;
+
+	/**
+	 * Has the {@linkplain L2Register register} been used for the last time?
+	 *
+	 * @return {@code true} if flow analysis has determined that the {@linkplain
+	 *         L2Register register} has been used for the last time, {@code
+	 *         false} otherwise.
+	 */
 	public boolean isLastUse ()
 	{
-		return _isLast;
+		// TODO: [MvG] Recover the flow analysis code from Smalltalk!
+		assert !knowsIsLast;
+		return isLast;
 	}
 
-	public void isLastUse (
-			final boolean aBoolean)
+	/**
+	 * Record whether the {@linkplain L2Register register} has been used for the
+	 * last time.
+	 *
+	 * @param isLast
+	 *        {@code true} if flow analysis has determined that the {@linkplain
+	 *        L2Register register} has been used for the last time, {@code
+	 *        false} if the register may be used again.
+	 */
+	public void setIsLastUse (final boolean isLast)
 	{
-		_isLast = aBoolean;
-		_knowsIsLast = true;
+		// TODO: [MvG] Recover the flow analysis code from Smalltalk!
+		assert !knowsIsLast;
+		this.isLast = isLast;
+		knowsIsLast = true;
 	}
 
-
-
-	// java printing
-
-	public void printOn (
-			final StringBuilder aStream)
+	@Override
+	public String toString ()
 	{
-		if ((_identity.finalIndex() != -1))
+		final StringBuilder builder = new StringBuilder();
+		if (identity.finalIndex() != -1)
 		{
-			aStream.append("Reg[");
-			aStream.append(_identity.finalIndex());
-			aStream.append("]");
+			builder.append("Reg[");
+			builder.append(identity.finalIndex());
+			builder.append("]");
 		}
 		else
 		{
-			aStream.append("Reg_");
-			aStream.append(_identity.printId());
+			builder.append("Reg_");
+			builder.append(identity.printId());
 		}
-		if (_knowsIsLast)
+		if (knowsIsLast)
 		{
-			if (_isLast)
+			if (isLast)
 			{
-				aStream.append(" isLast");
+				builder.append(" isLast");
 			}
 			else
 			{
-				aStream.append(" notLast");
+				builder.append(" notLast");
 			}
 		}
-	}
-
-
-
-
-
-	@Override
-	public L2Register clone () throws CloneNotSupportedException
-	{
-		return (L2Register)super.clone();
+		return builder.toString();
 	}
 }

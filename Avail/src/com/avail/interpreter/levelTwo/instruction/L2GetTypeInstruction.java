@@ -32,98 +32,92 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doGetType_destObject_;
 import java.util.*;
-import com.avail.descriptor.AvailObject;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2GetTypeInstruction extends L2Instruction
+/**
+ * {@code L2GetTypeInstruction} stores the {@linkplain TypeDescriptor type} of
+ * the {@linkplain AvailObject object} in the source {@linkplain
+ * L2ObjectRegister register} into the destination register.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2GetTypeInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _source;
-	L2ObjectRegister _dest;
+	/** The source {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
+	/** The destination {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister destinationRegister;
 
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2GetTypeInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The source {@linkplain L2ObjectRegister register}.
+	 * @param destinationRegister
+	 *        The destination {@linkplain L2ObjectRegister register}.
+	 */
+	public L2GetTypeInstruction (
+		final @NotNull L2ObjectRegister sourceRegister,
+		final @NotNull L2ObjectRegister destinationRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
-		return result;
+		this.sourceRegister = sourceRegister;
+		this.destinationRegister = destinationRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_source);
-		return result;
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doGetType_destObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_source);
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2GetTypeInstruction sourceDestination (
-			final L2ObjectRegister sourceReg,
-			final L2ObjectRegister destinationReg)
-	{
-		_source = sourceReg;
-		_dest = destinationReg;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Propagate type information due to this instruction.
+		codeGenerator.emitWord(L2_doGetType_destObject_.ordinal());
+		codeGenerator.emitObjectRegister(sourceRegister);
+		codeGenerator.emitObjectRegister(destinationRegister);
+	}
 
-		if (anL2Translator.registerHasTypeAt(_source))
+	@Override
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	{
+		if (translator.registerHasTypeAt(sourceRegister))
 		{
-			final AvailObject type = anL2Translator.registerTypeAt(_source);
-			//  Apply the rule of metacovariance.  It says that given types T1 and T2, T1 <= T2 implies T1 type <= T2 type.
-			//  It is guaranteed true for all types in Avail.
+			final AvailObject type = translator.registerTypeAt(sourceRegister);
+			// Apply the rule of metacovariance. It says that given types T1
+			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
+			// true for all types in Avail.
 			final AvailObject meta = type.type();
-			anL2Translator.registerTypeAtPut(_dest, meta);
+			translator.registerTypeAtPut(destinationRegister, meta);
 		}
 		else
 		{
-			anL2Translator.registerTypeAtPut(_dest, TYPE.o());
+			translator.registerTypeAtPut(destinationRegister, TYPE.o());
 		}
-		if (anL2Translator.registerHasConstantAt(_source))
+		if (translator.registerHasConstantAt(sourceRegister))
 		{
-			anL2Translator.registerConstantAtPut(_dest, anL2Translator.registerConstantAt(_source).type());
+			translator.registerConstantAtPut(
+				destinationRegister,
+				translator.registerConstantAt(sourceRegister).type());
 		}
 		else
 		{
-			anL2Translator.removeConstantForRegister(_dest);
+			translator.removeConstantForRegister(destinationRegister);
 		}
 	}
 }

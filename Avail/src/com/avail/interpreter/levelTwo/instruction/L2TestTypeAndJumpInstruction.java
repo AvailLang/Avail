@@ -32,70 +32,68 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
-import com.avail.interpreter.levelTwo.instruction.L2TestTypeAndJumpInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doJump_ifObject_isKindOfConstant_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2TestTypeAndJumpInstruction extends L2AbstractJumpInstruction
+/**
+ * If the {@linkplain L2Register source register} contains an {@linkplain
+ * AvailObject object} compatible with the immediate {@linkplain TypeDescriptor
+ * type} when the {@linkplain L2Interpreter interpreter} encounters an {@code
+ * L2TestTypeAndJumpInstruction}, then jump to the {@linkplain
+ * L2LabelInstruction target}; otherwise do nothing.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2TestTypeAndJumpInstruction
+extends L2AbstractJumpInstruction
 {
-	L2ObjectRegister _register;
-	AvailObject _constantType;
+	/** The source {@linkplain L2Register register}. */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
+	/**
+	 * The immediate {@linkplain TypeDescriptor type} against which the contents
+	 * of the {@linkplain #sourceRegister source register} will be compared.
+	 */
+	private final @NotNull AvailObject constantType;
 
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2TestTypeAndJumpInstruction}.
+	 *
+	 * @param target
+	 *        The jump {@linkplain L2LabelInstruction target}.
+	 * @param sourceRegister
+	 *        The source {@linkplain L2Register register}.
+	 * @param constantType
+	 *        The immediate {@linkplain TypeDescriptor type} against which the
+	 *        contents of the {@linkplain #sourceRegister source register} will
+	 *        be compared.
+	 */
+	public L2TestTypeAndJumpInstruction (
+		final @NotNull L2LabelInstruction target,
+		final @NotNull L2ObjectRegister sourceRegister,
+		final @NotNull AvailObject constantType)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		super(target);
+		this.sourceRegister = sourceRegister;
+		this.constantType = constantType;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_register);
-		return result;
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doJump_ifObject_isKindOfConstant_.ordinal());
-		anL2CodeGenerator.emitWord(_target.offset());
-		anL2CodeGenerator.emitObjectRegister(_register);
-		anL2CodeGenerator.emitLiteral(_constantType);
-	}
-
-
-
-	// initialization
-
-	public L2TestTypeAndJumpInstruction targetRegisterConstantType (
-			final L2Instruction targetLabel,
-			final L2ObjectRegister reg,
-			final AvailObject constant)
-	{
-		_target = targetLabel;
-		_register = reg;
-		_constantType = constant;
-		return this;
+		codeGenerator.emitWord(L2_doJump_ifObject_isKindOfConstant_.ordinal());
+		codeGenerator.emitWord(target().offset());
+		codeGenerator.emitObjectRegister(sourceRegister);
+		codeGenerator.emitLiteral(constantType);
 	}
 }

@@ -32,45 +32,40 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
 
-public class L2LabelInstruction extends L2Instruction
+/**
+ * {@code L2LabelInstruction} is a placeholder for the {@linkplain L2Translator
+ * translator} to use while dynamically translating {@linkplain
+ * MethodSignatureDescriptor level one Avail methods} to {@linkplain
+ * L2ChunkDescriptor level two Avail chunks}. Instances represent {@linkplain
+ * L2AbstractJumpInstruction jump} targets.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2LabelInstruction
+extends L2Instruction
 {
-
-
-	// accessing
-
 	@Override
-	public List<L2Register> destinationRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		return Collections.emptyList();
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		return new ArrayList<L2Register>();
+		return Collections.emptyList();
 	}
 
-
-
-	// code generation
-
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-		//
-		//  do nothing
-
-
+		// Do nothing.
 	}
 }

@@ -35,113 +35,120 @@ package com.avail.interpreter.levelTwo.instruction;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2CreateTupleInstruction extends L2Instruction
+/**
+ * {@code L2CreateTupleInstruction} creates a {@linkplain TupleDescriptor tuple}
+ * from the aggregate contents of a {@linkplain L2RegisterVector register
+ * vector}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2CreateTupleInstruction
+extends L2Instruction
 {
-	L2RegisterVector _sourceVector;
-	L2ObjectRegister _dest;
+	/**
+	 * The {@linkplain L2ObjectRegister registers} containing the {@linkplain
+	 * AvailObject objects} that should be aggregated into a {@linkplain
+	 * TupleDescriptor tuple}.
+	 */
+	private final @NotNull L2RegisterVector sourceVector;
 
+	/**
+	 * The {@linkplain L2ObjectRegister register} into which the new {@linkplain
+	 * TupleDescriptor tuple} will be written.
+	 */
+	private final @NotNull L2ObjectRegister destinationRegister;
 
-	// accessing
+	/**
+	 * Construct a new {@link L2CreateTupleInstruction}.
+	 *
+	 * @param sourceVector
+	 *        The {@linkplain L2ObjectRegister registers} containing the
+	 *        {@linkplain AvailObject objects} that should be aggregated into a
+	 *        {@linkplain TupleDescriptor tuple}.
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} into which the new
+	 *        {@linkplain TupleDescriptor tuple} will be written.
+	 */
+	public L2CreateTupleInstruction (
+		final @NotNull L2RegisterVector sourceVector,
+		final @NotNull L2ObjectRegister destinationRegister)
+	{
+		this.sourceVector = sourceVector;
+		this.destinationRegister = destinationRegister;
+	}
 
 	@Override
-	public List<L2Register> destinationRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
+		List<L2Register> result = new ArrayList<L2Register>(
+			sourceVector.registers().size());
+		result.addAll(sourceVector.registers());
 		return result;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(_sourceVector.registers().size());
-		result.addAll(_sourceVector.registers());
-		return result;
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_.ordinal());
-		anL2CodeGenerator.emitWord(_sourceVector.registers().size());
-		anL2CodeGenerator.emitVector(_sourceVector);
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		codeGenerator.emitWord(
+			L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_.ordinal());
+		codeGenerator.emitWord(sourceVector.registers().size());
+		codeGenerator.emitVector(sourceVector);
+		codeGenerator.emitObjectRegister(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2CreateTupleInstruction sourceVectorDestination (
-			final L2RegisterVector srcVect,
-			final L2ObjectRegister destination)
-	{
-		_sourceVector = srcVect;
-		_dest = destination;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Propagate type information due to this instruction.
-
-		final int size = _sourceVector.registers().size();
+		final int size = sourceVector.registers().size();
 		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
 		List<AvailObject> types;
-		types = new ArrayList<AvailObject>(_sourceVector.registers().size());
-		for (L2Register reg : _sourceVector.registers())
+		types = new ArrayList<AvailObject>(sourceVector.registers().size());
+		for (final L2Register register : sourceVector.registers())
 		{
-			if (anL2Translator.registerHasTypeAt(reg))
+			if (translator.registerHasTypeAt(register))
 			{
-				types.add(anL2Translator.registerTypeAt(reg));
+				types.add(translator.registerTypeAt(register));
 			}
 			else
 			{
 				types.add(ALL.o());
 			}
 		}
-		final AvailObject tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			sizeRange,
-			TupleDescriptor.fromList(types),
-			TERMINATES.o());
+		final AvailObject tupleType =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizeRange,
+				TupleDescriptor.fromList(types),
+				TERMINATES.o());
 		tupleType.makeImmutable();
-		anL2Translator.registerTypeAtPut(_dest, tupleType);
-		if (_sourceVector.allRegistersAreConstantsIn(anL2Translator))
+		translator.registerTypeAtPut(destinationRegister, tupleType);
+		if (sourceVector.allRegistersAreConstantsIn(translator))
 		{
-			List<AvailObject> constants = new ArrayList<AvailObject>(_sourceVector.registers().size());
-			for (L2Register reg : _sourceVector.registers())
+			List<AvailObject> constants = new ArrayList<AvailObject>(
+				sourceVector.registers().size());
+			for (final L2Register register : sourceVector.registers())
 			{
-				constants.add(anL2Translator.registerConstantAt(reg));
+				constants.add(translator.registerConstantAt(register));
 			}
 			AvailObject tuple = TupleDescriptor.fromList(constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOfSubtypeOf(tupleType);
-			anL2Translator.registerConstantAtPut(_dest, tuple);
+			translator.registerConstantAtPut(destinationRegister, tuple);
 		}
 		else
 		{
-			anL2Translator.removeConstantForRegister(_dest);
+			translator.removeConstantForRegister(destinationRegister);
 		}
 	}
 }

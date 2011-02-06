@@ -34,94 +34,105 @@ package com.avail.interpreter.levelTwo.instruction;
 
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateClosureFromCodeObject_outersVector_destObject_;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2CreateClosureInstruction extends L2Instruction
+/**
+ * {@code L2CreateClosureInstruction} writes a new {@linkplain ClosureDescriptor
+ * closure} into the specified {@linkplain L2ObjectRegister register}. The
+ * {@linkplain CompiledCodeDescriptor compiled code} literal and the captured
+ * values are made available at construction time.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2CreateClosureInstruction
+extends L2Instruction
 {
-	AvailObject _code;
-	L2RegisterVector _outersVector;
-	L2ObjectRegister _dest;
+	/**
+	 * The {@linkplain CompiledCodeDescriptor compiled code} that defines the
+	 * behavior of the {@linkplain ClosureDescriptor closure}.
+	 */
+	private final @NotNull AvailObject code;
 
+	/** The captured {@linkplain AvailObject values}. */
+	private final @NotNull L2RegisterVector outersVector;
 
-	// accessing
+	/**
+	 * The {@linkplain L2ObjectRegister register} into which the manufactured
+	 * {@linkplain ClosureDescriptor closure} will be written.
+	 */
+	private final @NotNull L2ObjectRegister destinationRegister;
+
+	/**
+	 * Construct a new {@link L2CreateClosureInstruction}.
+	 *
+	 * @param code
+	 *        The {@linkplain CompiledCodeDescriptor compiled code} that defines
+	 *        the behavior of the {@linkplain ClosureDescriptor closure}.
+	 * @param outersVector
+	 *        The captured {@linkplain AvailObject values}.
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} into which the
+	 *        manufactured {@linkplain ClosureDescriptor closure} will be
+	 *        written.
+	 */
+	public L2CreateClosureInstruction (
+		final @NotNull AvailObject code,
+		final @NotNull L2RegisterVector outersVector,
+		final @NotNull L2ObjectRegister destinationRegister)
+	{
+		this.code = code;
+		this.outersVector = outersVector;
+		this.destinationRegister = destinationRegister;
+	}
 
 	@Override
-	public List<L2Register> destinationRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		final List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
+		final List<L2Register> result = new ArrayList<L2Register>(
+			outersVector.registers().size());
+		result.addAll(outersVector.registers());
 		return result;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		final List<L2Register> result = new ArrayList<L2Register>(_outersVector.registers().size());
-		result.addAll(_outersVector.registers());
-		return result;
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doCreateClosureFromCodeObject_outersVector_destObject_.ordinal());
-		anL2CodeGenerator.emitLiteral(_code);
-		anL2CodeGenerator.emitVector(_outersVector);
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		codeGenerator.emitWord(
+			L2_doCreateClosureFromCodeObject_outersVector_destObject_.ordinal());
+		codeGenerator.emitLiteral(code);
+		codeGenerator.emitVector(outersVector);
+		codeGenerator.emitObjectRegister(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2CreateClosureInstruction codeOutersVectorDestObject (
-			final AvailObject codeLiteral,
-			final L2RegisterVector outerVect,
-			final L2ObjectRegister destClosure)
-	{
-		_code = codeLiteral;
-		_outersVector = outerVect;
-		_dest = destClosure;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Propagate type information due to this instruction.
-
-		anL2Translator.registerTypeAtPut(_dest, _code.closureType());
-		if (_outersVector.allRegistersAreConstantsIn(anL2Translator))
+		translator.registerTypeAtPut(destinationRegister, code.closureType());
+		if (outersVector.allRegistersAreConstantsIn(translator))
 		{
 			final AvailObject closure = ClosureDescriptor.mutable().create(
-				_outersVector.registers().size());
-			closure.code(_code);
-			for (int i = 1, _end1 = _outersVector.registers().size(); i <= _end1; i++)
+				outersVector.registers().size());
+			closure.code(code);
+			int index = 1;
+			for (final L2ObjectRegister outer : outersVector)
 			{
-				closure.outerVarAtPut(i, anL2Translator.registerConstantAt(_outersVector.registers().get(i - 1)));
+				closure.outerVarAtPut(
+					index++, translator.registerConstantAt(outer));
 			}
 		}
 		else
 		{
-			anL2Translator.removeConstantForRegister(_dest);
+			translator.removeConstantForRegister(destinationRegister);
 		}
 	}
 }

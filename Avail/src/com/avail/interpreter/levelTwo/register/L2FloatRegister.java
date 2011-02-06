@@ -32,17 +32,32 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import java.lang.Cloneable;
+import com.avail.annotations.NotNull;
 
-public class L2FloatRegister extends L2Register implements Cloneable
+/**
+ * {@code L2FloatRegister} models the conceptual usage of a register that can
+ * store a machine floating-point number.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class L2FloatRegister
+extends L2Register
 {
-
-
-
-
-	@Override
-	public L2FloatRegister clone () throws CloneNotSupportedException
+	/**
+	 * Construct a new {@link L2FloatRegister}.
+	 */
+	public L2FloatRegister ()
 	{
-		return (L2FloatRegister)super.clone();
+		// No implementation required.
+	}
+
+	/**
+	 * Construct a new {@link L2FloatRegister}.
+	 *
+	 * @param register A {@linkplain L2FloatRegister float register}.
+	 */
+	public L2FloatRegister (final @NotNull L2FloatRegister register)
+	{
+		super(register);
 	}
 }

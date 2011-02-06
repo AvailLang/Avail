@@ -32,82 +32,99 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.register.L2Register;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
-public class L2Instruction
+/**
+ * {@code L2Instruction} is the foundation for all instructions understood by
+ * the {@linkplain L2Interpreter level two Avail interpreter}. These
+ * instructions are model objects generated and manipulated by the {@linkplain
+ * L2Translator translator} and the {@linkplain L2CodeGenerator code generator}.
+ *
+ * <p>It implements a mechanism for establishing and interrogating the position
+ * of the instruction within its {@linkplain L2ChunkDescriptor chunk}'s
+ * {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode stream}. It
+ * defines responsibilities for interrogating the source and destination
+ * {@linkplain L2Register registers} used by the instruction and emitting the
+ * instruction on a code generator. Lastly it specifies an entry point for
+ * describing type and constant value propagation to a translator.</p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public abstract class L2Instruction
 {
-	int _offset;
+	/**
+	 * The position of the {@linkplain L2Instruction instruction} in its
+	 * {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode stream}.
+	 */
+	private int offset = -1;
 
-
-	// accessing
-
-	public List<L2Register> destinationRegisters ()
-	{
-		//  Answer a collection of registers written to by this instruction.
-
-		error("Subclass responsibility: destinationRegisters in Avail.L2Instruction");
-		return null;
-	}
-
+	/**
+	 * Answer the position of the {@linkplain L2Instruction instruction} in its
+	 * {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode stream}.
+	 *
+	 * @return The position of the {@linkplain L2Instruction instruction} in its
+	 *         {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode
+	 *         stream}.
+	 */
 	public int offset ()
 	{
-		return _offset;
+		return offset;
 	}
 
-	public void offset (
-			final int anInteger)
+	/**
+	 * Set the final position of the {@linkplain L2Instruction instruction}
+	 * within its {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode
+	 * stream}.
+	 *
+	 * @param offset
+	 *        The final position of the {@linkplain L2Instruction instruction}
+	 *        within its {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES
+	 *        wordcode stream}.
+	 */
+	public void setOffset (final int offset)
 	{
-		//  Set my final offset within my L2Chunk's wordcodes.
-
-		_offset = anInteger;
+		this.offset = offset;
 	}
 
-	public List<L2Register> sourceRegisters ()
+	/**
+	 * Answer the {@linkplain List list} of {@linkplain L2Register registers}
+	 * read by this {@linkplain L2Instruction instruction}.
+	 *
+	 * @return The source {@linkplain L2Register registers}.
+	 */
+	public abstract @NotNull List<L2Register> sourceRegisters ();
+
+	/**
+	 * Answer the {@linkplain List list} of {@linkplain L2Register registers}
+	 * modified by this {@linkplain L2Instruction instruction}.
+	 *
+	 * @return The destination {@linkplain L2Register registers}.
+	 */
+	public abstract @NotNull List<L2Register> destinationRegisters ();
+
+	/**
+	 * Emit this {@linkplain L2Instruction instruction} to the specified
+	 * {@linkplain L2CodeGenerator code generator}.
+	 *
+	 * @param codeGenerator A {@linkplain L2CodeGenerator code generator}.
+	 */
+	public abstract void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator);
+
+	/**
+	 * Propagate {@linkplain TypeDescriptor type} and constant value information
+	 * from source {@linkplain L2Register registers} to the destination
+	 * registers.
+	 *
+	 * @param translator The {@linkplain L2Translator translator}.
+	 */
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		error("Subclass responsibility: sourceRegisters in Avail.L2Instruction");
-		return null;
-	}
-
-
-
-	// code generation
-
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
-	{
-		//  Emit this instruction to the code generator.
-
-		error("Subclass responsibility: emitOn: in Avail.L2Instruction");
-		return;
-	}
-
-
-
-	// typing
-
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
-	{
-		//  Propagate type information due to this instruction.
-		//
-		//  conservative default - do nothing.
-
-
-	}
-
-
-
-
-
-	/* Constructor */
-	L2Instruction()
-	{
-		_offset = -1;
+		// Be conservative by default: Do nothing.
 	}
 }

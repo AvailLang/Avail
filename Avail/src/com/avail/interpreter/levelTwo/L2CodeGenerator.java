@@ -32,17 +32,11 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.descriptor.SetDescriptor;
+import static java.lang.Math.max;
+import java.util.*;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.instruction.L2Instruction;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static java.lang.Math.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public class L2CodeGenerator
 {
@@ -99,7 +93,7 @@ public class L2CodeGenerator
 			final L2FloatRegister floatRegister)
 	{
 
-		final int index = floatRegister.finalIndex();
+		final int index = floatRegister.identity().finalIndex();
 		if (index != -1)
 		{
 			_numFloats = max(_numFloats, index);
@@ -111,7 +105,7 @@ public class L2CodeGenerator
 			final L2IntegerRegister integerRegister)
 	{
 
-		final int index = integerRegister.finalIndex();
+		final int index = integerRegister.identity().finalIndex();
 		if (index != -1)
 		{
 			_numIntegers = max(_numIntegers, index);
@@ -137,7 +131,7 @@ public class L2CodeGenerator
 			final L2ObjectRegister objectRegister)
 	{
 
-		final int index = objectRegister.finalIndex();
+		final int index = objectRegister.identity().finalIndex();
 		if (index != -1)
 		{
 			_numObjects = max(_numObjects, index);
@@ -152,7 +146,7 @@ public class L2CodeGenerator
 		List<Integer> registerIndices = new ArrayList<Integer>(registersList.size());
 		for (int i = 0; i < registersList.size(); i++)
 		{
-			registerIndices.add(registersList.get(i).finalIndex());
+			registerIndices.add(registersList.get(i).identity().finalIndex());
 		}
 		int vectorIndex = _vectors.indexOf(registerIndices) + 1;
 		if (vectorIndex == 0)
@@ -166,7 +160,7 @@ public class L2CodeGenerator
 	public void emitWord (
 			final int word)
 	{
-		assert ((word >= -0x8000) && (word <= 0x7FFF)) : "Word is out of range";
+		assert word >= -0x8000 && word <= 0x7FFF : "Word is out of range";
 		_wordcodes.add(word);
 	}
 
@@ -189,7 +183,7 @@ public class L2CodeGenerator
 		assert _wordcodes.size() == 0;
 		for (L2Instruction instruction : instrs)
 		{
-			instruction.offset(_wordcodes.size() + 1);
+			instruction.setOffset(_wordcodes.size() + 1);
 			instruction.emitOn(this);
 		}
 		// Now that the instruction positions are known, discard the scratch code generator and
@@ -219,7 +213,7 @@ public class L2CodeGenerator
 		_contingentImpSets = SetDescriptor.empty();
 	}
 
-	void emitOpcode(int opcode)
+	void emitOpcode(final int opcode)
 	{
 		emitWord(opcode);
 	};

@@ -32,58 +32,38 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
-import com.avail.interpreter.levelTwo.instruction.L2JumpIfInterruptInstruction;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doJumpIfInterrupt_;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.ProcessDescriptor;
+import com.avail.interpreter.levelTwo.*;
 
-public class L2JumpIfInterruptInstruction extends L2AbstractJumpInstruction
+/**
+ * If the {@linkplain ProcessDescriptor.IntegerSlots#INTERRUPT_REQUEST_FLAG
+ * interrupt request flag} is set when the {@linkplain L2Interpreter
+ * interpreter} encounters an {@code L2JumpIfInterruptInstruction}, then jump to
+ * the {@linkplain L2LabelInstruction target}; otherwise do nothing.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2JumpIfInterruptInstruction
+extends L2AbstractJumpInstruction
 {
-
-
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2JumpIfInterruptInstruction}.
+	 *
+	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 */
+	public L2JumpIfInterruptInstruction (
+		final @NotNull L2LabelInstruction target)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		super(target);
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		return new ArrayList<L2Register>();
-	}
-
-
-
-	// code generation
-
-	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
-	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doJumpIfInterrupt_.ordinal());
-		anL2CodeGenerator.emitWord(_target.offset());
-	}
-
-
-
-	// initialization
-
-	public L2JumpIfInterruptInstruction target (
-			final L2Instruction targetLabel)
-	{
-		_target = targetLabel;
-		return this;
+		codeGenerator.emitWord(L2_doJumpIfInterrupt_.ordinal());
+		codeGenerator.emitWord(target().offset());
 	}
 }

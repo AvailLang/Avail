@@ -32,17 +32,34 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import java.lang.Cloneable;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.AvailObject;
 
-public class L2ObjectRegister extends L2Register implements Cloneable
+/**
+ * {@code L2ObjectRegister} models the conceptual usage of a register that can
+ * store an {@linkplain AvailObject Avail object}.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class L2ObjectRegister
+extends L2Register
 {
-
-
-
-
-	@Override
-	public L2ObjectRegister clone () throws CloneNotSupportedException
+	/**
+	 * Construct a new {@link L2ObjectRegister}.
+	 */
+	public L2ObjectRegister ()
 	{
-		return (L2ObjectRegister)super.clone();
+		// No implementation required.
+	}
+
+	/**
+	 * Construct a new {@link L2ObjectRegister} identical to the specified
+	 * register.
+	 *
+	 * @param register An {@linkplain L2ObjectRegister object register}.
+	 */
+	public L2ObjectRegister (final @NotNull L2ObjectRegister register)
+	{
+		super(register);
 	}
 }

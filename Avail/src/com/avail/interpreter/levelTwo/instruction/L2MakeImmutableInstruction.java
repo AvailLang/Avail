@@ -35,43 +35,51 @@ package com.avail.interpreter.levelTwo.instruction;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doMakeImmutableObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2MakeImmutableInstruction extends L2Instruction
+/**
+ * {@code L2MakeImmutableInstruction} marks the {@linkplain AvailObject object}
+ * in the source {@linkplain L2ObjectRegister register} as immutable.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2MakeImmutableInstruction
+extends L2Instruction
 {
-	private final @NotNull L2ObjectRegister register;
+	/** The source {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
-	public L2MakeImmutableInstruction (final L2ObjectRegister register)
+	/**
+	 * Construct a new {@link L2MakeImmutableInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The source {@linkplain L2ObjectRegister register}.
+	 */
+	public L2MakeImmutableInstruction (
+		final @NotNull L2ObjectRegister sourceRegister)
 	{
-		this.register = register;
+		this.sourceRegister = sourceRegister;
 	}
 
 	@Override
-	public List<L2Register> destinationRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(register);
-		return result;
+		return Collections.emptyList();
 	}
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doMakeImmutableObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(register);
+		codeGenerator.emitWord(L2_doMakeImmutableObject_.ordinal());
+		codeGenerator.emitObjectRegister(sourceRegister);
 	}
 }

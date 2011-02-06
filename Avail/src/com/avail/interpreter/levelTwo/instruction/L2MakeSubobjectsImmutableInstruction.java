@@ -32,61 +32,55 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doMakeSubobjectsImmutableInObject_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.instruction.L2MakeSubobjectsImmutableInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2MakeSubobjectsImmutableInstruction extends L2Instruction
+/**
+ * {@code L2MakeSubobjectsImmutableInstruction} marks every subobject of the
+ * {@linkplain AvailObject object} in the source {@linkplain L2ObjectRegister
+ * register} as immutable.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2MakeSubobjectsImmutableInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _register;
+	/** The source {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
-
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2MakeImmutableInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The source {@linkplain L2ObjectRegister register}.
+	 */
+	public L2MakeSubobjectsImmutableInstruction (
+		final @NotNull L2ObjectRegister sourceRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		this.sourceRegister = sourceRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_register);
-		return result;
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doMakeSubobjectsImmutableInObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_register);
+		return Collections.emptyList();
 	}
 
-
-
-	// initialization
-
-	public L2MakeSubobjectsImmutableInstruction register (
-			final L2ObjectRegister reg)
+	@Override
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		_register = reg;
-		return this;
+		codeGenerator.emitWord(L2_doMakeSubobjectsImmutableInObject_.ordinal());
+		codeGenerator.emitObjectRegister(sourceRegister);
 	}
 }

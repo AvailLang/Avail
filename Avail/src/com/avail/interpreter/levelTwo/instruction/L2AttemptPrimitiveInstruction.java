@@ -32,94 +32,110 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
-import com.avail.interpreter.levelTwo.instruction.L2LabelInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doAttemptPrimitive_withArguments_result_ifFail_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2AttemptPrimitiveInstruction extends L2Instruction
+/**
+ * {@code L2AttemptPrimitiveInstruction} attempts to execute the {@linkplain
+ * Primitive primitive} with the specified number.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2AttemptPrimitiveInstruction
+extends L2Instruction
 {
-	int _primNum;
-	L2RegisterVector _arguments;
-	L2ObjectRegister _dest;
-	L2LabelInstruction _failureLabel;
+	/** The {@linkplain Primitive primitive} number. */
+	private final int primitiveNumber;
 
+	/**
+	 * The {@linkplain L2RegisterVector arguments} to the {@linkplain Primitive
+	 * primitive}.
+	 */
+	private final @NotNull L2RegisterVector primitiveArguments;
 
-	// accessing
+	/**
+	 * The {@linkplain L2ObjectRegister register} to which the result of the
+	 * {@linkplain Primitive primitive} will be written in the event of success.
+	 */
+	private final @NotNull L2ObjectRegister destinationRegister;
+
+	/**
+	 * The {@linkplain L2LabelInstruction target} to which execution should jump
+	 * in the event that the {@linkplain Primitive primitive} fails.
+	 */
+	private final @NotNull L2LabelInstruction failureLabel;
+
+	/**
+	 * Construct a new {@link L2AttemptPrimitiveInstruction}.
+	 *
+	 * @param primitiveNumber
+	 *        The {@linkplain Primitive primitive} number.
+	 * @param primitiveArguments
+	 *        The {@linkplain L2RegisterVector arguments} to the {@linkplain
+	 *        Primitive primitive}.
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} to which the result of
+	 *        the {@linkplain Primitive primitive} will be written in the event
+	 *        of success.
+	 * @param failureLabel
+	 *        The {@linkplain L2LabelInstruction target} to which execution
+	 *        should jump in the event that the {@linkplain Primitive primitive}
+	 *        fails.
+	 */
+	public L2AttemptPrimitiveInstruction (
+			final int primitiveNumber,
+			final L2RegisterVector primitiveArguments,
+			final L2ObjectRegister destinationRegister,
+			final L2LabelInstruction failureLabel)
+	{
+		this.primitiveNumber = primitiveNumber;
+		this.primitiveArguments = primitiveArguments;
+		this.destinationRegister = destinationRegister;
+		this.failureLabel = failureLabel;
+	}
 
 	@Override
-	public List<L2Register> destinationRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.  Since a call can clear all registers,
-		//  we could try to list all registers as destinations.  Instead, we treat calls as the ends of the basic
-		//  blocks during flow analysis.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
+		List<L2Register> result = new ArrayList<L2Register>(
+			primitiveArguments.registers().size());
+		result.addAll(primitiveArguments.registers());
 		return result;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Since a call can clear all registers, we could try to list all
+	 * registers as destinations. Instead, we treat calls as the ends of the
+	 * basic blocks during flow analysis.</p>
+	 */
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(_arguments.registers().size());
-		result.addAll(_arguments.registers());
-		return result;
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
 
-
-
-	// code generation
-
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doAttemptPrimitive_withArguments_result_ifFail_.ordinal());
-		anL2CodeGenerator.emitWord(_primNum);
-		anL2CodeGenerator.emitVector(_arguments);
-		anL2CodeGenerator.emitObjectRegister(_dest);
-		anL2CodeGenerator.emitWord(_failureLabel.offset());
+		codeGenerator.emitWord(
+			L2_doAttemptPrimitive_withArguments_result_ifFail_.ordinal());
+		codeGenerator.emitWord(primitiveNumber);
+		codeGenerator.emitVector(primitiveArguments);
+		codeGenerator.emitObjectRegister(destinationRegister);
+		codeGenerator.emitWord(failureLabel.offset());
 	}
 
-
-
-	// initialization
-
-	public L2AttemptPrimitiveInstruction primitiveArgumentsDestinationIfFail (
-			final int prim,
-			final L2RegisterVector args,
-			final L2ObjectRegister destination,
-			final L2LabelInstruction ifFail)
-	{
-		_primNum = prim;
-		_arguments = args;
-		_dest = destination;
-		_failureLabel = ifFail;
-		return this;
-	}
-
-
-
-	// typing
-
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Propagate type information due to this instruction.
-
-		anL2Translator.removeTypeForRegister(_dest);
-		anL2Translator.removeConstantForRegister(_dest);
+		translator.removeTypeForRegister(destinationRegister);
+		translator.removeConstantForRegister(destinationRegister);
 	}
 }

@@ -32,61 +32,63 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doInterpretOneInstruction;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.L2ChunkDescriptor;
+import com.avail.interpreter.levelOne.L1Instruction;
+import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
 
-public class L2InterpretOneInstruction extends L2Instruction
+/**
+ * {@code L2InterpretOneInstruction} resides solely in the {@linkplain
+ * L2Translator#createChunkForFirstInvocation() default} {@linkplain
+ * L2ChunkDescriptor chunk} and exists to simulate a single {@linkplain
+ * L1Instruction level one Avail instruction}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2InterpretOneInstruction
+extends L2Instruction
 {
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>But this should never be produced by the {@linkplain L2Translator
+	 * optimizer}, as its existence and purpose are restricted to the
+	 * {@linkplain L2Translator#createChunkForFirstInvocation() default}
+	 * {@linkplain L2ChunkDescriptor chunk}.</p>
+	 */
+	@Override
+	public @NotNull List<L2Register> sourceRegisters ()
+	{
+		return Collections.emptyList();
+	}
 
-
-	// accessing
-
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Ignore the {@linkplain L2Interpreter#callerRegister() caller
+	 * register}, as it is implicit in the {@linkplain L2InterpretOneInstruction
+	 * instruction}.</p>
+	 */
 	@Override
 	public List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.  Skip the callerRegister, which is implicit.
-
-		return new ArrayList<L2Register>();
+		return Collections.emptyList();
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Answer a collection of registers read by this instruction.  But this should never be
-		//  produced by the optimizer, as its purpose is limited to within the default chunk.
-
-		return new ArrayList<L2Register>();
+		codeGenerator.emitWord(L2_doInterpretOneInstruction.ordinal());
 	}
 
-
-
-	// code generation
-
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doInterpretOneInstruction.ordinal());
-	}
-
-
-
-	// typing
-
-	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
-	{
-		//  Propagate type information due to this instruction.
-		//
-		//  No real optimization should ever be done near this wordcode.  Do nothing.
-
-
+		// No real optimization should ever be done near this wordcode.
+		// Do nothing.
 	}
 }

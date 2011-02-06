@@ -32,11 +32,60 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-public class L2AbstractJumpInstruction extends L2Instruction
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.levelTwo.register.L2Register;
+
+/**
+ * {@code L2AbstractJumpInstruction} is the foundation of all jump instructions
+ * understood by the {@linkplain L2Interpreter level two Avail interpreter}. It
+ * implements a read-only jump {@linkplain L2Instruction target} that is set at
+ * construction time.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public abstract class L2AbstractJumpInstruction
+extends L2Instruction
 {
-	L2Instruction _target;
+	/**
+	 * The {@linkplain L2LabelInstruction target} of the {@linkplain
+	 * L2AbstractJumpInstruction jump}.
+	 */
+	private final @NotNull L2LabelInstruction target;
 
+	/**
+	 * Answer the {@linkplain L2LabelInstruction target} of the {@linkplain
+	 * L2AbstractJumpInstruction jump}.
+	 *
+	 * @return The jump {@linkplain L2LabelInstruction target}.
+	 */
+	protected @NotNull L2LabelInstruction target ()
+	{
+		return target;
+	}
 
+	/**
+	 * Construct a new {@link L2AbstractJumpInstruction}.
+	 *
+	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 */
+	protected L2AbstractJumpInstruction (
+		final @NotNull L2LabelInstruction target)
+	{
+		this.target = target;
+	}
 
+	@Override
+	public @NotNull List<L2Register> sourceRegisters ()
+	{
+		return Collections.emptyList();
+	}
 
+	@Override
+	public @NotNull List<L2Register> destinationRegisters ()
+	{
+		return Collections.emptyList();
+	}
 }

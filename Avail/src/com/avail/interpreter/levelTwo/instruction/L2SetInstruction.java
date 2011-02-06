@@ -32,75 +32,94 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.CONTAINER;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doSetVariable_sourceObject_;
 import java.util.*;
-import com.avail.descriptor.AvailObject;
+import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.node.AssignmentNodeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2SetInstruction extends L2Instruction
+/**
+ * {@code L2SetInstruction} stores an {@linkplain AvailObject object} into a
+ * {@linkplain ContainerDescriptor container}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2SetInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _variable;
-	L2ObjectRegister _value;
+	/**
+	 * The source {@linkplain L2ObjectRegister register} holding the {@linkplain
+	 * ContainerDescriptor container} into which the {@linkplain AvailObject
+	 * object} will be written.
+	 */
+	private final @NotNull L2ObjectRegister container;
 
+	/**
+	 * The source {@linkplain L2ObjectRegister register} containing the
+	 * {@linkplain AvailObject object} that should be written into the
+	 * {@linkplain ContainerDescriptor container}.
+	 */
+	private final @NotNull L2ObjectRegister value;
 
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2SetInstruction}.
+	 *
+	 * @param container
+	 *        The source {@linkplain L2ObjectRegister register} holding the
+	 *        {@linkplain ContainerDescriptor container} into which the
+	 *        {@linkplain AvailObject object} will be written.
+	 * @param value
+	 *        The source {@linkplain L2ObjectRegister register} containing the
+	 *        {@linkplain AvailObject object} that should be written into the
+	 *        {@linkplain ContainerDescriptor container}.
+	 */
+	public L2SetInstruction (
+		final @NotNull L2ObjectRegister container,
+		final @NotNull L2ObjectRegister value)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		this.container = container;
+		this.value = value;
 	}
 
 	@Override
 	public List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(2);
-		result.add(_variable);
-		result.add(_value);
+		final List<L2Register> result = new ArrayList<L2Register>(2);
+		result.add(container);
+		result.add(value);
 		return result;
 	}
 
-
-
-	// code generation
-
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doSetVariable_sourceObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_variable);
-		anL2CodeGenerator.emitObjectRegister(_value);
+		return Collections.emptyList();
 	}
 
-
-
-	// initialization
-
-	public L2SetInstruction variableValue (
-			final L2ObjectRegister var,
-			final L2ObjectRegister val)
+	@Override
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		_variable = var;
-		_value = val;
-		return this;
+		codeGenerator.emitWord(L2_doSetVariable_sourceObject_.ordinal());
+		codeGenerator.emitObjectRegister(container);
+		codeGenerator.emitObjectRegister(value);
 	}
 
-
-
-	// typing
-
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>This is kind of strange.  Because of the way outers can lose all type
+	 * information, we use the fact that the {@linkplain AvailCompiler compiler}
+	 * set up an {@linkplain AssignmentNodeDescriptor assignment} to a variable
+	 * to indicate that the variable really is a {@linkplain ContainerDescriptor
+	 * variable}.</p>
+	 */
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
 		//  Propagate type information due to this instruction.
 		//
@@ -109,15 +128,15 @@ public class L2SetInstruction extends L2Instruction
 		//  variable really is a variable.
 
 		AvailObject varType;
-		if (anL2Translator.registerHasTypeAt(_variable))
+		if (translator.registerHasTypeAt(container))
 		{
-			varType = anL2Translator.registerTypeAt(_variable);
+			varType = translator.registerTypeAt(container);
 			varType = varType.typeIntersection(CONTAINER.o());
 		}
 		else
 		{
 			varType = CONTAINER.o();
 		}
-		anL2Translator.registerTypeAtPut(_variable, varType);
+		translator.registerTypeAtPut(container, varType);
 	}
 }

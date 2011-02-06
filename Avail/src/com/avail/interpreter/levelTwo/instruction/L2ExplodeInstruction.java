@@ -32,104 +32,129 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2ExplodeInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2ExplodeInstruction extends L2Instruction
+/**
+ * {@code L2ExplodeInstruction} disassembles the source {@linkplain
+ * ContinuationDescriptor continuation} by extracting its caller, {@linkplain
+ * ClosureDescriptor closure}, and {@linkplain AvailObject slots} into the
+ * specified {@linkplain L2RegisterVector register vector}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2ExplodeInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _toExplode;
-	L2ObjectRegister _destSender;
-	L2ObjectRegister _destClosure;
-	L2RegisterVector _destVector;
+	/**
+	 * The {@linkplain L2ObjectRegister register} containing the {@linkplain
+	 * ContinuationDescriptor continuation} that should be disassembled into the
+	 * destination registers.
+	 */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
+	/**
+	 * The destination {@linkplain L2ObjectRegister register} for the
+	 * {@linkplain ContinuationDescriptor caller}.
+	 */
+	private final @NotNull L2ObjectRegister caller;
 
-	// accessing
+	/**
+	 * The destination {@linkplain L2ObjectRegister register} for the
+	 * {@linkplain ClosureDescriptor closure}.
+	 */
+	private final @NotNull L2ObjectRegister closure;
+
+	/**
+	 * The destination {@linkplain L2RegisterVector vector} for the {@linkplain
+	 * AvailObject slots} of the {@linkplain ContinuationDescriptor
+	 * continuation}.
+	 */
+	private final @NotNull L2RegisterVector slotsVector;
+
+	/**
+	 * Construct a new {@link L2ExplodeInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The {@linkplain L2ObjectRegister register} containing the
+	 *        {@linkplain ContinuationDescriptor continuation} that should be
+	 *        disassembled into the destination registers.
+	 * @param caller
+	 *        The destination {@linkplain L2ObjectRegister register} for the
+	 *        {@linkplain ContinuationDescriptor caller}.
+	 * @param closure
+	 *        The destination {@linkplain L2ObjectRegister register} for the
+	 *        {@linkplain ClosureDescriptor closure}.
+	 * @param slotsVector
+	 *        The destination {@linkplain L2RegisterVector vector} for the
+	 *        {@linkplain AvailObject slots} of the {@linkplain
+	 *        ContinuationDescriptor continuation}.
+	 */
+	public L2ExplodeInstruction (
+		final @NotNull L2ObjectRegister sourceRegister,
+		final @NotNull L2ObjectRegister caller,
+		final @NotNull L2ObjectRegister closure,
+		final @NotNull L2RegisterVector slotsVector)
+	{
+		this.sourceRegister = sourceRegister;
+		this.caller = caller;
+		this.closure = closure;
+		this.slotsVector = slotsVector;
+	}
+
+	@Override
+	public @NotNull List<L2Register> sourceRegisters ()
+	{
+		return Collections.<L2Register>singletonList(sourceRegister);
+	}
 
 	@Override
 	public List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(2 + _destVector.registers().size());
-		result.add(_destSender);
-		result.add(_destClosure);
-		result.addAll(_destVector.registers());
+		List<L2Register> result = new ArrayList<L2Register>(
+			2 + slotsVector.registers().size());
+		result.add(caller);
+		result.add(closure);
+		result.addAll(slotsVector.registers());
 		return result;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_toExplode);
-		return result;
+		codeGenerator.emitWord(
+			L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_.ordinal());
+		codeGenerator.emitObjectRegister(sourceRegister);
+		codeGenerator.emitObjectRegister(caller);
+		codeGenerator.emitObjectRegister(closure);
+		codeGenerator.emitVector(slotsVector);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Emit this instruction to the code generator.
+		// TODO: [MvG] How seriously should the comments below be taken?
 
-		anL2CodeGenerator.emitWord(L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_toExplode);
-		anL2CodeGenerator.emitObjectRegister(_destSender);
-		anL2CodeGenerator.emitObjectRegister(_destClosure);
-		anL2CodeGenerator.emitVector(_destVector);
-	}
-
-
-
-	// initialization
-
-	public L2ExplodeInstruction toExplodeDestSenderDestClosureDestVector (
-			final L2ObjectRegister givenContinuationRegister,
-			final L2ObjectRegister senderReg,
-			final L2ObjectRegister closureReg,
-			final L2RegisterVector regVector)
-	{
-		_toExplode = givenContinuationRegister;
-		_destSender = senderReg;
-		_destClosure = closureReg;
-		_destVector = regVector;
-		return this;
-	}
-
-
-
-	// typing
-
-	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
-	{
-		//  Propagate type information due to this instruction.
+		// Hm.  This explode instruction should have captured type information
+		// for its continuation slots.  For now just clear them all (yuck).
+		// Later, we will capture this in the call instruction, suitably
+		// adjusted with an expectation of a return value (of the appropriate
+		// type) on the stack.
 		//
-		//  Hm.  This explode instruction should have captured type information for its
-		//  continuation slots.  For now just clear them all (yuck).  Later, we will capture
-		//  this in the call instruction, suitably adjusted with an expectation of a return
-		//  value (of the appropriate type) on the stack.
-		//
-		//  Clear all types, then set the sender and closure types (the slot types will be set by L2Translator>>doCall)...
+		// Clear all types, then set the sender and closure types (the slot
+		// types will be set by L2Translator>>doCall)...
 
-		anL2Translator.clearRegisterTypes();
-		//  anL2Translator registerTypes at: destSender identity put: TypeDescriptor continuation.
+		translator.clearRegisterTypes();
+		//  anL2Translator registerTypes
+		//    at: destSender identity put: TypeDescriptor continuation.
 		//
 		//  unused information
-		anL2Translator.registerTypeAtPut(_destClosure, anL2Translator.code().closureType());
-		anL2Translator.clearRegisterConstants();
+		translator.registerTypeAtPut(closure, translator.code().closureType());
+		translator.clearRegisterConstants();
 	}
 }

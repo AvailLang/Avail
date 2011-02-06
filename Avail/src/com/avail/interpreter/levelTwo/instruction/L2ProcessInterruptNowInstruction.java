@@ -32,59 +32,57 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doProcessInterruptNowWithContinuationObject_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.instruction.L2ProcessInterruptNowInstruction;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2ProcessInterruptNowInstruction extends L2Instruction
+/**
+ * {@code L2ProcessInterruptNowInstruction} interrupts the currently running
+ * {@linkplain ProcessDescriptor process} and requests that the {@linkplain
+ * ContinuationDescriptor continuation} in the source {@linkplain
+ * L2ObjectRegister register} be executed when the process resumes.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2ProcessInterruptNowInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _continuationReg;
+	/** The source {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
-
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2ProcessInterruptNowInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The source {@linkplain L2ObjectRegister register}.
+	 */
+	public L2ProcessInterruptNowInstruction (
+		final @NotNull L2ObjectRegister sourceRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		this.sourceRegister = sourceRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		return new ArrayList<L2Register>();
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doProcessInterruptNowWithContinuationObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_continuationReg);
+		return Collections.emptyList();
 	}
 
-
-
-	// initialization
-
-	public L2ProcessInterruptNowInstruction continuation (
-			final L2ObjectRegister contReg)
+	@Override
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		_continuationReg = contReg;
-		return this;
+		codeGenerator.emitWord(
+			L2_doProcessInterruptNowWithContinuationObject_.ordinal());
+		codeGenerator.emitObjectRegister(sourceRegister);
 	}
 }

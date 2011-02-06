@@ -32,96 +32,90 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.CONTAINER;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doGetVariableClearing_destObject_;
 import java.util.*;
-import com.avail.descriptor.AvailObject;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2GetClearingInstruction extends L2Instruction
+/**
+ * {@code L2GetClearingInstruction} atomically reads and clears the source
+ * {@linkplain ContainerDescriptor container}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2GetClearingInstruction
+extends L2Instruction
 {
-	L2ObjectRegister _sourceVar;
-	L2ObjectRegister _dest;
+	/** The source {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister sourceRegister;
 
+	/** The destination {@linkplain L2ObjectRegister register}. */
+	private final @NotNull L2ObjectRegister destinationRegister;
 
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2GetClearingInstruction}.
+	 *
+	 * @param sourceRegister
+	 *        The source {@linkplain L2ObjectRegister register}.
+	 * @param destinationRegister
+	 *        The destination {@linkplain L2ObjectRegister register}.
+	 */
+	public L2GetClearingInstruction (
+		final @NotNull L2ObjectRegister sourceRegister,
+		final @NotNull L2ObjectRegister destinationRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
-		return result;
+		this.sourceRegister = sourceRegister;
+		this.destinationRegister = destinationRegister;
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_sourceVar);
-		return result;
+		return Collections.<L2Register>singletonList(sourceRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doGetVariableClearing_destObject_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_sourceVar);
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2GetClearingInstruction sourceVariableDestination (
-			final L2ObjectRegister sourceVariable,
-			final L2ObjectRegister destination)
-	{
-		_sourceVar = sourceVariable;
-		_dest = destination;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitWord(L2_doGetVariableClearing_destObject_.ordinal());
+		codeGenerator.emitObjectRegister(sourceRegister);
+		codeGenerator.emitObjectRegister(destinationRegister);
+	}
+
+	@Override
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
 		//  Propagate type information due to this instruction.
 
-		if (anL2Translator.registerHasTypeAt(_sourceVar))
+		if (translator.registerHasTypeAt(sourceRegister))
 		{
-			final AvailObject varType = anL2Translator.registerTypeAt(_sourceVar);
+			final AvailObject varType =
+				translator.registerTypeAt(sourceRegister);
 			if (varType.isSubtypeOf(CONTAINER.o())
 				&& !varType.equals(CONTAINER.o()))
 			{
-				anL2Translator.registerTypeAtPut(_dest, varType.innerType());
+				translator.registerTypeAtPut(
+					destinationRegister, varType.innerType());
 			}
 			else
 			{
-				anL2Translator.removeTypeForRegister(_dest);
+				translator.removeTypeForRegister(destinationRegister);
 			}
 		}
 		else
 		{
-			anL2Translator.removeTypeForRegister(_dest);
+			translator.removeTypeForRegister(destinationRegister);
 		}
-		anL2Translator.removeConstantForRegister(_dest);
+		translator.removeConstantForRegister(destinationRegister);
 	}
 }

@@ -32,48 +32,74 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.L2Translator;
-import java.util.List;
 
+/**
+ * {@code L2RegisterVector} aggregates {@linkplain L2ObjectRegister object
+ * registers} for convenient manipulation.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
 public class L2RegisterVector
+implements Iterable<L2ObjectRegister>
 {
-	final List<L2ObjectRegister> _registers;
+	/**
+	 * The {@linkplain List list} of aggregated {@linkplain L2ObjectRegister
+	 * object registers}.
+	 */
+	private final @NotNull List<L2ObjectRegister> registers;
 
 	/**
+	 * Answer the {@linkplain List list} of aggregated {@linkplain
+	 * L2ObjectRegister object registers}.
 	 *
-	 * Construct a new {@link L2RegisterVector} containing the given registers.
-	 *
-	 * @param objectRegisters the registers to put in the new vector.
+	 * @return The aggregated {@linkplain L2ObjectRegister object registers}.
 	 */
-	public L2RegisterVector (
-		final List<L2ObjectRegister> objectRegisters)
-	{
-		_registers = objectRegisters;
-	}
-
-
-	// accessing
-
 	public List<L2ObjectRegister> registers ()
 	{
-		//  Answer the collection of object registers.
-
-		return _registers;
+		return registers;
 	}
 
-
-	// folding
-
-	public boolean allRegistersAreConstantsIn (
-			final L2Translator anL2Translator)
+	/**
+	 * Construct a new {@link L2RegisterVector}.
+	 *
+	 * @param registers
+	 *        The {@linkplain List list} of aggregated {@linkplain
+	 *        L2ObjectRegister object registers}.
+	 */
+	public L2RegisterVector (
+		final @NotNull List<L2ObjectRegister> registers)
 	{
-		for (int i = 1, _end1 = _registers.size(); i <= _end1; i++)
+		this.registers = registers;
+	}
+
+	/**
+	 * Do all member {@linkplain L2ObjectRegister registers} contain constant
+	 * values?
+	 *
+	 * @param translator The {@linkplain L2Translator translator}.
+	 * @return {@code true} if each member {@linkplain L2ObjectRegister
+	 *         register} contains a constant value, {@code false} otherwise.
+	 */
+	public boolean allRegistersAreConstantsIn (
+		final @NotNull L2Translator translator)
+	{
+		for (final L2ObjectRegister register : registers)
 		{
-			if (!anL2Translator.registerHasConstantAt(_registers.get(i - 1)))
+			if (!translator.registerHasConstantAt(register))
 			{
 				return false;
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public Iterator<L2ObjectRegister> iterator ()
+	{
+		return registers.iterator();
 	}
 }

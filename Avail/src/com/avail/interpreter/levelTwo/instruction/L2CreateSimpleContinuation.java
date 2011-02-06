@@ -32,81 +32,83 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import com.avail.descriptor.ContinuationTypeDescriptor;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.L2Translator;
-import com.avail.interpreter.levelTwo.instruction.L2CreateSimpleContinuation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateSimpleContinuationIn_;
+import java.util.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
 
-public class L2CreateSimpleContinuation extends L2Instruction
+/**
+ * {@code L2CreateSimpleContinuation} creates a real {@linkplain
+ * ContinuationDescriptor continuation} using the contents of the {@linkplain
+ * L2Interpreter interpreter}'s architectural registers, i.e. the calling
+ * continuation, the current {@linkplain ClosureDescriptor closure}, and as many
+ * {@linkplain AvailObject arguments} as the closure specifies. This instruction
+ * also creates the local variables necessary to execute the continuation. The
+ * resultant continuation always represents the state upon entry to the closure.
+ * This instruction exists solely to allow an authentic level one instruction
+ * simulator to be implemented in terms of level two instructions.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2CreateSimpleContinuation
+extends L2Instruction
 {
-	L2ObjectRegister _dest;
+	/**
+	 * The {@linkplain L2ObjectRegister register} into which the new {@linkplain
+	 * ContinuationDescriptor continuation} will be written.
+	 */
+	private final @NotNull L2ObjectRegister destinationRegister;
 
-
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2CreateSimpleContinuation}.
+	 *
+	 * @param destinationRegister
+	 *        The {@linkplain L2ObjectRegister register} into which the new
+	 *        {@linkplain ContinuationDescriptor continuation} will be written.
+	 */
+	public L2CreateSimpleContinuation (
+		final @NotNull L2ObjectRegister destinationRegister)
 	{
-		//  Answer a collection of registers written to by this instruction.
+		this.destinationRegister = destinationRegister;
+	}
 
-		List<L2Register> result = new ArrayList<L2Register>(1);
-		result.add(_dest);
-		return result;
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p> Since this instruction should only appear in the unoptimized default
+	 * chunk, there is no need for this to be accurate. We're missing the
+	 * caller, the closure, and the argument registers, which depend on what
+	 * code this is being invoked for.</p>
+	 */
+	@Override
+	public @NotNull List<L2Register> sourceRegisters ()
+	{
+		return Collections.emptyList();
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		//  Answer a collection of registers read by this instruction.  Since this instruction should only
-		//  appear in the unoptimized default chunk, there is no need for this to be accurate.
-		//
-		//  We're missing the caller, the closure, and the argument registers, which
-		//  depend on what code this is being invoked for.
-
-		return new ArrayList<L2Register>();
+		return Collections.<L2Register>singletonList(destinationRegister);
 	}
-
-
-
-	// code generation
 
 	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doCreateSimpleContinuationIn_.ordinal());
-		anL2CodeGenerator.emitObjectRegister(_dest);
+		codeGenerator.emitWord(L2_doCreateSimpleContinuationIn_.ordinal());
+		codeGenerator.emitObjectRegister(destinationRegister);
 	}
-
-
-
-	// initialization
-
-	public L2CreateSimpleContinuation destination (
-			final L2ObjectRegister destination)
-	{
-		_dest = destination;
-		return this;
-	}
-
-
-
-	// typing
 
 	@Override
-	public void propagateTypeInfoFor (
-			final L2Translator anL2Translator)
+	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  Propagate type information due to this instruction.
-
-		anL2Translator.registerTypeAtPut(_dest, ContinuationTypeDescriptor.forClosureType(anL2Translator.code().closureType()));
-		anL2Translator.removeConstantForRegister(_dest);
+		translator.registerTypeAtPut(
+			destinationRegister,
+			ContinuationTypeDescriptor.forClosureType(
+				translator.code().closureType()));
+		translator.removeConstantForRegister(destinationRegister);
 	}
 }

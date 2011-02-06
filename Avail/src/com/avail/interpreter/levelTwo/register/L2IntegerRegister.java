@@ -32,17 +32,33 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import java.lang.Cloneable;
+import com.avail.annotations.NotNull;
 
-public class L2IntegerRegister extends L2Register implements Cloneable
+/**
+ * {@code L2IntegerRegister} models the conceptual usage of a register that can
+ * store a machine integer.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class L2IntegerRegister
+extends L2Register
 {
-
-
-
-
-	@Override
-	public L2IntegerRegister clone () throws CloneNotSupportedException
+	/**
+	 * Construct a new {@link L2IntegerRegister}.
+	 */
+	public L2IntegerRegister ()
 	{
-		return (L2IntegerRegister)super.clone();
+		// No implementation required.
+	}
+
+	/**
+	 * Construct a new {@link L2IntegerRegister} identical to the specified
+	 * register.
+	 *
+	 * @param register An {@linkplain L2IntegerRegister integer register}.
+	 */
+	public L2IntegerRegister (final @NotNull L2IntegerRegister register)
+	{
+		super(register);
 	}
 }

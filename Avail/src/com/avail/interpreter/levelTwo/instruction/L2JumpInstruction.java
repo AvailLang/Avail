@@ -32,58 +32,33 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doJump_;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
-import com.avail.interpreter.levelTwo.instruction.L2JumpInstruction;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import java.util.ArrayList;
-import java.util.List;
-import static com.avail.interpreter.levelTwo.L2Operation.*;
 
-public class L2JumpInstruction extends L2AbstractJumpInstruction
+/**
+ * {@code L2JumpInstruction} causes an unconditional jump to the {@linkplain
+ * L2LabelInstruction target}.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2JumpInstruction
+extends L2AbstractJumpInstruction
 {
-
-
-	// accessing
-
-	@Override
-	public List<L2Register> destinationRegisters ()
+	/**
+	 * Construct a new {@link L2JumpInstruction}.
+	 *
+	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 */
+	public L2JumpInstruction (final @NotNull L2LabelInstruction target)
 	{
-		//  Answer a collection of registers written to by this instruction.
-
-		return new ArrayList<L2Register>();
+		super(target);
 	}
 
 	@Override
-	public List<L2Register> sourceRegisters ()
+	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		//  Answer a collection of registers read by this instruction.
-
-		return new ArrayList<L2Register>();
-	}
-
-
-
-	// code generation
-
-	@Override
-	public void emitOn (
-			final L2CodeGenerator anL2CodeGenerator)
-	{
-		//  Emit this instruction to the code generator.
-
-		anL2CodeGenerator.emitWord(L2_doJump_.ordinal());
-		anL2CodeGenerator.emitWord(_target.offset());
-	}
-
-
-
-	// initialization
-
-	public L2JumpInstruction target (
-			final L2Instruction targetLabel)
-	{
-		_target = targetLabel;
-		return this;
+		codeGenerator.emitWord(L2_doJump_.ordinal());
+		codeGenerator.emitWord(target().offset());
 	}
 }

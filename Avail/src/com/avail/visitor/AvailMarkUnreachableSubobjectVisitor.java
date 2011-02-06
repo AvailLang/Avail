@@ -32,8 +32,9 @@
 
 package com.avail.visitor;
 
-import com.avail.descriptor.AvailObject;
 import static com.avail.descriptor.AvailObject.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.AvailObject;
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child
@@ -42,22 +43,32 @@ import static com.avail.descriptor.AvailObject.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
+public final class AvailMarkUnreachableSubobjectVisitor
+extends AvailSubobjectVisitor
 {
 	/**
 	 * An object which we should <em>not</em> recurse into if encountered.
 	 */
-	final AvailObject _exceptMe;
-
+	private final @NotNull AvailObject exclusion;
 
 	/**
-	 * This is a visitor call from a subobject iterator running on some object.
-	 * The subobject has already been extracted from the parent.
+	 * Construct a new {@link AvailMarkUnreachableSubobjectVisitor}.
+	 *
+	 * @param excludedObject
+	 *        The object within which to <em>avoid</em> marking subobjects as
+	 *        unreachable.  Use VoidDescriptor.voidObject() if no such object
+	 *        is necessary, as it's always already immutable.
 	 */
+	public AvailMarkUnreachableSubobjectVisitor (
+		final @NotNull AvailObject excludedObject)
+	{
+		exclusion = excludedObject;
+	}
+
 	@Override
 	public void invoke (
-			final AvailObject parentObject,
-			final AvailObject childObject)
+		final @NotNull AvailObject parentObject,
+		final @NotNull AvailObject childObject)
 	{
 		if (!CanDestroyObjects())
 		{
@@ -68,7 +79,7 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 		{
 			return;
 		}
-		if (childObject.sameAddressAs(_exceptMe))
+		if (childObject.sameAddressAs(exclusion))
 		{
 			return;
 		}
@@ -79,19 +90,5 @@ public class AvailMarkUnreachableSubobjectVisitor extends AvailSubobjectVisitor
 		// Indicate the object is no longer valid and should not ever be used
 		// again.
 		childObject.setToInvalidDescriptor();
-	}
-
-
-	/**
-	 * Construct a new {@link AvailMarkUnreachableSubobjectVisitor}.
-	 *
-	 * @param excludedObject
-	 *        The object within which to <em>avoid</em> marking subobjects as
-	 *        unreachable.  Use VoidDescriptor.voidObject() if no such object
-	 *        is necessary, as it's always already immutable.
-	 */
-	public AvailMarkUnreachableSubobjectVisitor (AvailObject excludedObject)
-	{
-		_exceptMe = excludedObject;
 	}
 }

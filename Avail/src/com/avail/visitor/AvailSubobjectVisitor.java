@@ -32,6 +32,7 @@
 
 package com.avail.visitor;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -42,16 +43,14 @@ import com.avail.descriptor.AvailObject;
  */
 public abstract class AvailSubobjectVisitor
 {
-
 	/**
 	 * This is a visitor call from a subobject iterator running on some object.
 	 * The subobject has already been extracted from the parent.
-	 * 
+	 *
 	 * @param parentObject The object whose field we are visiting.
 	 * @param childObject An object referred to by the {@code parentObject}.
 	 */
 	public abstract void invoke (
-		final AvailObject parentObject,
-		final AvailObject childObject);
-
+		final @NotNull AvailObject parentObject,
+		final @NotNull AvailObject childObject);
 }

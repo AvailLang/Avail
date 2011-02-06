@@ -1227,30 +1227,6 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doTranslateCode ()
-	{
-		// The callerRegister contains the calling continuation, and the
-		// closureRegister contains the code being invoked. Do a naive
-		// translation of this code into Level Two. Don't do any inlining or
-		// register coloring, but insert instrumentation that will eventually
-		// trigger a reoptimization of this code.
-
-		final AvailObject theClosure = _pointers[closureRegister()];
-		final AvailObject theCode = theClosure.code();
-		// Do an initial simplistic translation.
-		final AvailObject newChunk =
-			privateTranslateCodeOptimization(theCode, 1);
-		assert theCode.startingChunkIndex() == newChunk.index();
-		_argsBuffer.clear();
-		final int nArgs = theCode.numArgs();
-		for (int i = nArgs; i > 0; --i)
-		{
-			_argsBuffer.add(_pointers[argumentRegister(i)]);
-		}
-		invokeClosureArguments(theClosure, _argsBuffer);
-	}
-
-	@Override
 	public void L2_doMoveFromObject_destObject_ ()
 	{
 		final int fromIndex = nextWord();
@@ -2403,13 +2379,6 @@ implements L2OperationDispatcher
 	{
 		final int objectIndex = nextWord();
 		pointerAt(objectIndex).makeSubobjectsImmutable();
-	}
-
-	@Override
-	public void L2_doBreakpoint ()
-	{
-		error("Breakpoint instruction reached");
-		return;
 	}
 
 	/**
