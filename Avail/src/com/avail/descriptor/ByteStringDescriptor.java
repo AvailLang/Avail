@@ -38,6 +38,12 @@ import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
 public class ByteStringDescriptor
 extends TupleDescriptor
 {
@@ -58,7 +64,12 @@ extends TupleDescriptor
 		RAW_QUAD_AT_
 	}
 
-	private final int _unusedBytesOfLastWord;
+	/**
+	 * The number of bytes of the last 32-bit machine word that do not
+	 * participate in the representation of the {@linkplain ByteStringDescriptor
+	 * byte string}.
+	 */
+	private final int unusedBytesOfLastWord;
 
 	@Override
 	public int o_RawQuadAt (
@@ -375,13 +386,18 @@ extends TupleDescriptor
 		return hash * Multiplier;
 	}
 
+	/**
+	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that also
+	 * only holds byte {@linkplain CharacterDescriptor characters}.
+	 *
+	 * @param object The {@linkplain AvailObject receiver}.
+	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
+	 */
 	private @NotNull AvailObject copyAsMutableByteString (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a mutable copy of object that also only holds byte characters.
-
-		final AvailObject result = isMutableSize(true, object.tupleSize()).create(
-			(object.tupleSize() + 3) / 4);
+		final AvailObject result = isMutableSize(true, object.tupleSize())
+			.create((object.tupleSize() + 3) / 4);
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
@@ -391,18 +407,24 @@ extends TupleDescriptor
 		return result;
 	}
 
+	/**
+	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that holds
+	 * 16-bit characters.
+	 *
+	 * @param object The {@linkplain AvailObject receiver}.
+	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
+	 */
 	private @NotNull AvailObject copyAsMutableTwoByteString (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a mutable copy of object that holds 16-bit characters.
-
 		final AvailObject result =
 			TwoByteStringDescriptor.isMutableSize(true, object.tupleSize())
 				.create((object.tupleSize() + 1) / 2);
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			result.rawShortForCharacterAtPut(i, object.rawByteForCharacterAt(i));
+			result.rawShortForCharacterAtPut(
+				i, object.rawByteForCharacterAt(i));
 		}
 		return result;
 	}
@@ -413,44 +435,47 @@ extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - _unusedBytesOfLastWord;
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
 	}
 
-	private @NotNull AvailObject mutableObjectOfSize (
-		final int size)
+	/**
+	 * Answer a new {@linkplain ByteStringDescriptor object} capacious enough to
+	 * hold the specified number of elements.
+	 *
+	 * @param size The desired number of elements.
+	 * @return A new {@linkplain ByteStringDescriptor object}.
+	 */
+	private @NotNull AvailObject mutableObjectOfSize (final int size)
 	{
-		//  Build a new object instance with room for size elements.
-
 		if (!isMutable)
 		{
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (size + _unusedBytesOfLastWord & 3) == 0;
+		assert (size + unusedBytesOfLastWord & 3) == 0;
 		final AvailObject result = this.create(((size + 3) / 4));
 		return result;
 	}
 
-	private @NotNull AvailObject privateMutableObjectFromNativeByteString (
-		final @NotNull String aNativeByteString)
-	{
-		final AvailObject result = mutableObjectOfSize(aNativeByteString.length());
-		for (int index = 1; index <= aNativeByteString.length(); index++)
-		{
-		final char c = aNativeByteString.charAt(index - 1);
-			assert 0 <= c && c <= 255;
-			result.rawByteForCharacterAtPut(index, (short)c);
-		}
-		return result;
-	}
-
+	/**
+	 * Answer the appropriate {@linkplain ByteStringDescriptor descriptor} to
+	 * represent an {@linkplain AvailObject object} of the specified mutability
+	 * and size.
+	 *
+	 * @param flag
+	 *        {@code true} if the desired {@linkplain ByteStringDescriptor
+	 *        descriptor} is mutable, {@code false} otherwise.
+	 * @param size
+	 *        The desired number of elements.
+	 * @return A {@linkplain ByteStringDescriptor descriptor}.
+	 */
 	private static @NotNull ByteStringDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors[delta + (size & 3) * 2];
-	};
+	}
 
 	/**
 	 * Construct a new {@link ByteStringDescriptor}.
@@ -465,9 +490,10 @@ extends TupleDescriptor
 		final int unusedBytes)
 	{
 		super(isMutable);
-		_unusedBytesOfLastWord = unusedBytes;
+		unusedBytesOfLastWord = unusedBytes;
 	}
 
+	/** The {@link ByteStringDescriptor} instances. */
 	private static final ByteStringDescriptor[] descriptors =
 	{
 		new ByteStringDescriptor(true, 0),
@@ -480,13 +506,42 @@ extends TupleDescriptor
 		new ByteStringDescriptor(false, 1)
 	};
 
-	public static @NotNull AvailObject mutableObjectFromNativeByteString(
+	/**
+	 * Convert the specified Java {@link String} of Latin-1 characters into an
+	 * Avail {@linkplain ByteStringDescriptor string}.
+	 *
+	 * @param aNativeByteString A Java {@link String}.
+	 * @return A corresponding Avail {@linkplain ByteStringDescriptor string}.
+	 */
+	private static @NotNull AvailObject mutableObjectFromNativeByteString(
 		final @NotNull String aNativeByteString)
 	{
-		final ByteStringDescriptor descriptor = isMutableSize(true, aNativeByteString.length());
-		return descriptor.privateMutableObjectFromNativeByteString(aNativeByteString);
+		final ByteStringDescriptor descriptor =
+			isMutableSize(true, aNativeByteString.length());
+		final AvailObject result = descriptor.mutableObjectOfSize(
+			aNativeByteString.length());
+		for (int index = 1; index <= aNativeByteString.length(); index++)
+		{
+			final char c = aNativeByteString.charAt(index - 1);
+			assert 0 <= c && c <= 255;
+			result.rawByteForCharacterAtPut(index, (short) c);
+		}
+		return result;
 	}
 
+	/**
+	 * Convert the specified Java {@link String} to an Avail {@linkplain
+	 * ByteStringDescriptor string}.
+	 *
+	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
+	 * instance returned varies with the contents of the Java {@code String}. If
+	 * the Java {@code String} contains only Latin-1 characters, then the
+	 * descriptor will be {@link ByteStringDescriptor}; otherwise it will be
+	 * {@link TwoByteStringDescriptor}.</p>
+	 *
+	 * @param aNativeString A Java {@link String}.
+	 * @return A corresponding Avail {@linkplain ByteStringDescriptor string}.
+	 */
 	public static @NotNull AvailObject from (
 		final @NotNull String aNativeString)
 	{
@@ -494,9 +549,11 @@ extends TupleDescriptor
 		{
 			if (aNativeString.codePointAt(i) > 255)
 			{
-				return TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString(aNativeString);
+				return TwoByteStringDescriptor
+					.mutableObjectFromNativeTwoByteString(aNativeString);
 			}
 		}
-		return ByteStringDescriptor.mutableObjectFromNativeByteString(aNativeString);
+		return ByteStringDescriptor.mutableObjectFromNativeByteString(
+			aNativeString);
 	}
 }

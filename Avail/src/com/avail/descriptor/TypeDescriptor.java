@@ -703,9 +703,7 @@ extends Descriptor
 		for (final Types spec : Types.values())
 		{
 			final AvailObject o = spec.o();
-			o.name(
-				ByteStringDescriptor.mutableObjectFromNativeByteString(
-					spec.name()));
+			o.name(ByteStringDescriptor.from(spec.name()));
 			o.parent(
 				spec.parent == null
 				? voidObject
