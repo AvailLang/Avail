@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import java.util.*;
 import com.avail.annotations.*;
 
@@ -45,19 +45,21 @@ import com.avail.annotations.*;
 public class CharacterDescriptor
 extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{
+		/** The Unicode code point. */
 		CODE_POINT
 	}
+
 	/** The first 256 Unicode characters. */
 	private static AvailObject[] byteCharacters;
 
 	/** The hashes of the first 256 Unicode characters. */
 	private static final @NotNull int[] hashesOfByteCharacters = new int[256];
+
 	static
 	{
 		for (int i = 0; i <= 255; i++)
@@ -170,11 +172,6 @@ extends Descriptor
 	 * @return A mutable {@link CharacterDescriptor}.
 	 */
 	@ThreadSafe
-	/**
-	 * Answer the mutable {@link CharacterDescriptor}.
-	 *
-	 * @return The mutable {@link CharacterDescriptor}.
-	 */
 	public static CharacterDescriptor mutable ()
 	{
 		return mutable;
@@ -192,11 +189,6 @@ extends Descriptor
 	 * @return An immutable {@link CharacterDescriptor}.
 	 */
 	@ThreadSafe
-	/**
-	 * Answer the immutable {@link CharacterDescriptor}.
-	 *
-	 * @return The immutable {@link CharacterDescriptor}.
-	 */
 	public static CharacterDescriptor immutable ()
 	{
 		return immutable;
@@ -263,7 +255,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public AvailObject o_Type (final @NotNull AvailObject object)
+	public @NotNull AvailObject o_Type (final @NotNull AvailObject object)
 	{
 		return CHARACTER.o();
 	}

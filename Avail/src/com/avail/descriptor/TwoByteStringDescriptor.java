@@ -38,9 +38,9 @@ import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
-public class TwoByteStringDescriptor extends TupleDescriptor
+public class TwoByteStringDescriptor
+extends TupleDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -49,39 +49,37 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		HASH_OR_ZERO,
 		RAW_QUAD_AT_
 	}
-	int unusedShortsOfLastWord;
 
+	int unusedShortsOfLastWord;
 
 	@Override
 	public int o_RawQuadAt (
-			final AvailObject object,
-			final int subscript)
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
 	public void o_RawQuadAtPut (
-			final AvailObject object,
-			final int subscript,
-			final int value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final int value)
 	{
 		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
-
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append("\"");
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
-			final char c = (char)object.rawShortForCharacterAt(i);
+		final char c = (char)object.rawShortForCharacterAt(i);
 			if (c == '\"' || c == '\'' || c == '\\')
 			{
 				aStream.append('\\');
@@ -95,18 +93,16 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		aStream.append('\"');
 	}
 
-
-
 	/**
 	 * Compare sections of two tuples.  My instance is a two-byte-string.
 	 */
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject anotherObject,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject anotherObject,
+		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithTwoByteStringStartingAt(
 			startIndex2,
@@ -120,11 +116,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithTwoByteStringStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject aTwoByteString,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject aTwoByteString,
+		final int startIndex2)
 	{
 		if (object.sameAddressAs(aTwoByteString) && startIndex1 == startIndex2)
 		{
@@ -146,16 +142,16 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
 
 	@Override
 	public boolean o_EqualsTwoByteString (
-			final AvailObject object,
-			final AvailObject aTwoByteString)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTwoByteString)
 	{
 		//  First, check for object-structure (address) identity.
 
@@ -206,8 +202,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	 */
 	@Override
 	public boolean o_IsInstanceOfSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		if (aType.equals(VOID_TYPE.o()))
 		{
@@ -241,13 +237,12 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return true;
 	}
 
-
 	/**
 	 * Make the object immutable so it can be shared safely.
 	 */
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -260,32 +255,31 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return object;
 	}
 
-
 	/**
 	 * Answer the byte that encodes the character at the given index.
 	 */
 	@Override
 	public short o_RawShortForCharacterAt (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		return object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
 	@Override
 	public void o_RawShortForCharacterAtPut (
-			final AvailObject object,
-			final int index,
-			final short anInteger)
+		final @NotNull AvailObject object,
+		final int index,
+		final short anInteger)
 	{
 		// Set the character at the given index based on the given byte.
 		object.shortSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
 	@Override
-	public AvailObject o_TupleAt (
-			final AvailObject object,
-			final int index)
+	public @NotNull AvailObject o_TupleAt (
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
 		// two-byte character.
@@ -296,9 +290,9 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void o_TupleAtPut (
-			final AvailObject object,
-			final int index,
-			final AvailObject aCharacterObject)
+		final @NotNull AvailObject object,
+		final int index,
+		final @NotNull AvailObject aCharacterObject)
 	{
 		// Set the short at the given index to the given object (which should be
 		// an AvailObject that's a two-byte character).
@@ -310,11 +304,11 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAtPuttingCanDestroy (
-			final AvailObject object,
-			final int index,
-			final AvailObject newValueObject,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
+		final @NotNull AvailObject object,
+		final int index,
+		final @NotNull AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
@@ -322,7 +316,7 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
-			final int codePoint = newValueObject.codePoint();
+		final int codePoint = newValueObject.codePoint();
 			if (codePoint >= 0 && codePoint <= 0xFFFF)
 			{
 				if (canDestroy & isMutable)
@@ -347,8 +341,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleIntAt (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
 
@@ -358,20 +352,16 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleSize (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the number of elements in the object.
 		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 2
 				- unusedShortsOfLastWord;
 	}
 
-
-
-	// private-accessing
-
 	@Override
 	public int o_BitsPerEntry (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
 
@@ -379,29 +369,25 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 	}
 
 	void unusedShortsOfLastWord (
-			final int anInteger)
+		final int anInteger)
 	{
 		//  Set unusedBytesOfLastWord in this descriptor instance.  Must be 0 or 1.
 		assert 0 <= anInteger && anInteger <= 1;
 		unusedShortsOfLastWord = anInteger;
 	}
 
-
-
-	// private-computation
-
 	@Override
 	public int o_ComputeHashFromTo (
-			final AvailObject object,
-			final int start,
-			final int end)
+		final @NotNull AvailObject object,
+		final int start,
+		final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.
 
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash =
+		final int itemHash =
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
 					object.rawShortForCharacterAt(index))
 				^ PreToggle;
@@ -410,12 +396,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return hash * Multiplier;
 	}
 
-
-
-	// private-copying
-
 	AvailObject copyAsMutableTwoByteString (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a mutable copy of object that also only holds 16-bit characters.
 
@@ -430,26 +412,21 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
-
-
-	// private-initialization
-
 	AvailObject privateMutableObjectFromNativeTwoByteString (
-			final String aNativeTwoByteString)
+		final @NotNull String aNativeTwoByteString)
 	{
 		final AvailObject result = mutableObjectOfSize(
 			aNativeTwoByteString.length());
 		for (int index = 1; index <= aNativeTwoByteString.length(); index++)
 		{
-			final char c = aNativeTwoByteString.charAt(index - 1);
+		final char c = aNativeTwoByteString.charAt(index - 1);
 			result.rawShortForCharacterAtPut(index, (short)c);
 		}
 		return result;
 	}
 
-
 	AvailObject mutableObjectOfSize (
-			final int size)
+		final int size)
 	{
 		//  Build a new object instance with room for size elements.
 
@@ -464,7 +441,6 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
-	// Descriptor lookup
 	static TwoByteStringDescriptor isMutableSize(
 		final boolean flag,
 		final int size)
@@ -473,8 +449,6 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		return descriptors [delta + (size & 1) * 2];
 	};
 
-
-	// Object creation
 	public static AvailObject mutableObjectFromNativeTwoByteString(final String aNativeTwoByteString)
 	{
 		final TwoByteStringDescriptor descriptor = isMutableSize(true, aNativeTwoByteString.length());
@@ -498,8 +472,8 @@ public class TwoByteStringDescriptor extends TupleDescriptor
 		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
 	}
 
-
-	final static TwoByteStringDescriptor descriptors[] = {
+	final static TwoByteStringDescriptor[] descriptors =
+	{
 		new TwoByteStringDescriptor(true, 0),
 		new TwoByteStringDescriptor(false, 0),
 		new TwoByteStringDescriptor(true, 1),

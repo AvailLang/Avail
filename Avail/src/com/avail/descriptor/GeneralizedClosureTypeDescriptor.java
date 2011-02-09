@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.GENERALIZED_CLOSURE_TYPE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
+public class GeneralizedClosureTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -46,40 +47,27 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		RETURN_TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field returnType.
-	 */
 	@Override
 	public void o_ReturnType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.RETURN_TYPE, value);
 	}
 
-	/**
-	 * Getter for field returnType.
-	 */
 	@Override
-	public AvailObject o_ReturnType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ReturnType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append("[...]->");
 		object.returnType().printOnAvoidingIndent(
@@ -88,22 +76,18 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 			(indent + 1));
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsGeneralizedClosureType(object);
 	}
 
 	@Override
 	public boolean o_EqualsGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Generalized closure types are equal iff they have the same return type.
 
@@ -123,8 +107,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -133,7 +117,7 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The hash value is always recomputed from the argTypeTuple and returnType.
 
@@ -141,22 +125,18 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return GENERALIZED_CLOSURE_TYPE.o();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -165,8 +145,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfClosureType (
-			final AvailObject object,
-			final AvailObject aClosureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Closure types are contravariant by arguments and covariant by return type.  Since
 		//  generalized closure types don't know anything about arguments, just compare the
@@ -177,8 +157,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Generalized closure types are covariant by return type.
 
@@ -190,9 +170,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -208,9 +188,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfClosureType (
-			final AvailObject object,
-			final AvailObject aClosureType)
+	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Answer the most general type that is still at least as specific as these.  The intersection
 		//  of a closure type and a generalized closure type is always a closure type, so simply
@@ -223,9 +203,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType)
+	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Answer the most general type that is still at least as specific as these.  Respect
 		//  the covariance of the return types.
@@ -234,9 +214,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -252,9 +232,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfClosureType (
-			final AvailObject object,
-			final AvailObject aClosureType)
+	public @NotNull AvailObject o_TypeUnionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Answer the most specific type that is still at least as general as these.  Respect
 		//  the covariance of the return types.  Discard the argument information, because
@@ -265,9 +245,9 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType)
+	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Answer the most specific type that is still at least as general as these.  Respect
 		//  the covariance of the return types.
@@ -275,13 +255,8 @@ public class GeneralizedClosureTypeDescriptor extends TypeDescriptor
 		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
 	}
 
-
-
-
-
-	/* Descriptor lookup */
-	public static AvailObject forReturnType (
-			final AvailObject returnType)
+	public static @NotNull AvailObject forReturnType (
+		final @NotNull AvailObject returnType)
 	{
 		AvailObject result = mutable().create();
 		result.returnType(returnType);

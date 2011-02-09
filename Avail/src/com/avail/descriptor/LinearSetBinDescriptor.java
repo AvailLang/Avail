@@ -33,10 +33,11 @@
 package com.avail.descriptor;
 
 import static java.lang.Integer.bitCount;
+import com.avail.annotations.NotNull;
 
-public class LinearSetBinDescriptor extends SetBinDescriptor
+public class LinearSetBinDescriptor
+extends SetBinDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -53,56 +54,43 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		BIN_ELEMENT_AT_
 	}
 
-
-	// GENERATED accessors
-
 	@Override
-	public AvailObject o_BinElementAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_BinElementAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override
 	public void o_BinElementAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
 
 		object.objectSlotAtPut(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
 	}
 
-	/**
-	 * Setter for field binHash.
-	 */
 	@Override
 	public void o_BinHash (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.BIN_HASH, value);
 	}
 
-	/**
-	 * Getter for field binHash.
-	 */
 	@Override
 	public int o_BinHash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.BIN_HASH);
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -114,17 +102,13 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return object;
 	}
 
-
-
-	// operations-set bins
-
 	@Override
-	public AvailObject o_BinAddingElementHashLevelCanDestroy (
-			final AvailObject object,
-			final AvailObject elementObject,
-			final int elementObjectHash,
-			final byte myLevel,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash,
+		final byte myLevel,
+		final boolean canDestroy)
 	{
 		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
 		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
@@ -154,7 +138,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 				bitVector |= bitShift(1,bitPosition);
 				unionType = unionType.typeUnion(element.type());
 			}
-			final int newSize = bitCount(bitVector);
+		final int newSize = bitCount(bitVector);
 			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
 				.create(newSize);
 			result.binHash(0);
@@ -188,7 +172,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 					true);
 				assert localAddResult.sameAddressAs(result) : "The element should have been added without reallocation";
 			}
-			final int newHash = object.binHash() + elementObjectHash;
+		final int newHash = object.binHash() + elementObjectHash;
 			assert result.binHash() == newHash;
 			assert result.binSize() == oldSize + 1;
 			return result;
@@ -225,9 +209,9 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public boolean o_BinHasElementHash (
-			final AvailObject object,
-			final AvailObject elementObject,
-			final int elementObjectHash)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash)
 	{
 		for (int x = 1, _end1 = object.objectSlotsCount() - numberOfFixedObjectSlots(); x <= _end1; x++)
 		{
@@ -244,11 +228,11 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override
-	public AvailObject o_BinRemoveElementHashCanDestroy (
-			final AvailObject object,
-			final AvailObject elementObject,
-			final int elementObjectHash,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_BinRemoveElementHashCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash,
+		final boolean canDestroy)
 	{
 		final int oldSize = object.objectSlotsCount() - numberOfFixedObjectSlots();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
@@ -305,8 +289,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public boolean o_IsBinSubsetOf (
-			final AvailObject object,
-			final AvailObject potentialSuperset)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject potentialSuperset)
 	{
 		//  Check if object, a bin, holds a subset of aSet's elements.
 
@@ -331,9 +315,9 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	 */
 	@Override
 	public int o_PopulateTupleStartingAt (
-			final AvailObject object,
-			final AvailObject mutableTuple,
-			final int startingIndex)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject mutableTuple,
+		final int startingIndex)
 	{
 		assert mutableTuple.descriptor().isMutable();
 		int writeIndex = startingIndex;
@@ -352,7 +336,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public int o_BinSize (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer how many elements this bin contains.
 
@@ -360,8 +344,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	}
 
 	@Override
-	public AvailObject o_BinUnionType (
-			final AvailObject object)
+	public @NotNull AvailObject o_BinUnionType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the union of the types of this bin's elements.  I'm supposed
 		//  to be small, so recalculate it per request.
@@ -379,16 +363,10 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		return unionType;
 	}
 
-
-
-
-
-	/* Descriptor lookup */
 	static byte numberOfLevels ()
 	{
 		return 8;
-	};
-
+	}
 
 	static LinearSetBinDescriptor isMutableLevel (
 		final boolean flag,
@@ -396,7 +374,7 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 	{
 		assert 0 <= level && level <= numberOfLevels();
 		return descriptors [level * 2 + (flag ? 0 : 1)];
-	};
+	}
 
 	/**
 	 * Construct a new {@link LinearSetBinDescriptor}.
@@ -415,7 +393,8 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 			level);
 	}
 
-	final static LinearSetBinDescriptor descriptors[] = {
+	final static LinearSetBinDescriptor[] descriptors =
+	{
 		new LinearSetBinDescriptor(true, 0),
 		new LinearSetBinDescriptor(false, 0),
 		new LinearSetBinDescriptor(true, 1),
@@ -433,5 +412,4 @@ public class LinearSetBinDescriptor extends SetBinDescriptor
 		new LinearSetBinDescriptor(true, 7),
 		new LinearSetBinDescriptor(false, 7)
 	};
-
 }

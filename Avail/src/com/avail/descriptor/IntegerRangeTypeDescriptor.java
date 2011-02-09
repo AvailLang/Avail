@@ -35,8 +35,10 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class IntegerRangeTypeDescriptor extends TypeDescriptor
+public class IntegerRangeTypeDescriptor
+extends TypeDescriptor
 {
 
 	/**
@@ -56,82 +58,57 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		UPPER_BOUND
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field inclusiveFlags.
-	 */
 	@Override
 	public void o_InclusiveFlags (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INCLUSIVE_FLAGS, value);
 	}
 
-	/**
-	 * Setter for field lowerBound.
-	 */
 	@Override
 	public void o_LowerBound (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.LOWER_BOUND, value);
 	}
 
-	/**
-	 * Setter for field upperBound.
-	 */
 	@Override
 	public void o_UpperBound (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.UPPER_BOUND, value);
 	}
 
-	/**
-	 * Getter for field inclusiveFlags.
-	 */
 	@Override
 	public int o_InclusiveFlags (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INCLUSIVE_FLAGS);
 	}
 
-	/**
-	 * Getter for field lowerBound.
-	 */
 	@Override
-	public AvailObject o_LowerBound (
-			final AvailObject object)
+	public @NotNull AvailObject o_LowerBound (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LOWER_BOUND);
 	}
 
-	/**
-	 * Getter for field upperBound.
-	 */
 	@Override
-	public AvailObject o_UpperBound (
-			final AvailObject object)
+	public @NotNull AvailObject o_UpperBound (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.UPPER_BOUND);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append(object.lowerInclusive() ? '[' : '(');
 		object.lowerBound().printOnAvoidingIndent(aStream, recursionList, indent + 1);
@@ -140,22 +117,18 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		aStream.append(object.upperInclusive() ? ']' : ')');
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
 
 	@Override
 	public boolean o_EqualsIntegerRangeType (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Integer range types compare for equality by comparing their minima and maxima.
 
@@ -179,8 +152,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -189,7 +162,7 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's hash value.  Be careful, as the range (10..20) is the same type
 		//  as the range [11..19], so they should hash the same.  Actually, this is taken
@@ -206,23 +179,19 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return INTEGER_TYPE.o();
 	}
 
-
-
-	// operations-integer range
-
 	@Override
 	public void o_LowerInclusiveUpperInclusive (
-			final AvailObject object,
-			final boolean lowInc,
-			final boolean highInc)
+		final @NotNull AvailObject object,
+		final boolean lowInc,
+		final boolean highInc)
 	{
 		//  Set the lower inclusive and upper inclusive flags.
 
@@ -231,26 +200,22 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_LowerInclusive (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return (object.inclusiveFlags() & 1) == 1;
 	}
 
 	@Override
 	public boolean o_UpperInclusive (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return (object.inclusiveFlags() & 256) == 256;
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -259,8 +224,8 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfIntegerRangeType (
-			final AvailObject object,
-			final AvailObject possibleSub)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject possibleSub)
 	{
 		//  Integer range types compare like the subsets they represent.  The only elements that
 		//  matter in the comparisons are within one unit of the four boundary conditions (because
@@ -294,9 +259,9 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -312,9 +277,9 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfIntegerRangeType (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -351,9 +316,9 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -369,9 +334,9 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfIntegerRangeType (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -406,36 +371,26 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsIntegerRangeType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
-
-
-
 
 	// Startup/shutdown
 
 	static AvailObject NaturalNumbers;
 
-
 	static AvailObject Nybbles;
-
 
 	static AvailObject Characters;
 
-
 	static AvailObject Bytes;
-
 
 	static AvailObject ExtendedIntegers;
 
-
 	static AvailObject Integers;
 
-
 	static AvailObject PositiveShorts;
-
 
 	static AvailObject WholeNumbers;
 
@@ -496,14 +451,12 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 		Characters = null;
 	}
 
-
-
 	/* Hashing */
 	static int computeHashFromLowerBoundHashUpperBoundHashLowerInclusiveUpperInclusive (
-			final int lowerBoundHash,
-			final int upperBoundHash,
-			final boolean lowerInclusive,
-			final boolean upperInclusive)
+		final int lowerBoundHash,
+		final int upperBoundHash,
+		final boolean lowerInclusive,
+		final boolean upperInclusive)
 	{
 		final int flagsHash =
 			lowerInclusive
@@ -511,7 +464,6 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 				: upperInclusive ? 0x1DB2D751 : 0x1130427D;
 		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
 	}
-
 
 	/* Object creation */
 
@@ -552,12 +504,11 @@ public class IntegerRangeTypeDescriptor extends TypeDescriptor
 			integerObject, true, integerObject, true);
 	}
 
-
 	public static AvailObject create (
-			final AvailObject lowerBound,
-			final boolean lowerInclusive,
-			final AvailObject upperBound,
-			final boolean upperInclusive)
+		final @NotNull AvailObject lowerBound,
+		final boolean lowerInclusive,
+		final @NotNull AvailObject upperBound,
+		final boolean upperInclusive)
 	{
 		if (lowerBound.sameAddressAs(upperBound))
 		{

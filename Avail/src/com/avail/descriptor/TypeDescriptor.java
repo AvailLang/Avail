@@ -34,17 +34,16 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.NotNull;
 
-public abstract class TypeDescriptor extends Descriptor
+public abstract class TypeDescriptor
+extends Descriptor
 {
-
-
-	// operations
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		/* A type can only be equal to another type, and only if each type is a
 		 * subtype of the other.  This is rewritten in descriptor subclasses for
@@ -57,14 +56,10 @@ public abstract class TypeDescriptor extends Descriptor
 		&& another.isSubtypeOf(object);
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		/* Check if object (a type) is a subtype of aType (should also be a
 		 * type).
@@ -76,8 +71,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfClosureType (
-		final AvailObject object,
-		final AvailObject aClosureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Redefined for subclasses.
 
@@ -86,8 +81,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainerType)
 	{
 		/* By default, nothing is a supertype of a container type unless it
 		 * states otherwise.
@@ -98,8 +93,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -108,8 +103,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfCyclicType (
-		final AvailObject object,
-		final AvailObject aCyclicType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCyclicType)
 	{
 		//  Redefined for subclasses.
 
@@ -118,8 +113,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Redefined for subclasses.
 
@@ -128,8 +123,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject anIntegerRangeType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anIntegerRangeType)
 	{
 		//  By default, nothing is a supertype of an integer range type unless it states otherwise.
 
@@ -138,8 +133,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aMapType)
 	{
 		//  Redefined for subclasses.
 
@@ -148,8 +143,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfObjectMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		/* Check if I'm a supertype of the given object meta.  Redefined for
 		 * subclasses.
@@ -160,8 +155,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		/* Check if I'm a supertype of the given object meta meta.  Redefined
 		 * for subclasses.
@@ -172,8 +167,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject aLazyObjectType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLazyObjectType)
 	{
 		/* By default, nothing is a supertype of an eager object type unless it
 		 * states otherwise.
@@ -184,8 +179,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
-		final AvailObject object,
-		final AvailObject aPrimitiveType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPrimitiveType)
 	{
 		/* Check if object (some specialized type) is a supertype of
 		 * aPrimitiveType (some primitive type).  The only primitive type this
@@ -199,8 +194,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		//  Redefined for subclasses.
 
@@ -209,8 +204,8 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		//  Redefined for subclasses.
 
@@ -218,9 +213,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-		final AvailObject object,
-		final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -231,9 +226,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfClosureType (
-		final AvailObject object,
-		final AvailObject aClosureType)
+	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -243,9 +238,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType)
+	public @NotNull AvailObject o_TypeIntersectionOfContainerType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainerType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -255,9 +250,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
+	public @NotNull AvailObject o_TypeIntersectionOfContinuationType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -267,9 +262,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfCyclicType (
-		final AvailObject object,
-		final AvailObject aCyclicType)
+	public @NotNull AvailObject o_TypeIntersectionOfCyclicType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCyclicType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -279,9 +274,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
+	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -291,9 +286,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject anIntegerRangeType)
+	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anIntegerRangeType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -303,9 +298,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
+	public @NotNull AvailObject o_TypeIntersectionOfMapType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aMapType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -315,9 +310,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
-		final AvailObject object,
-		final AvailObject someMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject someMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.  Since metatypes intersect at terminatesType rather than
@@ -328,9 +323,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfObjectMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -340,9 +335,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMetaMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -352,9 +347,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectType (
-		final AvailObject object,
-		final AvailObject anObjectType)
+	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -364,9 +359,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType)
+	public @NotNull AvailObject o_TypeIntersectionOfSetType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -376,9 +371,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
+	public @NotNull AvailObject o_TypeIntersectionOfTupleType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		/* Answer the most general type that is still at least as specific as
 		 * these.
@@ -388,9 +383,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-		final AvailObject object,
-		final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		/* Answer the most specific type that still includes both of these.
 		 */
@@ -400,9 +395,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfClosureType (
-		final AvailObject object,
-		final AvailObject aClosureType)
+	public @NotNull AvailObject o_TypeUnionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -412,9 +407,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType)
+	public @NotNull AvailObject o_TypeUnionOfContainerType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainerType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -424,9 +419,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
+	public @NotNull AvailObject o_TypeUnionOfContinuationType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -436,9 +431,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfCyclicType (
-		final AvailObject object,
-		final AvailObject aCyclicType)
+	public @NotNull AvailObject o_TypeUnionOfCyclicType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCyclicType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -448,9 +443,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
+	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  "all" is the nearest supertype of [...]->void.
@@ -460,9 +455,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject another)
+	public @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -472,9 +467,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
+	public @NotNull AvailObject o_TypeUnionOfMapType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aMapType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -484,9 +479,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfObjectMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
+	public @NotNull AvailObject o_TypeUnionOfObjectMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Because type 'objectType' is an objectMeta, not a primitive
@@ -497,9 +492,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta)
+	public @NotNull AvailObject o_TypeUnionOfObjectMetaMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMetaMeta)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Because type 'objectMeta' is an objectMetaMeta, not a
@@ -510,9 +505,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfObjectType (
-		final AvailObject object,
-		final AvailObject anEagerObjectType)
+	public @NotNull AvailObject o_TypeUnionOfObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anEagerObjectType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  Because type 'object' is also an objectType.
@@ -522,9 +517,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType)
+	public @NotNull AvailObject o_TypeUnionOfSetType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.
@@ -534,9 +529,9 @@ public abstract class TypeDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
+	public @NotNull AvailObject o_TypeUnionOfTupleType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		/* Answer the most specific type that is still at least as general as
 		 * these.  This is just above extended integer, the most general integer
@@ -548,7 +543,7 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfTerminates (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		/* All types are supertypes of terminates.  This method only exists so
 		 * that nontypes will cause a doesNotUnderstand: message to occur.
@@ -561,7 +556,7 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSupertypeOfVoid (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		/* Only void is a supertype of void.  Overridden in VoidTypeDescriptor.
 		 */
@@ -571,13 +566,10 @@ public abstract class TypeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
-
-
-
 
 	// Startup/shutdown
 
@@ -656,9 +648,9 @@ public abstract class TypeDescriptor extends Descriptor
 
 		// Constructors
 		Types (
-			final Types parent,
-			final String myTypeName,
-			final AbstractDescriptor descriptor)
+		final @NotNull Types parent,
+		final @NotNull String myTypeName,
+		final @NotNull AbstractDescriptor descriptor)
 		{
 			this.parent = parent;
 			this.myTypeName = myTypeName;
@@ -678,7 +670,7 @@ public abstract class TypeDescriptor extends Descriptor
 			this(parent,"PRIMITIVE_TYPE");
 		}
 
-		public AvailObject o ()
+		public @NotNull AvailObject o ()
 		{
 			return o;
 		}

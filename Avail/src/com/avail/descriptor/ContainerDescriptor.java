@@ -34,15 +34,19 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
+import com.avail.annotations.NotNull;
 
-public class ContainerDescriptor extends Descriptor
+public class ContainerDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
 		HASH_OR_ZERO
 	}
 
@@ -51,104 +55,84 @@ public class ContainerDescriptor extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The {@linkplain AvailObject contents} of the {@linkplain
+		 * ContainerDescriptor container}.
+		 */
 		VALUE,
+
+		/**
+		 * The {@linkplain AvailObject type} of the {@linkplain
+		 * ContainerDescriptor container}.
+		 */
 		TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field hashOrZero.
-	 */
 	@Override
 	public void o_HashOrZero (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	/**
-	 * Setter for field type.
-	 */
 	@Override
 	public void o_Type (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.TYPE, value);
 	}
 
-	/**
-	 * Setter for field value.
-	 */
 	@Override
 	public void o_Value (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.VALUE, value);
 	}
 
-	/**
-	 * Getter for field hashOrZero.
-	 */
 	@Override
 	public int o_HashOrZero (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	/**
-	 * Getter for field type.
-	 */
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE);
 	}
 
-	/**
-	 * Getter for field value.
-	 */
 	@Override
-	public AvailObject o_Value (
-			final AvailObject object)
+	public @NotNull AvailObject o_Value (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VALUE);
 	}
 
-
-
-	// GENERATED special mutable slots
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.VALUE
 			|| e == IntegerSlots.HASH_OR_ZERO;
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsContainer(object);
 	}
 
 	@Override
 	public boolean o_EqualsContainer (
-			final AvailObject object,
-			final AvailObject aContainer)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainer)
 	{
 		//  Containers compare by address (Smalltalk object identity).  No need to traverse the
 		//  objects before comparing addresses, because this message was a double-dispatch
@@ -158,8 +142,8 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
@@ -168,7 +152,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
 
@@ -182,8 +166,8 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
 		//  I do, on the other hand, have to freeze my type object.
@@ -193,14 +177,10 @@ public class ContainerDescriptor extends Descriptor
 		return object;
 	}
 
-
-
-	// operations-containers
-
 	@Override
 	public void o_InnerType (
-			final AvailObject object,
-			final AvailObject innerType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject innerType)
 	{
 		//  Initialize my type based on the given inner type.
 
@@ -209,8 +189,8 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public void o_SetValue (
-			final AvailObject object,
-			final AvailObject newValue)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject newValue)
 	{
 		assert newValue.isInstanceOfSubtypeOf(object.type().innerType()) : "Container can't hold that value (wrong type)";
 		object.value(newValue);
@@ -218,7 +198,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public void o_ClearValue (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Clears the container (makes it have no current value).
 
@@ -227,8 +207,8 @@ public class ContainerDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_GetValue (
-			final AvailObject object)
+	public @NotNull AvailObject o_GetValue (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the current value of the container.  Fail if no value assigned.
 
@@ -243,7 +223,7 @@ public class ContainerDescriptor extends Descriptor
 
 	@Override
 	public void o_ReleaseVariableOrMakeContentsImmutable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  If I'm mutable, release me.  Otherwise make my contents immutable.  This
 		//  is used when a variable is being read 'for the last time', but it's unknown
@@ -259,26 +239,22 @@ public class ContainerDescriptor extends Descriptor
 		}
 	}
 
-
-
-
-
-	/* Object creation */
-
-	public static AvailObject forInnerType (final AvailObject innerType)
+	public static @NotNull AvailObject forInnerType (
+		final @NotNull AvailObject innerType)
 	{
 		return ContainerDescriptor.forOuterType(
 			ContainerTypeDescriptor.wrapInnerType(innerType));
-	};
+	}
 
-	public static AvailObject forOuterType (final AvailObject outerType)
+	public static @NotNull AvailObject forOuterType (
+		final @NotNull AvailObject outerType)
 	{
 		final AvailObject result = mutable().create();
 		result.type (outerType);
 		result.hashOrZero (0);
 		result.value (VoidDescriptor.voidObject());
 		return result;
-	};
+	}
 
 	/**
 	 * A random generator used for creating hash values as needed.

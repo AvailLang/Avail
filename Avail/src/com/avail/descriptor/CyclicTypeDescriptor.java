@@ -34,15 +34,19 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 
-public class CyclicTypeDescriptor extends TypeDescriptor
+public class CyclicTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
 		HASH_OR_ZERO
 	}
 
@@ -51,71 +55,56 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The {@linkplain ByteStringDescriptor string} name of the {@linkplain
+		 * CyclicTypeDescriptor cyclic type}.
+		 */
 		NAME
 	}
 
-
-	/**
-	 * Setter for field hashOrZero.
-	 */
 	@Override
 	public void o_HashOrZero (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	/**
-	 * Setter for field name.
-	 */
 	@Override
 	public void o_Name (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
-	/**
-	 * Getter for field hashOrZero.
-	 */
 	@Override
 	public int o_HashOrZero (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	/**
-	 * Getter for field name.
-	 */
 	@Override
-	public AvailObject o_Name (
-			final AvailObject object)
+	public @NotNull AvailObject o_Name (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append('$');
 		final String nativeName = object.name().asNativeString();
@@ -131,13 +120,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		}
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  The neat thing about cyclic types is that they're their own types.  The
 		//  problem is that when you ask its type it has to become immutable in
@@ -148,7 +133,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
 
@@ -162,8 +147,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  The neat thing about cyclic types is that they're their own types.  The
 		//  problem is that when you ask its type it has to become immutable in
@@ -172,14 +157,10 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		return object.makeImmutable();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -188,8 +169,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfCyclicType (
-			final AvailObject object,
-			final AvailObject aCyclicType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCyclicType)
 	{
 		//  Two cyclic types are identical if and only if they are at the same address in
 		//  memory (i.e., after traversal of indirections they are the same object under ==).
@@ -200,9 +181,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -218,9 +199,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfCyclicType (
-			final AvailObject object,
-			final AvailObject aCyclicType)
+	public @NotNull AvailObject o_TypeIntersectionOfCyclicType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCyclicType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -232,9 +213,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
-			final AvailObject object,
-			final AvailObject someMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  Since metas intersect at terminatesType rather than terminates, we must
@@ -246,9 +227,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -264,9 +245,9 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfCyclicType (
-			final AvailObject object,
-			final AvailObject aCyclicType)
+	public @NotNull AvailObject o_TypeUnionOfCyclicType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCyclicType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -279,17 +260,13 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsCyclicType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-
-
-
-
-	/* Object creation */
-	public static AvailObject create (final AvailObject aTupleObject)
+	public static @NotNull AvailObject create (
+		final @NotNull AvailObject aTupleObject)
 	{
 		aTupleObject.makeImmutable();
 		final AvailObject cyc = mutable().create();
@@ -297,7 +274,7 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		cyc.hashOrZero(0);
 		cyc.makeImmutable();
 		return cyc;
-	};
+	}
 
 	/**
 	 * A random generator used for creating hash values as needed.
@@ -316,8 +293,11 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	/* Descriptor lookup */
-	private final static CyclicTypeDescriptor mutable = new CyclicTypeDescriptor(true);
+	/**
+	 * The mutable {@link CyclicTypeDescriptor}.
+	 */
+	private final static CyclicTypeDescriptor mutable =
+		new CyclicTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link CyclicTypeDescriptor}.
@@ -332,7 +312,8 @@ public class CyclicTypeDescriptor extends TypeDescriptor
 	/**
 	 * The immutable {@link CyclicTypeDescriptor}.
 	 */
-	private final static CyclicTypeDescriptor immutable = new CyclicTypeDescriptor(false);
+	private final static CyclicTypeDescriptor immutable =
+		new CyclicTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link CyclicTypeDescriptor}.

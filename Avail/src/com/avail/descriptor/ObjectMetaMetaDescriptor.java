@@ -33,10 +33,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.NotNull;
 
-public class ObjectMetaMetaDescriptor extends TypeDescriptor
+public class ObjectMetaMetaDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -45,37 +46,24 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		MY_OBJECT_META
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field myObjectMeta.
-	 */
 	@Override
 	public void o_MyObjectMeta (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MY_OBJECT_META, value);
 	}
 
-	/**
-	 * Getter for field myObjectMeta.
-	 */
 	@Override
-	public AvailObject o_MyObjectMeta (
-			final AvailObject object)
+	public @NotNull AvailObject o_MyObjectMeta (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_OBJECT_META);
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object type's type's type's type.
 
@@ -84,7 +72,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The hash value is always recomputed from the objectMetaMeta's instance (an objectMeta).
 
@@ -93,7 +81,7 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -104,21 +92,17 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object type's type's type's type.
 
 		return OBJECT_META_META.o();
 	}
 
-
-
-	// operations-meta
-
 	@Override
-	public AvailObject o_Instance (
-			final AvailObject object)
+	public @NotNull AvailObject o_Instance (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object meta meta's sole instance, an object meta.  Object metas parallel the
 		//  object types precisely, so no information is lost crossing this type/meta barrier here.  Object
@@ -131,14 +115,10 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 		return object.myObjectMeta();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -147,8 +127,8 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfObjectMetaMeta (
-			final AvailObject object,
-			final AvailObject anObjectMetaMeta)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMetaMeta)
 	{
 		//  Check if I'm a supertype of the given object meta meta.  Skip comparing the underlying
 		//  objectMetas and go directly to comparing the underlying objectTypes two levels down.
@@ -157,9 +137,9 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -175,9 +155,9 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
-			final AvailObject object,
-			final AvailObject someMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  Since metas intersect at terminatesType rather than terminates, we must
@@ -189,9 +169,9 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectMetaMeta (
-			final AvailObject object,
-			final AvailObject anObjectMetaMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMetaMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.  Here we're finding
 		//  the nearest common descendant of two object meta metas.  Skip the objectMeta level and
@@ -201,9 +181,9 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -219,9 +199,9 @@ public class ObjectMetaMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfObjectMetaMeta (
-			final AvailObject object,
-			final AvailObject anObjectMetaMeta)
+	public @NotNull AvailObject o_TypeUnionOfObjectMetaMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMetaMeta)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 

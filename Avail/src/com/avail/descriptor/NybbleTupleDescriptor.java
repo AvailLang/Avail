@@ -36,10 +36,11 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class NybbleTupleDescriptor extends TupleDescriptor
+public class NybbleTupleDescriptor
+extends TupleDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -48,38 +49,32 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		HASH_OR_ZERO,
 		RAW_QUAD_AT_
 	}
+
 	int unusedNybblesOfLastWord;
-
-
-	// GENERATED accessors
 
 	@Override
 	public int o_RawQuadAt (
-			final AvailObject object,
-			final int subscript)
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
 	public void o_RawQuadAtPut (
-			final AvailObject object,
-			final int subscript,
-			final int value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final int value)
 	{
 		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		if (object.tupleSize() == 0)
 		{
@@ -125,17 +120,13 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		aStream.append(']');
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject anotherObject,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject anotherObject,
+		final int startIndex2)
 	{
 		//  Compare sections of two tuples.
 
@@ -148,11 +139,11 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_CompareFromToWithNybbleTupleStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject aNybbleTuple,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject aNybbleTuple,
+		final int startIndex2)
 	{
 		//  Compare sections of two nybble tuples.
 
@@ -179,16 +170,16 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
 
 	@Override
 	public boolean o_EqualsNybbleTuple (
-			final AvailObject object,
-			final AvailObject aNybbleTuple)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNybbleTuple)
 	{
 		//  First, check for object-structure (address) identity.
 
@@ -222,8 +213,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_IsBetterRepresentationThan (
-			final AvailObject object,
-			final AvailObject anotherObject)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
 		//  compact, more efficient, older generation) than the second one?
@@ -234,8 +225,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_IsInstanceOfSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
 		//  an approximate type and do the comparison, because the approximate type
@@ -286,9 +277,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void o_RawNybbleAtPut (
-			final AvailObject object,
-			final int nybbleIndex,
-			final byte aNybble)
+		final @NotNull AvailObject object,
+		final int nybbleIndex,
+		final byte aNybble)
 	{
 		//  Set the nybble at the given index.  Use little Endian.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
@@ -304,8 +295,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -318,14 +309,10 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return object;
 	}
 
-
-
-	// operations-tuples
-
 	@Override
 	public byte o_ExtractNybbleFromTupleAt (
-			final AvailObject object,
-			final int nybbleIndex)
+		final @NotNull AvailObject object,
+		final int nybbleIndex)
 	{
 		// Get the element at the given index in the tuple object, and extract
 		// a nybble from it.  Fail if it's not a nybble.
@@ -339,8 +326,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public short o_RawByteAt (
-			final AvailObject object,
-			final int byteIndex)
+		final @NotNull AvailObject object,
+		final int byteIndex)
 	{
 		// Answer the byte at the given byte-index.  This is actually two
 		// nybbles packed together.  Use little endian.
@@ -349,9 +336,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void o_RawByteAtPut (
-			final AvailObject object,
-			final int byteIndex,
-			final short anInteger)
+		final @NotNull AvailObject object,
+		final int byteIndex,
+		final short anInteger)
 	{
 		// Set the byte at the given byte-index.  This is actually two nybbles
 		// packed together.  Use little endian.
@@ -360,8 +347,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public byte o_RawNybbleAt (
-			final AvailObject object,
-			final int nybbleIndex)
+		final @NotNull AvailObject object,
+		final int nybbleIndex)
 	{
 		// Answer the nybble at the given index in the nybble tuple object.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
@@ -373,9 +360,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAt (
-			final AvailObject object,
-			final int index)
+	public @NotNull AvailObject o_TupleAt (
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer the element at the given index in the nybble tuple object.
 
@@ -384,9 +371,9 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public void o_TupleAtPut (
-			final AvailObject object,
-			final int index,
-			final AvailObject aNybbleObject)
+		final @NotNull AvailObject object,
+		final int index,
+		final @NotNull AvailObject aNybbleObject)
 	{
 		//  Set the nybble at the given index to the given object (which should be an AvailObject that's an integer 0<=n<=15).
 
@@ -394,11 +381,11 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAtPuttingCanDestroy (
-			final AvailObject object,
-			final int nybbleIndex,
-			final AvailObject newValueObject,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
+		final @NotNull AvailObject object,
+		final int nybbleIndex,
+		final @NotNull AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
@@ -434,8 +421,8 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleIntAt (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer the integer element at the given index in the nybble tuple object.
 
@@ -444,20 +431,16 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleSize (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
 		return (object.integerSlotsCount() - numberOfFixedIntegerSlots()) * 8 - unusedNybblesOfLastWord;
 	}
 
-
-
-	// private-accessing
-
 	@Override
 	public int o_BitsPerEntry (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
 
@@ -472,20 +455,16 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	 *                  this descriptor's objects.
 	 */
 	void unusedNybblesOfLastWord (
-			final int anInteger)
+		final int anInteger)
 	{
 		unusedNybblesOfLastWord = anInteger;
 	}
 
-
-
-	// private-computation
-
 	@Override
 	public int o_ComputeHashFromTo (
-			final AvailObject object,
-			final int start,
-			final int end)
+		final @NotNull AvailObject object,
+		final int start,
+		final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.
 		//  This could eventually be rewritten to do byte at a time (table lookup) and to
@@ -502,13 +481,12 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return hash * Multiplier;
 	}
 
-
 	/**
 	 * Answer a mutable copy of object that holds bytes, as opposed to just
 	 * nybbles.
 	 */
 	AvailObject copyAsMutableByteTuple (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final AvailObject result =
 			ByteTupleDescriptor.isMutableSize(true, object.tupleSize()).create(
@@ -523,7 +501,6 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return result;
 	}
 
-
 	/**
 	 * Build a new object instance with room for size elements.
 	 *
@@ -531,7 +508,7 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 	 * @return A mutable {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 */
 	AvailObject mutableObjectOfSize (
-			final int size)
+		final int size)
 	{
 		if (!isMutable)
 		{
@@ -543,14 +520,13 @@ public class NybbleTupleDescriptor extends TupleDescriptor
 		return result;
 	}
 
-
 	public static NybbleTupleDescriptor isMutableSize(
 		final boolean flag,
 		final int size)
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors[(size & 7) * 2 + delta];
-	};
+	}
 
 	/**
 	 * Construct a new {@link NybbleTupleDescriptor}.

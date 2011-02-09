@@ -33,10 +33,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
+import com.avail.annotations.NotNull;
 
-public class ObjectTupleDescriptor extends TupleDescriptor
+public class ObjectTupleDescriptor
+extends TupleDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -53,35 +54,30 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		TUPLE_AT_
 	}
 
-
 	@Override
-	public AvailObject o_TupleAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_TupleAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.TUPLE_AT_, subscript);
 	}
 
 	@Override
 	public void o_TupleAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotAtPut(ObjectSlots.TUPLE_AT_, subscript, value);
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject anotherObject,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject anotherObject,
+		final int startIndex2)
 	{
 		//  Compare sections of two tuples.
 
@@ -94,11 +90,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_CompareFromToWithObjectTupleStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject anObjectTuple,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject anObjectTuple,
+		final int startIndex2)
 	{
 		//  Compare sections of two object tuples.
 
@@ -121,16 +117,16 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsObjectTuple(object);
 	}
 
 	@Override
 	public boolean o_EqualsObjectTuple (
-			final AvailObject object,
-			final AvailObject anObjectTuple)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectTuple)
 	{
 		//  Compare this object tuple and the given object tuple.
 		//
@@ -172,7 +168,7 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -193,16 +189,12 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 		return true;
 	}
 
-
-
-	// operations-tuples
-
 	@Override
-	public AvailObject o_CopyTupleFromToCanDestroy (
-			final AvailObject object,
-			final int start,
-			final int end,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
+		final @NotNull AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
 	{
 		//  Make a tuple that only contains the given range of elements of the given tuple.
 		//  If canDestroy and isMutable are true, go ahead and clobber all fields of the original
@@ -299,9 +291,9 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TruncateTo (
-			final AvailObject object,
-			final int newTupleSize)
+	public @NotNull AvailObject o_TruncateTo (
+		final @NotNull AvailObject object,
+		final int newTupleSize)
 	{
 		//  Private
 		//
@@ -326,11 +318,11 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAtPuttingCanDestroy (
-			final AvailObject object,
-			final int index,
-			final AvailObject newValueObject,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
+		final @NotNull AvailObject object,
+		final int index,
+		final @NotNull AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
 		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
@@ -351,8 +343,8 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleIntAt (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
 
@@ -366,35 +358,27 @@ public class ObjectTupleDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleSize (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
 		return object.objectSlotsCount() - numberOfFixedObjectSlots();
 	}
 
-
-
-	// private-accessing
-
 	@Override
 	public int o_BitsPerEntry (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
 
 		return 32;
 	}
 
-
-
-	// private-computation
-
 	@Override
 	public int o_ComputeHashFromTo (
-			final AvailObject object,
-			final int start,
-			final int end)
+		final @NotNull AvailObject object,
+		final int start,
+		final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.
 

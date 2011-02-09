@@ -34,10 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class ContinuationDescriptor extends Descriptor
+public class ContinuationDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -58,53 +59,43 @@ public class ContinuationDescriptor extends Descriptor
 		FRAME_AT_
 	}
 
-
-	/**
-	 * Setter for field caller.
-	 */
 	@Override
 	public void o_Caller (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CALLER, value);
 	}
 
-	/**
-	 * Setter for field closure.
-	 */
 	@Override
 	public void o_Closure (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CLOSURE, value);
 	}
 
-	/**
-	 * Setter for field hiLevelTwoChunkLowOffset.
-	 */
 	@Override
 	public void o_HiLevelTwoChunkLowOffset (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET, value);
 	}
 
 	@Override
-	public AvailObject o_LocalOrArgOrStackAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_LocalOrArgOrStackAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.FRAME_AT_, subscript);
 	}
 
 	@Override
 	public void o_LocalOrArgOrStackAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotAtPut(
 			ObjectSlots.FRAME_AT_,
@@ -112,92 +103,69 @@ public class ContinuationDescriptor extends Descriptor
 			value);
 	}
 
-	/**
-	 * Setter for field pc.
-	 */
 	@Override
 	public void o_Pc (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.PC, value);
 	}
 
-	/**
-	 * Setter for field stackp.
-	 */
 	@Override
 	public void o_Stackp (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.STACK_POINTER, value);
 	}
 
-	/**
-	 * Getter for field caller.
-	 */
 	@Override
-	public AvailObject o_Caller (
-			final AvailObject object)
+	public @NotNull AvailObject o_Caller (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CALLER);
 	}
 
-	/**
-	 * Getter for field closure.
-	 */
 	@Override
-	public AvailObject o_Closure (
-			final AvailObject object)
+	public @NotNull AvailObject o_Closure (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CLOSURE);
 	}
 
-	/**
-	 * Getter for field hiLevelTwoChunkLowOffset.
-	 */
 	@Override
 	public int o_HiLevelTwoChunkLowOffset (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET);
 	}
 
-	/**
-	 * Getter for field pc.
-	 */
 	@Override
 	public int o_Pc (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PC);
 	}
 
-	/**
-	 * Getter for field stackp.
-	 */
 	@Override
 	public int o_Stackp (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.STACK_POINTER);
 	}
 
-
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsContinuation(object);
 	}
 
 	@Override
 	public boolean o_EqualsContinuation (
-			final AvailObject object,
-			final AvailObject aContinuation)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuation)
 	{
 		if (object.sameAddressAs(aContinuation))
 		{
@@ -231,8 +199,8 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return ContinuationTypeDescriptor.forClosureType(
 			object.closure().type());
@@ -240,7 +208,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();
@@ -254,7 +222,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -280,23 +248,19 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
 
-
-
-	// operations-continuations
-
 	@Override
 	public void o_LevelTwoChunkIndexOffset (
-			final AvailObject object,
-			final int index,
-			final int offset)
+		final @NotNull AvailObject object,
+		final int index,
+		final int offset)
 	{
 		//  Set my chunk index and offset.
 
@@ -308,9 +272,9 @@ public class ContinuationDescriptor extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override
-	public AvailObject o_StackAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_StackAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(
 			ObjectSlots.FRAME_AT_,
@@ -323,9 +287,9 @@ public class ContinuationDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_StackAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject anObject)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject anObject)
 	{
 		object.objectSlotAtPut(
 			ObjectSlots.FRAME_AT_,
@@ -334,8 +298,8 @@ public class ContinuationDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_EnsureMutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_EnsureMutable (
+		final @NotNull AvailObject object)
 	{
 		//  If immutable, copy the object as mutable, otherwise answer the original mutable.
 
@@ -344,7 +308,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public int o_LevelTwoChunkIndex (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the chunk index (without the offset).
 
@@ -353,7 +317,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public int o_LevelTwoOffset (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the wordcode offset into the chunk.
 
@@ -362,20 +326,16 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public int o_NumLocalsOrArgsOrStack (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the number of slots allocated for locals, arguments, and stack entries.
 
 		return object.objectSlotsCount() - numberOfFixedObjectSlots;
 	}
 
-
-
-	// operations-faulting
-
 	@Override
 	public void o_PostFault (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
 		//  Do any follow-up activities specific to the kind of object it is.
@@ -395,13 +355,9 @@ public class ContinuationDescriptor extends Descriptor
 		}
 	}
 
-
-
-	// private-copying
-
 	@Override
-	public AvailObject o_CopyAsMutableContinuation (
-			final AvailObject object)
+	public @NotNull AvailObject o_CopyAsMutableContinuation (
+		final @NotNull AvailObject object)
 	{
 		//  Answer a fresh mutable copy of the given continuation object.
 
@@ -426,7 +382,7 @@ public class ContinuationDescriptor extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET;
 	}
@@ -444,10 +400,10 @@ public class ContinuationDescriptor extends Descriptor
 	 * @return The new continuation.
 	 */
 	public static AvailObject create (
-			final AvailObject closure,
-			final AvailObject caller,
-			final int startingChunkIndex,
-			final List<AvailObject> args)
+		final @NotNull AvailObject closure,
+		final @NotNull AvailObject caller,
+		final int startingChunkIndex,
+		final @NotNull List<AvailObject> args)
 	{
 		final ContinuationDescriptor descriptor = mutable();
 		final AvailObject code = closure.code();
@@ -501,7 +457,8 @@ public class ContinuationDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ContinuationDescriptor}.
 	 */
-	private final static ContinuationDescriptor mutable = new ContinuationDescriptor(true);
+	private final static ContinuationDescriptor mutable =
+		new ContinuationDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContinuationDescriptor}.
@@ -516,7 +473,8 @@ public class ContinuationDescriptor extends Descriptor
 	/**
 	 * The immutable {@link ContinuationDescriptor}.
 	 */
-	private final static ContinuationDescriptor immutable = new ContinuationDescriptor(false);
+	private final static ContinuationDescriptor immutable =
+		new ContinuationDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContinuationDescriptor}.

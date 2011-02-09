@@ -32,13 +32,14 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ALL;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
 
-public class L2ChunkDescriptor extends Descriptor
+public class L2ChunkDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -64,241 +65,176 @@ public class L2ChunkDescriptor extends Descriptor
 		LITERAL_AT_
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field contingentImpSets.
-	 */
 	@Override
 	public void o_ContingentImpSets (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CONTINGENT_IMP_SETS, value);
 	}
 
-	/**
-	 * Setter for field index.
-	 */
 	@Override
 	public void o_Index (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INDEX, value);
 	}
 
 	@Override
-	public AvailObject o_LiteralAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_LiteralAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
 	@Override
 	public void o_LiteralAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotAtPut(ObjectSlots.LITERAL_AT_, subscript, value);
 	}
 
-	/**
-	 * Setter for field nextIndex.
-	 */
 	@Override
 	public void o_NextIndex (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.NEXT_INDEX, value);
 	}
 
-	/**
-	 * Setter for field numFloats.
-	 */
 	@Override
 	public void o_NumFloats (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.NUM_DOUBLES, value);
 	}
 
-	/**
-	 * Setter for field numIntegers.
-	 */
 	@Override
 	public void o_NumIntegers (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.NUM_INTEGERS, value);
 	}
 
-	/**
-	 * Setter for field numObjects.
-	 */
 	@Override
 	public void o_NumObjects (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.NUM_OBJECTS, value);
 	}
 
-	/**
-	 * Setter for field previousIndex.
-	 */
 	@Override
 	public void o_PreviousIndex (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.PREVIOUS_INDEX, value);
 	}
 
-	/**
-	 * Setter for field validity.
-	 */
 	@Override
 	public void o_Validity (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.VALIDITY, value);
 	}
 
-	/**
-	 * Setter for field vectors.
-	 */
 	@Override
 	public void o_Vectors (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.VECTORS, value);
 	}
 
-	/**
-	 * Setter for field wordcodes.
-	 */
 	@Override
 	public void o_Wordcodes (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.WORDCODES, value);
 	}
 
-	/**
-	 * Getter for field contingentImpSets.
-	 */
 	@Override
-	public AvailObject o_ContingentImpSets (
-			final AvailObject object)
+	public @NotNull AvailObject o_ContingentImpSets (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTINGENT_IMP_SETS);
 	}
 
-	/**
-	 * Getter for field index.
-	 */
 	@Override
 	public int o_Index (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INDEX);
 	}
 
-	/**
-	 * Getter for field nextIndex.
-	 */
 	@Override
 	public int o_NextIndex (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NEXT_INDEX);
 	}
 
-	/**
-	 * Getter for field numFloats.
-	 */
 	@Override
 	public int o_NumDoubles (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_DOUBLES);
 	}
 
-	/**
-	 * Getter for field numIntegers.
-	 */
 	@Override
 	public int o_NumIntegers (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_INTEGERS);
 	}
 
-	/**
-	 * Getter for field numObjects.
-	 */
 	@Override
 	public int o_NumObjects (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_OBJECTS);
 	}
 
-	/**
-	 * Getter for field previousIndex.
-	 */
 	@Override
 	public int o_PreviousIndex (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PREVIOUS_INDEX);
 	}
 
-	/**
-	 * Getter for field validity.
-	 */
 	@Override
 	public int o_Validity (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.VALIDITY);
 	}
 
-	/**
-	 * Getter for field vectors.
-	 */
 	@Override
-	public AvailObject o_Vectors (
-			final AvailObject object)
+	public @NotNull AvailObject o_Vectors (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VECTORS);
 	}
 
-	/**
-	 * Getter for field wordcodes.
-	 */
 	@Override
-	public AvailObject o_Wordcodes (
-			final AvailObject object)
+	public @NotNull AvailObject o_Wordcodes (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.WORDCODES);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.CONTINGENT_IMP_SETS
 			|| e == ObjectSlots.WORDCODES
@@ -310,16 +246,12 @@ public class L2ChunkDescriptor extends Descriptor
 			|| e == IntegerSlots.PREVIOUS_INDEX;
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		//  Print this chunk on the given stream.
 
@@ -356,38 +288,34 @@ public class L2ChunkDescriptor extends Descriptor
 		}
 	}
 
-
-
-	// operations-L2Chunk
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override
 	public void o_IsSaved (
-			final AvailObject object,
-			final boolean aBoolean)
+		final @NotNull AvailObject object,
+		final boolean aBoolean)
 	{
 		object.validity(((object.validity() & -3) + (aBoolean ? 2 : 0)));
 	}
 
 	@Override
 	public void o_IsValid (
-			final AvailObject object,
-			final boolean aBoolean)
+		final @NotNull AvailObject object,
+		final boolean aBoolean)
 	{
 		object.validity(((object.validity() & -2) + (aBoolean ? 1 : 0)));
 	}
 
 	@Override
 	public void o_NecessaryImplementationSetChanged (
-			final AvailObject object,
-			final AvailObject anImplementationSet)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anImplementationSet)
 	{
 		//  An implementation set has changed.  This means a method definition (or a forward or
 		//  an abstract declaration) has been added or removed from the implementation set, and
@@ -426,8 +354,8 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void o_Next (
-			final AvailObject object,
-			final AvailObject nextChunk)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject nextChunk)
 	{
 		//  Set my successor in whatever ring I'm in.
 
@@ -436,8 +364,8 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void o_Previous (
-			final AvailObject object,
-			final AvailObject previousChunk)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject previousChunk)
 	{
 		//  Set my predecessor in whatever ring I'm in.
 
@@ -446,7 +374,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void o_EvictedByGarbageCollector (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The garbage collector has evicted me.  Since it is supposed to ensure I will never be
 		//  invoked again, I can remove myself from the implementation sets I used to depend on,
@@ -476,7 +404,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -486,21 +414,21 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsSaved (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return (object.validity() & 2) == 2;
 	}
 
 	@Override
 	public boolean o_IsValid (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return (object.validity() & 1) == 1;
 	}
 
 	@Override
 	public void o_MoveToHead (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Maintain the LRU queue so that some percentage of the most recently used chunks
 		//  will survive a garbage collection.
@@ -517,8 +445,8 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Next (
-			final AvailObject object)
+	public @NotNull AvailObject o_Next (
+		final @NotNull AvailObject object)
 	{
 		//  Answer my successor in whatever ring I'm in.
 
@@ -527,8 +455,8 @@ public class L2ChunkDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Previous (
-			final AvailObject object)
+	public @NotNull AvailObject o_Previous (
+		final @NotNull AvailObject object)
 	{
 		//  Answer my predecessor in whatever ring I'm in.
 
@@ -538,7 +466,7 @@ public class L2ChunkDescriptor extends Descriptor
 
 	@Override
 	public void o_RemoveFromQueue (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Unlink this no longer valid entry from the LRU queue.
 
@@ -548,16 +476,11 @@ public class L2ChunkDescriptor extends Descriptor
 		object.nextIndex(object.index());
 	}
 
-
-
-
 	// Startup/shutdown
 
 	static AvailObject HeadOfRing;
 
-
 	static AvailObject AllChunks;
-
 
 	static int NextFreeChunkIndex;
 
@@ -595,37 +518,41 @@ public class L2ChunkDescriptor extends Descriptor
 		NextFreeChunkIndex = -1;
 	}
 
-
-
-	/* L2ChunkDescriptor ring accessing */
 	public static AvailObject headOfRing ()
 	{
 		return HeadOfRing;
 	}
+
 	public static AvailObject allChunks ()
 	{
 		return AllChunks;
 	}
+
 	public static AvailObject chunkFromId (final int anId)
 	{
 		return allChunks().getValue().tupleAt(anId);
 	}
+
 	public static int indexOfUnoptimizedChunk ()
 	{
 		return 1;
 	}
+
 	public static int offsetOfUnoptimizedChunk ()
 	{
 		return 1;
 	}
+
 	public static int offsetToSingleStepUnoptimizedChunk ()
 	{
 		return 2;
 	}
+
 	public static int offsetToContinueUnoptimizedChunk ()
 	{
 		return 4;
 	}
+
 	public static int offsetToPauseUnoptimizedChunk ()
 	{
 		return 5;
@@ -635,10 +562,12 @@ public class L2ChunkDescriptor extends Descriptor
 	{
 		return 100;
 	}
+
 	public static int countdownForNewCode ()
 	{
 		return 20;
 	}
+
 	public static int countdownForNewlyOptimizedCode ()
 	{
 		return 200;

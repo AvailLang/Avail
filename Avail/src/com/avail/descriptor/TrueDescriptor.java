@@ -32,25 +32,24 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TRUE_TYPE;
+import com.avail.annotations.NotNull;
 
-public class TrueDescriptor extends BooleanDescriptor
+public class TrueDescriptor
+extends BooleanDescriptor
 {
-
-
-	// operations
 
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsTrue();
 	}
 
 	@Override
 	public boolean o_EqualsTrue (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer true if this is the Avail true object, which it is.
 
@@ -58,8 +57,8 @@ public class TrueDescriptor extends BooleanDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -68,7 +67,7 @@ public class TrueDescriptor extends BooleanDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -77,36 +76,28 @@ public class TrueDescriptor extends BooleanDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return TRUE_TYPE.o();
 	}
 
-
-
-	// operations-booleans
-
 	@Override
 	public boolean o_ExtractBoolean (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Extract a Smalltalk Boolean from object.
 
 		return true;
 	}
 
-
-
-
-
 	/* Object creation */
 	public static AvailObject objectFromBoolean (final boolean b)
 	{
 		return b ? TrueBooleanObject : FalseBooleanObject;
-	};
+	}
 
 	/**
 	 * Construct a new {@link TrueDescriptor}.

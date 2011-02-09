@@ -33,13 +33,14 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.Interpreter;
 
-public class MethodSignatureDescriptor extends SignatureDescriptor
+public class MethodSignatureDescriptor
+extends SignatureDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -50,15 +51,12 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 		RETURNS_BLOCK
 	}
 
-
-	// accessing
-
 	@Override
 	public void o_BodyBlockRequiresBlockReturnsBlock (
-			final AvailObject object,
-			final AvailObject bb,
-			final AvailObject rqb,
-			final AvailObject rtb)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bb,
+		final @NotNull AvailObject rqb,
+		final @NotNull AvailObject rtb)
 	{
 		//  Set my blocks.  Also verify metacovariance and metacontravariance here.
 
@@ -70,9 +68,9 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter anAvailInterpreter)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter anAvailInterpreter)
 	{
 		//  We simply run the 'returns' block, passing in the static argument types from the call site.
 
@@ -87,9 +85,9 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter interpreter)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter interpreter)
 	{
 		//  We simply run the 'requires' block, passing in the static arguments types from the call site.  The result of
 		//  the 'requires' block is an Avail boolean, which we convert before answering it.
@@ -100,87 +98,61 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public AvailObject o_BodySignature (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer my signature.
 
 		return object.bodyBlock().type();
 	}
 
-
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field bodyBlock.
-	 */
 	@Override
 	public void o_BodyBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.BODY_BLOCK, value);
 	}
 
-	/**
-	 * Setter for field requiresBlock.
-	 */
 	@Override
 	public void o_RequiresBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, value);
 	}
 
-	/**
-	 * Setter for field returnsBlock.
-	 */
 	@Override
 	public void o_ReturnsBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.RETURNS_BLOCK, value);
 	}
 
-	/**
-	 * Getter for field bodyBlock.
-	 */
 	@Override
 	public AvailObject o_BodyBlock (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BODY_BLOCK);
 	}
 
-	/**
-	 * Getter for field requiresBlock.
-	 */
 	@Override
 	public AvailObject o_RequiresBlock (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.REQUIRES_BLOCK);
 	}
 
-	/**
-	 * Getter for field returnsBlock.
-	 */
 	@Override
 	public AvailObject o_ReturnsBlock (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURNS_BLOCK);
 	}
 
-
-
-	// operations
-
 	@Override
 	public AvailObject o_ExactType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
@@ -189,7 +161,7 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
 
@@ -199,20 +171,16 @@ public class MethodSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public AvailObject o_Type (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return METHOD_SIGNATURE.o();
 	}
 
-
-
-	// testing
-
 	@Override
 	public boolean o_IsMethod (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}

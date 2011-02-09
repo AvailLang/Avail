@@ -60,7 +60,8 @@ import com.avail.visitor.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class Descriptor extends AbstractDescriptor
+public class Descriptor
+extends AbstractDescriptor
 {
 
 	/**
@@ -286,7 +287,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_AddToInfinityCanDestroy (
+	public @NotNull AvailObject o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -304,7 +305,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_AddToIntegerCanDestroy (
+	public @NotNull AvailObject o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -344,7 +345,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ArgTypeAt (
+	public @NotNull AvailObject o_ArgTypeAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -479,7 +480,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BinElementAt (
+	public @NotNull AvailObject o_BinElementAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -672,7 +673,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BundleAtMessageParts (
+	public @NotNull AvailObject o_BundleAtMessageParts (
 		final AvailObject object,
 		final AvailObject message,
 		final AvailObject parts,
@@ -953,7 +954,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
 		final Interpreter anAvailInterpreter)
@@ -970,7 +971,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ConcatenateTuplesCanDestroy (
+	public @NotNull AvailObject o_ConcatenateTuplesCanDestroy (
 		final AvailObject object,
 		final boolean canDestroy)
 	{
@@ -1065,7 +1066,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_CopyTupleFromToCanDestroy (
+	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -1100,7 +1101,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
+	public @NotNull AvailObject o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
 		final AvailObject object,
 		final AvailObject positiveTuple,
 		final AvailObject possibilities)
@@ -1117,7 +1118,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_DataAtIndex (
+	public @NotNull AvailObject o_DataAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -1196,7 +1197,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_DivideCanDestroy (
+	public @NotNull AvailObject o_DivideCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -1214,7 +1215,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_DivideIntoInfinityCanDestroy (
+	public @NotNull AvailObject o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -1232,7 +1233,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_DivideIntoIntegerCanDestroy (
+	public @NotNull AvailObject o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -1249,7 +1250,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ElementAt (
+	public @NotNull AvailObject o_ElementAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -1424,7 +1425,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+	public @NotNull AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 		final AvailObject object,
 		final int zone,
 		final AvailObject newSubtuple,
@@ -1646,7 +1647,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_IncludeBundle (
+	public @NotNull AvailObject o_IncludeBundle (
 		final AvailObject object,
 		final AvailObject messageBundle)
 	{
@@ -2086,7 +2087,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_KeyAtIndex (
+	public @NotNull AvailObject o_KeyAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -2198,7 +2199,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LiteralAt (
+	public @NotNull AvailObject o_LiteralAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -2231,7 +2232,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LocalOrArgOrStackAt (
+	public @NotNull AvailObject o_LocalOrArgOrStackAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -2264,7 +2265,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LocalTypeAt (
+	public @NotNull AvailObject o_LocalTypeAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -2280,7 +2281,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LookupByTypesFromArray (
+	public @NotNull AvailObject o_LookupByTypesFromArray (
 		final AvailObject object,
 		final List<AvailObject> argumentTypeArray)
 	{
@@ -2297,7 +2298,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LookupByTypesFromContinuationStackp (
+	public @NotNull AvailObject o_LookupByTypesFromContinuationStackp (
 		final AvailObject object,
 		final AvailObject continuation,
 		final int stackp)
@@ -2314,7 +2315,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LookupByTypesFromTuple (
+	public @NotNull AvailObject o_LookupByTypesFromTuple (
 		final AvailObject object,
 		final AvailObject argumentTypeTuple)
 	{
@@ -2330,7 +2331,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LookupByValuesFromArray (
+	public @NotNull AvailObject o_LookupByValuesFromArray (
 		final AvailObject object,
 		final List<AvailObject> argumentArray)
 	{
@@ -2347,7 +2348,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LookupByValuesFromContinuationStackp (
+	public @NotNull AvailObject o_LookupByValuesFromContinuationStackp (
 		final AvailObject object,
 		final AvailObject continuation,
 		final int stackp)
@@ -2364,7 +2365,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LookupByValuesFromTuple (
+	public @NotNull AvailObject o_LookupByValuesFromTuple (
 		final AvailObject object,
 		final AvailObject argumentTuple)
 	{
@@ -2412,7 +2413,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MapAt (
+	public @NotNull AvailObject o_MapAt (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -2430,7 +2431,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MapAtPuttingCanDestroy (
+	public @NotNull AvailObject o_MapAtPuttingCanDestroy (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
@@ -2464,7 +2465,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MapWithoutKeyCanDestroy (
+	public @NotNull AvailObject o_MapWithoutKeyCanDestroy (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy)
@@ -2527,7 +2528,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MinusCanDestroy (
+	public @NotNull AvailObject o_MinusCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -2545,7 +2546,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MultiplyByInfinityCanDestroy (
+	public @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -2563,7 +2564,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MultiplyByIntegerCanDestroy (
+	public @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -2837,7 +2838,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_OuterTypeAt (
+	public @NotNull AvailObject o_OuterTypeAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -2870,7 +2871,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_OuterVarAt (
+	public @NotNull AvailObject o_OuterVarAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -2964,7 +2965,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PlusCanDestroy (
+	public @NotNull AvailObject o_PlusCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -3026,7 +3027,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateAddElement (
+	public @NotNull AvailObject o_PrivateAddElement (
 		final AvailObject object,
 		final AvailObject element)
 	{
@@ -3042,7 +3043,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateExcludeElement (
+	public @NotNull AvailObject o_PrivateExcludeElement (
 		final AvailObject object,
 		final AvailObject element)
 	{
@@ -3059,7 +3060,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateExcludeElementKnownIndex (
+	public @NotNull AvailObject o_PrivateExcludeElementKnownIndex (
 		final AvailObject object,
 		final AvailObject element,
 		final int knownIndex)
@@ -3076,7 +3077,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateExcludeKey (
+	public @NotNull AvailObject o_PrivateExcludeKey (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -3093,7 +3094,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateMapAtPut (
+	public @NotNull AvailObject o_PrivateMapAtPut (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject)
@@ -3599,7 +3600,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SetIntersectionCanDestroy (
+	public @NotNull AvailObject o_SetIntersectionCanDestroy (
 		final AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy)
@@ -3617,7 +3618,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SetMinusCanDestroy (
+	public @NotNull AvailObject o_SetMinusCanDestroy (
 		final AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy)
@@ -3667,7 +3668,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SetUnionCanDestroy (
+	public @NotNull AvailObject o_SetUnionCanDestroy (
 		final AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy)
@@ -3700,7 +3701,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SetWithElementCanDestroy (
+	public @NotNull AvailObject o_SetWithElementCanDestroy (
 		final AvailObject object,
 		final AvailObject newElementObject,
 		final boolean canDestroy)
@@ -3718,7 +3719,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SetWithoutElementCanDestroy (
+	public @NotNull AvailObject o_SetWithoutElementCanDestroy (
 		final AvailObject object,
 		final AvailObject elementObjectToExclude,
 		final boolean canDestroy)
@@ -3811,7 +3812,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_StackAt (
+	public @NotNull AvailObject o_StackAt (
 		final AvailObject object,
 		final int slotIndex)
 	{
@@ -3937,7 +3938,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SubtractFromInfinityCanDestroy (
+	public @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -3955,7 +3956,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SubtractFromIntegerCanDestroy (
+	public @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -3972,7 +3973,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SubtupleForZone (
+	public @NotNull AvailObject o_SubtupleForZone (
 		final AvailObject object,
 		final int zone)
 	{
@@ -3989,7 +3990,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TimesCanDestroy (
+	public @NotNull AvailObject o_TimesCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -4039,7 +4040,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TrueNamesForStringName (
+	public @NotNull AvailObject o_TrueNamesForStringName (
 		final AvailObject object,
 		final AvailObject stringName)
 	{
@@ -4055,7 +4056,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TruncateTo (
+	public @NotNull AvailObject o_TruncateTo (
 		final AvailObject object,
 		final int newTupleSize)
 	{
@@ -4071,7 +4072,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TupleAt (
+	public @NotNull AvailObject o_TupleAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -4106,7 +4107,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TupleAtPuttingCanDestroy (
+	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final AvailObject newValueObject,
@@ -4155,7 +4156,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeAtIndex (
+	public @NotNull AvailObject o_TypeAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -4171,7 +4172,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersection (
+	public @NotNull AvailObject o_TypeIntersection (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -4187,7 +4188,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfClosureType (
+	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
@@ -4204,7 +4205,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
+	public @NotNull AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
 		final AvailObject object,
 		final AvailObject aClosureType,
 		final boolean canDestroy)
@@ -4221,7 +4222,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfContainerType (
+	public @NotNull AvailObject o_TypeIntersectionOfContainerType (
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
@@ -4237,7 +4238,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfContinuationType (
+	public @NotNull AvailObject o_TypeIntersectionOfContinuationType (
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -4253,7 +4254,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfCyclicType (
+	public @NotNull AvailObject o_TypeIntersectionOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
 	{
@@ -4269,7 +4270,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
+	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
 		final AvailObject object,
 		final AvailObject aGeneralizedClosureType)
 	{
@@ -4286,7 +4287,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
+	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
 		final AvailObject object,
 		final AvailObject aGeneralizedClosureType,
 		final boolean canDestroy)
@@ -4303,7 +4304,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfIntegerRangeType (
+	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
@@ -4319,7 +4320,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfMapType (
+	public @NotNull AvailObject o_TypeIntersectionOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -4335,7 +4336,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
 		final AvailObject object,
 		final AvailObject someMeta)
 	{
@@ -4351,7 +4352,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectMeta (
+	public @NotNull AvailObject o_TypeIntersectionOfObjectMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta)
 	{
@@ -4367,7 +4368,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectMetaMeta (
+	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
 		final AvailObject object,
 		final AvailObject anObjectMetaMeta)
 	{
@@ -4383,7 +4384,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectType (
+	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -4399,7 +4400,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfSetType (
+	public @NotNull AvailObject o_TypeIntersectionOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -4415,7 +4416,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfTupleType (
+	public @NotNull AvailObject o_TypeIntersectionOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -4446,7 +4447,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnion (
+	public @NotNull AvailObject o_TypeUnion (
 		final AvailObject object,
 		final AvailObject another)
 	{
@@ -4462,7 +4463,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfClosureType (
+	public @NotNull AvailObject o_TypeUnionOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
@@ -4479,7 +4480,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfClosureTypeCanDestroy (
+	public @NotNull AvailObject o_TypeUnionOfClosureTypeCanDestroy (
 		final AvailObject object,
 		final AvailObject aClosureType,
 		final boolean canDestroy)
@@ -4496,7 +4497,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfContainerType (
+	public @NotNull AvailObject o_TypeUnionOfContainerType (
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
@@ -4512,7 +4513,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfContinuationType (
+	public @NotNull AvailObject o_TypeUnionOfContinuationType (
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -4528,7 +4529,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfCyclicType (
+	public @NotNull AvailObject o_TypeUnionOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
 	{
@@ -4544,7 +4545,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfGeneralizedClosureType (
+	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
 		final AvailObject object,
 		final AvailObject aGeneralizedClosureType)
 	{
@@ -4560,7 +4561,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfIntegerRangeType (
+	public @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
@@ -4576,7 +4577,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfMapType (
+	public @NotNull AvailObject o_TypeUnionOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -4592,7 +4593,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfObjectMeta (
+	public @NotNull AvailObject o_TypeUnionOfObjectMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta)
 	{
@@ -4608,7 +4609,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfObjectMetaMeta (
+	public @NotNull AvailObject o_TypeUnionOfObjectMetaMeta (
 		final AvailObject object,
 		final AvailObject anObjectMetaMeta)
 	{
@@ -4624,7 +4625,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfObjectType (
+	public @NotNull AvailObject o_TypeUnionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -4640,7 +4641,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfSetType (
+	public @NotNull AvailObject o_TypeUnionOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -4656,7 +4657,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfTupleType (
+	public @NotNull AvailObject o_TypeUnionOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -4688,7 +4689,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_UnionOfTypesAtThrough (
+	public @NotNull AvailObject o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -4755,7 +4756,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
+	public @NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
 		final Interpreter anAvailInterpreter,
@@ -4803,7 +4804,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ValueAtIndex (
+	public @NotNull AvailObject o_ValueAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -4955,7 +4956,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_AsObject (
+	public @NotNull AvailObject o_AsObject (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4969,7 +4970,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_AsSet (
+	public @NotNull AvailObject o_AsSet (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4983,7 +4984,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_AsTuple (
+	public @NotNull AvailObject o_AsTuple (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -4997,7 +4998,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BecomeExactType (
+	public @NotNull AvailObject o_BecomeExactType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5052,7 +5053,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BodyBlock (
+	public @NotNull AvailObject o_BodyBlock (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5066,7 +5067,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BodySignature (
+	public @NotNull AvailObject o_BodySignature (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5080,7 +5081,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BreakpointBlock (
+	public @NotNull AvailObject o_BreakpointBlock (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5094,7 +5095,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Caller (
+	public @NotNull AvailObject o_Caller (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5148,7 +5149,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Closure (
+	public @NotNull AvailObject o_Closure (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5162,7 +5163,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ClosureType (
+	public @NotNull AvailObject o_ClosureType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5176,7 +5177,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Code (
+	public @NotNull AvailObject o_Code (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5204,7 +5205,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Complete (
+	public @NotNull AvailObject o_Complete (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5218,7 +5219,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ConstantBindings (
+	public @NotNull AvailObject o_ConstantBindings (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5232,7 +5233,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ContentType (
+	public @NotNull AvailObject o_ContentType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5246,7 +5247,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ContingentImpSets (
+	public @NotNull AvailObject o_ContingentImpSets (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5260,7 +5261,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Continuation (
+	public @NotNull AvailObject o_Continuation (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5274,7 +5275,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_CopyAsMutableContinuation (
+	public @NotNull AvailObject o_CopyAsMutableContinuation (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5288,7 +5289,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_CopyAsMutableObjectTuple (
+	public @NotNull AvailObject o_CopyAsMutableObjectTuple (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5302,7 +5303,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_CopyAsMutableSpliceTuple (
+	public @NotNull AvailObject o_CopyAsMutableSpliceTuple (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5316,7 +5317,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_CopyMutable (
+	public @NotNull AvailObject o_CopyMutable (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5330,7 +5331,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_DefaultType (
+	public @NotNull AvailObject o_DefaultType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5344,7 +5345,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_DependentChunks (
+	public @NotNull AvailObject o_DependentChunks (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5398,7 +5399,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_EnsureMutable (
+	public @NotNull AvailObject o_EnsureMutable (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5439,7 +5440,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Expand (
+	public @NotNull AvailObject o_Expand (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5558,7 +5559,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_FieldMap (
+	public @NotNull AvailObject o_FieldMap (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5572,7 +5573,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_FieldTypeMap (
+	public @NotNull AvailObject o_FieldTypeMap (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5586,7 +5587,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_FilteredBundleTree (
+	public @NotNull AvailObject o_FilteredBundleTree (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5600,7 +5601,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_FirstTupleType (
+	public @NotNull AvailObject o_FirstTupleType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5628,7 +5629,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_GetValue (
+	public @NotNull AvailObject o_GetValue (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5726,7 +5727,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ImplementationsTuple (
+	public @NotNull AvailObject o_ImplementationsTuple (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5754,7 +5755,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Incomplete (
+	public @NotNull AvailObject o_Incomplete (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5782,7 +5783,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_InnerType (
+	public @NotNull AvailObject o_InnerType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5796,7 +5797,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Instance (
+	public @NotNull AvailObject o_Instance (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6006,7 +6007,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_KeysAsSet (
+	public @NotNull AvailObject o_KeysAsSet (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6020,7 +6021,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_KeyType (
+	public @NotNull AvailObject o_KeyType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6062,7 +6063,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Literal (
+	public @NotNull AvailObject o_Literal (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6076,7 +6077,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_LowerBound (
+	public @NotNull AvailObject o_LowerBound (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6132,7 +6133,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Message (
+	public @NotNull AvailObject o_Message (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6146,7 +6147,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MessageParts (
+	public @NotNull AvailObject o_MessageParts (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6160,7 +6161,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Methods (
+	public @NotNull AvailObject o_Methods (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6187,7 +6188,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MyObjectMeta (
+	public @NotNull AvailObject o_MyObjectMeta (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6201,7 +6202,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MyObjectType (
+	public @NotNull AvailObject o_MyObjectType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6215,7 +6216,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MyRestrictions (
+	public @NotNull AvailObject o_MyRestrictions (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6229,7 +6230,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MyType (
+	public @NotNull AvailObject o_MyType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6243,7 +6244,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Name (
+	public @NotNull AvailObject o_Name (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6257,7 +6258,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Names (
+	public @NotNull AvailObject o_Names (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6271,7 +6272,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_NewNames (
+	public @NotNull AvailObject o_NewNames (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6285,7 +6286,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Next (
+	public @NotNull AvailObject o_Next (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6481,7 +6482,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Nybbles (
+	public @NotNull AvailObject o_Nybbles (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6495,7 +6496,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Pad1 (
+	public @NotNull AvailObject o_Pad1 (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6509,7 +6510,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Pad2 (
+	public @NotNull AvailObject o_Pad2 (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6523,7 +6524,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Parent (
+	public @NotNull AvailObject o_Parent (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6551,7 +6552,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Previous (
+	public @NotNull AvailObject o_Previous (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6607,7 +6608,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateNames (
+	public @NotNull AvailObject o_PrivateNames (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6621,7 +6622,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_PrivateTestingTree (
+	public @NotNull AvailObject o_PrivateTestingTree (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6635,7 +6636,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ProcessGlobals (
+	public @NotNull AvailObject o_ProcessGlobals (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6716,7 +6717,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_RequiresBlock (
+	public @NotNull AvailObject o_RequiresBlock (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6730,7 +6731,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Restrictions (
+	public @NotNull AvailObject o_Restrictions (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6744,7 +6745,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ReturnsBlock (
+	public @NotNull AvailObject o_ReturnsBlock (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6758,7 +6759,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ReturnType (
+	public @NotNull AvailObject o_ReturnType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6772,7 +6773,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_RootBin (
+	public @NotNull AvailObject o_RootBin (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6786,7 +6787,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SecondTupleType (
+	public @NotNull AvailObject o_SecondTupleType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6814,7 +6815,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Signature (
+	public @NotNull AvailObject o_Signature (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6828,7 +6829,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SizeRange (
+	public @NotNull AvailObject o_SizeRange (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6842,7 +6843,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_SpecialActions (
+	public @NotNull AvailObject o_SpecialActions (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6911,7 +6912,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_String (
+	public @NotNull AvailObject o_String (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6925,7 +6926,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TestingTree (
+	public @NotNull AvailObject o_TestingTree (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6980,7 +6981,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_TypeTuple (
+	public @NotNull AvailObject o_TypeTuple (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -6994,7 +6995,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Unclassified (
+	public @NotNull AvailObject o_Unclassified (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7008,7 +7009,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_UpperBound (
+	public @NotNull AvailObject o_UpperBound (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7050,7 +7051,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Value (
+	public @NotNull AvailObject o_Value (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7064,7 +7065,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ValuesAsTuple (
+	public @NotNull AvailObject o_ValuesAsTuple (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7078,7 +7079,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ValueType (
+	public @NotNull AvailObject o_ValueType (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7092,7 +7093,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_VariableBindings (
+	public @NotNull AvailObject o_VariableBindings (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7106,7 +7107,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Vectors (
+	public @NotNull AvailObject o_Vectors (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7133,7 +7134,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_VisibleNames (
+	public @NotNull AvailObject o_VisibleNames (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7161,7 +7162,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Wordcodes (
+	public @NotNull AvailObject o_Wordcodes (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7604,9 +7605,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		// Answer whether object is an instance of a subtype of aType.  Don't
 		// generate an approximate type and do the comparison, because the
-		// approximate type will just send this message recursively.
-
-		return object.exactType().isSubtypeOf(aType);
+			return object.exactType().isSubtypeOf(aType);
 	}
 
 	/**
@@ -7686,7 +7685,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ExactType (
+	public @NotNull AvailObject o_ExactType (
 		final AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
@@ -7742,7 +7741,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_MakeImmutable (
+	public @NotNull AvailObject o_MakeImmutable (
 		final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to scan
@@ -7775,7 +7774,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Type (
+	public @NotNull AvailObject o_Type (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -7785,8 +7784,6 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 
-
-	// operations-booleans
 
 	/**
 	 * @param object
@@ -7816,8 +7813,6 @@ public class Descriptor extends AbstractDescriptor
 	{
 		return false;
 	}
-
-	// operations-characters
 
 	/**
 	 * @param object
@@ -7849,8 +7844,6 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 
-	// operations-closure
-
 	/**
 	 * @param object
 	 * @param aClosure
@@ -7868,8 +7861,6 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 
-
-	// operations-faulting
 
 	/**
 	 * @param object
@@ -7903,8 +7894,6 @@ public class Descriptor extends AbstractDescriptor
 
 
 
-	// operations-indirections
-
 	/**
 	 * @param object
 	 * @param value
@@ -7925,7 +7914,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Target (
+	public @NotNull AvailObject o_Target (
 		final AvailObject object)
 	{
 		//  From IndirectionObjectDescriptor.  Fail if we're not an indirection object.
@@ -7939,7 +7928,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_Traversed (
+	public @NotNull AvailObject o_Traversed (
 		final AvailObject object)
 	{
 		//  Overidden in IndirectionDescriptor to skip over indirections.
@@ -7948,8 +7937,6 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 
-
-	// operations-maps
 
 	/**
 	 * @param object
@@ -7963,8 +7950,6 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 
-
-	// operations-numbers
 
 	/**
 	 * @param object
@@ -7990,8 +7975,6 @@ public class Descriptor extends AbstractDescriptor
 
 
 
-	// operations-set
-
 	/**
 	 * @param object
 	 * @return
@@ -8005,8 +7988,6 @@ public class Descriptor extends AbstractDescriptor
 
 
 
-	// operations-set bins
-
 	/**
 	 * @param object
 	 * @param elementObject
@@ -8016,7 +7997,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BinAddingElementHashLevelCanDestroy (
+	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
@@ -8072,7 +8053,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BinRemoveElementHashCanDestroy (
+	public @NotNull AvailObject o_BinRemoveElementHashCanDestroy (
 		final AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
@@ -8164,7 +8145,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_BinUnionType (
+	public @NotNull AvailObject o_BinUnionType (
 		final AvailObject object)
 	{
 		//  Answer the union of the types of this bin's elements.  I act as a bin of size one.
@@ -8173,8 +8154,6 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 
-
-	// operations-tuples
 
 	/**
 	 * @param object
@@ -8346,7 +8325,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public AvailObject o_ParsingInstructions (final AvailObject object)
+	public @NotNull AvailObject o_ParsingInstructions (final AvailObject object)
 	{
 		subclassResponsibility("o_ParsingInstructions", object);
 		return null;
@@ -8373,7 +8352,7 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_Expression (final AvailObject object)
+	public @NotNull AvailObject o_Expression (final AvailObject object)
 	{
 		subclassResponsibility("o_Expression", object);
 		return null;
@@ -8388,7 +8367,7 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_Variable (final AvailObject object)
+	public @NotNull AvailObject o_Variable (final AvailObject object)
 	{
 		subclassResponsibility("o_Variable");
 		return null;
@@ -8413,7 +8392,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ArgumentsTuple (final AvailObject object)
+	public @NotNull AvailObject o_ArgumentsTuple (final AvailObject object)
 	{
 		subclassResponsibility("o_ArgumentsTuple");
 		return null;
@@ -8438,7 +8417,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_StatementsTuple (final AvailObject object)
+	public @NotNull AvailObject o_StatementsTuple (final AvailObject object)
 	{
 		subclassResponsibility("o_StatementsTuple");
 		return null;
@@ -8461,7 +8440,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_ResultType (final AvailObject object)
+	public @NotNull AvailObject o_ResultType (final AvailObject object)
 	{
 		subclassResponsibility("o_ResultType");
 		return null;
@@ -8486,7 +8465,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public AvailObject o_NeededVariables (final AvailObject object)
+	public @NotNull AvailObject o_NeededVariables (final AvailObject object)
 	{
 		subclassResponsibility("o_NeededVariables");
 		return null;
@@ -8524,7 +8503,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_DeclaredType (final AvailObject object)
+	public @NotNull AvailObject o_DeclaredType (final AvailObject object)
 	{
 		subclassResponsibility("o_DeclaredType");
 		return null;
@@ -8549,7 +8528,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_InitializationExpression (final AvailObject object)
+	public @NotNull AvailObject o_InitializationExpression (final AvailObject object)
 	{
 		subclassResponsibility("o_InitializationExpression");
 		return null;
@@ -8566,7 +8545,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_LiteralObject (final AvailObject object)
+	public @NotNull AvailObject o_LiteralObject (final AvailObject object)
 	{
 		subclassResponsibility("o_LiteralObject");
 		return null;
@@ -8581,7 +8560,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_Token (final AvailObject object)
+	public @NotNull AvailObject o_Token (final AvailObject object)
 	{
 		subclassResponsibility("o_Token");
 		return null;
@@ -8596,7 +8575,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_MarkerValue (final AvailObject object)
+	public @NotNull AvailObject o_MarkerValue (final AvailObject object)
 	{
 		subclassResponsibility("o_MarkerValue");
 		return null;
@@ -8611,7 +8590,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_Arguments (final AvailObject object)
+	public @NotNull AvailObject o_Arguments (final AvailObject object)
 	{
 		subclassResponsibility("o_Arguments");
 		return null;
@@ -8626,7 +8605,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_ImplementationSet(final AvailObject object)
+	public @NotNull AvailObject o_ImplementationSet(final AvailObject object)
 	{
 		subclassResponsibility("o_ImplementationSet");
 		return null;
@@ -8643,7 +8622,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_SuperCastType (final AvailObject object)
+	public @NotNull AvailObject o_SuperCastType (final AvailObject object)
 	{
 		subclassResponsibility("o_SuperCastType");
 		return null;
@@ -8660,7 +8639,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_ExpressionsTuple (final AvailObject object)
+	public @NotNull AvailObject o_ExpressionsTuple (final AvailObject object)
 	{
 		subclassResponsibility("o_ExpressionsTuple");
 		return null;
@@ -8684,7 +8663,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_TupleType (final AvailObject object)
+	public @NotNull AvailObject o_TupleType (final AvailObject object)
 	{
 		subclassResponsibility("o_TupleType");
 		return null;
@@ -8698,14 +8677,14 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_Declaration (final AvailObject object)
+	public @NotNull AvailObject o_Declaration (final AvailObject object)
 	{
 		subclassResponsibility("o_Declaration");
 		return null;
 	}
 
 	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	public @NotNull AvailObject o_ExpressionType (final AvailObject object)
 	{
 		subclassResponsibility("o_ExpresionType");
 		return null;
@@ -8754,7 +8733,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_Generate (
+	public @NotNull AvailObject o_Generate (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -8764,7 +8743,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_CopyWith (
+	public @NotNull AvailObject o_CopyWith (
 		final AvailObject object,
 		final AvailObject newParseNode)
 	{
@@ -8810,7 +8789,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_Macros (
+	public @NotNull AvailObject o_Macros (
 		final AvailObject object)
 	{
 		subclassResponsibility("o_Macros");
@@ -8818,7 +8797,7 @@ public class Descriptor extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_CopyMutableParseNode (
+	public @NotNull AvailObject o_CopyMutableParseNode (
 		final AvailObject object)
 	{
 		subclassResponsibility("o_CopyMutableParseNode");
@@ -8836,7 +8815,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_MacroName (
+	public @NotNull AvailObject o_MacroName (
 		final AvailObject object)
 	{
 		subclassResponsibility("o_MacroName");
@@ -8854,7 +8833,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_OutputParseNode (
+	public @NotNull AvailObject o_OutputParseNode (
 		final AvailObject object)
 	{
 		subclassResponsibility("o_OutputParseNode");
@@ -8863,7 +8842,7 @@ public class Descriptor extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_ApparentSendName (
+	public @NotNull AvailObject o_ApparentSendName (
 		final AvailObject object)
 	{
 		subclassResponsibility("o_ApparentSendName");

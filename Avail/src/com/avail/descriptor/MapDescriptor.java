@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.utility.*;
 
 /**
@@ -44,9 +45,9 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class MapDescriptor extends Descriptor
+public class MapDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -65,9 +66,8 @@ public class MapDescriptor extends Descriptor
 		DATA_AT_INDEX_
 	}
 
-
 	@Override
-	public AvailObject o_DataAtIndex (
+	public @NotNull AvailObject o_DataAtIndex (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -83,9 +83,6 @@ public class MapDescriptor extends Descriptor
 		object.objectSlotAtPut(ObjectSlots.DATA_AT_INDEX_, subscript, value);
 	}
 
-	/**
-	 * Setter for field internalHash.
-	 */
 	@Override
 	public void o_InternalHash (
 		final AvailObject object,
@@ -94,9 +91,6 @@ public class MapDescriptor extends Descriptor
 		object.integerSlotPut(IntegerSlots.INTERNAL_HASH, value);
 	}
 
-	/**
-	 * Setter for field mapSize.
-	 */
 	@Override
 	public void o_MapSize (
 		final AvailObject object,
@@ -105,9 +99,6 @@ public class MapDescriptor extends Descriptor
 		object.integerSlotPut(IntegerSlots.MAP_SIZE, value);
 	}
 
-	/**
-	 * Setter for field numBlanks.
-	 */
 	@Override
 	public void o_NumBlanks (
 		final AvailObject object,
@@ -116,9 +107,6 @@ public class MapDescriptor extends Descriptor
 		object.integerSlotPut(IntegerSlots.NUM_BLANKS, value);
 	}
 
-	/**
-	 * Getter for field internalHash.
-	 */
 	@Override
 	public int o_InternalHash (
 		final AvailObject object)
@@ -126,9 +114,6 @@ public class MapDescriptor extends Descriptor
 		return object.integerSlot(IntegerSlots.INTERNAL_HASH);
 	}
 
-	/**
-	 * Getter for field mapSize.
-	 */
 	@Override
 	public int o_MapSize (
 		final AvailObject object)
@@ -136,19 +121,12 @@ public class MapDescriptor extends Descriptor
 		return object.integerSlot(IntegerSlots.MAP_SIZE);
 	}
 
-	/**
-	 * Getter for field numBlanks.
-	 */
 	@Override
 	public int o_NumBlanks (
 		final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_BLANKS);
 	}
-
-
-
-	// java printing
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -188,10 +166,6 @@ public class MapDescriptor extends Descriptor
 			}
 			});
 	}
-
-
-
-	// operations
 
 	@Override
 	public boolean o_Equals (
@@ -285,7 +259,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
+	public @NotNull AvailObject o_ExactType (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -345,17 +319,13 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
+	public @NotNull AvailObject o_Type (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
-
-
-
-	// operations-map
 
 	@Override
 	public boolean o_HasKey (
@@ -367,7 +337,8 @@ public class MapDescriptor extends Descriptor
 
 		final int modulus = object.capacity();
 		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
-		while (true) {
+		while (true)
+		{
 			final AvailObject slotObject = object.keyAtIndex(h);
 			if (slotObject.equalsVoid())
 			{
@@ -382,7 +353,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_MapAt (
+	public @NotNull AvailObject o_MapAt (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -390,7 +361,8 @@ public class MapDescriptor extends Descriptor
 
 		final int modulus = object.capacity();
 		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
-		while (true) {
+		while (true)
+		{
 			final AvailObject slotObject = object.keyAtIndex(h);
 			if (slotObject.equalsVoid())
 			{
@@ -406,7 +378,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_MapAtPuttingCanDestroy (
+	public @NotNull AvailObject o_MapAtPuttingCanDestroy (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
@@ -442,7 +414,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_MapWithoutKeyCanDestroy (
+	public @NotNull AvailObject o_MapWithoutKeyCanDestroy (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy)
@@ -481,7 +453,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_AsObject (
+	public @NotNull AvailObject o_AsObject (
 		final AvailObject object)
 	{
 		//  Convert the receiver into an object.
@@ -506,7 +478,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_KeysAsSet (
+	public @NotNull AvailObject o_KeysAsSet (
 		final AvailObject object)
 	{
 		//  Answer a set with all my keys.  Mark the keys as immutable because they'll be shared with the new set.
@@ -530,7 +502,7 @@ public class MapDescriptor extends Descriptor
 	 * they'll be shared with the new tuple.
 	 */
 	@Override
-	public AvailObject o_ValuesAsTuple (
+	public @NotNull AvailObject o_ValuesAsTuple (
 		final AvailObject object)
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
@@ -559,12 +531,8 @@ public class MapDescriptor extends Descriptor
 		return result;
 	}
 
-
-
-	// operations-private
-
 	@Override
-	public AvailObject o_KeyAtIndex (
+	public @NotNull AvailObject o_KeyAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -585,7 +553,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_PrivateExcludeKey (
+	public @NotNull AvailObject o_PrivateExcludeKey (
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
@@ -597,7 +565,8 @@ public class MapDescriptor extends Descriptor
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
 		AvailObject.lock(object);
-		while (true) {
+		while (true)
+		{
 			final AvailObject slotValue = object.keyAtIndex(probe);
 			if (slotValue.equalsVoid())
 			{
@@ -628,7 +597,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_PrivateMapAtPut (
+	public @NotNull AvailObject o_PrivateMapAtPut (
 		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject)
@@ -644,7 +613,8 @@ public class MapDescriptor extends Descriptor
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
 		AvailObject.lock(object);
 		int tempHash;
-		while (true) {
+		while (true)
+		{
 			final AvailObject slotValue = object.keyAtIndex(probe);
 			if (slotValue.equals(keyObject))
 			{
@@ -675,7 +645,7 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ValueAtIndex (
+	public @NotNull AvailObject o_ValueAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -695,14 +665,10 @@ public class MapDescriptor extends Descriptor
 		object.dataAtIndexPut(index * 2, valueObject);
 	}
 
-
-
-	// private-copying
-
 	@Override
 	public List<AvailObject> o_KeysAsArray (
 		final AvailObject object)
-		{
+	{
 		//  Utility method - collect the object's keys into a Smalltalk Array.
 
 		AvailObject.lock(object);
@@ -719,8 +685,7 @@ public class MapDescriptor extends Descriptor
 		assert result.size() == object.mapSize();
 		AvailObject.unlock(object);
 		return result;
-		}
-
+	}
 
 	@Override
 	public void o_mapDo (
@@ -740,7 +705,6 @@ public class MapDescriptor extends Descriptor
 		}
 		AvailObject.unlock(object);
 	}
-
 
 	/**
 	 * An immutable empty map.
@@ -764,8 +728,6 @@ public class MapDescriptor extends Descriptor
 		EmptyMap = null;
 	}
 
-
-
 	/**
 	 * Create a new map with the given initial capacity.  The capacity is a
 	 * measure of how many slot pairs a map contains, and as such is always
@@ -786,8 +748,7 @@ public class MapDescriptor extends Descriptor
 			result.dataAtIndexPut(i, VoidDescriptor.voidObject());
 		};
 		return result;
-	};
-
+	}
 
 	/**
 	 * Return the (immutable) empty map.

@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 
@@ -44,7 +45,8 @@ import com.avail.interpreter.Interpreter;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AbstractSignatureDescriptor extends SignatureDescriptor
+public class AbstractSignatureDescriptor
+extends SignatureDescriptor
 {
 
 	/**
@@ -53,23 +55,25 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@link ClosureTypeDescriptor closure type} for which this
+		 * The {@linkplain ClosureTypeDescriptor closure type} for which this
 		 * signature is being specified.
 		 */
 		SIGNATURE,
 
 		/**
-		 * A closure that takes argument types at a call site and answers
-		 * whether this is a legal call.  This is necessary because some usage
-		 * conditions on methods, even though they may be inherently static,
-		 * cannot be expressed solely in terms of a lattice of types.  Sometimes
-		 * the relationship between the types of different arguments must also
-		 * be taken into account.
+		 * A {@linkplain ClosureDescriptor closure} that takes argument
+		 * {@linkplain TypeDescriptor types} at a call site and answers whether
+		 * this is a legal call. This is necessary because some usage conditions
+		 * on methods, even though they may be inherently static, cannot be
+		 * expressed solely in terms of a lattice of types. Sometimes the
+		 * relationship between the types of different arguments must also be
+		 * taken into account.
 		 */
 		REQUIRES_BLOCK,
 
 		/**
-		 * A closure that maps argument types at a call site into a return type
+		 * A {@linkplain ClosureDescriptor closure} that maps argument
+		 * {@linkplain TypeDescriptor types} at a call site into a return type
 		 * for that call.
 		 */
 		RETURNS_BLOCK
@@ -79,10 +83,10 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public void o_BodySignatureRequiresBlockReturnsBlock (
-			final AvailObject object,
-			final AvailObject bs,
-			final AvailObject rqb,
-			final AvailObject rtb)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bs,
+		final @NotNull AvailObject rqb,
+		final @NotNull AvailObject rtb)
 	{
 		object.signature(bs);
 		object.requiresBlock(rqb);
@@ -95,12 +99,12 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 * from the call site.
 	 */
 	@Override
-	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter anAvailInterpreter)
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter interpreter)
 	{
-		final AvailObject result = anAvailInterpreter.runClosureArguments(
+		final AvailObject result = interpreter.runClosureArguments(
 			object.returnsBlock(),
 			argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
@@ -119,9 +123,9 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	 */
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter interpreter)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter interpreter)
 	{
 		final AvailObject result = interpreter.runClosureArguments(
 			object.requiresBlock(),
@@ -132,93 +136,67 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject o_BodySignature (
-			final AvailObject object)
+	public @NotNull AvailObject o_BodySignature (
+		final @NotNull AvailObject object)
 	{
 		return object.signature();
 	}
 
-
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field requiresBlock.
-	 */
 	@Override
 	public void o_RequiresBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, value);
 	}
 
-	/**
-	 * Setter for field returnsBlock.
-	 */
 	@Override
 	public void o_ReturnsBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.RETURNS_BLOCK, value);
 	}
 
-	/**
-	 * Setter for field signature.
-	 */
 	@Override
 	public void o_Signature (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.SIGNATURE, value);
 	}
 
-	/**
-	 * Getter for field requiresBlock.
-	 */
 	@Override
-	public AvailObject o_RequiresBlock (
-			final AvailObject object)
+	public @NotNull AvailObject o_RequiresBlock (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.REQUIRES_BLOCK);
 	}
 
-	/**
-	 * Getter for field returnsBlock.
-	 */
 	@Override
-	public AvailObject o_ReturnsBlock (
-			final AvailObject object)
+	public @NotNull AvailObject o_ReturnsBlock (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURNS_BLOCK);
 	}
 
-	/**
-	 * Getter for field signature.
-	 */
 	@Override
-	public AvailObject o_Signature (
-			final AvailObject object)
+	public @NotNull AvailObject o_Signature (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIGNATURE);
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return Types.ABSTRACT_SIGNATURE.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final int hash = object.signature().hash() * 19
 			+ object.requiresBlock().hash() * 37
@@ -227,8 +205,8 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return Types.ABSTRACT_SIGNATURE.o();
 	}
@@ -239,7 +217,7 @@ public class AbstractSignatureDescriptor extends SignatureDescriptor
 
 	@Override
 	public boolean o_IsAbstract (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}

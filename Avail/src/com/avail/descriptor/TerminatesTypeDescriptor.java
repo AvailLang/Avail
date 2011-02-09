@@ -32,11 +32,12 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
+import com.avail.annotations.NotNull;
 
-public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
+public class TerminatesTypeDescriptor
+extends PrimitiveTypeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -55,12 +56,9 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		MY_TYPE
 	}
 
-
-	// operations-from integer range type
-
 	@Override
-	public AvailObject o_LowerBound (
-			final AvailObject object)
+	public @NotNull AvailObject o_LowerBound (
+		final @NotNull AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
 
@@ -69,7 +67,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_LowerInclusive (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
 
@@ -77,8 +75,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_UpperBound (
-			final AvailObject object)
+	public @NotNull AvailObject o_UpperBound (
+		final @NotNull AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
 
@@ -87,20 +85,16 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_UpperInclusive (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Pretend we go from +INF to -INF exclusive.  That should be a nice empty range.
 
 		return false;
 	}
 
-
-
-	// operations-from map type
-
 	@Override
-	public AvailObject o_KeyType (
-			final AvailObject object)
+	public @NotNull AvailObject o_KeyType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
@@ -109,8 +103,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_SizeRange (
-			final AvailObject object)
+	public @NotNull AvailObject o_SizeRange (
+		final @NotNull AvailObject object)
 	{
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
 		//  terminates, answer the degenerate integerType called terminates.
@@ -119,8 +113,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ValueType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ValueType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
@@ -128,14 +122,10 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 		return TERMINATES.o();
 	}
 
-
-
-	// operations-from tuple type
-
 	@Override
-	public AvailObject o_TypeAtIndex (
-			final AvailObject object,
-			final int index)
+	public @NotNull AvailObject o_TypeAtIndex (
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer what type the given index would have in an object instance of me.  Answer
 		//  terminates if the index is out of bounds, which is always because I'm the degenerate
@@ -145,10 +135,10 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_UnionOfTypesAtThrough (
-			final AvailObject object,
-			final int startIndex,
-			final int endIndex)
+	public @NotNull AvailObject o_UnionOfTypesAtThrough (
+		final @NotNull AvailObject object,
+		final int startIndex,
+		final int endIndex)
 	{
 		//  Answer the union of the types the given indices would have in an object instance of me.
 		//  Answer terminates if the index is out of bounds, which is always because I'm the degenerate
@@ -158,8 +148,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_DefaultType (
-			final AvailObject object)
+	public @NotNull AvailObject o_DefaultType (
+		final @NotNull AvailObject object)
 	{
 		//  To support the tupleType protocol, I must answer terminates now.
 
@@ -167,22 +157,18 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeTuple (
-			final AvailObject object)
+	public @NotNull AvailObject o_TypeTuple (
+		final @NotNull AvailObject object)
 	{
 		//  To support the tupleType protocol, I must answer <> now.
 
 		return TupleDescriptor.empty();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (type terminates) is a subtype of aType (should also be a type).
 		//  Always true, but make sure aType is really a type.
@@ -192,8 +178,8 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
-			final AvailObject object,
-			final AvailObject aPrimitiveType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPrimitiveType)
 	{
 		//  Check if object (terminates) is a supertype of aPrimitiveType (a primitive type).
 		//  Never true, because terminates is the most specific type.
@@ -202,9 +188,9 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  That would always be terminates.
@@ -214,9 +200,9 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that still includes both of these.
 		//  That would be the other type, not terminates.
@@ -227,7 +213,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsCyclicType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
 		//  a cyclic type.  That does not mean terminates' type is terminates, though
@@ -238,7 +224,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsIntegerRangeType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
 		//  an integer range type - in particular, the degenerate integer type (INF..-INF).
@@ -248,7 +234,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsMapType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
 		//  a map type - in particular, the degenerate map type.  Its sizeRange is
@@ -259,7 +245,7 @@ public class TerminatesTypeDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsTupleType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Because terminates is a subtype of all other types, it is even considered
 		//  a tuple type - in particular, the degenerate tuple type.  Its sizeRange is

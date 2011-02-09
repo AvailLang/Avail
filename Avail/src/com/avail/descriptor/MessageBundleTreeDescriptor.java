@@ -32,25 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
+import com.avail.annotations.NotNull;
 
-public abstract class MessageBundleTreeDescriptor extends Descriptor
+public abstract class MessageBundleTreeDescriptor
+extends Descriptor
 {
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
@@ -59,18 +57,16 @@ public abstract class MessageBundleTreeDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		// Answer a 32-bit hash value.  This should never be used as a key, but
 		// using it as a map value requires its hash value to be available for
-		// computing the map's own hash value.
-
-		return 0;
+			return 0;
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 

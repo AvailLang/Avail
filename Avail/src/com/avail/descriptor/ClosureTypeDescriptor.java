@@ -34,15 +34,19 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 
-public class ClosureTypeDescriptor extends TypeDescriptor
+public class ClosureTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
 		HASH_OR_ZERO
 	}
 
@@ -51,91 +55,73 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/** The return {@linkplain TypeDescriptor type}. */
 		RETURN_TYPE,
+
+		/** The parameter {@linkplain TypeDescriptor types}. */
 		ARG_TYPE_AT_
 	}
 
-
 	@Override
-	public AvailObject o_ArgTypeAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_ArgTypeAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.ARG_TYPE_AT_, subscript);
 	}
 
 	@Override
 	public void o_ArgTypeAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotAtPut(ObjectSlots.ARG_TYPE_AT_, subscript, value);
 	}
 
-	/**
-	 * Setter for field hashOrZero.
-	 */
 	@Override
 	public void o_HashOrZero (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	/**
-	 * Setter for field returnType.
-	 */
 	@Override
 	public void o_ReturnType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.RETURN_TYPE, value);
 	}
 
-	/**
-	 * Getter for field hashOrZero.
-	 */
 	@Override
 	public int o_HashOrZero (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	/**
-	 * Getter for field returnType.
-	 */
 	@Override
-	public AvailObject o_ReturnType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ReturnType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
 
-
-
-	// GENERATED special mutable slots
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append('[');
 		boolean anyBreaks;
@@ -188,22 +174,18 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 			(indent + 1));
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsClosureType(object);
 	}
 
 	@Override
 	public boolean o_EqualsClosureType (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Closure types are equal iff they're the same numArgs with equal
 		//  corresponding argument types and result types.
@@ -239,12 +221,11 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return CLOSURE_TYPE.o();
 	}
-
 
 	/**
 	 * The hash value is stored raw in the object's hashOrZero slot if it has
@@ -255,7 +236,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 */
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		int hash = object.hashOrZero();
 		if (hash == 0)
@@ -272,26 +253,22 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return hash;
 	}
 
-
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return CLOSURE_TYPE.o();
 	}
-
 
 	/**
 	 * Answer the number of arguments object's instances expect.
 	 */
 	@Override
 	public short o_NumArgs (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
 	}
-
-
 
 	/**
 	 * Answer a mutable copy of me.  Always copy me, even if I was already
@@ -299,8 +276,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * between the existing and new objects.
 	 */
 	@Override
-	public AvailObject o_CopyMutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_CopyMutable (
+		final @NotNull AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -317,14 +294,10 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return clone;
 	}
 
-
-
-	// operations-type checking
-
 	@Override
 	public boolean o_AcceptsArgTypesFromClosureType (
-			final AvailObject object,
-			final AvailObject closureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject closureType)
 	{
 		//  Answer whether these are acceptable argument types for invoking a closure that's an instance of me.
 
@@ -344,9 +317,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgumentsFromContinuationStackp (
-			final AvailObject object,
-			final AvailObject continuation,
-			final int stackp)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject continuation,
+		final int stackp)
 	{
 		// The arguments have been pushed onto continuation's stack.  Answer
 		// whether these arguments are acceptable for invoking a closure with
@@ -365,9 +338,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgumentTypesFromContinuationStackp (
-			final AvailObject object,
-			final AvailObject continuation,
-			final int stackp)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject continuation,
+		final int stackp)
 	{
 		// The argument types have been pushed onto continuation's stack.
 		// Answer whether these arguments are acceptable for invoking a closure
@@ -387,8 +360,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArrayOfArgTypes (
-			final AvailObject object,
-			final List<AvailObject> argTypes)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes)
 	{
 		// Answer whether these are acceptable argument types for invoking a
 		// closure that's an instance of me.
@@ -404,8 +377,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArrayOfArgValues (
-			final AvailObject object,
-			final List<AvailObject> argValues)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argValues)
 	{
 		// Answer whether these are acceptable arguments for invoking a closure
 		// that's an instance of me.
@@ -422,8 +395,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
-			final AvailObject object,
-			final AvailObject argTypes)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject argTypes)
 	{
 		// Answer whether these are acceptable argument types for invoking a
 		// closure that's an instance of me.  There may be more entries in the
@@ -440,8 +413,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArguments (
-			final AvailObject object,
-			final AvailObject arguments)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject arguments)
 	{
 		// Answer whether these are acceptable arguments for invoking a closure
 		// that's an instance of me.  There may be more entries in the tuple
@@ -462,13 +435,13 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	 * method argument type have no common descendant except terminates. In that
 	 * case, no legal object could be passed that would cause the method to be
 	 * invoked. Don't check the number of arguments here.
-	 * <p>
+	 *
 	 * @see ImplementationSetDescriptor
 	 */
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
-			final AvailObject object,
-			final List<AvailObject> argTypes)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes)
 	{
 		for (int i = 1, _end1 = object.numArgs(); i <= _end1; i++)
 		{
@@ -483,14 +456,10 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -499,8 +468,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfClosureType (
-			final AvailObject object,
-			final AvailObject aClosureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Closure types are contravariant by arguments and covariant by return type.
 		//  If argument count differs, they are incomparable (i.e., not a subclass).
@@ -529,8 +498,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Closure types are contravariant by arguments and covariant by return type.  Since
 		//  no closure types are supertypes of generalized closure types, answer false.
@@ -540,9 +509,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -558,9 +527,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfClosureType (
-			final AvailObject object,
-			final AvailObject aClosureType)
+	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -568,10 +537,10 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
-			final AvailObject object,
-			final AvailObject aClosureType,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType,
+		final boolean canDestroy)
 	{
 		//  Answer the most general type that is still at least as specific as these.  The
 		//  object can be destroyed if it's mutable and canDestroy is true.
@@ -597,9 +566,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType)
+	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Answer the most general type that is still at least as specific as these.  The intersection
 		//  of a closure type and a generalized closure type is always a closure type, so simply
@@ -609,10 +578,10 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType,
+		final boolean canDestroy)
 	{
 		//  Answer the most general type that is still at least as specific as these.  The intersection
 		//  of a closure type and a generalized closure type is always a closure type, so simply
@@ -631,9 +600,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -649,9 +618,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfClosureType (
-			final AvailObject object,
-			final AvailObject aClosureType)
+	public @NotNull AvailObject o_TypeUnionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -659,10 +628,10 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfClosureTypeCanDestroy (
-			final AvailObject object,
-			final AvailObject aClosureType,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TypeUnionOfClosureTypeCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType,
+		final boolean canDestroy)
 	{
 		//  Answer the most specific type that is still at least as general as these.  The
 		//  object can be destroyed if it's mutable and canDestroy is true.
@@ -688,9 +657,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfGeneralizedClosureType (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType)
+	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aGeneralizedClosureType)
 	{
 		//  Answer the most specific type that is still at least as general as these.  Respect
 		//  the covariance of the return types.  Discard the argument information, because
@@ -700,14 +669,9 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
 	}
 
-
-
-
-
-	/* Object creation */
-	public static AvailObject closureTypeForArgumentTypesReturnType (
-			final AvailObject argTypes,
-			final AvailObject returnType)
+	public static @NotNull AvailObject closureTypeForArgumentTypesReturnType (
+		final @NotNull AvailObject argTypes,
+		final @NotNull AvailObject returnType)
 	{
 		final AvailObject type = mutable().create(
 			argTypes.tupleSize());
@@ -719,7 +683,7 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 		type.hashOrZero(0);
 		type.makeImmutable();
 		return type;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ClosureTypeDescriptor}.
@@ -736,7 +700,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ClosureTypeDescriptor}.
 	 */
-	private final static ClosureTypeDescriptor mutable = new ClosureTypeDescriptor(true);
+	private final static ClosureTypeDescriptor mutable =
+		new ClosureTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ClosureTypeDescriptor}.
@@ -751,7 +716,8 @@ public class ClosureTypeDescriptor extends TypeDescriptor
 	/**
 	 * The immutable {@link ClosureTypeDescriptor}.
 	 */
-	private final static ClosureTypeDescriptor immutable = new ClosureTypeDescriptor(false);
+	private final static ClosureTypeDescriptor immutable =
+		new ClosureTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ClosureTypeDescriptor}.

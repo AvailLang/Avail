@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.node.TupleNodeDescriptor;
 import com.avail.interpreter.Interpreter;
 
@@ -65,7 +66,8 @@ import com.avail.interpreter.Interpreter;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class MacroSignatureDescriptor extends SignatureDescriptor
+public class MacroSignatureDescriptor
+extends SignatureDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -85,10 +87,10 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	 * object to keep things simple.
 	 */
 	@Override
-	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter anAvailInterpreter)
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter anAvailInterpreter)
 	{
 		return VoidDescriptor.voidObject();
 	}
@@ -101,9 +103,9 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	 */
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter interpreter)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter interpreter)
 	{
 		error("Do not check argument validity of a macro invocation.");
 		return false;
@@ -113,62 +115,52 @@ public class MacroSignatureDescriptor extends SignatureDescriptor
 	 * Answer my signature.
 	 */
 	@Override
-	public AvailObject o_BodySignature (
-			final AvailObject object)
+	public @NotNull AvailObject o_BodySignature (
+		final @NotNull AvailObject object)
 	{
 		return object.bodyBlock().type();
 	}
 
-
-	/**
-	 * Setter for field bodyBlock.
-	 */
 	@Override
 	public void o_BodyBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.BODY_BLOCK, value);
 	}
 
-	/**
-	 * Getter for field bodyBlock.
-	 */
 	@Override
-	public AvailObject o_BodyBlock (
-			final AvailObject object)
+	public @NotNull AvailObject o_BodyBlock (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BODY_BLOCK);
 	}
 
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return MACRO_SIGNATURE.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56;
 		return hash;
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return MACRO_SIGNATURE.o();
 	}
 
-
-
 	@Override
 	public boolean o_IsMacro (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}

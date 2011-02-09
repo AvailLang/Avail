@@ -34,12 +34,13 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.utility.*;
 
-public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
+public class UnexpandedMessageBundleTreeDescriptor
+extends MessageBundleTreeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -58,101 +59,73 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		PAD2
 	}
 
-	/**
-	 * Setter for field parsingPc.
-	 */
 	@Override
 	public void o_ParsingPc (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.PARSING_PC, value);
 	}
 
-	/**
-	 * Setter for field pad1.
-	 */
 	@Override
 	public void o_Pad1 (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PAD1, value);
 	}
 
-	/**
-	 * Setter for field pad2.
-	 */
 	@Override
 	public void o_Pad2 (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PAD2, value);
 	}
 
-	/**
-	 * Setter for field unclassified.
-	 */
 	@Override
 	public void o_Unclassified (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.UNCLASSIFIED, value);
 	}
 
-	/**
-	 * Getter for field parsingPc.
-	 */
 	@Override
 	public int o_ParsingPc (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PARSING_PC);
 	}
 
-	/**
-	 * Getter for field pad1.
-	 */
 	@Override
-	public AvailObject o_Pad1 (
-			final AvailObject object)
+	public @NotNull AvailObject o_Pad1 (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PAD1);
 	}
 
-	/**
-	 * Getter for field pad2.
-	 */
 	@Override
-	public AvailObject o_Pad2 (
-			final AvailObject object)
+	public @NotNull AvailObject o_Pad2 (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PAD2);
 	}
 
-	/**
-	 * Getter for field unclassified.
-	 */
 	@Override
-	public AvailObject o_Unclassified (
-			final AvailObject object)
+	public @NotNull AvailObject o_Unclassified (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.UNCLASSIFIED);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.UNCLASSIFIED
 			|| e == IntegerSlots.PARSING_PC;
 	}
-
-
 
 	/**
 	 * Make the object immutable so it can be shared safely.  If I was mutable I
@@ -160,8 +133,8 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * down to immutable descendants).
 	 */
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		object.descriptor(
 			UnexpandedMessageBundleTreeDescriptor.immutable());
@@ -170,15 +143,14 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		return object;
 	}
 
-
 	/**
 	 * Add the given message/bundle pair.
 	 */
 	@Override
 	public void o_AtMessageAddBundle (
-			final AvailObject object,
-			final AvailObject message,
-			final AvailObject bundle)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject message,
+		final @NotNull AvailObject bundle)
 	{
 		AvailObject unclassified = object.unclassified();
 		if (unclassified.hasKey(message))
@@ -197,11 +169,11 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	 * Answer the bundle with the given message (also split into parts).
 	 */
 	@Override
-	public AvailObject o_BundleAtMessageParts (
-			final AvailObject object,
-			final AvailObject message,
-			final AvailObject parts,
-			final AvailObject instructions)
+	public @NotNull AvailObject o_BundleAtMessageParts (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject message,
+		final @NotNull AvailObject parts,
+		final @NotNull AvailObject instructions)
 	{
 		final AvailObject unclassified = object.unclassified();
 		assert unclassified.hasKey(message)
@@ -211,9 +183,9 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 
 	@Override
 	public void o_CopyToRestrictedTo (
-			final AvailObject object,
-			final AvailObject filteredBundleTree,
-			final AvailObject visibleNames)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject filteredBundleTree,
+		final @NotNull AvailObject visibleNames)
 	{
 		//  Copy the visible message bundles to the filteredBundleTree.  The Avail set
 		//  of visible names (cyclicTypes) is in visibleNames.
@@ -234,13 +206,12 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		});
 	}
 
-
 	/**
 	 * If there isn't one already, add a bundle to correspond to the given
 	 * message.  Answer the new or existing bundle.
 	 */
 	@Override
-	public AvailObject o_IncludeBundle (
+	public @NotNull AvailObject o_IncludeBundle (
 		final AvailObject object,
 		final AvailObject messageBundle)
 	{
@@ -258,15 +229,14 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 		return messageBundle;
 	}
 
-
 	/**
 	 * Remove the bundle with the given message name (expanded as parts).
 	 * Answer true if this tree is now empty and should be removed.
 	 */
 	@Override
 	public boolean o_RemoveBundle (
-			final AvailObject object,
-			final AvailObject bundle)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bundle)
 	{
 		AvailObject unclassified = object.unclassified();
 		unclassified = unclassified.mapWithoutKeyCanDestroy(
@@ -277,19 +247,18 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public AvailObject o_Complete (
-			final AvailObject object)
+	public @NotNull AvailObject o_Complete (
+		final @NotNull AvailObject object)
 	{
 		return object.expand().complete();
 	}
-
 
 	/**
 	 * Expand the bundleTree.  Answer the resulting expanded tree.
 	 */
 	@Override
-	public AvailObject o_Expand (
-			final AvailObject object)
+	public @NotNull AvailObject o_Expand (
+		final @NotNull AvailObject object)
 	{
 		final AvailObject unclassified = object.unclassified();
 		final Mutable<AvailObject> complete = new Mutable<AvailObject>(
@@ -392,12 +361,11 @@ public class UnexpandedMessageBundleTreeDescriptor extends MessageBundleTreeDesc
 	}
 
 	@Override
-	public AvailObject o_Incomplete (
-			final AvailObject object)
+	public @NotNull AvailObject o_Incomplete (
+		final @NotNull AvailObject object)
 	{
 		return object.expand().incomplete();
 	}
-
 
 	/**
 	 * Create a new message bundle tree, but don't yet break down the messages

@@ -34,10 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class ContainerTypeDescriptor extends TypeDescriptor
+public class ContainerTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -46,40 +47,27 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		INNER_TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field innerType.
-	 */
 	@Override
 	public void o_InnerType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.INNER_TYPE, value);
 	}
 
-	/**
-	 * Getter for field innerType.
-	 */
 	@Override
-	public AvailObject o_InnerType (
-			final AvailObject object)
+	public @NotNull AvailObject o_InnerType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_TYPE);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append("& : ");
 		object.innerType().printOnAvoidingIndent(
@@ -88,22 +76,18 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 			(indent + 1));
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsContainerType(object);
 	}
 
 	@Override
 	public boolean o_EqualsContainerType (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Container types compare for equality by comparing their innerTypes.
 
@@ -115,8 +99,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -125,7 +109,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's hash value.
 
@@ -134,7 +118,7 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -145,22 +129,18 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return CONTAINER_TYPE.o();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -169,8 +149,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfContainerType (
-			final AvailObject object,
-			final AvailObject aContainerType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainerType)
 	{
 		//  Container types are invariant (co- and contra-variant simultaneously).  Strange to
 		//  compare for equality, but that's how invariance is defined.
@@ -179,9 +159,9 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -197,9 +177,9 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfContainerType (
-			final AvailObject object,
-			final AvailObject aContainerType)
+	public @NotNull AvailObject o_TypeIntersectionOfContainerType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainerType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -211,9 +191,9 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -229,9 +209,9 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfContainerType (
-			final AvailObject object,
-			final AvailObject aContainerType)
+	public @NotNull AvailObject o_TypeUnionOfContainerType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContainerType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -242,18 +222,14 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		return CONTAINER.o();
 	}
 
-
-
-
-
-	/* Descriptor lookup */
-	public static AvailObject wrapInnerType (final AvailObject innerType)
+	public static @NotNull AvailObject wrapInnerType (
+		final @NotNull AvailObject innerType)
 	{
 		AvailObject result = mutable().create();
 		result.innerType(innerType.makeImmutable());
 		result.makeImmutable();
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ContainerTypeDescriptor}.
@@ -267,8 +243,11 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 		super(isMutable);
 	}
 
-	/* Descriptor lookup */
-	private final static ContainerTypeDescriptor mutable = new ContainerTypeDescriptor(true);
+	/**
+	 * The mutable {@link ContainerTypeDescriptor}.
+	 */
+	private final static ContainerTypeDescriptor mutable =
+		new ContainerTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContainerTypeDescriptor}.
@@ -283,7 +262,8 @@ public class ContainerTypeDescriptor extends TypeDescriptor
 	/**
 	 * The immutable {@link ContainerTypeDescriptor}.
 	 */
-	private final static ContainerTypeDescriptor immutable = new ContainerTypeDescriptor(false);
+	private final static ContainerTypeDescriptor immutable =
+		new ContainerTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContainerTypeDescriptor}.

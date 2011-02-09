@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.max;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.*;
 
@@ -53,9 +54,9 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ImplementationSetDescriptor extends Descriptor
+public class ImplementationSetDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
@@ -89,107 +90,81 @@ public class ImplementationSetDescriptor extends Descriptor
 		PRIVATE_TESTING_TREE
 	}
 
-
-	/**
-	 * Setter for field dependentChunks.
-	 */
 	@Override
 	public void o_DependentChunks (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.DEPENDENT_CHUNKS, value);
 	}
 
-	/**
-	 * Setter for field implementationsTuple.
-	 */
 	@Override
 	public void o_ImplementationsTuple (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.IMPLEMENTATIONS_TUPLE, value);
 	}
 
-	/**
-	 * Setter for field name.
-	 */
 	@Override
 	public void o_Name (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
-	/**
-	 * Setter for field privateTestingTree.
-	 */
 	@Override
 	public void o_PrivateTestingTree (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PRIVATE_TESTING_TREE, value);
 	}
 
-	/**
-	 * Getter for field dependentChunks.
-	 */
 	@Override
-	public AvailObject o_DependentChunks (
-			final AvailObject object)
+	public @NotNull AvailObject o_DependentChunks (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DEPENDENT_CHUNKS);
 	}
 
-	/**
-	 * Getter for field implementationsTuple.
-	 */
 	@Override
-	public AvailObject o_ImplementationsTuple (
-			final AvailObject object)
+	public @NotNull AvailObject o_ImplementationsTuple (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
 	}
 
-	/**
-	 * Getter for field name.
-	 */
 	@Override
-	public AvailObject o_Name (
-			final AvailObject object)
+	public @NotNull AvailObject o_Name (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
 	@Override
-	public AvailObject o_PrivateTestingTree (
-			final AvailObject object)
+	public @NotNull AvailObject o_PrivateTestingTree (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PRIVATE_TESTING_TREE);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
 			|| e == ObjectSlots.PRIVATE_TESTING_TREE
 			|| e == ObjectSlots.DEPENDENT_CHUNKS;
 	}
 
-
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		final int size = object.implementationsTuple().tupleSize();
 		aStream.append(Integer.toString(size));
@@ -202,26 +177,25 @@ public class ImplementationSetDescriptor extends Descriptor
 		aStream.append(object.name().name().asNativeString());
 	}
 
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		// ImplementationSets compare by identity.
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return IMPLEMENTATION_SET.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.name().hash() + 0x61AF3FC;
 	}
@@ -234,8 +208,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * slots to be mutable even when I'm immutable.
 	 */
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		object.descriptor(ImplementationSetDescriptor.immutable());
 		object.name().makeImmutable();
@@ -243,19 +217,18 @@ public class ImplementationSetDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return IMPLEMENTATION_SET.o();
 	}
 
-
 	@Override
 	public void o_AddDependentChunkId (
-			final AvailObject object,
-			final int aChunkIndex)
+		final @NotNull AvailObject object,
+		final int aChunkIndex)
 	{
 		//  Record the fact that the chunk indexed by aChunkIndex depends on
 		//  this implementationSet not changing.
@@ -278,8 +251,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_AddImplementation (
-			final AvailObject object,
-			final AvailObject implementation)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject implementation)
 	{
 		AvailObject oldTuple = object.implementationsTuple();
 		if (oldTuple.tupleSize() > 0)
@@ -325,11 +298,11 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * the maximum number of remaining possible solutions after a test.
 	 */
 	@Override
-	public AvailObject
+	public @NotNull AvailObject
 		o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
-			final AvailObject object,
-			final AvailObject positiveTuple,
-			final AvailObject possibilities)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject positiveTuple,
+		final @NotNull AvailObject possibilities)
 	{
 		final AvailObject imps = object.implementationsTuple();
 		AvailObject result;
@@ -437,7 +410,7 @@ public class ImplementationSetDescriptor extends Descriptor
 					falseCount++;
 				}
 			}
-			final int maxCount = max(trueCount, falseCount);
+		final int maxCount = max(trueCount, falseCount);
 			if (maxCount < bestMax)
 			{
 				bestMax = maxCount;
@@ -546,8 +519,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public List<AvailObject> o_FilterByTypes (
-			final AvailObject object,
-			final List<AvailObject> argTypes)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes)
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
@@ -580,8 +553,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public List<AvailObject> o_ImplementationsAtOrBelow (
-			final AvailObject object,
-			final List<AvailObject> argTypes)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes)
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
@@ -602,8 +575,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public boolean o_Includes (
-			final AvailObject object,
-			final AvailObject imp)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject imp)
 	{
 		for (final AvailObject signature : object.implementationsTuple())
 		{
@@ -621,16 +594,16 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * a lookup error occurs).
 	 */
 	@Override
-	public AvailObject o_LookupByTypesFromArray (
-			final AvailObject object,
-			final List<AvailObject> argumentTypeArray)
+	public @NotNull AvailObject o_LookupByTypesFromArray (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argumentTypeArray)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = test & 1;
+		final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -657,17 +630,17 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * implementation to invoke (answer void if a lookup error occurs).
 	 */
 	@Override
-	public AvailObject o_LookupByTypesFromContinuationStackp (
-			final AvailObject object,
-			final AvailObject continuation,
-			final int stackp)
+	public @NotNull AvailObject o_LookupByTypesFromContinuationStackp (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject continuation,
+		final int stackp)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = test & 1;
+		final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -696,16 +669,16 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * argument types than we need, to allow the tuple to be a reusable buffer.
 	 */
 	@Override
-	public AvailObject o_LookupByTypesFromTuple (
-			final AvailObject object,
-			final AvailObject argumentTypeTuple)
+	public @NotNull AvailObject o_LookupByTypesFromTuple (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject argumentTypeTuple)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = test & 1;
+		final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -725,23 +698,22 @@ public class ImplementationSetDescriptor extends Descriptor
 		}
 	}
 
-
 	/**
 	 * Look up the implementation to invoke, given an array of argument values.
 	 * Use the testingTree to find the implementation to invoke (answer void if
 	 * a lookup error occurs).
 	 */
 	@Override
-	public AvailObject o_LookupByValuesFromArray (
-			final AvailObject object,
-			final List<AvailObject> argumentArray)
+	public @NotNull AvailObject o_LookupByValuesFromArray (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argumentArray)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = test & 1;
+		final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -768,17 +740,17 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * implementation to invoke (answer void if a lookup error occurs).
 	 */
 	@Override
-	public AvailObject o_LookupByValuesFromContinuationStackp (
-			final AvailObject object,
-			final AvailObject continuation,
-			final int stackp)
+	public @NotNull AvailObject o_LookupByValuesFromContinuationStackp (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject continuation,
+		final int stackp)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = test & 1;
+		final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -806,16 +778,16 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * buffer).
 	 */
 	@Override
-	public AvailObject o_LookupByValuesFromTuple (
-			final AvailObject object,
-			final AvailObject argumentTuple)
+	public @NotNull AvailObject o_LookupByValuesFromTuple (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject argumentTuple)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
 		while (true) {
 			int test = tree.tupleAt(index).extractInt();
-			final int lowBit = test & 1;
+		final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -843,8 +815,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_RemoveDependentChunkId (
-			final AvailObject object,
-			final int aChunkIndex)
+		final @NotNull AvailObject object,
+		final int aChunkIndex)
 	{
 		object.dependentChunks(
 			object.dependentChunks().setWithoutElementCanDestroy(
@@ -857,8 +829,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_RemoveImplementation (
-			final AvailObject object,
-			final AvailObject implementation)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject implementation)
 	{
 		object.implementationsTuple(
 			object.implementationsTuple().asSet().setWithoutElementCanDestroy(
@@ -882,22 +854,21 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(VoidDescriptor.voidObject());
 	}
 
-
 	/**
 	 * Answers the return type.  Fails if no (or >1) applicable implementation.
 	 */
 	@Override
-	public AvailObject o_ValidateArgumentTypesInterpreterIfFail (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter anAvailInterpreter,
-			final Continuation1<Generator<String>> failBlock)
+	public @NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter anAvailInterpreter,
+		final @NotNull Continuation1<Generator<String>> failBlock)
 	{
 		final Mutable<List<AvailObject>> mostSpecific =
 			new Mutable<List<AvailObject>>();
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
-			final int finalIndex = index;
+		final int finalIndex = index;
 			if (argTypes.get(finalIndex - 1).equals(TERMINATES.o()))
 			{
 				failBlock.value(new Generator<String> ()
@@ -1036,13 +1007,12 @@ public class ImplementationSetDescriptor extends Descriptor
 	 */
 	@Override
 	public short o_NumArgs (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		assert object.implementationsTuple().tupleSize() >= 1;
 		final AvailObject first = object.implementationsTuple().tupleAt(1);
 		return first.bodySignature().numArgs();
 	}
-
 
 	/**
 	 * Answer the cached privateTestingTree.  If there's a voidObject in that
@@ -1061,8 +1031,8 @@ public class ImplementationSetDescriptor extends Descriptor
 	 * after a test.
 	 */
 	@Override
-	public AvailObject o_TestingTree (
-			final AvailObject object)
+	public @NotNull AvailObject o_TestingTree (
+		final @NotNull AvailObject object)
 	{
 		AvailObject result = object.privateTestingTree();
 		if (!result.equalsVoid())
@@ -1087,7 +1057,6 @@ public class ImplementationSetDescriptor extends Descriptor
 		object.privateTestingTree(result);
 		return result;
 	}
-
 
 	/**
 	 * Answer a new implementation set.  Use the passed cyclicType as its name.

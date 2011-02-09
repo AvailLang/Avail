@@ -35,74 +35,63 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.util.Arrays.fill;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 
-public class ClosureDescriptor extends Descriptor
+public class ClosureDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
 	{
+		/** The {@linkplain CompiledCodeDescriptor compiled code}. */
 		CODE,
+
+		/** The outer variables. */
 		OUTER_VAR_AT_
 	}
 
-
-	/**
-	 * Setter for field code.
-	 */
 	@Override
 	public void o_Code (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CODE, value);
 	}
 
 	@Override
-	public AvailObject o_OuterVarAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_OuterVarAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
 		return object.objectSlotAt(ObjectSlots.OUTER_VAR_AT_, subscript);
 	}
 
 	@Override
 	public void o_OuterVarAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
-		//  GENERATED setter method (indexed).
-
 		object.objectSlotAtPut(ObjectSlots.OUTER_VAR_AT_, subscript, value);
 	}
 
-	/**
-	 * Getter for field code.
-	 */
 	@Override
-	public AvailObject o_Code (
-			final AvailObject object)
+	public @NotNull AvailObject o_Code (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CODE);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		if (isMutable)
 		{
@@ -118,22 +107,18 @@ public class ClosureDescriptor extends Descriptor
 			indent + 1);
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsClosure(object);
 	}
 
 	@Override
 	public boolean o_EqualsClosure (
-			final AvailObject object,
-			final AvailObject aClosure)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosure)
 	{
 		if (!object.code().equals(aClosure.code()))
 		{
@@ -159,8 +144,8 @@ public class ClosureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.  Simply asks the compiled code for the closureType.
 
@@ -169,7 +154,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit hash value.  If outer vars of mutable
 		//  closures can peel away when executed (last use of an outer var of a
@@ -187,7 +172,7 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsClosure (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
@@ -200,7 +185,7 @@ public class ClosureDescriptor extends Descriptor
 	 */
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (!object.code().isHashAvailable())
 		{
@@ -221,20 +206,18 @@ public class ClosureDescriptor extends Descriptor
 	 * closureType.
 	 */
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return object.code().closureType();
 	}
-
-
 
 	// operations-closure
 
 	@Override
 	public boolean o_ContainsBlock (
-			final AvailObject object,
-			final AvailObject aClosure)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosure)
 	{
 		//  Answer true if either I am aClosure or I contain aClosure.
 
@@ -247,8 +230,8 @@ public class ClosureDescriptor extends Descriptor
 
 	@Override
 	public boolean o_OptionallyNilOuterVar (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  This one's kind of tricky.  An outer variable is being used by the interpreter (the
 		//  variable itself, but we don't yet know whether it will be passed around, or sent
@@ -270,11 +253,10 @@ public class ClosureDescriptor extends Descriptor
 	 */
 	@Override
 	public int o_NumOuterVars (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlotsCount() - numberOfFixedObjectSlots();
 	}
-
 
 	/**
 	 * Create a closure that accepts a specific number of arguments and always
@@ -287,8 +269,8 @@ public class ClosureDescriptor extends Descriptor
 	 * @return A closure that takes N arguments and returns a constant.
 	 */
 	public static AvailObject createStubForNumArgsConstantResult (
-			final int numArgs,
-			final AvailObject constantResult)
+		final int numArgs,
+		final @NotNull AvailObject constantResult)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter();
 
@@ -328,10 +310,10 @@ public class ClosureDescriptor extends Descriptor
 	 *         a value of the specified type.
 	 */
 	public static AvailObject createStubWithArgTypes (
-			final AvailObject argTypes,
-			final AvailObject implementationSet,
-			final AvailObject firstArg,
-			final AvailObject resultType)
+		final @NotNull AvailObject argTypes,
+		final @NotNull AvailObject implementationSet,
+		final @NotNull AvailObject firstArg,
+		final @NotNull AvailObject resultType)
 	{
 		final int numArgs = argTypes.tupleSize();
 		final AvailObject [] argTypesArray = new AvailObject[numArgs];
@@ -370,7 +352,6 @@ public class ClosureDescriptor extends Descriptor
 		return closure;
 	}
 
-
 	/**
 	 * Construct a closure with the given code and tuple of copied variables.
 	 *
@@ -379,8 +360,8 @@ public class ClosureDescriptor extends Descriptor
 	 * @return A closure.
 	 */
 	public static AvailObject create (
-			final AvailObject code,
-			final AvailObject copiedTuple)
+		final @NotNull AvailObject code,
+		final @NotNull AvailObject copiedTuple)
 	{
 		final AvailObject object = mutable().create(
 			copiedTuple.tupleSize());
@@ -390,8 +371,7 @@ public class ClosureDescriptor extends Descriptor
 			object.outerVarAtPut(i, copiedTuple.tupleAt(i));
 		}
 		return object;
-	};
-
+	}
 
 	/**
 	 * Construct a new {@link ClosureDescriptor}.
@@ -408,7 +388,8 @@ public class ClosureDescriptor extends Descriptor
 	/**
 	 * The mutable {@link ClosureDescriptor}.
 	 */
-	private final static ClosureDescriptor mutable = new ClosureDescriptor(true);
+	private final static ClosureDescriptor mutable =
+		new ClosureDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ClosureDescriptor}.
@@ -423,7 +404,8 @@ public class ClosureDescriptor extends Descriptor
 	/**
 	 * The immutable {@link ClosureDescriptor}.
 	 */
-	private final static ClosureDescriptor immutable = new ClosureDescriptor(false);
+	private final static ClosureDescriptor immutable =
+		new ClosureDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ClosureDescriptor}.

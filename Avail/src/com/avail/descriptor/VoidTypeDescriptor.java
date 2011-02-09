@@ -32,9 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.annotations.*;
 
 /**
  * {@code VoidType} implements the type of the {@linkplain
@@ -63,6 +61,7 @@ extends PrimitiveTypeDescriptor
 		PARENT,
 		MY_TYPE
 	}
+
 	@Override
 	@ThreadSafe
 	public boolean o_IsSubtypeOf (
@@ -110,7 +109,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link VoidTypeDescriptor}.
 	 */
-	private final static VoidTypeDescriptor mutable = new VoidTypeDescriptor(true);
+	private final static VoidTypeDescriptor mutable =
+		new VoidTypeDescriptor(true);
 
 	/**
 	 * Answer a mutable {@link VoidTypeDescriptor}.
@@ -131,7 +131,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The immutable {@link VoidTypeDescriptor}.
 	 */
-	private final static VoidTypeDescriptor immutable = new VoidTypeDescriptor(false);
+	private final static VoidTypeDescriptor immutable =
+		new VoidTypeDescriptor(false);
 
 	/**
 	 * Answer an immutable {@link VoidTypeDescriptor}.

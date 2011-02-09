@@ -32,11 +32,12 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES_TYPE;
+import com.avail.annotations.NotNull;
 
-public class ObjectMetaDescriptor extends TypeDescriptor
+public class ObjectMetaDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -45,37 +46,24 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 		MY_OBJECT_TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field myObjectType.
-	 */
 	@Override
 	public void o_MyObjectType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MY_OBJECT_TYPE, value);
 	}
 
-	/**
-	 * Getter for field myObjectType.
-	 */
 	@Override
-	public AvailObject o_MyObjectType (
-			final AvailObject object)
+	public @NotNull AvailObject o_MyObjectType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_OBJECT_TYPE);
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object type's type's type.
 
@@ -85,7 +73,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The hash value is always recomputed from the objectMeta's instance (an objectType).
 
@@ -94,7 +82,7 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -105,8 +93,8 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object type's type's type.
 
@@ -114,13 +102,9 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 		return ObjectMetaMetaDescriptor.fromObjectMeta(object);
 	}
 
-
-
-	// operations-meta
-
 	@Override
-	public AvailObject o_Instance (
-			final AvailObject object)
+	public @NotNull AvailObject o_Instance (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object meta's sole instance, an object type.  Object metas parallel the
 		//  object types precisely, so no information is lost crossing this type/meta barrier here.  Object
@@ -133,14 +117,10 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 		return object.myObjectType();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -149,8 +129,8 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfObjectMeta (
-			final AvailObject object,
-			final AvailObject anObjectMeta)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		//  Check if I'm a supertype of the given object meta.
 
@@ -158,9 +138,9 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -176,9 +156,9 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
-			final AvailObject object,
-			final AvailObject someMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  Since metas intersect at terminatesType rather than terminates, we must
@@ -190,9 +170,9 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectMeta (
-			final AvailObject object,
-			final AvailObject anObjectMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfObjectMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.  Here we're finding
 		//  the nearest common descendant of two eager object metas.
@@ -201,9 +181,9 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -219,26 +199,22 @@ public class ObjectMetaDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfObjectMeta (
-			final AvailObject object,
-			final AvailObject anObjectMeta)
+	public @NotNull AvailObject o_TypeUnionOfObjectMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectMeta)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
 		return object.instance().typeUnion(anObjectMeta.instance()).type();
 	}
 
-
-
-
-
-	/* Object creation */
-	static AvailObject fromObjectType (final AvailObject objectType)
+	static AvailObject fromObjectType (
+		final @NotNull AvailObject objectType)
 	{
 		AvailObject result = mutable().create();
 		result.myObjectType(objectType);
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ObjectMetaDescriptor}.

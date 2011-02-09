@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
 import static java.lang.Integer.bitCount;
+import com.avail.annotations.NotNull;
 
-public class HashedSetBinDescriptor extends SetBinDescriptor
+public class HashedSetBinDescriptor
+extends SetBinDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -57,117 +58,88 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		BIN_ELEMENT_AT_
 	}
 
-
 	@Override
-	public AvailObject o_BinElementAt (
-			final AvailObject object,
-			final int subscript)
+	public @NotNull AvailObject o_BinElementAt (
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override
 	public void o_BinElementAtPut (
-			final AvailObject object,
-			final int subscript,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final @NotNull AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
 
 		object.objectSlotAtPut(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
 	}
 
-	/**
-	 * Setter for field binHash.
-	 */
 	@Override
 	public void o_BinHash (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.BIN_HASH, value);
 	}
 
-	/**
-	 * Setter for field binSize.
-	 */
 	@Override
 	public void o_BinSize (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.BIN_SIZE, value);
 	}
 
-	/**
-	 * Setter for field binUnionType.
-	 */
 	@Override
 	public void o_BinUnionType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.BIN_UNION_TYPE, value);
 	}
 
-	/**
-	 * Setter for field bitVector.
-	 */
 	@Override
 	public void o_BitVector (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.BIT_VECTOR, value);
 	}
 
-	/**
-	 * Getter for field binHash.
-	 */
 	@Override
 	public int o_BinHash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.BIN_HASH);
 	}
 
-	/**
-	 * Getter for field binSize.
-	 */
 	@Override
 	public int o_BinSize (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.BIN_SIZE);
 	}
 
-	/**
-	 * Getter for field binUnionType.
-	 */
 	@Override
-	public AvailObject o_BinUnionType (
-			final AvailObject object)
+	public @NotNull AvailObject o_BinUnionType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BIN_UNION_TYPE);
 	}
 
-	/**
-	 * Getter for field bitVector.
-	 */
 	@Override
 	public int o_BitVector (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.BIT_VECTOR);
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -179,17 +151,13 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return object;
 	}
 
-
-
-	// operations-set bins
-
 	@Override
-	public AvailObject o_BinAddingElementHashLevelCanDestroy (
-			final AvailObject object,
-			final AvailObject elementObject,
-			final int elementObjectHash,
-			final byte myLevel,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash,
+		final byte myLevel,
+		final boolean canDestroy)
 	{
 		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
 		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
@@ -207,22 +175,22 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		if ((vector & bitShift(1,logicalIndex)) != 0)
 		{
 			AvailObject entry = object.binElementAt(physicalIndex);
-			final int previousBinSize = entry.binSize();
-			final int previousHash = entry.binHash();
+		final int previousBinSize = entry.binSize();
+		final int previousHash = entry.binHash();
 			entry = entry.binAddingElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
 				((byte)(_level + 1)),
 				canDestroy);
-			final int delta = entry.binSize() - previousBinSize;
+		final int delta = entry.binSize() - previousBinSize;
 			if (delta == 0)
 			{
 				return object;
 			}
 			//  The element had to be added.
-			final int hashDelta = entry.binHash() - previousHash;
+		final int hashDelta = entry.binHash() - previousHash;
 			unionType = object.binUnionType().typeUnion(elementObject.type());
-			final int newSize = object.binSize() + delta;
+		final int newSize = object.binSize() + delta;
 			if (canDestroy & isMutable)
 			{
 				objectToModify = object;
@@ -273,9 +241,9 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public boolean o_BinHasElementHash (
-			final AvailObject object,
-			final AvailObject elementObject,
-			final int elementObjectHash)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash)
 	{
 		//  First, grab the appropriate 5 bits from the hash.
 
@@ -296,11 +264,11 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override
-	public AvailObject o_BinRemoveElementHashCanDestroy (
-			final AvailObject object,
-			final AvailObject elementObject,
-			final int elementObjectHash,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_BinRemoveElementHashCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject elementObject,
+		final int elementObjectHash,
+		final boolean canDestroy)
 	{
 
 		final int objectEntryCount = object.objectSlotsCount()
@@ -437,8 +405,8 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 	 */
 	@Override
 	public boolean o_IsBinSubsetOf (
-			final AvailObject object,
-			final AvailObject potentialSuperset)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject potentialSuperset)
 	{
 		for (
 				int index = object.objectSlotsCount()
@@ -456,9 +424,9 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 
 	@Override
 	public int o_PopulateTupleStartingAt (
-			final AvailObject object,
-			final AvailObject mutableTuple,
-			final int startingIndex)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject mutableTuple,
+		final int startingIndex)
 	{
 		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
 		//  the next available index in which to write.
@@ -477,19 +445,18 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		return writeIndex;
 	}
 
-
-
-	/* Descriptor lookup */
-	static byte numberOfLevels ()
+	private static byte numberOfLevels ()
 	{
 		return 7;
-	};
+	}
 
-	static HashedSetBinDescriptor isMutableLevel (final boolean flag, final byte level)
+	static HashedSetBinDescriptor isMutableLevel (
+		final boolean flag,
+		final byte level)
 	{
 		assert 0 <= level && level <= numberOfLevels();
 		return descriptors [level * 2 + (flag ? 0 : 1)];
-	};
+	}
 
 	/**
 	 * Construct a new {@link HashedSetBinDescriptor}.
@@ -503,9 +470,7 @@ public class HashedSetBinDescriptor extends SetBinDescriptor
 		final boolean isMutable,
 		final int level)
 	{
-		super(
-			isMutable,
-			level);
+		super(isMutable, level);
 	}
 
 	final static HashedSetBinDescriptor descriptors[] = {

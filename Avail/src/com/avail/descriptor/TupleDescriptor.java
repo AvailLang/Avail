@@ -38,9 +38,9 @@ import static java.util.Collections.max;
 import java.util.*;
 import com.avail.annotations.NotNull;
 
-public abstract class TupleDescriptor extends Descriptor
+public abstract class TupleDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -49,20 +49,12 @@ public abstract class TupleDescriptor extends Descriptor
 		HASH_OR_ZERO
 	}
 
-	// GENERATED accessors
-
-	/**
-	 * Setter for field hashOrZero.
-	 */
 	@Override
 	public void o_HashOrZero (final AvailObject object, final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	/**
-	 * Getter for field hashOrZero.
-	 */
 	@Override
 	public int o_HashOrZero (final AvailObject object)
 	{
@@ -74,7 +66,6 @@ public abstract class TupleDescriptor extends Descriptor
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
 	}
-
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -125,8 +116,6 @@ public abstract class TupleDescriptor extends Descriptor
 		}
 		aStream.append('>');
 	}
-
-	// operations
 
 	@Override
 	public boolean o_EqualsAnyTuple (
@@ -227,9 +216,7 @@ public abstract class TupleDescriptor extends Descriptor
 	{
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more
-		// compact, more efficient, older generation) than the second one?
-
-		return object.bitsPerEntry() < anotherObject.bitsPerEntry();
+			return object.bitsPerEntry() < anotherObject.bitsPerEntry();
 	}
 
 	@Override
@@ -241,9 +228,7 @@ public abstract class TupleDescriptor extends Descriptor
 		// Don't generate
 		// an approximate type and do the comparison, because the approximate
 		// type
-		// will just send this message recursively.
-
-		if (aTypeObject.equals(VOID_TYPE.o()))
+			if (aTypeObject.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
@@ -285,12 +270,10 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public @NotNull AvailObject o_ExactType (final AvailObject object)
 	{
 		// Answer the object's type. Not very efficient - should cache the type
-		// inside the object.
-
-		final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
+			final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
@@ -313,9 +296,7 @@ public abstract class TupleDescriptor extends Descriptor
 		// and store it in
 		// hashOrZero. Note that the hash can (extremely rarely) be zero, in
 		// which case the
-		// hash must be computed on demand every time it is requested.
-
-		int hash = object.hashOrZero();
+			int hash = object.hashOrZero();
 		if (hash == 0)
 		{
 			hash = computeHashForObject(object);
@@ -325,14 +306,12 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
+	public @NotNull AvailObject o_Type (final AvailObject object)
 	{
 		// Answer the object's type.
 
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
-
-	// operations-tuples
 
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
@@ -461,7 +440,7 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ConcatenateTuplesCanDestroy (
+	public @NotNull AvailObject o_ConcatenateTuplesCanDestroy (
 		final AvailObject object,
 		final boolean canDestroy)
 	{
@@ -469,9 +448,7 @@ public abstract class TupleDescriptor extends Descriptor
 		// concatenating the
 		// subtuples together. Optimized so that the resulting splice tuple's
 		// zones are not
-		// themselves splice tuples.
-
-		int zones = 0;
+			int zones = 0;
 		int newSize = 0;
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
@@ -551,7 +528,7 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_CopyTupleFromToCanDestroy (
+	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -563,9 +540,7 @@ public abstract class TupleDescriptor extends Descriptor
 		// then the
 		// parts of the tuple outside the subrange will have their refcounts
 		// decremented
-		// and those tuple slots will be nilled out.
-
-		assert 1 <= start && start <= end + 1;
+			assert 1 <= start && start <= end + 1;
 		assert 0 <= end && end <= object.tupleSize();
 		if (start - 1 == end)
 		{
@@ -611,9 +586,7 @@ public abstract class TupleDescriptor extends Descriptor
 		// nybble from it.
 		// Fail if it's not a nybble. Obviously overidden for speed in
 		// NybbleTupleDescriptor
-		// and its subclasses.
-
-		final int nyb = object.tupleIntAt(index);
+			final int nyb = object.tupleIntAt(index);
 		if (!(nyb >= 0 && nyb <= 15))
 		{
 			error("nybble is out of range", object);
@@ -638,7 +611,7 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAt (final AvailObject object, final int index)
+	public @NotNull AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.
 
@@ -649,7 +622,7 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAtPuttingCanDestroy (
+	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final AvailObject newValueObject,
@@ -658,9 +631,7 @@ public abstract class TupleDescriptor extends Descriptor
 		// Answer a tuple with all the elements of object except at the given
 		// index we should
 		// have newValueObject. This may destroy the original tuple if
-		// canDestroy is true.
-
-		error(
+			error(
 			"Subclass responsibility: Object:tupleAt:putting:canDestroy: in Avail.TupleDescriptor",
 			object);
 		return VoidDescriptor.voidObject();
@@ -678,7 +649,7 @@ public abstract class TupleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_AsSet (final AvailObject object)
+	public @NotNull AvailObject o_AsSet (final AvailObject object)
 	{
 		// Convert object to a set.
 
@@ -740,13 +711,11 @@ public abstract class TupleDescriptor extends Descriptor
 		return 0;
 	}
 
-
 	@Override
 	public boolean o_IsSplice (final AvailObject object)
 	{
 		return false;
 	}
-
 
 	/**
 	 * Compute the object's hash value.
@@ -777,17 +746,14 @@ public abstract class TupleDescriptor extends Descriptor
 		// ed., page 102, row 26. See also pages 19, 20, theorems B and C. The
 		// period of this cycle is 2^30. The element hash values are xored with
 		// a random constant (16r9EE570A6) before being used, to help prevent
-		// similar nested tuples from producing equal hashes.
-
-		int hash = 0;
+			int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
+		final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
 			hash = hash * Multiplier + itemHash;
 		}
 		return hash * Multiplier;
 	}
-
 
 	@Override
 	public String o_AsNativeString (final AvailObject object)
@@ -806,7 +772,7 @@ public abstract class TupleDescriptor extends Descriptor
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override
-	public AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
+	public @NotNull AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
 			object.tupleSize());
@@ -841,7 +807,7 @@ public abstract class TupleDescriptor extends Descriptor
 			}
 
 			@Override
-			public AvailObject next ()
+			public @NotNull AvailObject next ()
 			{
 				if (index > size)
 				{

@@ -34,10 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class MessageBundleDescriptor extends Descriptor
+public class MessageBundleDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -49,11 +50,10 @@ public class MessageBundleDescriptor extends Descriptor
 		PARSING_INSTRUCTIONS
 	}
 
-
 	@Override
 	public void o_AddRestrictions (
-			final AvailObject object,
-			final AvailObject restrictions)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictions)
 	{
 		assert restrictions.isTuple();
 		restrictions.makeImmutable();
@@ -77,8 +77,8 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public void o_RemoveRestrictions (
-			final AvailObject object,
-			final AvailObject obsoleteRestrictions)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject obsoleteRestrictions)
 	{
 		assert obsoleteRestrictions.isTuple();
 		AvailObject reduced = object.myRestrictions();
@@ -101,7 +101,7 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public boolean o_HasRestrictions (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (object.myRestrictions().equalsVoid())
 		{
@@ -119,14 +119,14 @@ public class MessageBundleDescriptor extends Descriptor
 
 	@Override
 	public void o_RemoveRestrictions (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		object.myRestrictions(VoidDescriptor.voidObject());
 	}
 
 	@Override
-	public AvailObject o_Restrictions (
-			final AvailObject object)
+	public @NotNull AvailObject o_Restrictions (
+		final @NotNull AvailObject object)
 	{
 		AvailObject restrictions = object.myRestrictions();
 		if (restrictions.equalsVoid())
@@ -156,111 +156,81 @@ public class MessageBundleDescriptor extends Descriptor
 		return restrictions;
 	}
 
-
-
-	/**
-	 * Setter for field message.
-	 */
 	@Override
 	public void o_Message (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MESSAGE, value);
 	}
 
-	/**
-	 * Setter for field messageParts.
-	 */
 	@Override
 	public void o_MessageParts (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MESSAGE_PARTS, value);
 	}
 
-	/**
-	 * Setter for field myRestrictions.
-	 */
 	@Override
 	public void o_MyRestrictions (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MY_RESTRICTIONS, value);
 	}
 
-	/**
-	 * Getter for field message.
-	 */
 	@Override
-	public AvailObject o_Message (
-			final AvailObject object)
+	public @NotNull AvailObject o_Message (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MESSAGE);
 	}
 
-	/**
-	 * Getter for field messageParts.
-	 */
 	@Override
-	public AvailObject o_MessageParts (
-			final AvailObject object)
+	public @NotNull AvailObject o_MessageParts (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MESSAGE_PARTS);
 	}
 
-	/**
-	 * Getter for field myRestrictions.
-	 */
 	@Override
-	public AvailObject o_MyRestrictions (
-			final AvailObject object)
+	public @NotNull AvailObject o_MyRestrictions (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_RESTRICTIONS);
 	}
 
-
-	/**
-	 * Setter for field parsingInstructions.
-	 */
 	@Override
 	public void o_ParsingInstructions (
-			final AvailObject object,
-			final AvailObject instructionsTuple)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject instructionsTuple)
 	{
 		object.objectSlotPut(
 			ObjectSlots.PARSING_INSTRUCTIONS,
 			instructionsTuple);
 	}
 
-	/**
-	 * Getter for field parsingInstructions.
-	 */
 	@Override
-	public AvailObject o_ParsingInstructions (
-			final AvailObject object)
+	public @NotNull AvailObject o_ParsingInstructions (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PARSING_INSTRUCTIONS);
 	}
 
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.MY_RESTRICTIONS;
 	}
 
-
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		// The existing implementations are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
@@ -274,12 +244,10 @@ public class MessageBundleDescriptor extends Descriptor
 		aStream.append("\"");
 	}
 
-
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -288,27 +256,25 @@ public class MessageBundleDescriptor extends Descriptor
 	 * Answer the object's type.  Don't answer an ApproximateType.
 	 */
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.message().hash() ^ 0x312CAB9;
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
 	}
-
-
 
 	/**
 	 * Create a new {@link MessageBundleDescriptor message bundle} for the

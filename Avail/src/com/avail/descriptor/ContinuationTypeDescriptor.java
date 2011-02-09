@@ -33,10 +33,11 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class ContinuationTypeDescriptor extends TypeDescriptor
+public class ContinuationTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -45,40 +46,27 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		CLOSURE_TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field closureType.
-	 */
 	@Override
 	public void o_ClosureType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CLOSURE_TYPE, value);
 	}
 
-	/**
-	 * Getter for field closureType.
-	 */
 	@Override
-	public AvailObject o_ClosureType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ClosureType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append('$');
 		object.closureType().printOnAvoidingIndent(
@@ -87,22 +75,18 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 			(indent + 1));
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsContinuationType(object);
 	}
 
 	@Override
 	public boolean o_EqualsContinuationType (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Continuation types compare for equality by comparing their closureTypes.
 
@@ -114,8 +98,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -124,7 +108,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's hash value.
 
@@ -133,7 +117,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -144,22 +128,18 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return Types.CONTINUATION_TYPE.o();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -168,8 +148,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfContinuationType (
-			final AvailObject object,
-			final AvailObject aContinuationType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
 	{
 		//  Since the only things that can be done with continuations are to restart them or to exit them,
 		//  continuation subtypes must accept any values that could be passed as arguments or as the
@@ -198,9 +178,9 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -216,9 +196,9 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfContinuationType (
-			final AvailObject object,
-			final AvailObject aContinuationType)
+	public @NotNull AvailObject o_TypeIntersectionOfContinuationType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -246,9 +226,9 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -264,9 +244,9 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfContinuationType (
-			final AvailObject object,
-			final AvailObject aContinuationType)
+	public @NotNull AvailObject o_TypeUnionOfContinuationType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -293,18 +273,14 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		return ContinuationTypeDescriptor.forClosureType(closureUnion);
 	}
 
-
-
-
-
-	/* Descriptor lookup */
-	public static AvailObject forClosureType (final AvailObject closureType)
+	public static @NotNull AvailObject forClosureType (
+		final @NotNull AvailObject closureType)
 	{
 		final AvailObject result = mutable().create();
 		result.closureType(closureType.makeImmutable());
 		result.makeImmutable();
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ContinuationTypeDescriptor}.

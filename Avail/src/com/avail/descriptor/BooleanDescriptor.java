@@ -32,10 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FalseDescriptor;
-import com.avail.descriptor.TrueDescriptor;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
 /**
  * This abstract class implements the descriptor for the boolean Avail type.
@@ -45,32 +43,30 @@ import java.util.List;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public abstract class BooleanDescriptor extends Descriptor
+public abstract class BooleanDescriptor
+extends Descriptor
 {
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append(object.extractBoolean());
 	}
 
-
 	@Override
 	public abstract boolean o_ExtractBoolean (
-			final AvailObject object);
+		final @NotNull AvailObject object);
 
-	
+
 	@Override
 	public boolean o_IsBoolean (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
-
 
 	/**
 	 * The singleton object representing the Avail concept "true".
@@ -100,14 +96,13 @@ public abstract class BooleanDescriptor extends Descriptor
 		FalseBooleanObject = null;
 	}
 
-
 	/**
 	 * Convert a Java boolean into an Avail boolean.
-	 * 
+	 *
 	 * @param b A Java boolean.
 	 * @return An Avail boolean.
 	 */
-	public static AvailObject objectFrom (boolean b)
+	public static AvailObject objectFrom (final boolean b)
 	{
 		return b ? TrueBooleanObject : FalseBooleanObject;
 	};

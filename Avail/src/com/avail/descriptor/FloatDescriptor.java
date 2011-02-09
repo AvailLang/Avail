@@ -32,10 +32,12 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class FloatDescriptor extends Descriptor
+public class FloatDescriptor
+extends Descriptor
 {
 
 	/**
@@ -46,60 +48,43 @@ public class FloatDescriptor extends Descriptor
 		RAW_QUAD_1
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field rawQuad1.
-	 */
 	@Override
 	public void o_RawQuad1 (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.RAW_QUAD_1, value);
 	}
 
-	/**
-	 * Getter for field rawQuad1.
-	 */
 	@Override
 	public int o_RawQuad1 (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append(object.extractFloat());
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsFloat(object);
 	}
 
 	@Override
 	public boolean o_EqualsFloat (
-			final AvailObject object,
-			final AvailObject aFloatObject)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFloatObject)
 	{
 		if (object.extractFloat() != aFloatObject.extractFloat())
 		{
@@ -110,15 +95,15 @@ public class FloatDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return FLOAT.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -127,29 +112,21 @@ public class FloatDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return FLOAT.o();
 	}
 
-
-
-	// operations-floats
-
 	@Override
 	public float o_ExtractFloat (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Extract a Smalltalk Float from object.
 
 		int castAsInt = object.rawQuad1();
 		return Float.intBitsToFloat(castAsInt);
 	}
-
-
-
-
 
 	/* Special instance accessing */
 	public static AvailObject objectFromFloat(final float aFloat)

@@ -32,16 +32,13 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.ObjectMetaDescriptor;
-import com.avail.descriptor.ObjectTypeDescriptor;
+import static java.lang.Math.min;
+import com.avail.annotations.NotNull;
 import com.avail.utility.*;
-import static java.lang.Math.*;
 
-public class ObjectTypeDescriptor extends TypeDescriptor
+public class ObjectTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -50,19 +47,18 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		FIELD_TYPE_MAP
 	}
 
-
 	// As yet unclassified
 
 	@Override
 	public boolean o_HasObjectInstance (
-			final AvailObject object,
-			final AvailObject potentialInstance)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject potentialInstance)
 	{
 		//  The potentialInstance is a user-defined object.  See if it is an instance of me.
 
 		final AvailObject typeMap = object.fieldTypeMap();
 		final AvailObject instMap = potentialInstance.fieldMap();
-		if ((instMap.mapSize() < typeMap.mapSize()))
+		if (instMap.mapSize() < typeMap.mapSize())
 		{
 			return false;
 		}
@@ -89,38 +85,24 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return true;
 	}
 
-
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field fieldTypeMap.
-	 */
 	@Override
 	public void o_FieldTypeMap (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.FIELD_TYPE_MAP, value);
 	}
 
-	/**
-	 * Getter for field fieldTypeMap.
-	 */
 	@Override
-	public AvailObject o_FieldTypeMap (
-			final AvailObject object)
+	public @NotNull AvailObject o_FieldTypeMap (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FIELD_TYPE_MAP);
 	}
 
-
-
-	// operations
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object type's type.
 
@@ -130,16 +112,16 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Use the hash of the map (of field keys and field types), multiplied by 11.
 
-		return (object.fieldTypeMap().hash() * 11);
+		return object.fieldTypeMap().hash() * 11;
 	}
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -150,8 +132,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer this object type's type.
 
@@ -159,14 +141,10 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return ObjectMetaDescriptor.fromObjectType(object);
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -175,8 +153,8 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfObjectType (
-			final AvailObject object,
-			final AvailObject anObjectType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType)
 	{
 		//  Check if I'm a supertype of the given eager object type.
 
@@ -210,9 +188,9 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -233,9 +211,9 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	 * types.
 	 */
 	@Override
-	public AvailObject o_TypeIntersectionOfObjectType (
-			final AvailObject object,
-			final AvailObject anObjectType)
+	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType)
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
@@ -244,7 +222,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject key, AvailObject type)
+			public void value (final AvailObject key, AvailObject type)
 			{
 				if (map2.hasKey(key))
 				{
@@ -259,7 +237,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		map2.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject key, AvailObject type)
+			public void value (final AvailObject key, final AvailObject type)
 			{
 				if (!map1.hasKey(key))
 				{
@@ -274,9 +252,9 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -296,9 +274,9 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
 	@Override
-	public AvailObject o_TypeUnionOfObjectType (
-			final AvailObject object,
-			final AvailObject anObjectType)
+	public @NotNull AvailObject o_TypeUnionOfObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType)
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
@@ -308,7 +286,7 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
 		{
 			@Override
-			public void value (AvailObject key, AvailObject valueType)
+			public void value (final AvailObject key, final AvailObject valueType)
 			{
 				if (map2.hasKey(key))
 				{
@@ -322,31 +300,23 @@ public class ObjectTypeDescriptor extends TypeDescriptor
 		return ObjectTypeDescriptor.objectTypeFromMap(resultMap.value);
 	}
 
-
-
-	// private-computation
-
 	int computeHashForObject (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Compute the hash value from the object's data.  The result should be
 		//  a Smalltalk Integer between 16r00000001 and 16rFFFFFFFF inclusive.
 		//  Hash the map (of field keys and field types) and multiply it by 11.
 
-		return (object.fieldTypeMap().hash() * 11);
+		return object.fieldTypeMap().hash() * 11;
 	}
 
-
-
-
-
 	/* Object creation */
-	public static AvailObject objectTypeFromMap (AvailObject map)
+	public static AvailObject objectTypeFromMap (final AvailObject map)
 	{
 		AvailObject result = mutable().create();
 		result.fieldTypeMap(map);
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.

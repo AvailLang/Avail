@@ -32,12 +32,10 @@
 
 package com.avail.descriptor;
 
-public abstract class SetBinDescriptor extends Descriptor
+public abstract class SetBinDescriptor
+extends Descriptor
 {
 	final byte _level;
-
-
-	// private-accessing
 
 	byte level ()
 	{
@@ -48,7 +46,6 @@ public abstract class SetBinDescriptor extends Descriptor
 
 		return _level;
 	}
-
 
 	/**
 	 * Construct a new {@link SetBinDescriptor}.

@@ -38,53 +38,51 @@ import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
-public class ByteStringDescriptor extends TupleDescriptor
+public class ByteStringDescriptor
+extends TupleDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
 		HASH_OR_ZERO,
+
+		/**
+		 * The raw 32-bit machine words that constitute the representation of
+		 * the {@linkplain ByteStringDescriptor byte string}.
+		 */
 		RAW_QUAD_AT_
 	}
-	final int _unusedBytesOfLastWord;
 
-
-	// GENERATED accessors
+	private final int _unusedBytesOfLastWord;
 
 	@Override
 	public int o_RawQuadAt (
-			final AvailObject object,
-			final int subscript)
+		final @NotNull AvailObject object,
+		final int subscript)
 	{
-		//  GENERATED getter method (indexed).
-
 		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
 	}
 
 	@Override
 	public void o_RawQuadAtPut (
-			final AvailObject object,
-			final int subscript,
-			final int value)
+		final @NotNull AvailObject object,
+		final int subscript,
+		final int value)
 	{
-		//  GENERATED setter method (indexed).
-
 		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append('"');
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
@@ -94,17 +92,13 @@ public class ByteStringDescriptor extends TupleDescriptor
 		aStream.append('"');
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject anotherObject,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject anotherObject,
+		final int startIndex2)
 	{
 		//  Compare sections of two tuples.  My instance is a string.
 
@@ -117,11 +111,11 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_CompareFromToWithByteStringStartingAt (
-			final AvailObject object,
-			final int startIndex1,
-			final int endIndex1,
-			final AvailObject aByteString,
-			final int startIndex2)
+		final @NotNull AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final @NotNull AvailObject aByteString,
+		final int startIndex2)
 	{
 		//  Compare sections of two byte strings.
 
@@ -144,16 +138,16 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsByteString(object);
 	}
 
 	@Override
 	public boolean o_EqualsByteString (
-			final AvailObject object,
-			final AvailObject aByteString)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aByteString)
 	{
 		//  First, check for object-structure (address) identity.
 
@@ -196,8 +190,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public boolean o_IsInstanceOfSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Answer whether object is an instance of a subtype of aType.  Don't generate
 		//  an approximate type and do the comparison, because the approximate type
@@ -238,8 +232,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -252,14 +246,10 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return object;
 	}
 
-
-
-	// operations-tuples
-
 	@Override
 	public short o_RawByteForCharacterAt (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer the byte that encodes the character at the given index.
 		assert index >= 1 && index <= object.tupleSize();
@@ -268,9 +258,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void o_RawByteForCharacterAtPut (
-			final AvailObject object,
-			final int index,
-			final short anInteger)
+		final @NotNull AvailObject object,
+		final int index,
+		final short anInteger)
 	{
 		//  Set the character at the given index based on the given byte.
 		assert index >= 1 && index <= object.tupleSize();
@@ -278,9 +268,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAt (
-			final AvailObject object,
-			final int index)
+	public @NotNull AvailObject o_TupleAt (
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
@@ -292,9 +282,9 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public void o_TupleAtPut (
-			final AvailObject object,
-			final int index,
-			final AvailObject aCharacterObject)
+		final @NotNull AvailObject object,
+		final int index,
+		final @NotNull AvailObject aCharacterObject)
 	{
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's a one-byte character).
@@ -304,11 +294,11 @@ public class ByteStringDescriptor extends TupleDescriptor
 	}
 
 	@Override
-	public AvailObject o_TupleAtPuttingCanDestroy (
-			final AvailObject object,
-			final int index,
-			final AvailObject newValueObject,
-			final boolean canDestroy)
+	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
+		final @NotNull AvailObject object,
+		final int index,
+		final @NotNull AvailObject newValueObject,
+		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
@@ -316,7 +306,7 @@ public class ByteStringDescriptor extends TupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
-			final int codePoint = newValueObject.codePoint();
+		final int codePoint = newValueObject.codePoint();
 			if (codePoint >= 0 && codePoint <= 255)
 			{
 				if (canDestroy & isMutable)
@@ -348,8 +338,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleIntAt (
-			final AvailObject object,
-			final int index)
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
 
@@ -357,35 +347,27 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return 0;
 	}
 
-
-
-	// private-accessing
-
 	@Override
 	public int o_BitsPerEntry (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
 
 		return 8;
 	}
 
-
-
-	// private-computation
-
 	@Override
 	public int o_ComputeHashFromTo (
-			final AvailObject object,
-			final int start,
-			final int end)
+		final @NotNull AvailObject object,
+		final int start,
+		final int end)
 	{
 		//  See comment in superclass.  This method must produce the same value.
 
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash =
+		final int itemHash =
 				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
 					object.rawByteForCharacterAt(index)) ^ PreToggle;
 			hash = hash * Multiplier + itemHash;
@@ -393,12 +375,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return hash * Multiplier;
 	}
 
-
-
-	// private-copying
-
-	AvailObject copyAsMutableByteString (
-			final AvailObject object)
+	private @NotNull AvailObject copyAsMutableByteString (
+		final @NotNull AvailObject object)
 	{
 		//  Answer a mutable copy of object that also only holds byte characters.
 
@@ -413,8 +391,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
-	AvailObject copyAsMutableTwoByteString (
-			final AvailObject object)
+	private @NotNull AvailObject copyAsMutableTwoByteString (
+		final @NotNull AvailObject object)
 	{
 		//  Answer a mutable copy of object that holds 16-bit characters.
 
@@ -431,16 +409,15 @@ public class ByteStringDescriptor extends TupleDescriptor
 
 	@Override
 	public int o_TupleSize (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
 		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - _unusedBytesOfLastWord;
 	}
 
-
-	AvailObject mutableObjectOfSize (
-			final int size)
+	private @NotNull AvailObject mutableObjectOfSize (
+		final int size)
 	{
 		//  Build a new object instance with room for size elements.
 
@@ -454,26 +431,20 @@ public class ByteStringDescriptor extends TupleDescriptor
 		return result;
 	}
 
-
-
-	// private-initialization
-
-	AvailObject privateMutableObjectFromNativeByteString (
-			final String aNativeByteString)
+	private @NotNull AvailObject privateMutableObjectFromNativeByteString (
+		final @NotNull String aNativeByteString)
 	{
 		final AvailObject result = mutableObjectOfSize(aNativeByteString.length());
 		for (int index = 1; index <= aNativeByteString.length(); index++)
 		{
-			final char c = aNativeByteString.charAt(index - 1);
+		final char c = aNativeByteString.charAt(index - 1);
 			assert 0 <= c && c <= 255;
 			result.rawByteForCharacterAtPut(index, (short)c);
 		}
 		return result;
 	}
 
-
-
-	static ByteStringDescriptor isMutableSize(
+	private static @NotNull ByteStringDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{
@@ -497,7 +468,8 @@ public class ByteStringDescriptor extends TupleDescriptor
 		_unusedBytesOfLastWord = unusedBytes;
 	}
 
-	final static ByteStringDescriptor descriptors[] = {
+	private static final ByteStringDescriptor[] descriptors =
+	{
 		new ByteStringDescriptor(true, 0),
 		new ByteStringDescriptor(false, 0),
 		new ByteStringDescriptor(true, 3),
@@ -508,17 +480,15 @@ public class ByteStringDescriptor extends TupleDescriptor
 		new ByteStringDescriptor(false, 1)
 	};
 
-
-
-
-	// Object creation
-	public static AvailObject mutableObjectFromNativeByteString(final String aNativeByteString)
+	public static @NotNull AvailObject mutableObjectFromNativeByteString(
+		final @NotNull String aNativeByteString)
 	{
 		final ByteStringDescriptor descriptor = isMutableSize(true, aNativeByteString.length());
 		return descriptor.privateMutableObjectFromNativeByteString(aNativeByteString);
 	}
 
-	public static AvailObject from(final String aNativeString)
+	public static @NotNull AvailObject from (
+		final @NotNull String aNativeString)
 	{
 		for (int i = 0; i < aNativeString.length(); i++)
 		{

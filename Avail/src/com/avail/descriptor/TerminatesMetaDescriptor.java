@@ -33,10 +33,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.NotNull;
 
-public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
+public class TerminatesMetaDescriptor
+extends PrimitiveTypeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -55,13 +56,10 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 		MY_TYPE
 	}
 
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (terminatesType) is a subtype of aType (should also be a type).
 		//  It's true if and only if aType inherits from type.  Well, actually it's true if aType
@@ -78,8 +76,8 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
-			final AvailObject object,
-			final AvailObject aPrimitiveType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPrimitiveType)
 	{
 		//  Check if object (terminates type) is a supertype of aPrimitiveType (a primitive type).
 		//  Never true, because terminates type is the most specific metatype and nothing
@@ -89,9 +87,9 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -111,9 +109,9 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
-			final AvailObject object,
-			final AvailObject someMeta)
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject someMeta)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  Since metas intersect at terminatesType rather than terminates, we must
@@ -125,9 +123,9 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that still includes both of these.
 
@@ -147,7 +145,7 @@ public class TerminatesMetaDescriptor extends PrimitiveTypeDescriptor
 
 	@Override
 	public boolean o_IsCyclicType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Because terminatesType is a subtype of all other metatypes, it is even considered
 		//  a cyclic type.  Coincidentally, terminatesType has itself as its type.

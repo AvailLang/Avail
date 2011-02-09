@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
 import java.util.concurrent.ThreadPoolExecutor;
-import com.avail.annotations.EnumField;
+import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
@@ -49,7 +49,8 @@ import com.avail.descriptor.TypeDescriptor.Types;
  * of a (smaller) {@link ThreadPoolExecutor}, each thread of which will be
  * executing an Avail process.</p>
  */
-public class ProcessDescriptor extends Descriptor
+public class ProcessDescriptor
+extends Descriptor
 {
 
 	/**
@@ -99,7 +100,6 @@ public class ProcessDescriptor extends Descriptor
 		public static final int higherPriorityReady = 0x0002;
 	}
 
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -141,161 +141,115 @@ public class ProcessDescriptor extends Descriptor
 		PROCESS_GLOBALS
 	}
 
-
-	/**
-	 * Setter for field breakpointBlock.
-	 */
 	@Override
 	public void o_BreakpointBlock (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.BREAKPOINT_BLOCK, value);
 	}
 
-	/**
-	 * Setter for field continuation.
-	 */
 	@Override
 	public void o_Continuation (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CONTINUATION, value);
 	}
 
-
-	/**
-	 * Setter for field executionState.
-	 */
 	@Override
 	public void o_ExecutionState (
-			final AvailObject object,
-			final ExecutionState value)
+		final @NotNull AvailObject object,
+		final @NotNull ExecutionState value)
 	{
 		object.integerSlotPut(IntegerSlots.EXECUTION_STATE, value.ordinal());
 	}
 
-	/**
-	 * Setter for field hashOrZero.
-	 */
 	@Override
 	public void o_HashOrZero (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	/**
-	 * Setter for field interruptRequestFlag.
-	 */
 	@Override
 	public void o_InterruptRequestFlag (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
 	}
 
-	/**
-	 * Setter for field priority.
-	 */
 	@Override
 	public void o_Priority (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.PRIORITY, value);
 	}
 
-	/**
-	 * Setter for field processGlobals.
-	 */
 	@Override
 	public void o_ProcessGlobals (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PROCESS_GLOBALS, value);
 	}
 
-	/**
-	 * Getter for field breakpointBlock.
-	 */
 	@Override
-	public AvailObject o_BreakpointBlock (
-			final AvailObject object)
+	public @NotNull AvailObject o_BreakpointBlock (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BREAKPOINT_BLOCK);
 	}
 
-	/**
-	 * Getter for field continuation.
-	 */
 	@Override
-	public AvailObject o_Continuation (
-			final AvailObject object)
+	public @NotNull AvailObject o_Continuation (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTINUATION);
 	}
 
-	/**
-	 * Getter for field executionState.
-	 */
 	@Override
 	public ExecutionState o_ExecutionState (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return ExecutionState.values()
 			[object.integerSlot(IntegerSlots.EXECUTION_STATE)];
 	}
 
-	/**
-	 * Getter for field hashOrZero.
-	 */
 	@Override
 	public int o_HashOrZero (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	/**
-	 * Getter for field interruptRequestFlag.
-	 */
 	@Override
 	public int o_InterruptRequestFlag (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
 	}
 
-	/**
-	 * Getter for field priority.
-	 */
 	@Override
 	public int o_Priority (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PRIORITY);
 	}
 
-	/**
-	 * Getter for field processGlobals.
-	 */
 	@Override
-	public AvailObject o_ProcessGlobals (
-			final AvailObject object)
+	public @NotNull AvailObject o_ProcessGlobals (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PROCESS_GLOBALS);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.CONTINUATION
 			|| e == ObjectSlots.BREAKPOINT_BLOCK
@@ -306,14 +260,10 @@ public class ProcessDescriptor extends Descriptor
 			|| e == IntegerSlots.INTERRUPT_REQUEST_FLAG;
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Compare processes by address (identity).
 
@@ -321,8 +271,8 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -331,7 +281,7 @@ public class ProcessDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit hash value.
 
@@ -345,8 +295,8 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
 		//  I do, on the other hand, have to freeze my type object.
@@ -358,14 +308,13 @@ public class ProcessDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return Types.PROCESS.o();
 	}
-
 
 	/**
 	 * Answer an integer extracted at the current program counter from the
@@ -373,10 +322,9 @@ public class ProcessDescriptor extends Descriptor
 	 * integer.  Use a totally naive implementation for now, with very little
 	 * caching.
 	 */
-
 	@Override
 	public int o_GetInteger (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
@@ -442,7 +390,7 @@ public class ProcessDescriptor extends Descriptor
 
 	@Override
 	public void o_Step (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Execute one step of the process.
 

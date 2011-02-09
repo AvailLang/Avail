@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 
@@ -54,7 +55,6 @@ import com.avail.interpreter.Interpreter;
 public class ForwardSignatureDescriptor
 extends SignatureDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -67,11 +67,10 @@ extends SignatureDescriptor
 		SIGNATURE
 	}
 
-
 	@Override
 	public void o_BodySignature (
-			final AvailObject object,
-			final AvailObject signature)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject signature)
 	{
 		object.signature(signature);
 		object.ensureMetacovariant();
@@ -87,10 +86,10 @@ extends SignatureDescriptor
 	 * suffice.
 	 */
 	@Override
-	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter anAvailInterpreter)
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter anAvailInterpreter)
 	{
 		return object.bodySignature().returnType();
 	}
@@ -105,74 +104,63 @@ extends SignatureDescriptor
 	 */
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter interpreter)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter interpreter)
 	{
 		return true;
 	}
 
 	@Override
-	public AvailObject o_BodySignature (
-			final AvailObject object)
+	public @NotNull AvailObject o_BodySignature (
+		final @NotNull AvailObject object)
 	{
 		return object.signature();
 	}
 
-
-	/**
-	 * Setter for field signature.
-	 */
 	@Override
 	public void o_Signature (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.SIGNATURE, value);
 	}
 
-	/**
-	 * Getter for field signature.
-	 */
 	@Override
-	public AvailObject o_Signature (
-			final AvailObject object)
+	public @NotNull AvailObject o_Signature (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIGNATURE);
 	}
 
-
-
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return Types.FORWARD_SIGNATURE.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final int hash = object.signature().hash() * 19;
 		return hash;
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return Types.FORWARD_SIGNATURE.o();
 	}
 
-
 	@Override
 	public boolean o_IsForward (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
-
 
 	/**
 	 * Make sure my requires clauses and returns clauses are expecting the right
@@ -181,7 +169,7 @@ extends SignatureDescriptor
 	 */
 	@Override
 	public void o_EnsureMetacovariant (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return;
 	}

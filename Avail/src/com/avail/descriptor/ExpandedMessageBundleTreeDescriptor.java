@@ -33,12 +33,13 @@
 package com.avail.descriptor;
 
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.utility.Continuation2;
 
-public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescriptor
+public class ExpandedMessageBundleTreeDescriptor
+extends MessageBundleTreeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -57,98 +58,69 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		SPECIAL_ACTIONS
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field complete.
-	 */
 	@Override
 	public void o_Complete (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.COMPLETE, value);
 	}
 
-	/**
-	 * Setter for field parsingPc.
-	 */
 	@Override
 	public void o_ParsingPc (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.PARSING_PC, value);
 	}
 
-	/**
-	 * Setter for field incomplete.
-	 */
 	@Override
 	public void o_Incomplete (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.INCOMPLETE, value);
 	}
 
-	/**
-	 * Setter for field specialActions.
-	 */
 	@Override
 	public void o_SpecialActions (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.SPECIAL_ACTIONS, value);
 	}
 
-	/**
-	 * Getter for field complete.
-	 */
 	@Override
-	public AvailObject o_Complete (
-			final AvailObject object)
+	public @NotNull AvailObject o_Complete (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.COMPLETE);
 	}
 
-	/**
-	 * Getter for field parsingPc.
-	 */
 	@Override
 	public int o_ParsingPc (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PARSING_PC);
 	}
 
-	/**
-	 * Getter for field incomplete.
-	 */
 	@Override
-	public AvailObject o_Incomplete (
-			final AvailObject object)
+	public @NotNull AvailObject o_Incomplete (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INCOMPLETE);
 	}
 
-	/**
-	 * Getter for field specialActions.
-	 */
 	@Override
-	public AvailObject o_SpecialActions (
-			final AvailObject object)
+	public @NotNull AvailObject o_SpecialActions (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SPECIAL_ACTIONS);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-			final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.COMPLETE
 			|| e == ObjectSlots.INCOMPLETE
@@ -156,16 +128,14 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 			|| e == IntegerSlots.PARSING_PC;
 	}
 
-
-
 	/**
 	 * Make the object immutable so it can be shared safely.  If I was mutable I
 	 * have to scan my children and make them immutable as well (recursively
 	 * down to immutable descendants).
 	 */
 	@Override
-	public AvailObject o_MakeImmutable (
-			final AvailObject object)
+	public @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object)
 	{
 
 		object.descriptor(immutable());
@@ -174,14 +144,12 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 		return object;
 	}
 
-
-
 	@Override
-	public AvailObject o_BundleAtMessageParts (
-			final AvailObject object,
-			final AvailObject message,
-			final AvailObject parts,
-			final AvailObject instructions)
+	public @NotNull AvailObject o_BundleAtMessageParts (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject message,
+		final @NotNull AvailObject parts,
+		final @NotNull AvailObject instructions)
 	{
 		//  Answer the bundle with the given message (also split into parts).
 
@@ -228,9 +196,9 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	 */
 	@Override
 	public void o_CopyToRestrictedTo (
-			final AvailObject object,
-			final AvailObject filteredBundleTree,
-			final AvailObject visibleNames)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject filteredBundleTree,
+		final @NotNull AvailObject visibleNames)
 	{
 		object.complete().mapDo(
 		new Continuation2<AvailObject, AvailObject>()
@@ -269,7 +237,7 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	 * message.  Answer the new or existing bundle.
 	 */
 	@Override
-	public AvailObject o_IncludeBundle (
+	public @NotNull AvailObject o_IncludeBundle (
 		final AvailObject object,
 		final AvailObject messageBundle)
 	{
@@ -367,8 +335,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	 */
 	@Override
 	public boolean o_RemoveBundle (
-			final AvailObject object,
-			final AvailObject bundle)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bundle)
 	{
 		final int pc = object.parsingPc();
 		AvailObject complete = object.complete();
@@ -427,8 +395,8 @@ public class ExpandedMessageBundleTreeDescriptor extends MessageBundleTreeDescri
 	}
 
 	@Override
-	public AvailObject o_Expand (
-			final AvailObject object)
+	public @NotNull AvailObject o_Expand (
+		final @NotNull AvailObject object)
 	{
 		//  Expand the bundleTree.  In this case, do nothing as I am already expanded.
 

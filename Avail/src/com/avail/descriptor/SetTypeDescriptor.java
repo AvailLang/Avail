@@ -34,10 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class SetTypeDescriptor extends TypeDescriptor
+public class SetTypeDescriptor
+extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -47,61 +48,42 @@ public class SetTypeDescriptor extends TypeDescriptor
 		CONTENT_TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field contentType.
-	 */
 	@Override
 	public void o_ContentType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CONTENT_TYPE, value);
 	}
 
-	/**
-	 * Setter for field sizeRange.
-	 */
 	@Override
 	public void o_SizeRange (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
 	}
 
-	/**
-	 * Getter for field contentType.
-	 */
 	@Override
-	public AvailObject o_ContentType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ContentType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTENT_TYPE);
 	}
 
-	/**
-	 * Getter for field sizeRange.
-	 */
 	@Override
-	public AvailObject o_SizeRange (
-			final AvailObject object)
+	public @NotNull AvailObject o_SizeRange (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append("set");
 		if (!object.sizeRange().equals(IntegerRangeTypeDescriptor.wholeNumbers()))
@@ -119,22 +101,18 @@ public class SetTypeDescriptor extends TypeDescriptor
 			(indent + 1));
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsSetType(object);
 	}
 
 	@Override
 	public boolean o_EqualsSetType (
-			final AvailObject object,
-			final AvailObject aSetType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		//  Set types are equal iff both their sizeRange and contentType match.
 
@@ -146,8 +124,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -156,7 +134,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -166,7 +144,7 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -185,22 +163,18 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return SET_TYPE.o();
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -209,8 +183,8 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfSetType (
-			final AvailObject object,
-			final AvailObject aSetType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		//  Set type A is a subtype of B if and only if their size ranges are covariant
 		//  and their content types are covariant.
@@ -219,9 +193,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -237,9 +211,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfSetType (
-			final AvailObject object,
-			final AvailObject aSetType)
+	public @NotNull AvailObject o_TypeIntersectionOfSetType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -247,9 +221,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -269,9 +243,9 @@ public class SetTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfSetType (
-			final AvailObject object,
-			final AvailObject aSetType)
+	public @NotNull AvailObject o_TypeUnionOfSetType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSetType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -280,19 +254,14 @@ public class SetTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSetType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-
-
-
-
-	/* Object creation */
-	public static AvailObject setTypeForSizesContentType (
-			final AvailObject sizeRange,
-			final AvailObject contentType)
+	public static @NotNull AvailObject setTypeForSizesContentType (
+		final @NotNull AvailObject sizeRange,
+		final @NotNull AvailObject contentType)
 	{
 		if (sizeRange.equals(TERMINATES.o()))
 		{

@@ -39,9 +39,9 @@ import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
-public class IntegerDescriptor extends ExtendedNumberDescriptor
+public class IntegerDescriptor
+extends ExtendedNumberDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -64,7 +64,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		RAW_SIGNED_INT_AT_
 	}
 
-
 	@Override
 	public int o_RawSignedIntegerAt (
 		final AvailObject object,
@@ -86,8 +85,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			subscript,
 			value);
 	}
-
-
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -123,7 +120,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		}
 	}
 
-
 	@Override
 	public boolean o_Equals (
 		final AvailObject object,
@@ -131,7 +127,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		return another.equalsInteger(object);
 	}
-
 
 	/**
 	 * Compare two integers for equality.
@@ -213,8 +208,8 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		}
 		for (int i = size1 - 1; i >= 1; i--)
 		{
-			final long a = object.rawUnsignedIntegerAt(i);
-			final long b = another.rawUnsignedIntegerAt(i);
+		final long a = object.rawUnsignedIntegerAt(i);
+		final long b = another.rawUnsignedIntegerAt(i);
 			if (a != b)
 			{
 				return (a & 0xFFFFFFFFL) > (b & 0xFFFFFFFFL);
@@ -231,7 +226,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		return !another.isPositive();
 	}
-
 
 	/**
 	 * Answer whether object is an instance of a subtype of aType.  Don't
@@ -331,7 +325,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
+	public @NotNull AvailObject o_ExactType (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -375,7 +369,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
+	public @NotNull AvailObject o_Type (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
@@ -383,12 +377,8 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
 
-
-
-	// operations-numbers
-
 	@Override
-	public AvailObject o_DivideCanDestroy (
+	public @NotNull AvailObject o_DivideCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -399,7 +389,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_MinusCanDestroy (
+	public @NotNull AvailObject o_MinusCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -410,7 +400,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_PlusCanDestroy (
+	public @NotNull AvailObject o_PlusCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -421,7 +411,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_TimesCanDestroy (
+	public @NotNull AvailObject o_TimesCanDestroy (
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
@@ -503,10 +493,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return value >= 0 && value <= 15;
 	}
 
-
-
-	// private-accessing
-
 	/**
 	 * Manually constructed accessor method.  Access the quad-byte using the
 	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
@@ -545,9 +531,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		final AvailObject object)
 	{
 		// Remove any redundant longs from my end.  Since I'm stored in little
-		// endian order, just shorten the object.
-
-		assert isMutable;
+			assert isMutable;
 		int size = object.integerSlotsCount();
 		if (size > 1)
 		{
@@ -574,12 +558,8 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		}
 	}
 
-
-
-	// private-arithmetic
-
 	@Override
-	public AvailObject o_AddToInfinityCanDestroy (
+	public @NotNull AvailObject o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -588,7 +568,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_AddToIntegerCanDestroy (
+	public @NotNull AvailObject o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -598,9 +578,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		// This routine would be much quicker with access to machine carry flags,
 		// but Java doesn't let us actually go down to the metal (nor do C and C++).
 		// Our best recourse without reverting to assembly language is to use 64-bit
-		// arithmetic over 32-bit words.
-
-		final int objectSize = object.integerSlotsCount();
+			final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
 		AvailObject output = null;
 		if (canDestroy)
@@ -624,7 +602,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			// See if the (signed) sum will fit in 32 bits, the most common case by far.
-			final long sum = (long)object.rawSignedIntegerAt(1) + (long)anInteger.rawSignedIntegerAt(1);
+		final long sum = (long)object.rawSignedIntegerAt(1) + (long)anInteger.rawSignedIntegerAt(1);
 			if (sum == (int)sum)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
@@ -684,7 +662,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_DivideIntoInfinityCanDestroy (
+	public @NotNull AvailObject o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -698,7 +676,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_DivideIntoIntegerCanDestroy (
+	public @NotNull AvailObject o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -762,12 +740,12 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		{
 			//  Estimate partialQuotient = remainder / object, using the uppermost 3 words of each.
 			//  Allow a slightly negative remainder due to rounding.  Compensate at the bottom of the loop.
-			final int dividendSlotsCount = remainder.integerSlotsCount();
-			final long dividendScale = (dividendSlotsCount - 1) * 32L;   // Power of two by which to scale doubleDividend to get actual value
-			final long dividendHigh = remainder.rawUnsignedIntegerAt(dividendSlotsCount);
-			final long dividendMedium = dividendSlotsCount > 1 ? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 1) : 0;
-			final long dividendLow = dividendSlotsCount > 2 ? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 2) : 0;
-			final double doubleDividend =
+		final int dividendSlotsCount = remainder.integerSlotsCount();
+		final long dividendScale = (dividendSlotsCount - 1) * 32L;   // Power of two by which to scale doubleDividend to get actual value
+		final long dividendHigh = remainder.rawUnsignedIntegerAt(dividendSlotsCount);
+		final long dividendMedium = dividendSlotsCount > 1 ? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 1) : 0;
+		final long dividendLow = dividendSlotsCount > 2 ? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 2) : 0;
+		final double doubleDividend =
 				scalb((double)dividendLow, -64) +
 				scalb((double)dividendMedium, -32) +
 				dividendHigh;
@@ -794,17 +772,15 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			// eliminating 50 actual bits, except on the final iteration which must converge in at most one
 			// more step.  Note that we could have used just a few bits in the floating point division and still
 			// always converged in time proportional to the difference in bit lengths divided by the number
-			// of bits being used (i.e., more slowly for fewer bits).
-
-			final double doubleQuotient = doubleDividend / doubleDivisor;
-			final long quotientScale = dividendScale - divisorScale;
+				final double doubleQuotient = doubleDividend / doubleDivisor;
+		final long quotientScale = dividendScale - divisorScale;
 			assert quotientScale >= 0L;
 
 			// Include room for sign bit plus safety margin.
 			partialQuotient = mutable().create(
 				(int)((quotientScale + 2 >> 5) + 1));
 
-			final long bitShift = quotientScale - ((long) partialQuotient.integerSlotsCount() - 1 << 5L);
+		final long bitShift = quotientScale - ((long) partialQuotient.integerSlotsCount() - 1 << 5L);
 			assert -100L < bitShift && bitShift < 100L;
 			double scaledDoubleQuotient = scalb(doubleQuotient, (int)bitShift);
 			for (int i = partialQuotient.integerSlotsCount(); i >= 1; --i)
@@ -858,7 +834,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_MultiplyByInfinityCanDestroy (
+	public @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -872,7 +848,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_MultiplyByIntegerCanDestroy (
+	public @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -887,7 +863,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			// See if the (signed) product will fit in 32 bits, the most common case by far.
-			final long prod = (long)object.rawSignedIntegerAt(1) * (long)anInteger.rawSignedIntegerAt(1);
+		final long prod = (long)object.rawSignedIntegerAt(1) * (long)anInteger.rawSignedIntegerAt(1);
 			if (prod == (int)prod)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
@@ -967,7 +943,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_SubtractFromInfinityCanDestroy (
+	public @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
@@ -976,7 +952,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_SubtractFromIntegerCanDestroy (
+	public @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -986,9 +962,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		// This routine would be much quicker with access to machine carry flags,
 		// but Java doesn't let us actually go down to the metal (nor do C and C++).
 		// Our best recourse without reverting to assembly language is to use 64-bit
-		// arithmetic over 32-bit words.
-
-		final int objectSize = object.integerSlotsCount();
+			final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
 		AvailObject output = null;
 		if (canDestroy)
@@ -1012,7 +986,7 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			// See if the (signed) difference will fit in 32 bits, the most common case by far.
-			final long diff = (long)anInteger.rawSignedIntegerAt(1) - (long)object.rawSignedIntegerAt(1);
+		final long diff = (long)anInteger.rawSignedIntegerAt(1) - (long)object.rawSignedIntegerAt(1);
 			if (diff == (int)diff)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
@@ -1072,8 +1046,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 		return output;
 	}
 
-
-
 	/**
 	 * Create any instances of {@link AvailObject} that need to be present for
 	 * basic Avail operations like arithmetic to work correctly.  In particular,
@@ -1107,7 +1079,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
 		}
 	}
-
 
 	/**
 	 * Convert the specified Java {@code long} into an Avail {@linkplain
@@ -1215,7 +1186,6 @@ public class IntegerDescriptor extends ExtendedNumberDescriptor
 	{
 		return hashesOfUnsignedBytes[anInteger];
 	}
-
 
 	/**
 	 * Hash the passed {@code int}.  Note that it must have the same value as

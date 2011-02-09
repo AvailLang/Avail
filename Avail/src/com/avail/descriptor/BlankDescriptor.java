@@ -32,10 +32,9 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VoidDescriptor;
+import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
+import com.avail.annotations.NotNull;
 
 /**
  * My instance is used as a place-holder in {@link MapDescriptor maps} to
@@ -44,37 +43,30 @@ import static com.avail.descriptor.AvailObject.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class BlankDescriptor extends Descriptor
+public class BlankDescriptor
+extends Descriptor
 {
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append("Blank");
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsBlank();
 	}
 
 	@Override
 	public boolean o_EqualsBlank (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  There is only one blank.
 
@@ -83,14 +75,14 @@ public class BlankDescriptor extends Descriptor
 
 	@Override
 	public boolean o_EqualsVoidOrBlank (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -100,7 +92,7 @@ public class BlankDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's hash.  The blank object should hash to zero, because the
 		//  only place it can appear in a data structure is as a filler object.  The blank object
@@ -110,17 +102,14 @@ public class BlankDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		error("The blank object has no type", object);
 		return VoidDescriptor.voidObject();
 	}
-
-
-
 
 	/**
 	 * The sole instance of the (immutable) {@code BlankDescriptor blank
@@ -144,18 +133,16 @@ public class BlankDescriptor extends Descriptor
 		SoleInstance = null;
 	}
 
-
-
 	/**
 	 * Answer the sole instance of the (immutable) {@code BlankDescriptor blank
-	 * descriptor}. 
-	 * 
+	 * descriptor}.
+	 *
 	 * @return The blank object.
 	 */
 	static AvailObject blank ()
 	{
 		return SoleInstance;
-	};
+	}
 
 	/**
 	 * Construct a new {@link BlankDescriptor}.

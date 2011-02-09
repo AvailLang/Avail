@@ -35,19 +35,18 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.interpreter.Interpreter;
 
-public abstract class SignatureDescriptor extends Descriptor
+public abstract class SignatureDescriptor
+extends Descriptor
 {
 
-
-	// accessing
-
 	@Override
-	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter anAvailInterpreter)
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter anAvailInterpreter)
 	{
 		//  Determine the return type for a call site invoking this method or an override of it
 		//  (which is also constrained to support any specializations declared at this level).
@@ -58,9 +57,9 @@ public abstract class SignatureDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
-			final AvailObject object,
-			final List<AvailObject> argTypes,
-			final Interpreter interpreter)
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes,
+		final @NotNull Interpreter interpreter)
 	{
 		//  Determine if these argument types are appropriate at a call site.
 
@@ -69,8 +68,8 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_BodySignature (
-			final AvailObject object)
+	public @NotNull AvailObject o_BodySignature (
+		final @NotNull AvailObject object)
 	{
 		//  Answer a closureType whose argument types reflect the position in the
 		//  multi-method hierarchy where this method resides.  The closureType's
@@ -81,14 +80,10 @@ public abstract class SignatureDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Compare by address (identity) for now.  Eventually we can introduce value semantics.
 
@@ -96,8 +91,8 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
 		//  should designate their own types.
@@ -107,8 +102,8 @@ public abstract class SignatureDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
 		//  should designate their own types.
@@ -117,45 +112,37 @@ public abstract class SignatureDescriptor extends Descriptor
 		return VoidDescriptor.voidObject();
 	}
 
-
-
-	// testing
-
 	@Override
 	public boolean o_IsAbstract (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	public boolean o_IsForward (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	public boolean o_IsMethod (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	public boolean o_IsMacro (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-
-
-	// validation
-
 	@Override
 	public void o_EnsureMetacovariant (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Make sure my requires clauses and returns clauses are expecting the
 		//  right types, based on the declaration of the body.  Defaulted here, but

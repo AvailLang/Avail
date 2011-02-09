@@ -33,11 +33,12 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.NotNull;
 import com.avail.utility.*;
 
-public class ObjectDescriptor extends Descriptor
+public class ObjectDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -46,46 +47,33 @@ public class ObjectDescriptor extends Descriptor
 		FIELD_MAP
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field fieldMap.
-	 */
 	@Override
 	public void o_FieldMap (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.FIELD_MAP, value);
 	}
 
-	/**
-	 * Getter for field fieldMap.
-	 */
 	@Override
-	public AvailObject o_FieldMap (
-			final AvailObject object)
+	public @NotNull AvailObject o_FieldMap (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FIELD_MAP);
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsObject(object);
 	}
 
 	@Override
 	public boolean o_EqualsObject (
-			final AvailObject object,
-			final AvailObject anObject)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObject)
 	{
 		if (object.sameAddressAs(anObject))
 		{
@@ -96,8 +84,8 @@ public class ObjectDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsInstanceOfSubtypeOf (
-			final AvailObject object,
-			final AvailObject aTypeObject)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTypeObject)
 	{
 		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
 		//  an approximate type and do the comparison, because the approximate type
@@ -115,8 +103,8 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -140,7 +128,7 @@ public class ObjectDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's hash value.
 
@@ -149,7 +137,7 @@ public class ObjectDescriptor extends Descriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -160,31 +148,25 @@ public class ObjectDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
 
-
-
-
-
-	/* Object creation */
 	public static AvailObject objectFromMap (final AvailObject map)
 	{
 		AvailObject result = mutable().create();
 		result.fieldMap(map);
 		return result;
-	};
+	}
 
-	/* Hashing */
-	static int computeHashFromFieldMapHash (final int fieldMapHash)
+	private static int computeHashFromFieldMapHash (final int fieldMapHash)
 	{
 		return fieldMapHash + 0x1099BE88 ^ 0x38547ADE;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ObjectDescriptor}.

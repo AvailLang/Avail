@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class DoubleDescriptor extends Descriptor
+public class DoubleDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -47,81 +48,60 @@ public class DoubleDescriptor extends Descriptor
 		RAW_QUAD_2
 	}
 
-
 	// GENERATED accessors
 
-	/**
-	 * Setter for field rawQuad1.
-	 */
 	@Override
 	public void o_RawQuad1 (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.RAW_QUAD_1, value);
 	}
 
-	/**
-	 * Setter for field rawQuad2.
-	 */
 	@Override
 	public void o_RawQuad2 (
-			final AvailObject object,
-			final int value)
+		final @NotNull AvailObject object,
+		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.RAW_QUAD_2, value);
 	}
 
-	/**
-	 * Getter for field rawQuad1.
-	 */
 	@Override
 	public int o_RawQuad1 (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
 	}
 
-	/**
-	 * Getter for field rawQuad2.
-	 */
 	@Override
 	public int o_RawQuad2 (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.RAW_QUAD_2);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		aStream.append(object.extractDouble());
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsDouble(object);
 	}
 
 	@Override
 	public boolean o_EqualsDouble (
-			final AvailObject object,
-			final AvailObject aDoubleObject)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aDoubleObject)
 	{
 		if (object.extractDouble() != aDoubleObject.extractDouble())
 		{
@@ -132,15 +112,15 @@ public class DoubleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		return DOUBLE.o();
 	}
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -149,19 +129,15 @@ public class DoubleDescriptor extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		return DOUBLE.o();
 	}
 
-
-
-	// operations-doubles
-
 	@Override
 	public double o_ExtractDouble (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Extract a Smalltalk Double from object.
 
@@ -169,11 +145,6 @@ public class DoubleDescriptor extends Descriptor
 		return Double.longBitsToDouble(castAsLong);
 	}
 
-
-
-
-
-	/* Special instance accessing */
 	public static AvailObject objectFromDouble(final double aDouble)
 	{
 		// We cannot return by reference if a new object might be constructed.
@@ -182,7 +153,7 @@ public class DoubleDescriptor extends Descriptor
 		result.rawQuad1((int)castAsLong);
 		result.rawQuad2((int)(castAsLong >> 32));
 		return result;
-	};
+	}
 
 	public static AvailObject objectFromDoubleRecycling(final double aDouble, final AvailObject recyclable1)
 	{
@@ -199,7 +170,7 @@ public class DoubleDescriptor extends Descriptor
 		result.rawQuad1((int)castAsLong);
 		result.rawQuad2((int)(castAsLong >> 32));
 		return result;
-	};
+	}
 
 	public static AvailObject objectFromDoubleRecyclingOr(final double aDouble, final AvailObject recyclable1, final AvailObject recyclable2)
 	{
@@ -223,7 +194,7 @@ public class DoubleDescriptor extends Descriptor
 		result.rawQuad1((int)castAsLong);
 		result.rawQuad2((int)(castAsLong >> 32));
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link DoubleDescriptor}.

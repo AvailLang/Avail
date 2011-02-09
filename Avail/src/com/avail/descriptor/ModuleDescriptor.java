@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_SIGNATURE;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.node.*;
 import com.avail.interpreter.Interpreter;
@@ -159,14 +159,11 @@ public class ModuleDescriptor extends Descriptor
 		FILTERED_BUNDLE_TREE
 	}
 
-
-	// accessing
-
 	@Override
 	public void o_AtAddMessageRestrictions (
-		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject illegalArgMsgs)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject illegalArgMsgs)
 	{
 		assert !object.restrictions().hasKey(methodName)
 		: "Don't declare multiple restrictions on same message separately"
@@ -180,9 +177,9 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public void o_AtAddMethodImplementation (
-		final AvailObject object,
-		final AvailObject methodName,
-		final AvailObject implementation)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject implementation)
 	{
 		AvailObject set;
 		if (object.methods().hasKey(methodName))
@@ -203,9 +200,9 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public void o_AtNameAdd (
-		final AvailObject object,
-		final AvailObject stringName,
-		final AvailObject trueName)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject stringName,
+		final @NotNull AvailObject trueName)
 	{
 		//  Add the trueName to the current public scope.
 
@@ -229,9 +226,9 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public void o_AtNewNamePut (
-		final AvailObject object,
-		final AvailObject stringName,
-		final AvailObject trueName)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject stringName,
+		final @NotNull AvailObject trueName)
 	{
 		//  Set up this true name, which is local to the module.
 
@@ -250,9 +247,9 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public void o_AtPrivateNameAdd (
-		final AvailObject object,
-		final AvailObject stringName,
-		final AvailObject trueName)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject stringName,
+		final @NotNull AvailObject trueName)
 	{
 		//  Add the trueName to the current private scope.
 
@@ -277,8 +274,8 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public boolean o_NameVisible (
-		final AvailObject object,
-		final AvailObject trueName)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject trueName)
 	{
 		//  Check if the given trueName is visible in this module.
 
@@ -302,9 +299,9 @@ public class ModuleDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_ResolvedForwardWithName (
-		final AvailObject object,
-		final AvailObject forwardImplementation,
-		final AvailObject methodName)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject forwardImplementation,
+		final @NotNull AvailObject methodName)
 	{
 		assert forwardImplementation.isInstanceOfSubtypeOf(
 			FORWARD_SIGNATURE.o());
@@ -333,8 +330,8 @@ public class ModuleDescriptor extends Descriptor
 	 */
 	@Override
 	public AvailObject o_TrueNamesForStringName (
-		final AvailObject object,
-		final AvailObject stringName)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject stringName)
 	{
 		assert stringName.isTuple();
 		if (object.newNames().hasKey(stringName))
@@ -364,244 +361,174 @@ public class ModuleDescriptor extends Descriptor
 		return publics.setUnionCanDestroy(privates, false);
 	}
 
-
-
-	/**
-	 * Setter for field constantBindings.
-	 */
 	@Override
 	public void o_ConstantBindings (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CONSTANT_BINDINGS, value);
 	}
 
-	/**
-	 * Setter for field filteredBundleTree.
-	 */
 	@Override
 	public void o_FilteredBundleTree (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.FILTERED_BUNDLE_TREE, value);
 	}
 
-	/**
-	 * Setter for field methods.
-	 */
 	@Override
 	public void o_Methods (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.METHODS, value);
 	}
 
-	/**
-	 * Setter for field macros.
-	 */
 	@Override
 	public void o_Macros (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MACROS, value);
 	}
 
-	/**
-	 * Setter for field name.
-	 */
 	@Override
 	public void o_Name (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
-	/**
-	 * Setter for field names.
-	 */
 	@Override
 	public void o_Names (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NAMES, value);
 	}
 
-	/**
-	 * Setter for field newNames.
-	 */
 	@Override
 	public void o_NewNames (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NEW_NAMES, value);
 	}
 
-	/**
-	 * Setter for field privateNames.
-	 */
 	@Override
 	public void o_PrivateNames (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PRIVATE_NAMES, value);
 	}
 
-	/**
-	 * Setter for field restrictions.
-	 */
 	@Override
 	public void o_Restrictions (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.RESTRICTIONS, value);
 	}
 
-	/**
-	 * Setter for field variableBindings.
-	 */
 	@Override
 	public void o_VariableBindings (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.VARIABLE_BINDINGS, value);
 	}
 
-	/**
-	 * Setter for field visibleNames.
-	 */
 	@Override
 	public void o_VisibleNames (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.VISIBLE_NAMES, value);
 	}
 
-	/**
-	 * Getter for field constantBindings.
-	 */
 	@Override
-	public AvailObject o_ConstantBindings (
-		final AvailObject object)
+	public @NotNull AvailObject o_ConstantBindings (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONSTANT_BINDINGS);
 	}
 
-	/**
-	 * Getter for field filteredBundleTree.
-	 */
 	@Override
-	public AvailObject o_FilteredBundleTree (
-		final AvailObject object)
+	public @NotNull AvailObject o_FilteredBundleTree (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FILTERED_BUNDLE_TREE);
 	}
 
-	/**
-	 * Getter for field methods.
-	 */
 	@Override
-	public AvailObject o_Methods (
-		final AvailObject object)
+	public @NotNull AvailObject o_Methods (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.METHODS);
 	}
 
-	/**
-	 * Getter for field macros.
-	 */
 	@Override
-	public AvailObject o_Macros (
-		final AvailObject object)
+	public @NotNull AvailObject o_Macros (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MACROS);
 	}
 
-	/**
-	 * Getter for field name.
-	 */
 	@Override
-	public AvailObject o_Name (
-		final AvailObject object)
+	public @NotNull AvailObject o_Name (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
-	/**
-	 * Getter for field names.
-	 */
 	@Override
-	public AvailObject o_Names (
-		final AvailObject object)
+	public @NotNull AvailObject o_Names (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAMES);
 	}
 
-	/**
-	 * Getter for field newNames.
-	 */
 	@Override
-	public AvailObject o_NewNames (
-		final AvailObject object)
+	public @NotNull AvailObject o_NewNames (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NEW_NAMES);
 	}
 
-	/**
-	 * Getter for field privateNames.
-	 */
 	@Override
-	public AvailObject o_PrivateNames (
-		final AvailObject object)
+	public @NotNull AvailObject o_PrivateNames (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PRIVATE_NAMES);
 	}
 
-	/**
-	 * Getter for field restrictions.
-	 */
 	@Override
-	public AvailObject o_Restrictions (
-		final AvailObject object)
+	public @NotNull AvailObject o_Restrictions (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RESTRICTIONS);
 	}
 
-	/**
-	 * Getter for field variableBindings.
-	 */
 	@Override
-	public AvailObject o_VariableBindings (
-		final AvailObject object)
+	public @NotNull AvailObject o_VariableBindings (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE_BINDINGS);
 	}
 
-	/**
-	 * Getter for field visibleNames.
-	 */
 	@Override
-	public AvailObject o_VisibleNames (
-		final AvailObject object)
+	public @NotNull AvailObject o_VisibleNames (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VISIBLE_NAMES);
 	}
 
-
-
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final Enum<?> e)
+		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.NEW_NAMES
 			|| e == ObjectSlots.NAMES
@@ -614,8 +541,6 @@ public class ModuleDescriptor extends Descriptor
 			|| e == ObjectSlots.CONSTANT_BINDINGS
 			|| e == ObjectSlots.FILTERED_BUNDLE_TREE;
 	}
-
-
 
 	/**
 	 * Construct a {@linkplain MessageBundleTreeDescriptor bundle tree} that has
@@ -631,8 +556,8 @@ public class ModuleDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
-		final AvailObject bundleTree)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bundleTree)
 	{
 		object.filteredBundleTree(
 			UnexpandedMessageBundleTreeDescriptor.newPc(1));
@@ -642,18 +567,17 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public void o_CleanUpAfterCompile (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		object.variableBindings(VoidDescriptor.voidObject());
 		object.constantBindings(VoidDescriptor.voidObject());
 		object.filteredBundleTree(VoidDescriptor.voidObject());
 	}
 
-
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
-		final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		// Compare by address (identity).
 		return another.traversed().sameAddressAs(object);
@@ -661,12 +585,10 @@ public class ModuleDescriptor extends Descriptor
 
 	@Override
 	public int o_Hash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.name().hash() * 173 ^ 0xDF383F8C;
 	}
-
-
 
 	@Override
 	public void o_RemoveFrom (
@@ -684,9 +606,6 @@ public class ModuleDescriptor extends Descriptor
 		}
 	}
 
-
-
-
 	/**
 	 * Construct a new empty {@linkplain ModuleDescriptor module}.
 	 *
@@ -694,7 +613,7 @@ public class ModuleDescriptor extends Descriptor
 	 *        The {@linkplain ByteStringDescriptor name} of the module.
 	 * @return The new module.
 	 */
-	public static AvailObject newModule (
+	public static @NotNull AvailObject newModule (
 		final AvailObject moduleName)
 	{
 		AvailObject emptyMap = MapDescriptor.empty();

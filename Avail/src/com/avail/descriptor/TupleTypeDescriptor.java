@@ -36,8 +36,10 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 
-public class TupleTypeDescriptor extends TypeDescriptor
+public class TupleTypeDescriptor
+extends TypeDescriptor
 {
 
 	/**
@@ -50,82 +52,57 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		DEFAULT_TYPE
 	}
 
-
-	// GENERATED accessors
-
-	/**
-	 * Setter for field defaultType.
-	 */
 	@Override
 	public void o_DefaultType (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.DEFAULT_TYPE, value);
 	}
 
-	/**
-	 * Setter for field sizeRange.
-	 */
 	@Override
 	public void o_SizeRange (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
 	}
 
-	/**
-	 * Setter for field typeTuple.
-	 */
 	@Override
 	public void o_TypeTuple (
-			final AvailObject object,
-			final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.TYPE_TUPLE, value);
 	}
 
-	/**
-	 * Getter for field defaultType.
-	 */
 	@Override
-	public AvailObject o_DefaultType (
-			final AvailObject object)
+	public @NotNull AvailObject o_DefaultType (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DEFAULT_TYPE);
 	}
 
-	/**
-	 * Getter for field sizeRange.
-	 */
 	@Override
-	public AvailObject o_SizeRange (
-			final AvailObject object)
+	public @NotNull AvailObject o_SizeRange (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
-	/**
-	 * Getter for field typeTuple.
-	 */
 	@Override
-	public AvailObject o_TypeTuple (
-			final AvailObject object)
+	public @NotNull AvailObject o_TypeTuple (
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE_TUPLE);
 	}
 
-
-
-	// java printing
-
 	@Override
 	public void printObjectOnAvoidingIndent (
-			final AvailObject object,
-			final StringBuilder aStream,
-			final List<AvailObject> recursionList,
-			final int indent)
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
 		//  Be nice about it and use special forms for common cases...
 
@@ -196,22 +173,18 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		aStream.append(")");
 	}
 
-
-
-	// operations
-
 	@Override
 	public boolean o_Equals (
-			final AvailObject object,
-			final AvailObject another)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		return another.equalsTupleType(object);
 	}
 
 	@Override
 	public boolean o_EqualsTupleType (
-			final AvailObject object,
-			final AvailObject aTupleType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		//  Tuple types are equal iff their sizeRange, typeTuple, and defaultType match.
 
@@ -232,8 +205,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsBetterRepresentationThan (
-			final AvailObject object,
-			final AvailObject anotherObject)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
 		//  compact, more efficient, older generation) than the second one?
@@ -243,8 +216,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsBetterRepresentationThanTupleType (
-			final AvailObject object,
-			final AvailObject aTupleType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		//  Given two objects that are known to be equal, the second of which is in the form of
 		//  a tuple type, is the first one in a better form than the second one?
@@ -254,8 +227,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-			final AvailObject object)
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -264,7 +237,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public int o_Hash (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -277,7 +250,7 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsHashAvailable (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer whether this object's hash value can be computed without creating
 		//  new objects.  This method is used by the garbage collector to decide which
@@ -300,22 +273,18 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
+	public @NotNull AvailObject o_Type (
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		return TUPLE_TYPE.o();
 	}
 
-
-
-	// operations-tuple types
-
 	@Override
-	public AvailObject o_TypeAtIndex (
-			final AvailObject object,
-			final int index)
+	public @NotNull AvailObject o_TypeAtIndex (
+		final @NotNull AvailObject object,
+		final int index)
 	{
 		//  Answer what type the given index would have in an object instance of me.  Answer
 		//  terminates if the index is out of bounds.
@@ -338,10 +307,10 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_UnionOfTypesAtThrough (
-			final AvailObject object,
-			final int startIndex,
-			final int endIndex)
+	public @NotNull AvailObject o_UnionOfTypesAtThrough (
+		final @NotNull AvailObject object,
+		final int startIndex,
+		final int endIndex)
 	{
 		//  Answer the union of the types that object's instances could have in the
 		//  given range of indices.  Out-of-range indices are treated as terminates,
@@ -373,14 +342,10 @@ public class TupleTypeDescriptor extends TypeDescriptor
 		return unionType;
 	}
 
-
-
-	// operations-types
-
 	@Override
 	public boolean o_IsSubtypeOf (
-			final AvailObject object,
-			final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -389,8 +354,8 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfTupleType (
-			final AvailObject object,
-			final AvailObject aTupleType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		//  Tuple type A is a supertype of tuple type B iff all the *possible
 		//  instances* of B would also be instances of A.  Types indistinguishable
@@ -439,9 +404,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersection (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeIntersection (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -457,9 +422,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfTupleType (
-			final AvailObject object,
-			final AvailObject aTupleType)
+	public @NotNull AvailObject o_TypeIntersectionOfTupleType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -518,9 +483,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
-			final AvailObject object,
-			final AvailObject another)
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -536,9 +501,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfTupleType (
-			final AvailObject object,
-			final AvailObject aTupleType)
+	public @NotNull AvailObject o_TypeUnionOfTupleType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -578,22 +543,18 @@ public class TupleTypeDescriptor extends TypeDescriptor
 
 	@Override
 	public boolean o_IsTupleType (
-			final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  I am a tupleType, so answer true.
 
 		return true;
 	}
 
-
-
-
-
 	/* Descriptor lookup */
 	public static AvailObject tupleTypeForSizesTypesDefaultType(
-			final AvailObject sizeRange,
-			final AvailObject typeTuple,
-			final AvailObject defaultType)
+		final @NotNull AvailObject sizeRange,
+		final @NotNull AvailObject typeTuple,
+		final @NotNull AvailObject defaultType)
 	{
 		if (sizeRange.equals(TERMINATES.o()))
 		{
@@ -639,9 +600,9 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	};
 
 	static AvailObject privateTupleTypeForSizesTypesDefaultType (
-			final AvailObject sizeRange,
-			final AvailObject typeTuple,
-			final AvailObject defaultType)
+		final @NotNull AvailObject sizeRange,
+		final @NotNull AvailObject typeTuple,
+		final @NotNull AvailObject defaultType)
 	{
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
@@ -696,12 +657,12 @@ public class TupleTypeDescriptor extends TypeDescriptor
 	}
 
 	static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (
-			final int sizesHash,
-			final int typeTupleHash,
-			final int defaultTypeHash)
+		final int sizesHash,
+		final int typeTupleHash,
+		final int defaultTypeHash)
 	{
 		return sizesHash *13 + defaultTypeHash * 11 + typeTupleHash * 7;
-	};
+	}
 
 	/**
 	 * Construct a new {@link TupleTypeDescriptor}.
