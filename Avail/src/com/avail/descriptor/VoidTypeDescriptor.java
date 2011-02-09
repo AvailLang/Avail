@@ -43,7 +43,6 @@ import com.avail.annotations.*;
 public class VoidTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
