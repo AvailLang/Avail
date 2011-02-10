@@ -42,7 +42,9 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
-import com.avail.compiler.node.AssignmentNodeDescriptor;
+import com.avail.compiler.node.*;
+import com.avail.compiler.scanning.*;
+import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
@@ -5161,9 +5163,10 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 350:</strong>  Transform a variable reference and an
-	 * expression into an assignment node.
+	 * expression into an inner assignment node.  Such a node also produces the
+	 * assigned value as its result, so it can be embedded as a subexpression.
 	 */
-	prim350_MacroAssignment_variable_expression(350, 2, CanFold)
+	prim350_MacroInnerAssignment_variable_expression(350, 2, CanFold)
 	{
 		@Override
 		public Result attempt (
@@ -5233,7 +5236,55 @@ public enum Primitive
 			}
 			throw new AvailRejectedParseException(parseNode);
 		}
+	},
+
+	/**
+	 * <strong>Primitive 353:</strong>  Transform a variable reference and an
+	 * expression into an assignment statement.  Such a node has type {@link
+	 * TypeDescriptor.Types#VOID_TYPE void} and cannot be embedded as a
+	 * subexpression.
+	 */
+	prim353_MacroAssignmentStatement_variable_expression(353, 2, CanFold)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject variable = args.get(0);
+			final AvailObject expression = args.get(1);
+			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o())
+				|| !expression.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			if (!expression.expressionType().isSubtypeOf(
+				variable.expressionType()))
+			{
+				return FAILURE;
+			}
+			final AvailObject assignment =
+				AssignmentNodeDescriptor.mutable().create();
+			assignment.variable(variable);
+			assignment.expression(expression);
+			List<AvailObject> statementsList = new ArrayList<AvailObject>(2);
+			statementsList.add(assignment);
+			final AvailObject token = LiteralTokenDescriptor.mutable().create();
+			token.tokenType(TokenType.LITERAL);
+			token.string(ByteStringDescriptor.from("VoidAfterAssignment"));
+			token.start(0);
+			token.literal(VoidDescriptor.voidObject());
+			statementsList.add(LiteralNodeDescriptor.fromToken(token));
+			final AvailObject statementsTuple =
+				TupleDescriptor.fromList(statementsList);
+			final AvailObject sequence =
+				SequenceNodeDescriptor.newStatements(statementsTuple);
+			interpreter.primitiveResult(sequence);
+			return SUCCESS;
+		}
 	};
+
 
 	/**
 	 * The success state of a primitive attempt.

@@ -1300,8 +1300,7 @@ implements L2OperationDispatcher
 	public void L2_doClearVariable_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int clearIndex = nextWord();
+		final int clearIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1310,8 +1309,7 @@ implements L2OperationDispatcher
 	public void L2_doClearVariablesVector_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int variablesIndex = nextWord();
+		final int variablesIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1327,11 +1325,9 @@ implements L2OperationDispatcher
 	public void L2_doAddIntegerConstant_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1340,14 +1336,11 @@ implements L2OperationDispatcher
 	public void L2_doAddIntegerConstant_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1356,11 +1349,9 @@ implements L2OperationDispatcher
 	public void L2_doAddObject_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int addIndex = nextWord();
+		final int addIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1391,14 +1382,11 @@ implements L2OperationDispatcher
 	public void L2_doAddIntegerImmediate_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1407,11 +1395,9 @@ implements L2OperationDispatcher
 	public void L2_doAddModThirtyTwoBitInteger_destInteger_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int bitIndex = nextWord();
+		final int bitIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1420,11 +1406,9 @@ implements L2OperationDispatcher
 	public void L2_doSubtractIntegerConstant_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1433,14 +1417,11 @@ implements L2OperationDispatcher
 	public void L2_doSubtractIntegerConstant_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1449,11 +1430,9 @@ implements L2OperationDispatcher
 	public void L2_doSubtractObject_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int subtractIndex = nextWord();
+		final int subtractIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1462,14 +1441,11 @@ implements L2OperationDispatcher
 	public void L2_doSubtractInteger_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int subtractIndex = nextWord();
+		final int subtractIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1478,14 +1454,11 @@ implements L2OperationDispatcher
 	public void L2_doSubtractIntegerImmediate_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerImmediate = nextWord();
+		final int integerImmediate = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1494,11 +1467,9 @@ implements L2OperationDispatcher
 	public void L2_doSubtractModThirtyTwoBitInteger_destInteger_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1507,11 +1478,9 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyIntegerConstant_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1520,14 +1489,11 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyIntegerConstant_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1536,11 +1502,9 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyObject_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int multiplyIndex = nextWord();
+		final int multiplyIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1549,14 +1513,11 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyInteger_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int multiplyIndex = nextWord();
+		final int multiplyIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1565,14 +1526,11 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyIntegerImmediate_destInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1581,11 +1539,9 @@ implements L2OperationDispatcher
 	public void L2_doMultiplyModThirtyTwoBitInteger_destInteger_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1594,20 +1550,15 @@ implements L2OperationDispatcher
 	public void L2_doDivideObject_byIntegerConstant_destQuotientObject_destRemainderInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int divideIndex = nextWord();
+		final int divideIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int quotientIndex = nextWord();
+		final int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int remainderIndex = nextWord();
+		final int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1616,20 +1567,15 @@ implements L2OperationDispatcher
 	public void L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int divideIndex = nextWord();
+		final int divideIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int integerIndex = nextWord();
+		final int integerIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int quotientIndex = nextWord();
+		final int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int remainderIndex = nextWord();
+		final int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1638,20 +1584,15 @@ implements L2OperationDispatcher
 	public void L2_doDivideInteger_byIntegerImmediate_destQuotientInteger_destRemainderInteger_ifFail_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int divideIndex = nextWord();
+		final int divideIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int integerImmediate = nextWord();
+		final int integerImmediate = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int quotientIndex = nextWord();
+		final int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int remainderIndex = nextWord();
+		final int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1660,20 +1601,15 @@ implements L2OperationDispatcher
 	public void L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int divideIndex = nextWord();
+		final int divideIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int byIndex = nextWord();
+		final int byIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int quotientIndex = nextWord();
+		final int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int remainderIndex = nextWord();
+		final int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int zeroIndex = nextWord();
+		final int zeroIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1682,23 +1618,17 @@ implements L2OperationDispatcher
 	public void L2_doDivideInteger_byInteger_destQuotientInteger_destRemainderInteger_ifFail_ifZeroDivisor_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int divideIndex = nextWord();
+		final int divideIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int byIndex = nextWord();
+		final int byIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int quotientIndex = nextWord();
+		final int quotientIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int remainderIndex = nextWord();
+		final int remainderIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int zeroIndex = nextWord();
+		final int zeroIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1714,14 +1644,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_equalsObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalsIndex = nextWord();
+		final int equalsIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1730,14 +1657,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_equalsConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalsIndex = nextWord();
+		final int equalsIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1746,14 +1670,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_notEqualsObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalsIndex = nextWord();
+		final int equalsIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1762,14 +1683,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_notEqualsConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalsIndex = nextWord();
+		final int equalsIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1778,14 +1696,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessThanObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int thanIndex = nextWord();
+		final int thanIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1794,14 +1709,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessThanConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int thanIndex = nextWord();
+		final int thanIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1810,14 +1722,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessOrEqualObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalIndex = nextWord();
+		final int equalIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1826,14 +1735,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_lessOrEqualConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalIndex = nextWord();
+		final int equalIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1842,14 +1748,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterThanObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int thanIndex = nextWord();
+		final int thanIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1858,14 +1761,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int greaterIndex = nextWord();
+		final int greaterIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1874,14 +1774,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterOrEqualObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalIndex = nextWord();
+		final int equalIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1890,14 +1787,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_greaterOrEqualConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int equalIndex = nextWord();
+		final int equalIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1906,14 +1800,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_isKindOfObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ofIndex = nextWord();
+		final int ofIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1936,14 +1827,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_isNotKindOfObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ofIndex = nextWord();
+		final int ofIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -1952,14 +1840,11 @@ implements L2OperationDispatcher
 	public void L2_doJump_ifObject_isNotKindOfConstant_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int doIndex = nextWord();
+		final int doIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ifIndex = nextWord();
+		final int ifIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int ofIndex = nextWord();
+		final int ofIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2043,14 +1928,11 @@ implements L2OperationDispatcher
 	public void L2_doSetContinuationObject_slotIndexImmediate_valueObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int continuationIndex = nextWord();
+		final int continuationIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int indexIndex = nextWord();
+		final int indexIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int valueIndex = nextWord();
+		final int valueIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2059,20 +1941,17 @@ implements L2OperationDispatcher
 	public void L2_doSetContinuationObject_newPcImmediate_newStackpImmediate_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int continuationIndex = nextWord();
+		final int continuationIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int pcIndex = nextWord();
+		final int pcIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int stackpIndex = nextWord();
+		final int stackpIndex = nextWord();
 		error("not implemented");
 		return;
 	}
 
 	@Override
-	public void L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_ ()
+	public void L2_doExplodeContinuationObject ()
 	{
 		final int continuationIndex = nextWord();
 		final int senderDestIndex = nextWord();
@@ -2233,11 +2112,9 @@ implements L2OperationDispatcher
 	public void L2_doConcatenateTuplesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int subtupleIndex = nextWord();
+		final int subtupleIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2246,14 +2123,11 @@ implements L2OperationDispatcher
 	public void L2_doCreateSetOfSizeImmediate_valuesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int sizeIndex = nextWord();
+		final int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int valuesIndex = nextWord();
+		final int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2262,17 +2136,13 @@ implements L2OperationDispatcher
 	public void L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int sizeIndex = nextWord();
+		final int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int keysIndex = nextWord();
+		final int keysIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int valuesIndex = nextWord();
+		final int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2281,17 +2151,13 @@ implements L2OperationDispatcher
 	public void L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int sizeIndex = nextWord();
+		final int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int keysIndex = nextWord();
+		final int keysIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int valuesIndex = nextWord();
+		final int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int destIndex = nextWord();
+		final int destIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2348,11 +2214,9 @@ implements L2OperationDispatcher
 	public void L2_doExitContinuationObject_valueObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int continuationIndex = nextWord();
+		final int continuationIndex = nextWord();
 		@SuppressWarnings("unused")
-		final
-		int valueIndex = nextWord();
+		final int valueIndex = nextWord();
 		error("not implemented");
 		return;
 	}
@@ -2361,8 +2225,7 @@ implements L2OperationDispatcher
 	public void L2_doResumeContinuationObject_ ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int continuationIndex = nextWord();
+		final int continuationIndex = nextWord();
 		error("not implemented");
 		return;
 	}

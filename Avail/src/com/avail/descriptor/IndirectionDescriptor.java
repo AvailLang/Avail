@@ -4429,6 +4429,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public void o_ChildrenDo (
+		final @NotNull AvailObject object,
+		final @NotNull Continuation1<AvailObject> aBlock)
+	{
+		o_Traversed(object).childrenDo(aBlock);
+	}
+
+	@Override
 	public void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject parent,
@@ -4536,5 +4544,27 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).apparentSendName();
+	}
+
+	@Override
+	public void o_Statements (
+		final AvailObject object,
+		final AvailObject statementsTuple)
+	{
+		o_Traversed(object).statements(statementsTuple);
+	}
+
+	@Override
+	public AvailObject o_Statements (final AvailObject object)
+	{
+		return o_Traversed(object).statements();
+	}
+
+	@Override
+	public void o_FlattenStatementsInto (
+		final AvailObject object,
+		final List<AvailObject> accumulatedStatements)
+	{
+		o_Traversed(object).flattenStatementsInto(accumulatedStatements);
 	}
 }

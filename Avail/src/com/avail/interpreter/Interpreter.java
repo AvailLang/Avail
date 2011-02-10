@@ -38,7 +38,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
-import com.avail.compiler.node.AssignmentNodeDescriptor;
+import com.avail.compiler.node.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Primitive.Result;
@@ -655,25 +655,31 @@ public abstract class Interpreter
 
 	/**
 	 * Create the two-argument {@linkplain AssignmentNodeDescriptor assignment}
-	 * {@linkplain MacroSignatureDescriptor macro definition}.
+	 * {@linkplain MacroSignatureDescriptor macro definition}.  This is the
+	 * version that acts as a complete statement, and has an {@linkplain
+	 * ParseNodeDescriptor#o_ExpressionType(AvailObject) expression type} of
+	 * {@link TypeDescriptor.Types#VOID_TYPE void}.
 	 *
 	 * @param assignmentName
 	 *        The name of the assignment macro.
 	 */
-	public void bootstrapAssignment (
+	public void bootstrapAssignmentStatement (
 		final @NotNull String assignmentName)
 	{
 		assert module != null;
 		final L1InstructionWriter writer = new L1InstructionWriter();
+		// This won't report type-invalid assignments (it will fail because the
+		// expected return type is not produced), but it should be good enough
+		// to bootstrap a better version.
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(VoidDescriptor.voidObject())));
 		writer.argumentTypes(VARIABLE_USE_NODE.o(), PARSE_NODE.o());
 		writer.primitiveNumber(
-			Primitive.prim350_MacroAssignment_variable_expression
+			Primitive.prim353_MacroAssignmentStatement_variable_expression
 			.primitiveNumber);
-		writer.returnType(ASSIGNMENT_NODE.o());
+		writer.returnType(SEQUENCE_NODE.o());
 		final AvailObject newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());

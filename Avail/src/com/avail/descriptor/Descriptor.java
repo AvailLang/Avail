@@ -8721,6 +8721,18 @@ extends AbstractDescriptor
 	}
 
 
+	/**
+	 * Visit my child parse nodes with aBlock.
+	 */
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		subclassResponsibility("o_ChildrenDo");
+	}
+
+
 	@Override
 	public void o_ValidateLocally (
 		 final AvailObject object,
@@ -8849,4 +8861,29 @@ extends AbstractDescriptor
 		return null;
 	}
 
+
+	@Override
+	public void o_Statements (
+		final AvailObject object,
+		final AvailObject statementsTuple)
+	{
+		subclassResponsibility("o_Statements");
+	}
+
+
+	@Override
+	public AvailObject o_Statements (
+		final AvailObject object)
+	{
+		subclassResponsibility("o_Statements");
+		return null;
+	}
+
+	@Override
+	public void o_FlattenStatementsInto (
+		final AvailObject object,
+		final List<AvailObject> accumulatedStatements)
+	{
+		subclassResponsibility("o_FlattenStatementsInto");
+	}
 }

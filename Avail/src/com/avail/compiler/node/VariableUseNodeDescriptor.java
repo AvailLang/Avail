@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/VariableUseNodeDescriptor.java
+ * com.avail.compiler/VariableUseNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -39,7 +39,7 @@ import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent the use of some {@link DeclarationNodeDescriptor
@@ -289,6 +289,15 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	{
 		// Do nothing.
 	}
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		// Do nothing.
+	}
+
 
 	@Override
 	public void o_ValidateLocally (

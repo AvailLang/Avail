@@ -466,10 +466,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_}
+	 * {@link L2Operation#L2_doExplodeContinuationObject}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_ ();
+	public void L2_doExplodeContinuationObject ();
 
 	/**
 	 * Process an

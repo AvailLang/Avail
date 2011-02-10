@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/SuperCastNodeDescriptor.java
+ * com.avail.compiler/SuperCastNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent a weakening of the type of an argument of a {@link
@@ -175,6 +175,15 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.expression(aBlock.value(object.expression()));
+	}
+
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		aBlock.value(object.expression());
 	}
 
 

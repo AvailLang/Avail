@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/ReferenceNodeDescriptor.java
+ * com.avail.compiler/ReferenceNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,12 +33,13 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.REFERENCE_NODE;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is
@@ -144,6 +145,14 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 		object.variable(aBlock.value(object.variable()));
 	}
 
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		aBlock.value(object.variable());
+	}
+
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -158,6 +167,22 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
+	/**
+	 * Create a new {@link ReferenceNodeDescriptor reference node} from the
+	 * given {@link VariableUseNodeDescriptor variable use node}.
+	 *
+	 * @param variableUse
+	 *            A variable use node for which to construct a reference node.
+	 * @return The new reference node.
+	 */
+	public static AvailObject fromUse (
+		final @NotNull AvailObject variableUse)
+	{
+		final AvailObject newReferenceNode = mutable().create();
+		newReferenceNode.variable(variableUse);
+		newReferenceNode.makeImmutable();
+		return newReferenceNode;
+	}
 
 	/**
 	 * Construct a new {@link ReferenceNodeDescriptor}.

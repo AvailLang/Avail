@@ -634,13 +634,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_ (
+	L2_doExplodeContinuationObject (
 		READ_POINTER, WRITE_POINTER, WRITE_POINTER, WRITE_VECTOR)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doExplodeContinuationObject_senderDestObject_closureDestObject_slotsDestVector_();
+			operationDispatcher.L2_doExplodeContinuationObject();
 		}
 	},
 

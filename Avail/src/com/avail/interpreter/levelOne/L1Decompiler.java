@@ -148,9 +148,9 @@ public class L1Decompiler implements L1OperationDispatcher
 		: "There should be nothing on the stack after the final return";
 
 		return BlockNodeDescriptor.newBlockNode(
-			TupleDescriptor.fromList(_args),
+			_args,
 			_code.primitiveNumber(),
-			TupleDescriptor.fromList(_statements),
+			_statements,
 			aCodeObject.closureType().returnType());
 	}
 
@@ -403,8 +403,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final AvailObject typeLiteralNode = types.get(i);
 			if (typeLiteralNode != null)
 			{
-				assert typeLiteralNode.traversed().descriptor()
-					instanceof LiteralNodeDescriptor;
+				assert typeLiteralNode.isInstanceOfSubtypeOf(LITERAL_NODE.o());
 				final AvailObject superCast =
 					SuperCastNodeDescriptor.mutable().create();
 				superCast.expression(callArgs.get(i));
@@ -574,9 +573,8 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final int count = getInteger();
 		final List<AvailObject> expressions = popExpressions(count);
-		final AvailObject tupleNode = TupleNodeDescriptor.mutable().create();
-		tupleNode.expressionsTuple(TupleDescriptor.fromList(expressions));
-		tupleNode.tupleType(VoidDescriptor.voidObject());
+		final AvailObject tupleNode = TupleNodeDescriptor.newExpressions(
+			TupleDescriptor.fromList(expressions));
 		pushExpression(tupleNode);
 	}
 
@@ -607,8 +605,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		}
 		else
 		{
-			final AvailObject ref = ReferenceNodeDescriptor.mutable().create();
-			ref.variable(use);
+			final AvailObject ref = ReferenceNodeDescriptor.fromUse(use);
 			pushExpression(ref);
 		}
 	}
@@ -640,8 +637,7 @@ public class L1Decompiler implements L1OperationDispatcher
 				token.start(0);
 				token.literal(var);
 				final AvailObject outerLiteral =
-					LiteralNodeDescriptor.mutable().create();
-				outerLiteral.token(token);
+					LiteralNodeDescriptor.fromToken(token);
 				closureOuterLiterals.add(outerLiteral);
 			}
 			final AvailObject blockNode =
@@ -661,8 +657,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			token.start(0);
 			token.literal(value);
 			final AvailObject literalNode =
-				LiteralNodeDescriptor.mutable().create();
-			literalNode.token(token);
+				LiteralNodeDescriptor.fromToken(token);
 			pushExpression(literalNode);
 		}
 	}
@@ -684,8 +679,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		}
 		else
 		{
-			final AvailObject ref = ReferenceNodeDescriptor.mutable().create();
-			ref.variable(use);
+			final AvailObject ref = ReferenceNodeDescriptor.fromUse(use);
 			pushExpression(ref);
 		}
 	}
@@ -849,8 +843,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			token.start(0);
 			token.literal(varObject);
 			final AvailObject literalNode =
-				LiteralNodeDescriptor.mutable().create();
-			literalNode.token(token);
+				LiteralNodeDescriptor.fromToken(token);
 			closureOuters.add(literalNode);
 		}
 		return new L1Decompiler().parseWithOuterVarsTempGenerator(

@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/AssignmentNodeDescriptor.java
+ * com.avail.compiler/TupleNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,7 +37,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent {@link ParseNodeDescriptor parse nodes} which will
@@ -203,6 +203,18 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		for (AvailObject expression : object.expressionsTuple())
+		{
+			aBlock.value(expression);
+		}
+	}
+
+
+	@Override
 	public void o_ValidateLocally (
 		final AvailObject object,
 		final AvailObject parent,
@@ -237,9 +249,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			newNodes.add(expression);
 		}
 		newNodes.add(newParseNode);
-		final AvailObject newTupleNode = TupleNodeDescriptor.mutable().create();
-		newTupleNode.expressionsTuple(TupleDescriptor.fromList(newNodes));
-		newTupleNode.tupleType(VoidDescriptor.voidObject());
+		final AvailObject newTupleNode = TupleNodeDescriptor.newExpressions(
+			TupleDescriptor.fromList(newNodes));
 		return newTupleNode;
 	}
 
@@ -248,15 +259,15 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 * Create a new {@link TupleNodeDescriptor tuple node} from the given {@link
 	 * TupleDescriptor tuple} of {@link ParseNodeDescriptor expressions}.
 	 *
-	 * @param arguments
+	 * @param expressions
 	 *        The expressions to assemble into a {@link TupleNodeDescriptor
 	 *        tuple node}.
 	 * @return The resulting tuple node.
 	 */
-	public static AvailObject newExpressions (final AvailObject arguments)
+	public static AvailObject newExpressions (final AvailObject expressions)
 	{
 		final AvailObject instance = mutable().create();
-		instance.expressionsTuple(arguments);
+		instance.expressionsTuple(expressions);
 		instance.tupleType(VoidDescriptor.voidObject());
 		return instance;
 	}

@@ -220,6 +220,7 @@ requires [tType : tupleType, blkType : closureType |
 	union <= blkType[1];
 ];
 
+
 Method "_sum_" is [t : tuple, blk : [terminates]->extended integer |
 	sum : extended integer := 0;
 	t do [ element : all | sum := sum + blk apply <element>; ];
@@ -235,13 +236,13 @@ returns [tType : tupleType, blkType : closureType |
 	integer range tType sizes times blkResultType;
 ];
 
+
 Method "_sum" is [t : tuple of extended integer |
 	sum : extended integer := 0;
 	t do [ element : extended integer | sum := sum + element; ];
 	sum;
 ] : extended integer
 returns [tType : tupleType |
-	$returnsClause : $[tupleType]->integerType;
 	currentRange : integerType := [0..0];
 	1 to tType sizes lower bound do [i : natural number |
 		elementRange ::= cast tType[i] into [intT : integerType | intT; ];

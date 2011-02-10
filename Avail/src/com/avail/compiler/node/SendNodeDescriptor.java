@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/SendNodeDescriptor.java
+ * com.avail.compiler/SendNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -38,7 +38,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -71,7 +71,6 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		 * this multi-method invocation must return.
 		 */
 		RETURN_TYPE
-
 	}
 
 
@@ -247,6 +246,17 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 				true);
 		}
 		object.arguments(arguments);
+	}
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		for (AvailObject argument : object.arguments())
+		{
+			aBlock.value(argument);
+		}
 	}
 
 	@Override

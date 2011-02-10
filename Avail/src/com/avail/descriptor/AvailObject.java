@@ -6054,6 +6054,17 @@ implements Iterable<AvailObject>
 
 	/**
 	 * @param object
+	 * @param aBlock
+	 */
+	public void childrenDo (
+		final Continuation1<AvailObject> aBlock)
+	{
+		descriptor().o_ChildrenDo(this, aBlock);
+	}
+
+
+	/**
+	 * @param object
 	 * @param parent
 	 * @param outerBlocks
 	 * @param anAvailInterpreter
@@ -6189,5 +6200,32 @@ implements Iterable<AvailObject>
 	public AvailObject apparentSendName ()
 	{
 		return descriptor().o_ApparentSendName(this);
+	}
+
+
+	/**
+	 * @param statementsTuple
+	 */
+	public void statements (final AvailObject statementsTuple)
+	{
+		descriptor().o_Statements(this, statementsTuple);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject statements ()
+	{
+		return descriptor().o_Statements(this);
+	}
+
+
+	/**
+	 * @param accumulatedStatements
+	 */
+	public void flattenStatementsInto (final List<AvailObject> accumulatedStatements)
+	{
+		descriptor().o_FlattenStatementsInto(this, accumulatedStatements);
 	}
 }

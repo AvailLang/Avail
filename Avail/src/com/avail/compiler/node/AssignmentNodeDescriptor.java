@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/AssignmentNodeDescriptor.java
+ * com.avail.compiler/AssignmentNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -39,7 +39,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent assignment statements.
@@ -185,6 +185,15 @@ extends ParseNodeDescriptor
 	{
 		object.expression(aBlock.value(object.expression()));
 		object.variable(aBlock.value(object.variable()));
+	}
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		aBlock.value(object.expression());
+		aBlock.value(object.variable());
 	}
 
 	@Override

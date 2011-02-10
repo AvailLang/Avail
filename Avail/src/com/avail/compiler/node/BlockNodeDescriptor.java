@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/BlockNodeDescriptor.java
+ * com.avail.compiler/BlockNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -36,11 +36,12 @@ import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent occurrences of blocks (closures) encountered in code.
@@ -195,6 +196,14 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PRIMITIVE);
+	}
+
+
+	@Override
+	public boolean allowsImmutableToMutableReferenceInField (
+		final @NotNull Enum<?> e)
+	{
+		return e == ObjectSlots.NEEDED_VARIABLES;
 	}
 
 
@@ -379,6 +388,22 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		for (AvailObject argument : object.argumentsTuple())
+		{
+			aBlock.value(argument);
+		}
+		for (AvailObject statement : object.statementsTuple())
+		{
+			aBlock.value(statement);
+		}
+	}
+
+
+	@Override
 	public void o_ValidateLocally (
 		final AvailObject object,
 		final AvailObject parent,
@@ -453,12 +478,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Construct a {@linkplain BlockNodeDescriptor block node}.
 	 *
-	 * @param argumentsTuple
+	 * @param argumentsList
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        DeclarationNodeDescriptor argument declarations}.
 	 * @param primitive
 	 *        The index of the primitive that the resulting block will invoke.
-	 * @param statementsTuple
+	 * @param statementsList
 	 *        The {@linkplain TupleDescriptor tuple} of statement {@linkplain
 	 *        ParseNodeDescriptor nodes}.
 	 * @param resultType
@@ -467,17 +492,34 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @return A block node.
 	 */
 	public static AvailObject newBlockNode (
-		final AvailObject argumentsTuple,
+		final List<AvailObject> argumentsList,
 		final short primitive,
-		final AvailObject statementsTuple,
+		final List<AvailObject> statementsList,
 		final AvailObject resultType)
 	{
+		final List<AvailObject> flattenedStatements =
+			new ArrayList<AvailObject>(statementsList.size() + 3);
+		for (AvailObject statement : statementsList)
+		{
+			statement.flattenStatementsInto(flattenedStatements);
+		}
+		// Remove useless statements that are just void literals, other than the
+		// final statement.  Actually remove any bare literals, not just void.
+		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
+		{
+			final AvailObject statement = flattenedStatements.get(index);
+			if (statement.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
+			{
+				flattenedStatements.remove(index);
+			}
+		}
 		final AvailObject block = mutable().create();
-		block.argumentsTuple(argumentsTuple);
+		block.argumentsTuple(TupleDescriptor.fromList(argumentsList));
 		block.primitive(primitive);
-		block.statementsTuple(statementsTuple);
+		block.statementsTuple(TupleDescriptor.fromList(flattenedStatements));
 		block.resultType(resultType);
 		block.neededVariables(VoidDescriptor.voidObject());
+		block.makeImmutable();
 		return block;
 
 	}
@@ -494,11 +536,13 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final Set<AvailObject> neededDeclarations = new HashSet<AvailObject>();
 		final Set<AvailObject> providedByMe = new HashSet<AvailObject>();
 		providedByMe.addAll(allLocallyDefinedVariables(object));
-		object.childrenMap(new Transformer1<AvailObject, AvailObject>()
+		object.childrenDo(new Continuation1<AvailObject>()
 		{
 			@Override
-			public AvailObject value (final AvailObject node)
+			public void value (final AvailObject node)
 			{
+				assert !node.isInstanceOfSubtypeOf(SEQUENCE_NODE.o())
+				: "Sequence nodes should have been eliminated by this point";
 				if (node.type().equals(BLOCK_NODE.o()))
 				{
 					for (final AvailObject declaration : node.neededVariables())
@@ -508,21 +552,19 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 							neededDeclarations.add(declaration);
 						}
 					}
-					return node;
+					return;
 				}
-				node.childrenMap(this);
-				if (!node.type().equals(VARIABLE_USE_NODE.o()))
+				node.childrenDo(this);
+				if (node.type().equals(VARIABLE_USE_NODE.o()))
 				{
-					return node;
-				}
-				final AvailObject declaration = node.declaration();
-				if (!providedByMe.contains(declaration)
+					final AvailObject declaration = node.declaration();
+					if (!providedByMe.contains(declaration)
 						&& declaration.declarationKind() != MODULE_VARIABLE
 						&& declaration.declarationKind() != MODULE_CONSTANT)
-				{
-					neededDeclarations.add(declaration);
+					{
+						neededDeclarations.add(declaration);
+					}
 				}
-				return node;
 			}
 		});
 		object.neededVariables(

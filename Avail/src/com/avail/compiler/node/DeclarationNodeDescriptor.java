@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/DeclarationNodeDescriptor.java
+ * com.avail.compiler/DeclarationNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -42,7 +42,7 @@ import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent assignment statements.
@@ -653,13 +653,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
-			&& object.token().equals(another.token())
-			&& object.declaredType().equals(another.declaredType())
-			&& object.initializationExpression().equals(
-				another.initializationExpression())
-			&& object.literalObject().equals(another.literalObject())
-			&& object.declarationKind() == another.declarationKind();
+		return object.sameAddressAs(another.traversed());
 	}
 
 	/**
@@ -691,6 +685,18 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		}
 	}
 
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		AvailObject expression = object.initializationExpression();
+		if (!expression.equalsVoid())
+		{
+			aBlock.value(expression);
+		}
+	}
 
 
 	@Override
@@ -754,6 +760,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		declaration.declaredType(declaredType);
 		declaration.initializationExpression(initializationExpression);
 		declaration.literalObject(literalObject);
+		declaration.makeImmutable();
 		return declaration;
 	}
 

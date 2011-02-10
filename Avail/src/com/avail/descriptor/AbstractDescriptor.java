@@ -320,7 +320,7 @@ public abstract class AbstractDescriptor
 	{
 		//  Answer the deepest a recursive print can go before summarizing.
 
-		return 5;
+		return 12;
 	}
 
 	/**
@@ -5069,6 +5069,13 @@ public abstract class AbstractDescriptor
 		Transformer1<AvailObject, AvailObject> aBlock);
 
 	/**
+	 * Visit my child parse nodes with aBlock.
+	 */
+	public abstract void o_ChildrenDo (
+		AvailObject object,
+		Continuation1<AvailObject> aBlock);
+
+	/**
 	 * @param object
 	 * @param parent
 	 * @param outerBlocks
@@ -5178,4 +5185,26 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract AvailObject o_ApparentSendName (
 		AvailObject object);
+
+	/**
+	 * @param object
+	 * @param statementsTuple
+	 */
+	public abstract void o_Statements (
+		AvailObject object, AvailObject statementsTuple);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Statements (
+		AvailObject object);
+
+	/**
+	 * @param object
+	 * @param accumulatedStatements
+	 */
+	public abstract void o_FlattenStatementsInto (
+		AvailObject object,
+		List<AvailObject> accumulatedStatements);
 }

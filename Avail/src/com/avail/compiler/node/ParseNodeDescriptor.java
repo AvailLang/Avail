@@ -36,7 +36,7 @@ import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * I'm used to implement the abstract notion of parse nodes.  All concrete parse
@@ -197,7 +197,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * Visit and transform every node constituting this parse tree.  Map this
+	 * Visit and transform the direct descendants of this parse node.  Map this
 	 * {@linkplain ParseNodeDescriptor parse node}'s children through the
 	 * (destructive) transformation specified by aBlock, assigning them back
 	 * into my slots.
@@ -212,31 +212,20 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock);
 
-
 	/**
-	 * Map the tree through the (destructive) transformation specified by
-	 * aBlock, children before parents. Answer the resulting tree.
+	 * Visit every node constituting this parse tree, invoking the passed {@link
+	 * Continuation1} with each.
 	 *
-	 * @param object The current {@linkplain ParseNodeDescriptor parse node}.
-	 * @param aBlock The destructive transformation to apply.
-	 * @return The resulting transformed tree.
+	 * @param object
+	 *            The {@linkplain ParseNodeDescriptor parse node} to traverse.
+	 * @param aBlock
+	 *            The {@link Continuation1 action} to perform with each of this
+	 *            parse node's children.
 	 */
-	public static AvailObject treeMap (
+	@Override
+	public abstract void o_ChildrenDo (
 		final AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
-	{
-		AvailObject copy = object.copyMutableParseNode();
-		copy.childrenMap(
-			new Transformer1<AvailObject, AvailObject>()
-			{
-				@Override
-				public AvailObject value (final AvailObject child)
-				{
-					return treeMap(child, aBlock);
-				}
-			});
-		return aBlock.value(copy);
-	}
+		final Continuation1<AvailObject> aBlock);
 
 	/**
 	 * Validate this node, throwing an exception if there is a problem.
@@ -258,6 +247,14 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter);
+
+	@Override
+	public void o_FlattenStatementsInto (
+		final AvailObject object,
+		final List<AvailObject> accumulatedStatements)
+	{
+		accumulatedStatements.add(object);
+	}
 
 	@Override
 	public int maximumIndent ()

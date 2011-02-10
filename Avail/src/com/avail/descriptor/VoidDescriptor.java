@@ -215,7 +215,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append("VoidDescriptor void");
+		builder.append("TheVoidObject");
 	}
 
 	/**

@@ -33,12 +33,14 @@
 package com.avail.compiler.node;
 
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -122,6 +124,14 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
+	public void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		// Do nothing.
+	}
+
+	@Override
 	public void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
@@ -142,6 +152,22 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 			indent + 1);
 	}
 
+
+	/**
+	 * Create a {@link LiteralNodeDescriptor literal node} from a {@link
+	 * LiteralTokenDescriptor literal token}.
+	 *
+	 * @param token The token that describes the literal.
+	 * @return The new literal node.
+	 */
+	public static AvailObject fromToken (final @NotNull AvailObject token)
+	{
+		assert token.isInstanceOfSubtypeOf(Types.LITERAL_TOKEN.o());
+		AvailObject node = mutable().create();
+		node.token(token);
+		node.makeImmutable();
+		return node;
+	}
 
 
 	/**
@@ -191,6 +217,14 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	public void o_ChildrenMap (
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		// Do nothing.
+	}
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
 	{
 		// Do nothing.
 	}

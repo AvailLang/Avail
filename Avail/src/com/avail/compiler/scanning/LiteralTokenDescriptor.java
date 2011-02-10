@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/LiteralTokenDescriptor.java
+ * com.avail.compiler/LiteralTokenDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,7 +32,8 @@
 
 package com.avail.compiler.scanning;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.LITERAL_TOKEN;
+import com.avail.annotations.EnumField;
 import com.avail.descriptor.*;
 
 /**
@@ -80,10 +81,10 @@ extends TokenDescriptor
 		START,
 
 		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link
-		 * TokenDescriptor.TokenType} that indicates what basic kind of token
-		 * this is.
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
 		 */
+		@EnumField(describedBy=TokenType.class)
 		TOKEN_TYPE_CODE
 	}
 

@@ -1,5 +1,5 @@
 /**
- * com.avail.newcompiler/MarkerNodeDescriptor.java
+ * com.avail.compiler/MarkerNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
@@ -183,6 +183,14 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		error("Marker nodes should not be mapped.");
+	}
+
+	@Override
+	public void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		error("Marker nodes should not be iterated over.");
 	}
 
 	@Override
