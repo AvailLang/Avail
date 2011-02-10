@@ -513,9 +513,9 @@ public class L2Translator implements L1OperationDispatcher
 	 * primitive says it's foldable and the arguments are all constants.  Answer
 	 * the result if it was folded, otherwise null.  If it was folded, generate
 	 * code to push the folded value.
-	 * <p>
-	 * Special case if the flag {@link Primitive.Flag#SpecialReturnConstant} is
-	 * specified:  Always fold it, since it's just a constant.
+	 *
+	 * <p>Special case if the flag {@link Primitive.Flag#SpecialReturnConstant} is
+	 * specified:  Always fold it, since it's just a constant.</p>
 	 *
 	 * @param primitiveClosure A {@link ClosureDescriptor closure} for which
 	 *                         its primitive might be inlined, or even folded if

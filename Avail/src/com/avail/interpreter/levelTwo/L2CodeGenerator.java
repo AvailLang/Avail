@@ -34,188 +34,262 @@ package com.avail.interpreter.levelTwo;
 
 import static java.lang.Math.max;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
+import com.avail.interpreter.levelTwo.instruction.*;
 import com.avail.interpreter.levelTwo.register.*;
 
-public class L2CodeGenerator
+/**
+ * {@code L2CodeGenerator} emits {@linkplain L2Instruction Level Two Avail
+ * instructions} on behalf of the {@linkplain L2Translator translator} to
+ * produce a {@linkplain L2ChunkDescriptor Level Two Avail chunk} from a
+ * {@linkplain CompiledCodeDescriptor compiled Level One code object}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class L2CodeGenerator
 {
-	List<AvailObject> _literals;
-	List<List<Integer>> _vectors;
-	int _numObjects;
-	int _numIntegers;
-	int _numFloats;
-	List<Integer> _wordcodes;
-	AvailObject _contingentImpSets;
+	/**
+	 * The {@linkplain AvailObject literals} that will be embedded into the
+	 * created {@linkplain L2ChunkDescriptor chunk}.
+	 */
+	private final @NotNull List<AvailObject> literals =
+		new ArrayList<AvailObject>(20);
 
-
-	// accessing
-
-	public List<Integer> wordcodes ()
+	/**
+	 * Emit the specified {@linkplain AvailObject literal} into the instruction
+	 * stream.
+	 *
+	 * @param literal A {@linkplain AvailObject literal}.
+	 */
+	public void emitLiteral (final @NotNull AvailObject literal)
 	{
-		return _wordcodes;
-	}
-
-
-
-	// code generation
-
-	public void addContingentImplementationSets (
-			final AvailObject aSetOfImpSets)
-	{
-		_contingentImpSets = _contingentImpSets.setUnionCanDestroy(aSetOfImpSets, true);
-	}
-
-	public AvailObject createChunkFor (
-			final AvailObject code)
-	{
-		//  The instructions have all been emitted at this point.  Create the actual chunk.
-
-		return L2ChunkDescriptor.allocateIndexCodeLiteralsVectorsNumObjectsNumIntegersNumFloatsWordcodesContingentImpSets(
-			true,
-			code,
-			_literals,
-			_vectors,
-			_numObjects,
-			_numIntegers,
-			_numFloats,
-			_wordcodes,
-			_contingentImpSets);
-	}
-
-	public void emitCallerRegister ()
-	{
-		//  This is a fixed architectural register.
-		emitWord(1);
-	}
-
-	public void emitFloatRegister (
-			final L2FloatRegister floatRegister)
-	{
-
-		final int index = floatRegister.identity().finalIndex();
-		if (index != -1)
-		{
-			_numFloats = max(_numFloats, index);
-		}
-		emitWord(index);
-	}
-
-	public void emitIntegerRegister (
-			final L2IntegerRegister integerRegister)
-	{
-
-		final int index = integerRegister.identity().finalIndex();
-		if (index != -1)
-		{
-			_numIntegers = max(_numIntegers, index);
-		}
-		emitWord(index);
-	}
-
-	public void emitLiteral (
-			final AvailObject aLiteral)
-	{
-		aLiteral.readBarrierFault();
-		assert !aLiteral.descriptor().isMutable();
-		int index = _literals.indexOf(aLiteral) + 1;
+		literal.readBarrierFault();
+		assert !literal.descriptor().isMutable();
+		int index = literals.indexOf(literal) + 1;
 		if (index == 0)
 		{
-			_literals.add(aLiteral);
-			index = _literals.size();
+			literals.add(literal);
+			index = literals.size();
 		}
 		emitWord(index);
 	}
 
-	public void emitObjectRegister (
-			final L2ObjectRegister objectRegister)
-	{
+	/**
+	 * {@linkplain List Lists} of indices corresponding to {@linkplain
+	 * L2RegisterIdentity register identities} and grouped by {@linkplain
+	 * L2RegisterVector register vector}.
+	 */
+	private final @NotNull List<List<Integer>> vectors =
+		new ArrayList<List<Integer>>(20);
 
-		final int index = objectRegister.identity().finalIndex();
-		if (index != -1)
-		{
-			_numObjects = max(_numObjects, index);
-		}
-		emitWord(index);
-	}
-
-	public void emitVector (
-			final L2RegisterVector registerVector)
+	/**
+	 * Emit the {@linkplain L2RegisterIdentity identities} of the {@linkplain
+	 * L2ObjectRegister members} of the specified {@linkplain L2RegisterVector
+	 * register vector} into the instruction stream.
+	 *
+	 * @param registerVector A {@linkplain L2RegisterVector register vector}.
+	 */
+	public void emitVector (final @NotNull L2RegisterVector registerVector)
 	{
 		List<L2ObjectRegister> registersList = registerVector.registers();
-		List<Integer> registerIndices = new ArrayList<Integer>(registersList.size());
+		List<Integer> registerIndices =
+			new ArrayList<Integer>(registersList.size());
 		for (int i = 0; i < registersList.size(); i++)
 		{
 			registerIndices.add(registersList.get(i).identity().finalIndex());
 		}
-		int vectorIndex = _vectors.indexOf(registerIndices) + 1;
+		int vectorIndex = vectors.indexOf(registerIndices) + 1;
 		if (vectorIndex == 0)
 		{
-			_vectors.add(registerIndices);
-			vectorIndex = _vectors.size();
+			vectors.add(registerIndices);
+			vectorIndex = vectors.size();
 		}
 		emitWord(vectorIndex);
 	}
 
-	public void emitWord (
-			final int word)
+	/**
+	 * The number of {@linkplain L2ObjectRegister object registers} emitted
+	 * thus far for the {@linkplain L2ChunkDescriptor chunk} undergoing
+	 * {@linkplain L2CodeGenerator code generation}.
+	 */
+	private int objectRegisterCount = 0;
+
+	/**
+	 * Emit the {@linkplain L2RegisterIdentity identity} of the specified
+	 * {@linkplain L2ObjectRegister object register} into the instruction
+	 * stream.
+	 *
+	 * @param objectRegister An {@linkplain L2ObjectRegister object register}.
+	 */
+	public void emitObjectRegister (
+		final @NotNull L2ObjectRegister objectRegister)
 	{
-		assert word >= -0x8000 && word <= 0x7FFF : "Word is out of range";
-		_wordcodes.add(word);
+		final int index = objectRegister.identity().finalIndex();
+		if (index != -1)
+		{
+			objectRegisterCount = max(objectRegisterCount, index);
+		}
+		emitWord(index);
 	}
 
-	public void forceArgumentCountToAtLeast (
-			final int minArgCount)
-	{
-		//  Take steps to ensure there will be at least minArgCount object registers available at runtime.
+	/**
+	 * The number of {@linkplain L2IntegerRegister integer registers} emitted
+	 * thus far for the {@linkplain L2ChunkDescriptor chunk} undergoing
+	 * {@linkplain L2CodeGenerator code generation}.
+	 */
+	private int integerRegisterCount = 0;
 
-		_numObjects = max(_numObjects, minArgCount);
+	/**
+	 * Emit the {@linkplain L2RegisterIdentity identity} of the specified
+	 * {@linkplain L2IntegerRegister integer register} into the instruction
+	 * stream.
+	 *
+	 * @param integerRegister
+	 *        An {@linkplain L2IntegerRegister integer register}.
+	 */
+	public void emitIntegerRegister (
+		final @NotNull L2IntegerRegister integerRegister)
+	{
+		final int index = integerRegister.identity().finalIndex();
+		if (index != -1)
+		{
+			integerRegisterCount = max(integerRegisterCount, index);
+		}
+		emitWord(index);
 	}
 
+	/**
+	 * The number of {@linkplain L2FloatRegister float registers} emitted thus
+	 * far for the {@linkplain L2ChunkDescriptor chunk} undergoing {@linkplain
+	 * L2CodeGenerator code generation}.
+	 */
+	private int floatRegisterCount = 0;
+
+	/**
+	 * Emit the {@linkplain L2RegisterIdentity identity} of the specified
+	 * {@linkplain L2FloatRegister float register} into the instruction stream.
+	 *
+	 * @param floatRegister An {@linkplain L2FloatRegister float register}.
+	 */
+	public void emitFloatRegister (final @NotNull L2FloatRegister floatRegister)
+	{
+		final int index = floatRegister.identity().finalIndex();
+		if (index != -1)
+		{
+			floatRegisterCount = max(floatRegisterCount, index);
+		}
+		emitWord(index);
+	}
+
+	/**
+	 * A {@linkplain SetDescriptor set} of {@linkplain
+	 * ImplementationSetDescriptor implementation sets} upon which the
+	 * {@linkplain L2ChunkDescriptor chunk} is dependent.
+	 */
+	private @NotNull AvailObject contingentImpSets = SetDescriptor.empty();
+
+	/**
+	 * Merge the specified {@linkplain SetDescriptor set} of {@linkplain
+	 * ImplementationSetDescriptor implementation sets} with those already
+	 * upon which the {@linkplain L2ChunkDescriptor chunk} undergoing code
+	 * generation is already dependent.
+	 *
+	 * @param aSetOfImpSets
+	 *        A {@linkplain SetDescriptor set} of {@linkplain
+	 *        ImplementationSetDescriptor implementation sets}.
+	 */
+	public void addContingentImplementationSets (
+		final @NotNull AvailObject aSetOfImpSets)
+	{
+		contingentImpSets = contingentImpSets.setUnionCanDestroy(
+			aSetOfImpSets, true);
+	}
+
+	/**
+	 * The instruction stream emitted thus far of the {@linkplain
+	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
+	 * generation}.
+	 */
+	private @NotNull List<Integer> wordcodes =
+		new ArrayList<Integer>(20);
+
+	/**
+	 * Emit the specified wordcode into the instruction stream.
+	 *
+	 * @param wordcode A wordcode.
+	 */
+	public void emitWord (final int wordcode)
+	{
+		assert wordcode >= -0x8000 && wordcode <= 0x7FFF
+			: "Word is out of range";
+		wordcodes.add(wordcode);
+	}
+
+	/**
+	 * Emit the specified {@linkplain L2Instruction instructions}. Use a
+	 * two-pass algorithm: the first pass measures instruction lengths to
+	 * correctly determine their offsets (to ensure that references to
+	 * {@linkplain L2LabelInstruction labels} will be correct), the second pass
+	 * generates the real instruction stream.
+	 *
+	 * @param instructions
+	 *        The {@linkplain L2Instruction instructions} that should be
+	 *        emitted.
+	 */
 	public void setInstructions (
-			final List<L2Instruction> instrs)
+		final @NotNull List<L2Instruction> instructions)
 	{
-		//  Set my collection of instructions.  Generate the wordcodes at this time.
-
-		// Generate the instructions, but be prepared to discard the generated wordcodes.  The
-		// wordcodes are generated as useless side-effect on this pass, as the main intent is to
-		// measure instruction lengths to set their offsets (so references to labels will be correct).
-		assert _wordcodes.size() == 0;
-		for (L2Instruction instruction : instrs)
+		// Generate the instructions, but be prepared to discard the generated
+		// wordcodes. The wordcodes are generated as useless side-effect on this
+		// pass, as the main intent is to measure instruction lengths to set
+		// their offsets (so references to labels will be correct).
+		assert wordcodes.size() == 0;
+		for (L2Instruction instruction : instructions)
 		{
-			instruction.setOffset(_wordcodes.size() + 1);
+			instruction.setOffset(wordcodes.size() + 1);
 			instruction.emitOn(this);
 		}
-		// Now that the instruction positions are known, discard the scratch code generator and
-		// generate on a real code generator.  This is a trivial two-pass scheme to calculate jumps.
-		_wordcodes = new ArrayList<Integer>(_wordcodes.size());
-		for (L2Instruction instruction : instrs)
+
+		// Now that the instruction positions are known, discard the scratch
+		// code generator and generate on a real code generator. This is a
+		// trivial two-pass scheme to calculate jumps.
+		wordcodes = new ArrayList<Integer>(wordcodes.size());
+		for (L2Instruction instruction : instructions)
 		{
-			assert instruction.offset() == _wordcodes.size() + 1 : "Instruction offset is not right";
+			assert instruction.offset() == wordcodes.size() + 1
+				: "Instruction offset is not right";
 			instruction.emitOn(this);
 		}
 	}
 
-
-
-
-
-	/* Constructor */
-
-	L2CodeGenerator ()
+	/**
+	 * Create a {@linkplain L2ChunkDescriptor chunk} that represents the Level
+	 * Two translation of the specified {@linkplain CompiledCodeDescriptor
+	 * compiled Level One Avail code}.
+	 *
+	 * <p>This should be invoked after {@link #setInstructions(List)
+	 * setInstructions} has caused all {@linkplain L2Instruction instructions}
+	 * to be emitted.</p>
+	 *
+	 * @param code
+	 *        The {@linkplain CompiledCodeDescriptor compiled Level One Avail
+	 *        code} currently undergoing translation to Level Two.
+	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
+	 */
+	public @NotNull AvailObject createChunkFor (final @NotNull AvailObject code)
 	{
-		_literals = new ArrayList<AvailObject>(20);
-		_vectors = new ArrayList<List<Integer>>(20);
-		_numObjects = 0;
-		_numIntegers = 0;
-		_numFloats = 0;
-		_wordcodes = new ArrayList<Integer>(20);
-		_contingentImpSets = SetDescriptor.empty();
+		return L2ChunkDescriptor
+			.allocateIndexCodeLiteralsVectorsNumObjectsNumIntegersNumFloatsWordcodesContingentImpSets(
+				true,
+				code,
+				literals,
+				vectors,
+				objectRegisterCount,
+				integerRegisterCount,
+				floatRegisterCount,
+				wordcodes,
+				contingentImpSets);
 	}
-
-	void emitOpcode(final int opcode)
-	{
-		emitWord(opcode);
-	};
-
 }
