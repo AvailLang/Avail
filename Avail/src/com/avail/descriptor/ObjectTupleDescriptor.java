@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
 import com.avail.annotations.NotNull;
 
 public class ObjectTupleDescriptor
@@ -347,12 +347,6 @@ extends TupleDescriptor
 		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
-
-		if (index < 1 || index > object.tupleSize())
-		{
-			error("Out of bounds access to o_Tuple", object);
-			return 0;
-		}
 		return object.tupleAt(index).extractInt();
 	}
 
@@ -360,8 +354,7 @@ extends TupleDescriptor
 	public int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of elements in the object (as a Smalltalk Integer).
-
+		//  Answer the number of elements in the object (as a Java int).
 		return object.objectSlotsCount() - numberOfFixedObjectSlots();
 	}
 

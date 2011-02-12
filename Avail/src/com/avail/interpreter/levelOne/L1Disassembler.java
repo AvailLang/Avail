@@ -169,52 +169,23 @@ public class L1Disassembler
 	 */
 	public int getInteger ()
 	{
-		final int tag = _nybbles.extractNybbleFromTupleAt(_pc);
-		if (tag < 10)
+		final int nyb = _nybbles.extractNybbleFromTupleAt(_pc);
+		_pc++;
+		int value = 0;
+		final byte[] counts =
 		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
+		};
+		for (int count = counts[nyb]; count > 0; --count)
+		{
+			value = (value << 4) + _nybbles.extractNybbleFromTupleAt(_pc);
 			_pc++;
-			return tag;
 		}
-		int integer;
-		if (tag <= 12)
+		final byte[] offsets =
 		{
-			integer = tag * 16 - 150 + _nybbles.extractNybbleFromTupleAt(_pc + 1);
-			_pc += 2;
-			return integer;
-		}
-		if (tag == 13)
-		{
-			integer = (_nybbles.extractNybbleFromTupleAt(_pc + 1) << 4)
-			+ _nybbles.extractNybbleFromTupleAt(_pc + 2)
-			+ 58;
-			_pc += 3;
-			return integer;
-		}
-		if (tag == 14)
-		{
-			integer = 0;
-			for (int _count1 = 1; _count1 <= 4; _count1++)
-			{
-				integer <<= 4;
-				integer += _nybbles.extractNybbleFromTupleAt(++_pc);
-			}
-			//  making 5 nybbles total
-			_pc++;
-			return integer;
-		}
-		if (tag == 15)
-		{
-			integer = 0;
-			for (int _count2 = 1; _count2 <= 8; _count2++)
-			{
-				integer <<= 4;
-				integer += _nybbles.extractNybbleFromTupleAt(++_pc);
-			}
-			//  making 9 nybbles total
-			_pc++;
-			return integer;
-		}
-		error("Impossible nybble");
-		return 0;
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
+		};
+		value += offsets[nyb];
+		return value;
 	}
 }

@@ -251,50 +251,24 @@ public class L2Translator implements L1OperationDispatcher
 	 */
 	private int getInteger ()
 	{
-		final int tag = nybbles.extractNybbleFromTupleAt(pc);
-		int value;
-		if (tag < 10)
+		final int nyb = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
+		int value = 0;
+		final byte[] counts =
 		{
-			value = tag;
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
+		};
+		for (int count = counts[nyb]; count > 0; --count)
+		{
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			return value;
 		}
-		if (tag <= 12)
+		final byte[] offsets =
 		{
-			value = tag * 16 - 150 + nybbles.extractNybbleFromTupleAt(pc + 1);
-			pc += 2;
-			return value;
-		}
-		if (tag == 13)
-		{
-			value = (nybbles.extractNybbleFromTupleAt(pc + 1) << 4) + nybbles.extractNybbleFromTupleAt(pc + 2) + 58;
-			pc += 3;
-			return value;
-		}
-		if (tag == 14)
-		{
-			value = 0;
-			for (int _count1 = 1; _count1 <= 4; _count1++)
-			{
-				value = (value << 4) + nybbles.extractNybbleFromTupleAt(++pc);
-			}
-			//  making 5 nybbles total
-			pc++;
-			return value;
-		}
-		if (tag == 15)
-		{
-			value = 0;
-			for (int _count2 = 1; _count2 <= 8; _count2++)
-			{
-				value = (value << 4) + nybbles.extractNybbleFromTupleAt(++pc);
-			}
-			//  making 9 nybbles total
-			pc++;
-			return value;
-		}
-		error("Impossible nybble");
-		return 0;
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
+		};
+		value += offsets[nyb];
+		return value;
 	}
 
 	/**

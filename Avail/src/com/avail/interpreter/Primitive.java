@@ -5181,6 +5181,13 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
+			final AvailObject declarationType =
+				variable.declaration().type();
+			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
+				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
+			{
+				return FAILURE;
+			}
 			if (!expression.expressionType().isSubtypeOf(
 				variable.expressionType()))
 			{
@@ -5256,6 +5263,13 @@ public enum Primitive
 			final AvailObject expression = args.get(1);
 			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o())
 				|| !expression.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			final AvailObject declarationType =
+				variable.declaration().type();
+			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
+				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
 				return FAILURE;
 			}

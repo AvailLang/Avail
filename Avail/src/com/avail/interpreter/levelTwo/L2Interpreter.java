@@ -2349,6 +2349,7 @@ implements L2OperationDispatcher
 		final AvailObject nybs = cod.nybbles();
 		int pc = cont.pc();
 		final byte nyb = nybs.extractNybbleFromTupleAt(pc);
+		pc++;
 		int value = 0;
 		final byte[] counts =
 		{
@@ -2356,14 +2357,15 @@ implements L2OperationDispatcher
 		};
 		for (int count = counts[nyb]; count > 0; --count)
 		{
-			value = (value << 4) + nybs.extractNybbleFromTupleAt(++pc);
+			value = (value << 4) + nybs.extractNybbleFromTupleAt(pc);
+			pc++;
 		}
 		final byte[] offsets =
 		{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
 		};
 		value += offsets[nyb];
-		cont.pc(pc + 1);
+		cont.pc(pc);
 		return value;
 	}
 

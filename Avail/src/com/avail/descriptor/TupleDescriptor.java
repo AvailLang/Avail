@@ -241,8 +241,7 @@ extends Descriptor
 			return false;
 		}
 		// See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object
-				.tupleSize());
+		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
 		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
@@ -756,12 +755,14 @@ extends Descriptor
 	}
 
 	@Override
-	public String o_AsNativeString (final AvailObject object)
+	public String o_AsNativeString (
+		final AvailObject object)
 	{
 		// Only applicable to tuples that contain characters.
 
-		final StringBuilder builder = new StringBuilder(object.tupleSize());
-		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
+		final int size = object.tupleSize();
+		final StringBuilder builder = new StringBuilder(size);
+		for (int i = 1; i <= size; i++)
 		{
 			builder.appendCodePoint(object.tupleAt(i).codePoint());
 		}
@@ -772,8 +773,10 @@ extends Descriptor
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override
-	public @NotNull AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
+	public @NotNull AvailObject o_CopyAsMutableObjectTuple (
+		final AvailObject object)
 	{
+		final int size = object.tupleSize();
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
 			object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
@@ -789,7 +792,8 @@ extends Descriptor
 	 */
 	@Override
 	public @NotNull
-	Iterator<AvailObject> o_Iterator (final @NotNull AvailObject object)
+	Iterator<AvailObject> o_Iterator (
+		final @NotNull AvailObject object)
 	{
 		final AvailObject selfSnapshot = object.copyAsMutableObjectTuple();
 		final int size = selfSnapshot.tupleSize();
@@ -840,24 +844,19 @@ extends Descriptor
 		EmptyTuple.hashOrZero(0);
 		EmptyTuple.makeImmutable();
 
-		UnderscoreTuple = ByteStringDescriptor
-				.from("_");
+		UnderscoreTuple = ByteStringDescriptor.from("_");
 		UnderscoreTuple.makeImmutable();
 
-		OpenChevronTuple = ByteStringDescriptor
-				.from("«");
+		OpenChevronTuple = ByteStringDescriptor.from("«");
 		OpenChevronTuple.makeImmutable();
 
-		CloseChevronTuple = ByteStringDescriptor
-				.from("»");
+		CloseChevronTuple = ByteStringDescriptor.from("»");
 		CloseChevronTuple.makeImmutable();
 
-		DoubleDaggerTuple = ByteStringDescriptor
-				.from("‡");
+		DoubleDaggerTuple = ByteStringDescriptor.from("‡");
 		DoubleDaggerTuple.makeImmutable();
 
-		BackQuoteTuple = ByteStringDescriptor
-				.from("`");
+		BackQuoteTuple = ByteStringDescriptor.from("`");
 		BackQuoteTuple.makeImmutable();
 	}
 
@@ -915,8 +914,7 @@ extends Descriptor
 			{
 				tuple.tupleAtPut(
 					i,
-					IntegerDescriptor.fromInt(
-						list.get(i - 1).intValue()));
+					IntegerDescriptor.fromInt(list.get(i - 1).intValue()));
 			}
 		}
 		return tuple;
