@@ -64,6 +64,11 @@ public class AvailScanner
 	int _startOfToken;
 
 	/**
+	 * The position of the start of the token currently being parsed.
+	 */
+	int _lineNumber;
+
+	/**
 	 * The tokens that have been parsed so far.
 	 */
 	List<AvailObject> _outputTokens;
@@ -103,9 +108,8 @@ public class AvailScanner
 	{
 		anAvailToken.tokenType(tokenType);
 		anAvailToken.start(_startOfToken);
-		anAvailToken.string(
-			ByteStringDescriptor.from(
-				currentTokenString()));
+		anAvailToken.lineNumber(_lineNumber);
+		anAvailToken.string(ByteStringDescriptor.from(currentTokenString()));
 		anAvailToken.makeImmutable();
 		_outputTokens.add(anAvailToken);
 	}
@@ -168,7 +172,7 @@ public class AvailScanner
 	 */
 	void scanDigit ()
 	{
-		skip(-1);
+		backUp();
 		assert _position == _startOfToken;
 		while (peekIsDigit())
 		{
@@ -405,8 +409,13 @@ public class AvailScanner
 	 */
 	char next ()
 	{
+		char c = _inputString.charAt(_position);
+		if (c == '\n')
+		{
+			_lineNumber++;
+		}
 		_position++;
-		return _inputString.charAt(_position - 1);
+		return c;
 	}
 
 	/**
@@ -486,14 +495,11 @@ public class AvailScanner
 	}
 
 	/**
-	 * Adjust the current {@link #_position} by the specified amount.
-	 *
-	 * @param anInteger The amount to add to the {@link #_position}.
+	 * Move the current {@link #_position} back by one character.
 	 */
-	void skip (
-			final int anInteger)
+	void backUp ()
 	{
-		_position += anInteger;
+		_position--;
 		assert 0 <= _position && _position <= _inputString.length();
 	}
 
@@ -633,6 +639,7 @@ public class AvailScanner
 	{
 		_inputString = string;
 		_position = 0;
+		_lineNumber = 1;
 		_outputTokens = new ArrayList<AvailObject>(100);
 		_stopAfterNamesToken = stopAfterNamesToken;
 		while (!(stopAfterNamesToken ? _encounteredNamesToken : atEnd()))

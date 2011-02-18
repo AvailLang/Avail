@@ -33,7 +33,7 @@
 package com.avail.compiler.scanning;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.EnumField;
 import com.avail.descriptor.*;
 
@@ -71,6 +71,12 @@ extends Descriptor
 		 * syntax.
 		 */
 		START,
+
+		/**
+		 * The line number in the source file.  Currently signed 32bits, which
+		 * should be plenty.
+		 */
+		LINE_NUMBER,
 
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
@@ -121,6 +127,27 @@ extends Descriptor
 		final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.START);
+	}
+
+	/**
+	 * Setter for field lineNumber.
+	 */
+	@Override
+	public void o_LineNumber (
+		final AvailObject object,
+		final int value)
+	{
+		object.integerSlotPut(IntegerSlots.LINE_NUMBER, value);
+	}
+
+	/**
+	 * Getter for field lineNumber.
+	 */
+	@Override
+	public int o_LineNumber (
+		final AvailObject object)
+	{
+		return object.integerSlot(IntegerSlots.LINE_NUMBER);
 	}
 
 	/**

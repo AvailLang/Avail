@@ -1124,21 +1124,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject bundleAtMessageParts (
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
-	{
-		return descriptor().o_BundleAtMessageParts(
-			this,
-			message,
-			parts,
-			instructions);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject caller ()
 	{
 		return descriptor().o_Caller(this);
@@ -2110,9 +2095,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject expand ()
+	public void expand ()
 	{
-		return descriptor().o_Expand(this);
+		descriptor().o_Expand(this);
 	}
 
 	/**
@@ -6227,5 +6212,23 @@ implements Iterable<AvailObject>
 	public void flattenStatementsInto (final List<AvailObject> accumulatedStatements)
 	{
 		descriptor().o_FlattenStatementsInto(this, accumulatedStatements);
+	}
+
+
+	/**
+	 * @param value
+	 */
+	public void lineNumber (final int value)
+	{
+		descriptor().o_LineNumber(this, value);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public int lineNumber ()
+	{
+		return descriptor().o_LineNumber(this);
 	}
 }

@@ -667,26 +667,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @param parts
-	 * @param instructions
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_BundleAtMessageParts (
-		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:bundleAtMessage:parts:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	@Override
@@ -5440,13 +5420,12 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_Expand (
+	public void o_Expand (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_Expand:", object);
-		return VoidDescriptor.voidObject();
 	}
 
 	/**
@@ -8879,11 +8858,27 @@ extends AbstractDescriptor
 		return null;
 	}
 
+
 	@Override
 	public void o_FlattenStatementsInto (
 		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		subclassResponsibility("o_FlattenStatementsInto");
+	}
+
+
+	@Override
+	public void o_LineNumber (final AvailObject object, final int value)
+	{
+		subclassResponsibility("o_LineNumber");
+	}
+
+
+	@Override
+	public int o_LineNumber (final AvailObject object)
+	{
+		subclassResponsibility("o_LineNumber");
+		return 0;
 	}
 }

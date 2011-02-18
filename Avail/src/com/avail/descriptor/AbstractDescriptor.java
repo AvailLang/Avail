@@ -846,19 +846,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @param parts
-	 * @param instructions
-	 * @return
-	 */
-	public abstract AvailObject o_BundleAtMessageParts (
-		final AvailObject object,
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions);
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	public abstract void o_Caller (final AvailObject object, final AvailObject value);
@@ -3379,7 +3366,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Expand (final AvailObject object);
+	public abstract void o_Expand (final AvailObject object);
 
 	/**
 	 * @param object
@@ -5207,4 +5194,16 @@ public abstract class AbstractDescriptor
 	public abstract void o_FlattenStatementsInto (
 		AvailObject object,
 		List<AvailObject> accumulatedStatements);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_LineNumber (AvailObject object, int value);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract int o_LineNumber (AvailObject object);
 }

@@ -81,6 +81,12 @@ extends TokenDescriptor
 		START,
 
 		/**
+		 * The line number in the source file.  Currently signed 32bits, which
+		 * should be plenty.
+		 */
+		LINE_NUMBER,
+
+		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
 		 * indicates what basic kind of token this is.
 		 */

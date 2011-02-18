@@ -626,6 +626,7 @@ public class L1Decompiler implements L1OperationDispatcher
 				ByteStringDescriptor.from(
 					value.toString()));
 			token.start(0);
+			token.lineNumber(0);
 			token.literal(value);
 			final AvailObject literalNode =
 				LiteralNodeDescriptor.fromToken(token);
@@ -812,6 +813,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			token.tokenType(TokenType.LITERAL);
 			token.string(ByteStringDescriptor.from("AnOuter" + i));
 			token.start(0);
+			token.lineNumber(0);
 			token.literal(varObject);
 			final AvailObject literalNode =
 				LiteralNodeDescriptor.fromToken(token);

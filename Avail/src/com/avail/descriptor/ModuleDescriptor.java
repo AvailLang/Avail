@@ -560,7 +560,7 @@ public class ModuleDescriptor extends Descriptor
 		final @NotNull AvailObject bundleTree)
 	{
 		object.filteredBundleTree(
-			UnexpandedMessageBundleTreeDescriptor.newPc(1));
+			ExpandedMessageBundleTreeDescriptor.newPc(1));
 		bundleTree.copyToRestrictedTo(
 			object.filteredBundleTree(), object.visibleNames());
 	}
@@ -617,7 +617,6 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject moduleName)
 	{
 		AvailObject emptyMap = MapDescriptor.empty();
-		AvailObject unexpanded = UnexpandedMessageBundleTreeDescriptor.newPc(1);
 		AvailObject object = mutable().create();
 		object.name(moduleName);
 		object.newNames(emptyMap);
@@ -628,7 +627,7 @@ public class ModuleDescriptor extends Descriptor
 		object.restrictions(emptyMap);
 		object.variableBindings(emptyMap);
 		object.constantBindings(emptyMap);
-		object.filteredBundleTree(unexpanded);
+		object.filteredBundleTree(ExpandedMessageBundleTreeDescriptor.newPc(1));
 		return object;
 	}
 

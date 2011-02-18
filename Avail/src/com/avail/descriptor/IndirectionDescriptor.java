@@ -538,19 +538,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_BundleAtMessageParts (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject message,
-		final @NotNull AvailObject parts,
-		final @NotNull AvailObject instructions)
-	{
-		return o_Traversed(object).bundleAtMessageParts(
-			message,
-			parts,
-			instructions);
-	}
-
-	@Override
 	public void o_Caller (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).caller(value);
@@ -3230,9 +3217,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Expand (final AvailObject object)
+	public void o_Expand (final AvailObject object)
 	{
-		return o_Traversed(object).expand();
+		o_Traversed(object).expand();
 	}
 
 	@Override
@@ -4566,5 +4553,17 @@ extends AbstractDescriptor
 		final List<AvailObject> accumulatedStatements)
 	{
 		o_Traversed(object).flattenStatementsInto(accumulatedStatements);
+	}
+
+	@Override
+	public void o_LineNumber (final AvailObject object, final int value)
+	{
+		o_Traversed(object).lineNumber(value);
+	}
+
+	@Override
+	public int o_LineNumber (final AvailObject object)
+	{
+		return o_Traversed(object).lineNumber();
 	}
 }

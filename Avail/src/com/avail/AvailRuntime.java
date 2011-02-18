@@ -249,7 +249,7 @@ public final class AvailRuntime
 							name,
 							messageParts,
 							instructions));
-				rootBundle.addRestrictions(bundle.restrictions());
+				// rootBundle.addRestrictions(bundle.restrictions()); TODO - remove
 			}
 
 			// Finally add the module to the map of loaded modules.
@@ -444,13 +444,115 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * A {@linkplain MapDescriptor map} from MessageBundle to a {@linkplain
+	 * TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of {@linkplain
+	 * CyclicTypeDescriptor cyclic types}.
+	 */
+	private @NotNull AvailObject restrictions = MapDescriptor.empty();
+
+	/**
+	 * Answer the {@linkplain MapDescriptor map} of {@linkplain
+	 * MessageBundleDescriptor message bundle} restrictions.
+	 *
+	 * @return The restrictions map.
+	 */
+	private @NotNull AvailObject restrictions ()
+	{
+		return restrictions;
+	}
+
+	/**
+	 * Add the specified grammatical restrictions for the specified message
+	 * bundle.
+	 *
+	 * @param messageBundle
+	 *            The message bundle to be restricted.
+	 * @param restrictionsToAdd
+	 *            The restrictions to associate with the message bundle.
+	 */
+	private @NotNull void addRestriction (
+		final @NotNull AvailObject messageBundle,
+		final @NotNull AvailObject restrictionsToAdd)
+	{
+		AvailObject tuple;
+		if (restrictions.hasKey(messageBundle))
+		{
+			tuple = restrictions.mapAt(messageBundle);
+			assert tuple.tupleSize() == restrictionsToAdd.tupleSize();
+			for (int i = tuple.tupleSize(); i > 0; i--)
+			{
+				tuple = tuple.tupleAtPuttingCanDestroy(
+					i,
+					tuple.tupleAt(i).setUnionCanDestroy(
+						restrictionsToAdd.tupleAt(i),
+						true),
+					true);
+			}
+		}
+		else
+		{
+			tuple = restrictionsToAdd;
+		}
+		restrictions = restrictions.mapAtPuttingCanDestroy(
+			messageBundle,
+			tuple,
+			true);
+	}
+
+	/**
+	 * Add the specified grammatical restrictions for the specified message
+	 * bundle.
+	 *
+	 * @param messageBundle
+	 *            The message bundle to be restricted.
+	 * @param restrictionsToRemove
+	 *            The restrictions to dissociate from the message bundle.
+	 */
+	private @NotNull void removeRestriction (
+		final @NotNull AvailObject messageBundle,
+		final @NotNull AvailObject restrictionsToRemove)
+	{
+		if (!restrictions.hasKey(messageBundle))
+		{
+			return;
+		}
+		AvailObject tuple = restrictions.mapAt(messageBundle);
+		assert tuple.tupleSize() == restrictionsToRemove.tupleSize();
+		boolean allEmpty = true;
+		for (int i = tuple.tupleSize(); i > 0; i--)
+		{
+			final AvailObject difference = tuple.tupleAt(i).setMinusCanDestroy(
+				restrictionsToRemove.tupleAt(i),
+				true);
+			tuple = tuple.tupleAtPuttingCanDestroy(
+				i,
+				difference,
+				true);
+			allEmpty = allEmpty && difference.setSize() == 0;
+		}
+		if (allEmpty)
+		{
+			restrictions = restrictions.mapWithoutKeyCanDestroy(
+				messageBundle,
+				true);
+		}
+		else
+		{
+			restrictions = restrictions.mapAtPuttingCanDestroy(
+				messageBundle,
+				tuple,
+				true);
+		}
+	}
+
+	/**
 	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It
 	 * contains the {@linkplain MessageBundleDescriptor message bundles}
 	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull
 	final AvailObject rootBundleTree =
-		UnexpandedMessageBundleTreeDescriptor.newPc(1);
+		ExpandedMessageBundleTreeDescriptor.newPc(1);
 
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
@@ -468,7 +570,7 @@ public final class AvailRuntime
 		try
 		{
 			final AvailObject copy =
-				UnexpandedMessageBundleTreeDescriptor.newPc(1);
+				ExpandedMessageBundleTreeDescriptor.newPc(1);
 			rootBundleTree.copyToRestrictedTo(copy, methods.keysAsSet());
 			return copy;
 		}

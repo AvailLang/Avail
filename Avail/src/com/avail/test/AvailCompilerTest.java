@@ -126,15 +126,16 @@ public class AvailCompilerTest
 			final Mutable<ModuleName> lastModule = new Mutable<ModuleName>();
 			final AvailBuilder builder = new AvailBuilder(runtime, target);
 			builder.buildTarget(
-				new Continuation3<ModuleName, Long, Long>()
+				new Continuation4<ModuleName, Long, Long, Long>()
 				{
 					@Override
 					public void value (
 						final @NotNull ModuleName moduleName,
+						final @NotNull Long lineNumber,
 						final @NotNull Long position,
 						final @NotNull Long moduleSize)
 					{
-						// Do nothing.
+						System.out.printf("[line %d]%n", lineNumber);
 					}
 				},
 				new Continuation3<ModuleName, Long, Long>()
@@ -149,14 +150,13 @@ public class AvailCompilerTest
 						{
 							lastModule.value = moduleName;
 							System.out.printf(
-								"now compiling %s ... [bytes remaining = %d]%n",
+								"%ncompiling %s ... [bytes remaining = %d]%n",
 								moduleName,
 								globalCodeSize - position);
 						}
 
 						System.out.printf(
-							"\t... bytes processed = %d (%.2f%% done)%n",
-							position,
+							"(%.2f%% done)",
 							position * 100.0d / globalCodeSize);
 					}
 				});

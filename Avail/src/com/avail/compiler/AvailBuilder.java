@@ -236,19 +236,25 @@ public final class AvailBuilder
 	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
 	 *
 	 * @param localTracker
-	 *            A {@linkplain Continuation3 continuation} that accepts the
-	 *            {@linkplain ModuleName name} of the
+	 *            A {@linkplain Continuation3 continuation} that accepts
+	 *            <ol>
+	 *            <li>the {@linkplain ModuleName name} of the
 	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AvailCompiler compilation}, the position of the
-	 *            ongoing parse (in bytes), and the size of the module (in
-	 *            bytes).
+	 *            {@linkplain AvailCompiler compilation},</li>
+	 *            <li>the current line number within the current module,</li>
+	 *            <li>the position of the ongoing parse (in bytes), and</li>
+	 *            <li>the size of the module in bytes.</li>
+	 *            </ol>
 	 * @param globalTracker
-	 *            A {@linkplain Continuation3 continuation} that accepts the
-	 *            {@linkplain ModuleName name} of the
+	 *            A {@linkplain Continuation3 continuation} that accepts
+	 *            <ol>
+	 *            <li>the {@linkplain ModuleName name} of the
 	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AvailCompiler compilation}, the number of bytes
-	 *            globally processed, and the global size (in bytes) of all
-	 *            modules that will be built.
+	 *            {@linkplain AvailCompiler compilation},</li>
+	 *            <li>the number of bytes globally processed, and</li>
+	 *            <li>the global size (in bytes) of all modules that will be
+	 *            built.</li>
+	 *            </ol>
 	 * @throws AvailCompilerException
 	 *             If the {@linkplain AvailCompiler compiler} is unable to
 	 *             process a module declaration.
@@ -257,7 +263,7 @@ public final class AvailBuilder
 	 *             recursively depends upon itself.
 	 */
 	public void buildTarget (
-		final @NotNull Continuation3<ModuleName, Long, Long> localTracker,
+		final @NotNull Continuation4<ModuleName, Long, Long, Long> localTracker,
 		final @NotNull Continuation3<ModuleName, Long, Long> globalTracker)
 			throws AvailCompilerException, RecursiveDependencyException
 	{
@@ -280,16 +286,19 @@ public final class AvailBuilder
 			{
 				compiler.parseModule(
 					moduleName,
-					new Continuation3<ModuleName, Long, Long>()
+					new Continuation4<ModuleName, Long, Long, Long>()
 					{
 						@Override
 						public void value (
-							final @NotNull ModuleName unused,
+							final @NotNull ModuleName moduleName2,
+							final @NotNull Long lineNumber,
 							final @NotNull Long localPosition,
 							final @NotNull Long moduleSize)
 						{
+							assert moduleName.equals(moduleName2);
 							localTracker.value(
 								moduleName,
+								lineNumber,
 								localPosition,
 								moduleSize);
 							globalTracker.value(

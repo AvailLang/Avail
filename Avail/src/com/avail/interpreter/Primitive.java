@@ -3673,7 +3673,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(bundle.message().hasRestrictions()));
+			interpreter.primitiveResult(
+				BooleanDescriptor.objectFrom(
+					bundle.message().hasRestrictions()));
 			return SUCCESS;
 		}
 	},
@@ -5288,6 +5290,7 @@ public enum Primitive
 			token.tokenType(TokenType.LITERAL);
 			token.string(ByteStringDescriptor.from("VoidAfterAssignment"));
 			token.start(0);
+			token.lineNumber(0);
 			token.literal(VoidDescriptor.voidObject());
 			statementsList.add(LiteralNodeDescriptor.fromToken(token));
 			final AvailObject statementsTuple =

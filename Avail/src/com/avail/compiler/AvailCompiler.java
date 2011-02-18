@@ -128,7 +128,7 @@ public class AvailCompiler
 	 * by the {@linkplain AvailCompiler compiler} to report compilation
 	 * progress.
 	 */
-	private Continuation3<ModuleName, Long, Long> progressBlock;
+	private Continuation4<ModuleName, Long, Long, Long> progressBlock;
 
 	/**
 	 * Construct a new {@link AvailCompiler} which will use the given
@@ -1314,7 +1314,7 @@ public class AvailCompiler
 	 */
 	public void parseModule (
 		final @NotNull ModuleName qualifiedName,
-		final @NotNull Continuation3<ModuleName, Long, Long> aBlock)
+		final @NotNull Continuation4<ModuleName, Long, Long, Long> aBlock)
 	throws AvailCompilerException
 	{
 		progressBlock = aBlock;
@@ -1368,9 +1368,11 @@ public class AvailCompiler
 		}
 		if (!state.value.atEnd())
 		{
+			final AvailObject token = state.value.peekToken();
 			progressBlock.value(
 				qualifiedName,
-				(long) state.value.peekToken().start(),
+				(long) token.lineNumber(),
+				(long) token.start(),
 				sourceLength);
 		}
 		for (final AvailObject modName : extendedModules)
@@ -1477,9 +1479,11 @@ public class AvailCompiler
 			evaluateModuleStatement(interpretation.value);
 			if (!state.value.atEnd())
 			{
+				final AvailObject token = tokens.get(state.value.position - 1);
 				progressBlock.value(
 					qualifiedName,
-					(long) (tokens.get(state.value.position - 1).start() + 2),
+					(long) token.lineNumber(),
+					(long) token.start() + 2,
 					sourceLength);
 			}
 		}
@@ -2289,6 +2293,7 @@ public class AvailCompiler
 		final List<List<AvailObject>> innerArgsSoFar,
 		final Con<AvailObject> continuation)
 	{
+		bundleTree.expand();
 		final AvailObject complete = bundleTree.complete();
 		final AvailObject incomplete = bundleTree.incomplete();
 		final AvailObject special = bundleTree.specialActions();
