@@ -35,7 +35,7 @@
  * {@code true} and {@code false}, and the primitive operations {@code _=_} and
  * {@code _<=_}.
  *
- * @author Todd L Smith &lt;anarakul@gmail&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 Module
 	"Boolean"

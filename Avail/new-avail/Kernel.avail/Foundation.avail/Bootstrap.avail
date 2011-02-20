@@ -34,7 +34,7 @@
  * This is the absolute first module. Via the initial pragma declaration, it
  * requests that the Avail VM bind names to the bootstrap methods and macros.
  *
- * @author Todd L Smith &lt;anarakul@gmail&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 Module
 	"Bootstrap"
