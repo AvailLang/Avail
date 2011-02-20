@@ -165,9 +165,9 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Whether an {@link AvailObject} using this descriptor can have more than
-	 * the minimum number of object slots.  Populated automatically by the
-	 * constructor.
+	 * Whether an {@linkplain AvailObject object} using this {@linkplain
+	 * AbstractDescriptor descriptor} can have more than the minimum number of
+	 * object slots. Populated automatically by the constructor.
 	 */
 	final boolean hasVariableObjectSlots;
 
@@ -187,9 +187,9 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Whether an {@link AvailObject} using this descriptor can have more than
-	 * the minimum number of integer slots.  Populated automatically by the
-	 * constructor.
+	 * Whether an {@linkplain AvailObject object} using this {@linkplain
+	 * AbstractDescriptor descriptor} can have more than the minimum number of
+	 * integer slots. Populated automatically by the constructor.
 	 */
 	final boolean hasVariableIntegerSlots;
 
@@ -209,20 +209,18 @@ public abstract class AbstractDescriptor
 		return hasVariableIntegerSlots;
 	}
 
-	/**
-	 * The registry of all {@linkplain AbstractDescriptor descriptors}.
-	 */
+	/** The registry of all {@linkplain AbstractDescriptor descriptors}. */
 	protected static final List<AbstractDescriptor> allDescriptors =
 		new ArrayList<AbstractDescriptor>(200);
 
 	/**
-	 * Note:  This is a logical shift *without* Java's implicit modulus on the
+	 * Note: This is a logical shift *without* Java's implicit modulus on the
 	 * shift amount.
 	 *
 	 * @param value The value to shift.
-	 * @param leftShift The amount to shift left.  If negative, shift right by
+	 * @param leftShift The amount to shift left. If negative, shift right by
 	 *                  the corresponding positive amount.
-	 * @return The shifted integer, modulus 2^32 then cast to int.
+	 * @return The shifted integer, modulus 2^32 then cast to {@code int}.
 	 */
 	protected static int bitShift (final int value, final int leftShift)
 	{
@@ -248,14 +246,13 @@ public abstract class AbstractDescriptor
 	 *                  represent a mutable object?
 	 */
 	@SuppressWarnings("unchecked")
-	protected AbstractDescriptor (
-		final boolean isMutable)
+	protected AbstractDescriptor (final boolean isMutable)
 	{
-		this.myId = (short)allDescriptors.size();
+		this.myId = (short) allDescriptors.size();
 		allDescriptors.add(this);
 		this.isMutable = isMutable;
 
-		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
+		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
 		Enum<?>[] instances;
@@ -270,12 +267,13 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-		? enumClass.getEnumConstants()
-				: new Enum<?>[0];
-		this.hasVariableObjectSlots = instances.length > 0
-		&& instances[instances.length-1].name().matches(".*_");
-		this.numberOfFixedObjectSlots = instances.length
-		- (this.hasVariableObjectSlots ? 1 : 0);
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+		hasVariableObjectSlots =
+			instances.length > 0
+			&& instances[instances.length-1].name().matches(".*_");
+		numberOfFixedObjectSlots =
+			instances.length - (hasVariableObjectSlots ? 1 : 0);
 
 		try
 		{
@@ -287,14 +285,13 @@ public abstract class AbstractDescriptor
 			enumClass = null;
 		}
 		instances = enumClass != null
-		? enumClass.getEnumConstants()
-				: new Enum<?>[0];
-		this.hasVariableIntegerSlots = instances.length > 0
-		&& instances[instances.length-1].name().matches(".*_");
-		this.numberOfFixedIntegerSlots = instances.length
-		- (this.hasVariableIntegerSlots ? 1 : 0);
-
-
+			? enumClass.getEnumConstants()
+			: new Enum<?>[0];
+		hasVariableIntegerSlots =
+			instances.length > 0
+			&& instances[instances.length-1].name().matches(".*_");
+		numberOfFixedIntegerSlots =
+			instances.length - (hasVariableIntegerSlots ? 1 : 0);
 	}
 
 	/**
@@ -305,8 +302,7 @@ public abstract class AbstractDescriptor
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
 	 */
-	public boolean allowsImmutableToMutableReferenceInField (
-		final Enum<?> e)
+	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
 	{
 		return false;
 	}
@@ -318,8 +314,6 @@ public abstract class AbstractDescriptor
 	 */
 	public int maximumIndent ()
 	{
-		//  Answer the deepest a recursive print can go before summarizing.
-
 		return 12;
 	}
 
@@ -342,37 +336,38 @@ public abstract class AbstractDescriptor
 		return;
 	}
 
-
 	/**
-	 * Create a new AvailObject whose descriptor is the receiver, and which has
-	 * the specified number of indexed (variable) slots.
+	 * Create a new {@linkplain AvailObject object} whose {@linkplain
+	 * AbstractDescriptor descriptor} is the receiver, and which has the
+	 * specified number of indexed (variable) slots.
 	 *
 	 * @param indexedSlotCount The number of variable slots to include.
-	 * @return The new uninitialized object.
+	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	public final AvailObject create (final int indexedSlotCount)
+	public final @NotNull AvailObject create (final int indexedSlotCount)
 	{
 		return AvailObject.newIndexedDescriptor(indexedSlotCount, this);
 	}
 
-
 	/**
-	 * Create a new AvailObject whose descriptor is the receiver, and which has
-	 * no indexed (variable) slots.
+	 * Create a new {@linkplain AvailObject object} whose {@linkplain
+	 * AbstractDescriptor descriptor} is the receiver, and which has no indexed
+	 * (variable) slots.
 	 *
-	 * @return The new uninitialized object.
+	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
 	public final @NotNull AvailObject create ()
 	{
 		return create(0);
 	}
 
-
 	/**
-	 * Print the object to the {@link StringBuilder}.  By default show it as the
-	 * descriptor name and a line-by-line list of fields.  If the indent is
-	 * beyond maximumIndent, indicate it's too deep without recursing.  If the
-	 * object is in recursionList, indicate a recursive print and return.
+	 * Print the {@linkplain AvailObject object} to the {@link StringBuilder}.
+	 * By default show it as the {@linkplain AbstractDescriptor descriptor} name
+	 * and a line-by-line list of fields. If the indent is beyond the {@link
+	 * #maximumIndent() maximumIndent}, indicate it's too deep without
+	 * recursing. If the object is in the specified recursion list, indicate a
+	 * recursive print and return.
 	 *
 	 * @param object The object to print (its descriptor is me).
 	 * @param builder Where to print the object.
@@ -407,7 +402,7 @@ public abstract class AbstractDescriptor
 		builder.append(' ');
 		builder.append(shortenedName);
 
-		final Class<Descriptor> cls = (Class<Descriptor>)this.getClass();
+		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
 		Enum<?>[] instances;
@@ -468,7 +463,8 @@ public abstract class AbstractDescriptor
 				{
 					final Class<? extends Enum<?>> describingClass =
 						annotation.describedBy();
-					final Enum<?>[] allValues = describingClass.getEnumConstants();
+					final Enum<?>[] allValues =
+						describingClass.getEnumConstants();
 					if (0 <= value && value < allValues.length)
 					{
 						builder.append(" = ");

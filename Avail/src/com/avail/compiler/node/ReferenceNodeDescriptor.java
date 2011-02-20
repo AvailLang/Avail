@@ -48,7 +48,8 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ReferenceNodeDescriptor extends ParseNodeDescriptor
+public class ReferenceNodeDescriptor
+extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -58,12 +59,12 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@link VariableUseNodeDescriptor variable use node} for which
-		 * the reference is being taken.
+		 * The {@linkplain VariableUseNodeDescriptor variable use node} for
+		 * which the {@linkplain ReferenceNodeDescriptor reference} is being
+		 * taken.
 		 */
 		VARIABLE
 	}
-
 
 	/**
 	 * Setter for field variable.
@@ -85,7 +86,6 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE);
 	}
-
 
 	/**
 	 * The value I represent is a variable itself.  Answer an appropriate
@@ -229,10 +229,10 @@ public class ReferenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		final AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject parent,
+		final @NotNull List<AvailObject> outerBlocks,
+		final @NotNull L2Interpreter interpreter)
 	{
 		final AvailObject decl = object.variable().declaration();
 		switch (decl.declarationKind())

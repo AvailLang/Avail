@@ -5300,8 +5300,42 @@ public enum Primitive
 			interpreter.primitiveResult(sequence);
 			return SUCCESS;
 		}
-	};
+	},
 
+	/**
+	 * <strong>Primitive 354:</strong>  Transform a variable use into a
+	 * {@linkplain ReferenceNodeDescriptor reference}.
+	 *
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim354_MacroReference_variable(354, 1, CanFold)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject variable = args.get(0);
+			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			final AvailObject declaration = variable.declaration();
+			assert declaration != null;
+			final AvailObject declarationType = declaration.type();
+			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
+				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			final AvailObject reference =
+				ReferenceNodeDescriptor.mutable().create();
+			reference.variable(variable);
+			interpreter.primitiveResult(reference);
+			return SUCCESS;
+		}
+	};
 
 	/**
 	 * The success state of a primitive attempt.

@@ -3396,56 +3396,6 @@ public class AvailCompiler
 			attempt(start.afterToken(), continuation, literalNode);
 		}
 
-		// Try a reference: &var.
-		if (start.peekToken(OPERATOR, "&"))
-		{
-			final ParserState afterAmpersand = start.afterToken();
-			parseVariableUseWithExplanationThen(
-				afterAmpersand,
-				"in reference expression",
-				new Con<AvailObject>("Variable for reference")
-				{
-					@Override
-					public void value (
-						final ParserState afterVar,
-						final AvailObject var)
-					{
-						final AvailObject declaration = var.declaration();
-						String suffix = null;
-						if (declaration == null)
-						{
-							suffix = " to have been declared";
-						}
-						else
-						{
-							switch (declaration.declarationKind())
-							{
-								case LOCAL_CONSTANT:
-								case MODULE_CONSTANT:
-									suffix = " not to be a constant";
-									break;
-								case ARGUMENT:
-									suffix = " not to be an argument";
-									break;
-								case LABEL:
-									suffix = " not to be a label";
-									break;
-								case MODULE_VARIABLE:
-								case LOCAL_VARIABLE:
-									attempt(
-										afterVar,
-										continuation,
-										ReferenceNodeDescriptor.fromUse(var));
-							}
-							if (suffix != null)
-							{
-								afterAmpersand.expected("reference variable "
-										+ suffix);
-							}
-						}
-					}
-				});
-		}
 		start.expected("simple expression");
 	}
 

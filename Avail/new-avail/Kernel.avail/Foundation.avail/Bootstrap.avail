@@ -47,7 +47,7 @@ Pragma
 	"macroVariableDeclaration = _:_",
 	"macroConstantDeclaration = _::=_",
 	"macroInitializingDeclaration = _:_:=_",
-	"macroAssignment = _ := _",
+	"macroAssignment = _:=_",
 	"macroReference = &_",
 	"macroSuperCast = _::_",
 	"macroBlock = [««_:_‡, »|»«$_:_;»«_»]«:_»",
