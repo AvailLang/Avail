@@ -5315,7 +5315,7 @@ public enum Primitive
 			final List<AvailObject> args,
 			final Interpreter interpreter)
 		{
-			assert args.size() == 2;
+			assert args.size() == 1;
 			final AvailObject variable = args.get(0);
 			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o()))
 			{

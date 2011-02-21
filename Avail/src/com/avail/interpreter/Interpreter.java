@@ -537,7 +537,7 @@ public abstract class Interpreter
 					methodName,
 					splitter.messageParts(),
 					splitter.instructionsTuple()));
-//		bundle.addRestrictions(illegalArgMsgs);  TODO Remove
+		bundle.addRestrictions(illegalArgMsgs);
 		module.atAddMessageRestrictions(methodName, illegalArgMsgs);
 	}
 

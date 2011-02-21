@@ -8881,4 +8881,19 @@ extends AbstractDescriptor
 		subclassResponsibility("o_LineNumber");
 		return 0;
 	}
+
+
+	@Override
+	public void o_AllBundles (final AvailObject object, final AvailObject value)
+	{
+		subclassResponsibility("o_AllBundles");
+	}
+
+
+	@Override
+	public AvailObject o_AllBundles (final AvailObject object)
+	{
+		subclassResponsibility("o_AllBundles");
+		return null;
+	}
 }

@@ -6231,4 +6231,22 @@ implements Iterable<AvailObject>
 	{
 		return descriptor().o_LineNumber(this);
 	}
+
+
+	/**
+	 * @param value
+	 */
+	public void allBundles (final AvailObject value)
+	{
+		descriptor().o_AllBundles(this, value);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject allBundles ()
+	{
+		return descriptor().o_AllBundles(this);
+	}
 }

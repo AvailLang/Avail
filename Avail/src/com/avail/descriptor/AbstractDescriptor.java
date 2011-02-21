@@ -5202,4 +5202,16 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract int o_LineNumber (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_AllBundles (AvailObject object, AvailObject value);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_AllBundles (AvailObject object);
 }

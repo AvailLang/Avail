@@ -249,7 +249,7 @@ public final class AvailRuntime
 							name,
 							messageParts,
 							instructions));
-				// rootBundle.addRestrictions(bundle.restrictions()); TODO - remove
+				rootBundle.addRestrictions(bundle.restrictions());
 			}
 
 			// Finally add the module to the map of loaded modules.
@@ -551,8 +551,7 @@ public final class AvailRuntime
 	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull
-	final AvailObject rootBundleTree =
-		ExpandedMessageBundleTreeDescriptor.newPc(1);
+	final AvailObject rootBundleTree = MessageBundleTreeDescriptor.newPc(1);
 
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
@@ -569,8 +568,7 @@ public final class AvailRuntime
 		runtimeLock.readLock().lock();
 		try
 		{
-			final AvailObject copy =
-				ExpandedMessageBundleTreeDescriptor.newPc(1);
+			final AvailObject copy = MessageBundleTreeDescriptor.newPc(1);
 			rootBundleTree.copyToRestrictedTo(copy, methods.keysAsSet());
 			return copy;
 		}

@@ -4566,4 +4566,16 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).lineNumber();
 	}
+
+	@Override
+	public void o_AllBundles (final AvailObject object, final AvailObject value)
+	{
+		o_Traversed(object).allBundles(value);
+	}
+
+	@Override
+	public AvailObject o_AllBundles (final AvailObject object)
+	{
+		return o_Traversed(object).allBundles();
+	}
 }

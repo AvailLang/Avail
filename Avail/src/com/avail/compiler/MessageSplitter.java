@@ -716,7 +716,7 @@ public class MessageSplitter
 			final boolean completeGroup,
 			final boolean doubleWrap)
 		{
-			// aStream.append("«");
+			aStream.append("«");
 			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
@@ -730,12 +730,13 @@ public class MessageSplitter
 			}
 			boolean isFirst = true;
 			final List<Expression> expressionsToVisit;
-			if (completeGroup)
+			if (completeGroup && !expressionsAfterDagger.isEmpty())
 			{
 				expressionsToVisit = new ArrayList<Expression>(
 					expressionsBeforeDagger.size()
 					+ expressionsAfterDagger.size());
 				expressionsToVisit.addAll(expressionsBeforeDagger);
+				expressionsToVisit.add(null);  // Represents the dagger
 				expressionsToVisit.addAll(expressionsAfterDagger);
 			}
 			else
@@ -749,7 +750,11 @@ public class MessageSplitter
 					aStream.append(" ");
 				}
 
-				if (expr instanceof Simple)
+				if (expr == null)
+				{
+					aStream.append("‡");
+				}
+				else if (expr instanceof Simple)
 				{
 					final AvailObject token =
 						messageParts.get(((Simple)expr).tokenIndex - 1);
@@ -788,7 +793,7 @@ public class MessageSplitter
 				isFirst = false;
 			}
 			assert !argumentsIterator.hasNext();
-			// aStream.append("»");
+			aStream.append("»");
 		}
 	}
 
