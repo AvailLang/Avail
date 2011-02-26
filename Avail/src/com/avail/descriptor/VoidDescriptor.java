@@ -201,7 +201,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject o_BinUnionType (final @NotNull AvailObject object)
+	public @NotNull AvailObject o_BinUnionTypeOrVoid (final @NotNull AvailObject object)
 	{
 		// The void object acts as an empty bin.
 		return TERMINATES.o();

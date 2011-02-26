@@ -473,11 +473,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_BinUnionType (
+	public void o_BinUnionTypeOrVoid (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).binUnionType(value);
+		o_Traversed(object).binUnionTypeOrVoid(value);
 	}
 
 	@Override
@@ -2989,9 +2989,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_BinUnionType (final AvailObject object)
+	public @NotNull AvailObject o_BinUnionTypeOrVoid (final AvailObject object)
 	{
-		return o_Traversed(object).binUnionType();
+		return o_Traversed(object).binUnionTypeOrVoid();
 	}
 
 	@Override
@@ -4497,6 +4497,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public @NotNull AvailObject o_BinUnionType (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).binUnionType();
+	}
+
+	@Override
 	public void o_MacroName (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -4586,7 +4593,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
+	public MapDescriptor.MapIterable o_MapIterable (
+		final AvailObject object)
 	{
 		return o_Traversed(object).mapIterable();
 	}

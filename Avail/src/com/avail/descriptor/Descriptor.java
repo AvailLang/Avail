@@ -542,7 +542,7 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_BinUnionType (
+	public void o_BinUnionTypeOrVoid (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -8124,7 +8124,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_BinUnionType (
+	public @NotNull AvailObject o_BinUnionTypeOrVoid (
 		final AvailObject object)
 	{
 		//  Answer the union of the types of this bin's elements.  I act as a bin of size one.
@@ -8792,6 +8792,14 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		subclassResponsibility("o_CopyMutableParseNode");
+		return null;
+	}
+
+
+	@Override
+	public AvailObject o_BinUnionType (final AvailObject object)
+	{
+		subclassResponsibility("o_BinUnionType");
 		return null;
 	}
 

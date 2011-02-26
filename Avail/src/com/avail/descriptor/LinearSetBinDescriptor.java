@@ -143,7 +143,7 @@ extends SetBinDescriptor
 				.create(newSize);
 			result.binHash(0);
 			result.binSize(0);
-			result.binUnionType(unionType);
+			result.binUnionTypeOrVoid(unionType);
 			result.bitVector(bitVector);
 			for (int i = 1; i <= newSize; i++)
 			{
@@ -351,12 +351,9 @@ extends SetBinDescriptor
 		//  to be small, so recalculate it per request.
 
 		AvailObject unionType = object.binElementAt(1).type();
-		for (
-			int
-				index = 2,
-				_end1 = object.objectSlotsCount() - numberOfFixedObjectSlots();
-			index <= _end1;
-			index++)
+		final int limit =
+			object.objectSlotsCount() - numberOfFixedObjectSlots();
+		for (int index = 2; index <= limit; index++)
 		{
 			unionType = unionType.typeUnion(object.binElementAt(index).type());
 		}

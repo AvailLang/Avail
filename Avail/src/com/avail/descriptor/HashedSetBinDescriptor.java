@@ -44,8 +44,20 @@ extends SetBinDescriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The sum of the hashes of the elements recursively within this bin.
+		 */
 		BIN_HASH,
+
+		/**
+		 * The total number of elements recursively contained within this bin.
+		 */
 		BIN_SIZE,
+
+		/**
+		 * A bit vector indicating which (masked, shifted) hash values are
+		 * non-empty and represented by a slot.
+		 */
 		BIT_VECTOR
 	}
 
@@ -54,7 +66,17 @@ extends SetBinDescriptor
 	 */
 	public enum ObjectSlots
 	{
-		BIN_UNION_TYPE,
+		/**
+		 * The union of the types of all elements recursively within this bin.
+		 * TODO:  Allow this to be voided and recomputed on demand for
+		 * performance.
+		 */
+		BIN_UNION_TYPE_OR_VOID,
+
+		/**
+		 * The actual bin elements or sub-bins.  Each slot corresponds to a 1
+		 * bit in the bit vector, treating it as an unsigned vector of bits.
+		 */
 		BIN_ELEMENT_AT_
 	}
 
@@ -94,11 +116,11 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	public void o_BinUnionType (
+	public void o_BinUnionTypeOrVoid (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.BIN_UNION_TYPE, value);
+		object.objectSlotPut(ObjectSlots.BIN_UNION_TYPE_OR_VOID, value);
 	}
 
 	@Override
@@ -124,10 +146,10 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_BinUnionType (
+	public @NotNull AvailObject o_BinUnionTypeOrVoid (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.BIN_UNION_TYPE);
+		return object.objectSlot(ObjectSlots.BIN_UNION_TYPE_OR_VOID);
 	}
 
 	@Override
@@ -145,12 +167,38 @@ extends SetBinDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor(HashedSetBinDescriptor.isMutableLevel(false, _level));
+			object.descriptor(
+				HashedSetBinDescriptor.isMutableLevel(false, _level));
 			object.makeSubobjectsImmutable();
 		}
 		return object;
 	}
 
+	@Override
+	public AvailObject o_BinUnionType (
+			final AvailObject object)
+	{
+		AvailObject union = object.binUnionTypeOrVoid();
+		if (union.equalsVoid())
+		{
+			union = object.binElementAt(1).binUnionType();
+			int limit = object.objectSlotsCount() - numberOfFixedObjectSlots;
+			for (int i = 2; i <= limit; i++)
+			{
+				union = union.typeUnion(object.binElementAt(i).binUnionType());
+			}
+			object.binUnionTypeOrVoid(union);
+		}
+		return union;
+	}
+
+
+	/**
+	 * Add the given element to this bin, potentially modifying it if canDestroy
+	 * is true and it's mutable.  Answer the new bin.  Note that the client is
+	 * responsible for marking elementObject as immutable if another reference
+	 * exists.
+	 */
 	@Override
 	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
@@ -159,13 +207,10 @@ extends SetBinDescriptor
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
-		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
-		//  elementObject as immutable if another reference exists.
-
 		assert myLevel == _level;
 		//  First, grab the appropriate 5 bits from the hash.
-		final int objectEntryCount = object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int objectEntryCount =
+			object.objectSlotsCount() - numberOfFixedObjectSlots();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * _level) & 31;
 		final int vector = object.bitVector();
 		final int masked = vector & bitShift(1,logicalIndex) - 1;
@@ -189,7 +234,7 @@ extends SetBinDescriptor
 			}
 			//  The element had to be added.
 		final int hashDelta = entry.binHash() - previousHash;
-			unionType = object.binUnionType().typeUnion(elementObject.type());
+			unionType = object.binUnionTypeOrVoid().typeUnion(elementObject.type());
 		final int newSize = object.binSize() + delta;
 			if (canDestroy & isMutable)
 			{
@@ -205,14 +250,16 @@ extends SetBinDescriptor
 					HashedSetBinDescriptor.isMutableLevel(true, _level)
 						.create(objectEntryCount);
 				objectToModify.bitVector(vector);
-				for (int i = 1, _end1 = object.objectSlotsCount() - numberOfFixedObjectSlots(); i <= _end1; i++)
+				final int limit =
+					object.objectSlotsCount() - numberOfFixedObjectSlots();
+				for (int i = 1; i <= limit; i++)
 				{
 					objectToModify.binElementAtPut(i, object.binElementAt(i));
 				}
 			}
 			objectToModify.binHash(object.binHash() + hashDelta);
 			objectToModify.binSize(newSize);
-			objectToModify.binUnionType(unionType);
+			objectToModify.binUnionTypeOrVoid(unionType);
 			objectToModify.binElementAtPut(physicalIndex, entry);
 			return objectToModify;
 		}
@@ -220,12 +267,12 @@ extends SetBinDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		unionType = object.binUnionType().typeUnion(elementObject.type());
+		unionType = object.binUnionTypeOrVoid().typeUnion(elementObject.type());
 		objectToModify = HashedSetBinDescriptor.isMutableLevel(true, _level)
 			.create(objectEntryCount + 1);
 		objectToModify.binHash(object.binHash() + elementObjectHash);
 		objectToModify.binSize(object.binSize() + 1);
-		objectToModify.binUnionType(unionType);
+		objectToModify.binUnionTypeOrVoid(unionType);
 		objectToModify.bitVector(vector | bitShift(1,logicalIndex));
 		for (int i = 1, _end2 = physicalIndex - 1; i <= _end2; i++)
 		{
@@ -245,7 +292,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash)
 	{
-		//  First, grab the appropriate 5 bits from the hash.
+		// First, grab the appropriate 5 bits from the hash.
 
 		final int logicalIndex = bitShift(elementObjectHash, -5 * _level) & 31;
 		final int vector = object.bitVector();
@@ -253,10 +300,13 @@ extends SetBinDescriptor
 		{
 			return false;
 		}
-		//  There's an entry.  Count the 1-bits below it to compute its zero-relative physicalIndex.
+		// There's an entry.  Count the 1-bits below it to compute its
+		// zero-relative physicalIndex.
 		final int masked = vector & bitShift(1,logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		return object.binElementAt(physicalIndex).binHasElementHash(elementObject, elementObjectHash);
+		return object.binElementAt(physicalIndex).binHasElementHash(
+			elementObject,
+			elementObjectHash);
 	}
 
 	/**
@@ -311,14 +361,14 @@ extends SetBinDescriptor
 				if (index != physicalIndex)
 				{
 					newUnionType = newUnionType.typeUnion(
-						object.binElementAt(index).binUnionType());
+						object.binElementAt(index).binUnionTypeOrVoid());
 				}
 			}
 			result = HashedSetBinDescriptor.isMutableLevel(true, _level).create(
 				objectEntryCount - 1);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionType(newUnionType);
+			result.binUnionTypeOrVoid(newUnionType);
 			result.bitVector(vector ^ bitShift(1,logicalIndex));
 			for (int index = objectEntryCount - 1; index >= 1; index--)
 			{
@@ -344,25 +394,12 @@ extends SetBinDescriptor
 		}
 		else
 		{
-			AvailObject newUnionType = TERMINATES.o();
-			for (int index = 1; index <= objectEntryCount; index++)
-			{
-				if (index == physicalIndex)
-				{
-					newUnionType = newUnionType.typeUnion(
-						replacementEntry.binUnionType());
-				}
-				else
-				{
-					newUnionType = newUnionType.typeUnion(
-						object.binElementAt(index).binUnionType());
-				}
-			}
+
 			result = HashedSetBinDescriptor.isMutableLevel(true, _level).create(
 				objectEntryCount);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionType(newUnionType);
+			result.binUnionTypeOrVoid(VoidDescriptor.voidObject());
 			result.bitVector(vector);
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
@@ -422,15 +459,16 @@ extends SetBinDescriptor
 		return true;
 	}
 
+	/**
+	 * Write set bin elements into the tuple, starting at the given
+	 * startingIndex.  Answer the next available index in which to write.
+	 */
 	@Override
 	public int o_PopulateTupleStartingAt (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject mutableTuple,
 		final int startingIndex)
 	{
-		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
-		//  the next available index in which to write.
-
 		assert mutableTuple.descriptor().isMutable();
 		int writeIndex = startingIndex;
 		for (

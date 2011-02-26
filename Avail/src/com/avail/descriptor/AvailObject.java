@@ -997,18 +997,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject binUnionType ()
+	public AvailObject binUnionTypeOrVoid ()
 	{
-		return descriptor().o_BinUnionType(this);
+		return descriptor().o_BinUnionTypeOrVoid(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void binUnionType (
+	public void binUnionTypeOrVoid (
 		final AvailObject value)
 	{
-		descriptor().o_BinUnionType(this, value);
+		descriptor().o_BinUnionTypeOrVoid(this, value);
 	}
 
 	/**
@@ -6145,6 +6145,15 @@ implements Iterable<AvailObject>
 	public AvailObject copyMutableParseNode ()
 	{
 		return descriptor().o_CopyMutableParseNode(this);
+	}
+
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public AvailObject binUnionType ()
+	{
+		return descriptor().o_BinUnionType(this);
 	}
 
 

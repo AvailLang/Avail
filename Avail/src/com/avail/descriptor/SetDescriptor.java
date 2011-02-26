@@ -37,8 +37,24 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
 
-public class SetDescriptor
-extends Descriptor
+/**
+ * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
+ * Hash Tree.  If the set is empty, the root is {@linkplain VoidDescriptor the
+ * void object}, which may not be a member of a set.  If the set has one
+ * element, the root is the element itself.  If the set has two or more elements
+ * then a {@linkplain SetBinDescriptor bin} must be used.  There are two types
+ * of bin, the {@linkplain LinearSetBinDescriptor linear bin} and the
+ * {@linkplain HashedSetBinDescriptor hashed bin}.  The linear bin is used below
+ * a threshold size, after which a hashed bin is substituted.  The linear bin
+ * simply contains an arbitrarily ordered list of elements, which are examined
+ * exhaustively when testing set membership.  The hashed bin uses up to five
+ * bits of an element's {@link AvailObject#hash(int) hash value} to partition
+ * the set.  The depth of the bin in the hash tree determines which hash bits
+ * are used.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class SetDescriptor extends Descriptor
 {
 
 	/**
@@ -143,7 +159,7 @@ extends Descriptor
 			return false;
 		}
 		//  set's size is out of range.
-		return object.rootBin().binUnionType().isSubtypeOf(aTypeObject.contentType());
+		return object.rootBin().binUnionTypeOrVoid().isSubtypeOf(aTypeObject.contentType());
 	}
 
 	@Override
@@ -154,7 +170,7 @@ extends Descriptor
 
 		final int size = object.setSize();
 		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
-		final AvailObject unionType = object.rootBin().binUnionType();
+		final AvailObject unionType = object.rootBin().binUnionTypeOrVoid();
 		unionType.makeImmutable();
 		return SetTypeDescriptor.setTypeForSizesContentType(sizeRange, unionType);
 	}
