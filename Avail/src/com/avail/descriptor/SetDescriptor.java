@@ -399,13 +399,111 @@ extends Descriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * This is the {@link Iterator} subclass used to enumerate Avail {@linkplain
+	 * SetDescriptor sets}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	private static class SetIterator implements Iterator<AvailObject>
+	{
+		/**
+		 * The path through set bins to the current leaf non-bin.
+		 */
+		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
+
+		/**
+		 * The position navigated through each bin.  It should contain one
+		 * fewer than the number of elements in binStack, except when they're
+		 * both empty, indicating {@code !hasNext()}.
+		 */
+		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
+
+		/**
+		 * Construct a new {@link SetIterator}.
+		 *
+		 * @param root
+		 */
+		SetIterator (final AvailObject root)
+		{
+			followLeftmost(root);
+		}
+
+		/**
+		 * @param binOrElement
+		 */
+		private void followLeftmost (AvailObject binOrElement)
+		{
+			if (binOrElement.equalsVoid())
+			{
+				assert binStack.isEmpty();
+				assert subscriptStack.isEmpty();
+			}
+			else
+			{
+				binStack.addLast(binOrElement);
+				while (binOrElement.isSetBin())
+				{
+					subscriptStack.addLast(1);
+					binOrElement = binOrElement.binElementAt(1);
+					binStack.addLast(binOrElement);
+				}
+				assert binStack.size() == subscriptStack.size() + 1;
+			}
+		}
+
+		@Override
+		public AvailObject next ()
+		{
+			assert !binStack.isEmpty();
+			AvailObject result = binStack.removeLast();
+			assert binStack.size() == subscriptStack.size();
+			while (true)
+			{
+				if (subscriptStack.isEmpty())
+				{
+					return result;
+				}
+				final int subscript = subscriptStack.getLast();
+				final AvailObject bin = binStack.getLast().traversed();
+				final int maxSubscript = bin.objectSlotsCount()
+					- bin.descriptor().numberOfFixedObjectSlots;
+				if (subscript != maxSubscript)
+				{
+					assert !binStack.isEmpty();
+					subscriptStack.removeLast();
+					subscriptStack.addLast(subscript + 1);
+					assert binStack.size() == subscriptStack.size();
+					followLeftmost(binStack.getLast().binElementAt(subscript + 1));
+					assert binStack.size() == subscriptStack.size() + 1;
+					return result;
+				}
+				subscriptStack.removeLast();
+				binStack.removeLast();
+				assert binStack.size() == subscriptStack.size();
+			}
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return !binStack.isEmpty();
+		}
+
+		@Override
+		public void remove ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	};
+
+	/**
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
 	@Override
 	public @NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
-		return object.asTuple().iterator();
+		return new SetIterator(object.rootBin());
 	}
 
 	/**

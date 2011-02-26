@@ -4578,4 +4578,16 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).allBundles();
 	}
+
+	@Override
+	public boolean o_IsSetBin (final AvailObject object)
+	{
+		return o_Traversed(object).isSetBin();
+	}
+
+	@Override
+	public MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
+	{
+		return o_Traversed(object).mapIterable();
+	}
 }

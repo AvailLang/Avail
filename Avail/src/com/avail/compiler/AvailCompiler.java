@@ -1011,14 +1011,16 @@ public class AvailCompiler
 		final Con<ArgType> continuation,
 		final ArgType argument)
 	{
-		attempt(new Continuation0()
-		{
-			@Override
-			public void value ()
+		attempt(
+			new Continuation0()
 			{
-				continuation.value(here, argument);
-			}
-		}, continuation.description, here.position);
+				@Override
+				public void value ()
+				{
+					continuation.value(here, argument);
+				}
+			},
+			continuation.description, here.position);
 	}
 
 	/**
@@ -2309,24 +2311,18 @@ public class AvailCompiler
 			// stranded, and we made progress in the file (i.e., the message
 			// send does not consist of exactly zero tokens, nor does it consist
 			// of a solitary underscore).
-			complete.mapDo(new Continuation2<AvailObject, AvailObject>()
+			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
-				@Override
-				public void value (
-					final AvailObject message,
-					final AvailObject bundle)
+				if (interpreter.runtime().hasMethodsAt(entry.key))
 				{
-					if (interpreter.runtime().hasMethodsAt(message))
-					{
-						completedSendNode(
-							start,
-							argsSoFar,
-							innerArgsSoFar,
-							bundle,
-							continuation);
-					}
+					completedSendNode(
+						start,
+						argsSoFar,
+						innerArgsSoFar,
+						entry.value,
+						continuation);
 				}
-			});
+			}
 		}
 		if (anyIncomplete && firstArgOrNull == null && !start.atEnd())
 		{
@@ -2369,33 +2365,27 @@ public class AvailCompiler
 		}
 		if (anySpecial)
 		{
-			special.mapDo(new Continuation2<AvailObject, AvailObject>()
+			for (final MapDescriptor.Entry entry : special.mapIterable())
 			{
-				@Override
-				public void value (
-					final AvailObject instructionObject,
-					final AvailObject successorTrees)
+				attempt(new Continuation0()
 				{
-					attempt(new Continuation0()
+					@Override
+					public void value ()
 					{
-						@Override
-						public void value ()
-						{
-							runParsingInstructionThen(
-								start,
-								instructionObject.extractInt(),
-								firstArgOrNull,
-								argsSoFar,
-								innerArgsSoFar,
-								initialTokenPosition,
-								successorTrees,
-								continuation);
-						}
-					},
-						"Continue with instruction " + instructionObject,
-						start.position);
-				}
-			});
+						runParsingInstructionThen(
+							start,
+							entry.key.extractInt(),
+							firstArgOrNull,
+							argsSoFar,
+							innerArgsSoFar,
+							initialTokenPosition,
+							entry.value,
+							continuation);
+					}
+				},
+					"Continue with instruction " + entry.key,
+					start.position);
+			}
 		}
 	}
 
@@ -3001,16 +2991,10 @@ public class AvailCompiler
 				builder.append("one of the following internal keywords:");
 				final List<String> sorted =
 					new ArrayList<String>(incomplete.mapSize());
-				incomplete.mapDo(new Continuation2<AvailObject, AvailObject>()
+				for (MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
-					@Override
-					public void value (
-						final AvailObject key,
-						final AvailObject value)
-					{
-						sorted.add(key.asNativeString());
-					}
-				});
+					sorted.add(entry.key.asNativeString());
+				}
 				Collections.sort(sorted);
 				boolean startOfLine = true;
 				builder.append("\n\t");

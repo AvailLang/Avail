@@ -145,26 +145,28 @@ extends Descriptor
 		{
 			aStream.append("Map:");
 		}
-		object.mapDo(new Continuation2<AvailObject, AvailObject>()
+		for (Entry entry : object.mapIterable())
+		{
+			if (size > 1)
 			{
-			@Override
-			public void value (final AvailObject key, final AvailObject value)
-			{
-				if (size > 1)
+				aStream.append("\n");
+				for (int t = 1; t <= indent; t++)
 				{
-					aStream.append("\n");
-					for (int t = 1; t <= indent; t++)
-					{
-						aStream.append("\t");
-					}
+					aStream.append("\t");
 				}
-				aStream.append('[');
-				key.printOnAvoidingIndent(aStream, recursionList, indent + 1);
-				aStream.append("->");
-				value.printOnAvoidingIndent(aStream, recursionList, indent + 1);
-				aStream.append(']');
 			}
-			});
+			aStream.append('[');
+			entry.key.printOnAvoidingIndent(
+				aStream,
+				recursionList,
+				indent + 1);
+			aStream.append("->");
+			entry.value.printOnAvoidingIndent(
+				aStream,
+				recursionList,
+				indent + 1);
+			aStream.append(']');
+		}
 	}
 
 	@Override
@@ -264,23 +266,17 @@ extends Descriptor
 	{
 		//  Answer the object's type.
 
-		final Mutable<AvailObject> keyType = new Mutable<AvailObject>(
-				TERMINATES.o());
-		final Mutable<AvailObject> valueType = new Mutable<AvailObject>(
-				TERMINATES.o());
-		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-			{
-			@Override
-			public void value (final AvailObject key, final AvailObject value)
-			{
-				keyType.value = keyType.value.typeUnion(key.type());
-				valueType.value = valueType.value.typeUnion(value.type());
-			}
-			});
+		AvailObject keyType = TERMINATES.o();
+		AvailObject valueType = TERMINATES.o();
+		for (Entry entry : object.mapIterable())
+		{
+			keyType = keyType.typeUnion(entry.key.type());
+			valueType = valueType.typeUnion(entry.value.type());
+		}
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerDescriptor.fromInt(object.mapSize()).type(),
-			keyType.value,
-			valueType.value);
+			keyType,
+			valueType);
 	}
 
 	@Override
@@ -400,14 +396,10 @@ extends Descriptor
 		final AvailObject result = MapDescriptor.newWithCapacity(object.mapSize() * 2 + 5);
 		//  Start new map just over 50% free (with no blanks).
 		CanAllocateObjects(false);
-		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-			{
-			@Override
-			public void value (final AvailObject key, final AvailObject value)
-			{
-				result.privateMapAtPut(key, value);
-			}
-			});
+		for (Entry entry : object.mapIterable())
+		{
+			result.privateMapAtPut(entry.key, entry.value);
+		}
 		result.privateMapAtPut(keyObject, newValueObject);
 		CanAllocateObjects(true);
 		return result;
@@ -538,7 +530,7 @@ extends Descriptor
 	{
 		//  Answer the map's indexth key.
 
-		return object.dataAtIndex(index + index - 1);
+		return object.dataAtIndex(index * 2 - 1);
 	}
 
 	@Override
@@ -549,7 +541,7 @@ extends Descriptor
 	{
 		//  Set the map's indexth key.
 
-		object.dataAtIndexPut((index * 2 - 1), keyObject);
+		object.dataAtIndexPut(index * 2 - 1, keyObject);
 	}
 
 	@Override
@@ -704,6 +696,82 @@ extends Descriptor
 			}
 		}
 		AvailObject.unlock(object);
+	}
+
+	public static class Entry
+	{
+		public AvailObject key;
+		public AvailObject value;
+	}
+
+	public static class MapIterable
+	implements
+		Iterator<Entry>,
+		Iterable<Entry>
+	{
+		final AvailObject object;
+
+		final Entry entry = new Entry();
+
+		private int dataSubscript;
+
+		final int dataCapacity;
+
+		MapIterable (final AvailObject object)
+		{
+			this.object = object;
+			dataSubscript = -1;  // 1 - 2
+			dataCapacity = object.capacity() * 2;
+			advance();
+		}
+
+		private void advance ()
+		{
+			do
+			{
+				dataSubscript += 2;
+			}
+			while (dataSubscript <= dataCapacity
+				&& object.dataAtIndex(dataSubscript).equalsVoidOrBlank());
+		}
+
+		@Override
+		public void remove ()
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Entry next ()
+		{
+			// Recycle the same Entry repeatedly.
+			assert hasNext();
+			entry.key = object.dataAtIndex(dataSubscript);
+			entry.value = object.dataAtIndex(dataSubscript + 1);
+			assert !entry.key.equalsVoidOrBlank();
+			advance();
+			return entry;
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return dataSubscript <= dataCapacity;
+		}
+
+		@Override
+		public Iterator<Entry> iterator ()
+		{
+			// This is what Java *should* have provided all along.
+			return this;
+		}
+	}
+
+	@Override
+	public MapDescriptor.MapIterable o_MapIterable (
+		final AvailObject object)
+	{
+		return new MapIterable(object);
 	}
 
 	/**

@@ -5214,4 +5214,17 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_AllBundles (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsSetBin (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract MapDescriptor.MapIterable o_MapIterable (
+		final AvailObject object);
 }

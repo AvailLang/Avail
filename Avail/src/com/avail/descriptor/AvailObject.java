@@ -122,6 +122,11 @@ implements Iterable<AvailObject>
 			e.printStackTrace(outer);
 			builder.append(inner);
 		}
+		catch (AssertionError e)
+		{
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 
@@ -6248,5 +6253,23 @@ implements Iterable<AvailObject>
 	public AvailObject allBundles ()
 	{
 		return descriptor().o_AllBundles(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isSetBin ()
+	{
+		return descriptor().o_IsSetBin(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public MapDescriptor.MapIterable mapIterable ()
+	{
+		return descriptor().o_MapIterable(this);
 	}
 }

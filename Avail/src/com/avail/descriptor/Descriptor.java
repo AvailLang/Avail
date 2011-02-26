@@ -8896,4 +8896,19 @@ extends AbstractDescriptor
 		subclassResponsibility("o_AllBundles");
 		return null;
 	}
+
+
+	@Override
+	public boolean o_IsSetBin (final AvailObject object)
+	{
+		return false;
+	}
+
+
+	@Override
+	public MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
+	{
+		subclassResponsibility("o_MapIterator");
+		return null;
+	}
 }

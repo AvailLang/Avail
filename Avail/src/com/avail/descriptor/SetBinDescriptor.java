@@ -47,6 +47,12 @@ extends Descriptor
 		return _level;
 	}
 
+	@Override
+	public boolean o_IsSetBin (final AvailObject object)
+	{
+		return true;
+	}
+
 	/**
 	 * Construct a new {@link SetBinDescriptor}.
 	 *

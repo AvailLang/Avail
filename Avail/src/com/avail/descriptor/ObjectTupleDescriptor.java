@@ -259,7 +259,7 @@ extends TupleDescriptor
 		//  This is just to assist the type deducer.
 		newHash = object.computeHashFromTo(start, end);
 		AvailObject result;
-		if (end - start < 10)
+		if (end - start < 20)
 		{
 			result = mutable().create(end - start + 1);
 			result.hashOrZero(newHash);
