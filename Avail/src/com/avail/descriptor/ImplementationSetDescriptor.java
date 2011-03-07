@@ -868,7 +868,7 @@ extends Descriptor
 			new Mutable<List<AvailObject>>();
 		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
 		{
-		final int finalIndex = index;
+			final int finalIndex = index;
 			if (argTypes.get(finalIndex - 1).equals(TERMINATES.o()))
 			{
 				failBlock.value(new Generator<String> ()
@@ -912,8 +912,8 @@ extends Descriptor
 								argIndex--)
 						{
 							isBest = isBest
-								&& impType.argTypeAt(argIndex)
-									.isSubtypeOf(otherType.argTypeAt(argIndex));
+								&& impType.argTypeAt(argIndex).isSubtypeOf(
+									otherType.argTypeAt(argIndex));
 						}
 					}
 				}

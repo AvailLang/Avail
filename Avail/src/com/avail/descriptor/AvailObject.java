@@ -1365,18 +1365,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject complete ()
+	public AvailObject lazyComplete ()
 	{
-		return descriptor().o_Complete(this);
+		return descriptor().o_LazyComplete(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void complete (
+	public void lazyComplete (
 		final AvailObject value)
 	{
-		descriptor().o_Complete(this, value);
+		descriptor().o_LazyComplete(this, value);
 	}
 
 	/**
@@ -2509,18 +2509,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject incomplete ()
+	public AvailObject lazyIncomplete ()
 	{
-		return descriptor().o_Incomplete(this);
+		return descriptor().o_LazyIncomplete(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void incomplete (
+	public void lazyIncomplete (
 		final AvailObject value)
 	{
-		descriptor().o_Incomplete(this, value);
+		descriptor().o_LazyIncomplete(this, value);
 	}
 
 	/**
@@ -4709,18 +4709,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject specialActions ()
+	public AvailObject lazySpecialActions ()
 	{
-		return descriptor().o_SpecialActions(this);
+		return descriptor().o_LazySpecialActions(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void specialActions (
+	public void lazySpecialActions (
 		final AvailObject value)
 	{
-		descriptor().o_SpecialActions(this, value);
+		descriptor().o_LazySpecialActions(this, value);
 	}
 
 	/**
@@ -5659,15 +5659,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void mapDo (
-		final Continuation2<AvailObject, AvailObject> continuation)
-	{
-		descriptor().o_mapDo(this,continuation);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void expression (final AvailObject expression)
 	{
 		descriptor().o_Expression(this, expression);
@@ -6280,5 +6271,32 @@ implements Iterable<AvailObject>
 	public MapDescriptor.MapIterable mapIterable ()
 	{
 		return descriptor().o_MapIterable(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject complete ()
+	{
+		return descriptor().o_Complete(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject incomplete ()
+	{
+		return descriptor().o_Incomplete(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public AvailObject specialActions ()
+	{
+		return descriptor().o_SpecialActions(this);
 	}
 }

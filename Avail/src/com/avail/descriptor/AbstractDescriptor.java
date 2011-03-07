@@ -981,7 +981,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Complete (
+	public abstract void o_LazyComplete (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -1409,7 +1409,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Incomplete (
+	public abstract void o_LazyIncomplete (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -2523,7 +2523,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_SpecialActions (
+	public abstract void o_LazySpecialActions (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -3263,7 +3263,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Complete (final AvailObject object);
+	public abstract AvailObject o_LazyComplete (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3503,7 +3503,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Incomplete (final AvailObject object);
+	public abstract AvailObject o_LazyIncomplete (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3968,7 +3968,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_SpecialActions (final AvailObject object);
+	public abstract AvailObject o_LazySpecialActions (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4752,14 +4752,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param continuation
-	 */
-	public abstract void o_mapDo (
-		final AvailObject object,
-		final Continuation2<AvailObject, AvailObject> continuation);
-
-	/**
-	 * @param object
 	 * @param expression
 	 * @return
 	 */
@@ -5232,5 +5224,26 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract MapDescriptor.MapIterable o_MapIterable (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Complete (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Incomplete (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_SpecialActions (
 		final AvailObject object);
 }

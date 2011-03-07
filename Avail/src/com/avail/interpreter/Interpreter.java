@@ -710,19 +710,19 @@ public abstract class Interpreter
 	 * message (cyclicType) to messageBundle.  Filter selectors based on the
 	 * visibility of names in the current module.
 	 *
-	 * @param firstPiece An Avail {@link ByteStringDescriptor string}.
-	 * @return A map from
+	 * @param firstPiece
+	 *        An Avail {@link ByteStringDescriptor string}.
+	 * @return A map from TODO
 	 */
 	public AvailObject completeBundlesStartingWith (
 		final AvailObject firstPiece)
 	{
-
-		final AvailObject allBundles = module.filteredBundleTree().incomplete();
-		if (!allBundles.hasKey(firstPiece))
+		final AvailObject incomplete = module.filteredBundleTree().incomplete();
+		if (!incomplete.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
 		}
-		return allBundles.mapAt(firstPiece).complete();
+		return incomplete.mapAt(firstPiece).complete();
 	}
 
 	/**
@@ -730,19 +730,20 @@ public abstract class Interpreter
 	 * The map is from the second piece to bundle tree.  Filter selectors based
 	 * on the visibility of names in the current module.
 	 *
-	 * @param firstPiece The first Avail {@link ByteStringDescriptor string}
-	 *                   token by which to filter messages.
-	 * @return A map from
+	 * @param firstPiece
+	 *        The first Avail {@link ByteStringDescriptor string} token by which
+	 *        to filter messages.
+	 * @return A map from TODO
 	 */
 	public AvailObject incompleteBundlesStartingWith (
 		final AvailObject firstPiece)
 	{
-		final AvailObject allBundles = module.filteredBundleTree().incomplete();
-		if (!allBundles.hasKey(firstPiece))
+		final AvailObject incomplete = module.filteredBundleTree().incomplete();
+		if (!incomplete.hasKey(firstPiece))
 		{
 			return MapDescriptor.empty();
 		}
-		return allBundles.mapAt(firstPiece).incomplete();
+		return incomplete.mapAt(firstPiece).incomplete();
 	}
 
 	/**

@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static java.lang.Math.min;
 import com.avail.annotations.NotNull;
-import com.avail.utility.*;
 
 public class ObjectTypeDescriptor
 extends TypeDescriptor
@@ -217,38 +216,34 @@ extends TypeDescriptor
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		final Mutable<AvailObject> resultMap = new Mutable<AvailObject>(
-			MapDescriptor.newWithCapacity(map1.capacity() + map2.capacity()));
-		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
+		AvailObject resultMap = MapDescriptor.newWithCapacity(
+			map1.capacity() + map2.capacity());
+		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
-			@Override
-			public void value (final AvailObject key, AvailObject type)
+			final AvailObject key = entry.key;
+			AvailObject type = entry.value;
+			if (map2.hasKey(key))
 			{
-				if (map2.hasKey(key))
-				{
-					type = type.typeIntersection(map2.mapAt(key));
-				}
-				resultMap.value = resultMap.value.mapAtPuttingCanDestroy(
+				type = type.typeIntersection(map2.mapAt(key));
+			}
+			resultMap = resultMap.mapAtPuttingCanDestroy(
+				key,
+				type,
+				true);
+		}
+		for (final MapDescriptor.Entry entry : map2.mapIterable())
+		{
+			final AvailObject key = entry.key;
+			AvailObject type = entry.value;
+			if (!map1.hasKey(key))
+			{
+				resultMap = resultMap.mapAtPuttingCanDestroy(
 					key,
 					type,
 					true);
 			}
-		});
-		map2.mapDo(new Continuation2<AvailObject, AvailObject>()
-		{
-			@Override
-			public void value (final AvailObject key, final AvailObject type)
-			{
-				if (!map1.hasKey(key))
-				{
-					resultMap.value = resultMap.value.mapAtPuttingCanDestroy(
-						key,
-						type,
-						true);
-				}
-			}
-		});
-		return ObjectTypeDescriptor.objectTypeFromMap(resultMap.value);
+		}
+		return objectTypeFromMap(resultMap);
 	}
 
 	@Override
@@ -256,7 +251,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
+		// Answer the most specific type that is still at least as general as
+		// these.
 
 		if (object.isSubtypeOf(another))
 		{
@@ -269,6 +265,7 @@ extends TypeDescriptor
 		return another.typeUnionOfObjectType(object);
 	}
 
+
 	/**
 	 * Answer the most specific type that is still at least as general as these.
 	 * Here we're finding the nearest common ancestor of two eager object types.
@@ -280,43 +277,54 @@ extends TypeDescriptor
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		final Mutable<AvailObject> resultMap = new Mutable<AvailObject>(
-			MapDescriptor.newWithCapacity(
-				min(map1.capacity(), map2.capacity())));
-		map1.mapDo(new Continuation2<AvailObject, AvailObject>()
+		AvailObject resultMap = MapDescriptor.newWithCapacity(
+			min(map1.capacity(), map2.capacity()));
+		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
-			@Override
-			public void value (final AvailObject key, final AvailObject valueType)
+			final AvailObject key = entry.key;
+			if (map2.hasKey(key))
 			{
-				if (map2.hasKey(key))
-				{
-					resultMap.value = resultMap.value.mapAtPuttingCanDestroy(
-						key,
-						valueType.typeUnion(map2.mapAt(key)),
-						true);
-				}
+				final AvailObject valueType = entry.value;
+				resultMap = resultMap.mapAtPuttingCanDestroy(
+					key,
+					valueType.typeUnion(map2.mapAt(key)),
+					true);
 			}
-		});
-		return ObjectTypeDescriptor.objectTypeFromMap(resultMap.value);
+		}
+		return objectTypeFromMap(resultMap);
 	}
 
+
+	/**
+	 * Compute the hash value from the given object's data.
+	 *
+	 * @param object The {@link AvailObject object} to hash.
+	 * @return The hash value of the object.
+	 */
 	int computeHashForObject (
 		final @NotNull AvailObject object)
 	{
-		//  Compute the hash value from the object's data.  The result should be
-		//  a Smalltalk Integer between 16r00000001 and 16rFFFFFFFF inclusive.
-		//  Hash the map (of field keys and field types) and multiply it by 11.
-
-		return object.fieldTypeMap().hash() * 11;
+		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
 	}
 
-	/* Object creation */
+
+	/**
+	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
+	 * {@linkplain MapDescriptor map} from {@linkplain CyclicTypeDescriptor
+	 * keys} to {@linkplain TypeDescriptor types}.
+	 *
+	 * @param map
+	 *        The {@linkplain MapDescriptor map} from {@linkplain
+	 *        CyclicTypeDescriptor keys} to {@linkplain TypeDescriptor types}.
+	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
+	 */
 	public static AvailObject objectTypeFromMap (final AvailObject map)
 	{
 		AvailObject result = mutable().create();
 		result.fieldTypeMap(map);
 		return result;
 	}
+
 
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.

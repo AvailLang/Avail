@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.NotNull;
-import com.avail.utility.*;
 
 public class ObjectDescriptor
 extends Descriptor
@@ -106,33 +105,29 @@ extends Descriptor
 	public @NotNull AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
+		// Answer the object's type.
 
 		object.makeImmutable();
 		final AvailObject valueMap = object.fieldMap();
-		final Mutable<AvailObject> typeMap = new Mutable<AvailObject>(
-				MapDescriptor.newWithCapacity(valueMap.capacity()));
-		valueMap.mapDo(new Continuation2<AvailObject, AvailObject>()
+		AvailObject typeMap = MapDescriptor.newWithCapacity(
+			valueMap.capacity());
+		for (final MapDescriptor.Entry entry : valueMap.mapIterable())
 		{
-			@Override
-			public void value (final AvailObject key, final AvailObject value)
-			{
-				typeMap.value = typeMap.value.mapAtPuttingCanDestroy(
-					key,
-					value.type(),
-					true);
-			}
-		});
-		return ObjectTypeDescriptor.objectTypeFromMap(typeMap.value);
+			typeMap = typeMap.mapAtPuttingCanDestroy(
+				entry.key,
+				entry.value.type(),
+				true);
+		}
+		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
 	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's hash value.
+		// Answer the object's hash value.
 
-		return ObjectDescriptor.computeHashFromFieldMapHash(object.fieldMap().hash());
+		return computeHashFromFieldMapHash(object.fieldMap().hash());
 	}
 
 	@Override

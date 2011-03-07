@@ -3548,7 +3548,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
-			interpreter.primitiveResult(bundleTree.incomplete().makeImmutable());
+			interpreter.primitiveResult(
+				bundleTree.incomplete().makeImmutable());
 			return SUCCESS;
 		}
 	},
@@ -3568,7 +3569,10 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
-			interpreter.primitiveResult(interpreter.completeBundlesStartingWith(leadingPart).makeImmutable());
+			interpreter.primitiveResult(
+				interpreter
+					.completeBundlesStartingWith(leadingPart)
+					.makeImmutable());
 			return SUCCESS;
 		}
 	},

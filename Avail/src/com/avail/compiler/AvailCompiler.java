@@ -2296,9 +2296,9 @@ public class AvailCompiler
 		final Con<AvailObject> continuation)
 	{
 		bundleTree.expand();
-		final AvailObject complete = bundleTree.complete();
-		final AvailObject incomplete = bundleTree.incomplete();
-		final AvailObject special = bundleTree.specialActions();
+		final AvailObject complete = bundleTree.lazyComplete();
+		final AvailObject incomplete = bundleTree.lazyIncomplete();
+		final AvailObject special = bundleTree.lazySpecialActions();
 		final boolean anyComplete = complete.mapSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
 		final boolean anySpecial = special.mapSize() > 0;
@@ -2367,22 +2367,23 @@ public class AvailCompiler
 		{
 			for (final MapDescriptor.Entry entry : special.mapIterable())
 			{
-				attempt(new Continuation0()
-				{
-					@Override
-					public void value ()
+				attempt(
+					new Continuation0()
 					{
-						runParsingInstructionThen(
-							start,
-							entry.key.extractInt(),
-							firstArgOrNull,
-							argsSoFar,
-							innerArgsSoFar,
-							initialTokenPosition,
-							entry.value,
-							continuation);
-					}
-				},
+						@Override
+						public void value ()
+						{
+							runParsingInstructionThen(
+								start,
+								entry.key.extractInt(),
+								firstArgOrNull,
+								argsSoFar,
+								innerArgsSoFar,
+								initialTokenPosition,
+								entry.value,
+								continuation);
+						}
+					},
 					"Continue with instruction " + entry.key,
 					start.position);
 			}

@@ -159,7 +159,8 @@ public class SetDescriptor extends Descriptor
 			return false;
 		}
 		//  set's size is out of range.
-		return object.rootBin().binUnionTypeOrVoid().isSubtypeOf(aTypeObject.contentType());
+		return object.rootBin().binUnionType().isSubtypeOf(
+			aTypeObject.contentType());
 	}
 
 	@Override
@@ -170,7 +171,7 @@ public class SetDescriptor extends Descriptor
 
 		final int size = object.setSize();
 		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
-		final AvailObject unionType = object.rootBin().binUnionTypeOrVoid();
+		final AvailObject unionType = object.rootBin().binUnionType();
 		unionType.makeImmutable();
 		return SetTypeDescriptor.setTypeForSizesContentType(sizeRange, unionType);
 	}

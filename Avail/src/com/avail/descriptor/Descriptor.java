@@ -899,13 +899,11 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_Complete (
+	public void o_LazyComplete (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:complete:", object);
+		subclassResponsibility("o_LazyComplete", object);
 		return;
 	}
 
@@ -1673,13 +1671,11 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_Incomplete (
+	public void o_LazyIncomplete (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:incomplete:", object);
+		subclassResponsibility("o_LazyIncomplete", object);
 		return;
 	}
 
@@ -3776,13 +3772,11 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_SpecialActions (
+	public void o_LazySpecialActions (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:specialActions:", object);
+		subclassResponsibility("o_LazySpecialActions", object);
 		return;
 	}
 
@@ -5185,12 +5179,10 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_Complete (
+	public @NotNull AvailObject o_LazyComplete (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_Complete:", object);
+		subclassResponsibility("o_LazyComplete", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5734,12 +5726,10 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_Incomplete (
+	public @NotNull AvailObject o_LazyIncomplete (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_Incomplete:", object);
+		subclassResponsibility("o_LazyIncomplete", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6822,12 +6812,10 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_SpecialActions (
+	public @NotNull AvailObject o_LazySpecialActions (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_SpecialActions:", object);
+		subclassResponsibility("o_LazySpecialActions", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -8127,12 +8115,9 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_BinUnionTypeOrVoid (
 		final AvailObject object)
 	{
-		//  Answer the union of the types of this bin's elements.  I act as a bin of size one.
-
-		return object.type();
+		subclassResponsibility("o_BinUnionTypeOrVoid");
+		return null;
 	}
-
-
 
 	/**
 	 * @param object
@@ -8308,18 +8293,6 @@ extends AbstractDescriptor
 	{
 		subclassResponsibility("o_ParsingInstructions", object);
 		return null;
-	}
-
-	/**
-	 * @param object
-	 * @param continuation
-	 */
-	@Override
-	public void o_mapDo (
-		final AvailObject object,
-		final Continuation2<AvailObject, AvailObject> continuation)
-	{
-		subclassResponsibility("o_KeysAndValuesDo", object);
 	}
 
 	@Override
@@ -8799,8 +8772,8 @@ extends AbstractDescriptor
 	@Override
 	public AvailObject o_BinUnionType (final AvailObject object)
 	{
-		subclassResponsibility("o_BinUnionType");
-		return null;
+		// Ordinary (non-bin, non-void) objects act as set bins of size one.
+		return object.type();
 	}
 
 
@@ -8917,6 +8890,30 @@ extends AbstractDescriptor
 	public MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
 	{
 		subclassResponsibility("o_MapIterator");
+		return null;
+	}
+
+
+	@Override
+	public AvailObject o_Complete (final AvailObject object)
+	{
+		subclassResponsibility("o_Complete");
+		return null;
+	}
+
+
+	@Override
+	public AvailObject o_Incomplete (final AvailObject object)
+	{
+		subclassResponsibility("o_Incomplete");
+		return null;
+	}
+
+
+	@Override
+	public AvailObject o_SpecialActions (final AvailObject object)
+	{
+		subclassResponsibility("o_SpecialActions");
 		return null;
 	}
 }

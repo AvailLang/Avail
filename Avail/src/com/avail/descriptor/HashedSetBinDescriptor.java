@@ -220,22 +220,26 @@ extends SetBinDescriptor
 		if ((vector & bitShift(1,logicalIndex)) != 0)
 		{
 			AvailObject entry = object.binElementAt(physicalIndex);
-		final int previousBinSize = entry.binSize();
-		final int previousHash = entry.binHash();
+			final int previousBinSize = entry.binSize();
+			final int previousHash = entry.binHash();
 			entry = entry.binAddingElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
 				((byte)(_level + 1)),
 				canDestroy);
-		final int delta = entry.binSize() - previousBinSize;
+			final int delta = entry.binSize() - previousBinSize;
 			if (delta == 0)
 			{
 				return object;
 			}
 			//  The element had to be added.
-		final int hashDelta = entry.binHash() - previousHash;
-			unionType = object.binUnionTypeOrVoid().typeUnion(elementObject.type());
-		final int newSize = object.binSize() + delta;
+			final int hashDelta = entry.binHash() - previousHash;
+			unionType = object.binUnionTypeOrVoid();
+			if (!unionType.equalsVoid())
+			{
+				unionType = unionType.typeUnion(elementObject.type());
+			}
+			final int newSize = object.binSize() + delta;
 			if (canDestroy & isMutable)
 			{
 				objectToModify = object;
@@ -267,7 +271,11 @@ extends SetBinDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		unionType = object.binUnionTypeOrVoid().typeUnion(elementObject.type());
+		unionType = object.binUnionTypeOrVoid();
+		if (!unionType.equalsVoid())
+		{
+			unionType = unionType.typeUnion(elementObject.type());
+		}
 		objectToModify = HashedSetBinDescriptor.isMutableLevel(true, _level)
 			.create(objectEntryCount + 1);
 		objectToModify.binHash(object.binHash() + elementObjectHash);
@@ -361,7 +369,7 @@ extends SetBinDescriptor
 				if (index != physicalIndex)
 				{
 					newUnionType = newUnionType.typeUnion(
-						object.binElementAt(index).binUnionTypeOrVoid());
+						object.binElementAt(index).binUnionType());
 				}
 			}
 			result = HashedSetBinDescriptor.isMutableLevel(true, _level).create(

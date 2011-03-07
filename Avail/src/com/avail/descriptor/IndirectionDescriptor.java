@@ -1,6 +1,7 @@
 /**
- * descriptor/IndirectionDescriptor.java Copyright (c) 2010, Mark van Gulik. All
- * rights reserved.
+ * descriptor/IndirectionDescriptor.java
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -80,7 +81,9 @@ extends AbstractDescriptor
 {
 
 	/**
-	 * The slots
+	 * The object slots of my {@link AvailObject} instances.  In particular, an
+	 * {@linkplain IndirectionDescriptor indirection} has just a {@link
+	 * #TARGET}, which is the object that the current object is equivalent to.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
@@ -673,9 +676,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Complete (final AvailObject object, final AvailObject value)
+	public void o_LazyComplete (final AvailObject object, final AvailObject value)
 	{
-		o_Traversed(object).complete(value);
+		o_Traversed(object).lazyComplete(value);
 	}
 
 	@Override
@@ -1302,9 +1305,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Incomplete (final AvailObject object, final AvailObject value)
+	public void o_LazyIncomplete (final AvailObject object, final AvailObject value)
 	{
-		o_Traversed(object).incomplete(value);
+		o_Traversed(object).lazyIncomplete(value);
 	}
 
 	@Override
@@ -2368,11 +2371,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_SpecialActions (
+	public void o_LazySpecialActions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).specialActions(value);
+		o_Traversed(object).lazySpecialActions(value);
 	}
 
 	@Override
@@ -3079,9 +3082,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Complete (final AvailObject object)
+	public @NotNull AvailObject o_LazyComplete (final AvailObject object)
 	{
-		return o_Traversed(object).complete();
+		return o_Traversed(object).lazyComplete();
 	}
 
 	@Override
@@ -3365,9 +3368,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Incomplete (final AvailObject object)
+	public @NotNull AvailObject o_LazyIncomplete (final AvailObject object)
 	{
-		return o_Traversed(object).incomplete();
+		return o_Traversed(object).lazyIncomplete();
 	}
 
 	@Override
@@ -3966,9 +3969,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_SpecialActions (final AvailObject object)
+	public @NotNull AvailObject o_LazySpecialActions (final AvailObject object)
 	{
-		return o_Traversed(object).specialActions();
+		return o_Traversed(object).lazySpecialActions();
 	}
 
 	@Override
@@ -4127,14 +4130,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ParsingInstructions (final AvailObject object)
 	{
 		return o_Traversed(object).parsingInstructions();
-	}
-
-	@Override
-	public void o_mapDo (
-		final @NotNull AvailObject object,
-		final @NotNull Continuation2<AvailObject, AvailObject> continuation)
-	{
-		o_Traversed(object).mapDo(continuation);
 	}
 
 	@Override
@@ -4597,5 +4592,23 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return o_Traversed(object).mapIterable();
+	}
+
+	@Override
+	public AvailObject o_Complete (final AvailObject object)
+	{
+		return o_Traversed(object).complete();
+	}
+
+	@Override
+	public AvailObject o_Incomplete (final AvailObject object)
+	{
+		return o_Traversed(object).incomplete();
+	}
+
+	@Override
+	public AvailObject o_SpecialActions (final AvailObject object)
+	{
+		return o_Traversed(object).specialActions();
 	}
 }

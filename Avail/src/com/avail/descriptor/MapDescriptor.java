@@ -36,7 +36,6 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.utility.*;
 
 /**
  * I represent a discrete function whose keys and values are arbitrary Avail
@@ -126,6 +125,129 @@ extends Descriptor
 		final AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_BLANKS);
+	}
+
+
+	/**
+	 * {@link MapDescriptor.Entry} exists solely to allow the "foreach" control
+	 * structure to be used on a {@linkplain MapDescriptor map} by suitable use
+	 * of {@linkplain MapDescriptor#o_MapIterable(AvailObject) mapIterable()}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	public static class Entry
+	{
+		/**
+		 * The key at some {@link MapIterable}'s current position.
+		 */
+		public final AvailObject key;
+
+		/**
+		 * The value associated with the key at some {@link MapIterable}'s
+		 * current position.
+		 */
+		public final AvailObject value;
+
+		/**
+		 * Construct a new {@link Entry}.
+		 *
+		 * @param key The key of the {@linkplain MapDescriptor map} entry.
+		 * @param value The value of the {@linkplain MapDescriptor map} entry.
+		 */
+		Entry(final AvailObject key, final AvailObject value)
+		{
+			this.key = key;
+			this.value = value;
+		}
+	}
+
+	/**
+	 * {@link MapDescriptor.MapIterable} is returned by {@linkplain
+	 * MapDescriptor#o_MapIterable(AvailObject) mapIterable()} to support use of
+	 * the"foreach" control structure on {@linkplain MapDescriptor maps}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	public static class MapIterable
+	implements
+		Iterator<Entry>,
+		Iterable<Entry>
+	{
+		/**
+		 * The {@linkplain MapDescriptor map} being iterated.
+		 */
+		private final AvailObject object;
+
+		/**
+		 * The subscript used by {@link
+		 * MapDescriptor#o_DataAtIndex(AvailObject, int) dataAtIndex(int)} to
+		 * extract the current key.  The value associated with this key is at
+		 * {@code dataAtIndex(dataSubscript + 1)}.
+		 */
+		private int dataSubscript;
+
+		/**
+		 * The size of the {@linkplain MapDescriptor map} being iterated over.
+		 */
+		private final int dataCapacity;
+
+		/**
+		 * Construct a new {@link MapIterable}.
+		 *
+		 * @param object The {@linkplain MapDescriptor map} to iterate over.
+		 */
+		MapIterable (final AvailObject object)
+		{
+			this.object = object;
+			dataSubscript = -1;  // 1 - 2
+			dataCapacity = object.capacity() * 2;
+			advance();
+		}
+
+		/**
+		 * Advance this iterator to the next position at which an actual key
+		 * exists, or just beyond the end of the map.
+		 */
+		private void advance ()
+		{
+			do
+			{
+				dataSubscript += 2;
+			}
+			while (dataSubscript <= dataCapacity
+				&& object.dataAtIndex(dataSubscript).equalsVoidOrBlank());
+		}
+
+		@Override
+		public void remove ()
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Entry next ()
+		{
+			// Recycle the same Entry repeatedly.
+			assert hasNext();
+			final AvailObject key = object.dataAtIndex(dataSubscript);
+			final AvailObject value = object.dataAtIndex(dataSubscript + 1);
+			assert !key.equalsVoidOrBlank();
+			advance();
+			return new Entry(key, value);
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return dataSubscript <= dataCapacity;
+		}
+
+		@Override
+		public Iterator<Entry> iterator ()
+		{
+			// This is what Java *should* have provided all along.
+			return this;
+		}
 	}
 
 	@Override
@@ -411,8 +533,8 @@ extends Descriptor
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
-		//  Answer a map like this one but with keyObject removed from it.
-		//  The original map can be destroyed if canDestroy is true and it's mutable.
+		// Answer a map like this one but with keyObject removed from it.  The
+		// original map can be destroyed if canDestroy is true and it's mutable.
 
 		if (!object.hasKey(keyObject))
 		{
@@ -427,19 +549,16 @@ extends Descriptor
 		{
 			return object.privateExcludeKey(keyObject);
 		}
-		final AvailObject result = MapDescriptor.newWithCapacity(object.capacity());
+		final AvailObject result =
+			MapDescriptor.newWithCapacity(object.capacity());
 		CanAllocateObjects(false);
-		object.mapDo(new Continuation2<AvailObject, AvailObject>()
+		for (final Entry entry : object.mapIterable())
+		{
+			if (!entry.key.equals(keyObject))
 			{
-			@Override
-			public void value (final AvailObject key, final AvailObject value)
-			{
-				if (!key.equals(keyObject))
-				{
-					result.privateMapAtPut(key, value);
-				}
+				result.privateMapAtPut(entry.key, entry.value);
 			}
-			});
+		}
 		CanAllocateObjects(true);
 		return result;
 	}
@@ -506,18 +625,14 @@ extends Descriptor
 			result.tupleAtPut(i, VoidDescriptor.voidObject());
 		}
 		result.hashOrZero(0);
-		final Mutable<Integer> targetIndex = new Mutable<Integer>(1);
-		object.mapDo(new Continuation2<AvailObject, AvailObject>()
-			{
-			@Override
-			public void value (final AvailObject key, final AvailObject value)
-			{
-				value.makeImmutable();
-				result.tupleAtPut(targetIndex.value, value);
-				targetIndex.value++;
-			}
-			});
-		assert targetIndex.value == object.mapSize() + 1;
+		int targetIndex = 1;
+		for (final Entry entry : object.mapIterable())
+		{
+			entry.value.makeImmutable();
+			result.tupleAtPut(targetIndex, entry.value);
+			targetIndex++;
+		}
+		assert targetIndex == object.mapSize() + 1;
 		CanAllocateObjects(true);
 		AvailObject.unlock(result);
 		return result;
@@ -677,94 +792,6 @@ extends Descriptor
 		assert result.size() == object.mapSize();
 		AvailObject.unlock(object);
 		return result;
-	}
-
-	@Override
-	public void o_mapDo (
-		final AvailObject object,
-		final Continuation2<AvailObject, AvailObject> continuation)
-	{
-		// Iterate over the keys and values of the map, invoking the
-		// continuation for each pair.
-		AvailObject.lock(object);
-		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
-		{
-			final AvailObject key = object.keyAtIndex(i);
-			if (!key.equalsVoidOrBlank())
-			{
-				continuation.value(key, object.valueAtIndex(i));
-			}
-		}
-		AvailObject.unlock(object);
-	}
-
-	public static class Entry
-	{
-		public AvailObject key;
-		public AvailObject value;
-	}
-
-	public static class MapIterable
-	implements
-		Iterator<Entry>,
-		Iterable<Entry>
-	{
-		final AvailObject object;
-
-		final Entry entry = new Entry();
-
-		private int dataSubscript;
-
-		final int dataCapacity;
-
-		MapIterable (final AvailObject object)
-		{
-			this.object = object;
-			dataSubscript = -1;  // 1 - 2
-			dataCapacity = object.capacity() * 2;
-			advance();
-		}
-
-		private void advance ()
-		{
-			do
-			{
-				dataSubscript += 2;
-			}
-			while (dataSubscript <= dataCapacity
-				&& object.dataAtIndex(dataSubscript).equalsVoidOrBlank());
-		}
-
-		@Override
-		public void remove ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Entry next ()
-		{
-			// Recycle the same Entry repeatedly.
-			assert hasNext();
-			entry.key = object.dataAtIndex(dataSubscript);
-			entry.value = object.dataAtIndex(dataSubscript + 1);
-			assert !entry.key.equalsVoidOrBlank();
-			advance();
-			return entry;
-		}
-
-		@Override
-		public boolean hasNext ()
-		{
-			return dataSubscript <= dataCapacity;
-		}
-
-		@Override
-		public Iterator<Entry> iterator ()
-		{
-			// This is what Java *should* have provided all along.
-			return this;
-		}
 	}
 
 	@Override

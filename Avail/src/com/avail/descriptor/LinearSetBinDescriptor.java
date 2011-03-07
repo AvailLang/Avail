@@ -96,7 +96,8 @@ extends SetBinDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor(LinearSetBinDescriptor.isMutableLevel(false, _level));
+			object.descriptor(
+				LinearSetBinDescriptor.isMutableLevel(false, _level));
 			object.makeSubobjectsImmutable();
 		}
 		return object;
@@ -170,7 +171,8 @@ extends SetBinDescriptor
 					eachHash,
 					myLevel,
 					true);
-				assert localAddResult.sameAddressAs(result) : "The element should have been added without reallocation";
+				assert localAddResult.sameAddressAs(result)
+				: "The element should have been added without reallocation";
 			}
 		final int newHash = object.binHash() + elementObjectHash;
 			assert result.binHash() == newHash;
@@ -194,7 +196,9 @@ extends SetBinDescriptor
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
-				result.binElementAtPut(i, object.binElementAt(i).makeImmutable());
+				result.binElementAtPut(
+					i,
+					object.binElementAt(i).makeImmutable());
 			}
 		}
 		else
@@ -213,7 +217,9 @@ extends SetBinDescriptor
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash)
 	{
-		for (int x = 1, _end1 = object.objectSlotsCount() - numberOfFixedObjectSlots(); x <= _end1; x++)
+		final int limit =
+			object.objectSlotsCount() - numberOfFixedObjectSlots();
+		for (int x = 1; x <= limit; x++)
 		{
 			if (elementObject.equals(object.binElementAt(x)))
 			{
@@ -234,7 +240,8 @@ extends SetBinDescriptor
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
-		final int oldSize = object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int oldSize =
+			object.objectSlotsCount() - numberOfFixedObjectSlots();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
 			if (object.binElementAt(searchIndex).equals(elementObject))

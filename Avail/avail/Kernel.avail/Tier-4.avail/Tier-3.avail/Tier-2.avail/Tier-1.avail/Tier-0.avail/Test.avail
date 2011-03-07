@@ -49,12 +49,10 @@ Method "Assert_" is [b : boolean |
 	Crash "A runtime assertion has failed";
 ] : void;
 
-
 Method "_to string" is [x : all |
 	Primitive 259;
 	"Unprintable object";
 ] : string;
-
 
 Method "«_‡then»" is [t : tuple |
 	Primitive 136;
@@ -71,8 +69,8 @@ Method "{«_‡,»}" is [t : tuple |
 ] : set;
 
 {"«_‡then»"} can't have <{"«_‡then»"}>;
-{"_to string"} can't have <{"«_‡then»"}>;
 
+{"_to string"} can't have <{"«_‡then»"}>;
 
 Method "If_then_else_" is [
 		condition : boolean,
@@ -111,8 +109,8 @@ Macro "_second_" is [a : parseNode, b : parseNode | b;];
 
 Assert 5 = 5;
 
-Assert true first false;
-Assert false second true;
+Assert true first "cheese";
+Assert "cheese" second true;
 
 
 Macro "_<-_" is [v : variableUseNode, e : parseNode |
@@ -122,6 +120,7 @@ Macro "_<-_" is [v : variableUseNode, e : parseNode |
 
 x : integer;
 x := 5;
+Assert x = 5;
 x <- 10;
 Assert x = 10;
 
@@ -156,8 +155,3 @@ Macro "_->_" is [e : parseNode, v : variableUseNode |
 Assert x = 20;
 
 /* "cheese" -> x; */
-
-If true then [
-	w : integer := 14;
-	Print w;
-] else [];
