@@ -254,6 +254,11 @@ extends PrimitiveTypeDescriptor
 		return true;
 	}
 
+	// TODO [MvG]: Lots and lots and lots of meta-specific singularities need to
+	// be added here, so that terminates type can sincerely be considered an
+	// instance of every metatype.
+
+
 	/**
 	 * Construct a new {@link TerminatesTypeDescriptor}.
 	 *
