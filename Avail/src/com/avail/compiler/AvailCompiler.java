@@ -1,6 +1,7 @@
 /**
  * compiler/AvailCompiler.java
- * Copyright (c) 2010, Mark van Gulik. All rights reserved.
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -81,7 +82,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *            What to do with the unambiguous, parsed statement.
 	 */
 	@Override
-	protected void parseStatementAsOutermostCanBeLabelThen (
+	void parseStatementAsOutermostCanBeLabelThen (
 		final ParserState start,
 		final boolean outermost,
 		final boolean canBeLabel,
@@ -243,78 +244,6 @@ public class AvailCompiler extends AbstractAvailCompiler
 		},
 			"Label type",
 			afterColon.position);
-	}
-
-	/**
-	 * Parse an expression whose type is (at least) someType. Evaluate the
-	 * expression, yielding a type, and pass that to the continuation. Note that
-	 * the longest syntactically correct and type correct expression is what
-	 * gets used. It's an ambiguity error if two or more possible parses of this
-	 * maximum length are possible.
-	 *
-	 * @param start
-	 *            Where to start parsing.
-	 * @param someType
-	 *            The type that the expression must return.
-	 * @param continuation
-	 *            What to do with the result of expression evaluation.
-	 */
-	void parseAndEvaluateExpressionYieldingInstanceOfThen (
-		final ParserState start,
-		final AvailObject someType,
-		final Con<AvailObject> continuation)
-	{
-		final ParserState startWithoutScope = new ParserState(
-			start.position,
-			new AvailCompilerScopeStack(null, null));
-		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
-			"Evaluate expression")
-		{
-			@Override
-			public void value (
-				final ParserState afterExpression,
-				final AvailObject expression)
-			{
-				if (expression.expressionType().isSubtypeOf(someType))
-				{
-					// A unique, longest type-correct expression was found.
-					final AvailObject value = evaluate(expression);
-					if (value.isInstanceOfSubtypeOf(someType))
-					{
-						assert afterExpression.scopeStack ==
-							startWithoutScope.scopeStack
-						: "Subexpression should not have been able "
-							+ "to cause declaration";
-						// Make sure we continue with the position after the
-						// expression, but the scope stack we started with.
-						// That's because the expression was parsed for
-						// execution, and as such was excluded from seeing
-						// things that would be in scope for regular
-						// subexpressions at this point.
-						attempt(new ParserState(
-							afterExpression.position,
-							start.scopeStack), continuation, value);
-					}
-					else
-					{
-						afterExpression.expected(
-							"expression to respect its own type declaration");
-					}
-				}
-				else
-				{
-					afterExpression.expected(new Generator<String>()
-					{
-						@Override
-						public String value ()
-						{
-							return "expression to have type "
-								+ someType.toString();
-						}
-					});
-				}
-			}
-		});
 	}
 
 	/**
@@ -911,6 +840,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 * @param originalContinuation
 	 *            What to do with the expression.
 	 */
+	@Override
 	void parseExpressionThen (
 		final ParserState start,
 		final Con<AvailObject> originalContinuation)

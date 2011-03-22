@@ -49,9 +49,11 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * TODO: Document this type!
+ * The abstract compiler for Avail code.  Subclasses may wish to implement, oh,
+ * say, a system version with a hard-coded basic syntax and a non-system version
+ * with no hard-coded syntax but macro capability.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public abstract class AbstractAvailCompiler
 {
@@ -59,7 +61,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
-	protected AvailObject module;
+	AvailObject module;
 
 	/**
 	 * The {@linkplain L2Interpreter interpreter} to use when evaluating
@@ -127,7 +129,7 @@ public abstract class AbstractAvailCompiler
 	 * by the {@linkplain AvailCompiler compiler} to report compilation
 	 * progress.
 	 */
-	protected Continuation4<ModuleName, Long, Long, Long> progressBlock;
+	Continuation4<ModuleName, Long, Long, Long> progressBlock;
 
 
 	/**
@@ -158,7 +160,7 @@ public abstract class AbstractAvailCompiler
 	 *            The type of the second parameter of the
 	 *            {@link Con#value(ParserState, Object)} method.
 	 */
-	protected abstract class Con<AnswerType> implements
+	abstract class Con<AnswerType> implements
 			Continuation2<ParserState, AnswerType>
 	{
 		/**
@@ -202,7 +204,7 @@ public abstract class AbstractAvailCompiler
 	 * @param continuation
 	 *            What to do if exactly one result was produced.
 	 */
-	protected void tryIfUnambiguousThen (
+	void tryIfUnambiguousThen (
 		final ParserState start,
 		final Con<Con<AvailObject>> tryBlock,
 		final Con<AvailObject> continuation)
@@ -574,7 +576,7 @@ public abstract class AbstractAvailCompiler
 	 * @throws AvailCompilerException
 	 *             If tokenization failed for any reason.
 	 */
-	protected @NotNull
+	@NotNull
 	ResolvedModuleName tokenize (
 		final @NotNull ModuleName qualifiedName,
 		final boolean stopAfterNamesToken) throws AvailCompilerException
@@ -658,7 +660,7 @@ public abstract class AbstractAvailCompiler
 	 * @throws AvailCompilerException
 	 *             Always thrown.
 	 */
-	protected void reportError (
+	void reportError (
 		final ParserState state,
 		final @NotNull ModuleName qualifiedName) throws AvailCompilerException
 	{
@@ -908,7 +910,7 @@ public abstract class AbstractAvailCompiler
 	 *            The name of the variable declaration for which to look.
 	 * @return The declaration or null.
 	 */
-	protected AvailObject lookupDeclaration (
+	AvailObject lookupDeclaration (
 		final ParserState start,
 		final AvailObject name)
 	{
@@ -934,7 +936,7 @@ public abstract class AbstractAvailCompiler
 	 * @param moduleName
 	 *            The name of the {@linkplain ModuleDescriptor module}.
 	 */
-	protected void startModuleTransaction (final AvailObject moduleName)
+	void startModuleTransaction (final AvailObject moduleName)
 	{
 		assert module == null;
 		module = ModuleDescriptor.newModule(moduleName);
@@ -945,7 +947,7 @@ public abstract class AbstractAvailCompiler
 	 * Rollback the {@linkplain ModuleDescriptor module} that was defined since
 	 * the most recent {@link #startModuleTransaction(AvailObject)}.
 	 */
-	protected void rollbackModuleTransaction ()
+	void rollbackModuleTransaction ()
 	{
 		assert module != null;
 		module.removeFrom(interpreter);
@@ -958,7 +960,7 @@ public abstract class AbstractAvailCompiler
 	 * the most recent {@link #startModuleTransaction(AvailObject)}. Simply
 	 * clear the {@linkplain #module} field.
 	 */
-	protected void commitModuleTransaction ()
+	void commitModuleTransaction ()
 	{
 		assert module != null;
 		interpreter.runtime().addModule(module);
@@ -988,7 +990,7 @@ public abstract class AbstractAvailCompiler
 	 *            should ensure the consistency of declaration references.
 	 * @return A replacement for this node, possibly this node itself.
 	 */
-	protected static AvailObject treeMapWithParent (
+	static AvailObject treeMapWithParent (
 		final AvailObject object,
 		final Transformer3<
 				AvailObject,
@@ -1043,7 +1045,7 @@ public abstract class AbstractAvailCompiler
 	 *            The list of {@linkplain BlockNodeDescriptor blocks}
 	 *            surrounding this node, from outermost to innermost.
 	 */
-	protected static void treeDoWithParent (
+	static void treeDoWithParent (
 		final AvailObject object,
 		final Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
 		final AvailObject parentNode,
@@ -1077,7 +1079,7 @@ public abstract class AbstractAvailCompiler
 	 *            The expression to compile and evaluate as a top-level
 	 *            statement in the module.
 	 */
-	protected void evaluateModuleStatement (final AvailObject expr)
+	void evaluateModuleStatement (final AvailObject expr)
 	{
 		if (!expr.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
 		{
@@ -1498,10 +1500,99 @@ public abstract class AbstractAvailCompiler
 	 * @param continuation
 	 *            What to do with the unambiguous, parsed statement.
 	 */
-	protected abstract void parseStatementAsOutermostCanBeLabelThen (
+	abstract void parseStatementAsOutermostCanBeLabelThen (
 		final ParserState start,
 		final boolean outermost,
 		final boolean canBeLabel,
 		final Con<AvailObject> continuation);
+
+	/**
+	 * Parse an expression whose type is (at least) someType. Evaluate the
+	 * expression, yielding a type, and pass that to the continuation. Note that
+	 * the longest syntactically correct and type correct expression is what
+	 * gets used. It's an ambiguity error if two or more possible parses of this
+	 * maximum length are possible.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param someType
+	 *            The type that the expression must return.
+	 * @param continuation
+	 *            What to do with the result of expression evaluation.
+	 */
+	void parseAndEvaluateExpressionYieldingInstanceOfThen (
+		final ParserState start,
+		final AvailObject someType,
+		final Con<AvailObject> continuation)
+	{
+		final ParserState startWithoutScope = new ParserState(
+			start.position,
+			new AvailCompilerScopeStack(null, null));
+		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
+			"Evaluate expression")
+		{
+			@Override
+			public void value (
+				final ParserState afterExpression,
+				final AvailObject expression)
+			{
+				if (expression.expressionType().isSubtypeOf(someType))
+				{
+					// A unique, longest type-correct expression was found.
+					final AvailObject value = evaluate(expression);
+					if (value.isInstanceOfSubtypeOf(someType))
+					{
+						assert afterExpression.scopeStack ==
+							startWithoutScope.scopeStack
+						: "Subexpression should not have been able "
+							+ "to cause declaration";
+						// Make sure we continue with the position after the
+						// expression, but the scope stack we started with.
+						// That's because the expression was parsed for
+						// execution, and as such was excluded from seeing
+						// things that would be in scope for regular
+						// subexpressions at this point.
+						attempt(new ParserState(
+							afterExpression.position,
+							start.scopeStack), continuation, value);
+					}
+					else
+					{
+						afterExpression.expected(
+							"expression to respect its own type declaration");
+					}
+				}
+				else
+				{
+					afterExpression.expected(new Generator<String>()
+					{
+						@Override
+						public String value ()
+						{
+							return "expression to have type "
+								+ someType.toString();
+						}
+					});
+				}
+			}
+		});
+	}
+
+	/**
+	 * Parse an expression. Backtracking will find all valid interpretations.
+	 * Note that a list expression requires at least two terms to form a list
+	 * node. This method is a key optimization point, so the fragmentCache is
+	 * used to keep track of parsing solutions at this point, simply replaying
+	 * them on subsequent parses, as long as the variable declarations up to
+	 * that point were identical.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param originalContinuation
+	 *            What to do with the expression.
+	 */
+	abstract void parseExpressionThen (
+		final ParserState start,
+		final Con<AvailObject> originalContinuation);
 
 }
