@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import java.util.*;
-import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 
 public class AvailCompilerFragmentCache
 {

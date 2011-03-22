@@ -156,7 +156,7 @@ public final class AvailBuilder
 				.resolve(qualifiedName);
 
 		// Build the set of names of imported modules.
-		final AvailCompiler compiler = new AvailCompiler(interpreter);
+		final AbstractAvailCompiler compiler = new AvailCompiler(interpreter);
 		compiler.parseModuleHeader(qualifiedName);
 		final Set<ModuleName> importedModules = new HashSet<ModuleName>(
 			compiler.extendedModules.size() + compiler.usedModules.size());
@@ -268,7 +268,7 @@ public final class AvailBuilder
 			throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		final AvailCompiler compiler = new AvailCompiler(interpreter);
+		final AbstractAvailCompiler compiler = new AvailCompiler(interpreter);
 
 		traceModuleImports(target);
 		linearizeModuleImports();
