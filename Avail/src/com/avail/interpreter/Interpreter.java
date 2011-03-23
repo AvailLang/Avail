@@ -69,7 +69,7 @@ public abstract class Interpreter
 
 	/**
 	 * The {@linkplain ModuleDescriptor module} currently under {@linkplain
-	 * AvailCompiler compilation}.
+	 * AbstractAvailCompiler compilation}.
 	 */
 	private AvailObject module;
 

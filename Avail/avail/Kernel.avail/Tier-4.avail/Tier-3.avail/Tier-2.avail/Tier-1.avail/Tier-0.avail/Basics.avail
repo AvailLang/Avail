@@ -77,8 +77,7 @@ Names
 	"Failed", "Crash_", "Print_", "Discard_",
 	"Halt", "_can't have_", "_=_", "_<=_",
 	
-	"Method_is_", "Macro_is_",
-	"_:=_", "(_:=_)", "&_"
+	"Method_is_", "Macro_is_"
 
 Body
 
@@ -303,20 +302,3 @@ Method "Macro_is_" is [name : string, block : closure |
 	Primitive 249;
 	Failed;
 ] : void;
-
-
-Macro "_:=_" is [v : variableUseNode, e : parseNode |
-	Primitive 353;
-	Fail parse "type of expression in assignment to have a type compatible with variable";
-] : parseNode;
-
-
-Macro "(_:=_)" is [v : variableUseNode, e : parseNode |
-	Primitive 350;
-	Fail parse "type of expression in embedded assignment to have a type compatible with variable";
-] : parseNode;
-
-Macro "&_" is [v : variableUseNode |
-	Primitive 354;
-	Fail parse "variable for reference not to have been constant, argument, or label";
-] : parseNode;

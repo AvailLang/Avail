@@ -37,8 +37,8 @@ import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
- * An {@code AvailCompilerException} is thrown by the {@linkplain AvailCompiler
- * Avail compiler} when compilation fails for any reason.
+ * An {@code AvailCompilerException} is thrown by the {@linkplain
+ * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
@@ -50,15 +50,15 @@ extends RuntimeException
 
 	/**
 	 * The {@linkplain ModuleName fully-qualified name} of the {@linkplain
-	 * ModuleDescriptor module} undergoing {@linkplain AvailCompiler
+	 * ModuleDescriptor module} undergoing {@linkplain AbstractAvailCompiler
 	 * compilation}.
 	 */
 	private final @NotNull ModuleName moduleName;
 
 	/**
 	 * Answer the {@linkplain ModuleName fully-qualified name} of the
-	 * {@linkplain ModuleDescriptor module} undergoing {@linkplain AvailCompiler
-	 * compilation}.
+	 * {@linkplain ModuleDescriptor module} undergoing {@linkplain
+	 * AbstractAvailCompiler compilation}.
 	 *
 	 * @return A {@linkplain ModuleName module name}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -70,14 +70,15 @@ extends RuntimeException
 
 	/**
 	 * The position within the {@linkplain ModuleDescriptor module} undergoing
-	 * {@linkplain AvailCompiler compilation} at which the error was detected.
+	 * {@linkplain AbstractAvailCompiler compilation} at which the error was
+	 * detected.
 	 */
 	private final long position;
 
 	/**
 	 * Answer the position within the {@linkplain ModuleDescriptor module}
-	 * undergoing {@linkplain AvailCompiler compilation} at which the error was
-	 * detected.
+	 * undergoing {@linkplain AbstractAvailCompiler compilation} at which the
+	 * error was detected.
 	 *
 	 * @return A {@linkplain File file} position.
 	 */
@@ -88,15 +89,15 @@ extends RuntimeException
 
 	/**
 	 * The position within the {@linkplain ModuleDescriptor module} undergoing
-	 * {@linkplain AvailCompiler compilation} of the first line break after the
-	 * position at which the error was detected.
+	 * {@linkplain AbstractAvailCompiler compilation} of the first line break
+	 * after the position at which the error was detected.
 	 */
 	private final long endOfErrorLine;
 
 	/**
 	 * Answer the position within the {@linkplain ModuleDescriptor module}
-	 * undergoing {@linkplain AvailCompiler compilation} of the first line break
-	 * after the position at which the error was detected.
+	 * undergoing {@linkplain AbstractAvailCompiler compilation} of the first
+	 * line break after the position at which the error was detected.
 	 *
 	 * @return A {@linkplain File file} position.
 	 */
@@ -111,11 +112,11 @@ extends RuntimeException
 	 * @param moduleName
 	 *        The {@linkplain ModuleName fully-qualified name} of the
 	 *        {@linkplain ModuleDescriptor module} undergoing {@linkplain
-	 *        AvailCompiler compilation}.
+	 *        AbstractAvailCompiler compilation}.
 	 * @param position
 	 *        The position within the {@linkplain ModuleDescriptor module}
-	 *        undergoing {@linkplain AvailCompiler compilation} at which the
-	 *        error was detected.
+	 *        undergoing {@linkplain AbstractAvailCompiler compilation} at which
+	 *        the error was detected.
 	 * @param endOfErrorLine
 	 *        The position within the {@linkplain ModuleDescriptor module}'s
 	 *        source of the line break following the error.  Useful for

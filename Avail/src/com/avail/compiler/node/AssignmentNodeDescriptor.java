@@ -240,6 +240,29 @@ extends ParseNodeDescriptor
 	}
 
 	/**
+	 * Create a new {@link AssignmentNodeDescriptor assignment node} using the
+	 * given {@link VariableUseNodeDescriptor variable use} and {@link
+	 * ParseNodeDescriptor expression}.
+	 *
+	 * @param variableUse
+	 *            A use of the variable into which to assign.
+	 * @param expression
+	 *            The expression whose value should be assigned to the variable.
+	 * @return The new assignment node.
+	 */
+	public static AvailObject from (
+		final AvailObject variableUse,
+		final AvailObject expression)
+	{
+		final AvailObject assignment = mutable().create();
+		assignment.variable(variableUse);
+		assignment.expression(expression);
+		assignment.makeImmutable();
+		return assignment;
+	}
+
+
+	/**
 	 * Construct a new {@link AssignmentNodeDescriptor}.
 	 *
 	 * @param isMutable Whether my {@linkplain AvailObject instances} can

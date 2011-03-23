@@ -32,7 +32,8 @@
  
 Module "Kernel"
 Extends
-	"Tier-4"
+	"Tier-4",
+	"Syntax"
 Uses
 Names
 Body

@@ -36,7 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.CONTAINER;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doSetVariable_sourceObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.AbstractAvailCompiler;
 import com.avail.compiler.node.AssignmentNodeDescriptor;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
@@ -113,10 +113,10 @@ extends L2Instruction
 	 * {@inheritDoc}
 	 *
 	 * <p>This is kind of strange.  Because of the way outers can lose all type
-	 * information, we use the fact that the {@linkplain AvailCompiler compiler}
-	 * set up an {@linkplain AssignmentNodeDescriptor assignment} to a variable
-	 * to indicate that the variable really is a {@linkplain ContainerDescriptor
-	 * variable}.</p>
+	 * information, we use the fact that the {@linkplain AbstractAvailCompiler
+	 * compiler} set up an {@linkplain AssignmentNodeDescriptor assignment} to a
+	 * variable to indicate that the variable really is a {@linkplain
+	 * ContainerDescriptor variable}.</p>
 	 */
 	@Override
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)

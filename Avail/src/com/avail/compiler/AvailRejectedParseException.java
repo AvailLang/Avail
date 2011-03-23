@@ -36,8 +36,8 @@ import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 
 /**
- * An {@code AvailCompilerException} is thrown by the {@linkplain AvailCompiler
- * Avail compiler} when compilation fails for any reason.
+ * An {@code AvailCompilerException} is thrown by the {@linkplain
+ * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */

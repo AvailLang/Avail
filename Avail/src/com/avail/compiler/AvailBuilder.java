@@ -53,8 +53,7 @@ public final class AvailBuilder
 	 * {@linkplain AvailBuilder builder} will install the target
 	 * {@linkplain ModuleDescriptor module} and its dependencies.
 	 */
-	private final @NotNull
-	AvailRuntime runtime;
+	private final @NotNull AvailRuntime runtime;
 
 	/**
 	 * The {@linkplain ModuleName canonical name} of the
@@ -62,12 +61,10 @@ public final class AvailBuilder
 	 * builder} must (recursively) load into the {@linkplain AvailRuntime
 	 * runtime}.
 	 */
-	private final @NotNull
-	ModuleName target;
+	private final @NotNull ModuleName target;
 
 	/** An {@linkplain L2Interpreter interpreter}. */
-	private final @NotNull
-	L2Interpreter interpreter;
+	private final @NotNull L2Interpreter interpreter;
 
 	/**
 	 * Construct a new {@link AvailBuilder}.
@@ -95,29 +92,29 @@ public final class AvailBuilder
 	 * The path maintained by the {@linkplain #traceModuleImports(ModuleName)
 	 * tracer} to prevent recursive tracing.
 	 */
-	private final @NotNull
-	Set<ModuleName> recursionSet = new LinkedHashSet<ModuleName>();
+	private final @NotNull Set<ModuleName> recursionSet =
+		new LinkedHashSet<ModuleName>();
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
 	 * predecessors.
 	 */
-	private final @NotNull
-	Map<ModuleName, Set<ModuleName>> predecessors = new HashMap<ModuleName, Set<ModuleName>>();
+	private final @NotNull Map<ModuleName, Set<ModuleName>> predecessors =
+		new HashMap<ModuleName, Set<ModuleName>>();
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
 	 * successors.
 	 */
-	private final @NotNull
-	Map<ModuleName, Set<ModuleName>> successors = new HashMap<ModuleName, Set<ModuleName>>();
+	private final @NotNull Map<ModuleName, Set<ModuleName>> successors =
+		new HashMap<ModuleName, Set<ModuleName>>();
 
 	/**
 	 * The {@linkplain ModuleName dependencies} of the {@linkplain #target
 	 * target}.
 	 */
-	private final @NotNull
-	List<ModuleName> dependencies = new ArrayList<ModuleName>();
+	private final @NotNull List<ModuleName> dependencies =
+		new ArrayList<ModuleName>();
 
 	/**
 	 * Trace the imports of the {@linkplain ModuleDescriptor module} specified
@@ -126,8 +123,8 @@ public final class AvailBuilder
 	 * @param qualifiedName
 	 *            A fully-qualified {@linkplain ModuleName module name}.
 	 * @throws AvailCompilerException
-	 *             If the {@linkplain AvailCompiler compiler} is unable to
-	 *             process a module declaration for this
+	 *             If the {@linkplain AbstractAvailCompiler compiler} is unable
+	 *             to process a module declaration for this
 	 *             {@linkplain ModuleDescriptor module}.
 	 * @throws RecursiveDependencyException
 	 *             If the specified {@linkplain ModuleDescriptor module}
@@ -157,7 +154,8 @@ public final class AvailBuilder
 				.resolve(qualifiedName);
 
 		// Build the set of names of imported modules.
-		final AbstractAvailCompiler compiler = new AvailCompiler(interpreter);
+		final AbstractAvailCompiler compiler =
+			new AvailSystemCompiler(interpreter);
 		compiler.parseModuleHeader(qualifiedName);
 		final Set<ModuleName> importedModules = new HashSet<ModuleName>(
 			compiler.extendedModules.size() + compiler.usedModules.size());
@@ -196,8 +194,9 @@ public final class AvailBuilder
 	{
 		while (!predecessors.isEmpty())
 		{
-			for (final Map.Entry<ModuleName, Set<ModuleName>> entry : new ArrayList<Map.Entry<ModuleName, Set<ModuleName>>>(
-				predecessors.entrySet()))
+			for (final Map.Entry<ModuleName, Set<ModuleName>> entry
+				: new ArrayList<Map.Entry<ModuleName, Set<ModuleName>>>(
+					predecessors.entrySet()))
 			{
 				final ModuleName key = entry.getKey();
 				if (entry.getValue().isEmpty())
@@ -241,7 +240,7 @@ public final class AvailBuilder
 	 *            <ol>
 	 *            <li>the {@linkplain ModuleName name} of the
 	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AvailCompiler compilation},</li>
+	 *            {@linkplain AbstractAvailCompiler compilation},</li>
 	 *            <li>the current line number within the current module,</li>
 	 *            <li>the position of the ongoing parse (in bytes), and</li>
 	 *            <li>the size of the module in bytes.</li>
@@ -251,14 +250,14 @@ public final class AvailBuilder
 	 *            <ol>
 	 *            <li>the {@linkplain ModuleName name} of the
 	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AvailCompiler compilation},</li>
+	 *            {@linkplain AbstractAvailCompiler compilation},</li>
 	 *            <li>the number of bytes globally processed, and</li>
 	 *            <li>the global size (in bytes) of all modules that will be
 	 *            built.</li>
 	 *            </ol>
 	 * @throws AvailCompilerException
-	 *             If the {@linkplain AvailCompiler compiler} is unable to
-	 *             process a module declaration.
+	 *             If the {@linkplain AbstractAvailCompiler compiler} is unable
+	 *             to process a module declaration.
 	 * @throws RecursiveDependencyException
 	 *             If an encountered {@linkplain ModuleDescriptor module}
 	 *             recursively depends upon itself.
@@ -269,7 +268,8 @@ public final class AvailBuilder
 			throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		final AbstractAvailCompiler compiler = new AvailCompiler(interpreter);
+		final AbstractAvailCompiler compiler =
+			new AvailSystemCompiler(interpreter);  //TODO Use the right compiler.
 
 		traceModuleImports(target);
 		linearizeModuleImports();

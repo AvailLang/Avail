@@ -36,6 +36,5 @@ Extends
 	"Syntax",
 	"Basics"
 Uses
-	"Test"
 Names
 Body

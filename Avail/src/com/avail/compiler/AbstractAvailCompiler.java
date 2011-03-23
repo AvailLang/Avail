@@ -126,14 +126,14 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * The {@linkplain Continuation3 action} that should be performed repeatedly
-	 * by the {@linkplain AvailCompiler compiler} to report compilation
+	 * by the {@linkplain AbstractAvailCompiler compiler} to report compilation
 	 * progress.
 	 */
 	Continuation4<ModuleName, Long, Long, Long> progressBlock;
 
 
 	/**
-	 * Construct a new {@link AvailCompiler} which will use the given
+	 * Construct a new {@link AbstractAvailCompiler} which will use the given
 	 * {@link Interpreter} to evaluate expressions.
 	 *
 	 * @param interpreter
@@ -1124,9 +1124,9 @@ public abstract class AbstractAvailCompiler
 	 *            A {@linkplain Continuation3 continuation} that accepts the
 	 *            {@linkplain ModuleName name} of the
 	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AvailCompiler compilation}, the position of the
-	 *            ongoing parse (in bytes), and the size of the module (in
-	 *            bytes).
+	 *            {@linkplain AbstractAvailCompiler compilation}, the position
+	 *            of the ongoing parse (in bytes), and the size of the module
+	 *            (in bytes).
 	 * @throws AvailCompilerException
 	 *             If compilation fails.
 	 */
@@ -1481,30 +1481,83 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a statement. This is the boundary for the backtracking grammar. A
-	 * statement must be unambiguous (in isolation) to be valid. The passed
-	 * continuation will be invoked at most once, and only if the statement had
-	 * a single interpretation.
-	 *
-	 * <p>
-	 * The {@link #workStack} should have the same content before and after this
-	 * method is invoked.
-	 * </p>
+	 * Parse an expression. Backtracking will find all valid interpretations.
+	 * This method is a key optimization point, so the fragmentCache is used to
+	 * keep track of parsing solutions at this point, simply replaying them on
+	 * subsequent parses, as long as the variable declarations up to that point
+	 * were identical.
 	 *
 	 * @param start
 	 *            Where to start parsing.
-	 * @param outermost
-	 *            Whether this statement is outermost in the module.
-	 * @param canBeLabel
-	 *            Whether this statement can be a label declaration.
-	 * @param continuation
-	 *            What to do with the unambiguous, parsed statement.
+	 * @param originalContinuation
+	 *            What to do with the expression.
 	 */
-	abstract void parseStatementAsOutermostCanBeLabelThen (
+	void parseExpressionThen (
 		final ParserState start,
-		final boolean outermost,
-		final boolean canBeLabel,
-		final Con<AvailObject> continuation);
+		final Con<AvailObject> originalContinuation)
+	{
+		if (!fragmentCache.hasComputedForState(start))
+		{
+			final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
+			attempt(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						markerFired.value = true;
+					}
+				},
+				"Expression marker",
+				start.position);
+			fragmentCache.startComputingForState(start);
+			final Con<AvailObject> justRecord =
+				new Con<AvailObject>("Expression")
+				{
+					@Override
+					public void value (
+						final ParserState afterExpr,
+						final AvailObject expr)
+					{
+						fragmentCache.addSolution(
+							start,
+							new AvailCompilerCachedSolution(afterExpr, expr));
+					}
+				};
+			attempt(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						parseExpressionUncachedThen(start, justRecord);
+					}
+				},
+				"Capture expression for caching",
+				start.position);
+			// Force the previous attempts to all complete.
+			while (!markerFired.value)
+			{
+				workStack.pop().value();
+			}
+		}
+		// Deja vu! We were asked to parse an expression starting at this point
+		// before. Luckily we had the foresight to record what those resulting
+		// expressions were (as well as the scopeStack just after parsing each).
+		// Replay just these solutions to the passed continuation. This has the
+		// effect of eliminating each 'local' misparsing exactly once. I'm not
+		// sure what happens to the order of the algorithm, but it might go from
+		// exponential to small polynomial.
+		final List<AvailCompilerCachedSolution> solutions =
+			fragmentCache.solutionsAt(start);
+		for (final AvailCompilerCachedSolution solution : solutions)
+		{
+			attempt(
+				solution.endState(),
+				originalContinuation,
+				solution.parseNode());
+		}
+	}
 
 	/**
 	 * Parse an expression whose type is (at least) someType. Evaluate the
@@ -1579,20 +1632,42 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse an expression. Backtracking will find all valid interpretations.
-	 * Note that a list expression requires at least two terms to form a list
-	 * node. This method is a key optimization point, so the fragmentCache is
-	 * used to keep track of parsing solutions at this point, simply replaying
-	 * them on subsequent parses, as long as the variable declarations up to
-	 * that point were identical.
+	 * Parse a statement. This is the boundary for the backtracking grammar. A
+	 * statement must be unambiguous (in isolation) to be valid. The passed
+	 * continuation will be invoked at most once, and only if the statement had
+	 * a single interpretation.
+	 *
+	 * <p>
+	 * The {@link #workStack} should have the same content before and after this
+	 * method is invoked.
+	 * </p>
 	 *
 	 * @param start
 	 *            Where to start parsing.
-	 * @param originalContinuation
+	 * @param outermost
+	 *            Whether this statement is outermost in the module.
+	 * @param canBeLabel
+	 *            Whether this statement can be a label declaration.
+	 * @param continuation
+	 *            What to do with the unambiguous, parsed statement.
+	 */
+	abstract void parseStatementAsOutermostCanBeLabelThen (
+		final ParserState start,
+		final boolean outermost,
+		final boolean canBeLabel,
+		final Con<AvailObject> continuation);
+
+	/**
+	 * Parse an expression, without directly using the
+	 * {@linkplain #fragmentCache}.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param continuation
 	 *            What to do with the expression.
 	 */
-	abstract void parseExpressionThen (
+	abstract void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con<AvailObject> originalContinuation);
+		final Con<AvailObject> continuation);
 
 }
