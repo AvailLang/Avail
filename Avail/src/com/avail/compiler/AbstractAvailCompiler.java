@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LOCAL_CONSTANT;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.AvailObject.error;
@@ -57,7 +58,6 @@ import com.avail.utility.*;
  */
 public abstract class AbstractAvailCompiler
 {
-
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
@@ -131,6 +131,94 @@ public abstract class AbstractAvailCompiler
 	 */
 	Continuation4<ModuleName, Long, Long, Long> progressBlock;
 
+	/**
+	 * Answer whether this is a {@linkplain AvailSystemCompiler system
+	 * compiler}.  A system compiler is used for modules that start with the
+	 * keyword "{@linkplain ExpectedToken#SYSTEM System}".  Such modules use a
+	 * predefined syntax.
+	 *
+	 * @return Whether this is a system compiler.
+	 */
+	boolean isSystemCompiler ()
+	{
+		return false;
+	}
+
+	enum ExpectedToken
+	{
+		SYSTEM("System", KEYWORD),
+		MODULE("Module", KEYWORD),
+		PRAGMA("Pragma", KEYWORD),
+		EXTENDS("Extends", KEYWORD),
+		USES("Uses", KEYWORD),
+		NAMES("Names", KEYWORD),
+		BODY("Body", KEYWORD),
+		PRIMITIVE("Primitive", KEYWORD),
+
+		DOLLAR_SIGN("$", OPERATOR),
+		AMPERSAND("&", OPERATOR),
+		COMMA(",", OPERATOR),
+		COLON(":", OPERATOR),
+		EQUALS("=", OPERATOR),
+		OPEN_SQUARE("[", OPERATOR),
+		CLOSE_SQUARE("]", OPERATOR),
+		VERTICAL_BAR("|", OPERATOR),
+
+		SEMICOLON(";", END_OF_STATEMENT);
+
+
+		private final AvailObject string;
+
+		private final TokenType tokenType;
+
+		AvailObject string ()
+		{
+			return string;
+		}
+
+		TokenType tokenType ()
+		{
+			return tokenType;
+		}
+
+		ExpectedToken (
+			@NotNull final String string,
+			@NotNull final TokenType tokenType)
+		{
+			this.string = ByteStringDescriptor.from(string);
+			this.tokenType = tokenType;
+		}
+	}
+
+	/**
+	 * Construct a suitable {@linkplain AbstractAvailCompiler compiler} to
+	 * parse the specified {@linkplain ModuleName module name}, using the given
+	 * {@linkplain L2Interpreter interpreter}.
+	 */
+	static @NotNull AbstractAvailCompiler create (
+		final @NotNull ModuleName qualifiedName,
+		final @NotNull L2Interpreter interpreter,
+		final boolean stopAfterNamesToken)
+	{
+		AvailRuntime runtime = interpreter.runtime();
+		final ResolvedModuleName resolvedName =
+			runtime.moduleNameResolver().resolve(qualifiedName);
+		final String source = extractSource(qualifiedName, resolvedName);
+		final List<AvailObject> tokens = tokenize(
+			source,
+			stopAfterNamesToken);
+		AbstractAvailCompiler compiler;
+		if (!tokens.isEmpty()
+			&& tokens.get(0).string().equals(SYSTEM.string()))
+		{
+			compiler = new AvailSystemCompiler(interpreter, source, tokens);
+		}
+		else
+		{
+			compiler = new AvailCompiler(interpreter, source, tokens);
+		}
+		return compiler;
+	}
 
 	/**
 	 * Construct a new {@link AbstractAvailCompiler} which will use the given
@@ -138,10 +226,19 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param interpreter
 	 *            The interpreter to be used for evaluating expressions.
+	 * @param source
+	 *            The source code {@linkplain ByteStringDescriptor string}.
+	 * @param tokens
+	 *            The list of {@linkplain TokenDescriptor tokens}.
 	 */
-	public AbstractAvailCompiler (@NotNull final L2Interpreter interpreter)
+	public AbstractAvailCompiler (
+		final L2Interpreter interpreter,
+		final String source,
+		final List<AvailObject> tokens)
 	{
 		this.interpreter = interpreter;
+		this.source = source;
+		this.tokens = tokens;
 	}
 
 	/**
@@ -328,9 +425,6 @@ public abstract class AbstractAvailCompiler
 					&& scopeStack.equals(anotherState.scopeStack);
 		}
 
-		/**
-		 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-		 */
 		@Override
 		public String toString ()
 		{
@@ -367,43 +461,39 @@ public abstract class AbstractAvailCompiler
 		/**
 		 * Answer whether the current token has the specified type and content.
 		 *
-		 * @param tokenType
-		 *            The {@link TokenType type} of token to look for.
-		 * @param string
-		 *            The exact token content to look for.
+		 * @param expectedToken
+		 *            The {@link ExpectedToken expected token} to look for.
 		 * @return Whether the specified token was found.
 		 */
-		boolean peekToken (final TokenType tokenType, final String string)
+		boolean peekToken (
+			final ExpectedToken expectedToken)
 		{
 			if (atEnd())
 			{
 				return false;
 			}
 			final AvailObject token = peekToken();
-			return token.tokenType() == tokenType
-					&& token.string().asNativeString().equals(string);
+			return token.tokenType() == expectedToken.tokenType()
+				&& token.string().equals(expectedToken.string());
 		}
 
 		/**
 		 * Answer whether the current token has the specified type and content.
 		 *
-		 * @param tokenType
-		 *            The {@link TokenType type} of token to look for.
-		 * @param string
-		 *            The exact token content to look for.
+		 * @param expectedToken
+		 *            The {@link ExpectedToken expected token} to look for.
 		 * @param expected
 		 *            A generator of a string message to record if the specified
 		 *            token is not present.
 		 * @return Whether the specified token is present.
 		 */
 		boolean peekToken (
-			final TokenType tokenType,
-			final String string,
-			final Generator<String> expected)
+			final @NotNull ExpectedToken expectedToken,
+			final @NotNull Generator<String> expected)
 		{
 			final AvailObject token = peekToken();
-			final boolean found = token.tokenType() == tokenType
-					&& token.string().asNativeString().equals(string);
+			final boolean found = token.tokenType() == expectedToken.tokenType()
+					&& token.string().equals(expectedToken.string());
 			if (!found)
 			{
 				expected(expected);
@@ -414,20 +504,17 @@ public abstract class AbstractAvailCompiler
 		/**
 		 * Answer whether the current token has the specified type and content.
 		 *
-		 * @param tokenType
-		 *            The {@link TokenType type} of token to look for.
-		 * @param string
-		 *            The exact token content to look for.
+		 * @param expectedToken
+		 *            The {@link ExpectedToken expected token} to look for.
 		 * @param expected
 		 *            A message to record if the specified token is not present.
 		 * @return Whether the specified token is present.
 		 */
 		boolean peekToken (
-			final TokenType tokenType,
-			final String string,
+			final @NotNull ExpectedToken expectedToken,
 			final String expected)
 		{
-			return peekToken(tokenType, string, generate(expected));
+			return peekToken(expectedToken, generate(expected));
 		}
 
 		/**
@@ -532,11 +619,11 @@ public abstract class AbstractAvailCompiler
 	 * @param start
 	 *            Where to start parsing.
 	 * @param stringTokens
-	 *            The list of strings to populate.
+	 *            The initially empty list of strings to populate.
 	 * @return The parser state after the list of strings, or null if the list
 	 *         of strings is malformed.
 	 */
-	ParserState parseStringLiterals (
+	static ParserState parseStringLiterals (
 		final ParserState start,
 		final List<AvailObject> stringTokens)
 	{
@@ -549,7 +636,7 @@ public abstract class AbstractAvailCompiler
 		}
 		stringTokens.add(token.literal());
 		ParserState state = start.afterToken();
-		while (state.peekToken(OPERATOR, ","))
+		while (state.peekToken(COMMA))
 		{
 			state = state.afterToken();
 			token = state.peekStringLiteral();
@@ -565,25 +652,24 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Tokenize the {@linkplain ModuleDescriptor module} specified by the
-	 * fully-qualified {@linkplain ModuleName module name}.
+	 * Read the source string for the {@linkplain ModuleDescriptor module}
+	 * specified by the fully-qualified {@linkplain ModuleName module name}.
 	 *
 	 * @param qualifiedName
 	 *            A fully-qualified {@linkplain ModuleName module name}.
-	 * @param stopAfterNamesToken
-	 *            Stop scanning after encountering the <em>Names</em> token?
-	 * @return The {@linkplain ResolvedModuleName resolved module name}.
+	 * @param resolvedName
+	 *            The {@linkplain ResolvedModuleName resolved name} of the
+	 *            module.
+	 * @return The module's {@linkplain String source code}.
 	 * @throws AvailCompilerException
-	 *             If tokenization failed for any reason.
+	 *             If source extraction failed for any reason.
 	 */
-	@NotNull
-	ResolvedModuleName tokenize (
+	static @NotNull String extractSource (
 		final @NotNull ModuleName qualifiedName,
-		final boolean stopAfterNamesToken) throws AvailCompilerException
+		final @NotNull ResolvedModuleName resolvedName)
+	throws AvailCompilerException
 	{
-		final ModuleNameResolver resolver =
-			interpreter.runtime().moduleNameResolver();
-		final ResolvedModuleName resolvedName = resolver.resolve(qualifiedName);
+		String source;
 		if (resolvedName == null)
 		{
 			throw new AvailCompilerException(
@@ -615,13 +701,133 @@ public abstract class AbstractAvailCompiler
 				0,
 				0,
 				"Encountered an I/O exception while reading source module \""
-						+ qualifiedName.qualifiedName() + "\" (resolved to \""
-						+ resolvedName.fileReference().getAbsolutePath()
-						+ "\")");
+					+ qualifiedName.qualifiedName() + "\" (resolved to \""
+					+ resolvedName.fileReference().getAbsolutePath()
+					+ "\")");
 		}
+		return source;
+	}
 
-		tokens = new AvailScanner().scanString(source, stopAfterNamesToken);
-		return resolvedName;
+	/**
+	 * Tokenize the {@linkplain ModuleDescriptor module} specified by the
+	 * fully-qualified {@linkplain ModuleName module name}.
+	 *
+	 * @param source
+	 *            The {@linkplain String string} containing the module's source
+	 *            code.
+	 * @param stopAfterNamesToken
+	 *            Stop scanning after encountering the <em>Names</em> token?
+	 * @return The {@linkplain ResolvedModuleName resolved module name}.
+	 * @throws AvailCompilerException
+	 *             If tokenization failed for any reason.
+	 */
+	static @NotNull List<AvailObject> tokenize (
+		final @NotNull String source,
+		final boolean stopAfterNamesToken) throws AvailCompilerException
+	{
+		return new AvailScanner().scanString(source, stopAfterNamesToken);
+	}
+
+	/**
+	 * Map the tree through the (destructive) transformation specified by
+	 * aBlock, children before parents. The block takes three arguments: the
+	 * node, its parent, and the list of enclosing block nodes. Answer the
+	 * resulting tree.
+	 *
+	 * @param object
+	 *            The current {@linkplain ParseNodeDescriptor parse node}.
+	 * @param aBlock
+	 *            What to do with each descendant.
+	 * @param parentNode
+	 *            This node's parent.
+	 * @param outerNodes
+	 *            The list of {@linkplain BlockNodeDescriptor blocks}
+	 *            surrounding this node, from outermost to innermost.
+	 * @param nodeMap
+	 *            The {@link Map} from old {@linkplain ParseNodeDescriptor
+	 *            parse nodes} to newly copied, mutable parse nodes.  This
+	 *            should ensure the consistency of declaration references.
+	 * @return A replacement for this node, possibly this node itself.
+	 */
+	static AvailObject treeMapWithParent (
+		final AvailObject object,
+		final Transformer3<
+				AvailObject,
+				AvailObject,
+				List<AvailObject>,
+				AvailObject>
+			aBlock,
+		final AvailObject parentNode,
+		final List<AvailObject> outerNodes,
+		final Map<AvailObject, AvailObject> nodeMap)
+	{
+		if (nodeMap.containsKey(object))
+		{
+			return object;
+		}
+		final AvailObject objectCopy = object.copyMutableParseNode();
+		objectCopy.childrenMap(
+			new Transformer1<AvailObject, AvailObject>()
+			{
+				@Override
+				public AvailObject value (final AvailObject child)
+				{
+					assert child.isInstanceOfSubtypeOf(PARSE_NODE.o());
+					return treeMapWithParent(
+						child,
+						aBlock,
+						objectCopy,
+						outerNodes,
+						nodeMap);
+				}
+			});
+		final AvailObject transformed = aBlock.value(
+			objectCopy,
+			parentNode,
+			outerNodes);
+		transformed.makeImmutable();
+		nodeMap.put(object, transformed);
+		return transformed;
+	}
+
+	/**
+	 * Visit the entire tree with the given {@link Continuation3 block},
+	 * children before parents.  The block takes three arguments: the
+	 * node, its parent, and the list of enclosing block nodes.
+	 *
+	 * @param object
+	 *            The current {@linkplain ParseNodeDescriptor parse node}.
+	 * @param aBlock
+	 *            What to do with each descendant.
+	 * @param parentNode
+	 *            This node's parent.
+	 * @param outerNodes
+	 *            The list of {@linkplain BlockNodeDescriptor blocks}
+	 *            surrounding this node, from outermost to innermost.
+	 */
+	static void treeDoWithParent (
+		final AvailObject object,
+		final Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
+		final AvailObject parentNode,
+		final List<AvailObject> outerNodes)
+	{
+		object.childrenDo(new Continuation1<AvailObject>()
+		{
+			@Override
+			public void value (final AvailObject child)
+			{
+				assert child.isInstanceOfSubtypeOf(PARSE_NODE.o());
+				treeDoWithParent(
+					child,
+					aBlock,
+					object,
+					outerNodes);
+			}
+		});
+		aBlock.value(
+			object,
+			parentNode,
+			outerNodes);
 	}
 
 	/**
@@ -970,107 +1176,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Map the tree through the (destructive) transformation specified by
-	 * aBlock, children before parents. The block takes three arguments: the
-	 * node, its parent, and the list of enclosing block nodes. Answer the
-	 * resulting tree.
-	 *
-	 * @param object
-	 *            The current {@linkplain ParseNodeDescriptor parse node}.
-	 * @param aBlock
-	 *            What to do with each descendant.
-	 * @param parentNode
-	 *            This node's parent.
-	 * @param outerNodes
-	 *            The list of {@linkplain BlockNodeDescriptor blocks}
-	 *            surrounding this node, from outermost to innermost.
-	 * @param nodeMap
-	 *            The {@link Map} from old {@linkplain ParseNodeDescriptor
-	 *            parse nodes} to newly copied, mutable parse nodes.  This
-	 *            should ensure the consistency of declaration references.
-	 * @return A replacement for this node, possibly this node itself.
-	 */
-	static AvailObject treeMapWithParent (
-		final AvailObject object,
-		final Transformer3<
-				AvailObject,
-				AvailObject,
-				List<AvailObject>,
-				AvailObject>
-			aBlock,
-		final AvailObject parentNode,
-		final List<AvailObject> outerNodes,
-		final Map<AvailObject, AvailObject> nodeMap)
-	{
-		if (nodeMap.containsKey(object))
-		{
-			return object;
-		}
-		final AvailObject objectCopy = object.copyMutableParseNode();
-		objectCopy.childrenMap(new Transformer1<AvailObject, AvailObject>()
-		{
-			@Override
-			public AvailObject value (final AvailObject child)
-			{
-				assert child.isInstanceOfSubtypeOf(PARSE_NODE.o());
-				return treeMapWithParent(
-					child,
-					aBlock,
-					objectCopy,
-					outerNodes,
-					nodeMap);
-			}
-		});
-		final AvailObject transformed = aBlock.value(
-			objectCopy,
-			parentNode,
-			outerNodes);
-		transformed.makeImmutable();
-		nodeMap.put(object, transformed);
-		return transformed;
-	}
-
-	/**
-	 * Visit the entire tree with the given {@link Continuation3 block},
-	 * children before parents.  The block takes three arguments: the
-	 * node, its parent, and the list of enclosing block nodes.
-	 *
-	 * @param object
-	 *            The current {@linkplain ParseNodeDescriptor parse node}.
-	 * @param aBlock
-	 *            What to do with each descendant.
-	 * @param parentNode
-	 *            This node's parent.
-	 * @param outerNodes
-	 *            The list of {@linkplain BlockNodeDescriptor blocks}
-	 *            surrounding this node, from outermost to innermost.
-	 */
-	static void treeDoWithParent (
-		final AvailObject object,
-		final Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
-		final AvailObject parentNode,
-		final List<AvailObject> outerNodes)
-	{
-		object.childrenDo(new Continuation1<AvailObject>()
-		{
-			@Override
-			public void value (final AvailObject child)
-			{
-				assert child.isInstanceOfSubtypeOf(PARSE_NODE.o());
-				treeDoWithParent(
-					child,
-					aBlock,
-					object,
-					outerNodes);
-			}
-		});
-		aBlock.value(
-			object,
-			parentNode,
-			outerNodes);
-	}
-
-	/**
 	 * Evaluate a parse tree node. It's a top-level statement in a module.
 	 * Declarations are handled differently - they cause a variable to be
 	 * declared in the module's scope.
@@ -1138,7 +1243,10 @@ public abstract class AbstractAvailCompiler
 		progressBlock = aBlock;
 		greatestGuess = -1;
 		greatExpectations.clear();
-		final ResolvedModuleName resolvedName = tokenize(qualifiedName, false);
+		final ResolvedModuleName resolvedName =
+			interpreter.runtime().moduleNameResolver().resolve(qualifiedName);
+		source = extractSource(qualifiedName, resolvedName);
+		tokens = tokenize(source, false);
 		startModuleTransaction(
 			ByteStringDescriptor.from(qualifiedName.qualifiedName()));
 		try
@@ -1314,24 +1422,25 @@ public abstract class AbstractAvailCompiler
 	 * string. Populate {@link #extendedModules} and {@link #usedModules}.
 	 *
 	 * @param qualifiedName
-	 *            The {@linkplain ModuleName qualified name} of the
-	 *            {@linkplain ModuleDescriptor source module}.
+	 *            The expected module name.
 	 * @throws AvailCompilerException
 	 *             If compilation fails.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	void parseModuleHeader (final @NotNull ModuleName qualifiedName)
-			throws AvailCompilerException
+	void parseModuleHeader (
+		final @NotNull ModuleName qualifiedName)
+	throws AvailCompilerException
 	{
 		progressBlock = null;
 		greatestGuess = -1;
 		greatExpectations.clear();
-		final ResolvedModuleName resolvedName = tokenize(qualifiedName, true);
+		final ResolvedModuleName resolvedName =
+			interpreter.runtime().moduleNameResolver().resolve(qualifiedName);
 		if (parseHeader(resolvedName, true) == null)
 		{
-			reportError(new ParserState(0, new AvailCompilerScopeStack(
-				null,
-				null)), resolvedName);
+			reportError(
+				new ParserState(0, new AvailCompilerScopeStack(null, null)),
+				resolvedName);
 			assert false;
 		}
 	}
@@ -1361,11 +1470,19 @@ public abstract class AbstractAvailCompiler
 		extendedModules = new ArrayList<AvailObject>();
 		usedModules = new ArrayList<AvailObject>();
 		exportedNames = new ArrayList<AvailObject>();
-		ParserState state = new ParserState(0, new AvailCompilerScopeStack(
-			null,
-			null));
+		ParserState state = new ParserState(
+			0,
+			new AvailCompilerScopeStack(null, null));
 
-		if (!state.peekToken(KEYWORD, "Module", "initial Module keyword"))
+		if (isSystemCompiler())
+		{
+			if (!state.peekToken(SYSTEM, "initial System keyword"))
+			{
+				return null;
+			}
+			state = state.afterToken();
+		}
+		if (!state.peekToken(MODULE, "initial Module keyword"))
 		{
 			return null;
 		}
@@ -1388,7 +1505,7 @@ public abstract class AbstractAvailCompiler
 		}
 		state = state.afterToken();
 
-		if (state.peekToken(KEYWORD, "Pragma"))
+		if (state.peekToken(PRAGMA))
 		{
 			state = state.afterToken();
 			final List<AvailObject> strings = new ArrayList<AvailObject>();
@@ -1424,15 +1541,11 @@ public abstract class AbstractAvailCompiler
 					{
 						interpreter.bootstrapSpecialObject(pragmaValue);
 					}
-					else if (pragmaKey.equals("bootstrapAssignmentStatement"))
-					{
-						interpreter.bootstrapAssignmentStatement(pragmaValue);
-					}
 				}
 			}
 		}
 
-		if (!state.peekToken(KEYWORD, "Extends", "Extends keyword"))
+		if (!state.peekToken(EXTENDS, "Extends keyword"))
 		{
 			return null;
 		}
@@ -1443,7 +1556,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 
-		if (!state.peekToken(KEYWORD, "Uses", "Uses keyword"))
+		if (!state.peekToken(USES, "Uses keyword"))
 		{
 			return null;
 		}
@@ -1454,7 +1567,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 
-		if (!state.peekToken(KEYWORD, "Names", "Names keyword"))
+		if (!state.peekToken(NAMES, "Names keyword"))
 		{
 			return null;
 		}
@@ -1470,7 +1583,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 
-		if (!state.peekToken(KEYWORD, "Body", "Body keyword"))
+		if (!state.peekToken(BODY, "Body keyword"))
 		{
 			return null;
 		}

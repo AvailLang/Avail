@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Object"
+System Module "Object"
 Extends
 Uses
 	"Tier-2"

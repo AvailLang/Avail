@@ -38,7 +38,6 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
-import com.avail.compiler.node.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Primitive.Result;
@@ -618,78 +617,6 @@ public abstract class Interpreter
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
-	}
-
-	/**
-	 * Create the one-argument parse failure method.  It takes a message string
-	 * and invokes {@linkplain Primitive#prim352_RejectParsing_errorString
-	 * primitive 352} to feed a failed expectation back to the compiler.
-	 *
-	 * @param parseFailureName
-	 *        The name of the parse failure method.
-	 */
-	public void bootstrapParseFailure (
-		final @NotNull String parseFailureName)
-	{
-		assert module != null;
-		final L1InstructionWriter writer = new L1InstructionWriter();
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(VoidDescriptor.voidObject())));
-		writer.argumentTypes(TupleTypeDescriptor.stringTupleType());
-		writer.primitiveNumber(
-			Primitive.prim352_RejectParsing_errorString.primitiveNumber);
-		writer.returnType(TERMINATES.o());
-		final AvailObject newClosure = ClosureDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newClosure.makeImmutable();
-		final AvailObject nameTuple =
-			ByteStringDescriptor.from(parseFailureName);
-		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
-		module.atNameAdd(nameTuple, realName);
-		module.atNewNamePut(nameTuple, realName);
-		atAddMethodBody(realName, newClosure);
-	}
-
-	/**
-	 * Create the two-argument {@linkplain AssignmentNodeDescriptor assignment}
-	 * {@linkplain MacroSignatureDescriptor macro definition}.  This is the
-	 * version that acts as a complete statement, and has an {@linkplain
-	 * ParseNodeDescriptor#o_ExpressionType(AvailObject) expression type} of
-	 * {@link TypeDescriptor.Types#VOID_TYPE void}.
-	 *
-	 * @param assignmentName
-	 *        The name of the assignment macro.
-	 */
-	public void bootstrapAssignmentStatement (
-		final @NotNull String assignmentName)
-	{
-		assert module != null;
-		final L1InstructionWriter writer = new L1InstructionWriter();
-		// This won't report type-invalid assignments (it will fail because the
-		// expected return type is not produced), but it should be good enough
-		// to bootstrap a better version.
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(VoidDescriptor.voidObject())));
-		writer.argumentTypes(VARIABLE_USE_NODE.o(), PARSE_NODE.o());
-		writer.primitiveNumber(
-			Primitive.prim353_MacroAssignmentStatement_variable_expression
-			.primitiveNumber);
-		writer.returnType(SEQUENCE_NODE.o());
-		final AvailObject newClosure = ClosureDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newClosure.makeImmutable();
-		final AvailObject nameTuple =
-			ByteStringDescriptor.from(assignmentName);
-		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
-		module.atNameAdd(nameTuple, realName);
-		module.atNewNamePut(nameTuple, realName);
-		atAddMacroBody(realName, newClosure);
 	}
 
 	/**

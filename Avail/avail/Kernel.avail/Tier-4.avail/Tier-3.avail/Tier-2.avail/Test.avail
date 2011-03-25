@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test"
+System Module "Test"
 Extends
 Uses
 	"Test-BlockB",

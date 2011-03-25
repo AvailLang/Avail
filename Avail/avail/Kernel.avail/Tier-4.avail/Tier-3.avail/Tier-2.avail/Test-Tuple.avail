@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-Tuple"
+System Module "Test-Tuple"
 Extends
 Uses
 	"Tier-1",

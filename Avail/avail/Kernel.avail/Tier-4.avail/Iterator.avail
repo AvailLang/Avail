@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Iterator"
+System Module "Iterator"
 Extends
 Uses
 	"Tier-3",

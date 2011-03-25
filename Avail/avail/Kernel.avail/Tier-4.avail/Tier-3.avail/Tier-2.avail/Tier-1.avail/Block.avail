@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Block"
+System Module "Block"
 Extends
 Uses
 	"Tier-0",

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tier-3"
+System Module "Tier-3"
 Extends
 	"Tier-2",
 	"Exception",

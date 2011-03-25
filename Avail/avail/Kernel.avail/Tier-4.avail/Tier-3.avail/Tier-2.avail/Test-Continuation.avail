@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-Continuation"
+System Module "Test-Continuation"
 Extends
 Uses
 	"Tier-1",

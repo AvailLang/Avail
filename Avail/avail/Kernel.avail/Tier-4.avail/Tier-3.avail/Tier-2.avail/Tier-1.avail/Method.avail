@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Method"
+System Module "Method"
 Extends
 Uses
 	"Tier-0",

@@ -40,8 +40,8 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and installs into
- * an {@linkplain AvailRuntime Avail runtime} a target
+ * An {@code AvailBuilder} {@linkplain AbstractAvailCompiler compiles} and
+ * installs into an {@linkplain AvailRuntime Avail runtime} a target
  * {@linkplain ModuleDescriptor module} and each of its dependencies.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -130,8 +130,9 @@ public final class AvailBuilder
 	 *             If the specified {@linkplain ModuleDescriptor module}
 	 *             recursively depends upon itself.
 	 */
-	private void traceModuleImports (final @NotNull ModuleName qualifiedName)
-			throws AvailCompilerException, RecursiveDependencyException
+	private void traceModuleImports (
+		final @NotNull ModuleName qualifiedName)
+	throws AvailCompilerException, RecursiveDependencyException
 	{
 		// Detect recursion into this module.
 		if (recursionSet.contains(qualifiedName))
@@ -154,8 +155,10 @@ public final class AvailBuilder
 				.resolve(qualifiedName);
 
 		// Build the set of names of imported modules.
-		final AbstractAvailCompiler compiler =
-			new AvailSystemCompiler(interpreter);
+		final AbstractAvailCompiler compiler = AbstractAvailCompiler.create(
+			qualifiedName,
+			interpreter,
+			true);
 		compiler.parseModuleHeader(qualifiedName);
 		final Set<ModuleName> importedModules = new HashSet<ModuleName>(
 			compiler.extendedModules.size() + compiler.usedModules.size());
@@ -268,9 +271,6 @@ public final class AvailBuilder
 			throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		final AbstractAvailCompiler compiler =
-			new AvailSystemCompiler(interpreter);  //TODO Use the right compiler.
-
 		traceModuleImports(target);
 		linearizeModuleImports();
 		final long globalCodeSize = globalCodeSize();
@@ -285,6 +285,11 @@ public final class AvailBuilder
 			if (!runtime.includesModuleNamed(
 				ByteStringDescriptor.from(moduleName.qualifiedName())))
 			{
+				final AbstractAvailCompiler compiler =
+					AbstractAvailCompiler.create(
+						moduleName,
+						interpreter,
+						false);
 				compiler.parseModule(
 					moduleName,
 					new Continuation4<ModuleName, Long, Long, Long>()

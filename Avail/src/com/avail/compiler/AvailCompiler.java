@@ -55,9 +55,12 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 * @param interpreter
 	 *            The interpreter used to execute code during compilation.
 	 */
-	public AvailCompiler (final L2Interpreter interpreter)
+	public AvailCompiler (
+		final L2Interpreter interpreter,
+		final String source,
+		final List<AvailObject> tokens)
 	{
-		super(interpreter);
+		super(interpreter, source, tokens);
 	}
 
 	/**

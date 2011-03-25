@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-Graph"
+System Module "Test-Graph"
 Extends
 Uses
 	"Tier-3",

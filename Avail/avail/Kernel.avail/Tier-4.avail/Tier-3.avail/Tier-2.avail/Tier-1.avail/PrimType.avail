@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "PrimType"
+System Module "PrimType"
 Extends
 Uses
 	"Tier-0",

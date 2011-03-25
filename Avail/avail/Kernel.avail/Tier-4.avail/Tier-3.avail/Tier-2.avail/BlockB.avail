@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "BlockB"
+System Module "BlockB"
 Extends
 Uses
 	"Tier-1",

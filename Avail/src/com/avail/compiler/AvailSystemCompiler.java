@@ -32,10 +32,12 @@
 
 package com.avail.compiler;
 
+import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.compiler.node.*;
+import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -54,10 +56,23 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 	 *
 	 * @param interpreter
 	 *            The interpreter used to execute code during compilation.
+	 * @param source
+	 *            The {@link String} of source code to be parsed.
+	 * @param tokens
+	 *            The list of {@linkplain TokenDescriptor tokens} to be parsed.
 	 */
-	public AvailSystemCompiler (final L2Interpreter interpreter)
+	public AvailSystemCompiler (
+		final L2Interpreter interpreter,
+		final String source,
+		final List<AvailObject> tokens)
 	{
-		super(interpreter);
+		super(interpreter, source, tokens);
+	}
+
+	@Override
+	boolean isSystemCompiler ()
+	{
+		return true;
 	}
 
 	/**
@@ -105,8 +120,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 						final AvailObject declaration)
 					{
 						if (afterDeclaration.peekToken(
-							END_OF_STATEMENT,
-							";",
+							SEMICOLON,
 							"; to end declaration statement"))
 						{
 							ParserState afterSemicolon =
@@ -133,8 +147,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 							final AvailObject assignment)
 						{
 							if (afterAssignment.peekToken(
-								END_OF_STATEMENT,
-								";",
+								SEMICOLON,
 								"; to end assignment statement"))
 							{
 								whenFoundStatement.value(
@@ -152,8 +165,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 						final AvailObject expression)
 					{
 						if (!afterExpression.peekToken(
-							END_OF_STATEMENT,
-							";",
+							SEMICOLON,
 							"; to end statement"))
 						{
 							return;
@@ -184,8 +196,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 							final AvailObject label)
 						{
 							if (afterDeclaration.peekToken(
-								END_OF_STATEMENT,
-								";",
+								SEMICOLON,
 								"; to end label statement"))
 							{
 								whenFoundStatement.value(
@@ -227,14 +238,13 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 					final ParserState afterVar,
 					final AvailObject varUse)
 				{
-					if (!afterVar.peekToken(OPERATOR, ":", ":= for assignment"))
+					if (!afterVar.peekToken(COLON, ":= for assignment"))
 					{
 						return;
 					}
 					final ParserState afterColon = afterVar.afterToken();
 					if (!afterColon.peekToken(
-						OPERATOR,
-						"=",
+						EQUALS,
 						"= part of := for assignment"))
 					{
 						return;
@@ -335,8 +345,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		final Con<AvailObject> continuation)
 	{
 		if (!start.peekToken(
-			OPERATOR,
-			"$",
+			DOLLAR_SIGN,
 			"label statement starting with \"$\""))
 		{
 			return;
@@ -350,8 +359,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		}
 		final ParserState atColon = atName.afterToken();
 		if (!atColon.peekToken(
-			OPERATOR,
-			":",
+			COLON,
 			"colon for label's type declaration"))
 		{
 			return;
@@ -412,22 +420,19 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		}
 		final ParserState afterVar = start.afterToken();
 		if (!afterVar.peekToken(
-			OPERATOR,
-			":",
+			COLON,
 			": or ::= for simple/constant/initializing declaration"))
 		{
 			return;
 		}
 		final ParserState afterFirstColon = afterVar.afterToken();
 		if (afterFirstColon.peekToken(
-			OPERATOR,
-			":",
+			COLON,
 			"second colon for constant declaration (a ::= expr)"))
 		{
 			final ParserState afterSecondColon = afterFirstColon.afterToken();
 			if (afterSecondColon.peekToken(
-				OPERATOR,
-				"=",
+				EQUALS,
 				"= part of ::= in constant declaration"))
 			{
 				final ParserState afterEquals = afterSecondColon.afterToken();
@@ -480,16 +485,14 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 
 					// Also try for var : type := init.
 					if (!afterType.peekToken(
-						OPERATOR,
-						":",
+						COLON,
 						"Second colon of var : type := init"))
 					{
 						return;
 					}
 					final ParserState afterSecondColon = afterType.afterToken();
 					if (!afterSecondColon.peekToken(
-						OPERATOR,
-						"=",
+						EQUALS,
 						"Equals sign in var : type := init"))
 					{
 						return;
@@ -546,7 +549,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		final List<AvailObject> argsSoFar,
 		final Con<List<AvailObject>> continuation)
 	{
-		if (start.peekToken(OPERATOR, ",", "comma and more block arguments"))
+		if (start.peekToken(COMMA, "comma and more block arguments"))
 		{
 			parseBlockArgumentThen(start.afterToken(), new Con<AvailObject>(
 				"Additional block argument")
@@ -568,8 +571,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		}
 
 		if (start.peekToken(
-			OPERATOR,
-			"|",
+			VERTICAL_BAR,
 			"command and more block arguments or a vertical bar"))
 		{
 			attempt(
@@ -628,7 +630,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 			return;
 		}
 		final ParserState afterArgName = start.afterToken();
-		if (!afterArgName.peekToken(OPERATOR, ":", ": then argument type"))
+		if (!afterArgName.peekToken(COLON, ": then argument type"))
 		{
 			return;
 		}
@@ -679,7 +681,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		if (!start.peekToken(OPERATOR, "["))
+		if (!start.peekToken(OPEN_SQUARE))
 		{
 			// Don't suggest a block was expected here unless at least the "["
 			// was present.
@@ -760,8 +762,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 			return;
 		}
 		if (!afterStatements.peekToken(
-			OPERATOR,
-			"]",
+			CLOSE_SQUARE,
 			"close bracket (']') to end block"))
 		{
 			return;
@@ -836,8 +837,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		}
 
 		if (!stateOutsideBlock.peekToken(
-			OPERATOR,
-			":",
+			COLON,
 			"optional block return type declaration"))
 		{
 			return;
@@ -1779,8 +1779,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 
 		// Now look for the declaration.
 		if (!start.peekToken(
-			KEYWORD,
-			"Primitive",
+			PRIMITIVE,
 			"optional primitive declaration"))
 		{
 			return;
@@ -1830,8 +1829,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		final ParserState afterPrimitiveNumber =
 			afterPrimitiveKeyword.afterToken();
 		if (!afterPrimitiveNumber.peekToken(
-			END_OF_STATEMENT,
-			";",
+			SEMICOLON,
 			"; after Primitive N declaration"))
 		{
 			return;
@@ -1862,12 +1860,12 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		// Optional, so try it without a super cast.
 		attempt(start, continuation, expr);
 
-		if (!start.peekToken(OPERATOR, ":"))
+		if (!start.peekToken(COLON))
 		{
 			return;
 		}
 		final ParserState afterColon = start.afterToken();
-		if (!afterColon.peekToken(OPERATOR, ":"))
+		if (!afterColon.peekToken(COLON))
 		{
 			start.expected(new Generator<String>()
 			{
@@ -2022,7 +2020,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		if (start.peekToken(OPERATOR, "&"))
+		if (start.peekToken(AMPERSAND))
 		{
 			final ParserState afterAmpersand = start.afterToken();
 			parseVariableUseWithExplanationThen(

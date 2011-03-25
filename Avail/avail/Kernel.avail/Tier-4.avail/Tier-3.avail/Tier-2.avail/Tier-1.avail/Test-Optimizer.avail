@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-Optimizer"
+System Module "Test-Optimizer"
 Extends
 Uses
 	"Tier-0"

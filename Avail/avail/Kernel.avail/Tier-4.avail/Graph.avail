@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Graph"
+System Module "Graph"
 Extends
 Uses
 	"Tier-3",

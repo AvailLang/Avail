@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "CyclicType"
+System Module "CyclicType"
 Extends
 	"Tier-0"
 Uses

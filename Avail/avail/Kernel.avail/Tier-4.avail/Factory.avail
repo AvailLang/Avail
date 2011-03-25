@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Factory"
+System Module "Factory"
 Extends
 Uses
 	"Tier-3"

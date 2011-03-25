@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-ObjectTypes"
+System Module "Test-ObjectTypes"
 Extends
 Uses
 	"Tier-2",

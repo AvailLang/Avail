@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Boolean"
+System Module "Boolean"
 Extends
 Uses
 	"Tier-0",

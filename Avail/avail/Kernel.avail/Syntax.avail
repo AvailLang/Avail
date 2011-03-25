@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
  
-Module "Syntax"
+System Module "Syntax"
 Extends
 	"Tier-4"
 Uses

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "TupleIterator"
+System Module "TupleIterator"
 Extends
 Uses
 	"Tier-3",

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-Parser"
+System Module "Test-Parser"
 Extends
 Uses
 	"BlockA",

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tier-2"
+System Module "Tier-2"
 Extends
 	"Tier-1",
 	"BlockA",

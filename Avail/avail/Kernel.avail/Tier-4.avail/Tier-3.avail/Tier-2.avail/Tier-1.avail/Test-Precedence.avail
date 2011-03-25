@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test-Precedence"
+System Module "Test-Precedence"
 Extends
 Uses
 	"Tier-0",

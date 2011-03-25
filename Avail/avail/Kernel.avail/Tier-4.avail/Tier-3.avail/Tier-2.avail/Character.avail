@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Character"
+System Module "Character"
 Extends
 Uses
 	"Tier-1",

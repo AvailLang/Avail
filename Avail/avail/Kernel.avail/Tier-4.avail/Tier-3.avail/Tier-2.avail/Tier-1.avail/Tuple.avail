@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tuple"
+System Module "Tuple"
 Extends 
 Uses
 	"Tier-0",

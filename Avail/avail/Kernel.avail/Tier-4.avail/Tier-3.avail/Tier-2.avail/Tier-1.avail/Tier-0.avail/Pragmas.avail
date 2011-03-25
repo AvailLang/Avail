@@ -30,11 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Pragmas"
+System Module "Pragmas"
 Pragma
-	"bootstrapDefiningMethod = RAW Method_is_",
-	"bootstrapSpecialObject = Special Object_",
-	"bootstrapParseFailure = RAW Fail parse_"
+	"bootstrapDefiningMethod = Method_is_",
+	"bootstrapSpecialObject = Special Object_"
 Extends
 Uses
 Names

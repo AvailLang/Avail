@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Set"
+System Module "Set"
 Extends
 Uses
 	"Tier-1",

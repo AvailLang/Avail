@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Type"
+System Module "Type"
 Extends
 Uses
 	"Tier-0",

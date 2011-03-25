@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Collection"
+System Module "Collection"
 Extends
 Uses
 	"Tier-3",

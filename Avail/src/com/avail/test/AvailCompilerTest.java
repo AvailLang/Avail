@@ -192,21 +192,6 @@ public class AvailCompilerTest
 		}
 	}
 
-	/**
-	 * Test: Compile the Tier-4 modules.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
-	 */
-	//	@Test
-	public void tier4 () throws Exception
-	{
-		final long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Kernel/Tier-4"));
-		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-	}
-
 	//	/**
 	//	 * Test: Compile all non-experimental modules.
 	//	 *
@@ -236,4 +221,34 @@ public class AvailCompilerTest
 		System.err.printf(
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
+
+//	/**
+//	 * Test: Compile the Chevron-Test module.
+//	 *
+//	 * @throws Exception
+//	 *         If an {@linkplain Exception exception} occurs.
+//	 */
+//	@Test
+//	public void chevronTest2 () throws Exception
+//	{
+//		final long startTime = System.currentTimeMillis();
+//		compile(new ModuleName("/avail/Chevron-Test"));
+//		System.err.printf(
+//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+//	}
+//
+//	/**
+//	 * Test: Compile the Chevron-Test module.
+//	 *
+//	 * @throws Exception
+//	 *         If an {@linkplain Exception exception} occurs.
+//	 */
+//	@Test
+//	public void chevronTest3 () throws Exception
+//	{
+//		final long startTime = System.currentTimeMillis();
+//		compile(new ModuleName("/avail/Chevron-Test"));
+//		System.err.printf(
+//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+//	}
 }

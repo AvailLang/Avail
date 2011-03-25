@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tier-0"
+System Module "Tier-0"
 Extends
 	"Pragmas",
 	"Syntax",

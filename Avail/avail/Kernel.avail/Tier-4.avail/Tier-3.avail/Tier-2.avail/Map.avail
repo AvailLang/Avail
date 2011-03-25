@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Map"
+System Module "Map"
 Extends
 Uses
 	"Tier-1",

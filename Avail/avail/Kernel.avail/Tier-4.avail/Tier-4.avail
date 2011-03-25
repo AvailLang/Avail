@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tier-4"
+System Module "Tier-4"
 Extends
 	"Tier-3",
 	"Collection",

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Integer"
+System Module "Integer"
 Extends
 Uses
 	"Tier-0"
