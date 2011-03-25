@@ -104,17 +104,10 @@ public class ModuleDescriptor extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
 		 * CyclicTypeDescriptor true names} to {@linkplain SignatureDescriptor
-		 * signatures} which implement (or forward or declare abstract} that
-		 * true name.
+		 * signatures} which implement (or forward or declare abstract or
+		 * declare as a macro} that true name.
 		 */
 		METHODS,
-
-		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * CyclicTypeDescriptor true names} to {@linkplain
-		 * MacroSignatureDescriptor macro signatures} which have that true name.
-		 */
-		MACROS,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from a parent {@linkplain
@@ -386,14 +379,6 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public void o_Macros (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.MACROS, value);
-	}
-
-	@Override
 	public void o_Name (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -471,13 +456,6 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Macros (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.MACROS);
-	}
-
-	@Override
 	public @NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
@@ -535,7 +513,6 @@ public class ModuleDescriptor extends Descriptor
 			|| e == ObjectSlots.PRIVATE_NAMES
 			|| e == ObjectSlots.VISIBLE_NAMES
 			|| e == ObjectSlots.METHODS
-			|| e == ObjectSlots.MACROS
 			|| e == ObjectSlots.RESTRICTIONS
 			|| e == ObjectSlots.VARIABLE_BINDINGS
 			|| e == ObjectSlots.CONSTANT_BINDINGS

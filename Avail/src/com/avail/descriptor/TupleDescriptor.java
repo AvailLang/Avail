@@ -778,10 +778,9 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final int size = object.tupleSize();
-		final AvailObject result = ObjectTupleDescriptor.mutable().create(
-			object.tupleSize());
+		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1; i <= size; i++)
 		{
 			result.tupleAtPut(i, object.tupleAt(i));
 		}
