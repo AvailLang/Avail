@@ -43,7 +43,20 @@ Extends
 Uses
 	"Origin"
 Names
+	/* Re-exports from "Origin".
+	 *
+	 * This module contains the single connection to "Origin" that is present in
+	 * the library. Note that we explicitly do not re-export the special object 
+	 * binding method "special object_"; this bootstrap method is used only 
+	 * within this module to create public aliases for the special objects.
+	 */
+	"Method_is_",
+
+	/* Public methods. */
 	"all",
+	"argument node",
+	"assignment node",
+	"block node",
 	"boolean",
 	"character",
 	"closure",
@@ -54,61 +67,56 @@ Names
 	"continuation",
 	"continuation type",
 	"cyclic type",
+	"declaration node",
 	"double",
+	"expression node",
 	"extended integer",
+	"false",
 	"false type",
 	"float",
 	"generalized closure type",
 	"integer",
 	"integer type",
+	"label node",
+	"literal node",
+	"local constant node",
+	"local variable node",
 	"map type",
+	"marker node",
 	"meta",
+	"module constant node",
+	"module variable node",
 	"object meta",
 	"object meta meta",
 	"object type",
+	"parse node",
 	"primitive type",
 	"process",
+	"reference node",
+	"send node",
 	"set",
 	"set type",
 	"string",
+	"supercast node",
 	"terminates",
 	"terminates type",
+	"true", 
 	"true type",
 	"tuple",
+	"tuple node",
 	"tuple type",
 	"type",
-	"void",
-
-	"parse node",
-	"marker node",
-	"expression node",
-	"assignment node",
-	"block node",
-	"literal node",
-	"reference node",
-	"send node",
-	"supercast node",
-	"tuple node",
 	"variable use node",
-	"declaration node",
-	"argument node",
-	"label node",
-	"local variable node",
-	"local constant node",
-	"module variable node",
-	"module constant node",
+	"void"
 
-	"true", "false",
 	
-	/* Re-export the defining method for use by subsequent modules. Note that we
-	 * explicitly do not export the special object binding method. There should
-	 * be no other clients of "special object_".
-	 */ 
-	"Method_is_"
 Body
 
 /*
  * Let's start by capturing the special objects into private module variables.
+ * These variables are constants and appear below in numerical order according 
+ * to the special object number to which they correspond. Gaps in numbering have 
+ * been left to allow for future additions.
  */
  
 privateAll                    ::= special object 1;
@@ -184,8 +192,37 @@ Method "all" is
 ] : privateType;
 
 /**
- * Answer the most specific general type of the boolean intrinsic
- * constants.
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code argument node}.
+ */
+Method "argument node" is
+[
+	privateArgumentNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code assignment node}.
+ */
+Method "assignment node" is
+[
+	privateAssignmentNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code block node}.
+ */
+Method "block node" is
+[
+	privateBlockNode;
+] : privatePrimativeType;
+
+/**
+ * Answer the most specific general type of the boolean intrinsic constants.
  *
  * @returns The type {@code boolean}.
  */
@@ -215,6 +252,16 @@ Method "closure" is
 ] : privatePrimitiveType;
 
 /**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code closureType}.
+ */
+Method "closure type" is
+[
+	privateClosureType;
+] : privateMeta;
+
+/**
  * Answer the type of all compiled code.
  *
  * @return The type {@code code}.
@@ -237,12 +284,52 @@ Method "container" is
 /**
  * TODO: Really comment this!
  *
+ * @returns The type {@code containerType}.
+ */
+Method "container type" is
+[
+	privateContainerType;
+] : privateMeta;
+
+/**
+ * TODO: Really comment this!
+ *
  * @returns The type {@code continuation}.
  */
 Method "continuation" is
 [
 	privateContinuation;
 ] : privatePrimitiveType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code continuationType}.
+ */
+Method "continuation type" is
+[
+	privateContinuationType;
+] : privateMeta;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code cyclic type}.
+ */
+Method "cyclic type" is
+[
+	privateCyclicType;
+] : privateCyclicType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code declaration node}.
+ */
+Method "declaration node" is
+[
+	privateDeclarationNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
@@ -257,12 +344,32 @@ Method "double" is
 /**
  * TODO: Really comment this!
  *
+ * @returns The type {@code expression node}.
+ */
+Method "expression node" is
+[
+	privateExpressionNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
  * @returns The type {@code extendedInteger}.
  */
 Method "extended integer" is
 [
 	privateExtendedInteger;
 ] : privateIntegerType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code false}.
+ */
+Method "false" is
+[
+	privateFalse;
+] : privateFalseType;
 
 /**
  * TODO: Really comment this!
@@ -287,84 +394,22 @@ Method "float" is
 /**
  * TODO: Really comment this!
  *
+ * @returns The type {@code generalizedClosureType}.
+ */
+Method "generalized closure type" is
+[
+	privateGeneralizedClosureType;
+] : privateMeta;
+
+/**
+ * TODO: Really comment this!
+ *
  * @returns The type {@code integer}.
  */
 Method "integer" is
 [
 	privateInteger;
 ] : privateIntegerType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code process}.
- */
-Method "process" is
-[
-	privateProcess;
-] : privatePrimitiveType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code set}.
- */
-Method "set" is
-[
-	privateSet;
-] : privateSetType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code string}.
- */
-Method "string" is
-[
-	privateString;
-] : privateTupleType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code terminates}.
- */
-Method "terminates" is
-[
-	privateTerminates;
-] : privateTerminatesType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code trueType}.
- */
-Method "true type" is
-[
-	privateTrueType;
-] : privatePrimitiveType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code tuple}.
- */
-Method "tuple" is
-[
-	privateTuple;
-] : privateTupleType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code void}.
- */
-Method "void" is
-[
-	privateVoid;
-] : privateType;
-
-/* And the meta-types... */
 
 /**
  * TODO: Really comment this!
@@ -379,22 +424,44 @@ Method "integer type" is
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code tupleType}.
+ * @returns The type {@code label node}.
  */
-Method "tuple type" is
+Method "label node" is
 [
-	privateTupleType;
-] : privateMeta;
+	privateLabelNode;
+] : privatePrimativeType;
+
 
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code setType}.
+ * @returns The type {@code literal node}.
  */
-Method "set type" is
+Method "literal node" is
 [
-	privateSetType;
-] : privateMeta;
+	privateLiteralNode;
+] : privatePrimativeType;
+
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code local constant node}.
+ */
+Method "local constant node" is
+[
+	privateLocalConstantNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code local variable node}.
+ */
+Method "local variable node" is
+[
+	privateLocalVariableNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
@@ -409,94 +476,12 @@ Method "map type" is
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code closureType}.
+ * @returns The type {@code marker node}.
  */
-Method "closure type" is
+Method "marker node" is
 [
-	privateClosureType;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code containerType}.
- */
-Method "container type" is
-[
-	privateContainerType;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code continuationType}.
- */
-Method "continuation type" is
-[
-	privateContinuationType;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code generalizedClosureType}.
- */
-Method "generalized closure type" is
-[
-	privateGeneralizedClosureType;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code objectType}.
- */
-Method "object type" is
-[
-	privateObjectType;
-] : privateObjectMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code primitive type}.
- */
-Method "primitive type" is
-[
-	privatePrimitiveType;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code terminates type}.
- */
-Method "terminates type" is
-[
-	privateTerminatesType;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code type}.
- */
-Method "type" is
-[
-	privateType;
-] : privateMeta;
-
-/* And the meta-meta-types... */
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code cyclic type}.
- */
-Method "cyclic type" is
-[
-	privateCyclicType;
-] : privateCyclicType;
+	privateMarkerNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
@@ -507,6 +492,26 @@ Method "meta" is
 [
 	privateMeta;
 ] : privateMeta;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code module constant node}.
+ */
+Method "module constant node" is
+[
+	privateModuleConstantNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code module variable node}.
+ */
+Method "module variable node" is
+[
+	privateModuleVariableNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
@@ -531,6 +536,16 @@ Method "object meta meta" is
 /**
  * TODO: Really comment this!
  *
+ * @returns The type {@code objectType}.
+ */
+Method "object type" is
+[
+	privateObjectType;
+] : privateObjectMeta;
+
+/**
+ * TODO: Really comment this!
+ *
  * @returns The type {@code parse node}.
  */
 Method "parse node" is
@@ -541,52 +556,22 @@ Method "parse node" is
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code marker node}.
+ * @returns The type {@code primitive type}.
  */
-Method "marker node" is
+Method "primitive type" is
 [
-	privateMarkerNode;
-] : privatePrimativeType;
+	privatePrimitiveType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code expression node}.
+ * @returns The type {@code process}.
  */
-Method "expression node" is
+Method "process" is
 [
-	privateExpressionNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code assignment node}.
- */
-Method "assignment node" is
-[
-	privateAssignmentNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code block node}.
- */
-Method "block node" is
-[
-	privateBlockNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code literal node}.
- */
-Method "literal node" is
-[
-	privateLiteralNode;
-] : privatePrimativeType;
+	privateProcess;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -611,6 +596,36 @@ Method "send node" is
 /**
  * TODO: Really comment this!
  *
+ * @returns The type {@code set}.
+ */
+Method "set" is
+[
+	privateSet;
+] : privateSetType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code setType}.
+ */
+Method "set type" is
+[
+	privateSetType;
+] : privateMeta;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code string}.
+ */
+Method "string" is
+[
+	privateString;
+] : privateTupleType;
+
+/**
+ * TODO: Really comment this!
+ *
  * @returns The type {@code supercast node}.
  */
 Method "supercast node" is
@@ -621,92 +636,22 @@ Method "supercast node" is
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code tuple node}.
+ * @returns The type {@code terminates}.
  */
-Method "tuple node" is
+Method "terminates" is
 [
-	privateTupleNode;
-] : privatePrimativeType;
+	privateTerminates;
+] : privateTerminatesType;
 
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code variable use node}.
+ * @returns The type {@code terminates type}.
  */
-Method "variable use node" is
+Method "terminates type" is
 [
-	privateVariableUseNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code declaration node}.
- */
-Method "declaration node" is
-[
-	privateDeclarationNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code argument node}.
- */
-Method "argument node" is
-[
-	privateArgumentNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code label node}.
- */
-Method "label node" is
-[
-	privateLabelNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code local variable node}.
- */
-Method "local variable node" is
-[
-	privateLocalVariableNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code local constant node}.
- */
-Method "local constant node" is
-[
-	privateLocalConstantNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code module variable node}.
- */
-Method "module variable node" is
-[
-	privateModuleVariableNode;
-] : privatePrimativeType;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code module constant node}.
- */
-Method "module constant node" is
-[
-	privateModuleConstantNode;
-] : privatePrimativeType;
+	privateTerminatesType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
@@ -721,9 +666,71 @@ Method "true" is
 /**
  * TODO: Really comment this!
  *
- * @returns The type {@code false}.
+ * @returns The type {@code trueType}.
  */
-Method "false" is
+Method "true type" is
 [
-	privateFalse;
-] : privateFalseType;
+	privateTrueType;
+] : privatePrimitiveType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code tuple}.
+ */
+Method "tuple" is
+[
+	privateTuple;
+] : privateTupleType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code tuple node}.
+ */
+Method "tuple node" is
+[
+	privateTupleNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code tupleType}.
+ */
+Method "tuple type" is
+[
+	privateTupleType;
+] : privateMeta;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code type}.
+ */
+Method "type" is
+[
+	privateType;
+] : privateMeta;
+
+/* And the meta-meta-types... */
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code variable use node}.
+ */
+Method "variable use node" is
+[
+	privateVariableUseNode;
+] : privatePrimativeType;
+
+/**
+ * TODO: Really comment this!
+ *
+ * @returns The type {@code void}.
+ */
+Method "void" is
+[
+	privateVoid;
+] : privateType;
