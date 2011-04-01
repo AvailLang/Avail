@@ -837,6 +837,7 @@ extends Descriptor
 	static AvailObject CloseChevronTuple;
 	static AvailObject DoubleDaggerTuple;
 	static AvailObject BackQuoteTuple;
+	static AvailObject EllipsisTuple;
 
 	static void createWellKnownObjects ()
 	{
@@ -858,11 +859,14 @@ extends Descriptor
 
 		BackQuoteTuple = ByteStringDescriptor.from("`");
 		BackQuoteTuple.makeImmutable();
-	}
+
+		EllipsisTuple = ByteStringDescriptor.from("…");
+		EllipsisTuple.makeImmutable();
+}
 
 	static void clearWellKnownObjects ()
 	{
-		// Clear my cached empty tuple and underscore tuple.
+		// Clear my cached empty tuple and various well known strings.
 
 		EmptyTuple = null;
 		UnderscoreTuple = null;
@@ -870,6 +874,7 @@ extends Descriptor
 		CloseChevronTuple = null;
 		DoubleDaggerTuple = null;
 		BackQuoteTuple = null;
+		EllipsisTuple = null;
 	}
 
 	public static AvailObject fromList (
@@ -938,36 +943,85 @@ extends Descriptor
 		return result;
 	};
 
-	/* Special object access */
+
+	/**
+	 * Return the empty {@linkplain TupleDescriptor tuple}.  Other empty tuples
+	 * can be created, but if you know the tuple is empty you can save time and
+	 * space by returning this one.
+	 *
+	 * @return The tuple of size zero.
+	 */
 	public static AvailObject empty ()
 	{
 		return EmptyTuple;
 	};
 
+	/**
+	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
+	 * consisting of just the underscore character ("_").
+	 *
+	 * @return A tuple containing just the underscore character.
+	 */
 	public static AvailObject underscoreTuple ()
 	{
 		return UnderscoreTuple;
 	};
 
+	/**
+	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
+	 * consisting of just the open-chevron character ("«").
+	 *
+	 * @return A tuple containing just the open-chevron character.
+	 */
 	public static AvailObject openChevronTuple ()
 	{
 		return OpenChevronTuple;
 	};
 
+	/**
+	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
+	 * consisting of just the close-chevron character ("»").
+	 *
+	 * @return A tuple containing just the close-chevron character.
+	 */
 	public static AvailObject closeChevronTuple ()
 	{
 		return CloseChevronTuple;
 	};
 
+	/**
+	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
+	 * consisting of just the double dagger character ("‡").
+	 *
+	 * @return A tuple containing just the double dagger character.
+	 */
 	public static AvailObject doubleDaggerTuple ()
 	{
 		return DoubleDaggerTuple;
 	};
 
+	/**
+	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
+	 * consisting of just the back-quote character ("`").
+	 *
+	 * @return A tuple containing just the back-quote character.
+	 */
 	public static AvailObject backQuoteTuple ()
 	{
 		return BackQuoteTuple;
 	};
+
+	/**
+	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
+	 * consisting of just the ellipsis character ("…").
+	 *
+	 * @return A tuple containing just the ellipsis character.
+	 */
+	public static AvailObject ellipsisTuple ()
+	{
+		return EllipsisTuple;
+	};
+
 
 	/* Hash scrambling... */
 	static final int PreToggle = 0xE570A6;

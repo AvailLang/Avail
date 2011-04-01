@@ -242,12 +242,12 @@ public class MessageSplitter
 	 * An {@linkplain Argument} is an occurrence of "_" in a message name.  It
 	 * indicates where an argument is expected.
 	 */
-	final class Argument extends Expression
+	class Argument extends Expression
 	{
 		/**
 		 * The one-based index for this argument.  In particular, it's one plus
-		 * the number of non-backquoted underscores that occur anywhere to the
-		 * left of this one in the message name.
+		 * the number of non-backquoted underscores/ellipses that occur anywhere
+		 * to the left of this one in the message name.
 		 */
 		final int absoluteUnderscoreIndex;
 
@@ -285,6 +285,56 @@ public class MessageSplitter
 			// to simplify processing of the recursive expression parse, as well
 			// as to make a completely non-recursive parallel-shift-reduce
 			// parsing engine easier to build eventually.
+			list.add(0);
+			list.add(absoluteUnderscoreIndex * 8 + 3);
+		}
+
+
+		/**
+		 * A simple underscore can be arbitrarily restricted, other than when
+		 * it is restricted to the uninstantiable type {@link
+		 * TypeDescriptor.Types#TERMINATES terminates}.
+		 */
+		@Override
+		public void checkType (final AvailObject argumentType)
+		{
+			if (argumentType.equals(TERMINATES.o()))
+			{
+				error("Method argument type should not be \"terminates\".");
+			}
+			return;
+		}
+	}
+
+
+	/**
+	 * A {@linkplain RawTokenArgument} is an occurrence of "…" in a message
+	 * name.  It indicates where a raw token argument is expected.  This is an
+	 * unusual kind of argument, in that the next token in the input stream is
+	 * captured and passed as a literal argument to the macro.
+	 */
+	final class RawTokenArgument extends Argument
+	{
+		/**
+		 * Construct a RawTokenArgument.
+		 */
+		RawTokenArgument ()
+		{
+			super();
+		}
+
+		@Override
+		void emitOn (final List<Integer> list)
+		{
+			// First, parse an argument subexpression.  Next, record it in a
+			// list of lists that will later be used to check negative
+			// precedence restrictions.  In particular, it will be recorded at
+			// position N if this argument is for the Nth non-backquoted
+			// underscore of this message.  This is done with two instructions
+			// to simplify processing of the recursive expression parse, as well
+			// as to make a completely non-recursive parallel-shift-reduce
+			// parsing engine easier to build eventually.
+			//TODO  Rewrite with a new kind of instruction
 			list.add(0);
 			list.add(absoluteUnderscoreIndex * 8 + 3);
 		}
