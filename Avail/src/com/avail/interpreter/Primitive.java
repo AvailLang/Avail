@@ -67,7 +67,6 @@ import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
  */
 public enum Primitive
 {
-
 	/**
 	 * <strong>Primitive 1:</strong> Add two extended integers together.
 	 */
@@ -85,7 +84,6 @@ public enum Primitive
 			return SUCCESS;
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 2:</strong> Subtract extended integer b from a.

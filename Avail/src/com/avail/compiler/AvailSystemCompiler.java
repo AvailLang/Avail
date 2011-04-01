@@ -755,12 +755,6 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		final AvailCompilerScopeStack scopeOutsideBlock,
 		final Con<AvailObject> continuation)
 	{
-		if (primitive != 0 && primitive != 256 && statements.isEmpty())
-		{
-			afterStatements.expected(
-				"mandatory failure code for primitive method (except #256)");
-			return;
-		}
 		if (!afterStatements.peekToken(
 			CLOSE_SQUARE,
 			"close bracket (']') to end block"))

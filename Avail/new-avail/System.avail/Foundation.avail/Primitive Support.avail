@@ -33,7 +33,6 @@
 System Module "Primitive Support"
 Extends
 Uses
-	"Origin",
 	"Special Objects"
 Names
 Body
@@ -43,7 +42,7 @@ Body
  * argument will be converted internally into a {@code string} and used to
  * report an error message.
  */
-Method "Crash with postmortem hint_" is
+Method "Exit the current process with postmortem hint_" is
 [
 	postMortemHint : all |
 	
