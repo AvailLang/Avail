@@ -1,5 +1,5 @@
 /**
- * System/Foundation/Types
+ * System/Foundation/Special Objects
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -38,10 +38,10 @@
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  * @author Leslie Schultz &lt;leslie.a.schultz@gmail.com&gt;
  */
-System Module "Basics"
+System Module "Special Objects"
 Extends
 Uses
-	"Genesis"
+	"Origin"
 Names
 	"all",
 	"boolean",
@@ -100,6 +100,10 @@ Names
 
 	"true", "false",
 	
+	/* Re-export the defining method for use by subsequent modules. Note that we
+	 * explicitly do not export the special object binding method. There should
+	 * be no other clients of "special object_".
+	 */ 
 	"Method_is_"
 Body
 
@@ -107,63 +111,63 @@ Body
  * Let's start by capturing the special objects into private module variables.
  */
  
-privateAll                    ::= Special Object 1;
-privateBoolean                ::= Special Object 2;
-privateCharacter              ::= Special Object 3;
-privateClosure                ::= Special Object 4;
-privateClosureType            ::= Special Object 5;
-privateCompiledCode           ::= Special Object 6;
-privateContainer              ::= Special Object 7;
-privateContainerType          ::= Special Object 8;
-privateContinuation           ::= Special Object 9;
-privateContinuationType       ::= Special Object 10;
-privateCyclicType             ::= Special Object 11;
-privateDouble                 ::= Special Object 12;
-privateExtendedInteger        ::= Special Object 13;
-privateFalseType              ::= Special Object 14;
-privateFloat                  ::= Special Object 15;
-privateGeneralizedClosureType ::= Special Object 16;
-privateInteger                ::= Special Object 17;
-privateIntegerType            ::= Special Object 18;
-privateMapType                ::= Special Object 19;
-privateMeta                   ::= Special Object 20;
-privateObjectMeta             ::= Special Object 21;
-privateObjectMetaMeta         ::= Special Object 22;
-privateObjectType             ::= Special Object 23;
-privatePrimitiveType          ::= Special Object 24;
-privateProcess                ::= Special Object 25;
-privateSet                    ::= Special Object 26;
-privateSetType                ::= Special Object 27;
-privateString                 ::= Special Object 28;
-privateTerminates             ::= Special Object 29;
-privateTerminatesType         ::= Special Object 30;
-privateTrueType               ::= Special Object 31;
-privateTuple                  ::= Special Object 32;
-privateTupleType              ::= Special Object 33;
-privateType                   ::= Special Object 34;
-privateVoid                   ::= Special Object 35;
+privateAll                    ::= special object 1;
+privateBoolean                ::= special object 2;
+privateCharacter              ::= special object 3;
+privateClosure                ::= special object 4;
+privateClosureType            ::= special object 5;
+privateCompiledCode           ::= special object 6;
+privateContainer              ::= special object 7;
+privateContainerType          ::= special object 8;
+privateContinuation           ::= special object 9;
+privateContinuationType       ::= special object 10;
+privateCyclicType             ::= special object 11;
+privateDouble                 ::= special object 12;
+privateExtendedInteger        ::= special object 13;
+privateFalseType              ::= special object 14;
+privateFloat                  ::= special object 15;
+privateGeneralizedClosureType ::= special object 16;
+privateInteger                ::= special object 17;
+privateIntegerType            ::= special object 18;
+privateMapType                ::= special object 19;
+privateMeta                   ::= special object 20;
+privateObjectMeta             ::= special object 21;
+privateObjectMetaMeta         ::= special object 22;
+privateObjectType             ::= special object 23;
+privatePrimitiveType          ::= special object 24;
+privateProcess                ::= special object 25;
+privateSet                    ::= special object 26;
+privateSetType                ::= special object 27;
+privateString                 ::= special object 28;
+privateTerminates             ::= special object 29;
+privateTerminatesType         ::= special object 30;
+privateTrueType               ::= special object 31;
+privateTuple                  ::= special object 32;
+privateTupleType              ::= special object 33;
+privateType                   ::= special object 34;
+privateVoid                   ::= special object 35;
 
-privateParseNode              ::= Special Object 50;
-privateMarkerNode             ::= Special Object 51;
-privateExpressionNode         ::= Special Object 52;
-privateAssignmentNode         ::= Special Object 53;
-privateBlockNode              ::= Special Object 54;
-privateLiteralNode            ::= Special Object 55;
-privateReferenceNode          ::= Special Object 56;
-privateSendNode               ::= Special Object 57;
-privateSuperCastNode          ::= Special Object 58;
-privateTupleNode              ::= Special Object 59;
-privateVariableUseNode        ::= Special Object 60;
-privateDeclarationNode        ::= Special Object 61;
-privateArgumentNode           ::= Special Object 62;
-privateLabelNode              ::= Special Object 63;
-privateLocalVariableNode      ::= Special Object 64;
-privateLocalConstantNode      ::= Special Object 65;
-privateModuleVariableNode     ::= Special Object 66;
-privateModuleConstantNode     ::= Special Object 67;
+privateParseNode              ::= special object 50;
+privateMarkerNode             ::= special object 51;
+privateExpressionNode         ::= special object 52;
+privateAssignmentNode         ::= special object 53;
+privateBlockNode              ::= special object 54;
+privateLiteralNode            ::= special object 55;
+privateReferenceNode          ::= special object 56;
+privateSendNode               ::= special object 57;
+privateSuperCastNode          ::= special object 58;
+privateTupleNode              ::= special object 59;
+privateVariableUseNode        ::= special object 60;
+privateDeclarationNode        ::= special object 61;
+privateArgumentNode           ::= special object 62;
+privateLabelNode              ::= special object 63;
+privateLocalVariableNode      ::= special object 64;
+privateLocalConstantNode      ::= special object 65;
+privateModuleVariableNode     ::= special object 66;
+privateModuleConstantNode     ::= special object 67;
 
-privateTrue                   ::= Special Object 70;
-privateFalse                  ::= Special Object 71;
+privateTrue                   ::= special object 70;
+privateFalse                  ::= special object 71;
 
 /*
  * Now we provide nullary methods to return the special objects.
@@ -174,7 +178,10 @@ privateFalse                  ::= Special Object 71;
  *
  * @returns The type {@code all}.
  */
-Method "all" is [ privateAll; ] : privateType;
+Method "all" is
+[
+	privateAll;
+] : privateType;
 
 /**
  * Answer the most specific general type of the boolean intrinsic
@@ -182,126 +189,180 @@ Method "all" is [ privateAll; ] : privateType;
  *
  * @returns The type {@code boolean}.
  */
-Method "boolean" is [ privateBoolean; ] : privatePrimitiveType;
+Method "boolean" is
+[
+	privateBoolean;
+] : privatePrimitiveType;
 
 /**
  * Answer the type of an Avail character. Avail characters are Unicode.
  *
  * @returns The type {@code character}.
  */
-Method "character" is [ privateCharacter; ] : privatePrimitiveType;
+Method "character" is
+[
+	privateCharacter;
+] : privatePrimitiveType;
 
 /**
  * Answer the supertype of every specific closure type.
  *
  * @return The type {@code closure}.
  */
-Method "closure" is [ privateClosure; ] : privatePrimitiveType;
+Method "closure" is
+[
+	privateClosure;
+] : privatePrimitiveType;
 
 /**
  * Answer the type of all compiled code.
  *
  * @return The type {@code code}.
  */
-Method "compiled code" is [ privateCompiledCode; ] : privatePrimitiveType;
+Method "compiled code" is
+[
+	privateCompiledCode;
+] : privatePrimitiveType;
 
 /**
  * Answer the supertype of every specific container type.
  *
  * @return The type {@code container}.
  */
-Method "container" is [ privateContainer; ] : privateContainerType;
+Method "container" is
+[
+	privateContainer;
+] : privateContainerType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code continuation}.
  */
-Method "continuation" is [ privateContinuation; ] : privatePrimitiveType;
+Method "continuation" is
+[
+	privateContinuation;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code double}.
  */
-Method "double" is [ privateDouble; ] : privatePrimitiveType;
+Method "double" is
+[
+	privateDouble;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code extendedInteger}.
  */
-Method "extended integer" is [ privateExtendedInteger; ] : privateIntegerType;
+Method "extended integer" is
+[
+	privateExtendedInteger;
+] : privateIntegerType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code falseType}.
  */
-Method "false type" is [ privateFalseType; ] : privatePrimitiveType;
+Method "false type" is
+[
+	privateFalseType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code float}.
  */
-Method "float" is [ privateFloat; ] : privatePrimitiveType;
+Method "float" is
+[
+	privateFloat;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code integer}.
  */
-Method "integer" is [ privateInteger; ] : privateIntegerType;
+Method "integer" is
+[
+	privateInteger;
+] : privateIntegerType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code process}.
  */
-Method "process" is [ privateProcess; ] : privatePrimitiveType;
+Method "process" is
+[
+	privateProcess;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code set}.
  */
-Method "set" is [ privateSet; ] : privateSetType;
+Method "set" is
+[
+	privateSet;
+] : privateSetType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code string}.
  */
-Method "string" is [ privateString; ] : privateTupleType;
+Method "string" is
+[
+	privateString;
+] : privateTupleType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code terminates}.
  */
-Method "terminates" is [ privateTerminates; ] : privateTerminatesType;
+Method "terminates" is
+[
+	privateTerminates;
+] : privateTerminatesType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code trueType}.
  */
-Method "true type" is [ privateTrueType; ] : privatePrimitiveType;
+Method "true type" is
+[
+	privateTrueType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code tuple}.
  */
-Method "tuple" is [ privateTuple; ] : privateTupleType;
+Method "tuple" is
+[
+	privateTuple;
+] : privateTupleType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code void}.
  */
-Method "void" is [ privateVoid; ] : privateType;
+Method "void" is
+[
+	privateVoid;
+] : privateType;
 
 /* And the meta-types... */
 
@@ -310,84 +371,120 @@ Method "void" is [ privateVoid; ] : privateType;
  *
  * @returns The type {@code integerType}.
  */
-Method "integer type" is [ privateIntegerType; ] : privateMeta;
+Method "integer type" is
+[
+	privateIntegerType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code tupleType}.
  */
-Method "tuple type" is [ privateTupleType; ] : privateMeta;
+Method "tuple type" is
+[
+	privateTupleType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code setType}.
  */
-Method "set type" is [ privateSetType; ] : privateMeta;
+Method "set type" is
+[
+	privateSetType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code mapType}.
  */
-Method "map type" is [ privateMapType; ] : privateMeta;
+Method "map type" is
+[
+	privateMapType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code closureType}.
  */
-Method "closure type" is [ privateClosureType; ] : privateMeta;
+Method "closure type" is
+[
+	privateClosureType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code containerType}.
  */
-Method "container type" is [ privateContainerType; ] : privateMeta;
+Method "container type" is
+[
+	privateContainerType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code continuationType}.
  */
-Method "continuation type" is [ privateContinuationType; ] : privateMeta;
+Method "continuation type" is
+[
+	privateContinuationType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code generalizedClosureType}.
  */
-Method "generalized closure type" is [ privateGeneralizedClosureType; ] : privateMeta;
+Method "generalized closure type" is
+[
+	privateGeneralizedClosureType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code objectType}.
  */
-Method "object type" is [ privateObjectType; ] : privateObjectMeta;
+Method "object type" is
+[
+	privateObjectType;
+] : privateObjectMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code primitive type}.
  */
-Method "primitive type" is [ privatePrimitiveType; ] : privateMeta;
+Method "primitive type" is
+[
+	privatePrimitiveType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code terminates type}.
  */
-Method "terminates type" is [ privateTerminatesType; ] : privateMeta;
+Method "terminates type" is
+[
+	privateTerminatesType;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code type}.
  */
-Method "type" is [ privateType; ] : privateMeta;
+Method "type" is
+[
+	privateType;
+] : privateMeta;
 
 /* And the meta-meta-types... */
 
@@ -396,165 +493,237 @@ Method "type" is [ privateType; ] : privateMeta;
  *
  * @returns The type {@code cyclic type}.
  */
-Method "cyclic type" is [ privateCyclicType; ] : privateCyclicType;
+Method "cyclic type" is
+[
+	privateCyclicType;
+] : privateCyclicType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code meta}.
  */
-Method "meta" is [ privateMeta; ] : privateMeta;
+Method "meta" is
+[
+	privateMeta;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code object meta}.
  */
-Method "object meta" is [ privateObjectMeta; ] : privateObjectMetaMeta;
+Method "object meta" is
+[
+	privateObjectMeta;
+] : privateObjectMetaMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code object meta meta}.
  */
-Method "object meta meta" is [ privateObjectMetaMeta; ] : privateMeta;
+Method "object meta meta" is
+[
+	privateObjectMetaMeta;
+] : privateMeta;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code parse node}.
  */
-Method "parse node" is [ privateParseNode; ] : privatePrimativeType;
+Method "parse node" is
+[
+	privateParseNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code marker node}.
  */
-Method "marker node" is [ privateMarkerNode; ] : privatePrimativeType;
+Method "marker node" is
+[
+	privateMarkerNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code expression node}.
  */
-Method "expression node" is [ privateExpressionNode; ] : privatePrimativeType;
+Method "expression node" is
+[
+	privateExpressionNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code assignment node}.
  */
-Method "assignment node" is [ privateAssignmentNode; ] : privatePrimativeType;
+Method "assignment node" is
+[
+	privateAssignmentNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code block node}.
  */
-Method "block node" is [ privateBlockNode; ] : privatePrimativeType;
+Method "block node" is
+[
+	privateBlockNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code literal node}.
  */
-Method "literal node" is [ privateLiteralNode; ] : privatePrimativeType;
+Method "literal node" is
+[
+	privateLiteralNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code reference node}.
  */
-Method "reference node" is [ privateReferenceNode; ] : privatePrimativeType;
+Method "reference node" is
+[
+	privateReferenceNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code send node}.
  */
-Method "send node" is [ privateSendNode; ] : privatePrimativeType;
+Method "send node" is
+[
+	privateSendNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code supercast node}.
  */
-Method "supercast node" is [ privateSuperCastNode; ] : privatePrimativeType;
+Method "supercast node" is
+[
+	privateSuperCastNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code tuple node}.
  */
-Method "tuple node" is [ privateTupleNode; ] : privatePrimativeType;
+Method "tuple node" is
+[
+	privateTupleNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code variable use node}.
  */
-Method "variable use node" is [ privateVariableUseNode; ] : privatePrimativeType;
+Method "variable use node" is
+[
+	privateVariableUseNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code declaration node}.
  */
-Method "declaration node" is [ privateDeclarationNode; ] : privatePrimativeType;
+Method "declaration node" is
+[
+	privateDeclarationNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code argument node}.
  */
-Method "argument node" is [ privateArgumentNode; ] : privatePrimativeType;
+Method "argument node" is
+[
+	privateArgumentNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code label node}.
  */
-Method "label node" is [ privateLabelNode; ] : privatePrimativeType;
+Method "label node" is
+[
+	privateLabelNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code local variable node}.
  */
-Method "local variable node" is [ privateLocalVariableNode; ] : privatePrimativeType;
+Method "local variable node" is
+[
+	privateLocalVariableNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code local constant node}.
  */
-Method "local constant node" is [ privateLocalConstantNode; ] : privatePrimativeType;
+Method "local constant node" is
+[
+	privateLocalConstantNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code module variable node}.
  */
-Method "module variable node" is [ privateModuleVariableNode; ] : privatePrimativeType;
+Method "module variable node" is
+[
+	privateModuleVariableNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code module constant node}.
  */
-Method "module constant node" is [ privateModuleConstantNode; ] : privatePrimativeType;
+Method "module constant node" is
+[
+	privateModuleConstantNode;
+] : privatePrimativeType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code true}.
  */
-Method "true" is [ privateTrue; ] : privateTrueType;
+Method "true" is
+[
+	privateTrue;
+] : privateTrueType;
 
 /**
  * TODO: Really comment this!
  *
  * @returns The type {@code false}.
  */
-Method "false" is [ privateFalse; ] : privateFalseType;
+Method "false" is
+[
+	privateFalse;
+] : privateFalseType;

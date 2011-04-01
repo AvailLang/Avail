@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Chevron-Test"
+System Module "Chevron-Test"
 Extends
 Uses
 	"Kernel"

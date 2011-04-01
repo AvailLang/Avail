@@ -233,13 +233,6 @@ Method "Failed" is [
 ] : terminates;
 
 
-Method "Fail parse_" is [
-		problem : string |
-	Primitive 352;
-	Failed;
-] : terminates;
-
-
 /* Add support for defining precedence rules.  For example,
 	"{op1,op2...} can't have <{op3,op4...},{op5,op6,...},...>"
    means that op1 and op2 aren't weakly binding enough to allow op3 or op4

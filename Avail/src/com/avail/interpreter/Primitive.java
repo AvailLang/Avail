@@ -4091,7 +4091,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 256:</strong> Exit the program.
+	 * <strong>Primitive 256:</strong> Exit the current process. The specified
+	 * argument will be converted internally into a {@code string} and used to
+	 * report an error message.
 	 */
 	prim256_EmergencyExit_value(256, 1, Unknown)
 	{
@@ -4103,12 +4105,14 @@ public enum Primitive
 			assert args.size() == 1;
 
 			final AvailObject errorMessageProducer = args.get(0);
-			error("The program has exited: " + errorMessageProducer);
+			error(String.format(
+				"A process (%s) has exited: %s",
+				interpreter.process().name(),
+				errorMessageProducer));
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 257:</strong> Pause the VM.

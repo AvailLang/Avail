@@ -136,6 +136,12 @@ extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The client specified name of the {@linkplain ProcessDescriptor
+		 * process}.
+		 */
+		NAME,
+
 		CONTINUATION,
 		BREAKPOINT_BLOCK,
 		PROCESS_GLOBALS
@@ -179,6 +185,14 @@ extends Descriptor
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
+	}
+
+	@Override
+	public void o_Name (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
 	@Override
@@ -234,6 +248,12 @@ extends Descriptor
 	}
 
 	@Override
+	public AvailObject o_Name (final AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.NAME);
+	}
+
+	@Override
 	public int o_Priority (
 		final @NotNull AvailObject object)
 	{
@@ -251,7 +271,8 @@ extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull Enum<?> e)
 	{
-		return e == ObjectSlots.CONTINUATION
+		return e == ObjectSlots.NAME
+			|| e == ObjectSlots.CONTINUATION
 			|| e == ObjectSlots.BREAKPOINT_BLOCK
 			|| e == ObjectSlots.PROCESS_GLOBALS
 			|| e == IntegerSlots.HASH_OR_ZERO

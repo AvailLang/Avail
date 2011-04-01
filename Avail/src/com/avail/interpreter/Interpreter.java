@@ -864,6 +864,10 @@ public abstract class Interpreter
 
 	{
 		process = ProcessDescriptor.mutable().create();
+		process.name(ByteStringDescriptor.from(String.format(
+			"unnamed, creation time = %d, hash = %d",
+			System.currentTimeMillis(),
+			process.hash())));
 		process.priority(50);
 		process.continuation(VoidDescriptor.voidObject());
 		process.executionState(ExecutionState.running);

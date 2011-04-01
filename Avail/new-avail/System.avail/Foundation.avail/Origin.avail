@@ -1,5 +1,5 @@
 /**
- * /System/Foundation/Genesis
+ * /System/Foundation/Origin
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -41,19 +41,20 @@
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  * @author Leslie Schultz &lt;leslie.a.schultz@gmail.com&gt;
  */
-System Module "Pragmas"
+System Module "Origin"
 Pragma
 	/**
-	 * This is how the built-in types and values are made accessible to an Avail
-	 * developer. The actual "special objects" will be bound to names in
-	 * subsequent modules.
+	 * This is how the built-in types and constants are made accessible to an
+	 * Avail developer. The actual "special objects" will be bound to names in a
+	 * subsequent bootstrap module.
 	 *
 	 * @param specialObjectNumber
-	 *        The "special object" identifier, a small integer. 1 for all, 2
-	 *        for "boolean type", etc.
+	 *        The "special object" identifier, a small integer. 1 for type
+	 *        {@code all}, 2 for {@code boolean}, etc.
 	 * @see com.avail.AvailRuntime#specialObjects
+	 * @see com.avail.interpreter.Interpreter#bootstrapSpecialObject(String)
 	 */
-	"bootstrapSpecialObject = Special Object_",
+	"bootstrapSpecialObject = special object_",
 	
 	/**
 	 * This is the primary defining method. It enables a developer to bind a
@@ -64,6 +65,7 @@ Pragma
 	 *        the method within the module.
 	 * @param methodClosure
 	 *        The closure that implements the method.
+	 * @see com.avail.interpreter.Interpreter#bootstrapDefiningMethod(String)
 	 */
 	"bootstrapDefiningMethod = Method_is_"
 Extends
