@@ -36,6 +36,7 @@ import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.compiler.node.*;
+import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -54,6 +55,11 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *
 	 * @param interpreter
 	 *            The interpreter used to execute code during compilation.
+	 * @param source
+	 *            The {@link String} containing the module's source.
+	 * @param tokens
+	 *            The {@link List} of {@linkplain TokenDescriptor tokens}
+	 *            scanned from the module's source.
 	 */
 	public AvailCompiler (
 		final L2Interpreter interpreter,
@@ -109,7 +115,6 @@ public class AvailCompiler extends AbstractAvailCompiler
 								final ParserState afterExpression,
 								final AvailObject expression)
 							{
-								// TODO Ensure it parsed a statement
 								if (!outermost
 									|| expression.expressionType().equals(
 										VOID_TYPE.o()))
@@ -177,7 +182,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *            The bundle tree used to parse at this position.
 	 * @param firstArgOrNull
 	 *            Either null or an argument that must be consumed before any
-	 *            keywords (or completion of a send).
+	 *            raw tokens or keywords (or completion of a send).
 	 * @param initialTokenPosition
 	 *            The parse position where the send node started to be
 	 *            processed. Does not count the position of the first argument
@@ -214,8 +219,9 @@ public class AvailCompiler extends AbstractAvailCompiler
 		final boolean anySpecial = special.mapSize() > 0;
 		assert anyComplete || anyIncomplete || anySpecial
 		: "Expected a nonempty list of possible messages";
-		if (anyComplete && firstArgOrNull == null
-				&& start.position != initialTokenPosition.position)
+		if (anyComplete
+			&& firstArgOrNull == null
+			&& start.position != initialTokenPosition.position)
 		{
 			// There are complete messages, we didn't leave a leading argument
 			// stranded, and we made progress in the file (i.e., the message
@@ -234,7 +240,9 @@ public class AvailCompiler extends AbstractAvailCompiler
 				}
 			}
 		}
-		if (anyIncomplete && firstArgOrNull == null && !start.atEnd())
+		if (anyIncomplete
+			&& firstArgOrNull == null
+			&& !start.atEnd())
 		{
 			final AvailObject keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
@@ -548,6 +556,45 @@ public class AvailCompiler extends AbstractAvailCompiler
 				break;
 			}
 			case 6:
+			{
+				// Parse a raw token and continue.
+				assert successorTrees.tupleSize() == 1;
+				parseRawTokenThen(
+					start,
+					new Con<AvailObject>(
+						"Raw token for ellipsis (…) in some message")
+					{
+						@Override
+						public void value (
+							final ParserState afterToken,
+							final AvailObject newToken)
+						{
+							final List<AvailObject> newArgsSoFar =
+								new ArrayList<AvailObject>(argsSoFar);
+							newArgsSoFar.add(newToken);
+							attempt(
+								new Continuation0()
+								{
+									@Override
+									public void value ()
+									{
+										parseRestOfSendNode(
+											afterToken,
+											successorTrees.tupleAt(1),
+											null,
+											initialTokenPosition,
+											Collections.unmodifiableList(
+												newArgsSoFar),
+											innerArgsSoFar,
+											continuation);
+									}
+								},
+								"Continue send after raw token for ellipsis",
+								afterToken.position);
+						}
+					});
+				break;
+			}
 			case 7:
 			{
 				assert false : "Reserved parsing instruction";
@@ -1089,7 +1136,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a raw keyword or literal, then invoke the continuation.
+	 * Parse a literal, then invoke the continuation.
 	 *
 	 * @param start
 	 *            Where to start parsing.
@@ -1100,9 +1147,6 @@ public class AvailCompiler extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		// Try a raw keyword.
-		parseRawKeywordThen(start, continuation);
-
 		// Try a literal.
 		if (start.peekToken().tokenType() == LITERAL)
 		{
@@ -1110,28 +1154,35 @@ public class AvailCompiler extends AbstractAvailCompiler
 				LiteralNodeDescriptor.fromToken(start.peekToken());
 			attempt(start.afterToken(), continuation, literalNode);
 		}
-
-		start.expected("simple expression");
+		else
+		{
+			start.expected("simple expression");
+		}
 	}
 
 	/**
-	 * Parse an occurrence of a raw keyword node.
+	 * Parse an occurrence of a raw keyword or operator token, then invoke the
+	 * continuation with it.
 	 *
 	 * @param start
 	 *            Where to start parsing.
 	 * @param continuation
-	 *            What to do after parsing the raw keyword node.
+	 *            What to do after parsing the raw token.  This continuation
+	 *            should expect a token, not a parse node.
 	 */
-	private void parseRawKeywordThen (
+	private void parseRawTokenThen (
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
 		final AvailObject token = start.peekToken();
-		if (token.tokenType() != KEYWORD)
+		if (token.tokenType() == KEYWORD || token.tokenType() == OPERATOR)
 		{
-			return;
+			attempt(start.afterToken(), continuation, token);
 		}
-		assert false : "Implement Me"; // TODO
+		else
+		{
+			start.expected("raw token");
+		}
 	}
 
 

@@ -53,14 +53,14 @@ import com.avail.descriptor.*;
  * <li>5     - check that progress has been made relative to the parse position
  *             found at 2nd-to-top of stack.  Also replace with new parse
  *             position.</li>
- * <li>6     - (reserved)</li>
+ * <li>6     - parseRawToken</li>
  * <li>7     - (reserved)</li>
  * <li>8*N   - branch to instruction N (attempt to continue parsing at both
  *             the next instruction and N)</li>
  * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
  *             instruction)</li>
  * <li>8*N+2 - parseKeyword at part N</li>
- * <li>8*N+3 - copyArgumentForCheck for Nth underscore (position corresponds
+ * <li>8*N+3 - copyArgumentForCheck for Nth leaf argument (position corresponds
  *             with negative precedence restrictions</li>
  * <li>8*N+4 - (reserved)</li>
  * <li>8*N+5 - (reserved)</li>
@@ -95,7 +95,7 @@ public class MessageSplitter
 	int messagePartPosition;
 
 	/**
-	 * The number of non-backquoted underscores encountered so far.
+	 * The number of non-backquoted underscores/ellipses encountered so far.
 	 */
 	int numberOfUnderscores;
 
@@ -137,10 +137,11 @@ public class MessageSplitter
 		}
 
 		/**
-		 * Answer the number of non-backquoted underscores that occur in this
-		 * section of the method name.
+		 * Answer the number of non-backquoted underscores/ellipses that occur
+		 * in this section of the method name.
 		 *
-		 * @return The number of non-backquoted underscores in the receiver.
+		 * @return The number of non-backquoted underscores/ellipses in the
+		 *         receiver.
 		 */
 		int underscoreCount ()
 		{
@@ -281,18 +282,18 @@ public class MessageSplitter
 			// list of lists that will later be used to check negative
 			// precedence restrictions.  In particular, it will be recorded at
 			// position N if this argument is for the Nth non-backquoted
-			// underscore of this message.  This is done with two instructions
-			// to simplify processing of the recursive expression parse, as well
-			// as to make a completely non-recursive parallel-shift-reduce
-			// parsing engine easier to build eventually.
+			// underscore/ellipsis of this message.  This is done with two
+			// instructions to simplify processing of the recursive expression
+			// parse, as well as to make a completely non-recursive
+			// parallel-shift-reduce parsing engine easier to build eventually.
 			list.add(0);
 			list.add(absoluteUnderscoreIndex * 8 + 3);
 		}
 
 
 		/**
-		 * A simple underscore can be arbitrarily restricted, other than when
-		 * it is restricted to the uninstantiable type {@link
+		 * A simple underscore/ellipsis can be arbitrarily restricted, other
+		 * than when it is restricted to the uninstantiable type {@link
 		 * TypeDescriptor.Types#TERMINATES terminates}.
 		 */
 		@Override
@@ -326,33 +327,16 @@ public class MessageSplitter
 		@Override
 		void emitOn (final List<Integer> list)
 		{
-			// First, parse an argument subexpression.  Next, record it in a
-			// list of lists that will later be used to check negative
-			// precedence restrictions.  In particular, it will be recorded at
-			// position N if this argument is for the Nth non-backquoted
-			// underscore of this message.  This is done with two instructions
+			// First, parse a raw token.  Next, record it in a list of lists
+			// that will later be used to check negative precedence
+			// restrictions.  In particular, it will be recorded at position N
+			// if this argument is for the Nth non-backquoted underscore or
+			// ellipsis of this message.  This is done with two instructions
 			// to simplify processing of the recursive expression parse, as well
 			// as to make a completely non-recursive parallel-shift-reduce
 			// parsing engine easier to build eventually.
-			//TODO  Rewrite with a new kind of instruction
-			list.add(0);
+			list.add(6);
 			list.add(absoluteUnderscoreIndex * 8 + 3);
-		}
-
-
-		/**
-		 * A simple underscore can be arbitrarily restricted, other than when
-		 * it is restricted to the uninstantiable type {@link
-		 * TypeDescriptor.Types#TERMINATES terminates}.
-		 */
-		@Override
-		public void checkType (final AvailObject argumentType)
-		{
-			if (argumentType.equals(TERMINATES.o()))
-			{
-				error("Method argument type should not be \"terminates\".");
-			}
-			return;
 		}
 	}
 
@@ -363,10 +347,11 @@ public class MessageSplitter
 	 * a double dagger ("‡").  If no dagger or subgroup is present, the sequence
 	 * of message parts between the chevrons are allowed to occur zero or more
 	 * times at a call site (i.e., a send of this message).  When the number of
-	 * underscores ("_") plus the number of subgroups is exactly one, the
-	 * argument (or subgroup) values are assembled into a list.  Otherwise the
-	 * arguments and/or subgroups are assembled into a list of fixed-sized
-	 * lists, each containing one entry for each argument or subgroup.
+	 * underscores ("_") and ellipses ("…") plus the number of subgroups is
+	 * exactly one, the argument (or subgroup) values are assembled into a list.
+	 * Otherwise the leaf arguments and/or subgroups are assembled into a list
+	 * of fixed-sized lists, each containing one entry for each argument or
+	 * subgroup.
 	 * <p>
 	 * When a dagger occurs in a group, the parts to the left of the dagger
 	 * can occur zero or more times, but separated by the parts to the right.
@@ -392,14 +377,15 @@ public class MessageSplitter
 		boolean hasDagger = false;
 
 		/**
-		 * How many argument tokens (_) were specified prior to the double
-		 * dagger (or the end of the group if no double dagger is present).
+		 * How many argument tokens ("_") or ellipses ("…") were specified prior
+		 * to the double dagger (or the end of the group if no double dagger is
+		 * present).
 		 */
 		int argumentsBeforeDagger = 0;
 
 		/**
-		 * How many argument tokens (_) appeared after the double dagger, or
-		 * zero if there was no double dagger.
+		 * How many argument tokens ("_") or ellipses ("…") appeared after the
+		 * double dagger, or zero if there was no double dagger.
 		 */
 		int argumentsAfterDagger = 0;
 
@@ -1008,7 +994,9 @@ public class MessageSplitter
 						+ " (problem after space)");
 				}
 			}
-			else if (ch == '_' || AvailScanner.isOperatorCharacter(ch))
+			else if (ch == '_'
+				|| ch == '…'
+				|| AvailScanner.isOperatorCharacter(ch))
 			{
 				messageParts.add(messageName.copyTupleFromToCanDestroy(
 					position,
@@ -1067,6 +1055,11 @@ public class MessageSplitter
 			else if (token.equals(TupleDescriptor.underscoreTuple()))
 			{
 				group.addExpression(new Argument());
+				messagePartPosition++;
+			}
+			else if (token.equals(TupleDescriptor.ellipsisTuple()))
+			{
+				group.addExpression(new RawTokenArgument());
 				messagePartPosition++;
 			}
 			else if (token.equals(TupleDescriptor.doubleDaggerTuple()))
@@ -1132,8 +1125,9 @@ public class MessageSplitter
 	/**
 	 * Return the number of arguments a {@link MethodSignatureDescriptor method}
 	 * implementing this name would accept.  Note that this is not necessarily
-	 * the number of underscores, as a chevron group may contain zero or more
-	 * underscores (and other chevron groups) but count as one argument.
+	 * the number of underscores and ellipses, as a chevron group may contain
+	 * zero or more underscores/ellipses (and other chevron groups) but count as
+	 * one top-level argument.
 	 *
 	 * @return The number of arguments this message takes.
 	 */
@@ -1144,17 +1138,21 @@ public class MessageSplitter
 
 
 	/**
-	 * Return the number of underscores present in the method name.  This is not
-	 * the same as the number of arguments that a method implementing this name
-	 * would accept, as a top-level chevron group with N recursively embedded
-	 * underscores is counted as N, not one.
+	 * Return the number of underscores/ellipses present in the method name.
+	 * This is not the same as the number of arguments that a method
+	 * implementing this name would accept, as a top-level chevron group with N
+	 * recursively embedded underscores/ellipses is counted as N, not one.
 	 *
-	 * <p>This count of underscores is essential for expressing negative
+	 * <p>
+	 * This count of underscores/ellipses is essential for expressing negative
 	 * precedence rules in the presence of repeated arguments.  Also note that
 	 * backquoted underscores are not counted, since they don't represent a
-	 * position at which a subexpression must occur.</p>
+	 * position at which a subexpression must occur.  Similarly, backquoted
+	 * ellipses are not a place where an arbitrary input token can go.
+	 * </p>
 	 *
-	 * @return The number of non-backquoted underscores within this method name.
+	 * @return The number of non-backquoted underscores/ellipses within this
+	 *         method name.
 	 */
 	public int numberOfUnderscores ()
 	{
@@ -1164,16 +1162,17 @@ public class MessageSplitter
 
 	/**
 	 * Answer whether the specified character is an operator character, space,
-	 * or underscore.
+	 * underscore, or ellipsis.
 	 *
 	 * @param aCharacter A Java {@code char}.
 	 * @return {@code true} if the specified character is an operator character,
-	 *          space, or underscore; or {@code false} otherwise.
+	 *          space, underscore, or ellipsis; or {@code false} otherwise.
 	 */
 	private static boolean isCharacterAnUnderscoreOrSpaceOrOperator (
 		final char aCharacter)
 	{
 		return aCharacter == '_'
+			|| aCharacter == '…'
 			|| aCharacter == ' '
 			|| AvailScanner.isOperatorCharacter(aCharacter);
 	}
