@@ -5341,6 +5341,43 @@ public enum Primitive
 			interpreter.primitiveResult(reference);
 			return SUCCESS;
 		}
+	},
+
+	/**
+	 * <strong>Primitive 355:</strong>  Create a simple variable declaration
+	 * node from the given arguments.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	prim355_SimpleDeclaration_variable(355, 1, CanFold)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			//TODO Write it for real.  Somehow declarations will need to be
+			//added to the compiler state and looked up afterward.
+			assert args.size() == 1;
+			final AvailObject variable = args.get(0);
+			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			final AvailObject declaration = variable.declaration();
+			assert declaration != null;
+			final AvailObject declarationType = declaration.type();
+			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
+				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
+			{
+				return FAILURE;
+			}
+			final AvailObject reference =
+				ReferenceNodeDescriptor.mutable().create();
+			reference.variable(variable);
+			interpreter.primitiveResult(reference);
+			return SUCCESS;
+		}
 	};
 
 	/**

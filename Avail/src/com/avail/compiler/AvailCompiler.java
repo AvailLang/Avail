@@ -38,6 +38,7 @@ import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -186,7 +187,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 * @param initialTokenPosition
 	 *            The parse position where the send node started to be
 	 *            processed. Does not count the position of the first argument
-	 *            if there are no leading keywords.
+	 *            if the message started with an argument.
 	 * @param argsSoFar
 	 *            The list of arguments parsed so far. I do not modify it. This
 	 *            is a stack of expressions that the parsing instructions will
@@ -232,6 +233,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 				if (interpreter.runtime().hasMethodsAt(entry.key))
 				{
 					completedSendNode(
+						initialTokenPosition,
 						start,
 						argsSoFar,
 						innerArgsSoFar,
@@ -370,6 +372,11 @@ public class AvailCompiler extends AbstractAvailCompiler
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
+							final ParserState afterArgWithDeclaration =
+								newArg.isInstanceOfSubtypeOf(
+										Types.DECLARATION_NODE.o())
+									? afterArg.withDeclaration(newArg)
+									: afterArg;
 							attempt(
 								new Continuation0()
 								{
@@ -377,7 +384,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 									public void value ()
 									{
 										parseRestOfSendNode(
-											afterArg,
+											afterArgWithDeclaration,
 											successorTrees.tupleAt(1),
 											null,
 											initialTokenPosition,
@@ -388,7 +395,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 									}
 								},
 								"Continue send after argument",
-								afterArg.position);
+								afterArgWithDeclaration.position);
 						}
 					});
 				break;
@@ -689,8 +696,11 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 * expressions to produce a parse node.
 	 * </p>
 	 *
-	 * @param start
-	 *            The initial parsing state.
+	 * @param stateBeforeCall
+	 *            The initial parsing state, prior to parsing the entire
+	 *            message.  TODO: deal correctly with leading argument.
+	 * @param stateAfterCall
+	 *            The parsing state after the message.
 	 * @param argumentExpressions
 	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
 	 *            arguments of the new send node.
@@ -706,11 +716,11 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *            What to do with the resulting send node.
 	 */
 	void completedSendNode (
-		final ParserState start,
+		final ParserState stateBeforeCall,
+		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final List<List<AvailObject>> innerArgumentExpressions,
-		final AvailObject bundle,
-		final Con<AvailObject> continuation)
+		final AvailObject bundle, final Con<AvailObject> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		AvailObject message = bundle.message();
@@ -736,7 +746,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 					@Override
 					public void value (final Generator<String> arg)
 					{
-						start.expected(
+						stateAfterCall.expected(
 							"parse node types to agree with macro types");
 						valid.value = false;
 					}
@@ -758,7 +768,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 					public void value (final Generator<String> errorGenerator)
 					{
 						valid.value = false;
-						start.expected(errorGenerator);
+						stateAfterCall.expected(errorGenerator);
 					}
 				});
 			if (!valid.value)
@@ -798,11 +808,18 @@ public class AvailCompiler extends AbstractAvailCompiler
 						MacroSubstitutionNodeDescriptor.mutable().create();
 					substitution.macroName(message);
 					substitution.outputParseNode(replacement);
-					attempt(start, continuation, replacement);
+					// Declarations introduced in the macro should now be moved
+					// out of scope.
+					attempt(
+						new ParserState(
+							stateAfterCall.position,
+							stateBeforeCall.scopeStack),
+						continuation,
+						replacement);
 				}
 				else
 				{
-					start.expected(
+					stateAfterCall.expected(
 						"macro body ("
 						+ impSet.name().name()
 						+ ") to produce a parse node");
@@ -810,7 +827,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 			}
 			catch (AvailRejectedParseException e)
 			{
-				start.expected(e.rejectionString().asNativeString());
+				stateAfterCall.expected(e.rejectionString().asNativeString());
 			}
 			return;
 		}
@@ -819,12 +836,14 @@ public class AvailCompiler extends AbstractAvailCompiler
 		{
 			if (arg.expressionType().equals(TERMINATES.o()))
 			{
-				start.expected("argument to have type other than terminates");
+				stateAfterCall.expected(
+					"argument to have type other than terminates");
 				return;
 			}
 			if (arg.expressionType().equals(VOID_TYPE.o()))
 			{
-				start.expected("argument to have type other than void");
+				stateAfterCall.expected(
+					"argument to have type other than void");
 				return;
 			}
 		}
@@ -839,7 +858,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 						final Generator<String> errorGenerator)
 					{
 						valid.value = false;
-						start.expected(errorGenerator);
+						stateAfterCall.expected(errorGenerator);
 					}
 				});
 		if (valid.value)
@@ -853,7 +872,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 					public void value (final Generator<String> errorGenerator)
 					{
 						valid.value = false;
-						start.expected(errorGenerator);
+						stateAfterCall.expected(errorGenerator);
 					}
 				});
 		}
@@ -871,7 +890,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 			if (errorMessage != null)
 			{
 				valid.value = false;
-				start.expected(errorMessage);
+				stateAfterCall.expected(errorMessage);
 			}
 		}
 		if (valid.value)
@@ -880,7 +899,12 @@ public class AvailCompiler extends AbstractAvailCompiler
 			sendNode.implementationSet(impSet);
 			sendNode.arguments(TupleDescriptor.fromList(argumentExpressions));
 			sendNode.returnType(returnType);
-			attempt(start, continuation, sendNode);
+			attempt(
+				new ParserState(
+					stateAfterCall.position,
+					stateBeforeCall.scopeStack),
+				continuation,
+				sendNode);
 		}
 	}
 
