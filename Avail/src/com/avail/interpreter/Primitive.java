@@ -5347,6 +5347,8 @@ public enum Primitive
 	 * <strong>Primitive 355:</strong>  Create a simple variable declaration
 	 * node from the given arguments.
 	 *
+	 * TODO: Fix this cloned method.
+	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
 	prim355_SimpleDeclaration_variable(355, 1, CanFold)
