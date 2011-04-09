@@ -231,7 +231,7 @@ extends ParseNodeDescriptor
 		final int indent)
 	{
 		builder.append(
-			object.variable().declaration().token().string().asNativeString());
+			object.variable().token().string().asNativeString());
 		builder.append(" := ");
 		object.expression().printOnAvoidingIndent(
 			builder,

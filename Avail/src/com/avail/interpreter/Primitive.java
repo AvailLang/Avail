@@ -80,6 +80,14 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
+			if (!a.isFinite()
+				&& !b.isFinite()
+				&& a.isPositive() != b.isPositive())
+			{
+				interpreter.primitiveResult(ByteStringDescriptor.from(
+					"can't add mixed infinities"));
+				return FAILURE;
+			}
 			interpreter.primitiveResult(a.plusCanDestroy(b, true));
 			return SUCCESS;
 		}
@@ -98,6 +106,14 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
+			if (!a.isFinite()
+				&& !b.isFinite()
+				&& a.isPositive() == b.isPositive())
+			{
+				interpreter.primitiveResult(ByteStringDescriptor.from(
+					"can't subtract like infinities"));
+				return FAILURE;
+			}
 			interpreter.primitiveResult(a.minusCanDestroy(b, true));
 			return SUCCESS;
 		}

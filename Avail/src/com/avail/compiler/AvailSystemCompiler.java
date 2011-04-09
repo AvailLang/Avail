@@ -36,6 +36,7 @@ import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
@@ -48,9 +49,9 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AvailSystemCompiler extends AbstractAvailCompiler
+public class AvailSystemCompiler
+extends AbstractAvailCompiler
 {
-
 	/**
 	 * Construct a new {@link AvailSystemCompiler}.
 	 *
@@ -533,6 +534,61 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 	}
 
 	/**
+	 * Parse a primitive failure variable declaration. This is simple
+	 * declaration form only: (var : type).
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param continuation
+	 *            What to do with the primitive failure variable declaration.
+	 */
+	void parsePrimitiveFailureDeclarationThen (
+		final ParserState start,
+		final Con<AvailObject> continuation)
+	{
+		final AvailObject localName = start.peekToken();
+		if (localName.tokenType() != KEYWORD)
+		{
+			start.expected("a primitive failure variable declaration");
+			return;
+		}
+		final ParserState afterVar = start.afterToken();
+		if (!afterVar.peekToken(
+			COLON,
+			": for primitive failure variable declaration"))
+		{
+			return;
+		}
+		final ParserState afterColon = afterVar.afterToken();
+		parseAndEvaluateExpressionYieldingInstanceOfThen(
+			afterColon,
+			TYPE.o(),
+			new Con<AvailObject>("Type expression of var : type")
+			{
+				@Override
+				public void value (
+					final @NotNull ParserState afterType,
+					final @NotNull AvailObject type)
+				{
+					if (type.equals(VOID_TYPE.o())
+							|| type.equals(TERMINATES.o()))
+					{
+						afterType.expected(
+							"a type for the variable other than"
+							+ " void or terminates");
+						return;
+					}
+					final AvailObject declaration =
+						DeclarationNodeDescriptor.newVariable(localName, type);
+					attempt(
+						afterType.withDeclaration(declaration),
+						continuation,
+						declaration);
+				}
+			});
+	}
+
+	/**
 	 * Parse more of a block's formal arguments from the token stream. A
 	 * vertical bar is required after the arguments if there are any (which
 	 * there are if we're here).
@@ -708,6 +764,8 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 						{
 							parseStatementsThen(
 								afterOptionalPrimitive,
+								primitive == 0,
+								Collections.<AvailObject> emptyList(),
 								new Con<List<AvailObject>>("Block statements")
 								{
 									@Override
@@ -1820,15 +1878,50 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 				}
 			});
 		}
+
 		final ParserState afterPrimitiveNumber =
 			afterPrimitiveKeyword.afterToken();
 		if (!afterPrimitiveNumber.peekToken(
-			SEMICOLON,
-			"; after Primitive N declaration"))
+			OPEN_PARENTHESIS,
+			"open parenthesis after Primitive N declaration"))
 		{
 			return;
 		}
-		attempt(afterPrimitiveNumber.afterToken(), continuation, primitive);
+
+		final ParserState afterOpenParenthesis =
+			afterPrimitiveNumber.afterToken();
+		parsePrimitiveFailureDeclarationThen(
+			afterOpenParenthesis,
+			new Con<AvailObject>("after declaring primitive failure variable")
+			{
+				@Override
+				public void value (
+					final @NotNull ParserState afterDeclaration,
+					final @NotNull AvailObject declaration)
+				{
+					if (!afterDeclaration.peekToken(
+						CLOSE_PARENTHESIS,
+						"close parenthesis after primitive failure variable "
+						+ "declaration"))
+					{
+						return;
+					}
+
+					final ParserState afterCloseParenthesis =
+						afterDeclaration.afterToken();
+					if (!afterCloseParenthesis.peekToken(
+						SEMICOLON,
+						"; after close parenthesis"))
+					{
+						return;
+					}
+
+					attempt(
+						afterCloseParenthesis.afterToken(),
+						continuation,
+						primitive);
+				}
+			});
 	}
 
 	/**
@@ -2066,36 +2159,20 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse zero or more statements from the tokenStream. Parse as many
-	 * statements as possible before invoking the continuation.
-	 *
-	 * @param start
-	 *            Where to start parsing.
-	 * @param continuation
-	 *            What to do with the list of statements.
-	 */
-	void parseStatementsThen (
-		final ParserState start,
-		final Con<List<AvailObject>> continuation)
-	{
-		parseMoreStatementsThen(
-			start,
-			Collections.<AvailObject> emptyList(),
-			continuation);
-	}
-
-	/**
 	 * Try the current list of statements but also try to parse more.
 	 *
 	 * @param start
 	 *            Where to parse.
+	 * @param canHaveLabel
+	 *            Whether the statements can start with a label declaration.
 	 * @param statements
 	 *            The preceding list of statements.
 	 * @param continuation
 	 *            What to do with the resulting list of statements.
 	 */
-	void parseMoreStatementsThen (
+	void parseStatementsThen (
 		final ParserState start,
+		final boolean canHaveLabel,
 		final List<AvailObject> statements,
 		final Con<List<AvailObject>> continuation)
 	{
@@ -2136,7 +2213,7 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 		parseStatementAsOutermostCanBeLabelThen(
 			start,
 			false,
-			statements.isEmpty(),
+			canHaveLabel && statements.isEmpty(),
 			new Con<AvailObject>("Another statement")
 			{
 				@Override
@@ -2147,8 +2224,9 @@ public class AvailSystemCompiler extends AbstractAvailCompiler
 					final List<AvailObject> newStatements =
 						new ArrayList<AvailObject>(statements);
 					newStatements.add(newStatement);
-					parseMoreStatementsThen(
+					parseStatementsThen(
 						afterStatement,
+						false,
 						newStatements,
 						continuation);
 				}

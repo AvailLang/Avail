@@ -941,7 +941,7 @@ extends Descriptor
 			residue >>>= 1;
 		}
 		return result;
-	};
+	}
 
 
 	/**
@@ -954,7 +954,7 @@ extends Descriptor
 	public static AvailObject empty ()
 	{
 		return EmptyTuple;
-	};
+	}
 
 	/**
 	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
@@ -965,7 +965,7 @@ extends Descriptor
 	public static AvailObject underscoreTuple ()
 	{
 		return UnderscoreTuple;
-	};
+	}
 
 	/**
 	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
@@ -976,7 +976,7 @@ extends Descriptor
 	public static AvailObject openChevronTuple ()
 	{
 		return OpenChevronTuple;
-	};
+	}
 
 	/**
 	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
@@ -987,7 +987,7 @@ extends Descriptor
 	public static AvailObject closeChevronTuple ()
 	{
 		return CloseChevronTuple;
-	};
+	}
 
 	/**
 	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
@@ -998,7 +998,7 @@ extends Descriptor
 	public static AvailObject doubleDaggerTuple ()
 	{
 		return DoubleDaggerTuple;
-	};
+	}
 
 	/**
 	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
@@ -1009,7 +1009,7 @@ extends Descriptor
 	public static AvailObject backQuoteTuple ()
 	{
 		return BackQuoteTuple;
-	};
+	}
 
 	/**
 	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,

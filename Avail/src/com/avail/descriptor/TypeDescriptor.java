@@ -649,9 +649,9 @@ extends Descriptor
 
 		// Constructors
 		Types (
-		final @NotNull Types parent,
-		final @NotNull String myTypeName,
-		final @NotNull AbstractDescriptor descriptor)
+			final @NotNull Types parent,
+			final @NotNull String myTypeName,
+			final @NotNull AbstractDescriptor descriptor)
 		{
 			this.parent = parent;
 			this.myTypeName = myTypeName;

@@ -164,6 +164,9 @@ public abstract class AbstractAvailCompiler
 		CLOSE_SQUARE("]", OPERATOR),
 		VERTICAL_BAR("|", OPERATOR),
 
+		OPEN_PARENTHESIS("(", OPERATOR),
+		CLOSE_PARENTHESIS(")", OPERATOR),
+
 		SEMICOLON(";", END_OF_STATEMENT);
 
 
