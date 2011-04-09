@@ -50,7 +50,7 @@ Body
 
 Method "_named_" is [fileType : Output File type, name : string |
 	fileHandle : cyclicType := [theName : string, append : boolean |
-		Primitive 161;
+		Primitive 161 (failureCode : all);
 		Failed;
 	] : cyclicType (name, false);
 	Output File new with <
@@ -62,7 +62,7 @@ Method "_named_" is [fileType : Output File type, name : string |
 
 Method "Write_to_" is [bytes : tuple of byte, file : Output File |
 	residue ::= ([handle : cyclicType, bytes2 : tuple of byte |
-		Primitive 165;
+		Primitive 165 (failureCode : all);
 		Failed;
 	] : tuple of byte) (file -> handle, bytes);
 	if ||residue|| > 0 then [Crash "File write didn't finish all bytes.";];
@@ -76,7 +76,7 @@ Method "Write_to_" is [theByte : byte, file : Output File |
 
 Method "Synchronize_with underlying device" is [file : Output File |
 	[handle : cyclicType |
-		Primitive 169;
+		Primitive 169 (failureCode : all);
 		Failed;
 	] : void (file -> handle);
 ] : void;

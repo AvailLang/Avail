@@ -53,7 +53,7 @@ Body
  */
 Method "Method_is_requires_returns_"
 is [name : string, body : closure, requires: closure, returns : closure |
-	Primitive 254;
+	Primitive 254 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -78,7 +78,7 @@ Method "private tuple type for sizes_like_default_" is [
 		typeTuple : tuple,
 		defaultType : type |
 	/* Construct a new tuple type.  Defined here privately with weak input types... */
-	Primitive 137;
+	Primitive 137 (failureCode : all);
 	Failed;
 ] : tupleType;
 
@@ -96,12 +96,12 @@ Method "tuple of_" is [elementType : type |
 /* Block type constructors / extractors... */
 
 Method "||_||" is [ct : closureType |
-	Primitive 35;
+	Primitive 35 (failureCode : all);
 	Failed;
 ] : integer;
 
 Method "_[_]" is [ct : closureType, index : natural number |
-	Primitive 36;
+	Primitive 36 (failureCode : all);
 	Failed;
 ] : type;
 
@@ -110,12 +110,12 @@ Method "_[_]" is [ct : closureType, index : natural number |
  * Answer the return result type for this generalized closure type.
  */
 Method "_result" is [ct : generalizedClosureType |
-	Primitive 37;
+	Primitive 37 (failureCode : all);
 	Failed;
 ] : type;
 
 Method "block type taking_and returning_" is [args : tuple of type, ret : type |
-	Primitive 34;
+	Primitive 34 (failureCode : all);
 	Failed;
 ] : closureType;
 
@@ -134,7 +134,7 @@ Method "[«_‡,»]->_" is [types : tuple of type, result : type |
  * be generalizedClosureType.
  */
 Method "[...]->_" is [result : type |
-	Primitive 39;
+	Primitive 39 (failureCode : all);
 	Failed;
 ] : generalizedClosureType;
 
@@ -142,7 +142,7 @@ Method "[...]->_" is [result : type |
 /* Simple block stub construction... */
 
 Method "stub block taking_arguments and returning_" is [n : integer, a : all |
-	Primitive 70;
+	Primitive 70 (failureCode : all);
 	Failed;
 ] : closure;
 
@@ -150,12 +150,12 @@ Method "stub block taking_arguments and returning_" is [n : integer, a : all |
 /* Detailed accessing (for object dumping / loading). */
 
 Method "_compiledCode" is [c : closure |
-	Primitive 72;
+	Primitive 72 (failureCode : all);
 	Failed;
 ] : compiledCode;
 
 Method "_outerVars" is [c : closure |
-	Primitive 73;
+	Primitive 73 (failureCode : all);
 	Failed;
 ] : tuple;
 
@@ -165,7 +165,7 @@ Method "_outerVars" is [c : closure |
  * the stub generation primitives this way).
  */
 Method "closure from_outer variables_" is [c : compiledCode, outers : tuple |
-	Primitive 74;
+	Primitive 74 (failureCode : all);
 	Failed;
 ] : closure;
 

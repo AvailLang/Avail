@@ -242,13 +242,13 @@ Method "Failed" is [
    parsed left-recursive, we say:  {"_+_"} can't have <{} , {"_+_"}>.   */
 
 Method "_can't have_" is [names : set, except : tuple |
-	Primitive 255;
+	Primitive 255 (failureCode : all);
 	Failed;
 ] : void;
 
 
 Method "Print_" is [something : all |
-	Primitive 258;
+	Primitive 258 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -262,7 +262,7 @@ Method "Discard_" is [somethingToIgnore : all |
 /* Pause the VM for debugging. */
 
 Method "Halt" is [
-	Primitive 257;
+	Primitive 257 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -270,14 +270,14 @@ Method "Halt" is [
 /* General purpose primitive... */
 
 Method "_=_" is [a : all, b : all |
-	Primitive 60;
+	Primitive 60 (failureCode : all);
 	Failed;
 ] : boolean;
 
 
 /* The subtype relation... */
 Method "_<=_" is [a : type, b : type |
-	Primitive 33;
+	Primitive 33 (failureCode : all);
 	Failed;
 ] : boolean;
 
@@ -285,6 +285,6 @@ Method "_<=_" is [a : type, b : type |
 
 /* Macros... */
 Method "Macro_is_" is [name : string, block : closure |
-	Primitive 249;
+	Primitive 249 (failureCode : all);
 	Failed;
 ] : void;

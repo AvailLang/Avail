@@ -113,27 +113,27 @@ Method "implementationSet" is [privateImplementationSet;] : primType;
 /* messageBundle accessors.. */
 
 Method "_message" is [bundle : messageBundle |
-	Primitive 211;
+	Primitive 211 (failureCode : all);
 	Failed;
 ] : cyclicType;
 
 Method "_message parts" is [bundle : messageBundle |
-	Primitive 212;
+	Primitive 212 (failureCode : all);
 	Failed;
 ] : tuple of string;
 
 Method "_signatures" is [bundle : messageBundle |
-	Primitive 213;
+	Primitive 213 (failureCode : all);
 	Failed;
 ] : set of signature;
 
 Method "_has restrictions" is [bundle : messageBundle |
-	Primitive 214;
+	Primitive 214 (failureCode : all);
 	Failed;
 ] : boolean;
 
 Method "_restrictions" is [bundle : messageBundle |
-	Primitive 215;
+	Primitive 215 (failureCode : all);
 	Failed;
 ] : tuple of set of cyclicType;
 
@@ -142,22 +142,22 @@ Method "_restrictions" is [bundle : messageBundle |
 /* signature accessors... */
 
 Method "_bodyType" is [sig : signature |
-	Primitive 216;
+	Primitive 216 (failureCode : all);
 	Failed;
 ] : closureType;
 
 Method "_body" is [methSig : methodSignature |
-	Primitive 217;
+	Primitive 217 (failureCode : all);
 	Failed;
 ] : closure;
 
 Method "_requires block" is [sig : signature |
-	Primitive 218;
+	Primitive 218 (failureCode : all);
 	Failed;
 ] : [...]->boolean;
 
 Method "_returns block" is [sig : signature |
-	Primitive 219;
+	Primitive 219 (failureCode : all);
 	Failed;
 ] : [...]->type;
 
@@ -187,7 +187,7 @@ Method "_is abstract" is [abstractSig : abstractSignature |
 Method "_complete" is [tree : messageBundleTree |
 	/* Answer the messages that are complete at this point
 	   in the tree.  Answer a map from messages to bundles. */
-	Primitive 207;
+	Primitive 207 (failureCode : all);
 	Failed;
 ] : map from cyclicType to messageBundle;
 
@@ -195,7 +195,7 @@ Method "_incomplete" is [tree : messageBundleTree |
 	/* Answer the messages that are incomplete at this point
 	   in the tree.  Answer a map from strings (the next piece
 	   to be parsed) to messageBundleTrees. */
-	Primitive 208;
+	Primitive 208 (failureCode : all);
 	Failed;
 ] : map from string to messageBundleTree;
 
@@ -206,7 +206,7 @@ Method "_incomplete" is [tree : messageBundleTree |
    constructing new methods from within Avail... */
 
 Method "_implementation set" is [message : cyclicType |
-	Primitive 220;
+	Primitive 220 (failureCode : all);
 	Failed;
 ] : implementationSet;
 
@@ -214,7 +214,7 @@ Method "_implementation set" is [message : cyclicType |
 /* Extract the cyclicType associated with the implementationSet. */
 
 Method "_name" is [impSet : implementationSet |
-	Primitive 221;
+	Primitive 221 (failureCode : all);
 	Failed;
 ] : cyclicType;
 

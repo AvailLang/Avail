@@ -42,12 +42,12 @@ Body
 
 
 Method "new cyclic type_" is [name : string |
-	Primitive 120;
+	Primitive 120 (failureCode : all);
 	Failed;
 ] : cyclicType;
 
 Method "_name" is [ck : cyclicType |
-	Primitive 121;
+	Primitive 121 (failureCode : all);
 	Failed;
 ] : string;
 

@@ -180,19 +180,19 @@ Method "_skip_then_" is [
 
 
 Method "complete messages starting with_" is [str : string |
-	Primitive 209;
+	Primitive 209 (failureCode : all);
 	Failed;
 ] : map from cyclicType to messageBundle;
 
 
 Method "incomplete messages starting with_" is [str : string |
-	Primitive 210;
+	Primitive 210 (failureCode : all);
 	Failed;
 ] : map from string to messageBundleTree;
 
 
 Method "primitive_is defined" is [n : [0..65535] |
-	Primitive 250;
+	Primitive 250 (failureCode : all);
 	Failed;
 ] : boolean;
 

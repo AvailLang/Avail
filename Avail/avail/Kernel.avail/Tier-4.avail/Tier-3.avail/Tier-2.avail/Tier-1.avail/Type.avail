@@ -48,7 +48,7 @@ Body
 Forward "_type" for [all]->type;
 
 Method "_type" is [a : all |
-	Primitive 30;
+	Primitive 30 (failureCode : all);
 	Failed;
 ] : type
 returns [aT : type |
@@ -58,7 +58,7 @@ returns [aT : type |
 ];
 
 Method "_type" is [c : closure |
-	Primitive 30;
+	Primitive 30 (failureCode : all);
 	Failed;
 ] : closure type
 returns [cT : closure type |
@@ -73,7 +73,7 @@ returns [cT : closure type |
 Forward "type union of_and_" for [type, type]->type;
 
 Method "type union of_and_" is [a : type, b : type |
-	Primitive 31;
+	Primitive 31 (failureCode : all);
 	Failed;
 ] : type
 returns [aT : meta, bT : meta |
@@ -87,7 +87,7 @@ returns [aT : meta, bT : meta |
 Forward "type intersection of_and_" for [type,type]->type;
 
 Method "type intersection of_and_" is [a : type, b : type |
-	Primitive 32;
+	Primitive 32 (failureCode : all);
 	Failed;
 ] : type
 returns [aT : type, bT : type |

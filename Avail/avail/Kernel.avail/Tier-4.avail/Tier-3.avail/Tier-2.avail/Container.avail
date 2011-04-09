@@ -45,7 +45,7 @@ Body
 
 
 Method "*_:=_" is [var : container, arg : all |
-	Primitive 11;
+	Primitive 11 (failureCode : all);
 	Failed;
 ] : void
 requires [varType : container type, argType : type |
@@ -64,7 +64,7 @@ requires [varType : container type, argType : type |
 
 Method "*_"
 is [var : container |
-	Primitive 10;
+	Primitive 10 (failureCode : all);
 	Failed;
 ] : void
 returns [varType : container type |
@@ -85,7 +85,7 @@ Method "clearing*_"
 is [var : container |
 	/* Extract the current value of the variable, then clear the variable.
 	   Answer the extracted value. */
-	Primitive 18;
+	Primitive 18 (failureCode : all);
 	Failed;
 ] : void
 returns [varType : container type |
@@ -104,13 +104,13 @@ returns [varType : container type |
 
 Method "*_:=nil" is [var : container |
 	/* Clear the variable. */
-	Primitive 12;
+	Primitive 12 (failureCode : all);
 	Failed;
 ] : void;
 
 Method "*_=nil" is [var : container |
 	/* Test for an unassigned variable. */
-	Primitive 17;
+	Primitive 17 (failureCode : all);
 	Failed;
 ] : boolean;
 
@@ -128,7 +128,7 @@ Method "swap_and_" is [var1 : container, var2 : container |
 		*& var2 ?:= clearing* t;
 	   Let's just use the primitive instead... */
 
-	Primitive 15;
+	Primitive 15 (failureCode : all);
 	Failed;
 ] : void
 requires [t1 : type, t2 : type |

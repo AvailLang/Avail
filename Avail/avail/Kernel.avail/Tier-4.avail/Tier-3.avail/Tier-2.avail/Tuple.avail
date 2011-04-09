@@ -268,7 +268,7 @@ returns [tType : tupleType |
 
 Method "_[_]" is [t : tuple, i : natural number |
 	/* Get tuple entry with given index. */
-	Primitive 131;
+	Primitive 131 (failureCode : all);
 	Failed;
 ] : all
 returns [tType : tupleType, iType : integerType |
@@ -387,7 +387,7 @@ Method "type of subtuple_from range_to range_" is [tt : tupleType, starts : inte
 Method "concatenate tuple type_and_" is [
 		tt1 : tupleType,
 		tt2 : tupleType |
-	Primitive 144;
+	Primitive 144 (failureCode : all);
 	Failed;
 ] : tupleType;
 
@@ -396,7 +396,7 @@ Method "concatenate tuple type_and_" is [
 
 Method "_[_->_]" is [t : tuple, i : natural number, v : all |
 	/* Answer new tuple with given index set to the given value. */
-	Primitive 132;
+	Primitive 132 (failureCode : all);
 	Failed;
 ] : tuple
 returns [tType : tupleType, iType : integerType, vType : type |
@@ -475,7 +475,7 @@ returns [tt1 : tupleType, tt2 : tupleType, tt3 : tupleType |
 
 Method "splice_" is [tupleOfTuples : tuple of tuple |
 	/* Concatenate a tuple of tuples into one big tuple. */
-	Primitive 136;
+	Primitive 136 (failureCode : all);
 	Failed;
 ] : tuple
 returns [ttType : tupleType |
@@ -506,7 +506,7 @@ returns [ttType : tupleType |
 
 Method "_[_.._]" is [t : tuple, start : natural number, end : whole number |
 	/* Extract a contiguous region from a tuple. */
-	Primitive 135;
+	Primitive 135 (failureCode : all);
 	Failed;
 ] : tuple
 returns [tt : tupleType, startT : integerType, endT : integerType |
@@ -584,12 +584,12 @@ Method "_hex" is [a : integer |
 ] : string;
 
 Method "code point_" is [w : whole number |
-	Primitive 331;
+	Primitive 331 (failureCode : all);
 	Failed;
 ] : character;
 
 Method "code point of_" is [c : character |
-	Primitive 330;
+	Primitive 330 (failureCode : all);
 	Failed;
 ] : whole number;
 

@@ -52,7 +52,7 @@ Body
 
 Method "_named_" is [fileType : Input File type, name : string |
 	fileHandle : cyclicType := [theName : string |
-		Primitive 160;
+		Primitive 160 (failureCode : all);
 		Failed;
 	] : cyclicType (name);
 	Input File new with <
@@ -66,7 +66,7 @@ Method "_named_" is [fileType : Input File type, name : string |
 
 Method "next_from_" is [count : [0..INF], file : Input File |
 	[handle : cyclicType, count : [0..INF] |
-		Primitive 164;
+		Primitive 164 (failureCode : all);
 		Failed;
 	] : tuple of byte (file -> handle, count);
 ] : tuple of byte;

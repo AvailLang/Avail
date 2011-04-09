@@ -46,7 +46,7 @@ Method "Exit the current process with postmortem hint_" is
 [
 	postMortemHint : all |
 	
-	Primitive 256;
+	Primitive 256 (failureCode : all);
 	/* Ordinarily primitive failure code would be present here, but primitive
 	 * 256 does not require failure code. If it did, then we could never build
 	 * the primitive methods, because there is no direct language support for

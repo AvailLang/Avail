@@ -56,7 +56,7 @@ Body
    later, using the method-defining methods defined in this module. */
 
 Method "_basicType" is [a : all |
-	Primitive 30;
+	Primitive 30 (failureCode : all);
 	Failed;
 ] : type;
 
@@ -64,7 +64,7 @@ Method "_basicType" is [a : all |
 /* Private - override to support metacovariance in closure types... */
 
 Method "_basicType" is [c : closure |
-	Primitive 30;
+	Primitive 30 (failureCode : all);
 	Failed;
 ] : closureType;
 
@@ -82,7 +82,7 @@ Method "_basicType" is [c : closure |
  */
 Method "Method_is_requires_returns_"
 is [name : string, body : closure, requires: closure, returns : closure |
-	Primitive 254;
+	Primitive 254 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -115,7 +115,7 @@ Method "Forward_for_"
 is [name : string, blockType : closureType |
 	/* Declare method without body (for recursion / mutual recursion).  Must be
 	   followed in same module by a legitimate definition. */
-	Primitive 252;
+	Primitive 252 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -131,7 +131,7 @@ is [name : string, blockType : closureType |
  */
 Method "Abstract method_for_requires_returns_" is [
 		name : string, bodyType : closureType, requires : closure, returns : closure |
-	Primitive 251;
+	Primitive 251 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -173,7 +173,7 @@ Method "Abstract method_for_" is [
  * module's namespace.
  */
 Method "lookup_" is [t : string |
-	Primitive 245;
+	Primitive 245 (failureCode : all);
 	Failed;
 ] : cyclicType;
 

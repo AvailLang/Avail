@@ -70,7 +70,7 @@ Method "Pointer to_" is [
 Method "private read integer of type_from address_" is [
 		intType : integerType,
 		addr : integer |
-	Primitive 264;
+	Primitive 264 (failureCode : all);
 	Failed;
 ] : integer
 requires [intTypeT : type, addrT : integerType |
@@ -86,7 +86,7 @@ Method "private write integer_of type_to address_" is [
 		int : integer,
 		intType : integerType,
 		addr : integer |
-	Primitive 265;
+	Primitive 265 (failureCode : all);
 	Failed;
 ] : void
 requires [intT : integerType, intTypeT : type, addrT : integerType |
@@ -100,7 +100,7 @@ requires [intT : integerType, intTypeT : type, addrT : integerType |
 Method "private read_bytes from address_" is [
 		count : whole number,
 		addr : integer |
-	Primitive 266;
+	Primitive 266 (failureCode : all);
 	Failed;
 ] : integer
 requires [countT : integerType, addrT : integerType |
@@ -115,7 +115,7 @@ returns [intTypeT : type, addrT : integerType |
 Method "private write_to address_" is [
 		bytes : tuple of byte,
 		addr : integer |
-	Primitive 267;
+	Primitive 267 (failureCode : all);
 	Failed;
 ] : void
 requires [bytesT : tupleType, addrT : integerType |

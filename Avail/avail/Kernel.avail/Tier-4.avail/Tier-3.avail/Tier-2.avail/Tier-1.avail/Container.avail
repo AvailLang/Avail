@@ -44,7 +44,7 @@ Body
 
 /* Here's the implementation of the conditional downcast */
 Method "*_?:=_" is [var : container, arg : all |
-	Primitive 11;
+	Primitive 11 (failureCode : all);
 	Failed;
 ] : void;
 
@@ -52,21 +52,21 @@ Method "*_?:=_" is [var : container, arg : all |
 /* Container type operations... */
 
 Method "&:_" is [t : type |
-	Primitive 13;
+	Primitive 13 (failureCode : all);
 	Failed;
 ] : containerType;
 
 
 Method "_contentType" is [ct : containerType |
 	/* Answer the type of thing my instances can contain. */
-	Primitive 14;
+	Primitive 14 (failureCode : all);
 	Failed;
 ] : type;
 
 
 Method "new container with content type_" is [t : type |
 	/* Answer a new container to hold the given type of contents. */
-	Primitive 16;
+	Primitive 16 (failureCode : all);
 	Failed;
 ] : container;
 

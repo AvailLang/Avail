@@ -84,7 +84,7 @@ divisionByZeroHandler : [] -> extended integer := [
 /* Integer comparison operations... */
 
 Method "_<_" is [a : extended integer, b : extended integer |
-	Primitive 5;
+	Primitive 5 (failureCode : all);
 	Failed;
 ] : boolean;
 
@@ -93,7 +93,7 @@ Method "_>_" is [a : extended integer, b : extended integer |
 ] : boolean;
 
 Method "_<=_" is [a : extended integer, b : extended integer |
-	Primitive 6;
+	Primitive 6 (failureCode : all);
 	Failed;
 ] : boolean;
 
@@ -140,7 +140,7 @@ Method "_>=_>=_" is [a : extended integer, b : extended integer, c : extended in
 /* Private helper for defining precedence rules... */
 
 Method "_U_" is [s1 : set, s2 : set |
-	Primitive 102;
+	Primitive 102 (failureCode : all);
 	Failed;
 ] : set;
 
@@ -167,17 +167,17 @@ power	can't have	<sum U product U negation U power,	sum U product>;
 /* Helper methods to allow + and - to be used in the returns clauses... */
 
 Method "_private+_" is [a : extended integer, b : extended integer |
-	Primitive 1;
+	Primitive 1 (failureCode : all);
 	Failed;
 ] : extended integer;
 
 Method "_private-_" is [a : extended integer, b : extended integer |
-	Primitive 2;
+	Primitive 2 (failureCode : all);
 	Failed;
 ] : extended integer;
 
 Method "_private*_" is [a : extended integer, b : extended integer |
-	Primitive 3;
+	Primitive 3 (failureCode : all);
 	Failed;
 ] : extended integer;
 
@@ -279,7 +279,7 @@ returns [aT : integerType |
 ] : integerType;
 
 Method "_+_" is [a : extended integer, b : extended integer |
-	Primitive 1;
+	Primitive 1 (failureCode : all);
 	if a is infinite & b is infinite & a not = b then [
 		Crash "Can't add positive infinity to negative infinity";
 	] else [
@@ -292,7 +292,7 @@ returns [aT : integerType, bT : integerType |
 
 
 Method "_-_" is [a : extended integer, b : extended integer |
-	Primitive 2;
+	Primitive 2 (failureCode : all);
 	if a is infinite & a = b then [
 		Crash "Can't subtract positive or negative infinity from itself";
 	] else [
@@ -326,7 +326,7 @@ Assert -1>=-2;
 
 
 Method "_*_" is [a : extended integer, b : extended integer |
-	Primitive 3;
+	Primitive 3 (failureCode : all);
 	if (a is infinite & b = 0) | (a = 0 & b is infinite) then [
 		Crash "Can't multiply zero by infinity";
 	] else [
@@ -345,7 +345,7 @@ Assert [x : [-11..3]; y : [-5..3]; x * y;] type = []->[-33..55];
 
 
 Method "_/_" is [a : extended integer, b : extended integer |
-	Primitive 4;
+	Primitive 4 (failureCode : all);
 	if b = 0 then [
 		divisionByZeroHandler apply <>;
 	] else [

@@ -73,7 +73,7 @@ Method "map_from_to_" is [
 		sizes : integerType,
 		keyType : type,
 		valueType : type |
-	Primitive 87;
+	Primitive 87 (failureCode : all);
 	Failed;
 ] : mapType;
 
@@ -91,25 +91,25 @@ Method "map" is [
 
 
 Method "_sizes" is [mt : mapType |
-	Primitive 88;
+	Primitive 88 (failureCode : all);
 	Failed;
 ] : integerType;
 
 
 Method "_keyType" is [mt : mapType |
-	Primitive 89;
+	Primitive 89 (failureCode : all);
 	Failed;
 ] : type;
 
 
 Method "_valueType" is [mt : mapType |
-	Primitive 90;
+	Primitive 90 (failureCode : all);
 	Failed;
 ] : type;
 
 
 Method "||_||" is [m : map |
-	Primitive 80;
+	Primitive 80 (failureCode : all);
 	Failed;
 ] : integer
 returns [mt : mapType |
@@ -119,7 +119,7 @@ returns [mt : mapType |
 
 Method "_[_]?" is [m : map, k : all |
 	/* Test if the key is present */
-	Primitive 81;
+	Primitive 81 (failureCode : all);
 	Failed;
 ] : boolean
 returns [mt : mapType, kt : type |
@@ -133,7 +133,7 @@ returns [mt : mapType, kt : type |
 
 
 Method "_[_]" is [m : map, k : all |
-	Primitive 82;
+	Primitive 82 (failureCode : all);
 	Failed;
 ] : all
 returns [mt : mapType, kt : type |
@@ -148,7 +148,7 @@ returns [mt : mapType, kt : type |
 
 Method "_[_->_]" is [m : map, k : all, v : all |
 	/* Copy map but with k->v in it. */
-	Primitive 83;
+	Primitive 83 (failureCode : all);
 	Failed;
 ] : map
 returns [mt : mapType, kt : type, vt : type |
@@ -160,7 +160,7 @@ returns [mt : mapType, kt : type, vt : type |
 
 Method "_[_->nil]" is [m : map, k : all |
 	/* Copy map but without the given key. */
-	Primitive 84;
+	Primitive 84 (failureCode : all);
 	Failed;
 ] : map
 returns [mt : mapType, kt : type |
@@ -210,7 +210,7 @@ requires [mvt : containerType, kt : type |
 
 Method "[->]" is [
 	/* Answer the empty map. */
-	Primitive 85;
+	Primitive 85 (failureCode : all);
 	Failed;
 ] : map [0..0] from terminates to terminates;
 
@@ -227,7 +227,7 @@ returns [kt : type, vt : type |
 /* Iteration support... */
 
 Method "_keys" is [m : map |
-	Primitive 86;
+	Primitive 86 (failureCode : all);
 	Failed;
 ] : set
 returns [mt : mapType |
@@ -235,7 +235,7 @@ returns [mt : mapType |
 ];
 
 Method "_values" is [m : map |
-	Primitive 91;
+	Primitive 91 (failureCode : all);
 	Failed;
 ] : tuple
 returns [mt : mapType |

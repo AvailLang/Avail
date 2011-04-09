@@ -53,12 +53,12 @@ Body
 
 
 Method "_includes_" is [s : set, elem : all |
-	Primitive 101;
+	Primitive 101 (failureCode : all);
 	Failed;
 ] : boolean;
 
 Method "_union_" is [s1 : set, s2 : set |
-	Primitive 102;
+	Primitive 102 (failureCode : all);
 	Failed;
 ] : set
 returns [st1 : setType, st2 : setType |
@@ -77,7 +77,7 @@ returns [st1 : setType, st2 : setType |
 ];
 
 Method "_U_" is [s1 : set, s2 : set |
-	Primitive 102;
+	Primitive 102 (failureCode : all);
 	Failed;
 ] : set
 returns [st1 : setType, st2 : setType |
@@ -96,7 +96,7 @@ returns [st1 : setType, st2 : setType |
 ];
 
 Method "_intersect_" is [s1 : set, s2 : set |
-	Primitive 103;
+	Primitive 103 (failureCode : all);
 	Failed;
 ] : set
 returns [st1 : setType, st2 : setType |
@@ -107,7 +107,7 @@ returns [st1 : setType, st2 : setType |
 ];
 
 Method "_minus_" is [s1 : set, s2 : set |
-	Primitive 104;
+	Primitive 104 (failureCode : all);
 	Failed;
 ] : set
 returns [st1 : setType, st2 : setType |
@@ -123,7 +123,7 @@ returns [st1 : setType, st2 : setType |
 ];
 
 Method "_with_" is [s : set, element : all |
-	Primitive 105;
+	Primitive 105 (failureCode : all);
 	Failed;
 ] : set
 returns [st : setType, et : type |
@@ -132,7 +132,7 @@ returns [st : setType, et : type |
 ];
 
 Method "_without_" is [s : set, element : all |
-	Primitive 106;
+	Primitive 106 (failureCode : all);
 	Failed;
 ] : set
 returns [st : setType, et : type |
@@ -148,7 +148,7 @@ returns [st : setType, et : type |
 
 Method "_<=_" is [s1 : set, s2 : set |
 	/* Answer true iff s1 is a subset of s2. */
-	Primitive 107;
+	Primitive 107 (failureCode : all);
 	Failed;
 ] : boolean;
 

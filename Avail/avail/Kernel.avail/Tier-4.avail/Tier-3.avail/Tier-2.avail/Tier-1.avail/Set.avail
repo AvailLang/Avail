@@ -56,7 +56,7 @@ Body
 /* Set type construction / accessing */
 
 Method "set_of_" is [sizes : integerType, contentType : type |
-	Primitive 111;
+	Primitive 111 (failureCode : all);
 	Failed;
 ] : setType;
 
@@ -65,12 +65,12 @@ Method "set of_" is [elementType : type |
 ] : setType;
 
 Method "_content type" is [st : setType |
-	Primitive 113;
+	Primitive 113 (failureCode : all);
 	Failed;
 ] : type;
 
 Method "_sizes" is [st : setType |
-	Primitive 112;
+	Primitive 112 (failureCode : all);
 	Failed;
 ] : integerType;
 
@@ -78,7 +78,7 @@ Method "_sizes" is [st : setType |
 /* Set manipulation primitives... */
 
 Method "||_||" is [s : set |
-	Primitive 100;
+	Primitive 100 (failureCode : all);
 	Failed;
 ] : integer
 returns [st : setType |
@@ -89,7 +89,7 @@ returns [st : setType |
 /* Helper arithmetic... */
 
 Method "_private plus_" is [a : extended integer, b : extended integer |
-	Primitive 1;
+	Primitive 1 (failureCode : all);
 	Failed;
 ] : extended integer;
 
@@ -98,7 +98,7 @@ Method "_private plus_" is [a : extended integer, b : extended integer |
 
 Method "_as tuple" is [s : set |
 	/* Convert the set to a tuple, with arbitrary (and unstable) ordering. */
-	Primitive 110;
+	Primitive 110 (failureCode : all);
 	Failed;
 ] : tuple
 returns [st : setType |
@@ -108,7 +108,7 @@ returns [st : setType |
 ];
 
 Method "_as set" is [t : tuple |
-	Primitive 109;
+	Primitive 109 (failureCode : all);
 	Failed;
 ] : set
 returns [tt : tupleType |

@@ -43,7 +43,7 @@ Body
 /* Accessing primitive types. */
 
 Method "_name" is [pt : primType |
-	Primitive 67;
+	Primitive 67 (failureCode : all);
 	Failed;
 ] : string;
 
