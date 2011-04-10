@@ -199,7 +199,7 @@ Method "all" is
 Method "argument node" is
 [
 	privateArgumentNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -209,7 +209,7 @@ Method "argument node" is
 Method "assignment node" is
 [
 	privateAssignmentNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -219,7 +219,7 @@ Method "assignment node" is
 Method "block node" is
 [
 	privateBlockNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * Answer the most specific general type of the boolean intrinsic constants.
@@ -329,7 +329,7 @@ Method "cyclic type" is
 Method "declaration node" is
 [
 	privateDeclarationNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -349,7 +349,7 @@ Method "double" is
 Method "expression node" is
 [
 	privateExpressionNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -429,7 +429,7 @@ Method "integer type" is
 Method "label node" is
 [
 	privateLabelNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 
 /**
@@ -440,7 +440,7 @@ Method "label node" is
 Method "literal node" is
 [
 	privateLiteralNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 
 /**
@@ -451,7 +451,7 @@ Method "literal node" is
 Method "local constant node" is
 [
 	privateLocalConstantNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -461,7 +461,7 @@ Method "local constant node" is
 Method "local variable node" is
 [
 	privateLocalVariableNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -481,7 +481,7 @@ Method "map type" is
 Method "marker node" is
 [
 	privateMarkerNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -501,7 +501,7 @@ Method "meta" is
 Method "module constant node" is
 [
 	privateModuleConstantNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -511,7 +511,7 @@ Method "module constant node" is
 Method "module variable node" is
 [
 	privateModuleVariableNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -551,7 +551,7 @@ Method "object type" is
 Method "parse node" is
 [
 	privateParseNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -581,7 +581,7 @@ Method "process" is
 Method "reference node" is
 [
 	privateReferenceNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -591,7 +591,7 @@ Method "reference node" is
 Method "send node" is
 [
 	privateSendNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -631,7 +631,7 @@ Method "string" is
 Method "supercast node" is
 [
 	privateSuperCastNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -691,7 +691,7 @@ Method "tuple" is
 Method "tuple node" is
 [
 	privateTupleNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!
@@ -723,7 +723,7 @@ Method "type" is
 Method "variable use node" is
 [
 	privateVariableUseNode;
-] : privatePrimativeType;
+] : privatePrimitiveType;
 
 /**
  * TODO: Really comment this!

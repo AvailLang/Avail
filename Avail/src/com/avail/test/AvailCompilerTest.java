@@ -84,7 +84,9 @@ public class AvailCompilerTest
 
 	/** The {@linkplain ModuleRoots Avail module roots}. */
 	private static final @NotNull ModuleRoots roots =
-		new ModuleRoots("avail=" + new File("avail").getAbsolutePath());
+		new ModuleRoots(
+			"avail=" + new File("avail").getAbsolutePath()
+			+ ";new-avail=" + new File("new-avail").getAbsolutePath());
 
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
 	private ModuleNameResolver resolver;
@@ -222,33 +224,18 @@ public class AvailCompilerTest
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
-//	/**
-//	 * Test: Compile the Chevron-Test module.
-//	 *
-//	 * @throws Exception
-//	 *         If an {@linkplain Exception exception} occurs.
-//	 */
-//	@Test
-//	public void chevronTest2 () throws Exception
-//	{
-//		final long startTime = System.currentTimeMillis();
-//		compile(new ModuleName("/avail/Chevron-Test"));
-//		System.err.printf(
-//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-//	}
-//
-//	/**
-//	 * Test: Compile the Chevron-Test module.
-//	 *
-//	 * @throws Exception
-//	 *         If an {@linkplain Exception exception} occurs.
-//	 */
-//	@Test
-//	public void chevronTest3 () throws Exception
-//	{
-//		final long startTime = System.currentTimeMillis();
-//		compile(new ModuleName("/avail/Chevron-Test"));
-//		System.err.printf(
-//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-//	}
+	/**
+	 * Test: Compile the Test module (of the new Avail library).
+	 *
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void newAvailTest () throws Exception
+	{
+		final long startTime = System.currentTimeMillis();
+		compile(new ModuleName("/new-avail/Test"));
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+	}
 }

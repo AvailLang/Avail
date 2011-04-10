@@ -1,0 +1,315 @@
+/**
+ * System/Foundation/Basic Support
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * Basic support utilities for primitive and system methods.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+System Module "Basic Support"
+Extends
+Uses
+	"Special Objects"
+Names
+	/* Public methods. */
+	"Exit the current thread because_",
+	"Discard_",
+	"Reject the current parse because_",
+	"Method_is_and validates with_",
+	"bootstrap:_doesn't allow_",
+	"expression type of_",	
+	"(_)",
+	"<«_‡,»>",
+	"{«_‡,»}",
+	"_=_",
+	"_<=_",
+	"_≤_"
+Body
+
+/**
+ * Explicitly disregard the specified argument. This is normally used to cast an
+ * expression to void, thereby turning it into a statement.
+ */
+Method "Discard_" is
+[
+	unwanted : all |
+] : void;
+
+/**
+ * <strong>Primitive 256:</strong> Exit the current thread. The specified
+ * argument will be converted internally into a {@code string} and used to
+ * report an error message.
+ *
+ * @param reason
+ *        An object whose display string will be captured for postmortem
+ *        presentation.
+ */
+Method "Exit the current thread because_" is
+[
+	postMortemHint : all |
+	
+	Primitive 256 (failureCode : all);
+	/* Ordinarily primitive failure code would be present here, but primitive
+	 * 256 does not require failure code. If it did, then we could never build
+	 * the primitive methods, because there is no direct language support for
+	 * bootstrapping the ability to terminate. Looping, exiting a process,
+	 * raising an exception, and resuming a continuation are all implemented via
+	 * primitives.
+	 */
+] : terminates;
+
+/**
+ * <strong>Primitive 352:</strong> Reject the parse currently underway. The
+ * compiler should display the specified argument as the reason why the parse
+ * aborted.
+ *
+ * @param reason
+ *        The reason why the current parse aborted.
+ */
+Method "Reject the current parse because_" is
+[
+	reason : string |
+	
+	Primitive 352 (failureCode : all);
+	Exit the current thread because "system error: primitive 352 failed";
+] : terminates;
+
+/**
+ * <strong>Primitive 255:</strong> Message precedence declaration with a tuple
+ * of sets of messages to exclude for each argument position. Note that the
+ * tuple's elements should correspond with occurrences of underscore in the
+ * method names, *not* with the (top-level) arguments of the method. This
+ * distinction is only apparent when chevron notation is used to accept
+ * tuples of arguments.
+ *
+ * <p>Note that it is not desirable to express the restrictions positively. That
+ * is, to define "_must have_" rather than "_doesn't allow_". Positive-space
+ * restrictions guarantee non-modularity. In particular, the introduction of new
+ * methods would require explicit refactoring of existing "_must have_" rules to
+ * permit syntactic extension. This is cumbersome, error-prone, and ultimately
+ * futile.</p>
+ *
+ * @param methodNames
+ *        The target method names to which the tuple of restrictions apply.
+ * @param forbiddenSubexpressions
+ *        A tuple of sets of method names. The set at position N corresponds to
+ *        the N-th underscore of each target method name. Each set contains
+ *        method names that are not allowed at the N-th position.
+ */
+Method "bootstrap:_doesn't allow_" is
+[
+	methodNames : set,
+	forbiddenSubexpressions : tuple |
+
+	Primitive 255 (unusedFailureCode : all);
+	Exit the current thread because "system error: primitive 255 failed";
+] : void;
+	
+/**
+ * TODO: Replace ??? with the actual primitive number.
+ *
+ * <strong>Primitive ???:</strong> Define a method. The parse nodes
+ * corresponding to the arguments will be checked at compile time against the
+ * specified call site validation closure.
+ *
+ * @param methodName
+ *        The method name.
+ * @param implementation
+ *        The closure that implements the method.
+ * @param validator
+ *        A closure whose parameters correspond to the parse nodes of the
+ *        arguments at the call site at compile time. It should answer a type at
+ *        least as strong as the statically ascertained result type of the
+ *        implementation closure. If the arguments are rejected, then the
+ *        closure should call "Reject the current parse because_" to provide a
+ *        more specific rationale for argument rejection.
+ */
+Method "Method_is_and validates with_" is
+[
+	methodName : string,
+	implementation : closure,
+	validator: closure |
+	
+	/* TODO: Replace ??? with the actual primitive number. */
+	Primitive ??? (unusedFailureCode : all);
+	Exit the current thread because "system error: primitive ??? failed";
+] : void;
+
+/**
+ * <strong>Primitive 351:</strong> Answer the expression type of the specified
+ * parse node.
+ *
+ * @param parseNode
+ *        A parse node.
+ * @return The expression type of the argument.
+ */
+Method "expression type of_" is
+[
+	parseNode : parse node |
+	
+	Primitive 351 (unusedFailureCode : all);
+	Exit the current thread because "system error: primitive 351 failed";
+] : type;
+
+/**
+ * Construct a tuple from the argument subexpressions.
+ *
+ * @param argument
+ *        A tuple, constructed automatically by the parser during the processing
+ *        of the guillemets construct.
+ * @return A tuple.
+ */
+Method "<«_‡,»>" is
+[
+	argument : tuple |
+	argument;
+]
+and validates with
+[
+	argumentType : tuple node |
+	expression type of argumentType;
+];
+
+/**
+ * <strong>Primitive 109:</strong> Construct a set from the argument
+ * subexpressions.
+ *
+ * @param argument
+ *        A tuple, constructed automatically by the parser during the processing
+ *        of the guillemets construct.
+ * @return A set.
+ */
+Method "{«_‡,»}" is
+[
+	argument : tuple |
+
+	Primitive 109 (unusedFailureCode : all);
+	Exit the current thread because "system error: primitive 109 failed";
+] : set;
+
+/**
+ * Single target message precedence declaration.
+ *
+ * @param methodNames
+ *        The target method name to which the tuple of restrictions apply.
+ * @param forbiddenSubexpressions
+ *        A tuple of sets of method names. The set at position N corresponds to
+ *        the N-th underscore of each target method name. Each set contains
+ *        method names that are not allowed at the N-th position.
+ */
+Method "bootstrap:_doesn't allow_" is
+[
+	methodName : string,
+	forbiddenSubexpressions : tuple |
+	
+	{methodName} doesn't allow forbiddenSubexpressions;
+];
+
+/**
+ * Force a particular order of evaluation of a subexpression. This implements
+ * the standard mathematical notation of grouping parentheses.
+ *
+ * @param argument
+ *        An argument, usually the result of a multi-node subexpression.
+ * @returns The argument.
+ */
+Method "(_)" is
+[
+	argument : all |
+	argument;
+]
+and validates with
+[
+	argumentType : type |
+	expression type of argumentType;
+];
+
+/* Disallow spurious parenthetical nesting. */
+bootstrap: "(_)" doesn't allow <{"(_)"}>;
+
+/**
+ * <strong>Primitive 60:</strong> Compare two objects for equality.
+ *
+ * @param a
+ *        An arbitrary object.
+ * @param b
+ *        An arbitrary object.
+ * @return {@code true} if the arguments are equal, {@code false} otherwise.
+ */
+Method "_=_" is
+[
+	a : all,
+	b : all |
+	
+	Primitive 60 (unusedFailureCode : all);
+	Exit the current thread because "system error: primitive 60 failed";
+] : boolean;
+
+/**
+ * <strong>Primitive 33:</strong> Answer {@code true} if the first argument is
+ * an improper subtype of the second argument.
+ *
+ * @param a
+ *        An arbitrary type.
+ * @param b
+ *        An arbitrary type.
+ * @return {@code true} if the first argument is an improper subtype of the
+ *         second argument, {@code false} otherwise.
+ */
+Method "_≤_" is
+[
+	a : type,
+	b : type |
+	
+	Primitive 33 (unusedFailureCode : all);
+	Exit the current thread because "system error: primitive 33 failed";
+] : boolean;
+
+/**
+ * Answer {@code true} if the first argument is an improper subtype of the
+ * second argument. This is a convenience method for users who cannot easily
+ * input Unicode characters.
+ *
+ * @param a
+ *        An arbitrary type.
+ * @param b
+ *        An arbitrary type.
+ * @return {@code true} if the first argument is an improper subtype of the
+ *         second argument, {@code false} otherwise.
+ */
+Method "_<=_" is
+[
+	a : type,
+	b : type |
+	
+	a ≤ b;
+] : boolean;
