@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.CanAllocateObjects;
 import static com.avail.descriptor.TypeDescriptor.Types.COMPILED_CODE;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 
 public class CompiledCodeDescriptor
@@ -420,13 +421,13 @@ extends Descriptor
 	}
 
 	@Override
-	public short o_PrimitiveNumber (
+	public int o_PrimitiveNumber (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the primitive number I should try before falling back on
 		//  the Avail code.  Zero indicates not-a-primitive.
 
-		return (short)(object.hiPrimitiveLowNumArgsAndLocalsAndStack() >>> 16);
+		return object.hiPrimitiveLowNumArgsAndLocalsAndStack() >>> 16;
 	}
 
 	@Override
@@ -509,6 +510,16 @@ extends Descriptor
 		final @NotNull AvailObject localTypes,
 		final @NotNull AvailObject outerTypes)
 	{
+		if (primitive != 0)
+		{
+			// Sanity check for primitive blocks.  Use this to hunt incorrectly
+			// specified primitive signatures.
+			assert primitive == (primitive & 0xFFFF);
+			Primitive prim = Primitive.byPrimitiveNumber(primitive);
+			AvailObject restrictionSignature = prim.blockTypeRestriction();
+			assert restrictionSignature.isSubtypeOf(closureType);
+		}
+
 		assert localTypes.tupleSize() == locals;
 		assert closureType.numArgs() == numArgs;
 		final int literalsSize = literals.tupleSize();
@@ -523,8 +534,8 @@ extends Descriptor
 		code.closureType(closureType);
 		code.startingChunkIndex(L2ChunkDescriptor.indexOfUnoptimizedChunk());
 		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
-		int dest = 1;
-		for (; dest <= literalsSize; dest++)
+		int dest;
+		for (dest = 1; dest <= literalsSize; dest++)
 		{
 			code.literalAtPut(dest, literals.tupleAt(dest));
 		}

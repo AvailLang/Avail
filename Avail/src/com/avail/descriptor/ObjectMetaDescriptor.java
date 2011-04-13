@@ -208,7 +208,7 @@ extends TypeDescriptor
 		return object.instance().typeUnion(anObjectMeta.instance()).type();
 	}
 
-	static AvailObject fromObjectType (
+	public static AvailObject fromObjectType (
 		final @NotNull AvailObject objectType)
 	{
 		AvailObject result = mutable().create();

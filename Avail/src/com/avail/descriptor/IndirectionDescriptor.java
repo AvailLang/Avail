@@ -3848,7 +3848,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public short o_PrimitiveNumber (final AvailObject object)
+	public int o_PrimitiveNumber (final AvailObject object)
 	{
 		return o_Traversed(object).primitiveNumber();
 	}

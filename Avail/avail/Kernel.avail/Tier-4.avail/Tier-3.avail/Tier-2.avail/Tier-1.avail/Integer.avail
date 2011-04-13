@@ -40,7 +40,6 @@ Names
 	"_lower inclusive",			"_lower bound",
 	"_upper inclusive",			"_upper bound",
 	"INF",			"_is finite",		"_is infinite",
-	"natural number",	"whole number",
 	"byte"
 Body
 
@@ -126,17 +125,6 @@ Method "_is infinite" is [x : integer |
 	false;
 ] : falseType;
 
-
-
-/* Some convenient range types from mathematics and computer science... */
-
-Method "natural number" is [
-	[1..INF);
-] : integerType;
-
-Method "whole number" is [
-	[0..INF);
-] : integerType;
 
 Method "byte" is [
 	[0..255];

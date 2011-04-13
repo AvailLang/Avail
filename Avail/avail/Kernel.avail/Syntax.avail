@@ -35,7 +35,7 @@ Extends
 	"Tier-4"
 Uses
 Names
-	"Fail parse_",
+	"Macro_is_",
 	"make assignment variable_expression_",
 	"_expression type",
 	"_:=_",
@@ -50,11 +50,12 @@ Names
 Body
 
 
-Method "Fail parse_" is [
-		problem : string |
-	Primitive 352 (failureCode : all);
+
+
+Method "Macro_is_" is [name : string, block : [...]-> parseNode |
+	Primitive 249 (failureCode : all);
 	Failed;
-] : terminates;
+] : void;
 
 
 Method "make assignment variable_expression_" is [

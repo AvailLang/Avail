@@ -132,7 +132,7 @@ Method "_&_" is [a : trueType, b : trueType |
 ] :  trueType;
 
 
-Abstract method "_&_" for [boolean,  []->boolean]->boolean
+Abstract method "_&_" for [boolean, []->boolean]->boolean
 returns [at : type, bt : closureType |
 	res : type := boolean;
 	if at = trueType then [res := bt result;];
@@ -142,7 +142,7 @@ returns [at : type, bt : closureType |
 ] : type;
 
 
-Method "_&_" is [a : trueType, b :  []->boolean |
+Method "_&_" is [a : trueType, b : []->boolean |
 	/* Evaluate b because a leaves it contingent. */
 	Primitive 45 (failureCode : all);
 	Failed;
@@ -152,7 +152,7 @@ returns [at : type, bt : closureType |
 ] : type;
 
 
-Method "_&_" is [a : falseType, b :  []->boolean |
+Method "_&_" is [a : falseType, b : []->boolean |
 	false;
 ] : falseType;
 

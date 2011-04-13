@@ -79,7 +79,10 @@ requires [ett : Exception type type, resT : type |
 
 /* Helper primitive... */
 
-Method "_evaluate with handler_" is [body : []->void, handler : [terminates]->void |
+Method "_evaluate with handler_" is [
+		body : []->void,
+		handler : [terminates]->void |
+		
 	/* Primitive 200 is a special primitive.  When the Raise_ primitive is
 	   invoked, it scans the stack for a continuation whose closure's
 	   code is primitive 200, and it invokes this continuation's second
@@ -191,7 +194,7 @@ requires [handlersT : tupleType, bodyT : closure type |
 	cast union into [ut : closureType |
 		ut [1] <= Exception;
 	] otherwise [
-		Crash "All the handler block types must be known statically.";
+		Fail parse "All the handler block types must be known statically.";
 	];
 ];
 

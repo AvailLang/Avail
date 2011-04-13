@@ -378,8 +378,6 @@ extends TypeDescriptor
 
 	// Startup/shutdown
 
-	static AvailObject NaturalNumbers;
-
 	static AvailObject Nybbles;
 
 	static AvailObject Characters;
@@ -390,7 +388,9 @@ extends TypeDescriptor
 
 	static AvailObject Integers;
 
-	static AvailObject PositiveShorts;
+	static AvailObject UnsignedShorts;
+
+	static AvailObject NaturalNumbers;
 
 	static AvailObject WholeNumbers;
 
@@ -406,10 +406,10 @@ extends TypeDescriptor
 			false,
 			InfinityDescriptor.positiveInfinity(),
 			false);
-		PositiveShorts = create(
-			IntegerDescriptor.one(),
+		UnsignedShorts = create(
+			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.fromInt(Short.MAX_VALUE),
+			IntegerDescriptor.fromInt(65535),
 			true);
 		NaturalNumbers = create(
 			IntegerDescriptor.one(),
@@ -477,14 +477,19 @@ extends TypeDescriptor
 		return Integers;
 	}
 
-	public static AvailObject positiveShorts ()
+	public static AvailObject unsignedShorts ()
 	{
-		return PositiveShorts;
+		return UnsignedShorts;
 	}
 
 	public static AvailObject wholeNumbers ()
 	{
 		return WholeNumbers;
+	}
+
+	public static AvailObject naturalNumbers ()
+	{
+		return NaturalNumbers;
 	}
 
 	public static AvailObject bytes ()

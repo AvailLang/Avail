@@ -108,7 +108,7 @@ public final class AvailRuntime
 	 * The {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private final @NotNull AvailObject[] specialObjects = new AvailObject[72];
+	private final @NotNull AvailObject[] specialObjects = new AvailObject[100];
 
 	/*
 	 * Set up the special objects.
@@ -158,6 +158,10 @@ public final class AvailRuntime
 		specialObjects[33] = TUPLE_TYPE.o();
 		specialObjects[34] = TYPE.o();
 		specialObjects[35] = VOID_TYPE.o();
+		specialObjects[36] =
+			IntegerRangeTypeDescriptor.wholeNumbers();
+		specialObjects[37] =
+			IntegerRangeTypeDescriptor.naturalNumbers();
 
 		// Code reflection
 		specialObjects[40] = MESSAGE_BUNDLE.o();
@@ -191,6 +195,34 @@ public final class AvailRuntime
 		// Booleans
 		specialObjects[70] = BooleanDescriptor.objectFrom(true);
 		specialObjects[71] = BooleanDescriptor.objectFrom(false);
+
+		// Bootstrap helpers
+		// tuple of string...
+		specialObjects[72] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				TupleTypeDescriptor.stringTupleType());
+		// tuple of type...
+		specialObjects[73] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				TYPE.o());
+		// tuple of set of string...
+		specialObjects[74] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleTypeDescriptor.stringTupleType()));
+		// set of string...
+		specialObjects[75] =
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleTypeDescriptor.stringTupleType());
+
 	}
 
 	/**

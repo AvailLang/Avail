@@ -67,10 +67,11 @@ returns [tType : tupleType |
 	tType;
 ] : tupleType;
 
+tupleOfType ::= Special Object 73;
 
 Method "private tuple type for sizes_like_default_" is [
 		sizeRange : integerType,
-		typeTuple : tuple,
+		typeTuple : tupleOfType,
 		defaultType : type |
 	/* Construct a new tuple type.  Defined here privately with weak input types... */
 	Primitive 137 (failureCode : all);
@@ -116,12 +117,17 @@ Method "_default type" is [tt : tupleType |
 ] : type;
 
 
+setOfString ::= Special Object 75;
+
 /* Precedence rule to prevent problems later. */
 
 Method "_private as set" is [t : tuple of string |
 	Primitive 109 (failureCode : all);
 	Failed;
-] : set;
+] : set
+returns [t : tupleType |
+	setOfString;
+];
 
 <"_lower bound", "_upper bound"> private as set
 	can't have <<"_sizes"> private as set>;
@@ -173,13 +179,18 @@ Method "tuple like_" is [elementTypes : tuple of type |
 
 /* Some tuple type operations... */
 
-Method "_[_]" is [tt : tupleType, i : extended integer |
+Method "_[_]" is [
+		tt : tupleType,
+		i : natural number |
 	/* Indices out of range are simply the type terminates. */
 	Primitive 141 (failureCode : all);
 	Failed;
 ] : type;
 
-Method "_[_.._]" is [tt : tupleType, start : integer, end : integer |
+Method "_[_.._]" is [
+		tt : tupleType,
+		start : natural number,
+		end : whole number |
 	/* Indices out of range are simply the type terminates. */
 	Primitive 142 (failureCode : all);
 	Failed;
@@ -188,7 +199,8 @@ Method "_[_.._]" is [tt : tupleType, start : integer, end : integer |
 
 /* Union of an entire tuple of types... */
 
-Method "union of types in_" is [typesTuple : tuple of type |
+Method "union of types in_" is [
+		typesTuple : tuple of type |
 	Primitive 38 (failureCode : all);
 	Failed;
 ] : type;
@@ -201,8 +213,8 @@ Method "union of types in_" is [typesTuple : tuple of type |
 
 Method "union of types in_at indices_through_" is [
 		tt : tupleType,
-		start : integer,
-		end : integer |
+		start : natural number,
+		end : whole number |
 	Primitive 143 (failureCode : all);
 	Failed;
 ] : type;

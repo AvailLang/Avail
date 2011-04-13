@@ -3856,7 +3856,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract short o_PrimitiveNumber (final AvailObject object);
+	public abstract int o_PrimitiveNumber (final AvailObject object);
 
 	/**
 	 * @param object

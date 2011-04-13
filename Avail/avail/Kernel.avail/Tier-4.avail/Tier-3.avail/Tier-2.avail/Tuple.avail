@@ -271,6 +271,12 @@ Method "_[_]" is [t : tuple, i : natural number |
 	Primitive 131 (failureCode : all);
 	Failed;
 ] : all
+requires [tType : tupleType, iType : integerType |
+	/* Require that it's at least possible that the subscript is in range. */
+	if iType lower bound > tType sizes upper bound then [
+		Fail parse "Tuple subscript is always out of bounds";];
+	true;
+] : boolean
 returns [tType : tupleType, iType : integerType |
 	/* Compute the type union of all the possible types it could be,
 	   depending on what indices could be applied. */
@@ -292,7 +298,6 @@ returns [tType : tupleType, iType : integerType |
 	];
 	possible;
 ] : type;
-
 
 
 /* Interval construction... */

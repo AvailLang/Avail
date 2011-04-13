@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.descriptor.*;
@@ -188,52 +188,17 @@ public class L1InstructionWriter
 
 	public AvailObject compiledCode ()
 	{
-		final int numBaseLiterals = literals.size();
-		final int numOuters = outerTypes.size();
-		final int numArgs = argumentTypes.size();
-		final int numBaseLocals = localTypes.size();
-		final AvailObject argTypes = ObjectTupleDescriptor.mutable().create(
-			numArgs);
-		argTypes.hashOrZero(0);
-		for (int i = 1; i <= numArgs; ++ i)
-		{
-			argTypes.tupleAtPut(i, argumentTypes.get(i - 1));
-		}
-		final AvailObject closureType =
-			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
-				argTypes,
-				returnType);
-		final AvailObject code = CompiledCodeDescriptor.mutable().create(
-			numBaseLiterals + numOuters + numArgs + numBaseLocals);
-		code.nybbles(nybbles());
-		code.argsLocalsStackOutersPrimitive(
-			numArgs,
-			numBaseLocals,
+		return CompiledCodeDescriptor.create(
+			nybbles(),
+			argumentTypes.size(),
+			localTypes.size(),
 			stackTracker.maxDepth(),
-			outerTypes.size(),
-			primitiveNumber);
-		code.closureType(closureType);
-		code.startingChunkIndex(L2ChunkDescriptor.indexOfUnoptimizedChunk());
-		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
-		int destLiteralIndex = 0;
-		for (int i = 0; i < numBaseLiterals; ++i)
-		{
-			code.literalAtPut(++destLiteralIndex, literals.get(i));
-		}
-		for (int i = 0; i < numOuters; ++i)
-		{
-			code.literalAtPut(++destLiteralIndex, outerTypes.get(i));
-		}
-		for (int i = 0; i < numArgs; ++i)
-		{
-			code.literalAtPut(++destLiteralIndex, argumentTypes.get(i));
-		}
-		for (int i = 0; i < numBaseLocals; ++i)
-		{
-			code.literalAtPut(++destLiteralIndex, localTypes.get(i));
-		}
-		assert destLiteralIndex == numBaseLiterals + numOuters + numArgs + numBaseLocals;
-		code.makeImmutable();
-		return code;
+			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.fromList(argumentTypes),
+				returnType),
+			primitiveNumber,
+			TupleDescriptor.fromList(literals),
+			TupleDescriptor.fromList(localTypes),
+			TupleDescriptor.fromList(outerTypes));
 	}
 }

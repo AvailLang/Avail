@@ -877,6 +877,39 @@ extends Descriptor
 		EllipsisTuple = null;
 	}
 
+	/**
+	 * Create a tuple with the specified elements.  The elements are not made
+	 * immutable first, nor is the new tuple.
+	 *
+	 * @param elements
+	 *            The array of AvailObjects from which to construct a tuple.
+	 * @return
+	 *            The new mutable tuple.
+	 */
+	public static AvailObject from (
+		final AvailObject ... elements)
+	{
+		AvailObject tuple;
+		int size = elements.length;
+		tuple = ObjectTupleDescriptor.mutable().create(size);
+		for (int i = 1; i <= size; i++)
+		{
+			tuple.tupleAtPut(i, elements[i - 1]);
+		}
+		return tuple;
+	}
+
+	/**
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
+	 * passed in a list.  The elements are not made immutable first, nor is the
+	 * new tuple.
+	 *
+	 * @param list
+	 *            The list of {@linkplain AvailObject Avail objects} from which
+	 *            to construct a tuple.
+	 * @return
+	 *            The new mutable tuple of objects.
+	 */
 	public static AvailObject fromList (
 		final List<AvailObject> list)
 	{
@@ -889,6 +922,15 @@ extends Descriptor
 		return tuple;
 	}
 
+	/**
+	 * Construct a new tuple of integers.  Use the most compact representation
+	 * that can still represent each supplied {@link Integer}.
+	 *
+	 * @param list
+	 *            The list of Java {@linkplain Integer}s to assemble in a tuple.
+	 * @return
+	 *            A new mutable tuple of integers.
+	 */
 	public static AvailObject fromIntegerList (
 		final List<Integer> list)
 	{
@@ -925,7 +967,15 @@ extends Descriptor
 		return tuple;
 	}
 
-	/* Value conversion... */
+	/**
+	 * Compute {@link #Multiplier} raised to the specified power, truncated to
+	 * an int.
+	 *
+	 * @param anInteger
+	 *            The exponent by which to raise the base {@link #Multiplier}.
+	 * @return
+	 *            {@link #Multiplier} raised to the specified power.
+	 */
 	static int multiplierRaisedTo (final int anInteger)
 	{
 		int result = 1;
@@ -1023,8 +1073,12 @@ extends Descriptor
 	};
 
 
-	/* Hash scrambling... */
-	static final int PreToggle = 0xE570A6;
+	/**
+	 * The constant by which each element's hash should be XORed prior to
+	 * combining them.  This reduces the chance of systematic collisions due to
+	 * using the same elements in different patterns of nested tuples.
+	 */
+	static final int PreToggle = 0x00E570A6;
 
 	/**
 	 * Construct a new {@link TupleDescriptor}.

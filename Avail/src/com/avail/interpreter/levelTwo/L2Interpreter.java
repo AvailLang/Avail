@@ -88,7 +88,6 @@ implements L2OperationDispatcher
 	/**
 	 * The current pointer into {@link #_chunkWords}, the level two instruction
 	 * stream.
-	 *
 	 */
 	int _offset;
 
@@ -112,8 +111,7 @@ implements L2OperationDispatcher
 	 * The dispatcher used to simulate level one instructions via {@link
 	 * #L2_doInterpretOneInstruction()}.
 	 */
-	L1OperationDispatcher levelOneDispatcher =
-		new L1OperationDispatcher()
+	L1OperationDispatcher levelOneDispatcher = new L1OperationDispatcher()
 	{
 		/**
 		 * [n] - Send the message at index n in the compiledCode's literals. Pop the
@@ -175,7 +173,7 @@ implements L2OperationDispatcher
 			// Leave the expected return type pushed on the stack.  This will be
 			// used when the method returns, and it also helps distinguish label
 			// continuations from call continuations.
-			final short primNum = theCode.primitiveNumber();
+			final int primNum = theCode.primitiveNumber();
 			if (primNum != 0)
 			{
 				assert _chunk == L2ChunkDescriptor.chunkFromId (
@@ -655,13 +653,14 @@ implements L2OperationDispatcher
 			// kinds of continuations.
 			cont.stackp(base - 1);
 			cont.stackAtPut(base - 1, expectedReturnType);
-			final short primNum = theCode.primitiveNumber();
+			final int primNum = theCode.primitiveNumber();
 			if (primNum != 0)
 			{
-				assert _chunk == L2ChunkDescriptor
-					.chunkFromId(_pointers[callerRegister()]
-					                       .levelTwoChunkIndex());
-				final Result primResult = attemptPrimitive(primNum, _argsBuffer);
+				assert _chunk == L2ChunkDescriptor.chunkFromId(
+						_pointers[callerRegister()].levelTwoChunkIndex());
+				final Result primResult = attemptPrimitive(
+					primNum,
+					_argsBuffer);
 				if (primResult == CONTINUATION_CHANGED)
 				{
 					return;
@@ -945,7 +944,7 @@ implements L2OperationDispatcher
 		final List<AvailObject> args)
 	{
 
-		final short primNum = aClosure.code().primitiveNumber();
+		final int primNum = aClosure.code().primitiveNumber();
 		if (primNum != 0)
 		{
 			Result result;
@@ -1053,7 +1052,7 @@ implements L2OperationDispatcher
 		final List<AvailObject> arguments)
 	{
 		final AvailObject theCode = aClosure.code();
-		final short prim = theCode.primitiveNumber();
+		final int prim = theCode.primitiveNumber();
 		if (prim != 0)
 		{
 			assert Primitive.byPrimitiveNumber(prim).hasFlag(
@@ -2001,7 +2000,7 @@ implements L2OperationDispatcher
 		}
 		final AvailObject closureToCall = signatureToCall.bodyBlock();
 		final AvailObject codeToCall = closureToCall.code();
-		final short primNum = codeToCall.primitiveNumber();
+		final int primNum = codeToCall.primitiveNumber();
 		if (primNum != 0)
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
@@ -2068,7 +2067,7 @@ implements L2OperationDispatcher
 		}
 		final AvailObject closureToCall = signatureToCall.bodyBlock();
 		final AvailObject codeToCall = closureToCall.code();
-		final short primNum = codeToCall.primitiveNumber();
+		final int primNum = codeToCall.primitiveNumber();
 		if (primNum != 0)
 		{
 			prepareToExecuteContinuation(_pointers[callerRegister()]);
@@ -2342,7 +2341,6 @@ implements L2OperationDispatcher
 	 */
 	public int getInteger ()
 	{
-
 		final AvailObject cont = _pointers[callerRegister()];
 		final AvailObject clos = cont.closure();
 		final AvailObject cod = clos.code();

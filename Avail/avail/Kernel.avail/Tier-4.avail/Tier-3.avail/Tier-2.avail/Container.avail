@@ -66,7 +66,7 @@ Method "*_"
 is [var : container |
 	Primitive 10 (failureCode : all);
 	Failed;
-] : void
+] : all
 returns [varType : container type |
 	/* If at some call site we don't know anything except that we have a
 	   container, we must be careful to say the content type is all.  Otherwise
@@ -87,7 +87,7 @@ is [var : container |
 	   Answer the extracted value. */
 	Primitive 18 (failureCode : all);
 	Failed;
-] : void
+] : all
 returns [varType : container type |
 	/* If at some call site we don't know anything except that we have a
 	   container, we must be careful to say the content type is all.  Otherwise

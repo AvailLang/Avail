@@ -129,7 +129,7 @@ public abstract class Interpreter
 	 * @return Whether the primitive accepts the specified number of arguments.
 	 */
 	public boolean primitiveAcceptsThisManyArguments (
-		final short primitiveNumber,
+		final int primitiveNumber,
 		final int argCount)
 	{
 		final int expected =
@@ -557,21 +557,19 @@ public abstract class Interpreter
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(VoidDescriptor.voidObject())));
 		writer.argumentTypes(
-			TupleTypeDescriptor.stringTupleType(), CLOSURE.o());
+			TupleTypeDescriptor.stringTupleType(),
+			GeneralizedClosureTypeDescriptor.forReturnType(VOID_TYPE.o()));
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration_string_block
 			.primitiveNumber);
 		writer.returnType(VOID_TYPE.o());
-		final AvailObject newClosure =
-			ClosureDescriptor.create(
-				writer.compiledCode(),
-				TupleDescriptor.empty());
+		final AvailObject newClosure = ClosureDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
 		newClosure.makeImmutable();
-		final AvailObject nameTuple =
-			ByteStringDescriptor.from(
-				defineMethodName);
-		final AvailObject realName = CyclicTypeDescriptor.create(
-			nameTuple);
+		final AvailObject nameTuple = ByteStringDescriptor.from(
+			defineMethodName);
+		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
@@ -795,13 +793,15 @@ public abstract class Interpreter
 	 * @return {@code true} if there is a {@linkplain Primitive primitive} with
 	 *         the specified ordinal, {@code false} otherwise.
 	 */
-	public boolean supportsPrimitive (final short ordinal)
+	public boolean supportsPrimitive (final int ordinal)
 	{
 		return Primitive.byPrimitiveNumber(ordinal) != null;
 	}
 
 	/**
 	 * Attempt to run the requires clauses applicable to this message send.
+	 * Return a {@link String} describing the problem, or null if there was no
+	 * problem.
 	 *
 	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
 	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
@@ -822,10 +822,24 @@ public abstract class Interpreter
 		}
 		for (final AvailObject imp : matching)
 		{
-			if (!imp.isValidForArgumentTypesInterpreter(argTypes, this))
+			try
 			{
-				return "message send of " + methodName
-					+ " to pass its requires clause";
+				if (!imp.isValidForArgumentTypesInterpreter(argTypes, this))
+				{
+					return
+						"message send of "
+						+ methodName
+						+ " to pass its requires clause";
+				}
+			}
+			catch (AvailRejectedParseException e)
+			{
+				AvailObject problem = e.rejectionString();
+				return
+					problem.asNativeString()
+					+ " (while parsing send of "
+					+ methodName
+					+ ")";
 			}
 		}
 		return null;
@@ -903,11 +917,13 @@ public abstract class Interpreter
 
 	/**
 	 * Invoke an Avail primitive.  The primitive number and arguments are
-	 * passed.  If the primitive fails, return primitiveFailed immediately.  If
-	 * the primitive causes the continuation to change (e.g., through block
-	 * invocation, continuation restart, exception throwing, etc), answer
-	 * continuationChanged.  Otherwise the primitive succeeded, and we simply
-	 * capture the resulting value with {@link
+	 * passed.  If the primitive fails, use {@link
+	 * Interpreter#primitiveResult(AvailObject)} to set the primitiveResult to
+	 * some object indicating what the problem was, and return primitiveFailed
+	 * immediately.  If the primitive causes the continuation to change (e.g.,
+	 * through block invocation, continuation restart, exception throwing, etc),
+	 * answer continuationChanged.  Otherwise the primitive succeeded, and we
+	 * simply capture the resulting value with {@link
 	 * Interpreter#primitiveResult(AvailObject)} and return {@link
 	 * Primitive.Result#SUCCESS}.
 	 *
@@ -915,10 +931,11 @@ public abstract class Interpreter
 	 * @param args The list of arguments to supply to the primitive.
 	 * @return The resulting status of the primitive attempt.
 	 */
-	public Result attemptPrimitive (
-		final short primitiveNumber,
+	public final Result attemptPrimitive (
+		final int primitiveNumber,
 		final List<AvailObject> args)
 	{
+		primitiveResult = null;
 		return Primitive.byPrimitiveNumber(primitiveNumber).attempt(args, this);
 	}
 
@@ -943,7 +960,7 @@ public abstract class Interpreter
 
 	@Deprecated
 	Result callBackSmalltalkPrimitive (
-		final short primitiveNumber,
+		final int primitiveNumber,
 		final List<AvailObject> args)
 	{
 		//TODO: [MvG] Phase this out without ever implementing it.

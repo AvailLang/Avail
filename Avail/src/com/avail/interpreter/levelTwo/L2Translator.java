@@ -409,7 +409,7 @@ public class L2Translator implements L1OperationDispatcher
 				return null;
 			}
 
-			short primitiveNumber = body.code().primitiveNumber();
+			final int primitiveNumber = body.code().primitiveNumber();
 			if (firstBody == null)
 			{
 				firstBody = body;
@@ -507,7 +507,7 @@ public class L2Translator implements L1OperationDispatcher
 		final List<L2ObjectRegister> args,
 		final L2LabelInstruction successLabel)
 	{
-		final short primitiveNumber = primitiveClosure.code().primitiveNumber();
+		final int primitiveNumber = primitiveClosure.code().primitiveNumber();
 		final Primitive primitive =
 			Primitive.byPrimitiveNumber(primitiveNumber);
 		contingentImpSets = contingentImpSets.setWithElementCanDestroy(
@@ -540,7 +540,9 @@ public class L2Translator implements L1OperationDispatcher
 			{
 				argValues.add(registerConstantAt(argReg));
 			}
-			Result success = interpreter.attemptPrimitive(primitiveNumber, argValues);
+			Result success = interpreter.attemptPrimitive(
+				primitiveNumber,
+				argValues);
 			if (success == SUCCESS)
 			{
 				AvailObject value = interpreter.primitiveResult();

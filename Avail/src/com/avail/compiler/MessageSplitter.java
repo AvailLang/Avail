@@ -907,8 +907,7 @@ public class MessageSplitter
 	 */
 	public AvailObject messageParts ()
 	{
-		final AvailObject tuple = TupleDescriptor.fromList(
-			messageParts);
+		final AvailObject tuple = TupleDescriptor.fromList(messageParts);
 		tuple.makeImmutable();
 		return tuple;
 	}

@@ -64,7 +64,7 @@ requires [gct : generalizedClosureType, at : tupleType |
 		*&ct ?:= gct;
 		nargs ::= ||ct||;
 		if not nargs type <= at sizes then [
-			Crash "Number of arguments will always be wrong at this function application site";
+			Fail parse "Number of arguments will always be wrong at this function application site";
 		];
 		/* We can't really check the argument types yet, so let some stuff slip
 		   through that really shouldn't.  */
@@ -93,7 +93,7 @@ returns [valType : type, blk1Type : closureType, blk2Type : closureType |
 ]
 requires [valType : type, blk1Type : closureType, blk2Type : closureType |
 	if valType <= blk1Type[1] then [
-		Crash "Warning - unnecessary cast expression";
+		Fail parse "Warning - unnecessary cast expression";
 	];
 	true;
 ];
@@ -112,7 +112,7 @@ returns [valType : type, blockType : closureType |
 ]
 requires [valType : type, blockType : closureType |
 	if valType <= blockType[1] then [
-		Crash "Warning - unnecessary cast expression";
+		Fail parse "Warning - unnecessary cast expression";
 	];
 	true;
 ];

@@ -209,7 +209,7 @@ extends TypeDescriptor
 	}
 
 	/* Object creation */
-	static AvailObject fromObjectMeta (final AvailObject objectMeta)
+	public static AvailObject fromObjectMeta (final AvailObject objectMeta)
 	{
 		AvailObject result = mutable().create();
 		result.myObjectMeta(objectMeta);

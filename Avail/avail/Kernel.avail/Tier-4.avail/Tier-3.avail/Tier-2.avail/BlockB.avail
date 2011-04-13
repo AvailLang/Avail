@@ -82,8 +82,7 @@ Method "stub block taking_and applying_to_and argument tuple returning_" is [
 		resultType : type |
 	Primitive 71 (failureCode : all);
 	Failed;
-] : closure;
-
+] : [...]-> void;
 
 privateInvoker ::= lookup "_apply_";
 

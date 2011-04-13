@@ -38,6 +38,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
 import com.avail.utility.*;
 
 /**
@@ -105,6 +106,7 @@ public class AvailCompilerTest
 	public void initializeAllWellKnownObjects ()
 	throws RenamesFileParserException
 	{
+		Primitive.clearBlockTypeRestrictions();
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
 		resolver = new RenamesFileParser(new StringReader(""), roots).parse();
@@ -188,7 +190,8 @@ public class AvailCompilerTest
 			builder.append(new String(
 				sourceBuffer,
 				(int) e.endOfErrorLine(),
-				sourceBuffer.length - (int) e.endOfErrorLine()));
+				Math.min(100, sourceBuffer.length - (int) e.endOfErrorLine())));
+			builder.append("...\n");
 			System.err.printf("%s%n", builder);
 			throw e;
 		}

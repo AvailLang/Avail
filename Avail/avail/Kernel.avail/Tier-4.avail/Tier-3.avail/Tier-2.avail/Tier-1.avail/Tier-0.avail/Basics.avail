@@ -52,6 +52,7 @@ Names
 	"terminates", "terminatesType", "trueType", "tuple",
 	"tupleType", "type",
 	"void",
+	"whole number", "natural number",
 
 	"parseNode",
 	"markerNode",
@@ -77,7 +78,7 @@ Names
 	"Failed", "Crash_", "Print_", "Discard_",
 	"Halt", "_can't have_", "_=_", "_<=_",
 	
-	"Method_is_", "Macro_is_"
+	"Method_is_"
 
 Body
 
@@ -120,6 +121,9 @@ privateTuple                       ::= Special Object 32;
 privateTupleType                   ::= Special Object 33;
 privateType                        ::= Special Object 34;
 privateVoid                        ::= Special Object 35;
+
+privateWholeNumber                 ::= Special Object 36;
+privateNaturalNumber               ::= Special Object 37;
 
 privateParseNode                   ::= Special Object 50;
 privateMarkerNode                  ::= Special Object 51;
@@ -165,6 +169,9 @@ Method "terminates"             is [privateTerminates;] : privateTerminatesType;
 Method "trueType"               is [privateTrueType;] : privatePrimType;
 Method "tuple"                  is [privateTuple;] : privateTupleType;
 Method "void"                   is [privateVoid;] : privateType;
+
+Method "whole number"           is [privateWholeNumber;] : privateIntegerType;
+Method "natural number"         is [privateNaturalNumber;] : privateIntegerType;
 
 /* And the meta-types... */
 Method "integerType"            is [privateIntegerType;] : privateMeta;
@@ -234,6 +241,9 @@ Method "Failed" is [
 ] : terminates;
 
 
+tupleOfSetOfString ::= Special Object 74;
+setOfString ::= Special Object 75;
+
 /* Add support for defining precedence rules.  For example,
 	"{op1,op2...} can't have <{op3,op4...},{op5,op6,...},...>"
    means that op1 and op2 aren't weakly binding enough to allow op3 or op4
@@ -241,7 +251,7 @@ Method "Failed" is [
    the second argument, etc.  To state, for example, that addition is to be
    parsed left-recursive, we say:  {"_+_"} can't have <{} , {"_+_"}>.   */
 
-Method "_can't have_" is [names : set, except : tuple |
+Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
 	Primitive 255 (failureCode : all);
 	Failed;
 ] : void;
@@ -281,10 +291,3 @@ Method "_<=_" is [a : type, b : type |
 	Failed;
 ] : boolean;
 
-
-
-/* Macros... */
-Method "Macro_is_" is [name : string, block : closure |
-	Primitive 249 (failureCode : all);
-	Failed;
-] : void;

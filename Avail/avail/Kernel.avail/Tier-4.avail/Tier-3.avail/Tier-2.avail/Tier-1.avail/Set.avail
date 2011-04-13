@@ -80,7 +80,7 @@ Method "_sizes" is [st : setType |
 Method "||_||" is [s : set |
 	Primitive 100 (failureCode : all);
 	Failed;
-] : integer
+] : whole number
 returns [st : setType |
 	st sizes;
 ] : integerType;

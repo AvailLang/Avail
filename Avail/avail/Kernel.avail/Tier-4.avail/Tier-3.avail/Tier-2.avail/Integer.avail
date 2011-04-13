@@ -38,12 +38,12 @@ Uses
 	"Container"
 Names
 	"_<_",		"_>_",		"_<=_",		"_>=_",
-	"_<_<_",		"_<_<=_",		"_<=_<_",		"_<=_<=_",
-	"_>_>_",		"_>_>=_",		"_>=_>_",		"_>=_>=_",
+	"_<_<_",	"_<_<=_",	"_<=_<_",	"_<=_<=_",
+	"_>_>_",	"_>_>=_",	"_>=_>_",	"_>=_>=_",
 
-	"_+_" ,		"_-_",			"-_",			"_*_" ,
-	"_/_",			"_mod_",		"_is odd",		"_is even",
-	"_max_",		"_min_",		"_^_",			"|_|",
+	"_+_" ,		"_-_",		"-_",		"_*_" ,
+	"_/_",		"_mod_",	"_is odd",	"_is even",
+	"_max_",	"_min_",	"_^_",		"|_|",
 
 	"_++",		"_--",
 
@@ -139,10 +139,15 @@ Method "_>=_>=_" is [a : extended integer, b : extended integer, c : extended in
 
 /* Private helper for defining precedence rules... */
 
-Method "_U_" is [s1 : set, s2 : set |
+setOfString ::= Special Object 75;
+
+Method "_U_" is [s1 : setOfString, s2 : setOfString |
 	Primitive 102 (failureCode : all);
 	Failed;
-] : set;
+] : set
+returns [st : setType, st2 : setType |
+	setOfString;
+];
 
 {"_U_"} can't have <{},{"_U_"}>;
 

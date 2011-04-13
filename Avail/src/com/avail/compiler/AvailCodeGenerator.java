@@ -149,7 +149,6 @@ public class AvailCodeGenerator
 	 *
 	 * @return A {@link CompiledCodeDescriptor compiled code} object.
 	 */
-
 	public AvailObject endBlock ()
 	{
 		fixFinalUses();
@@ -180,10 +179,9 @@ public class AvailCodeGenerator
 			nybblesArray);
 		nybbleTuple.makeImmutable();
 		assert _resultType.isType();
-		final List<AvailObject> argsArray = new ArrayList<AvailObject>(
-			Arrays.asList(new AvailObject[_numArgs]));
-		final List<AvailObject> localsArray = new ArrayList<AvailObject>(
-			Arrays.asList(new AvailObject[_varMap.size() - _numArgs]));
+		final AvailObject[] argsArray = new AvailObject[_numArgs];
+		final AvailObject[] localsArray =
+			new AvailObject[_varMap.size() - _numArgs];
 		for (final Map.Entry<AvailObject, Integer> entry : _varMap.entrySet())
 		{
 			final int i = entry.getValue();
@@ -191,19 +189,17 @@ public class AvailCodeGenerator
 			if (i <= _numArgs)
 			{
 				assert argDeclType.isInstanceOfSubtypeOf(TYPE.o());
-				argsArray.set(i - 1, argDeclType);
+				argsArray[i - 1] = argDeclType;
 			}
 			else
 			{
-				localsArray.set(
-					i - _numArgs - 1,
-					ContainerTypeDescriptor.wrapInnerType(argDeclType));
+				localsArray[i - _numArgs - 1] =
+					ContainerTypeDescriptor.wrapInnerType(argDeclType);
 			}
 		}
-		final AvailObject argsTuple = TupleDescriptor.fromList(argsArray);
-		final AvailObject localsTuple = TupleDescriptor.fromList(localsArray);
-		final List<AvailObject> outerArray = new ArrayList<AvailObject>(
-				Arrays.asList(new AvailObject[_outerMap.size()]));
+		final AvailObject argsTuple = TupleDescriptor.from(argsArray);
+		final AvailObject localsTuple = TupleDescriptor.from(localsArray);
+		final AvailObject [] outerArray = new AvailObject[_outerMap.size()];
 		for (final Map.Entry<AvailObject, Integer> entry : _outerMap.entrySet())
 		{
 			final int i = entry.getValue();
@@ -213,16 +209,15 @@ public class AvailCodeGenerator
 			if (kind == DeclarationKind.ARGUMENT
 				|| kind == DeclarationKind.LABEL)
 			{
-				outerArray.set(i - 1, argDeclType);
+				outerArray[i - 1] = argDeclType;
 			}
 			else
 			{
-				outerArray.set(
-					i - 1,
-					ContainerTypeDescriptor.wrapInnerType(argDeclType));
+				outerArray[i - 1] =
+					ContainerTypeDescriptor.wrapInnerType(argDeclType);
 			}
 		}
-		final AvailObject outerTuple = TupleDescriptor.fromList(outerArray);
+		final AvailObject outerTuple = TupleDescriptor.from(outerArray);
 		final AvailObject code = CompiledCodeDescriptor.create(
 			nybbleTuple,
 			_numArgs,

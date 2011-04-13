@@ -91,6 +91,16 @@ public enum Primitive
 			interpreter.primitiveResult(a.plusCanDestroy(b, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
+		}
 	},
 
 	/**
@@ -117,6 +127,16 @@ public enum Primitive
 			interpreter.primitiveResult(a.minusCanDestroy(b, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
+		}
 	},
 
 
@@ -135,6 +155,16 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			interpreter.primitiveResult(a.timesCanDestroy(b, true));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
 		}
 	},
 
@@ -159,6 +189,16 @@ public enum Primitive
 			interpreter.primitiveResult(a.divideCanDestroy(b, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
+		}
 	},
 
 
@@ -180,6 +220,16 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(a.lessThan(b)));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -200,6 +250,16 @@ public enum Primitive
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFrom(a.lessOrEqual(b)));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -229,6 +289,18 @@ public enum Primitive
 					maxInc.extractBoolean()));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					BOOLEAN_TYPE.o(),
+					IntegerRangeTypeDescriptor.extendedIntegers(),
+					BOOLEAN_TYPE.o()),
+				INTEGER_TYPE.o());
+		}
 	},
 
 
@@ -248,6 +320,15 @@ public enum Primitive
 			interpreter.primitiveResult(range.lowerBound());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
+		}
 	},
 
 
@@ -266,6 +347,15 @@ public enum Primitive
 			final AvailObject range = args.get(0);
 			interpreter.primitiveResult(range.upperBound());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
 		}
 	},
 
@@ -295,6 +385,14 @@ public enum Primitive
 			interpreter.primitiveResult(value);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(CONTAINER.o()),
+				ALL.o());
+		}
 	},
 
 
@@ -315,6 +413,16 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTAINER.o(),
+					ALL.o()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -333,6 +441,14 @@ public enum Primitive
 			var.clearValue();
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(CONTAINER.o()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -354,6 +470,15 @@ public enum Primitive
 				ContainerTypeDescriptor.wrapInnerType(type));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TYPE.o()),
+				CONTAINER_TYPE.o());
+		}
 	},
 
 
@@ -372,6 +497,15 @@ public enum Primitive
 			final AvailObject type = args.get(0);
 			interpreter.primitiveResult(type.innerType());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTAINER_TYPE.o()),
+				TYPE.o());
 		}
 	},
 
@@ -395,6 +529,16 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTAINER.o(),
+					CONTAINER.o()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -415,6 +559,15 @@ public enum Primitive
 				ContainerDescriptor.forInnerType(innerType));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TYPE.o()),
+				CONTAINER.o());
+		}
 	},
 
 
@@ -434,6 +587,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFrom(var.value().equalsVoid()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTAINER.o()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -458,6 +620,16 @@ public enum Primitive
 			interpreter.primitiveResult(valueObject);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTAINER.o()),
+				ALL.o());
+		}
+
 	},
 
 
@@ -476,6 +648,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.fromInt(processObject.priority()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
 		}
 	},
 
@@ -497,6 +678,16 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o(),
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -516,6 +707,15 @@ public enum Primitive
 			final AvailObject processObject = args.get(0);
 			error("process suspend is not yet implemented");
 			return FAILURE;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -537,6 +737,15 @@ public enum Primitive
 			error("process resume is not yet implemented");
 			return FAILURE;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -557,6 +766,15 @@ public enum Primitive
 			error("process terminate is not yet implemented");
 			return FAILURE;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -574,6 +792,14 @@ public enum Primitive
 			interpreter.primitiveResult(
 				interpreter.process().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(),
+				PROCESS.o());
 		}
 	},
 
@@ -595,6 +821,16 @@ public enum Primitive
 			interpreter.primitiveResult(
 				processObject.processGlobals().mapAt(key).makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o(),
+					CYCLIC_TYPE.o()),
+				ALL.o());
 		}
 	},
 
@@ -622,6 +858,17 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PROCESS.o(),
+					CYCLIC_TYPE.o(),
+					ALL.o()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -640,6 +887,15 @@ public enum Primitive
 			final AvailObject semaphore = args.get(0);
 			error("This semaphore primitive is not yet implemented");
 			return FAILURE;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),  // TODO Add Semaphore type
+				VOID_TYPE.o());
 		}
 	},
 
@@ -660,6 +916,15 @@ public enum Primitive
 			error("This semaphore primitive is not yet implemented");
 			return FAILURE;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),  // TODO Add Semaphore type
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -677,6 +942,15 @@ public enum Primitive
 			final AvailObject value = args.get(0);
 			interpreter.primitiveResult(value.type());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				TYPE.o());
 		}
 	},
 
@@ -698,6 +972,16 @@ public enum Primitive
 			interpreter.primitiveResult(
 				type1.typeUnion(type2).makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TYPE.o(),
+					TYPE.o()),
+				TYPE.o());
 		}
 	},
 
@@ -721,6 +1005,16 @@ public enum Primitive
 				type1.typeIntersection(type2).makeImmutable());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TYPE.o(),
+					TYPE.o()),
+				TYPE.o());
+		}
 	},
 
 
@@ -741,6 +1035,16 @@ public enum Primitive
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFrom(type1.isSubtypeOf(type2)));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TYPE.o(),
+					TYPE.o()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -771,11 +1075,24 @@ public enum Primitive
 					returnType));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o()),
+					TYPE.o()),
+				CLOSURE_TYPE.o());
+		}
 	},
 
 
 	/**
-	 * <strong>Primitive 35:</strong> Answer the number af arguments that this
+	 * <strong>Primitive 35:</strong> Answer the number of arguments that this
 	 * closureType takes.
 	 */
 	prim35_ClosureTypeNumArgs_closureType(35, 1, CanFold)
@@ -790,6 +1107,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.fromInt(closureType.numArgs()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CLOSURE_TYPE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -812,6 +1138,16 @@ public enum Primitive
 				closureType.argTypeAt(index.extractInt()));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CLOSURE_TYPE.o(),
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				TYPE.o());
+		}
 	},
 
 
@@ -831,6 +1167,15 @@ public enum Primitive
 			interpreter.primitiveResult(closureType.returnType());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					GENERALIZED_CLOSURE_TYPE.o()),
+				TYPE.o());
+		}
 	},
 
 
@@ -848,12 +1193,24 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject tupleOfTypes = args.get(0);
 			AvailObject unionObject = TERMINATES.o();
-			for (int i = 1, _end2 = tupleOfTypes.tupleSize(); i <= _end2; i++)
+			for (AvailObject aType : tupleOfTypes)
 			{
-				unionObject = unionObject.typeUnion(tupleOfTypes.tupleAt(i));
+				unionObject = unionObject.typeUnion(aType);
 			}
 			interpreter.primitiveResult(unionObject);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o())),
+				TYPE.o());
 		}
 	},
 
@@ -874,6 +1231,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				GeneralizedClosureTypeDescriptor.forReturnType(returnType));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TYPE.o()),
+				GENERALIZED_CLOSURE_TYPE.o());
 		}
 	},
 
@@ -915,6 +1281,17 @@ public enum Primitive
 				block,
 				callArgs);
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						VOID_TYPE.o()),
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -945,6 +1322,21 @@ public enum Primitive
 				falseBlock,
 				args);
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					BOOLEAN_TYPE.o(),
+					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+						TupleDescriptor.from(),
+						VOID_TYPE.o()),
+					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+						TupleDescriptor.from(),
+						VOID_TYPE.o())),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -972,6 +1364,18 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					BOOLEAN_TYPE.o(),
+					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+						TupleDescriptor.from(),
+						VOID_TYPE.o())),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -994,6 +1398,18 @@ public enum Primitive
 			return interpreter.invokeClosureArguments (
 				block,
 				args);
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					BOOLEAN_TYPE.o(),
+					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+						TupleDescriptor.from(),
+						BOOLEAN_TYPE.o())),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -1032,6 +1448,19 @@ public enum Primitive
 			interpreter.primitiveResult(cont);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ContainerTypeDescriptor.wrapInnerType(CONTINUATION.o()),
+					CLOSURE.o(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				CONTINUATION.o());
+		}
 	},
 
 
@@ -1052,6 +1481,15 @@ public enum Primitive
 				continuationType.closureType());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION_TYPE.o()),
+				CLOSURE_TYPE.o());
+		}
 	},
 
 
@@ -1071,6 +1509,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				ContinuationTypeDescriptor.forClosureType(closureType));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CLOSURE_TYPE.o()),
+				CONTINUATION_TYPE.o());
 		}
 	},
 
@@ -1096,6 +1543,15 @@ public enum Primitive
 			interpreter.primitiveResult(caller);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o()),
+				CONTINUATION.o());
+		}
 	},
 
 
@@ -1113,6 +1569,15 @@ public enum Primitive
 			final AvailObject con = args.get(0);
 			interpreter.primitiveResult(con.closure());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o()),
+				CLOSURE.o());
 		}
 	},
 
@@ -1134,6 +1599,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.fromInt(con.pc()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o()),
+				IntegerRangeTypeDescriptor.naturalNumbers());
 		}
 	},
 
@@ -1157,6 +1631,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.fromInt(con.stackp()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o()),
+				IntegerRangeTypeDescriptor.naturalNumbers());
 		}
 	},
 
@@ -1220,6 +1703,16 @@ public enum Primitive
 			interpreter.prepareToExecuteContinuation(conCopy);
 			return CONTINUATION_CHANGED;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o(),
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				TERMINATES.o());
+		}
 	},
 
 
@@ -1248,14 +1741,36 @@ public enum Primitive
 			// (if necessary) because the interpreter requires the current
 			// continuation to always be mutable...
 			final AvailObject expectedType = con.closure().type().returnType();
+			final AvailObject caller = con.caller();
+			final AvailObject linkStrengthenedType = caller.stackAt(
+				caller.stackp());
+			assert linkStrengthenedType.isSubtypeOf(expectedType);
 			if (!result.isInstanceOfSubtypeOf(expectedType))
 			{
+				// Wasn't strong enough to meet the block's declared type.
 				return FAILURE;
 			}
-			final AvailObject targetCon = con.caller().ensureMutable();
+			if (!result.isInstanceOfSubtypeOf(linkStrengthenedType))
+			{
+				// Wasn't strong enough to meet the *call site's* type.
+				// A useful distinction when we start to record primitive
+				// failure reason codes.
+				return FAILURE;
+			}
+			final AvailObject targetCon = caller.ensureMutable();
 			targetCon.stackAtPut(targetCon.stackp(), result);
 			interpreter.prepareToExecuteContinuation(targetCon);
 			return CONTINUATION_CHANGED;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o(),
+					ALL.o()),
+				TERMINATES.o());
 		}
 	},
 
@@ -1301,6 +1816,15 @@ public enum Primitive
 			interpreter.prepareToExecuteContinuation(conCopy);
 			return CONTINUATION_CHANGED;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o()),
+				TERMINATES.o());
+		}
 	},
 
 
@@ -1334,6 +1858,15 @@ public enum Primitive
 			interpreter.primitiveResult(tuple);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CONTINUATION.o()),
+				TupleTypeDescriptor.mostGeneralTupleType());
+		}
 	},
 
 
@@ -1355,6 +1888,16 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(a.equals(b)));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o(),
+					ALL.o()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -1375,6 +1918,19 @@ public enum Primitive
 				ObjectDescriptor.objectFromMap(map));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						CYCLIC_TYPE.o(),
+						ALL.o())),
+				ObjectTypeDescriptor.objectTypeFromMap(
+					MapDescriptor.empty()));
+		}
 	},
 
 
@@ -1393,6 +1949,19 @@ public enum Primitive
 			final AvailObject object = args.get(0);
 			interpreter.primitiveResult(object.fieldMap());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectTypeDescriptor.objectTypeFromMap(
+						MapDescriptor.empty())),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					CYCLIC_TYPE.o(),
+					ALL.o()));
 		}
 	},
 
@@ -1414,6 +1983,20 @@ public enum Primitive
 				ObjectTypeDescriptor.objectTypeFromMap(map));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						CYCLIC_TYPE.o(),
+						ALL.o())),
+				ObjectMetaDescriptor.fromObjectType(
+					ObjectTypeDescriptor.objectTypeFromMap(
+						MapDescriptor.empty())));
+		}
 	},
 
 
@@ -1432,6 +2015,20 @@ public enum Primitive
 			final AvailObject objectType = args.get(0);
 			interpreter.primitiveResult(objectType.fieldTypeMap());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectMetaDescriptor.fromObjectType(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()))),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					CYCLIC_TYPE.o(),
+					TYPE.o()));
 		}
 	},
 
@@ -1452,6 +2049,20 @@ public enum Primitive
 			interpreter.primitiveResult(objectMeta.instance());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectMetaMetaDescriptor.fromObjectMeta(
+						ObjectMetaDescriptor.fromObjectType(
+							ObjectTypeDescriptor.objectTypeFromMap(
+								MapDescriptor.empty())))),
+				ObjectMetaDescriptor.fromObjectType(
+					ObjectTypeDescriptor.objectTypeFromMap(
+						MapDescriptor.empty())));
+		}
 	},
 
 
@@ -1471,6 +2082,18 @@ public enum Primitive
 			interpreter.primitiveResult(objectMetaMeta.instance());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					OBJECT_META_META.o()),
+				ObjectMetaMetaDescriptor.fromObjectMeta(
+					ObjectMetaDescriptor.fromObjectType(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()))));
+		}
 	},
 
 
@@ -1488,6 +2111,15 @@ public enum Primitive
 			final AvailObject primType = args.get(0);
 			interpreter.primitiveResult(primType.name());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PRIMITIVE_TYPE.o()),
+				TupleTypeDescriptor.stringTupleType());
 		}
 	},
 
@@ -1514,6 +2146,18 @@ public enum Primitive
 
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectMetaDescriptor.fromObjectType(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty())),
+					TupleTypeDescriptor.stringTupleType()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -1543,6 +2187,17 @@ public enum Primitive
 			interpreter.primitiveResult(name);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectMetaDescriptor.fromObjectType(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()))),
+				TupleTypeDescriptor.stringTupleType());
+		}
 	},
 
 	/**
@@ -1564,6 +2219,17 @@ public enum Primitive
 					numArgs.extractInt(),
 					constantResult));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()),
+				GeneralizedClosureTypeDescriptor.forReturnType(
+					ALL.o()));
 		}
 	},
 
@@ -1596,6 +2262,21 @@ public enum Primitive
 					resultType));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o()),
+					CYCLIC_TYPE.o(),
+					ALL.o(),
+					TYPE.o()),
+				GeneralizedClosureTypeDescriptor.forReturnType(VOID_TYPE.o()));
+		}
 	},
 
 
@@ -1614,6 +2295,15 @@ public enum Primitive
 			final AvailObject aClosure = args.get(0);
 			interpreter.primitiveResult(aClosure.code());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CLOSURE.o()),
+				COMPILED_CODE.o());
 		}
 	},
 
@@ -1651,6 +2341,15 @@ public enum Primitive
 			interpreter.primitiveResult(newTupleObject);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CLOSURE.o()),
+				TupleTypeDescriptor.mostGeneralTupleType());
+		}
 	},
 
 
@@ -1672,6 +2371,16 @@ public enum Primitive
 				ClosureDescriptor.create(compiledCode, outers));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o(),
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				CLOSURE.o());
+		}
 	},
 
 
@@ -1691,6 +2400,18 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.fromInt(map.mapSize()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o())),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -1712,6 +2433,19 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(map.hasKey(key)));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o()),
+					ALL.o()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -1731,6 +2465,19 @@ public enum Primitive
 			final AvailObject key = args.get(1);
 			interpreter.primitiveResult(map.mapAt(key));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o()),
+					ALL.o()),
+				ALL.o());
 		}
 	},
 
@@ -1757,6 +2504,23 @@ public enum Primitive
 				true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o()),
+					ALL.o(),
+					ALL.o()),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					ALL.o(),
+					ALL.o()));
+		}
 	},
 
 
@@ -1778,6 +2542,22 @@ public enum Primitive
 				map.mapWithoutKeyCanDestroy(key, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o()),
+					ALL.o()),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o(),
+					ALL.o()));
+		}
 	},
 
 
@@ -1794,6 +2574,18 @@ public enum Primitive
 			assert args.size() == 0;
 			interpreter.primitiveResult(MapDescriptor.empty());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.singleInteger(
+						IntegerDescriptor.zero()),
+					TERMINATES.o(),
+					TERMINATES.o()));
 		}
 	},
 
@@ -1812,6 +2604,20 @@ public enum Primitive
 			final AvailObject map = args.get(0);
 			interpreter.primitiveResult(map.keysAsSet());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o())),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()));
 		}
 	},
 
@@ -1838,6 +2644,17 @@ public enum Primitive
 					valueType));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o(),
+					TYPE.o(),
+					TYPE.o()),
+				MAP_TYPE.o());
+		}
 	},
 
 
@@ -1859,6 +2676,15 @@ public enum Primitive
 			interpreter.primitiveResult(mapType.sizeRange());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MAP_TYPE.o()),
+				INTEGER_TYPE.o());
+		}
 	},
 
 
@@ -1877,6 +2703,15 @@ public enum Primitive
 			interpreter.primitiveResult(mapType.keyType());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MAP_TYPE.o()),
+				TYPE.o());
+		}
 	},
 
 
@@ -1894,6 +2729,15 @@ public enum Primitive
 			final AvailObject mapType = args.get(0);
 			interpreter.primitiveResult(mapType.valueType());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MAP_TYPE.o()),
+				TYPE.o());
 		}
 	},
 
@@ -1914,6 +2758,18 @@ public enum Primitive
 			interpreter.primitiveResult(map.valuesAsTuple());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o(),
+						ALL.o())),
+				TupleTypeDescriptor.mostGeneralTupleType());
+		}
 	},
 
 
@@ -1932,6 +2788,17 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.fromInt(set.setSize()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o())),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -1954,6 +2821,18 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(set.hasElement(element)));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					ALL.o()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -1974,6 +2853,22 @@ public enum Primitive
 				set1.setUnionCanDestroy(set2, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o())),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()));
+		}
 	},
 
 
@@ -1993,6 +2888,22 @@ public enum Primitive
 			interpreter.primitiveResult(
 				set1.setIntersectionCanDestroy(set2, true));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o())),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()));
 		}
 	},
 
@@ -2015,6 +2926,22 @@ public enum Primitive
 				set1.setMinusCanDestroy(set2, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o())),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()));
+		}
 	},
 
 
@@ -2035,6 +2962,20 @@ public enum Primitive
 			interpreter.primitiveResult(
 				set.setWithElementCanDestroy(newElement, true));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					ALL.o()),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					ALL.o()));
 		}
 	},
 
@@ -2057,6 +2998,20 @@ public enum Primitive
 				set.setWithoutElementCanDestroy(excludedElement, true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					ALL.o()),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()));
+		}
 	},
 
 
@@ -2077,6 +3032,20 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(set1.isSubsetOf(set2)));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o()),
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o())),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -2093,6 +3062,17 @@ public enum Primitive
 			assert args.size() == 0;
 			interpreter.primitiveResult(SetDescriptor.empty());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.singleInteger(
+						IntegerDescriptor.zero()),
+					ALL.o()));
 		}
 	},
 
@@ -2113,6 +3093,17 @@ public enum Primitive
 			interpreter.primitiveResult(tuple.asSet());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ALL.o()));
+		}
 	},
 
 
@@ -2132,6 +3123,17 @@ public enum Primitive
 			final AvailObject set = args.get(0);
 			interpreter.primitiveResult(set.asTuple());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						ALL.o())),
+				TupleTypeDescriptor.mostGeneralTupleType());
 		}
 	},
 
@@ -2155,6 +3157,16 @@ public enum Primitive
 					contentType));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o(),
+					TYPE.o()),
+				SET_TYPE.o());
+		}
 	},
 
 
@@ -2176,6 +3188,15 @@ public enum Primitive
 			interpreter.primitiveResult(setType.sizeRange());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SET_TYPE.o()),
+				INTEGER_TYPE.o());
+		}
 	},
 
 
@@ -2193,6 +3214,15 @@ public enum Primitive
 			final AvailObject setType = args.get(0);
 			interpreter.primitiveResult(setType.contentType());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SET_TYPE.o()),
+				TYPE.o());
 		}
 	},
 
@@ -2213,6 +3243,15 @@ public enum Primitive
 			interpreter.primitiveResult(CyclicTypeDescriptor.create(name));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				CYCLIC_TYPE.o());
+		}
 	},
 
 
@@ -2230,6 +3269,15 @@ public enum Primitive
 			final AvailObject cyclicType = args.get(0);
 			interpreter.primitiveResult(cyclicType.name());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				TupleTypeDescriptor.stringTupleType());
 		}
 	},
 
@@ -2250,6 +3298,15 @@ public enum Primitive
 				IntegerDescriptor.fromInt(tuple.tupleSize()));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
+		}
 	},
 
 
@@ -2268,6 +3325,16 @@ public enum Primitive
 			final AvailObject index = args.get(1);
 			interpreter.primitiveResult(tuple.tupleAt(index.extractInt()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.mostGeneralTupleType(),
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				ALL.o());
 		}
 	},
 
@@ -2293,6 +3360,17 @@ public enum Primitive
 				true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.mostGeneralTupleType(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					ALL.o()),
+				TupleTypeDescriptor.mostGeneralTupleType());
+		}
 	},
 
 
@@ -2315,6 +3393,19 @@ public enum Primitive
 			interpreter.primitiveResult(newTupleObject);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.singleInteger(
+						IntegerDescriptor.one()),
+					TupleDescriptor.empty(),
+					ALL.o()));
+		}
 	},
 
 
@@ -2331,6 +3422,19 @@ public enum Primitive
 			assert args.size() == 0;
 			interpreter.primitiveResult(TupleDescriptor.empty());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.singleInteger(
+						IntegerDescriptor.zero()),
+					TupleDescriptor.empty(),
+					TERMINATES.o()));
 		}
 	},
 
@@ -2356,6 +3460,17 @@ public enum Primitive
 				true));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.mostGeneralTupleType(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				TupleTypeDescriptor.mostGeneralTupleType());
+		}
 	},
 
 
@@ -2375,6 +3490,18 @@ public enum Primitive
 			interpreter.primitiveResult(
 				tuples.concatenateTuplesCanDestroy(true));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TupleTypeDescriptor.mostGeneralTupleType())),
+				TupleTypeDescriptor.mostGeneralTupleType());
 		}
 	},
 
@@ -2401,6 +3528,20 @@ public enum Primitive
 					defaultType));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o()),
+					TYPE.o()),
+				TUPLE_TYPE.o());
+		}
 	},
 
 
@@ -2422,6 +3563,15 @@ public enum Primitive
 			interpreter.primitiveResult(tupleType.sizeRange());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o()),
+				INTEGER_TYPE.o());
+		}
 	},
 
 
@@ -2440,6 +3590,18 @@ public enum Primitive
 			final AvailObject tupleType = args.get(0);
 			interpreter.primitiveResult(tupleType.typeTuple());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					TYPE.o()));
 		}
 	},
 
@@ -2460,6 +3622,15 @@ public enum Primitive
 			interpreter.primitiveResult(tupleType.defaultType());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o()),
+				TYPE.o());
+		}
 	},
 
 
@@ -2479,6 +3650,16 @@ public enum Primitive
 			final AvailObject index = args.get(1);
 			interpreter.primitiveResult(tupleType.typeAtIndex(index.extractInt()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o(),
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				TYPE.o());
 		}
 	},
 
@@ -2511,11 +3692,25 @@ public enum Primitive
 			{
 				tupleObject = tupleObject.tupleAtPuttingCanDestroy(
 					i,
-					tupleType.typeAtIndex((startIndex.extractInt() + i - 1)),
+					tupleType.typeAtIndex(startIndex.extractInt() + i - 1),
 					true);
 			}
 			interpreter.primitiveResult(tupleObject);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					TYPE.o()));
 		}
 	},
 
@@ -2536,8 +3731,22 @@ public enum Primitive
 			final AvailObject tupleType = args.get(0);
 			final AvailObject startIndex = args.get(1);
 			final AvailObject endIndex = args.get(2);
-			interpreter.primitiveResult(tupleType.unionOfTypesAtThrough(startIndex.extractInt(), endIndex.extractInt()));
+			interpreter.primitiveResult(
+				tupleType.unionOfTypesAtThrough(
+					startIndex.extractInt(),
+					endIndex.extractInt()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				TYPE.o());
 		}
 	},
 
@@ -2557,8 +3766,21 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject tupleType1 = args.get(0);
 			final AvailObject tupleType2 = args.get(1);
-			interpreter.primitiveResult(ConcatenatedTupleTypeDescriptor.concatenatingAnd(tupleType1, tupleType2));
+			interpreter.primitiveResult(
+				ConcatenatedTupleTypeDescriptor.concatenatingAnd(
+					tupleType1,
+					tupleType2));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TUPLE_TYPE.o(),
+					TUPLE_TYPE.o()),
+				TUPLE_TYPE.o());
 		}
 	},
 
@@ -2599,6 +3821,15 @@ public enum Primitive
 
 			interpreter.primitiveResult(handle);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				CYCLIC_TYPE.o());
 		}
 	},
 
@@ -2650,6 +3881,15 @@ public enum Primitive
 			interpreter.primitiveResult(handle);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				CYCLIC_TYPE.o());
+		}
 	},
 
 	/**
@@ -2690,6 +3930,15 @@ public enum Primitive
 
 			interpreter.primitiveResult(handle);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				CYCLIC_TYPE.o());
 		}
 	},
 
@@ -2737,6 +3986,15 @@ public enum Primitive
 			interpreter.runtime().forgetWritableFile(handle);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -2807,6 +4065,19 @@ public enum Primitive
 			interpreter.primitiveResult(tuple);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()));
+		}
 	},
 
 	/**
@@ -2861,6 +4132,22 @@ public enum Primitive
 			interpreter.primitiveResult(TupleDescriptor.empty());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						IntegerRangeTypeDescriptor.bytes())),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.bytes()));
+		}
 	},
 
 	/**
@@ -2907,6 +4194,15 @@ public enum Primitive
 				IntegerDescriptor.objectFromLong(fileSize));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
+		}
 	},
 
 	/**
@@ -2952,6 +4248,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				IntegerDescriptor.objectFromLong(filePosition));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -3000,6 +4305,16 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				VOID_TYPE.o());
+		}
 	},
 
 	/**
@@ -3043,6 +4358,15 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				VOID_TYPE.o());
+		}
 	},
 
 	/**
@@ -3078,6 +4402,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFrom(exists));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -3115,6 +4448,15 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(readable));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 	/**
@@ -3151,6 +4493,15 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(writable));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 	/**
@@ -3186,6 +4537,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				BooleanDescriptor.objectFrom(executable));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -3228,6 +4588,16 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					TupleTypeDescriptor.stringTupleType()),
+				VOID_TYPE.o());
+		}
 	},
 
 	/**
@@ -3268,6 +4638,15 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				VOID_TYPE.o());
+		}
 	},
 
 	/**
@@ -3285,6 +4664,15 @@ public enum Primitive
 			final AvailObject cc = args.get(0);
 			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numArgs()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -3305,6 +4693,15 @@ public enum Primitive
 			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numLocals()));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
+		}
 	},
 
 
@@ -3323,6 +4720,15 @@ public enum Primitive
 			final AvailObject cc = args.get(0);
 			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numOuters()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -3343,6 +4749,15 @@ public enum Primitive
 			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.maxStackDepth()));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
+		}
 	},
 
 
@@ -3361,6 +4776,18 @@ public enum Primitive
 			final AvailObject cc = args.get(0);
 			interpreter.primitiveResult(cc.nybbles());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.nybbles()));
 		}
 	},
 
@@ -3381,6 +4808,15 @@ public enum Primitive
 			interpreter.primitiveResult(cc.closureType());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				CLOSURE_TYPE.o());
+		}
 	},
 
 
@@ -3397,8 +4833,18 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.primitiveNumber()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.fromInt(cc.primitiveNumber()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				IntegerRangeTypeDescriptor.unsignedShorts());
 		}
 	},
 
@@ -3439,6 +4885,18 @@ public enum Primitive
 			interpreter.primitiveResult(tupleObject);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					COMPILED_CODE.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					ALL.o()));
+		}
 	},
 
 
@@ -3478,6 +4936,25 @@ public enum Primitive
 					literals.copyTupleFromToCanDestroy(nLiteralsTotal - nLocals - nOuters + 1, nLiteralsTotal - nLocals, false)));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						IntegerRangeTypeDescriptor.nybbles()),
+					CLOSURE_TYPE.o(),
+					IntegerRangeTypeDescriptor.unsignedShorts(),
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				COMPILED_CODE.o());
+		}
 	},
 
 
@@ -3494,9 +4971,26 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			@SuppressWarnings("unused") final AvailObject bodyBlock = args.get(0);
-			@SuppressWarnings("unused") final AvailObject handlerBlock = args.get(1);
+			@SuppressWarnings("unused")
+			final AvailObject bodyBlock = args.get(0);
+			@SuppressWarnings("unused")
+			final AvailObject handlerBlock = args.get(1);
 			return FAILURE;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+						TupleDescriptor.from(),
+						VOID_TYPE.o()),
+					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+						TupleDescriptor.from(
+							TERMINATES.o()),
+						VOID_TYPE.o())),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -3523,6 +5017,15 @@ public enum Primitive
 			final AvailObject exceptionValue = args.get(0);
 			return interpreter.searchForExceptionHandler(exceptionValue, args);
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				TERMINATES.o());
+		}
 	},
 
 
@@ -3543,6 +5046,18 @@ public enum Primitive
 			final AvailObject bundleTree = args.get(0);
 			interpreter.primitiveResult(bundleTree.complete().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE_TREE.o()),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					CYCLIC_TYPE.o(),
+					MESSAGE_BUNDLE.o()));
 		}
 	},
 
@@ -3565,6 +5080,18 @@ public enum Primitive
 			interpreter.primitiveResult(
 				bundleTree.incomplete().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE_TREE.o()),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleTypeDescriptor.stringTupleType(),
+					MESSAGE_BUNDLE_TREE.o()));
 		}
 	},
 
@@ -3589,6 +5116,18 @@ public enum Primitive
 					.makeImmutable());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					CYCLIC_TYPE.o(),
+					MESSAGE_BUNDLE.o()));
+		}
 	},
 
 
@@ -3612,6 +5151,18 @@ public enum Primitive
 			interpreter.primitiveResult(bundles);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleTypeDescriptor.stringTupleType(),
+					MESSAGE_BUNDLE_TREE.o()));
+		}
 	},
 
 
@@ -3631,6 +5182,15 @@ public enum Primitive
 			interpreter.primitiveResult(bundle.message().makeImmutable());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE.o()),
+				CYCLIC_TYPE.o());
+		}
 	},
 
 
@@ -3649,6 +5209,18 @@ public enum Primitive
 			final AvailObject bundle = args.get(0);
 			interpreter.primitiveResult(bundle.messageParts().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					TupleTypeDescriptor.stringTupleType()));
 		}
 	},
 
@@ -3675,6 +5247,17 @@ public enum Primitive
 			interpreter.primitiveResult(implementations);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE.o()),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					SIGNATURE.o()));
+		}
 	},
 
 
@@ -3696,6 +5279,15 @@ public enum Primitive
 					bundle.message().hasRestrictions()));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE.o()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -3714,6 +5306,20 @@ public enum Primitive
 			final AvailObject bundle = args.get(0);
 			interpreter.primitiveResult(bundle.restrictions().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					MESSAGE_BUNDLE.o()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						CYCLIC_TYPE.o())));
 		}
 	},
 
@@ -3734,6 +5340,15 @@ public enum Primitive
 			interpreter.primitiveResult(sig.bodySignature().makeImmutable());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SIGNATURE.o()),
+				CLOSURE_TYPE.o());
+		}
 	},
 
 
@@ -3752,6 +5367,15 @@ public enum Primitive
 			final AvailObject methSig = args.get(0);
 			interpreter.primitiveResult(methSig.bodyBlock().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SIGNATURE.o()),
+				CLOSURE.o());
 		}
 	},
 
@@ -3772,6 +5396,16 @@ public enum Primitive
 			interpreter.primitiveResult(sig.requiresBlock().makeImmutable());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SIGNATURE.o()),
+				GeneralizedClosureTypeDescriptor.forReturnType(
+					BOOLEAN_TYPE.o()));
+		}
 	},
 
 
@@ -3790,6 +5424,16 @@ public enum Primitive
 			final AvailObject sig = args.get(0);
 			interpreter.primitiveResult(sig.returnsBlock().makeImmutable());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SIGNATURE.o()),
+				GeneralizedClosureTypeDescriptor.forReturnType(
+					TYPE.o()));
 		}
 	},
 
@@ -3813,6 +5457,15 @@ public enum Primitive
 				interpreter.runtime().methodsAt(aCyclicType).makeImmutable());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				IMPLEMENTATION_SET.o());
+		}
 	},
 
 
@@ -3833,6 +5486,15 @@ public enum Primitive
 			final AvailObject anImplementationSet = args.get(0);
 			interpreter.primitiveResult(anImplementationSet.name());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IMPLEMENTATION_SET.o()),
+				CYCLIC_TYPE.o());
 		}
 	},
 
@@ -3871,6 +5533,15 @@ public enum Primitive
 			interpreter.primitiveResult(result);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				ALL.o());
+		}
 	},
 
 
@@ -3898,6 +5569,15 @@ public enum Primitive
 
 			interpreter.primitiveResult(interpreter.lookupName(name));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				CYCLIC_TYPE.o());
 		}
 	},
 
@@ -3927,6 +5607,17 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						PARSE_NODE.o())),
+				VOID_TYPE.o());
+		}
 	},
 
 	/**
@@ -3955,8 +5646,17 @@ public enum Primitive
 			}
 
 			interpreter.primitiveResult(BooleanDescriptor.objectFrom(
-				interpreter.supportsPrimitive((short) index)));
+				interpreter.supportsPrimitive(index)));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.unsignedShorts()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -3985,6 +5685,20 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					CLOSURE_TYPE.o(),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						BOOLEAN_TYPE.o()),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						TYPE.o())),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -4002,9 +5716,21 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
 			final AvailObject blockSignature = args.get(1);
-			interpreter.atAddForwardStubFor(interpreter.lookupName(string), blockSignature);
+			interpreter.atAddForwardStubFor(
+				interpreter.lookupName(string),
+				blockSignature);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					CLOSURE_TYPE.o()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -4026,6 +5752,17 @@ public enum Primitive
 			interpreter.atAddMethodBody(interpreter.lookupName(string), block);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						VOID_TYPE.o())),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -4053,6 +5790,21 @@ public enum Primitive
 				returnsBlock);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						VOID_TYPE.o()),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						BOOLEAN_TYPE.o()),
+					GeneralizedClosureTypeDescriptor.forReturnType(
+						TYPE.o())),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -4102,6 +5854,23 @@ public enum Primitive
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					SetTypeDescriptor.setTypeForSizesContentType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleTypeDescriptor.stringTupleType()),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						SetTypeDescriptor.setTypeForSizesContentType(
+							IntegerRangeTypeDescriptor.wholeNumbers(),
+							TupleTypeDescriptor.stringTupleType()))),
+				VOID_TYPE.o());
+		}
 	},
 
 	/**
@@ -4109,7 +5878,7 @@ public enum Primitive
 	 * argument will be converted internally into a {@code string} and used to
 	 * report an error message.
 	 */
-	prim256_EmergencyExit_value(256, 1, Unknown)
+	prim256_EmergencyExit_value(256, 1, CannotFail, Unknown)
 	{
 		@Override
 		public Result attempt (
@@ -4125,6 +5894,15 @@ public enum Primitive
 				errorMessageProducer));
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				TERMINATES.o());
 		}
 	},
 
@@ -4147,6 +5925,14 @@ public enum Primitive
 				^#continuationChanged
 			 */
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -4166,6 +5952,15 @@ public enum Primitive
 			System.out.println(objectToPrint);
 			interpreter.primitiveResult(VoidDescriptor.voidObject());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -4187,6 +5982,15 @@ public enum Primitive
 			final AvailObject availString = ByteStringDescriptor.from(string);
 			interpreter.primitiveResult(availString);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ALL.o()),
+				TupleTypeDescriptor.stringTupleType());
 		}
 	},
 
@@ -4219,6 +6023,14 @@ public enum Primitive
 				^IntegerDescriptor objectFromSmalltalkInteger: handle
 			 */
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(),
+				CYCLIC_TYPE.o());
+		}
 	},
 
 
@@ -4244,6 +6056,16 @@ public enum Primitive
 				opaqueLib at: 2 put: externalLib.
 				^VoidDescriptor voidObject
 			 */
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					TupleTypeDescriptor.stringTupleType()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -4284,6 +6106,16 @@ public enum Primitive
 					requestor: nil.
 				^VoidDescriptor voidObject
 			 */
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					TupleTypeDescriptor.stringTupleType()),
+				VOID_TYPE.o());
 		}
 	},
 
@@ -4328,6 +6160,16 @@ public enum Primitive
 				^IntegerDescriptor objectFromSmalltalkInteger: entryPoints size
 			 */
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					TupleTypeDescriptor.stringTupleType()),
+				CYCLIC_TYPE.o());
+		}
 	},
 
 
@@ -4348,6 +6190,15 @@ public enum Primitive
 				privateEntryPoint := entryPoints at: entryPointHandle extractInt.
 				^privateEntryPoint at: 2
 			 */
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o()),
+				CLOSURE_TYPE.o());
 		}
 	},
 
@@ -4403,6 +6254,16 @@ public enum Primitive
 				^self convertExternalResult: result ofType: externalType resultType
 			 */
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CYCLIC_TYPE.o(),
+					TupleTypeDescriptor.mostGeneralTupleType()),
+				ALL.o());
+		}
 	},
 
 
@@ -4424,6 +6285,16 @@ public enum Primitive
 				int := byteCount halt.
 				^IntegerDescriptor objectFromSmalltalkInteger: int
 			 */
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				IntegerRangeTypeDescriptor.integers());
 		}
 	},
 
@@ -4450,6 +6321,17 @@ public enum Primitive
 				^VoidDescriptor voidObject
 			 */
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					INTEGER_TYPE.o(),
+					IntegerRangeTypeDescriptor.integers(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				VOID_TYPE.o());
+		}
 	},
 
 
@@ -4468,6 +6350,14 @@ public enum Primitive
 			// PLATFORM-DEPENDENT -- rewrite more portably some day
 			interpreter.primitiveResult(BooleanDescriptor.objectFrom(false));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -4491,6 +6381,16 @@ public enum Primitive
 				b));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				FLOAT.o());
+		}
 	},
 
 
@@ -4513,6 +6413,16 @@ public enum Primitive
 				b));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				FLOAT.o());
+		}
 	},
 
 
@@ -4534,6 +6444,16 @@ public enum Primitive
 				a,
 				b));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				FLOAT.o());
 		}
 	},
 
@@ -4561,6 +6481,16 @@ public enum Primitive
 				b));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				FLOAT.o());
+		}
 	},
 
 
@@ -4582,6 +6512,16 @@ public enum Primitive
 				BooleanDescriptor.objectFrom(
 					(a.extractFloat() < b.extractFloat())));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -4605,6 +6545,16 @@ public enum Primitive
 					(a.extractFloat() <= b.extractFloat())));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -4625,6 +6575,15 @@ public enum Primitive
 					(float)log(a.extractFloat()),
 					a));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o()),
+				FLOAT.o());
 		}
 	},
 
@@ -4647,6 +6606,15 @@ public enum Primitive
 					(float)exp(a.extractFloat()),
 					a));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o()),
+				FLOAT.o());
 		}
 	},
 
@@ -4676,6 +6644,16 @@ public enum Primitive
 			interpreter.primitiveResult(
 				FloatDescriptor.objectWithRecycling(mod, a, b));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					FLOAT.o()),
+				FLOAT.o());
 		}
 	},
 
@@ -4719,10 +6697,21 @@ public enum Primitive
 			out.trimExcessLongs();
 			if (neg)
 			{
-				out = out.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), true);
+				out = out.subtractFromIntegerCanDestroy(
+					IntegerDescriptor.zero(),
+					true);
 			}
 			interpreter.primitiveResult(out);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
 		}
 	},
 
@@ -4769,6 +6758,15 @@ public enum Primitive
 			interpreter.primitiveResult(FloatDescriptor.objectFromFloat(f));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				FLOAT.o());
+		}
 	},
 
 
@@ -4794,6 +6792,16 @@ public enum Primitive
 				FloatDescriptor.objectFromFloatRecycling(f, a));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					FLOAT.o(),
+					IntegerRangeTypeDescriptor.integers()),
+				FLOAT.o());
+		}
 	},
 
 
@@ -4815,6 +6823,16 @@ public enum Primitive
 				a,
 				b));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				DOUBLE.o());
 		}
 	},
 
@@ -4838,6 +6856,16 @@ public enum Primitive
 				b));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				DOUBLE.o());
+		}
 	},
 
 
@@ -4859,6 +6887,16 @@ public enum Primitive
 				a,
 				b));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				DOUBLE.o());
 		}
 	},
 
@@ -4886,6 +6924,16 @@ public enum Primitive
 				b));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				DOUBLE.o());
+		}
 	},
 
 
@@ -4905,6 +6953,16 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			interpreter.primitiveResult(BooleanDescriptor.objectFrom((a.extractDouble() < b.extractDouble())));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				BOOLEAN_TYPE.o());
 		}
 	},
 
@@ -4926,6 +6984,16 @@ public enum Primitive
 			interpreter.primitiveResult(BooleanDescriptor.objectFrom((a.extractDouble() <= b.extractDouble())));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				BOOLEAN_TYPE.o());
+		}
 	},
 
 
@@ -4946,6 +7014,15 @@ public enum Primitive
 				DoubleDescriptor.objectFromDoubleRecycling(log(a.extractDouble()), a));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o()),
+				DOUBLE.o());
+		}
 	},
 
 
@@ -4965,6 +7042,15 @@ public enum Primitive
 			interpreter.primitiveResult(
 				DoubleDescriptor.objectFromDoubleRecycling(exp(a.extractDouble()), a));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o()),
+				DOUBLE.o());
 		}
 	},
 
@@ -4994,6 +7080,16 @@ public enum Primitive
 			interpreter.primitiveResult(
 				DoubleDescriptor.objectFromDoubleRecyclingOr(mod, a, b));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					DOUBLE.o()),
+				DOUBLE.o());
 		}
 	},
 
@@ -5041,6 +7137,15 @@ public enum Primitive
 			}
 			interpreter.primitiveResult(out);
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o()),
+				IntegerRangeTypeDescriptor.extendedIntegers());
 		}
 	},
 
@@ -5099,6 +7204,15 @@ public enum Primitive
 				DoubleDescriptor.objectFromDouble(d));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.extendedIntegers()),
+				DOUBLE.o());
+		}
 	},
 
 
@@ -5124,6 +7238,16 @@ public enum Primitive
 				DoubleDescriptor.objectFromDoubleRecycling(d, a));
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					DOUBLE.o(),
+					IntegerRangeTypeDescriptor.integers()),
+				DOUBLE.o());
+		}
 	},
 
 
@@ -5140,8 +7264,19 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject character = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.fromInt(character.codePoint()));
+			interpreter.primitiveResult(
+				IntegerDescriptor.fromInt(
+					character.codePoint()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					CHARACTER.o()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
 
@@ -5160,8 +7295,18 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject codePoint = args.get(0);
 			interpreter.primitiveResult(
-				CharacterDescriptor.newImmutableCharacterWithCodePoint(codePoint.extractInt()));
+				CharacterDescriptor.newImmutableCharacterWithCodePoint(
+					codePoint.extractInt()));
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				CHARACTER.o());
 		}
 	},
 
@@ -5182,6 +7327,13 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			return FAILURE;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			// This primitive is suitable for any block signature.
+			return TERMINATES.o();
 		}
 	},
 
@@ -5224,12 +7376,22 @@ public enum Primitive
 			interpreter.primitiveResult(assignment);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					VARIABLE_USE_NODE.o(),
+					PARSE_NODE.o()),
+				ASSIGNMENT_NODE.o());
+		}
 	},
 
 	/**
 	 * <strong>Primitive 351:</strong>  Extract the result type of a parse node.
 	 */
-	prim351_ParseNodeExpressionType_parseNode(351, 2, CanFold)
+	prim351_ParseNodeExpressionType_parseNode(351, 1, CanFold)
 	{
 		@Override
 		public Result attempt (
@@ -5244,6 +7406,15 @@ public enum Primitive
 			}
 			interpreter.primitiveResult(parseNode.expressionType());
 			return SUCCESS;
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					PARSE_NODE.o()),
+				TYPE.o());
 		}
 	},
 
@@ -5266,6 +7437,15 @@ public enum Primitive
 				return FAILURE;
 			}
 			throw new AvailRejectedParseException(parseNode);
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType()),
+				TERMINATES.o());
 		}
 	},
 
@@ -5322,6 +7502,16 @@ public enum Primitive
 			interpreter.primitiveResult(sequence);
 			return SUCCESS;
 		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					VARIABLE_USE_NODE.o(),
+					PARSE_NODE.o()),
+				PARSE_NODE.o());
+		}
 	},
 
 	/**
@@ -5357,46 +7547,17 @@ public enum Primitive
 			interpreter.primitiveResult(reference);
 			return SUCCESS;
 		}
-	},
 
-	/**
-	 * <strong>Primitive 355:</strong>  Create a simple variable declaration
-	 * node from the given arguments.
-	 *
-	 * TODO: Fix this cloned method.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
-	prim355_SimpleDeclaration_variable(355, 1, CanFold)
-	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		protected AvailObject privateBlockTypeRestriction ()
 		{
-			//TODO Write it for real.  Somehow declarations will need to be
-			//added to the compiler state and looked up afterward.
-			assert args.size() == 1;
-			final AvailObject variable = args.get(0);
-			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o()))
-			{
-				return FAILURE;
-			}
-			final AvailObject declaration = variable.declaration();
-			assert declaration != null;
-			final AvailObject declarationType = declaration.type();
-			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
-				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
-			{
-				return FAILURE;
-			}
-			final AvailObject reference =
-				ReferenceNodeDescriptor.mutable().create();
-			reference.variable(variable);
-			interpreter.primitiveResult(reference);
-			return SUCCESS;
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					VARIABLE_USE_NODE.o()),
+				REFERENCE_NODE.o());
 		}
 	};
+
 
 	/**
 	 * The success state of a primitive attempt.
@@ -5499,6 +7660,13 @@ public enum Primitive
 		SpecialReturnConstant,
 
 		/**
+		 * The primitive cannot fail.  Hence, there is no need for Avail code
+		 * to run in the event of a primitive failure.  Hence, such code is
+		 * forbidden (because it would be unreachable).
+		 */
+		CannotFail,
+
+		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
 		 * {@link L2Translator Level Two translator}.  The current continuation
 		 * should be reified prior to attempting the primitive.  Do not attempt
@@ -5524,8 +7692,71 @@ public enum Primitive
 	 * @return The {@link Result} code indicating success or failure (or special
 	 *         circumstance).
 	 */
-	public abstract Result attempt (List<AvailObject> args, Interpreter interpreter);
+	public abstract @NotNull Result attempt (
+		List<AvailObject> args,
+		Interpreter interpreter);
 
+
+	/**
+	 * Return a closure type that restricts actual primitive blocks defined
+	 * using that primitive.  The actual block's argument types must be at least
+	 * as specific as this closure type's argument types, and the actual block's
+	 * return type must be at least as general as this closure type's return
+	 * type.  That's equivalent to the condition that the actual block's type is
+	 * a subtype of this closure type.
+	 *
+	 * @return
+	 *             A closure type that restricts the type of a block that uses
+	 *             this primitive.
+	 */
+	protected abstract @NotNull AvailObject privateBlockTypeRestriction ();
+
+	/**
+	 * A {@linkplain ClosureTypeDescriptor closure type} that restricts the type
+	 * of block that can use this primitive.  This is initialized lazily to the
+	 * value provided by {@link #privateBlockTypeRestriction()}, to avoid having
+	 * to compute this closure type multiple times.
+	 */
+	private AvailObject cachedBlockTypeRestriction;
+
+	/**
+	 * Return a closure type that restricts actual primitive blocks defined
+	 * using that primitive.  The actual block's argument types must be at least
+	 * as specific as this closure type's argument types, and the actual block's
+	 * return type must be at least as general as this closure type's return
+	 * type.  That's equivalent to the condition that the actual block's type is
+	 * a subtype of this closure type.
+	 *
+	 * <p>
+	 * Cache the value in this {@linkplain Primitive} so subsequent requests are
+	 * fast.
+	 * </p>
+	 *
+	 * @return
+	 *            A closure type that restricts the type of a block that uses
+	 *            this primitive.
+	 */
+	public final @NotNull AvailObject blockTypeRestriction ()
+	{
+		if (cachedBlockTypeRestriction == null)
+		{
+			cachedBlockTypeRestriction = privateBlockTypeRestriction();
+			assert cachedBlockTypeRestriction.equals(TERMINATES.o())
+				|| cachedBlockTypeRestriction.numArgs() == argCount();
+		}
+		return cachedBlockTypeRestriction;
+	}
+
+	/**
+	 * Clear the cached block type restrictions.
+	 */
+	public static void clearBlockTypeRestrictions ()
+	{
+		for (final Primitive primitive : Primitive.values())
+		{
+			primitive.cachedBlockTypeRestriction = null;
+		}
+	}
 
 	/**
 	 * This primitive's number.  The Avail source code refers to this primitive
@@ -5553,7 +7784,7 @@ public enum Primitive
 	 * @param flag The {@code Flag} to test.
 	 * @return Whether that {@code Flag} is set for this primitive.
 	 */
-	public boolean hasFlag(final Flag flag)
+	public final boolean hasFlag(final Flag flag)
 	{
 		return primitiveFlags.contains(flag);
 	}
@@ -5564,7 +7795,7 @@ public enum Primitive
 	 *
 	 * @return The count of arguments for this primitive.
 	 */
-	public int argCount()
+	public final int argCount()
 	{
 		return argCount;
 	}
@@ -5581,7 +7812,7 @@ public enum Primitive
 		/**
 		 * The maximum allowed primitive number.
 		 */
-		public static short maxPrimitiveNumber = Short.MIN_VALUE;
+		public static int maxPrimitiveNumber = Integer.MIN_VALUE;
 	}
 
 
@@ -5611,9 +7842,14 @@ public enum Primitive
 	 * @param primitiveNumber The primitive number for which to search.
 	 * @return The primitive with the specified primitive number.
 	 */
-	public static Primitive byPrimitiveNumber(final short primitiveNumber)
+	public static Primitive byPrimitiveNumber(final int primitiveNumber)
 	{
-		return byPrimitiveNumber[primitiveNumber - 1];
+		if (primitiveNumber >= 1
+			&& primitiveNumber <= byPrimitiveNumber.length)
+		{
+			return byPrimitiveNumber[primitiveNumber - 1];
+		}
+		return null;
 	}
 
 
@@ -5628,7 +7864,10 @@ public enum Primitive
 	 * @param flags The flags that describe how the {@link L2Translator} should
 	 *              deal with this primitive.
 	 */
-	private Primitive (final int primitiveNumber, final int argCount, final Flag ... flags)
+	private Primitive (
+		final int primitiveNumber,
+		final int argCount,
+		final Flag ... flags)
 	{
 		this.primitiveNumber = (short)primitiveNumber;
 		this.argCount = argCount;

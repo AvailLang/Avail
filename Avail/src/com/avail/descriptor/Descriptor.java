@@ -6549,7 +6549,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public short o_PrimitiveNumber (
+	public int o_PrimitiveNumber (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.

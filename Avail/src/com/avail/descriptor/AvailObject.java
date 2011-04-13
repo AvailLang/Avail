@@ -4033,7 +4033,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short primitiveNumber ()
+	public int primitiveNumber ()
 	{
 		return descriptor().o_PrimitiveNumber(this);
 	}

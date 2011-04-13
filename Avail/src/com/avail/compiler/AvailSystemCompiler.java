@@ -40,7 +40,8 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -755,33 +756,49 @@ extends AbstractAvailCompiler
 				parseOptionalPrimitiveForArgCountThen(
 					afterArguments,
 					arguments.size(),
-					new Con<Short>("Optional primitive")
+					new Con<Integer>("Optional primitive")
 					{
 						@Override
 						public void value (
 							final ParserState afterOptionalPrimitive,
-							final Short primitive)
+							final Integer primitive)
 						{
-							parseStatementsThen(
-								afterOptionalPrimitive,
-								primitive == 0,
-								Collections.<AvailObject> emptyList(),
-								new Con<List<AvailObject>>("Block statements")
-								{
-									@Override
-									public void value (
-										final ParserState afterStatements,
-										final List<AvailObject> statements)
+							Primitive thePrimitive =
+								Primitive.byPrimitiveNumber(primitive);
+							if (thePrimitive != null
+								&& thePrimitive.hasFlag(Flag.CannotFail))
+							{
+								finishBlockThen(
+									afterOptionalPrimitive,
+									arguments,
+									primitive,
+									Collections.<AvailObject>emptyList(),
+									scopeOutsideBlock,
+									continuation);
+							}
+							else
+							{
+								parseStatementsThen(
+									afterOptionalPrimitive,
+									primitive == 0,
+									Collections.<AvailObject> emptyList(),
+									new Con<List<AvailObject>>("Block statements")
 									{
-										finishBlockThen(
-											afterStatements,
-											arguments,
-											primitive,
-											statements,
-											scopeOutsideBlock,
-											continuation);
-									}
-								});
+										@Override
+										public void value (
+											final ParserState afterStatements,
+											final List<AvailObject> statements)
+										{
+											finishBlockThen(
+												afterStatements,
+												arguments,
+												primitive,
+												statements,
+												scopeOutsideBlock,
+												continuation);
+										}
+									});
+							}
 						}
 					});
 			}
@@ -808,7 +825,7 @@ extends AbstractAvailCompiler
 	void finishBlockThen (
 		final ParserState afterStatements,
 		final List<AvailObject> arguments,
-		final short primitive,
+		final int primitive,
 		final List<AvailObject> statements,
 		final AvailCompilerScopeStack scopeOutsideBlock,
 		final Con<AvailObject> continuation)
@@ -819,7 +836,21 @@ extends AbstractAvailCompiler
 		{
 			return;
 		}
+
 		final ParserState afterClose = afterStatements.afterToken();
+		final Primitive thePrimitive = Primitive.byPrimitiveNumber(primitive);
+		final AvailObject primitiveResultType = thePrimitive != null
+			? thePrimitive.blockTypeRestriction().returnType()
+			: TERMINATES.o();
+		if (statements.isEmpty()
+			&& thePrimitive != null
+			&& !thePrimitive.hasFlag(Flag.CannotFail))
+		{
+			afterClose.expected(
+				"one or more statements to follow fallible "
+				+ "primitive declaration ");
+			return;
+		}
 
 		final Mutable<AvailObject> lastStatementType =
 			new Mutable<AvailObject>();
@@ -839,53 +870,45 @@ extends AbstractAvailCompiler
 		{
 			lastStatementType.value = VOID_TYPE.o();
 		}
+
 		final ParserState stateOutsideBlock = new ParserState(
 			afterClose.position,
 			scopeOutsideBlock);
 
-		if (statements.isEmpty() && primitive != 0)
+		boolean blockTypeGood = true;
+		if (statements.size() > 0
+				&& statements.get(0).isInstanceOfSubtypeOf(LABEL_NODE.o()))
 		{
-			afterClose.expected(
-				"return type declaration for primitive block with "
-				+ "no statements");
+			final AvailObject labelNode = statements.get(0);
+			final AvailObject labelClosureType =
+				labelNode.declaredType().closureType();
+			blockTypeGood = labelClosureType.numArgs() == arguments.size()
+				&& labelClosureType.returnType().equals(
+					lastStatementType.value);
+			for (int i = 1; blockTypeGood && i <= arguments.size(); i++)
+			{
+				if (!labelClosureType.argTypeAt(i).equals(
+					arguments.get(i - 1).declaredType()))
+				{
+					blockTypeGood = false;
+				}
+			}
+		}
+
+		if (blockTypeGood)
+		{
+			final AvailObject blockNode = BlockNodeDescriptor.newBlockNode(
+				arguments,
+				primitive,
+				statements,
+				lastStatementType.value.typeUnion(primitiveResultType));
+			attempt(stateOutsideBlock, continuation, blockNode);
 		}
 		else
 		{
-			boolean blockTypeGood = true;
-			if (statements.size() > 0
-					&& statements.get(0).isInstanceOfSubtypeOf(LABEL_NODE.o()))
-			{
-				final AvailObject labelNode = statements.get(0);
-				final AvailObject labelClosureType =
-					labelNode.declaredType().closureType();
-				blockTypeGood = labelClosureType.numArgs() == arguments.size()
-						&& labelClosureType.returnType().equals(
-							lastStatementType.value);
-				for (int i = 1; i <= arguments.size(); i++)
-				{
-					if (blockTypeGood
-							&& !labelClosureType.argTypeAt(i).equals(
-								arguments.get(i - 1).declaredType()))
-					{
-						blockTypeGood = false;
-					}
-				}
-			}
-			if (blockTypeGood)
-			{
-				final AvailObject blockNode = BlockNodeDescriptor.newBlockNode(
-					arguments,
-					primitive,
-					statements,
-					lastStatementType.value);
-				attempt(stateOutsideBlock, continuation, blockNode);
-			}
-			else
-			{
-				afterClose.expected(
-					"block with label to have return type void "
-					+ "(otherwise exiting would need to provide a value)");
-			}
+			afterClose.expected(
+				"block with label to have return type void "
+				+ "(otherwise exiting would need to provide a value)");
 		}
 
 		if (!stateOutsideBlock.peekToken(
@@ -904,61 +927,73 @@ extends AbstractAvailCompiler
 					final ParserState afterReturnType,
 					final AvailObject returnType)
 				{
-					if (statements.isEmpty() && primitive != 0
-							|| lastStatementType.value.isSubtypeOf(returnType))
+					if (!primitiveResultType.isSubtypeOf(returnType))
 					{
-						boolean blockTypeGood = true;
-						if (statements.size() > 0
-								&& statements.get(0).isInstanceOfSubtypeOf(
-									LABEL_NODE.o()))
-						{
-							final AvailObject labelNode = statements.get(0);
-							final AvailObject labelClosureType =
-								labelNode.declaredType().closureType();
-							blockTypeGood = labelClosureType.numArgs()
-									== arguments.size()
-								&& labelClosureType.returnType().equals(
-									returnType);
-							for (int i = 1; i <= arguments.size(); i++)
+						afterReturnType.expected(
+							"primitive result type ("
+							+ primitiveResultType
+							+ ") to agree with the block's explicitly "
+							+ "declared result type ("
+							+ returnType
+							+ ")");
+						return;
+					}
+
+					if (thePrimitive != null
+						&& !thePrimitive.hasFlag(Flag.CannotFail)
+						&& !lastStatementType.value.isSubtypeOf(returnType))
+					{
+						afterReturnType.expected(new Generator<String>()
 							{
-								if (blockTypeGood
-									&& !labelClosureType.argTypeAt(i).equals(
-										arguments.get(i - 1).declaredType()))
+								@Override
+								public String value ()
 								{
-									blockTypeGood = true;
+									return
+										"last statement's type \""
+										+ lastStatementType.value.toString()
+										+ "\" to agree with block's "
+										+ "declared result type \""
+										+ returnType.toString() + "\".";
 								}
+							});
+						return;
+					}
+
+					boolean blockTypeGood2 = true;
+					if (statements.size() > 0
+							&& statements.get(0).isInstanceOfSubtypeOf(
+								LABEL_NODE.o()))
+					{
+						final AvailObject labelNode = statements.get(0);
+						final AvailObject labelClosureType =
+							labelNode.declaredType().closureType();
+						blockTypeGood2 =
+							labelClosureType.numArgs() == arguments.size()
+							&& labelClosureType.returnType().equals(
+								lastStatementType.value);
+						for (int i = 1; blockTypeGood2 && i <= arguments.size(); i++)
+						{
+							if (!labelClosureType.argTypeAt(i).equals(
+								arguments.get(i - 1).declaredType()))
+							{
+								blockTypeGood2 = false;
 							}
 						}
-						if (blockTypeGood)
-						{
-							final AvailObject blockNode =
-								BlockNodeDescriptor.newBlockNode(
-									arguments,
-									primitive,
-									statements,
-									returnType);
-							attempt(afterReturnType, continuation, blockNode);
-						}
-						else
-						{
-							stateOutsideBlock.expected(
-								"label's type to agree with block type");
-						}
+					}
+					if (blockTypeGood2)
+					{
+						final AvailObject blockNode =
+							BlockNodeDescriptor.newBlockNode(
+								arguments,
+								primitive,
+								statements,
+								primitiveResultType.typeUnion(returnType));
+						attempt(afterReturnType, continuation, blockNode);
 					}
 					else
 					{
-						afterReturnType.expected(new Generator<String>()
-						{
-							@Override
-							public String value ()
-							{
-								return "last statement's type \""
-										+ lastStatementType.value.toString()
-										+ "\" to agree with block's declared "
-										+ "result type \""
-										+ returnType.toString() + "\".";
-							}
-						});
+						stateOutsideBlock.expected(
+							"label's type to agree with block type");
 					}
 				}
 			});
@@ -1824,10 +1859,10 @@ extends AbstractAvailCompiler
 	void parseOptionalPrimitiveForArgCountThen (
 		final ParserState start,
 		final int argCount,
-		final Con<Short> continuation)
+		final Con<Integer> continuation)
 	{
 		// Try it first without looking for the primitive declaration.
-		attempt(start, continuation, (short) 0);
+		attempt(start, continuation, 0);
 
 		// Now look for the declaration.
 		if (!start.peekToken(
@@ -1840,26 +1875,27 @@ extends AbstractAvailCompiler
 		final AvailObject token = afterPrimitiveKeyword.peekToken();
 		if (token.tokenType() != LITERAL
 				|| !token.literal().isInstanceOfSubtypeOf(
-					IntegerRangeTypeDescriptor.positiveShorts()))
+					IntegerRangeTypeDescriptor.unsignedShorts())
+				|| token.literal().extractInt() == 0)
 		{
 			afterPrimitiveKeyword.expected(new Generator<String>()
 			{
 				@Override
 				public String value ()
 				{
-					return "A positive short "
-							+ IntegerRangeTypeDescriptor.positiveShorts()
+					return "A non-zero unsigned short "
+							+ IntegerRangeTypeDescriptor.unsignedShorts()
 							+ " after the Primitive keyword";
 				}
 			});
 			return;
 		}
-		final short primitive = (short) token.literal().extractInt();
+		final int primitive = token.literal().extractInt();
 		if (!interpreter.supportsPrimitive(primitive))
 		{
 			afterPrimitiveKeyword.expected(
 				"a supported primitive number, not #"
-				+ Short.toString(primitive));
+				+ Integer.toString(primitive));
 			return;
 		}
 
@@ -1871,7 +1907,7 @@ extends AbstractAvailCompiler
 				@Override
 				public String value ()
 				{
-					return "Primitive #" + Short.toString(primitive) + " ("
+					return "Primitive #" + Integer.toString(primitive) + " ("
 							+ prim.name() + ") to be passed "
 							+ Integer.toString(prim.argCount())
 							+ " arguments, not " + Integer.toString(argCount);
@@ -1985,7 +2021,7 @@ extends AbstractAvailCompiler
 								final AvailObject cast =
 									SuperCastNodeDescriptor.mutable().create();
 								cast.expression(expr);
-								cast.type(type);
+								cast.superCastType(type);
 								attempt(afterType, continuation, cast);
 							}
 							else
@@ -2306,6 +2342,4 @@ extends AbstractAvailCompiler
 			}
 		});
 	}
-
-
 }

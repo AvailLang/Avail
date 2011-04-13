@@ -392,17 +392,23 @@ Method "_has fields_" is [ot : Object type, fields : tuple of string |
 	fields do [fieldString : string |
 		fieldCyc ::= lookup fieldString;
 
-		/* Define an instance-side getter... */
-		Method "_" then fieldString
-		is
+		newMethodName ::= "_" then fieldString;
+		newBody ::= 
 			stub block taking <ot>
 			and applying name of block invoker
 			to [o : Object | o as map [fieldCyc];]
-			and argument tuple returning (ot as map [fieldCyc])
-		returns
+			and argument tuple returning (ot as map [fieldCyc]);
+		newReturnsBlock ::=
 			stub block taking <ot type>
 			and applying name of block invoker
 			to [oT : objectType | oT as map [fieldCyc];]
 			and argument tuple returning type;
+		strongerReturnsBlock : [...]-> type;
+		* &strongerReturnsBlock ?:= newReturnsBlock;
+		
+		/* Define an instance-side getter... */
+		Method newMethodName
+		is newBody
+		returns strongerReturnsBlock;
 	];
 ];

@@ -584,10 +584,12 @@ extends Descriptor
 		final List<Integer> theWordcodes,
 		final AvailObject contingentSets)
 	{
-		final List<AvailObject> vectorTuples = new ArrayList<AvailObject>(arrayOfVectors.size());
+		final List<AvailObject> vectorTuples =
+			new ArrayList<AvailObject>(arrayOfVectors.size());
 		for (final List<Integer> vector : arrayOfVectors)
 		{
-			final AvailObject vectorTuple = TupleDescriptor.fromIntegerList(vector);
+			final AvailObject vectorTuple =
+				TupleDescriptor.fromIntegerList(vector);
 			vectorTuple.makeImmutable();
 			vectorTuples.add(vectorTuple);
 		}

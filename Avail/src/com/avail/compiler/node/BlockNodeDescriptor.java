@@ -493,7 +493,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	public static AvailObject newBlockNode (
 		final List<AvailObject> argumentsList,
-		final short primitive,
+		final int primitive,
 		final List<AvailObject> statementsList,
 		final AvailObject resultType)
 	{

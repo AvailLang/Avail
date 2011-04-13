@@ -34,7 +34,8 @@ System Module "Method"
 Extends
 Uses
 	"Tier-0",
-	"Block"
+	"Block",
+	"Container"
 Names
 	"Method_is_requires_returns_",
 	"Method_is_returns_requires_",
@@ -46,6 +47,7 @@ Names
 	"Abstract method_for_requires_",
 	"Abstract method_for_returns_",
 	"Abstract method_for_",
+	"Fail parse_",
 	"lookup_",
 	"(_)"
 Body
@@ -61,11 +63,22 @@ Method "_basicType" is [a : all |
 ] : type;
 
 
-/* Private - override to support metacovariance in closure types... */
+/* Private utility methods for type extraction.  This allows us to avoid a
+   supercast in the "_basicType" for closures that we haven't defined yet. */
 
-Method "_basicType" is [c : closure |
+Method "_basicBasicType" is [a : all |
 	Primitive 30 (failureCode : all);
 	Failed;
+] : type;
+
+
+/* Private - override to support metacovariance in closure types... */
+
+Method "_basicType" is [c : [...]-> void |
+	weak ::= c basicBasicType;
+	strong : closureType;
+	* &strong ?:= weak;
+	strong;
 ] : closureType;
 
 
@@ -81,38 +94,91 @@ Method "_basicType" is [c : closure |
  * with static typing.
  */
 Method "Method_is_requires_returns_"
-is [name : string, body : closure, requires: closure, returns : closure |
+is [
+		name : string,
+		body : [...]-> void,
+		requires: [...]-> boolean,
+		returns : [...]-> type |
 	Primitive 254 (failureCode : all);
 	Failed;
 ] : void;
-
 
 /**
  * Alternate order for requires / returns clauses
  */
 Method "Method_is_returns_requires_"
-is [name : string, body : closure, returns : closure, requires: closure |
+is [
+		name : string,
+		body : [...]-> void,
+		returns : [...]-> type,
+		requires: [...]-> boolean |
 	Method name is body requires requires returns returns;
 ] : void;
 
+
+Method "stub for_arguments returning type_"
+is [
+		numArgs : whole number,
+		typeToReturn : type |
+	weak ::= stub block taking numArgs arguments and returning typeToReturn;
+	strong : [...]-> type;
+	* &strong ?:= weak;
+	strong;
+] : [...]-> type;
+
+Method "stub for_arguments returning true"
+is [
+		numArgs : whole number |
+	weak ::= stub block taking numArgs arguments and returning true;
+	strong : [...]-> boolean;
+	* &strong ?:= weak;
+	strong;
+] : [...]-> boolean;
+
+/**
+ * Define simple parentheses.  This is not part of the built-in syntax of Avail
+ * because I want to emphasize the fact that things like function application
+ * and array subscripting can be added dynamically to the syntax, and these
+ * similar operations "_(_)" look so much like simple parentheses "(_)" that
+ * doing them two different ways would be a shameful inconsistency.  Besides,
+ * this is an excellent example of parametric result typing.
+ */
+Method "(_)" is [arg : all |
+	arg;
+] requires [argType : type |
+	true;
+] returns [argType : type |
+	argType;
+];
+
+
 Method "Method_is_requires_"
-is [name : string, body : closure, requires : closure |
+is [
+		name : string,
+		body : [...]-> void,
+		requires : [...]-> boolean |
 	Method name
 	is body
 	requires requires
-	returns stub block taking ||body basicType|| arguments and returning body basicType result;
+	returns stub for ||body basicType|| arguments
+		returning type (body basicType result);
 ];
 
 Method "Method_is_returns_"
-is [name : string, body : closure, returns : closure |
+is [
+		name : string,
+		body : [...]-> void,
+		returns : [...]-> type |
 	Method name
 	is body
-	requires stub block taking ||body basicType|| arguments and returning true
+	requires stub for ||body basicType|| arguments returning true
 	returns returns;
 ];
 
 Method "Forward_for_"
-is [name : string, blockType : closureType |
+is [
+		name : string,
+		blockType : closureType |
 	/* Declare method without body (for recursion / mutual recursion).  Must be
 	   followed in same module by a legitimate definition. */
 	Primitive 252 (failureCode : all);
@@ -130,42 +196,63 @@ is [name : string, blockType : closureType |
  * class into an abstract class.
  */
 Method "Abstract method_for_requires_returns_" is [
-		name : string, bodyType : closureType, requires : closure, returns : closure |
+		name : string,
+		bodyType : closureType,
+		requires : [...]-> boolean,
+		returns : [...]-> type |
 	Primitive 251 (failureCode : all);
 	Failed;
 ] : void;
 
 Method "Abstract method_for_returns_requires_" is [
-		name : string, bodyType : closureType, returns : closure, requires : closure |
+		name : string,
+		bodyType : closureType,
+		returns : [...]-> type,
+		requires : [...]-> boolean |
 	/* Switch the returns and requires clause order for convenience. */
 	Abstract method name for bodyType
-		requires stub block taking ||bodyType|| arguments and returning true
-		returns stub block taking ||bodyType|| arguments and returning bodyType result;
+		requires stub for ||bodyType|| arguments returning true
+		returns stub for ||bodyType|| arguments returning type (bodyType result);
 ] : void;
 
 Method "Abstract method_for_returns_" is [
-		name : string, bodyType : closureType, returns : closure |
+		name : string,
+		bodyType : closureType,
+		returns : [...]-> type |
 	/* Allow returns clause to be specified while omitting the requires clause. */
 	Abstract method name for bodyType
-		requires stub block taking ||bodyType|| arguments and returning true
+		requires stub for ||bodyType|| arguments returning true
 		returns returns;
 ] : void;
 
 Method "Abstract method_for_requires_" is [
-		name : string, bodyType : closureType, requires : closure |
+		name : string,
+		bodyType : closureType,
+		requires : [...]-> boolean |
 	/* Allow requires clause to be specified while omitting the returns clause. */
 	Abstract method name for bodyType
 		requires requires
-		returns stub block taking ||bodyType|| arguments and returning bodyType result;
+		returns stub for ||bodyType|| arguments returning type (bodyType result);
 ] : void;
 
 Method "Abstract method_for_" is [
-		name : string, bodyType : closureType |
+		name : string,
+		bodyType : closureType |
 	/* Declare an abstract method with no specified returns clause or requires clause. */
 	Abstract method name for bodyType
-		requires stub block taking ||bodyType|| arguments and returning true
-		returns stub block taking ||bodyType|| arguments and returning bodyType result;
+		requires stub for ||bodyType|| arguments returning true
+		returns stub for ||bodyType|| arguments returning type (bodyType result);
 ] : void;
+
+
+/**
+ * Indicate that a parse has failed for some reason.
+ */
+Method "Fail parse_" is [
+		problem : string |
+	Primitive 352 (failureCode : all);
+	Failed;
+] : terminates;
 
 
 /**
@@ -176,18 +263,3 @@ Method "lookup_" is [t : string |
 	Primitive 245 (failureCode : all);
 	Failed;
 ] : cyclicType;
-
-
-/**
- * Define simple parentheses.  This is not part of the built-in syntax of Avail
- * because I want to emphasize the fact that things like function application
- * and array subscripting can be added dynamically to the syntax, and these
- * similar operations "_(_)" look so much like simple parentheses "(_)" that
- * doing them two different ways would be a shameful inconsistency.  Besides,
- * this is an excellent example of parametric result typing.
- */
-Method "(_)" is [arg : all |
-	arg;
-] returns [argType : type |
-	argType;
-];
