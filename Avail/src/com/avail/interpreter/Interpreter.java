@@ -891,17 +891,32 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Set the resulting value of a primitive invocation.  This value will only
-	 * be used if the primitive subsequently returns {@link
-	 * Result#SUCCESS}.
+	 * Set the resulting value of a primitive invocation. Answer primitive
+	 * {@linkplain Result#SUCCESS success}.
 	 *
-	 * @param result The {@link AvailObject} that a primitive has produced.
+	 * @param result
+	 *        The result of performing a {@linkplain Primitive primitive}.
+	 * @return Primitive {@linkplain Result#SUCCESS success}.
 	 */
-	public void primitiveResult (final AvailObject result)
+	public @NotNull Result primitiveSuccess (final @NotNull AvailObject result)
 	{
 		primitiveResult = result;
+		return Result.SUCCESS;
 	}
 
+	/**
+	 * Set the resulting value of a primitive invocation. Answer primitive
+	 * {@linkplain Result#FAILURE failure}.
+	 *
+	 * @param result
+	 *        The result of performing a {@linkplain Primitive primitive}.
+	 * @return Primitive {@linkplain Result#FAILURE failure}.
+	 */
+	public @NotNull Result primitiveFailure (final @NotNull AvailObject result)
+	{
+		primitiveResult = result;
+		return Result.FAILURE;
+	}
 
 	/**
 	 * Answer the result that a primitive invocation has produced.
@@ -909,7 +924,7 @@ public abstract class Interpreter
 	 * @return The result that was {@link #primitiveResult(AvailObject)
 	 * recorded} during primitive execution.
 	 */
-	public AvailObject primitiveResult()
+	public AvailObject primitiveResult ()
 	{
 		return primitiveResult;
 	}

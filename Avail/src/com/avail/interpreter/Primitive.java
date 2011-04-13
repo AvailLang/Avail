@@ -38,6 +38,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.*;
 import java.io.*;
+import java.nio.ByteOrder;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -84,12 +85,10 @@ public enum Primitive
 				&& !b.isFinite()
 				&& a.isPositive() != b.isPositive())
 			{
-				interpreter.primitiveResult(ByteStringDescriptor.from(
+				return interpreter.primitiveFailure(ByteStringDescriptor.from(
 					"can't add mixed infinities"));
-				return FAILURE;
 			}
-			interpreter.primitiveResult(a.plusCanDestroy(b, true));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(a.plusCanDestroy(b, true));
 		}
 
 		@Override
@@ -120,12 +119,10 @@ public enum Primitive
 				&& !b.isFinite()
 				&& a.isPositive() == b.isPositive())
 			{
-				interpreter.primitiveResult(ByteStringDescriptor.from(
+				return interpreter.primitiveFailure(ByteStringDescriptor.from(
 					"can't subtract like infinities"));
-				return FAILURE;
 			}
-			interpreter.primitiveResult(a.minusCanDestroy(b, true));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(a.minusCanDestroy(b, true));
 		}
 
 		@Override
@@ -153,8 +150,7 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(a.timesCanDestroy(b, true));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(a.timesCanDestroy(b, true));
 		}
 
 		@Override
@@ -186,8 +182,7 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			interpreter.primitiveResult(a.divideCanDestroy(b, true));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(a.divideCanDestroy(b, true));
 		}
 
 		@Override
@@ -216,9 +211,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(a.lessThan(b)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -247,9 +241,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(a.lessOrEqual(b)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -281,13 +274,12 @@ public enum Primitive
 			final AvailObject minInc = args.get(1);
 			final AvailObject max = args.get(2);
 			final AvailObject maxInc = args.get(3);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerRangeTypeDescriptor.create(
 					min,
 					minInc.extractBoolean(),
 					max,
 					maxInc.extractBoolean()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -317,8 +309,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject range = args.get(0);
-			interpreter.primitiveResult(range.lowerBound());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(range.lowerBound());
 		}
 
 		@Override
@@ -345,8 +336,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject range = args.get(0);
-			interpreter.primitiveResult(range.upperBound());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(range.upperBound());
 		}
 
 		@Override
@@ -382,8 +372,7 @@ public enum Primitive
 			{
 				value.makeImmutable();
 			}
-			interpreter.primitiveResult(value);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(value);
 		}
 
 		@Override
@@ -410,8 +399,7 @@ public enum Primitive
 			final AvailObject var = args.get(0);
 			final AvailObject value = args.get(1);
 			var.setValue(value);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -439,8 +427,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			var.clearValue();
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -466,9 +453,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ContainerTypeDescriptor.wrapInnerType(type));
-			return SUCCESS;
 		}
 
 		@Override
@@ -495,8 +481,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
-			interpreter.primitiveResult(type.innerType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(type.innerType());
 		}
 
 		@Override
@@ -526,8 +511,7 @@ public enum Primitive
 			final AvailObject tempObject = var1.getValue();
 			var1.setValue(var2.getValue());
 			var2.setValue(tempObject);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -555,9 +539,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject innerType = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ContainerDescriptor.forInnerType(innerType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -584,9 +567,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(var.value().equalsVoid()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -617,8 +599,7 @@ public enum Primitive
 			final AvailObject var = args.get(0);
 			final AvailObject valueObject = var.getValue();
 			var.clearValue();
-			interpreter.primitiveResult(valueObject);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(valueObject);
 		}
 
 		@Override
@@ -645,9 +626,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject processObject = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(processObject.priority()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -675,8 +655,7 @@ public enum Primitive
 			final AvailObject processObject = args.get(0);
 			final AvailObject newPriority = args.get(1);
 			processObject.priority(newPriority.extractInt());
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -789,9 +768,8 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				interpreter.process().makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -818,9 +796,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject processObject = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				processObject.processGlobals().mapAt(key).makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -855,8 +832,7 @@ public enum Primitive
 					key.makeImmutable(),
 					value.makeImmutable(),
 					true));
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -940,8 +916,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject value = args.get(0);
-			interpreter.primitiveResult(value.type());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(value.type());
 		}
 
 		@Override
@@ -969,9 +944,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
 			final AvailObject type2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				type1.typeUnion(type2).makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -1001,9 +975,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
 			final AvailObject type2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				type1.typeIntersection(type2).makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -1032,9 +1005,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
 			final AvailObject type2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(type1.isSubtypeOf(type2)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1069,11 +1041,10 @@ public enum Primitive
 					TYPE.o());
 			}
 			assert returnType.isInstanceOfSubtypeOf(TYPE.o());
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 					argTypes,
 					returnType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1104,9 +1075,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(closureType.numArgs()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1134,9 +1104,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject closureType = args.get(0);
 			final AvailObject index = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				closureType.argTypeAt(index.extractInt()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1164,8 +1133,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
-			interpreter.primitiveResult(closureType.returnType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(closureType.returnType());
 		}
 
 		@Override
@@ -1197,8 +1165,7 @@ public enum Primitive
 			{
 				unionObject = unionObject.typeUnion(aType);
 			}
-			interpreter.primitiveResult(unionObject);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(unionObject);
 		}
 
 		@Override
@@ -1228,9 +1195,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject returnType = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				GeneralizedClosureTypeDescriptor.forReturnType(returnType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1361,8 +1327,7 @@ public enum Primitive
 					trueBlock,
 					args);
 			}
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -1445,8 +1410,7 @@ public enum Primitive
 			{
 				cont.localOrArgOrStackAtPut(i, stack.tupleAt(i));
 			}
-			interpreter.primitiveResult(cont);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(cont);
 		}
 
 		@Override
@@ -1477,9 +1441,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject continuationType = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				continuationType.closureType());
-			return SUCCESS;
 		}
 
 		@Override
@@ -1506,9 +1469,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ContinuationTypeDescriptor.forClosureType(closureType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1540,8 +1502,7 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			interpreter.primitiveResult(caller);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(caller);
 		}
 
 		@Override
@@ -1567,8 +1528,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			interpreter.primitiveResult(con.closure());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(con.closure());
 		}
 
 		@Override
@@ -1596,9 +1556,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(con.pc()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1628,9 +1587,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(con.stackp()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1855,8 +1813,7 @@ public enum Primitive
 				tuple.tupleAtPut(i, entry);
 			}
 			tuple.makeSubobjectsImmutable();
-			interpreter.primitiveResult(tuple);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tuple);
 		}
 
 		@Override
@@ -1884,9 +1841,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(a.equals(b)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1914,9 +1870,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ObjectDescriptor.objectFromMap(map));
-			return SUCCESS;
 		}
 
 		@Override
@@ -1947,8 +1902,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject object = args.get(0);
-			interpreter.primitiveResult(object.fieldMap());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(object.fieldMap());
 		}
 
 		@Override
@@ -1979,9 +1933,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ObjectTypeDescriptor.objectTypeFromMap(map));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2013,8 +1966,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject objectType = args.get(0);
-			interpreter.primitiveResult(objectType.fieldTypeMap());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(objectType.fieldTypeMap());
 		}
 
 		@Override
@@ -2046,8 +1998,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject objectMeta = args.get(0);
-			interpreter.primitiveResult(objectMeta.instance());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(objectMeta.instance());
 		}
 
 		@Override
@@ -2079,8 +2030,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject objectMetaMeta = args.get(0);
-			interpreter.primitiveResult(objectMetaMeta.instance());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(objectMetaMeta.instance());
 		}
 
 		@Override
@@ -2109,8 +2059,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject primType = args.get(0);
-			interpreter.primitiveResult(primType.name());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(primType.name());
 		}
 
 		@Override
@@ -2144,8 +2093,7 @@ public enum Primitive
 			name.makeImmutable();
 			interpreter.runtime().setNameForType(userType, name);
 
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -2184,8 +2132,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(name);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(name);
 		}
 
 		@Override
@@ -2214,11 +2161,10 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject numArgs = args.get(0);
 			final AvailObject constantResult = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ClosureDescriptor.createStubForNumArgsConstantResult(
 					numArgs.extractInt(),
 					constantResult));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2254,13 +2200,12 @@ public enum Primitive
 			final AvailObject message = args.get(1);
 			final AvailObject firstArg = args.get(2);
 			final AvailObject resultType = args.get(3);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ClosureDescriptor.createStubWithArgTypes(
 					argTypes,
 					interpreter.runtime().methodsAt(message),
 					firstArg,
 					resultType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2293,8 +2238,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
-			interpreter.primitiveResult(aClosure.code());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(aClosure.code());
 		}
 
 		@Override
@@ -2338,8 +2282,7 @@ public enum Primitive
 				}
 			}
 			CanAllocateObjects(true);
-			interpreter.primitiveResult(newTupleObject);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(newTupleObject);
 		}
 
 		@Override
@@ -2367,9 +2310,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject compiledCode = args.get(0);
 			final AvailObject outers = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ClosureDescriptor.create(compiledCode, outers));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2397,9 +2339,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(map.mapSize()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2429,9 +2370,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(map.hasKey(key)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2463,8 +2403,7 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(map.mapAt(key));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(map.mapAt(key));
 		}
 
 		@Override
@@ -2498,11 +2437,10 @@ public enum Primitive
 			final AvailObject map = args.get(0);
 			final AvailObject key = args.get(1);
 			final AvailObject value = args.get(2);
-			interpreter.primitiveResult(map.mapAtPuttingCanDestroy(
+			return interpreter.primitiveSuccess(map.mapAtPuttingCanDestroy(
 				key,
 				value,
 				true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2538,9 +2476,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
 			final AvailObject key = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				map.mapWithoutKeyCanDestroy(key, true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2572,8 +2509,7 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
-			interpreter.primitiveResult(MapDescriptor.empty());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(MapDescriptor.empty());
 		}
 
 		@Override
@@ -2602,8 +2538,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(map.keysAsSet());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(map.keysAsSet());
 		}
 
 		@Override
@@ -2637,12 +2572,11 @@ public enum Primitive
 			final AvailObject sizes = args.get(0);
 			final AvailObject keyType = args.get(1);
 			final AvailObject valueType = args.get(2);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					sizes,
 					keyType,
 					valueType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2673,8 +2607,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
-			interpreter.primitiveResult(mapType.sizeRange());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(mapType.sizeRange());
 		}
 
 		@Override
@@ -2700,8 +2633,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
-			interpreter.primitiveResult(mapType.keyType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(mapType.keyType());
 		}
 
 		@Override
@@ -2727,8 +2659,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
-			interpreter.primitiveResult(mapType.valueType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(mapType.valueType());
 		}
 
 		@Override
@@ -2755,8 +2686,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
-			interpreter.primitiveResult(map.valuesAsTuple());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(map.valuesAsTuple());
 		}
 
 		@Override
@@ -2785,9 +2715,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(set.setSize()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2817,9 +2746,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
 			final AvailObject element = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(set.hasElement(element)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2849,9 +2777,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				set1.setUnionCanDestroy(set2, true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2885,9 +2812,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				set1.setIntersectionCanDestroy(set2, true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2922,9 +2848,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				set1.setMinusCanDestroy(set2, true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2959,9 +2884,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
 			final AvailObject newElement = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				set.setWithElementCanDestroy(newElement, true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -2994,9 +2918,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
 			final AvailObject excludedElement = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				set.setWithoutElementCanDestroy(excludedElement, true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3028,9 +2951,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
 			final AvailObject set2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(set1.isSubsetOf(set2)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3060,8 +2982,7 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
-			interpreter.primitiveResult(SetDescriptor.empty());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(SetDescriptor.empty());
 		}
 
 		@Override
@@ -3090,8 +3011,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
-			interpreter.primitiveResult(tuple.asSet());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tuple.asSet());
 		}
 
 		@Override
@@ -3121,8 +3041,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
-			interpreter.primitiveResult(set.asTuple());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(set.asTuple());
 		}
 
 		@Override
@@ -3151,11 +3070,10 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject sizeRange = args.get(0);
 			final AvailObject contentType = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					sizeRange,
 					contentType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3185,8 +3103,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject setType = args.get(0);
-			interpreter.primitiveResult(setType.sizeRange());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(setType.sizeRange());
 		}
 
 		@Override
@@ -3212,8 +3129,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject setType = args.get(0);
-			interpreter.primitiveResult(setType.contentType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(setType.contentType());
 		}
 
 		@Override
@@ -3240,8 +3156,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject name = args.get(0);
-			interpreter.primitiveResult(CyclicTypeDescriptor.create(name));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				CyclicTypeDescriptor.create(name));
 		}
 
 		@Override
@@ -3267,8 +3183,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cyclicType = args.get(0);
-			interpreter.primitiveResult(cyclicType.name());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(cyclicType.name());
 		}
 
 		@Override
@@ -3294,9 +3209,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(tuple.tupleSize()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3323,8 +3237,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject tuple = args.get(0);
 			final AvailObject index = args.get(1);
-			interpreter.primitiveResult(tuple.tupleAt(index.extractInt()));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				tuple.tupleAt(index.extractInt()));
 		}
 
 		@Override
@@ -3354,11 +3268,10 @@ public enum Primitive
 			final AvailObject tuple = args.get(0);
 			final AvailObject index = args.get(1);
 			final AvailObject value = args.get(2);
-			interpreter.primitiveResult(tuple.tupleAtPuttingCanDestroy(
+			return interpreter.primitiveSuccess(tuple.tupleAtPuttingCanDestroy(
 				index.extractInt(),
 				value,
 				true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3390,8 +3303,7 @@ public enum Primitive
 				ObjectTupleDescriptor.mutable().create(1);
 			newTupleObject.hashOrZero(0);
 			newTupleObject.tupleAtPut(1, soleElement);
-			interpreter.primitiveResult(newTupleObject);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(newTupleObject);
 		}
 
 		@Override
@@ -3420,8 +3332,7 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
-			interpreter.primitiveResult(TupleDescriptor.empty());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(TupleDescriptor.empty());
 		}
 
 		@Override
@@ -3454,11 +3365,10 @@ public enum Primitive
 			final AvailObject tuple = args.get(0);
 			final AvailObject start = args.get(1);
 			final AvailObject end = args.get(2);
-			interpreter.primitiveResult(tuple.copyTupleFromToCanDestroy(
+			return interpreter.primitiveSuccess(tuple.copyTupleFromToCanDestroy(
 				start.extractInt(),
 				end.extractInt(),
 				true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3487,9 +3397,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tuples = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				tuples.concatenateTuplesCanDestroy(true));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3521,12 +3430,11 @@ public enum Primitive
 			final AvailObject sizeRange = args.get(0);
 			final AvailObject typeTuple = args.get(1);
 			final AvailObject defaultType = args.get(2);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					sizeRange,
 					typeTuple,
 					defaultType));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3560,8 +3468,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
-			interpreter.primitiveResult(tupleType.sizeRange());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tupleType.sizeRange());
 		}
 
 		@Override
@@ -3588,8 +3495,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
-			interpreter.primitiveResult(tupleType.typeTuple());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tupleType.typeTuple());
 		}
 
 		@Override
@@ -3619,8 +3525,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
-			interpreter.primitiveResult(tupleType.defaultType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tupleType.defaultType());
 		}
 
 		@Override
@@ -3648,8 +3553,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject tupleType = args.get(0);
 			final AvailObject index = args.get(1);
-			interpreter.primitiveResult(tupleType.typeAtIndex(index.extractInt()));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				tupleType.typeAtIndex(index.extractInt()));
 		}
 
 		@Override
@@ -3695,8 +3600,7 @@ public enum Primitive
 					tupleType.typeAtIndex(startIndex.extractInt() + i - 1),
 					true);
 			}
-			interpreter.primitiveResult(tupleObject);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tupleObject);
 		}
 
 		@Override
@@ -3731,11 +3635,10 @@ public enum Primitive
 			final AvailObject tupleType = args.get(0);
 			final AvailObject startIndex = args.get(1);
 			final AvailObject endIndex = args.get(2);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				tupleType.unionOfTypesAtThrough(
 					startIndex.extractInt(),
 					endIndex.extractInt()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3766,11 +3669,10 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject tupleType1 = args.get(0);
 			final AvailObject tupleType2 = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				ConcatenatedTupleTypeDescriptor.concatenatingAnd(
 					tupleType1,
 					tupleType2));
-			return SUCCESS;
 		}
 
 		@Override
@@ -3819,8 +3721,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(handle);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(handle);
 		}
 
 		@Override
@@ -3878,8 +3779,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(handle);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(handle);
 		}
 
 		@Override
@@ -3928,8 +3828,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(handle);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(handle);
 		}
 
 		@Override
@@ -3984,8 +3883,7 @@ public enum Primitive
 
 			interpreter.runtime().forgetReadableFile(handle);
 			interpreter.runtime().forgetWritableFile(handle);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -4062,8 +3960,7 @@ public enum Primitive
 				tuple = TupleDescriptor.empty();
 			}
 
-			interpreter.primitiveResult(tuple);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tuple);
 		}
 
 		@Override
@@ -4129,8 +4026,7 @@ public enum Primitive
 
 			// Always return an empty tuple since RandomAccessFile writes
 			// its buffer transactionally.
-			interpreter.primitiveResult(TupleDescriptor.empty());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(TupleDescriptor.empty());
 		}
 
 		@Override
@@ -4190,9 +4086,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.objectFromLong(fileSize));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4245,9 +4140,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.objectFromLong(filePosition));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4302,8 +4196,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -4355,8 +4248,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -4399,9 +4291,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(exists));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4444,9 +4335,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(readable));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4489,9 +4379,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(writable));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4534,9 +4423,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(executable));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4585,8 +4473,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -4635,8 +4522,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -4662,8 +4548,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numArgs()));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(cc.numArgs()));
 		}
 
 		@Override
@@ -4690,8 +4576,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numLocals()));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(cc.numLocals()));
 		}
 
 		@Override
@@ -4718,8 +4604,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.numOuters()));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(cc.numOuters()));
 		}
 
 		@Override
@@ -4746,8 +4632,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(IntegerDescriptor.fromInt(cc.maxStackDepth()));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(cc.maxStackDepth()));
 		}
 
 		@Override
@@ -4774,8 +4660,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(cc.nybbles());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(cc.nybbles());
 		}
 
 		@Override
@@ -4805,8 +4690,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(cc.closureType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(cc.closureType());
 		}
 
 		@Override
@@ -4833,9 +4717,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(cc.primitiveNumber()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -4882,8 +4765,7 @@ public enum Primitive
 					literal,
 					true);
 			}
-			interpreter.primitiveResult(tupleObject);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(tupleObject);
 		}
 
 		@Override
@@ -4923,7 +4805,7 @@ public enum Primitive
 			final int nLocals = locals.extractInt();
 			final int nOuters = outers.extractInt();
 			final int nLiteralsTotal = literals.tupleSize();
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				CompiledCodeDescriptor.create (
 					nybs,
 					numArgs.extractInt(),
@@ -4931,10 +4813,14 @@ public enum Primitive
 					stack.extractInt(),
 					closureType,
 					prim.extractInt(),
-					literals.copyTupleFromToCanDestroy(1, nLiteralsTotal - nLocals - nOuters, false),
-					literals.copyTupleFromToCanDestroy(nLiteralsTotal - nLocals + 1, nLiteralsTotal, false),
-					literals.copyTupleFromToCanDestroy(nLiteralsTotal - nLocals - nOuters + 1, nLiteralsTotal - nLocals, false)));
-			return SUCCESS;
+					literals.copyTupleFromToCanDestroy(
+						1, nLiteralsTotal - nLocals - nOuters, false),
+					literals.copyTupleFromToCanDestroy(
+						nLiteralsTotal - nLocals + 1, nLiteralsTotal, false),
+					literals.copyTupleFromToCanDestroy(
+						nLiteralsTotal - nLocals - nOuters + 1,
+						nLiteralsTotal - nLocals,
+						false)));
 		}
 
 		@Override
@@ -5044,8 +4930,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
-			interpreter.primitiveResult(bundleTree.complete().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				bundleTree.complete().makeImmutable());
 		}
 
 		@Override
@@ -5077,9 +4963,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				bundleTree.incomplete().makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -5110,11 +4995,10 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				interpreter
 					.completeBundlesStartingWith(leadingPart)
 					.makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -5148,8 +5032,7 @@ public enum Primitive
 			final AvailObject bundles =
 				interpreter.incompleteBundlesStartingWith(leadingPart);
 			bundles.makeImmutable();
-			interpreter.primitiveResult(bundles);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(bundles);
 		}
 
 		@Override
@@ -5179,8 +5062,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			interpreter.primitiveResult(bundle.message().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				bundle.message().makeImmutable());
 		}
 
 		@Override
@@ -5207,8 +5090,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			interpreter.primitiveResult(bundle.messageParts().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				bundle.messageParts().makeImmutable());
 		}
 
 		@Override
@@ -5244,8 +5127,7 @@ public enum Primitive
 			final AvailObject implementations =
 				implementationSet.implementationsTuple().asSet();
 			implementations.makeImmutable();
-			interpreter.primitiveResult(implementations);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(implementations);
 		}
 
 		@Override
@@ -5274,10 +5156,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(
 					bundle.message().hasRestrictions()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -5304,8 +5185,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			interpreter.primitiveResult(bundle.restrictions().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				bundle.restrictions().makeImmutable());
 		}
 
 		@Override
@@ -5337,8 +5218,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
-			interpreter.primitiveResult(sig.bodySignature().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				sig.bodySignature().makeImmutable());
 		}
 
 		@Override
@@ -5365,8 +5246,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject methSig = args.get(0);
-			interpreter.primitiveResult(methSig.bodyBlock().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				methSig.bodyBlock().makeImmutable());
 		}
 
 		@Override
@@ -5393,8 +5274,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
-			interpreter.primitiveResult(sig.requiresBlock().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				sig.requiresBlock().makeImmutable());
 		}
 
 		@Override
@@ -5422,8 +5303,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
-			interpreter.primitiveResult(sig.returnsBlock().makeImmutable());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				sig.returnsBlock().makeImmutable());
 		}
 
 		@Override
@@ -5453,9 +5334,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject aCyclicType = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				interpreter.runtime().methodsAt(aCyclicType).makeImmutable());
-			return SUCCESS;
 		}
 
 		@Override
@@ -5484,8 +5364,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject anImplementationSet = args.get(0);
-			interpreter.primitiveResult(anImplementationSet.name());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(anImplementationSet.name());
 		}
 
 		@Override
@@ -5530,8 +5409,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(result);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(result);
 		}
 
 		@Override
@@ -5567,8 +5445,7 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(interpreter.lookupName(name));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(interpreter.lookupName(name));
 		}
 
 		@Override
@@ -5604,8 +5481,7 @@ public enum Primitive
 			assert blockType.returnType().isSubtypeOf(
 				PARSE_NODE.o());
 			interpreter.atAddMacroBody(interpreter.lookupName(string), block);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5645,9 +5521,8 @@ public enum Primitive
 				return FAILURE;
 			}
 
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(
+			return interpreter.primitiveSuccess(BooleanDescriptor.objectFrom(
 				interpreter.supportsPrimitive(index)));
-			return SUCCESS;
 		}
 
 		@Override
@@ -5682,8 +5557,7 @@ public enum Primitive
 				blockSignature,
 				requiresBlock,
 				returnsBlock);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5719,8 +5593,7 @@ public enum Primitive
 			interpreter.atAddForwardStubFor(
 				interpreter.lookupName(string),
 				blockSignature);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5750,8 +5623,7 @@ public enum Primitive
 			final AvailObject string = args.get(0);
 			final AvailObject block = args.get(1);
 			interpreter.atAddMethodBody(interpreter.lookupName(string), block);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5788,8 +5660,7 @@ public enum Primitive
 				block,
 				requiresBlock,
 				returnsBlock);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5851,8 +5722,7 @@ public enum Primitive
 					interpreter.lookupName(string),
 					disallowed);
 			}
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5892,8 +5762,7 @@ public enum Primitive
 				"A process (%s) has exited: %s",
 				interpreter.process().name(),
 				errorMessageProducer));
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5950,8 +5819,7 @@ public enum Primitive
 
 			final AvailObject objectToPrint = args.get(0);
 			System.out.println(objectToPrint);
-			interpreter.primitiveResult(VoidDescriptor.voidObject());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
@@ -5980,8 +5848,7 @@ public enum Primitive
 			final AvailObject objectToPrint = args.get(0);
 			final String string = objectToPrint.toString();
 			final AvailObject availString = ByteStringDescriptor.from(string);
-			interpreter.primitiveResult(availString);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(availString);
 		}
 
 		@Override
@@ -6347,9 +6214,9 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 0;
-			// PLATFORM-DEPENDENT -- rewrite more portably some day
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom(false));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				BooleanDescriptor.objectFrom(
+					ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)));
 		}
 
 		@Override
@@ -6375,11 +6242,11 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(FloatDescriptor.objectWithRecycling(
-				(a.extractFloat() + b.extractFloat()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectWithRecycling(
+					(a.extractFloat() + b.extractFloat()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6407,11 +6274,11 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(FloatDescriptor.objectWithRecycling(
-				(a.extractFloat() - b.extractFloat()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectWithRecycling(
+					(a.extractFloat() - b.extractFloat()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6439,11 +6306,11 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(FloatDescriptor.objectWithRecycling(
-				(a.extractFloat() * b.extractFloat()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectWithRecycling(
+					(a.extractFloat() * b.extractFloat()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6475,11 +6342,11 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			interpreter.primitiveResult(FloatDescriptor.objectWithRecycling(
-				(a.extractFloat() / b.extractFloat()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectWithRecycling(
+					(a.extractFloat() / b.extractFloat()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6508,10 +6375,9 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(
 					(a.extractFloat() < b.extractFloat())));
-			return SUCCESS;
 		}
 
 		@Override
@@ -6540,10 +6406,9 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(
 					(a.extractFloat() <= b.extractFloat())));
-			return SUCCESS;
 		}
 
 		@Override
@@ -6570,11 +6435,10 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
 					(float)log(a.extractFloat()),
 					a));
-			return SUCCESS;
 		}
 
 		@Override
@@ -6601,11 +6465,10 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
 					(float)exp(a.extractFloat()),
 					a));
-			return SUCCESS;
 		}
 
 		@Override
@@ -6641,9 +6504,8 @@ public enum Primitive
 			}
 			final float div = fa / fb;
 			final float mod = fa - (float)floor(div) * fb;
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectWithRecycling(mod, a, b));
-			return SUCCESS;
 		}
 
 		@Override
@@ -6677,8 +6539,8 @@ public enum Primitive
 			if (f >= -0x80000000L && f <= 0x7FFFFFFFL)
 			{
 				// Common case -- it fits in an int.
-				interpreter.primitiveResult(IntegerDescriptor.fromInt((int)f));
-				return SUCCESS;
+				return interpreter.primitiveSuccess(
+					IntegerDescriptor.fromInt((int)f));
 			}
 			final boolean neg = f < 0.0f;
 			f = abs(f);
@@ -6701,8 +6563,7 @@ public enum Primitive
 					IntegerDescriptor.zero(),
 					true);
 			}
-			interpreter.primitiveResult(out);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(out);
 		}
 
 		@Override
@@ -6755,8 +6616,8 @@ public enum Primitive
 					f = -f;
 				}
 			}
-			interpreter.primitiveResult(FloatDescriptor.objectFromFloat(f));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectFromFloat(f));
 		}
 
 		@Override
@@ -6788,9 +6649,8 @@ public enum Primitive
 			scale = max(scale, -0x80000000L);
 			scale = min(scale, 0x7FFFFFFFL);
 			final float f = scalb(a.extractFloat(), (int)scale);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(f, a));
-			return SUCCESS;
 		}
 
 		@Override
@@ -6818,11 +6678,11 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(DoubleDescriptor.objectFromDoubleRecyclingOr(
-				(a.extractDouble() + b.extractDouble()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecyclingOr(
+					(a.extractDouble() + b.extractDouble()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6850,11 +6710,11 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(DoubleDescriptor.objectFromDoubleRecyclingOr(
-				(a.extractDouble() - b.extractDouble()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecyclingOr(
+					(a.extractDouble() - b.extractDouble()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6882,11 +6742,11 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(DoubleDescriptor.objectFromDoubleRecyclingOr(
-				(a.extractDouble() * b.extractDouble()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecyclingOr(
+					(a.extractDouble() * b.extractDouble()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6918,11 +6778,11 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			interpreter.primitiveResult(DoubleDescriptor.objectFromDoubleRecyclingOr(
-				(a.extractDouble() / b.extractDouble()),
-				a,
-				b));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecyclingOr(
+					(a.extractDouble() / b.extractDouble()),
+					a,
+					b));
 		}
 
 		@Override
@@ -6951,8 +6811,9 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom((a.extractDouble() < b.extractDouble())));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				BooleanDescriptor.objectFrom(
+					(a.extractDouble() < b.extractDouble())));
 		}
 
 		@Override
@@ -6981,8 +6842,9 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			interpreter.primitiveResult(BooleanDescriptor.objectFrom((a.extractDouble() <= b.extractDouble())));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				BooleanDescriptor.objectFrom(
+					(a.extractDouble() <= b.extractDouble())));
 		}
 
 		@Override
@@ -7010,9 +6872,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
-			interpreter.primitiveResult(
-				DoubleDescriptor.objectFromDoubleRecycling(log(a.extractDouble()), a));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecycling(
+					log(a.extractDouble()), a));
 		}
 
 		@Override
@@ -7039,9 +6901,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
-			interpreter.primitiveResult(
-				DoubleDescriptor.objectFromDoubleRecycling(exp(a.extractDouble()), a));
-			return SUCCESS;
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecycling(
+					exp(a.extractDouble()), a));
 		}
 
 		@Override
@@ -7077,9 +6939,8 @@ public enum Primitive
 			}
 			final double div = da / db;
 			final double mod = da - floor(div) * db;
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecyclingOr(mod, a, b));
-			return SUCCESS;
 		}
 
 		@Override
@@ -7113,8 +6974,8 @@ public enum Primitive
 			if (d >= -0x80000000L && d <= 0x7FFFFFFFL)
 			{
 				// Common case -- it fits in an int.
-				interpreter.primitiveResult(IntegerDescriptor.fromInt((int)d));
-				return SUCCESS;
+				return interpreter.primitiveSuccess(
+					IntegerDescriptor.fromInt((int)d));
 			}
 			final boolean neg = d < 0.0d;
 			d = abs(d);
@@ -7135,8 +6996,7 @@ public enum Primitive
 			{
 				out = out.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), true);
 			}
-			interpreter.primitiveResult(out);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(out);
 		}
 
 		@Override
@@ -7200,9 +7060,8 @@ public enum Primitive
 					d = -d;
 				}
 			}
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDouble(d));
-			return SUCCESS;
 		}
 
 		@Override
@@ -7234,9 +7093,8 @@ public enum Primitive
 			scale = max(scale, -0x80000000L);
 			scale = min(scale, 0x7FFFFFFFL);
 			final double d = scalb(a.extractDouble(), (int)scale);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecycling(d, a));
-			return SUCCESS;
 		}
 
 		@Override
@@ -7264,10 +7122,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject character = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt(
 					character.codePoint()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -7294,10 +7151,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject codePoint = args.get(0);
-			interpreter.primitiveResult(
+			return interpreter.primitiveSuccess(
 				CharacterDescriptor.newImmutableCharacterWithCodePoint(
 					codePoint.extractInt()));
-			return SUCCESS;
 		}
 
 		@Override
@@ -7373,8 +7229,7 @@ public enum Primitive
 				AssignmentNodeDescriptor.mutable().create();
 			assignment.variable(variable);
 			assignment.expression(expression);
-			interpreter.primitiveResult(assignment);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(assignment);
 		}
 
 		@Override
@@ -7404,8 +7259,7 @@ public enum Primitive
 			{
 				return FAILURE;
 			}
-			interpreter.primitiveResult(parseNode.expressionType());
-			return SUCCESS;
+			return interpreter.primitiveSuccess(parseNode.expressionType());
 		}
 
 		@Override
@@ -7499,8 +7353,7 @@ public enum Primitive
 				TupleDescriptor.fromList(statementsList);
 			final AvailObject sequence =
 				SequenceNodeDescriptor.newStatements(statementsTuple);
-			interpreter.primitiveResult(sequence);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(sequence);
 		}
 
 		@Override
@@ -7544,8 +7397,7 @@ public enum Primitive
 			final AvailObject reference =
 				ReferenceNodeDescriptor.mutable().create();
 			reference.variable(variable);
-			interpreter.primitiveResult(reference);
-			return SUCCESS;
+			return interpreter.primitiveSuccess(reference);
 		}
 
 		@Override
