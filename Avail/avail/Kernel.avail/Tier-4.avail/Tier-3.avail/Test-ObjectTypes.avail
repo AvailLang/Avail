@@ -83,10 +83,8 @@ T ::= [a->integer][b->integer] as objectType;
 	anObjType ::= [a->set [3..3] of [10..20]] as objectType;
 	anObjMeta ::= anObjType type;
 	anObjMetaMeta ::= anObjMeta type;
-	anObjMetaMetaMeta ::= anObjMetaMeta type;
 	Assert anObjType <= Object;
 	Assert anObjMeta <= objectType;
 	Assert anObjMetaMeta <= objectMeta;
-	Assert anObjMetaMetaMeta = objectMetaMeta;  /* Note exact match */
 ]();
 

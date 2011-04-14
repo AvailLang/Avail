@@ -32,18 +32,38 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES_TYPE;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * TODO: Document this type!
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
 public class ObjectMetaDescriptor
 extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
+	 *
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	public enum ObjectSlots
 	{
-		MY_OBJECT_TYPE
+		/** The foundational {@linkplain ObjectTypeDescriptor object type}. */
+		MY_OBJECT_TYPE,
+
+		/**
+		 * The range of ordinals corresponding to metatypes within the infinite
+		 * {@linkplain ObjectMetaDescriptor object metatype} hyper-lineage. A
+		 * range of [M..N] indicates that the type of the foundational
+		 * {@linkplain ObjectTypeDescriptor object type} has been recursively
+		 * requested between M and N times. When M equals N, then it denotes a
+		 * particular metatype.
+		 */
+		OBJECT_META_LEVELS
 	}
 
 	@Override
@@ -62,33 +82,62 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
+	public void o_ObjectMetaLevels (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
-		//  Answer this object type's type's type.
-
-		object.makeImmutable();
-		return ObjectMetaMetaDescriptor.fromObjectMeta(object);
+		object.objectSlotPut(ObjectSlots.OBJECT_META_LEVELS, value);
 	}
 
 	@Override
-	public int o_Hash (
+	public @NotNull AvailObject o_ObjectMetaLevels (
 		final @NotNull AvailObject object)
 	{
-		//  The hash value is always recomputed from the objectMeta's instance (an objectType).
-
-		return object.myObjectType().hash() ^ 0x1317C873;
+		return object.objectSlot(ObjectSlots.OBJECT_META_LEVELS);
 	}
 
+	@Override
+	public @NotNull AvailObject o_ExactType (
+		final @NotNull AvailObject object)
+	{
+		object.myObjectType().makeImmutable();
+		AvailObject newMetaLevels = object.objectMetaLevels();
+		if (!newMetaLevels.lowerBound().isFinite())
+		{
+			return object;
+		}
+
+		newMetaLevels = IntegerRangeTypeDescriptor.create(
+			newMetaLevels.lowerBound().plusCanDestroy(
+				IntegerDescriptor.one(), false),
+			true,
+			newMetaLevels.upperBound().plusCanDestroy(
+				IntegerDescriptor.one(), false),
+			newMetaLevels.upperInclusive());
+		return fromObjectTypeAndLevel(object.myObjectType(), newMetaLevels);
+	}
+
+	@Override
+	public int o_Hash (final @NotNull AvailObject object)
+	{
+		return
+			(object.myObjectType().hash()
+					* AvailObject.Multiplier
+				+ object.objectMetaLevels().hash())
+					* AvailObject.Multiplier
+			^ 0x1317C873;
+	}
+
+	/**
+	 * Answer whether this object's hash value can be computed without creating
+	 * new objects. This method is used by the garbage collector to decide which
+	 * objects to attempt to coalesce. The garbage collector uses the hash
+	 * values to find objects that it is likely can be coalesced together.
+	 */
 	@Override
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
 		return object.myObjectType().isHashAvailable();
 	}
 
@@ -96,25 +145,54 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer this object type's type's type.
+		object.myObjectType().makeImmutable();
+		AvailObject newMetaLevels = object.objectMetaLevels();
+		if (!newMetaLevels.lowerBound().isFinite())
+		{
+			return object;
+		}
 
-		object.makeImmutable();
-		return ObjectMetaMetaDescriptor.fromObjectMeta(object);
+		newMetaLevels = IntegerRangeTypeDescriptor.create(
+			newMetaLevels.lowerBound().plusCanDestroy(
+				IntegerDescriptor.one(), false),
+			true,
+			newMetaLevels.upperBound().plusCanDestroy(
+				IntegerDescriptor.one(), false),
+			newMetaLevels.upperInclusive());
+		return fromObjectTypeAndLevel(object.myObjectType(), newMetaLevels);
 	}
 
 	@Override
 	public @NotNull AvailObject o_Instance (
 		final @NotNull AvailObject object)
 	{
-		//  Answer this object meta's sole instance, an object type.  Object metas parallel the
-		//  object types precisely, so no information is lost crossing this type/meta barrier here.  Object
-		//  meta metas also parallel the object metas precisely, so no information is lost even if two steps
-		//  up the meta-hierarchy are needed.  An infinite regress should not be necessary because
-		//  defining-style code can simply keep the meta-level in range (either an objectType or an
-		//  objectMeta or an objectMetaMeta).  Hopefully there are no examples where three meta-levels
-		//  are crossed simultaneously and need to be uncrossed without information loss.
+		object.myObjectType().makeImmutable();
+		AvailObject metaLevels = object.objectMetaLevels();
+		if (!metaLevels.lowerBound().isFinite())
+		{
+			return object;
+		}
 
-		return object.myObjectType();
+		if (metaLevels.lowerBound().equals(IntegerDescriptor.one()))
+		{
+			if (!metaLevels.upperBound().equals(IntegerDescriptor.one()))
+			{
+				error(
+					"cannot uniquely determine instance of metatype smear "
+					+ "that includes first level object metatype");
+			}
+
+			return object.myObjectType();
+		}
+
+		metaLevels = IntegerRangeTypeDescriptor.create(
+			metaLevels.lowerBound().minusCanDestroy(
+				IntegerDescriptor.one(), false),
+			true,
+			metaLevels.upperBound().minusCanDestroy(
+				IntegerDescriptor.one(), false),
+			metaLevels.upperInclusive());
+		return fromObjectTypeAndLevel(object.myObjectType(), metaLevels);
 	}
 
 	@Override
@@ -122,8 +200,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
 		return aType.isSupertypeOfObjectMeta(object);
 	}
 
@@ -132,9 +208,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectMeta)
 	{
-		//  Check if I'm a supertype of the given object meta.
-
-		return anObjectMeta.instance().isSubtypeOf(object.instance());
+		return
+			anObjectMeta.objectMetaLevels().isSubtypeOf(
+				object.objectMetaLevels())
+			&& anObjectMeta.myObjectType().isSubtypeOf(object.myObjectType());
 	}
 
 	@Override
@@ -142,8 +219,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -156,28 +231,44 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject someMeta)
-	{
-		//  Answer the most general type that is still at least as specific as these.
-		//  Since metas intersect at terminatesType rather than terminates, we must
-		//  be very careful to overide this properly.  Note that the cases of the types
-		//  being equal or one being a subtype of the other have already been dealt
-		//  with (in Object:typeIntersection:), so don't test for them here.
-
-		return TERMINATES_TYPE.o();
-	}
-
-	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfObjectMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Here we're finding
-		//  the nearest common descendant of two eager object metas.
+		final AvailObject levelIntersection =
+			object.objectMetaLevels().typeIntersection(
+				anObjectMeta.objectMetaLevels());
+		if (levelIntersection.equals(TERMINATES.o()))
+		{
+			return TERMINATES_TYPE.o();
+		}
 
-		return object.instance().typeIntersection(anObjectMeta.instance()).type();
+		final AvailObject baseIntersection =
+			object.myObjectType().typeIntersection(
+				anObjectMeta.myObjectType());
+		if (baseIntersection.equals(TERMINATES.o()))
+		{
+			return TERMINATES_TYPE.o();
+		}
+
+		return fromObjectTypeAndLevel(baseIntersection, levelIntersection);
+	}
+
+	/**
+	 * Answer the most general type that is still at least as specific as these.
+	 * Since metas intersect at {@linkplain Types#TERMINATES_TYPE
+	 * TERMINATES_TYPE} rather than terminates, we must be very careful to
+	 * override this properly. Note that the cases of the types being equal or
+	 * one being a subtype of the other have already been dealt with (in {@link
+	 * #o_TypeIntersection(AvailObject, AvailObject) o_TypeIntersection}), so
+	 * don't test for them here.
+	 */
+	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject someMeta)
+	{
+		return TERMINATES_TYPE.o();
 	}
 
 	@Override
@@ -185,8 +276,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -203,16 +292,51 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectMeta)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		return object.instance().typeUnion(anObjectMeta.instance()).type();
+		return fromObjectTypeAndLevel(
+			object.myObjectType().typeUnion(anObjectMeta.myObjectType()),
+			object.objectMetaLevels().typeUnion(
+				anObjectMeta.objectMetaLevels()));
 	}
 
-	public static AvailObject fromObjectType (
-		final @NotNull AvailObject objectType)
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
 	{
+		object.myObjectType().printOnAvoidingIndent(
+			builder, recursionList, indent);
+		builder.append(" metatype ");
+		builder.append(object.objectMetaLevels());
+	}
+
+	/**
+	 * Answer an {@link ObjectMetaDescriptor object metatype} of the appropriate
+	 * {@linkplain ObjectTypeDescriptor object type} and metatype level.
+	 *
+	 * @param myObjectType
+	 *        An {@linkplain ObjectTypeDescriptor object type}.
+	 * @param objectMetaLevel
+	 *        The metatype level of the desired {@linkplain ObjectMetaDescriptor
+	 *        object metatype}.
+	 * @return An {@linkplain ObjectMetaDescriptor object metatype}.
+	 */
+	public static @NotNull AvailObject fromObjectTypeAndLevel (
+		final @NotNull AvailObject myObjectType,
+		final @NotNull AvailObject objectMetaLevel)
+	{
+		assert objectMetaLevel.lowerBound().greaterOrEqual(
+			IntegerDescriptor.one());
+
+		if (objectMetaLevel.equals(TERMINATES.o()))
+		{
+			return TERMINATES.o();
+		}
+
 		AvailObject result = mutable().create();
-		result.myObjectType(objectType);
+		result.myObjectType(myObjectType);
+		result.objectMetaLevels(objectMetaLevel);
 		return result;
 	}
 
@@ -228,32 +352,30 @@ extends TypeDescriptor
 		super(isMutable);
 	}
 
-	/**
-	 * The mutable {@link ObjectMetaDescriptor}.
-	 */
-	private final static ObjectMetaDescriptor mutable = new ObjectMetaDescriptor(true);
+	/** The mutable {@link ObjectMetaDescriptor}. */
+	private final static @NotNull ObjectMetaDescriptor mutable =
+		new ObjectMetaDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectMetaDescriptor}.
 	 *
 	 * @return The mutable {@link ObjectMetaDescriptor}.
 	 */
-	public static ObjectMetaDescriptor mutable ()
+	public static @NotNull ObjectMetaDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ObjectMetaDescriptor}.
-	 */
-	private final static ObjectMetaDescriptor immutable = new ObjectMetaDescriptor(false);
+	/** The immutable {@link ObjectMetaDescriptor}. */
+	private final static @NotNull ObjectMetaDescriptor immutable =
+		new ObjectMetaDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectMetaDescriptor}.
 	 *
 	 * @return The immutable {@link ObjectMetaDescriptor}.
 	 */
-	public static ObjectMetaDescriptor immutable ()
+	public static @NotNull ObjectMetaDescriptor immutable ()
 	{
 		return immutable;
 	}

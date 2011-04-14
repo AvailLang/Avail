@@ -1471,15 +1471,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		return o_Traversed(object)
-				.isSupertypeOfObjectMetaMeta(anObjectMetaMeta);
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
@@ -1774,14 +1765,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).multiplyByIntegerCanDestroy(
 			anInteger,
 			canDestroy);
-	}
-
-	@Override
-	public void o_MyObjectMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).myObjectMeta(value);
 	}
 
 	@Override
@@ -2663,15 +2646,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		return o_Traversed(object).typeIntersectionOfObjectMetaMeta(
-			anObjectMetaMeta);
-	}
-
-	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
@@ -2785,14 +2759,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject anObjectMeta)
 	{
 		return o_Traversed(object).typeUnionOfObjectMeta(anObjectMeta);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		return o_Traversed(object).typeUnionOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
 	@Override
@@ -3671,12 +3637,6 @@ extends AbstractDescriptor
 	public void o_MoveToHead (final AvailObject object)
 	{
 		o_Traversed(object).moveToHead();
-	}
-
-	@Override
-	public @NotNull AvailObject o_MyObjectMeta (final AvailObject object)
-	{
-		return o_Traversed(object).myObjectMeta();
 	}
 
 	@Override
@@ -4610,5 +4570,20 @@ extends AbstractDescriptor
 	public AvailObject o_SpecialActions (final AvailObject object)
 	{
 		return o_Traversed(object).specialActions();
+	}
+
+	@Override
+	public @NotNull AvailObject o_ObjectMetaLevels (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).objectMetaLevels();
+	}
+
+	@Override
+	public void o_ObjectMetaLevels (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject level)
+	{
+		o_Traversed(object).objectMetaLevels(level);
 	}
 }

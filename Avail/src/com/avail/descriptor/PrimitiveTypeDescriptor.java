@@ -236,16 +236,11 @@ extends TypeDescriptor
 		//  Check if I'm a supertype of the given lazy object meta.  Only type and its
 		//  ancestors are supertypes of an object meta.
 
-		return TYPE.o().isSubtypeOf(object);
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		//  Check if I'm a supertype of the given object meta meta.  Only meta and its
-		//  ancestors are supertypes of an object meta meta.
+		if (anObjectMeta.objectMetaLevels().upperBound().equals(
+			IntegerDescriptor.one()))
+		{
+			return TYPE.o().isSubtypeOf(object);
+		}
 
 		return META.o().isSubtypeOf(object);
 	}

@@ -1553,15 +1553,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anObjectMetaMeta
-	 * @return
-	 */
-	public abstract boolean o_IsSupertypeOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta);
-
-	/**
-	 * @param object
 	 * @param anObjectType
 	 * @return
 	 */
@@ -1888,14 +1879,6 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_MyObjectMeta (
-		final AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -2837,15 +2820,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anObjectMetaMeta
-	 * @return
-	 */
-	public abstract AvailObject o_TypeIntersectionOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta);
-
-	/**
-	 * @param object
 	 * @param anObjectType
 	 * @return
 	 */
@@ -2970,15 +2944,6 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_TypeUnionOfObjectMeta (
 		final AvailObject object,
 		final AvailObject anObjectMeta);
-
-	/**
-	 * @param object
-	 * @param anObjectMetaMeta
-	 * @return
-	 */
-	public abstract AvailObject o_TypeUnionOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta);
 
 	/**
 	 * @param object
@@ -3683,12 +3648,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 */
 	public abstract void o_MoveToHead (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_MyObjectMeta (final AvailObject object);
 
 	/**
 	 * @param object
@@ -5246,4 +5205,19 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract AvailObject o_SpecialActions (
 		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_ObjectMetaLevels (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract @NotNull AvailObject o_ObjectMetaLevels (
+		final @NotNull AvailObject object);
 }

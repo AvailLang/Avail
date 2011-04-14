@@ -35,6 +35,10 @@ Extends
 Uses
 	"Tier-2"
 Names
+	"objectType", "objectMeta", "objectMeta*",
+	"_meta levels_",
+	"objectType of_",
+	"meta levels of_",
 	"Object",
 	"_name",
 	"_as objectType",
@@ -54,8 +58,10 @@ Names
 Body
 
 
+privateObjectType ::= Special Object 23;
 
-/* Conversions between maps and objectTypes. */
+Method "objectType" is [privateObjectType;] : privateObjectType type;
+Method "objectMeta" is [objectType type;];
 
 Method "fieldMap" is [map from cyclicType to all;];
 Method "fieldTypeMap" is [map from cyclicType to type;];
@@ -66,30 +72,52 @@ Method "_as objectType" is [m : fieldTypeMap |
 	Failed;
 ] : objectType;
 
+Method "_private meta levels_" is [
+		ot : objectType,
+		levels : integerType |
+	Primitive 66 (failureCode : all);
+	Failed;
+] : type;
+
+Method "objectMeta*" is [
+	[->] as objectType private meta levels [1..INF];
+];
+
+Method "objectType of_" is [
+		om : objectMeta* |
+	Primitive 355 (failureCode : all);
+] : objectMeta*;
+
+Method "meta levels of_" is [
+		om : objectMeta* |
+	Primitive 356 (failureCode : all);
+] : integerType;
+
+Method "_meta levels_" is [
+		ot : objectType,
+		levels : integerType |
+	Primitive 66 (failureCode : all);
+	Failed;
+] : objectMeta*;
+
+/* Conversions between maps and objectTypes. */
+
 Method "_as map" is [o : objectType |
 	Primitive 64 (failureCode : all);
-	Failed;
 ] : fieldTypeMap;
 
 
+/* Extract an objectMeta* or objectType from an objectMeta*. */
 
-/* Extract an objectMeta from an objectMetaMeta (the objectMetaMeta's sole instance). */
+Forward "_instance" for [objectMeta*]->type;
 
-Method "_instance" is [omm : objectMetaMeta |
-	Primitive 66 (failureCode : all);
-	Failed;
-] : objectMeta;
-
-
-/* Extract an objectType from an objectMeta (the objectMeta's sole instance). */
-
-Method "_instance" is [om : objectMeta |
+Method "_instance" is [omm : objectMeta* |
 	Primitive 65 (failureCode : all);
 	Failed;
-] : objectType
-returns [omm : objectMetaMeta |
-	omm instance;
-] : objectMeta;
+] : type
+returns [ommT : objectMeta* |
+	ommT instance;
+];
 
 
 /* Conversion to/from maps and creation validation. */

@@ -1946,22 +1946,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anObjectMetaMeta
-	 * @return
-	 */
-	@Override
-	public boolean o_IsSupertypeOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:isSupertypeOfObjectMetaMeta:", object);
-		return false;
-	}
-
-	/**
-	 * @param object
 	 * @param anObjectType
 	 * @return
 	 */
@@ -2549,21 +2533,6 @@ extends AbstractDescriptor
 
 		subclassResponsibility("Object:multiplyByInteger:canDestroy:", object);
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_MyObjectMeta (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:myObjectMeta:", object);
-		return;
 	}
 
 	/**
@@ -4338,22 +4307,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anObjectMetaMeta
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:typeIntersectionOfObjectMetaMeta:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
 	 * @param anObjectType
 	 * @return
 	 */
@@ -4574,22 +4527,6 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("Object:typeUnionOfObjectMeta:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param anObjectMetaMeta
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectMetaMeta (
-		final AvailObject object,
-		final AvailObject anObjectMetaMeta)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:typeUnionOfObjectMetaMeta:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6150,20 +6087,6 @@ extends AbstractDescriptor
 
 		subclassResponsibility("o_MoveToHead:", object);
 		return;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_MyObjectMeta (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_MyObjectMeta:", object);
-		return VoidDescriptor.voidObject();
 	}
 
 	/**
@@ -8914,6 +8837,22 @@ extends AbstractDescriptor
 	public AvailObject o_SpecialActions (final AvailObject object)
 	{
 		subclassResponsibility("o_SpecialActions");
+		return null;
+	}
+
+	@Override
+	public void o_ObjectMetaLevels (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		subclassResponsibility("o_ObjectMetaLevel");
+	}
+
+	@Override
+	public @NotNull AvailObject o_ObjectMetaLevels (
+		final @NotNull AvailObject object)
+	{
+		subclassResponsibility("o_ObjectMetaLevel");
 		return null;
 	}
 }

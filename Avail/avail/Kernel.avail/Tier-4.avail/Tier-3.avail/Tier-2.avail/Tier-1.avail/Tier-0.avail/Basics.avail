@@ -46,7 +46,6 @@ Names
 	"generalizedClosureType",
 	"integer", "integerType",
 	"mapType", "meta",
-	"objectMeta", "objectMetaMeta", "objectType",
 	"primType", "process",
 	"set", "setType", "string",
 	"terminates", "terminatesType", "trueType", "tuple",
@@ -106,9 +105,6 @@ privateInteger                     ::= Special Object 17;
 privateIntegerType                 ::= Special Object 18;
 privateMapType                     ::= Special Object 19;
 privateMeta                        ::= Special Object 20;
-privateObjectMeta                  ::= Special Object 21;
-privateObjectMetaMeta              ::= Special Object 22;
-privateObjectType                  ::= Special Object 23;
 privatePrimType                    ::= Special Object 24;
 privateProcess                     ::= Special Object 25;
 privateSet                         ::= Special Object 26;
@@ -182,7 +178,6 @@ Method "closureType"            is [privateClosureType;] : privateMeta;
 Method "containerType"          is [privateContainerType;] : privateMeta;
 Method "continuationType"       is [privateContinuationType;] : privateMeta;
 Method "generalizedClosureType" is [privateGeneralizedClosureType;] : privateMeta;
-Method "objectType"             is [privateObjectType;] : privateObjectMeta;
 Method "primType"               is [privatePrimType;] : privateMeta;
 Method "terminatesType"         is [privateTerminatesType;] : privateMeta;
 Method "type"                   is [privateType;] : privateMeta;
@@ -190,8 +185,6 @@ Method "type"                   is [privateType;] : privateMeta;
 /* And the meta-meta-types... */
 Method "cyclicType"             is [privateCyclicType;] : privateCyclicType;
 Method "meta"                   is [privateMeta;] : privateMeta;
-Method "objectMeta"             is [privateObjectMeta;] : privateObjectMetaMeta;
-Method "objectMetaMeta"         is [privateObjectMetaMeta;] : privateMeta;
 
 
 /* Parse node types... */

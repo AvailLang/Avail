@@ -85,8 +85,8 @@ public enum Primitive
 				&& !b.isFinite()
 				&& a.isPositive() != b.isPositive())
 			{
-				return interpreter.primitiveFailure(ByteStringDescriptor.from(
-					"can't add mixed infinities"));
+				return interpreter.primitiveFailure(
+					"can't add mixed infinities");
 			}
 			return interpreter.primitiveSuccess(a.plusCanDestroy(b, true));
 		}
@@ -119,8 +119,8 @@ public enum Primitive
 				&& !b.isFinite()
 				&& a.isPositive() == b.isPositive())
 			{
-				return interpreter.primitiveFailure(ByteStringDescriptor.from(
-					"can't subtract like infinities"));
+				return interpreter.primitiveFailure(
+					"can't subtract like infinities");
 			}
 			return interpreter.primitiveSuccess(a.minusCanDestroy(b, true));
 		}
@@ -1946,9 +1946,10 @@ public enum Primitive
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						CYCLIC_TYPE.o(),
 						ALL.o())),
-				ObjectMetaDescriptor.fromObjectType(
+				ObjectMetaDescriptor.fromObjectTypeAndLevel(
 					ObjectTypeDescriptor.objectTypeFromMap(
-						MapDescriptor.empty())));
+						MapDescriptor.empty()),
+					IntegerDescriptor.one().type()));
 		}
 	},
 
@@ -1957,7 +1958,7 @@ public enum Primitive
 	 * <strong>Primitive 64:</strong> Convert an object type into a map from
 	 * fields to types.
 	 */
-	prim64_ObjectTypeToMap_objectType(64, 1, CanFold)
+	prim64_ObjectTypeToMap_objectType(64, 1, CanFold, CannotFail)
 	{
 		@Override
 		public Result attempt (
@@ -1974,9 +1975,10 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				TupleDescriptor.from(
-					ObjectMetaDescriptor.fromObjectType(
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
-							MapDescriptor.empty()))),
+							MapDescriptor.empty()),
+						IntegerDescriptor.one().type())),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					CYCLIC_TYPE.o(),
@@ -1986,8 +1988,9 @@ public enum Primitive
 
 
 	/**
-	 * <strong>Primitive 65:</strong> Extract an objectType from its type, an
-	 * objectMeta.
+	 * <strong>Primitive 65:</strong> Answer an {@linkplain ObjectMetaDescriptor
+	 * instance} of the specified {@linkplain ObjectMetaDescriptor object
+	 * metatype}.
 	 */
 	prim65_ObjectMetaInstance_objectMeta(65, 1, CanFold)
 	{
@@ -1998,6 +2001,18 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject objectMeta = args.get(0);
+			if (objectMeta.objectMetaLevels().lowerBound().equals(
+				IntegerDescriptor.one()))
+			{
+				if (!objectMeta.objectMetaLevels().upperBound().equals(
+					IntegerDescriptor.one()))
+				{
+					return interpreter.primitiveFailure(
+						"cannot uniquely determine instance of metatype smear "
+						+ "that includes first level object metatype");
+				}
+			}
+
 			return interpreter.primitiveSuccess(objectMeta.instance());
 		}
 
@@ -2006,31 +2021,44 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				TupleDescriptor.from(
-					ObjectMetaMetaDescriptor.fromObjectMeta(
-						ObjectMetaDescriptor.fromObjectType(
-							ObjectTypeDescriptor.objectTypeFromMap(
-								MapDescriptor.empty())))),
-				ObjectMetaDescriptor.fromObjectType(
-					ObjectTypeDescriptor.objectTypeFromMap(
-						MapDescriptor.empty())));
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()),
+						IntegerRangeTypeDescriptor.create(
+							IntegerDescriptor.fromInt(2),
+							true,
+							InfinityDescriptor.positiveInfinity(),
+							true))),
+				TYPE.o());
 		}
 	},
 
 
 	/**
-	 * <strong>Primitive 66:</strong> Extract an objectMeta from its type, an
-	 * objectMetaMeta.
+	 * <strong>Primitive 66:</strong> Construct a new {@linkplain
+	 * ObjectMetaDescriptor object metatype} with the given base {@linkplain
+	 * ObjectTypeDescriptor object type} and {@linkplain
+	 * IntegerRangeTypeDescriptor range} of levels.
 	 */
-	prim66_ObjectMetaMetaInstance_objectMetaMeta(66, 1, CanFold)
+	prim66_CreateObjectMeta_objectType_levels(66, 1, CanFold)
 	{
 		@Override
 		public Result attempt (
 			final List<AvailObject> args,
 			final Interpreter interpreter)
 		{
-			assert args.size() == 1;
-			final AvailObject objectMetaMeta = args.get(0);
-			return interpreter.primitiveSuccess(objectMetaMeta.instance());
+			assert args.size() == 2;
+			final AvailObject objectType = args.get(0);
+			final AvailObject levels = args.get(1);
+			if (levels.lowerBound().lessThan(IntegerDescriptor.one()))
+			{
+				return interpreter.primitiveFailure(
+					"Object metatypes must only have positive levels (>=1)");
+			}
+			return interpreter.primitiveSuccess(
+				ObjectMetaDescriptor.fromObjectTypeAndLevel(
+					objectType,
+					levels));
 		}
 
 		@Override
@@ -2038,11 +2066,17 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				TupleDescriptor.from(
-					OBJECT_META_META.o()),
-				ObjectMetaMetaDescriptor.fromObjectMeta(
-					ObjectMetaDescriptor.fromObjectType(
-						ObjectTypeDescriptor.objectTypeFromMap(
-							MapDescriptor.empty()))));
+					ObjectTypeDescriptor.objectTypeFromMap(
+						MapDescriptor.empty()),
+					INTEGER_TYPE.o()),
+				ObjectMetaDescriptor.fromObjectTypeAndLevel(
+					ObjectTypeDescriptor.objectTypeFromMap(
+						MapDescriptor.empty()),
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(1),
+						true,
+						InfinityDescriptor.positiveInfinity(),
+						true)));
 		}
 	},
 
@@ -2101,9 +2135,10 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				TupleDescriptor.from(
-					ObjectMetaDescriptor.fromObjectType(
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
-							MapDescriptor.empty())),
+							MapDescriptor.empty()),
+						IntegerDescriptor.one().type()),
 					TupleTypeDescriptor.stringTupleType()),
 				VOID_TYPE.o());
 		}
@@ -2140,9 +2175,10 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				TupleDescriptor.from(
-					ObjectMetaDescriptor.fromObjectType(
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
-							MapDescriptor.empty()))),
+							MapDescriptor.empty()),
+						IntegerDescriptor.one().type())),
 				TupleTypeDescriptor.stringTupleType());
 		}
 	},
@@ -7408,8 +7444,84 @@ public enum Primitive
 					VARIABLE_USE_NODE.o()),
 				REFERENCE_NODE.o());
 		}
-	};
+	},
 
+	/**
+	 * <strong>Primitive 355:</strong>  Extract the base {@linkplain
+	 * ObjectTypeDescriptor objectType} from an arbitrary-depth {@linkplain
+	 * ObjectMetaDescriptor objectMeta*}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim355_ExtractObjectTypeFromObjectMeta_objectMeta(355, 1, CanFold, CannotFail)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject objectMeta = args.get(0);
+			return interpreter.primitiveSuccess(objectMeta.myObjectType());
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()),
+						IntegerRangeTypeDescriptor.create(
+							IntegerDescriptor.fromInt(1),
+							true,
+							InfinityDescriptor.positiveInfinity(),
+							true))),
+				ObjectMetaDescriptor.fromObjectTypeAndLevel(
+					ObjectTypeDescriptor.objectTypeFromMap(
+						MapDescriptor.empty()),
+					IntegerDescriptor.one().type()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 356:</strong>  Extract the {@linkplain
+	 * IntegerRangeTypeDescriptor level range} from an arbitrary-depth
+	 * {@linkplain ObjectMetaDescriptor objectMeta*}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim356_ExtractLevelsFromObjectMeta_objectMeta(356, 1, CanFold, CannotFail)
+	{
+		@Override
+		public Result attempt (
+			final List<AvailObject> args,
+			final Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject objectMeta = args.get(0);
+			return interpreter.primitiveSuccess(objectMeta.objectMetaLevels());
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.from(
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()),
+						IntegerRangeTypeDescriptor.create(
+							IntegerDescriptor.fromInt(1),
+							true,
+							InfinityDescriptor.positiveInfinity(),
+							true))),
+				INTEGER_TYPE.o());
+		}
+	};
 
 	/**
 	 * The success state of a primitive attempt.

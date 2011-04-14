@@ -353,16 +353,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		//  Redirect it to the exact type to be more precise.
-
-		return object.becomeExactType().isSupertypeOfObjectMetaMeta(anObjectMetaMeta);
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
@@ -492,16 +482,6 @@ extends TypeDescriptor
 		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
 
 		return object.becomeExactType().typeIntersectionOfObjectMeta(anObjectMeta);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfObjectMetaMeta(anObjectMetaMeta);
 	}
 
 	@Override

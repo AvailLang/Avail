@@ -32,9 +32,15 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
 import static java.lang.Math.min;
 import com.avail.annotations.NotNull;
 
+/**
+ * TODO: Document this type!
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ObjectTypeDescriptor
 extends TypeDescriptor
 {
@@ -43,18 +49,19 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * A {@linkplain MapTypeDescriptor map} from {@linkplain
+		 * CyclicTypeDescriptor field names} to their declared {@linkplain
+		 * TypeDescriptor types}.
+		 */
 		FIELD_TYPE_MAP
 	}
-
-	// As yet unclassified
 
 	@Override
 	public boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance)
 	{
-		//  The potentialInstance is a user-defined object.  See if it is an instance of me.
-
 		final AvailObject typeMap = object.fieldTypeMap();
 		final AvailObject instMap = potentialInstance.fieldMap();
 		if (instMap.mapSize() < typeMap.mapSize())
@@ -100,33 +107,29 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
+	public @NotNull AvailObject o_ExactType (final @NotNull AvailObject object)
 	{
-		//  Answer this object type's type.
-
 		object.makeImmutable();
-		return ObjectMetaDescriptor.fromObjectType(object);
+		return ObjectMetaDescriptor.fromObjectTypeAndLevel(
+			object, IntegerDescriptor.one().type());
 	}
 
 	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Use the hash of the map (of field keys and field types), multiplied by 11.
-
-		return object.fieldTypeMap().hash() * 11;
+		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
 	}
 
+	/**
+	 * Answer whether this object's hash value can be computed without creating
+	 * new objects. This method is used by the garbage collector to decide which
+	 * objects to attempt to coalesce.  The garbage collector uses the hash
+	 * values to find objects that it is likely can be coalesced together.
+	 */
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
+	public boolean o_IsHashAvailable (final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
 		return object.fieldTypeMap().isHashAvailable();
 	}
 
@@ -134,10 +137,9 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer this object type's type.
-
 		object.makeImmutable();
-		return ObjectMetaDescriptor.fromObjectType(object);
+		return ObjectMetaDescriptor.fromObjectTypeAndLevel(
+			object, IntegerDescriptor.one().type());
 	}
 
 	@Override
@@ -145,8 +147,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
 		return aType.isSupertypeOfObjectType(object);
 	}
 
@@ -155,8 +155,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		//  Check if I'm a supertype of the given eager object type.
-
 		final AvailObject m1 = object.fieldTypeMap();
 		final AvailObject m2 = anObjectType.fieldTypeMap();
 		if (m1.mapSize() > m2.mapSize())
@@ -191,8 +189,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -225,6 +221,10 @@ extends TypeDescriptor
 			if (map2.hasKey(key))
 			{
 				type = type.typeIntersection(map2.mapAt(key));
+				if (type.equals(TERMINATES.o()))
+				{
+					return TERMINATES.o();
+				}
 			}
 			resultMap = resultMap.mapAtPuttingCanDestroy(
 				key,
@@ -251,9 +251,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		// Answer the most specific type that is still at least as general as
-		// these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -294,20 +291,6 @@ extends TypeDescriptor
 		return objectTypeFromMap(resultMap);
 	}
 
-
-	/**
-	 * Compute the hash value from the given object's data.
-	 *
-	 * @param object The {@link AvailObject object} to hash.
-	 * @return The hash value of the object.
-	 */
-	int computeHashForObject (
-		final @NotNull AvailObject object)
-	{
-		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
-	}
-
-
 	/**
 	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
 	 * {@linkplain MapDescriptor map} from {@linkplain CyclicTypeDescriptor
@@ -318,13 +301,13 @@ extends TypeDescriptor
 	 *        CyclicTypeDescriptor keys} to {@linkplain TypeDescriptor types}.
 	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
 	 */
-	public static AvailObject objectTypeFromMap (final AvailObject map)
+	public static AvailObject objectTypeFromMap (
+		final @NotNull AvailObject map)
 	{
 		AvailObject result = mutable().create();
 		result.fieldTypeMap(map);
 		return result;
 	}
-
 
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.
@@ -338,32 +321,30 @@ extends TypeDescriptor
 		super(isMutable);
 	}
 
-	/**
-	 * The mutable {@link ObjectTypeDescriptor}.
-	 */
-	private final static ObjectTypeDescriptor mutable = new ObjectTypeDescriptor(true);
+	/** The mutable {@link ObjectTypeDescriptor}. */
+	private final static @NotNull ObjectTypeDescriptor mutable =
+		new ObjectTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectTypeDescriptor}.
 	 *
 	 * @return The mutable {@link ObjectTypeDescriptor}.
 	 */
-	public static ObjectTypeDescriptor mutable ()
+	public static @NotNull ObjectTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/**
-	 * The immutable {@link ObjectTypeDescriptor}.
-	 */
-	private final static ObjectTypeDescriptor immutable = new ObjectTypeDescriptor(false);
+	/** The immutable {@link ObjectTypeDescriptor}. */
+	private final static @NotNull ObjectTypeDescriptor immutable =
+		new ObjectTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectTypeDescriptor}.
 	 *
 	 * @return The immutable {@link ObjectTypeDescriptor}.
 	 */
-	public static ObjectTypeDescriptor immutable ()
+	public static @NotNull ObjectTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

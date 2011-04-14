@@ -137,10 +137,8 @@ public final class AvailRuntime
 		specialObjects[18] = INTEGER_TYPE.o();
 		specialObjects[19] = MAP_TYPE.o();
 		specialObjects[20] = META.o();
-		specialObjects[21] = ObjectTypeDescriptor.objectTypeFromMap(
-			MapDescriptor.empty()).type().type().makeImmutable();
-		specialObjects[22] = ObjectTypeDescriptor.objectTypeFromMap(
-			MapDescriptor.empty()).type().type().type().makeImmutable();
+		//21
+		//22
 		specialObjects[23] = ObjectTypeDescriptor.objectTypeFromMap(
 			MapDescriptor.empty()).type().makeImmutable();
 		specialObjects[24] = PRIMITIVE_TYPE.o();

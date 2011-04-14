@@ -2947,15 +2947,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfObjectMetaMeta (
-		final AvailObject anObjectMetaMeta)
-	{
-		return descriptor().o_IsSupertypeOfObjectMetaMeta(this, anObjectMetaMeta);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public boolean isSupertypeOfObjectType (
 		final AvailObject anObjectType)
 	{
@@ -3519,23 +3510,6 @@ implements Iterable<AvailObject>
 			this,
 			anInteger,
 			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject myObjectMeta ()
-	{
-		return descriptor().o_MyObjectMeta(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void myObjectMeta (
-		final AvailObject value)
-	{
-		descriptor().o_MyObjectMeta(this, value);
 	}
 
 	/**
@@ -5184,15 +5158,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeIntersectionOfObjectMetaMeta (
-		final AvailObject anObjectMetaMeta)
-	{
-		return descriptor().o_TypeIntersectionOfObjectMetaMeta(this, anObjectMetaMeta);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject typeIntersectionOfObjectType (
 		final AvailObject anObjectType)
 	{
@@ -5326,15 +5291,6 @@ implements Iterable<AvailObject>
 		final AvailObject anObjectMeta)
 	{
 		return descriptor().o_TypeUnionOfObjectMeta(this, anObjectMeta);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject typeUnionOfObjectMetaMeta (
-		final AvailObject anObjectMetaMeta)
-	{
-		return descriptor().o_TypeUnionOfObjectMetaMeta(this, anObjectMetaMeta);
 	}
 
 	/**
@@ -6298,5 +6254,21 @@ implements Iterable<AvailObject>
 	public AvailObject specialActions ()
 	{
 		return descriptor().o_SpecialActions(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject objectMetaLevels ()
+	{
+		return descriptor().o_ObjectMetaLevels(this);
+	}
+
+	/**
+	 * @param level
+	 */
+	public void objectMetaLevels (final @NotNull AvailObject level)
+	{
+		descriptor().o_ObjectMetaLevels(this, level);
 	}
 }

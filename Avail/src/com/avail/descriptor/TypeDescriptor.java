@@ -39,7 +39,6 @@ import com.avail.annotations.NotNull;
 public abstract class TypeDescriptor
 extends Descriptor
 {
-
 	@Override
 	public boolean o_Equals (
 		final @NotNull AvailObject object,
@@ -148,18 +147,6 @@ extends Descriptor
 	{
 		/* Check if I'm a supertype of the given object meta.  Redefined for
 		 * subclasses.
-		 */
-
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMeta)
-	{
-		/* Check if I'm a supertype of the given object meta meta.  Redefined
-		 * for subclasses.
 		 */
 
 		return false;
@@ -335,18 +322,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return object.typeIntersectionOfMeta(anObjectMetaMeta);
-	}
-
-	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
@@ -492,19 +467,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectMetaMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMetaMeta)
-	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.  Because type 'objectMeta' is an objectMetaMeta, not a
-		 * primitive type.
-		 */
-
-		return object.typeUnion(META.o());
-	}
-
-	@Override
 	public @NotNull AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEagerObjectType)
@@ -625,7 +587,6 @@ extends Descriptor
 		MAP_TYPE(TYPE, "META"),
 		META(TYPE, "META"),
 		CYCLIC_TYPE(META, "CYCLIC_TYPE"),
-		OBJECT_META_META(META, "META"),
 		CONTAINER_TYPE(TYPE, "META"),
 		CONTINUATION_TYPE(TYPE, "META"),
 		PRIMITIVE_TYPE(TYPE, "META"),
