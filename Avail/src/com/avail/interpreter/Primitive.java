@@ -2040,7 +2040,7 @@ public enum Primitive
 	 * ObjectTypeDescriptor object type} and {@linkplain
 	 * IntegerRangeTypeDescriptor range} of levels.
 	 */
-	prim66_CreateObjectMeta_objectType_levels(66, 1, CanFold)
+	prim66_CreateObjectMeta_objectType_levels(66, 2, CanFold)
 	{
 		@Override
 		public Result attempt (
