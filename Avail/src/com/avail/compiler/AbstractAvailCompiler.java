@@ -1276,7 +1276,7 @@ public abstract class AbstractAvailCompiler
 	 *             If compilation fails.
 	 */
 	private void parseModule (final @NotNull ResolvedModuleName qualifiedName)
-	throws AvailCompilerException
+		throws AvailCompilerException
 	{
 		final AvailRuntime runtime = interpreter.runtime();
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();

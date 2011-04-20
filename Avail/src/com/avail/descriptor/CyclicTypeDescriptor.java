@@ -118,6 +118,9 @@ extends TypeDescriptor
 		{
 			aStream.append(nativeName);
 		}
+		aStream.append('[');
+		aStream.append(object.hash());
+		aStream.append(']');
 	}
 
 	@Override

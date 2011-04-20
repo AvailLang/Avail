@@ -216,7 +216,7 @@ Method "false"                  is [privateFalse;] : privateFalseType;
 /* Totally raw bootstrap - deal with system failures. */
 
 Method "Crash_" is [finalClue : all |
-	Primitive 256 (unusedFailureCode : all);
+	Primitive 256;
 	
 	/*
 	 * Special case - primitive 256 does not require failure code.  If it did,

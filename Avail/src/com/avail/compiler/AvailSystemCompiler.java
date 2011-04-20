@@ -1898,36 +1898,53 @@ extends AbstractAvailCompiler
 			});
 			return;
 		}
-		final int primitive = token.literal().extractInt();
-		if (!interpreter.supportsPrimitive(primitive))
+		final int primitiveNumber = token.literal().extractInt();
+		if (!interpreter.supportsPrimitive(primitiveNumber))
 		{
 			afterPrimitiveKeyword.expected(
 				"a supported primitive number, not #"
-				+ Integer.toString(primitive));
+				+ Integer.toString(primitiveNumber));
 			return;
 		}
 
-		if (!interpreter.primitiveAcceptsThisManyArguments(primitive, argCount))
+		final Primitive prim = Primitive.byPrimitiveNumber(primitiveNumber);
+		if (!interpreter.primitiveAcceptsThisManyArguments(
+			primitiveNumber, argCount))
 		{
-			final Primitive prim = Primitive.byPrimitiveNumber(primitive);
 			afterPrimitiveKeyword.expected(new Generator<String>()
 			{
 				@Override
 				public String value ()
 				{
-					return "Primitive #" + Integer.toString(primitive) + " ("
-							+ prim.name() + ") to be passed "
-							+ Integer.toString(prim.argCount())
-							+ " arguments, not " + Integer.toString(argCount);
+					return
+						"Primitive #" + Integer.toString(primitiveNumber) + " ("
+						+ prim.name() + ") to be passed "
+						+ Integer.toString(prim.argCount())
+						+ " arguments, not " + Integer.toString(argCount);
 				}
 			});
 		}
 
 		final ParserState afterPrimitiveNumber =
 			afterPrimitiveKeyword.afterToken();
+		if (prim.hasFlag(Flag.CannotFail))
+		{
+			if (!afterPrimitiveNumber.peekToken(
+				SEMICOLON,
+				"; after infallible primitive declaration"))
+			{
+				return;
+			}
+
+			attempt(
+				afterPrimitiveNumber.afterToken(),
+				continuation,
+				primitiveNumber);
+		}
+
 		if (!afterPrimitiveNumber.peekToken(
 			OPEN_PARENTHESIS,
-			"open parenthesis after Primitive N declaration"))
+			"open parenthesis after fallible primitive number"))
 		{
 			return;
 		}
@@ -1963,7 +1980,7 @@ extends AbstractAvailCompiler
 					attempt(
 						afterCloseParenthesis.afterToken(),
 						continuation,
-						primitive);
+						primitiveNumber);
 				}
 			});
 	}

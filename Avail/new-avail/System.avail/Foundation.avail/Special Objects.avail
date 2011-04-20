@@ -87,9 +87,6 @@ Names
 	"module constant node",
 	"module variable node",
 	"natural number",
-	"object meta",
-	"object meta meta",
-	"object type",
 	"parse node",
 	"primitive metatype",
 	"process",
@@ -141,9 +138,6 @@ privateInteger                    ::= special object 17;
 privateIntegerMetatype            ::= special object 18;
 privateMapMetatype                ::= special object 19;
 privateMeta                       ::= special object 20;
-privateObjectMeta                 ::= special object 21;
-privateObjectMetaMeta             ::= special object 22;
-privateObjectType                 ::= special object 23;
 privatePrimitiveMetatype          ::= special object 24;
 privateProcess                    ::= special object 25;
 privateSet                        ::= special object 26;
@@ -516,36 +510,6 @@ Method "module variable node" is
 [
 	privateModuleVariableNode;
 ] : privatePrimitiveMetatype;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code object meta}.
- */
-Method "object meta" is
-[
-	privateObjectMeta;
-] : privateObjectMetaMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code object meta meta}.
- */
-Method "object meta meta" is
-[
-	privateObjectMetaMeta;
-] : privateMeta;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code object type}.
- */
-Method "object type" is
-[
-	privateObjectType;
-] : privateObjectMeta;
 
 /**
  * TODO: Really comment this!

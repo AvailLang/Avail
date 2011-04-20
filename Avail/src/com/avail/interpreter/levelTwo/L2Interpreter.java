@@ -744,7 +744,7 @@ implements L2OperationDispatcher
 			final AvailObject valueObject = cont.stackAt(cont.stackp());
 			final AvailObject closureType = cont.closure().code().closureType();
 			assert valueObject.isInstanceOfSubtypeOf(closureType.returnType())
-			: "Return type from method disagrees with declaration";
+				: "Return type from method disagrees with declaration";
 			// Necessary to avoid accidental destruction.
 			cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
 			AvailObject caller = cont.caller();

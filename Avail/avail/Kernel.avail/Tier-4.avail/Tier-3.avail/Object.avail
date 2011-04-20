@@ -85,12 +85,12 @@ Method "objectMeta*" is [
 
 Method "objectType of_" is [
 		om : objectMeta* |
-	Primitive 355 (failureCode : all);
+	Primitive 355;
 ] : objectMeta*;
 
 Method "meta levels of_" is [
 		om : objectMeta* |
-	Primitive 356 (failureCode : all);
+	Primitive 356;
 ] : integerType;
 
 Method "_meta levels_" is [
@@ -103,7 +103,7 @@ Method "_meta levels_" is [
 /* Conversions between maps and objectTypes. */
 
 Method "_as map" is [o : objectType |
-	Primitive 64 (failureCode : all);
+	Primitive 64;
 ] : fieldTypeMap;
 
 
