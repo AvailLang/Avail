@@ -813,7 +813,7 @@ extends AbstractAvailCompiler
 	 *            parsed.
 	 * @param arguments
 	 *            The list of block arguments.
-	 * @param primitive
+	 * @param primitiveNumber
 	 *            The primitive number
 	 * @param statements
 	 *            The list of statements.
@@ -825,7 +825,7 @@ extends AbstractAvailCompiler
 	void finishBlockThen (
 		final ParserState afterStatements,
 		final List<AvailObject> arguments,
-		final int primitive,
+		final int primitiveNumber,
 		final List<AvailObject> statements,
 		final AvailCompilerScopeStack scopeOutsideBlock,
 		final Con<AvailObject> continuation)
@@ -838,10 +838,8 @@ extends AbstractAvailCompiler
 		}
 
 		final ParserState afterClose = afterStatements.afterToken();
-		final Primitive thePrimitive = Primitive.byPrimitiveNumber(primitive);
-		final AvailObject primitiveResultType = thePrimitive != null
-			? thePrimitive.blockTypeRestriction().returnType()
-			: TERMINATES.o();
+		final Primitive thePrimitive =
+			Primitive.byPrimitiveNumber(primitiveNumber);
 		if (statements.isEmpty()
 			&& thePrimitive != null
 			&& !thePrimitive.hasFlag(Flag.CannotFail))
@@ -875,6 +873,16 @@ extends AbstractAvailCompiler
 			afterClose.position,
 			scopeOutsideBlock);
 
+		final List<AvailObject> argumentTypesList =
+			new ArrayList<AvailObject>(arguments.size());
+		for (AvailObject argument : arguments)
+		{
+			argumentTypesList.add(argument.declaredType());
+		}
+		final AvailObject implicitBlockType =
+			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				TupleDescriptor.fromList(argumentTypesList),
+				lastStatementType.value);
 		boolean blockTypeGood = true;
 		if (statements.size() > 0
 				&& statements.get(0).isInstanceOfSubtypeOf(LABEL_NODE.o()))
@@ -882,41 +890,34 @@ extends AbstractAvailCompiler
 			final AvailObject labelNode = statements.get(0);
 			final AvailObject labelClosureType =
 				labelNode.declaredType().closureType();
-			blockTypeGood = labelClosureType.numArgs() == arguments.size()
-				&& labelClosureType.returnType().equals(
-					lastStatementType.value);
-			for (int i = 1; blockTypeGood && i <= arguments.size(); i++)
-			{
-				if (!labelClosureType.argTypeAt(i).equals(
-					arguments.get(i - 1).declaredType()))
-				{
-					blockTypeGood = false;
-				}
-			}
+			blockTypeGood = labelClosureType.equals(implicitBlockType);
 		}
 
-		if (blockTypeGood)
+		if (!blockTypeGood)
+		{
+			afterClose.expected(
+				"label's declared type to exactly match "
+				+ "enclosing block's type");
+		}
+		else if (thePrimitive == null)
 		{
 			final AvailObject blockNode = BlockNodeDescriptor.newBlockNode(
 				arguments,
-				primitive,
+				primitiveNumber,
 				statements,
-				lastStatementType.value.typeUnion(primitiveResultType));
+				lastStatementType.value);
 			attempt(stateOutsideBlock, continuation, blockNode);
-		}
-		else
-		{
-			afterClose.expected(
-				"block with label to have return type void "
-				+ "(otherwise exiting would need to provide a value)");
 		}
 
 		if (!stateOutsideBlock.peekToken(
 			COLON,
-			"optional block return type declaration"))
+			thePrimitive != null
+				? "primitive block's mandatory return type declaration"
+				: "optional block return type declaration"))
 		{
 			return;
 		}
+
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			stateOutsideBlock.afterToken(),
 			TYPE.o(),
@@ -927,73 +928,80 @@ extends AbstractAvailCompiler
 					final ParserState afterReturnType,
 					final AvailObject returnType)
 				{
-					if (!primitiveResultType.isSubtypeOf(returnType))
+					final AvailObject explicitBlockType = ClosureTypeDescriptor
+						.closureTypeForArgumentTypesReturnType(
+							TupleDescriptor.fromList(argumentTypesList),
+							returnType);
+					if (thePrimitive != null)
 					{
-						afterReturnType.expected(
-							"primitive result type ("
-							+ primitiveResultType
-							+ ") to agree with the block's explicitly "
-							+ "declared result type ("
-							+ returnType
-							+ ")");
-						return;
-					}
-
-					if (thePrimitive != null
-						&& !thePrimitive.hasFlag(Flag.CannotFail)
-						&& !lastStatementType.value.isSubtypeOf(returnType))
-					{
-						afterReturnType.expected(new Generator<String>()
+						final AvailObject intrinsicType =
+							thePrimitive.blockTypeRestriction();
+						if (!intrinsicType.isSubtypeOf(explicitBlockType))
+						{
+							afterReturnType.expected(new Generator<String>()
 							{
 								@Override
 								public String value ()
 								{
 									return
-										"last statement's type \""
-										+ lastStatementType.value.toString()
-										+ "\" to agree with block's "
-										+ "declared result type \""
-										+ returnType.toString() + "\".";
+										"block type ("
+										+ explicitBlockType
+										+ ") to agree with primitive's "
+										+ "intrinsic type ("
+										+ intrinsicType
+										+ ")";
 								}
 							});
+							return;
+						}
+					}
+
+					if ((thePrimitive == null
+							|| !thePrimitive.hasFlag(Flag.CannotFail))
+						&& !lastStatementType.value.isSubtypeOf(returnType))
+					{
+						afterReturnType.expected(new Generator<String>()
+						{
+							@Override
+							public String value ()
+							{
+								return
+									"last statement's type ("
+									+ lastStatementType.value
+									+ ") to agree with block's "
+									+ "declared result type ("
+									+ returnType + ")";
+							}
+						});
 						return;
 					}
 
 					boolean blockTypeGood2 = true;
 					if (statements.size() > 0
-							&& statements.get(0).isInstanceOfSubtypeOf(
-								LABEL_NODE.o()))
+						&& statements.get(0).isInstanceOfSubtypeOf(
+							LABEL_NODE.o()))
 					{
 						final AvailObject labelNode = statements.get(0);
 						final AvailObject labelClosureType =
 							labelNode.declaredType().closureType();
-						blockTypeGood2 =
-							labelClosureType.numArgs() == arguments.size()
-							&& labelClosureType.returnType().equals(
-								lastStatementType.value);
-						for (int i = 1; blockTypeGood2 && i <= arguments.size(); i++)
-						{
-							if (!labelClosureType.argTypeAt(i).equals(
-								arguments.get(i - 1).declaredType()))
-							{
-								blockTypeGood2 = false;
-							}
-						}
+						blockTypeGood2 = labelClosureType.equals(
+							explicitBlockType);
 					}
 					if (blockTypeGood2)
 					{
 						final AvailObject blockNode =
 							BlockNodeDescriptor.newBlockNode(
 								arguments,
-								primitive,
+								primitiveNumber,
 								statements,
-								primitiveResultType.typeUnion(returnType));
+								returnType);
 						attempt(afterReturnType, continuation, blockNode);
 					}
 					else
 					{
 						stateOutsideBlock.expected(
-							"label's type to agree with block type");
+							"label's declared type to exactly match "
+							+ "enclosing block's declared type");
 					}
 				}
 			});

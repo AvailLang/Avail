@@ -33,10 +33,31 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ALL;
+import java.lang.ref.SoftReference;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
 
+/**
+ * A Level Two chunk represents an optimized implementation of a {@linkplain
+ * CompiledCodeDescriptor compiled code object}.  It keeps track of its
+ * dependent {@linkplain ImplementationSetDescriptor implementation sets}, and
+ * vice versa.  If one of the implementation sets that the chunk depends on
+ * changes its membership (a method is added, removed, or replaced), this chunk
+ * is automatically {@link IntegerSlots#VALIDITY invalidated}.
+ *
+ * <p>
+ * TODO: Since Avail-on-Java doesn't have its own garbage collector, there is no
+ * longer a mechanism to visit all chunks used by compiled code and
+ * continuations.  That means we can't determine when chunks can truly be
+ * removed and their indices reused.  At some point we should use direct
+ * references from compiled code objects and continuations to the chunks,
+ * combined with a {@linkplain Map Java map} of {@linkplain SoftReference soft
+ * references}.
+ * </p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L2ChunkDescriptor
 extends Descriptor
 {

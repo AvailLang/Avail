@@ -34,7 +34,43 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.interpreter.Primitive;
 
+/**
+ * Continuation types are the types of {@linkplain ContinuationDescriptor
+ * continuations}.  They contain information about the {@linkplain
+ * ClosureTypeDescriptor types of closure} that can appear on the top stack
+ * frame for a continuation of this type.
+ *
+ * <p>
+ * Continuations can be {@linkplain
+ * Primitive#prim56_RestartContinuationWithArguments_con_arguments restarted}
+ * with a new set of arguments, so continuation types are contravariant with
+ * respect to their closure types' argument types.  Surprisingly, continuation
+ * types are also contravariant with respect to their closure types' return
+ * types.  This is due to the capability to {@linkplain
+ * Primitive#prim57_ExitContinuationWithResult_con_result exit} a continuation
+ * with a specific value.
+ * </p>
+ *
+ * <p>
+ * TODO: Continuation types should be parameterizable with generalized closure
+ * types.  This would allow prim58 (restart with same args) to be performed even
+ * if the specific argument types were not known, but prim56 (restart with new
+ * args) would be forbidden.  Prim57 (Exit with value) would be unaffected.
+ * Make sure to update type computations and type compatibility tests
+ * appropriately to accommodate the contained generalized closure types.
+ * </p>
+ *
+ * <p>
+ * TODO: If/when closure types support checked exceptions we won't need to
+ * mention them in continuation types, since invoking a continuation in any way
+ * (restart, exit, resume) causes exception obligations/permissions to be
+ * instantly voided.
+ * </p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ContinuationTypeDescriptor
 extends TypeDescriptor
 {
@@ -43,6 +79,13 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The type of closure that this {@linkplain ContinuationTypeDescriptor
+		 * continuation type} supports.  Continuation types are contravariant
+		 * with respect to the closure type's argument types, and, surprisingly,
+		 * they are also contravariant with respect to the closure type's return
+		 * type.
+		 */
 		CLOSURE_TYPE
 	}
 
@@ -83,13 +126,18 @@ extends TypeDescriptor
 		return another.equalsContinuationType(object);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Continuation types compare for equality by comparing their closureTypes.
+	 * </p>
+	 */
 	@Override
 	public boolean o_EqualsContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Continuation types compare for equality by comparing their closureTypes.
-
 		if (object.sameAddressAs(aType))
 		{
 			return true;
@@ -101,8 +149,6 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return Types.CONTINUATION_TYPE.o();
 	}
 
@@ -110,8 +156,6 @@ extends TypeDescriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's hash value.
-
 		return object.closureType().hash() * 11 ^ 0x3E20409;
 	}
 
@@ -119,11 +163,6 @@ extends TypeDescriptor
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
 		return object.closureType().isHashAvailable();
 	}
 
@@ -141,35 +180,41 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
 		return aType.isSupertypeOfContinuationType(object);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Since the only things that can be done with continuations are to restart
+	 * them or to exit them, continuation subtypes must accept any values that
+	 * could be passed as arguments or as the return value to the supertype.
+	 * Therefore, continuation types must be contravariant with respect to the
+	 * contained closureType's arguments, and also contravariant with respect to
+	 * the contained closureType's result type.
+	 * </p>
+	 */
 	@Override
 	public boolean o_IsSupertypeOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		//  Since the only things that can be done with continuations are to restart them or to exit them,
-		//  continuation subtypes must accept any values that could be passed as arguments or as the
-		//  return value to the supertype.  Therefore, continuation types must be contravariant with respect
-		//  to the contained closureType's arguments, and also contravariant with respect to the contained
-		//  closureType's result type.
-
 		final AvailObject subClosureType = aContinuationType.closureType();
 		final AvailObject superClosureType = object.closureType();
 		if (subClosureType.numArgs() != superClosureType.numArgs())
 		{
 			return false;
 		}
-		if (!superClosureType.returnType().isSubtypeOf(subClosureType.returnType()))
+		if (!superClosureType.returnType().isSubtypeOf(
+			subClosureType.returnType()))
 		{
 			return false;
 		}
 		for (int i = 1, _end1 = subClosureType.numArgs(); i <= _end1; i++)
 		{
-			if (!superClosureType.argTypeAt(i).isSubtypeOf(subClosureType.argTypeAt(i)))
+			if (!superClosureType.argTypeAt(i).isSubtypeOf(
+				subClosureType.argTypeAt(i)))
 			{
 				return false;
 			}
@@ -182,8 +227,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -200,8 +243,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		final AvailObject closType1 = object.closureType();
 		final AvailObject closType2 = aContinuationType.closureType();
 		if (closType1.equals(closType2))
@@ -215,10 +256,12 @@ extends TypeDescriptor
 		final AvailObject intersection = ClosureTypeDescriptor.mutable().create(
 			closType1.numArgs());
 		AvailObject.lock(intersection);
-		intersection.returnType(closType1.returnType().typeUnion(closType2.returnType()));
+		intersection.returnType(
+			closType1.returnType().typeUnion(closType2.returnType()));
 		for (int i = 1, _end1 = closType1.numArgs(); i <= _end1; i++)
 		{
-			intersection.argTypeAtPut(i, closType1.argTypeAt(i).typeUnion(closType2.argTypeAt(i)));
+			intersection.argTypeAtPut(i, closType1.argTypeAt(i).typeUnion(
+				closType2.argTypeAt(i)));
 		}
 		intersection.hashOrZero(0);
 		AvailObject.unlock(intersection);
@@ -230,8 +273,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -248,8 +289,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		final AvailObject closType1 = object.closureType();
 		final AvailObject closType2 = aContinuationType.closureType();
 		if (closType1.equals(closType2))
@@ -263,10 +302,14 @@ extends TypeDescriptor
 		final AvailObject closureUnion = ClosureTypeDescriptor.mutable().create(
 			closType1.numArgs());
 		AvailObject.lock(closureUnion);
-		closureUnion.returnType(closType1.returnType().typeIntersection(closType2.returnType()));
+		closureUnion.returnType(
+			closType1.returnType().typeIntersection(closType2.returnType()));
 		for (int i = 1, _end1 = closType1.numArgs(); i <= _end1; i++)
 		{
-			closureUnion.argTypeAtPut(i, closType1.argTypeAt(i).typeIntersection(closType2.argTypeAt(i)));
+			closureUnion.argTypeAtPut(
+				i,
+				closType1.argTypeAt(i).typeIntersection(
+					closType2.argTypeAt(i)));
 		}
 		closureUnion.hashOrZero(0);
 		AvailObject.unlock(closureUnion);
@@ -297,7 +340,8 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link ContinuationTypeDescriptor}.
 	 */
-	private final static ContinuationTypeDescriptor mutable = new ContinuationTypeDescriptor(true);
+	private final static ContinuationTypeDescriptor mutable =
+		new ContinuationTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContinuationTypeDescriptor}.
@@ -312,7 +356,8 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link ContinuationTypeDescriptor}.
 	 */
-	private final static ContinuationTypeDescriptor immutable = new ContinuationTypeDescriptor(false);
+	private final static ContinuationTypeDescriptor immutable =
+		new ContinuationTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContinuationTypeDescriptor}.

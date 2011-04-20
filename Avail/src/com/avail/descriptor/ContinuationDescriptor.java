@@ -35,7 +35,36 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 
+/**
+ * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
+ * execution stack.  A running {@linkplain ProcessDescriptor process}
+ * conceptually operates by repeatedly replacing its continuation with a new one
+ * (i.e., one derived from the previous state by nybblecode execution rules),
+ * performing necessary side-effects as it does so.
+ *
+ * <p>
+ * A continuation can be {@linkplain
+ * Primitive#prim57_ExitContinuationWithResult_con_result exited}, which causes
+ * the current process's continuation to be replaced by the specified
+ * continuation's caller.  A return value is supplied to this caller.  A
+ * continuation can also be {@linkplain
+ * Primitive#prim56_RestartContinuationWithArguments_con_arguments restarted},
+ * either with a specified tuple of arguments or {@linkplain
+ * Primitive#prim58_RestartContinuation_con with the original arguments}.
+ * </p>
+ *
+ * <p>
+ * TODO: Support labels in arbitrary locations perhaps.  This would be the most
+ * general continuation type, above all the rest.  Its only supported operation
+ * would be a new Resume primitive that took no other arguments.
+ * </p>
+ *
+ * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ */
 public class ContinuationDescriptor
 extends Descriptor
 {
@@ -44,8 +73,26 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The index into the current continuation's {@linkplain
+		 * ObjectSlots#CLOSURE closure's} compiled code's
+		 * tuple of nybblecodes at which execution will next occur.
+		 */
 		PC,
+
+		/**
+		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
+		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
+		 * deepest it just abuts the last local variable.
+		 */
 		STACK_POINTER,
+
+		/**
+		 * An integer consisting of two unsigned shorts.  The high short is the
+		 * index of the {@linkplain L2ChunkDescriptor Level Two chunk} which can
+		 * be resumed directly to effect continued execution.  The low short is
+		 * the Level Two program counter at which to resume.
+		 */
 		HI_LEVEL_TWO_CHUNK_LOW_OFFSET
 	}
 
@@ -54,8 +101,28 @@ extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The continuation that invoked this one, or the {@link VoidDescriptor
+		 * void object} for the outermost continuation.  When a continuation is
+		 * not directly created by a {@linkplain L1Operation#L1Ext_doPushLabel
+		 * push-label instruction}, it will have a type pushed on it.  This type
+		 * is checked against any value that the callee attempts to return to
+		 * it.  This supports link-time type strengthening at call sites.
+		 */
 		CALLER,
+
+		/**
+		 * The {@linkplain ClosureDescriptor closure} being executed via this
+		 * continuation.
+		 */
 		CLOSURE,
+
+		/**
+		 * The slots allocated for locals, arguments, and stack entries.  The
+		 * arguments are first, then the locals, and finally the stack entries
+		 * (growing downwards from the top).  At its deepest, the stack slots
+		 * will abut the last local.
+		 */
 		FRAME_AT_
 	}
 
@@ -224,11 +291,6 @@ extends Descriptor
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
 		if (!object.closure().isHashAvailable())
 		{
 			return false;
@@ -251,19 +313,18 @@ extends Descriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
 
+	/**
+	 * Set both my chunk index and the offset into it.
+	 */
 	@Override
 	public void o_LevelTwoChunkIndexOffset (
 		final @NotNull AvailObject object,
 		final int index,
 		final int offset)
 	{
-		//  Set my chunk index and offset.
-
 		object.hiLevelTwoChunkLowOffset((index * 0x10000 + offset));
 	}
 
@@ -297,12 +358,17 @@ extends Descriptor
 			anObject);
 	}
 
+
+	/**
+	 * If immutable, copy the object as mutable, otherwise answer the original
+	 * mutable continuation.  This is used by the {@linkplain L2Interpreter
+	 * interpreter} to ensure it is always executing a mutable continuation and
+	 * is therefore always able to directly modify it.
+	 */
 	@Override
 	public @NotNull AvailObject o_EnsureMutable (
 		final @NotNull AvailObject object)
 	{
-		//  If immutable, copy the object as mutable, otherwise answer the original mutable.
-
 		return isMutable ? object : object.copyAsMutableContinuation();
 	}
 
@@ -324,43 +390,54 @@ extends Descriptor
 		return object.hiLevelTwoChunkLowOffset() & 0xFFFF;
 	}
 
+	/**
+	 * Answer the number of slots allocated for locals, arguments, and stack
+	 * entries.
+	 */
 	@Override
 	public int o_NumLocalsOrArgsOrStack (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of slots allocated for locals, arguments, and stack entries.
-
 		return object.objectSlotsCount() - numberOfFixedObjectSlots;
 	}
 
+	/**
+	 * The object was just scanned, and its pointers converted into valid
+	 * ToSpace pointers.  Do any follow-up activities specific to the kind of
+	 * object it is.
+	 *
+	 * <p>
+	 * In particular, a Continuation object needs to bring its L2Chunk object
+	 * into ToSpace and link it into the ring of saved chunks.  Chunks that are
+	 * no longer accessed can be reclaimed, or at least their entries can be
+	 * reclaimed, at flip time.
+	 * </p>
+	 */
 	@Override
 	public void o_PostFault (
 		final @NotNull AvailObject object)
 	{
-		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
-		//  Do any follow-up activities specific to the kind of object it is.
-		//
-		//  In particular, a Continuation object needs to bring its L2Chunk object into ToSpace and
-		//  link it into the ring of saved chunks.  Chunks that are no longer accessed can be reclaimed,
-		//  or at least their entries can be reclaimed, at flip time.
-
-		final AvailObject chunk = L2ChunkDescriptor.chunkFromId(object.levelTwoChunkIndex());
+		final AvailObject chunk = L2ChunkDescriptor.chunkFromId(
+			object.levelTwoChunkIndex());
 		if (chunk.isValid())
 		{
 			chunk.isSaved(true);
 		}
 		else
 		{
-			object.levelTwoChunkIndexOffset(L2ChunkDescriptor.indexOfUnoptimizedChunk(), L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+			object.levelTwoChunkIndexOffset(
+				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
+				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		}
 	}
 
+	/**
+	 * Answer a fresh mutable copy of the given continuation object.
+	 */
 	@Override
 	public @NotNull AvailObject o_CopyAsMutableContinuation (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a fresh mutable copy of the given continuation object.
-
 		if (isMutable)
 		{
 			object.makeSubobjectsImmutable();
@@ -373,7 +450,7 @@ extends Descriptor
 		result.pc(object.pc());
 		result.stackp(object.stackp());
 		result.hiLevelTwoChunkLowOffset(object.hiLevelTwoChunkLowOffset());
-		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
+		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
 		{
 			result.localOrArgOrStackAtPut(i, object.localOrArgOrStackAt(i));
 		}

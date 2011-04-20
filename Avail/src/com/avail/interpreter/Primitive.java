@@ -2025,7 +2025,7 @@ public enum Primitive
 						ObjectTypeDescriptor.objectTypeFromMap(
 							MapDescriptor.empty()),
 						IntegerRangeTypeDescriptor.create(
-							IntegerDescriptor.fromInt(2),
+							IntegerDescriptor.fromInt(1),
 							true,
 							InfinityDescriptor.positiveInfinity(),
 							true))),
@@ -2066,14 +2066,17 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
 				TupleDescriptor.from(
-					ObjectTypeDescriptor.objectTypeFromMap(
-						MapDescriptor.empty()),
+					ObjectMetaDescriptor.fromObjectTypeAndLevel(
+						ObjectTypeDescriptor.objectTypeFromMap(
+							MapDescriptor.empty()),
+						IntegerRangeTypeDescriptor.singleInteger(
+							IntegerDescriptor.one())),
 					INTEGER_TYPE.o()),
 				ObjectMetaDescriptor.fromObjectTypeAndLevel(
 					ObjectTypeDescriptor.objectTypeFromMap(
 						MapDescriptor.empty()),
 					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(1),
+						IntegerDescriptor.fromInt(2),
 						true,
 						InfinityDescriptor.positiveInfinity(),
 						true)));

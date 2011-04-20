@@ -91,7 +91,7 @@ Method "_evaluate with handler_" is [
 	   should just invoke the body. */
 	Primitive 200 (failureCode : all);
 	body();
-]
+] : void
 returns [bt : closureType, ht : closureType |
 	type union of bt result and ht result;
 ]
