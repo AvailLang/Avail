@@ -164,13 +164,13 @@ public final class AvailBuilder
 			compiler.extendedModules.size() + compiler.usedModules.size());
 		for (final AvailObject extendedModule : compiler.extendedModules)
 		{
-			importedModules.add(resolution.asSibling(extendedModule
-					.asNativeString()));
+			importedModules.add(resolution.asSibling(
+				extendedModule.tupleAt(1).asNativeString()));
 		}
 		for (final AvailObject usedModule : compiler.usedModules)
 		{
-			importedModules.add(resolution.asSibling(usedModule
-					.asNativeString()));
+			importedModules.add(resolution.asSibling(
+				usedModule.tupleAt(1).asNativeString()));
 		}
 
 		// Recurse into each previously unseen import.

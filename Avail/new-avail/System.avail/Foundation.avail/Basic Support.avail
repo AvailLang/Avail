@@ -77,14 +77,7 @@ Method "Exit the current thread because_" is
 [
 	postMortemHint : all |
 	
-	Primitive 256 (failureCode : all);
-	/* Ordinarily primitive failure code would be present here, but primitive
-	 * 256 does not require failure code. If it did, then we could never build
-	 * the primitive methods, because there is no direct language support for
-	 * bootstrapping the ability to terminate. Looping, exiting a process,
-	 * raising an exception, and resuming a continuation are all implemented via
-	 * primitives.
-	 */
+	Primitive 256;
 ] : terminates;
 
 /**
@@ -127,8 +120,8 @@ Method "Reject the current parse because_" is
  */
 Method "bootstrap:_doesn't allow_" is
 [
-	methodNames : set,
-	forbiddenSubexpressions : tuple |
+	methodNames : bootstrap: set of string,
+	forbiddenSubexpressions : bootstrap: tuple of set of string |
 
 	Primitive 255 (unusedFailureCode : all);
 	Exit the current thread because "system error: primitive 255 failed";

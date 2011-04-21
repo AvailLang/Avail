@@ -67,8 +67,7 @@ public abstract class AbstractAvailCompiler
 	 * The {@linkplain L2Interpreter interpreter} to use when evaluating
 	 * top-level expressions.
 	 */
-	@InnerAccess
-	final @NotNull L2Interpreter interpreter;
+	@InnerAccess final @NotNull L2Interpreter interpreter;
 
 	/**
 	 * The source text of the Avail {@linkplain ModuleDescriptor module}
@@ -80,49 +79,49 @@ public abstract class AbstractAvailCompiler
 	 * The complete {@linkplain List list} of {@linkplain TokenDescriptor
 	 * tokens} parsed from the source text.
 	 */
-	@InnerAccess
-	List<AvailObject> tokens;
+	@InnerAccess List<AvailObject> tokens;
 
 	/**
 	 * The position of the rightmost {@linkplain TokenDescriptor token} reached
 	 * by any parsing attempt.
 	 */
-	@InnerAccess
-	int greatestGuess;
+	@InnerAccess int greatestGuess;
 
 	/**
 	 * The {@linkplain List list} of {@linkplain String} {@linkplain Generator
 	 * generators} that describe what was expected (but not found) at the
 	 * {@linkplain #greatestGuess rightmost reached position}.
 	 */
-	@InnerAccess
-	final @NotNull List<Generator<String>> greatExpectations =
+	@InnerAccess final @NotNull List<Generator<String>> greatExpectations =
 		new ArrayList<Generator<String>>();
 
 	/** The memoization of results of previous parsing attempts. */
-	@InnerAccess
-	AvailCompilerFragmentCache fragmentCache;
+	@InnerAccess AvailCompilerFragmentCache fragmentCache;
 
 	/**
 	 * The {@linkplain ModuleDescriptor modules} extended by the module
-	 * undergoing compilation.
+	 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
+	 * 2-tuple} whose first element is a module {@linkplain ByteStringDescriptor
+	 * name} and whose second element is the {@linkplain SetDescriptor set} of
+	 * {@linkplain MethodSignatureDescriptor method} names to import (and
+	 * re-export).
 	 */
-	@InnerAccess
-	List<AvailObject> extendedModules;
+	@InnerAccess List<AvailObject> extendedModules;
 
 	/**
 	 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
-	 * compilation.
+	 * compilation. Each element is a {@linkplain TupleDescriptor 2-tuple} whose
+	 * first element is a module {@linkplain ByteStringDescriptor name} and
+	 * whose second element is the {@linkplain SetDescriptor set} of {@linkplain
+	 * MethodSignatureDescriptor method} names to import.
 	 */
-	@InnerAccess
-	List<AvailObject> usedModules;
+	@InnerAccess List<AvailObject> usedModules;
 
 	/**
 	 * The {@linkplain CyclicTypeDescriptor names} defined and exported by the
 	 * {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
-	@InnerAccess
-	List<AvailObject> exportedNames;
+	@InnerAccess List<AvailObject> exportedNames;
 
 	/**
 	 * The {@linkplain Continuation3 action} that should be performed repeatedly
@@ -626,9 +625,9 @@ public abstract class AbstractAvailCompiler
 	 * @return The parser state after the list of strings, or null if the list
 	 *         of strings is malformed.
 	 */
-	static ParserState parseStringLiterals (
-		final ParserState start,
-		final List<AvailObject> stringTokens)
+	private static @NotNull ParserState parseStringLiterals (
+		final @NotNull ParserState start,
+		final @NotNull List<AvailObject> stringTokens)
 	{
 		assert stringTokens.isEmpty();
 
@@ -651,6 +650,71 @@ public abstract class AbstractAvailCompiler
 			state = state.afterToken();
 			stringTokens.add(token.literal());
 		}
+		return state;
+	}
+
+	/**
+	 * Parse one or more {@linkplain ModuleDescriptor module} imports separated
+	 * by commas. This parse isn't backtracking like the rest of the grammar -
+	 * it's greedy. It considers any parse error to be unrecoverable (not a
+	 * backtrack).
+	 *
+	 * <p>
+	 * Return the {@link ParserState} after the imports if successful, otherwise
+	 * {@code null}. Populate the passed {@linkplain List list} with {@linkplain
+	 * TupleDescriptor 2-tuples}. Each tuple's first element is a module
+	 * {@linkplain ByteStringDescriptor name} and second element is the
+	 * collection of {@linkplain MethodSignatureDescriptor method} names to
+	 * import.
+	 * </p>
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param imports
+	 *            The initially empty list of imports to populate.
+	 * @return The parser state after the list of imports, or {@code null} if
+	 *         the list of imports is malformed.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	private static @NotNull ParserState parseImports (
+		final @NotNull ParserState start,
+		final @NotNull List<AvailObject> imports)
+	{
+		assert imports.isEmpty();
+
+		ParserState state = start;
+		do
+		{
+			final AvailObject token = state.peekStringLiteral();
+			if (token == null)
+			{
+				state.expected("another module name after comma");
+				return imports.isEmpty() ? state : null;
+			}
+			final AvailObject moduleName = token.literal();
+			state = state.afterToken();
+			if (state.peekToken(OPEN_PARENTHESIS))
+			{
+				state = state.afterToken();
+				final List<AvailObject> names = new ArrayList<AvailObject>();
+				state = parseStringLiterals(state, names);
+				if (!state.peekToken(
+					CLOSE_PARENTHESIS,
+					"a close parenthesis following imported method names"))
+				{
+					return null;
+				}
+				state = state.afterToken();
+				imports.add(TupleDescriptor.from(
+					moduleName, TupleDescriptor.fromList(names).asSet()));
+			}
+			else
+			{
+				imports.add(TupleDescriptor.from(moduleName));
+			}
+		}
+		while (state.peekToken(COMMA) && (state = state.afterToken()) != null);
+
 		return state;
 	}
 
@@ -1304,11 +1368,14 @@ public abstract class AbstractAvailCompiler
 				(long) token.start(),
 				sourceLength);
 		}
-		for (final AvailObject modName : extendedModules)
+		for (final AvailObject modImport : extendedModules)
 		{
-			assert modName.isString();
+			assert modImport.isTuple();
+			assert modImport.tupleSize() > 0 && modImport.tupleSize() < 3;
+
 			final ModuleName ref = resolver.canonicalNameFor(
-				qualifiedName.asSibling(modName.asNativeString()));
+				qualifiedName.asSibling(
+					modImport.tupleAt(1).asNativeString()));
 			final AvailObject availRef = ByteStringDescriptor.from(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
@@ -1319,10 +1386,21 @@ public abstract class AbstractAvailCompiler
 				reportError(state.value, qualifiedName);
 				assert false;
 			}
+
 			final AvailObject mod = runtime.moduleAt(availRef);
-			final AvailObject modNames = mod.names().keysAsSet();
+			final AvailObject modNames = modImport.tupleSize() == 2
+				? modImport.tupleAt(2)
+				: mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
 			{
+				if (!mod.names().hasKey(strName))
+				{
+					state.value.expected(
+						"module \"" + ref.qualifiedName()
+						+ "\" to export \"" + strName + "\"");
+					reportError(state.value, qualifiedName);
+					assert false;
+				}
 				final AvailObject trueNames = mod.names().mapAt(strName);
 				for (final AvailObject trueName : trueNames)
 				{
@@ -1330,11 +1408,14 @@ public abstract class AbstractAvailCompiler
 				}
 			}
 		}
-		for (final AvailObject modName : usedModules)
+		for (final AvailObject modImport : usedModules)
 		{
-			assert modName.isString();
+			assert modImport.isTuple();
+			assert modImport.tupleSize() > 0 && modImport.tupleSize() < 3;
+
 			final ModuleName ref = resolver.canonicalNameFor(
-				qualifiedName.asSibling(modName.asNativeString()));
+				qualifiedName.asSibling(
+					modImport.tupleAt(1).asNativeString()));
 			final AvailObject availRef = ByteStringDescriptor.from(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
@@ -1345,10 +1426,21 @@ public abstract class AbstractAvailCompiler
 				reportError(state.value, qualifiedName);
 				assert false;
 			}
+
 			final AvailObject mod = runtime.moduleAt(availRef);
-			final AvailObject modNames = mod.names().keysAsSet();
+			final AvailObject modNames = modImport.tupleSize() == 2
+				? modImport.tupleAt(2)
+				: mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
 			{
+				if (!mod.names().hasKey(strName))
+				{
+					state.value.expected(
+						"module \"" + ref.qualifiedName()
+						+ "\" to export \"" + strName + "\"");
+					reportError(state.value, qualifiedName);
+					assert false;
+				}
 				final AvailObject trueNames = mod.names().mapAt(strName);
 				for (final AvailObject trueName : trueNames)
 				{
@@ -1553,7 +1645,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 		state = state.afterToken();
-		state = parseStringLiterals(state, extendedModules);
+		state = parseImports(state, extendedModules);
 		if (state == null)
 		{
 			return null;
@@ -1564,7 +1656,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 		state = state.afterToken();
-		state = parseStringLiterals(state, usedModules);
+		state = parseImports(state, usedModules);
 		if (state == null)
 		{
 			return null;

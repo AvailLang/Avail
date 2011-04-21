@@ -227,18 +227,18 @@ public class AvailCompilerTest
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
-//	/**
-//	 * Test: Compile the Test module (of the new Avail library).
-//	 *
-//	 * @throws Exception
-//	 *         If an {@linkplain Exception exception} occurs.
-//	 */
-//	@Test
-//	public void newAvailTest () throws Exception
-//	{
-//		final long startTime = System.currentTimeMillis();
-//		compile(new ModuleName("/new-avail/Test"));
-//		System.err.printf(
-//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-//	}
+	/**
+	 * Test: Compile the Test module (of the new Avail library).
+	 *
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void newAvailTest () throws Exception
+	{
+		final long startTime = System.currentTimeMillis();
+		compile(new ModuleName("/new-avail/Test"));
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+	}
 }

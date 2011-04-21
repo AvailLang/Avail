@@ -40,24 +40,18 @@
  */
 System Module "Special Objects"
 Extends
+	"Origin" ("Method_is_")
 Uses
 	"Origin"
 Names
-	/* Re-exports from "Origin".
-	 *
-	 * This module contains the single connection to "Origin" that is present in
-	 * the library. Note that we explicitly do not re-export the special object 
-	 * binding method "special object_"; this bootstrap method is used only 
-	 * within this module to create public aliases for the special objects.
-	 */
-	"Method_is_",
-
 	/* Public methods. */
 	"all",
 	"argument node",
 	"assignment node",
 	"block node",
 	"boolean",
+	"bootstrap:set of string",
+	"bootstrap:tuple of set of string",
 	"character",
 	"closure",
 	"closure metatype",
@@ -175,6 +169,9 @@ privateModuleConstantNode         ::= special object 67;
 privateTrue                       ::= special object 70;
 privateFalse                      ::= special object 71;
 
+privateTupleOfSetOfString         ::= special object 74;
+privateSetOfString                ::= special object 75;
+
 /*
  * Now we provide nullary methods to return the special objects.
  */
@@ -228,6 +225,26 @@ Method "boolean" is
 [
 	privateBoolean;
 ] : privatePrimitiveMetatype;
+
+/**
+ * Answer the type of a set of strings, for bootstrapping only.
+ *
+ * @returns The type of a set of strings, for bootstrapping only.
+ */
+Method "bootstrap:set of string" is
+[
+	privateSetOfString;
+] : privateSetMetatype;
+
+/**
+ * Answer the type of a tuple of sets of strings, for bootstrapping only.
+ *
+ * @returns The type of a tuple of sets of strings, for bootstrapping only.
+ */
+Method "bootstrap:tuple of set of string" is
+[
+	privateTupleOfSetOfString;
+] : privateTupleMetatype;
 
 /**
  * Answer the type of an Avail character. Avail characters are Unicode.
