@@ -231,7 +231,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		{
 			argumentTypes.add(argDeclaration.declaredType());
 		}
-		return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+		return ClosureTypeDescriptor.create(
 			TupleDescriptor.fromList(argumentTypes),
 			object.resultType());
 	}

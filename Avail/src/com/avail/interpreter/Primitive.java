@@ -94,7 +94,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -128,7 +128,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -156,7 +156,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -188,7 +188,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -218,7 +218,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -248,7 +248,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -285,7 +285,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					BOOLEAN_TYPE.o(),
@@ -315,7 +315,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -342,7 +342,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -378,7 +378,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(CONTAINER.o()),
 				ALL.o());
 		}
@@ -405,7 +405,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTAINER.o(),
 					ALL.o()),
@@ -433,7 +433,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(CONTAINER.o()),
 				VOID_TYPE.o());
 		}
@@ -460,7 +460,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				CONTAINER_TYPE.o());
@@ -487,7 +487,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTAINER_TYPE.o()),
 				TYPE.o());
@@ -517,7 +517,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTAINER.o(),
 					CONTAINER.o()),
@@ -546,7 +546,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				CONTAINER.o());
@@ -574,7 +574,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTAINER.o()),
 				BOOLEAN_TYPE.o());
@@ -605,7 +605,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTAINER.o()),
 				ALL.o());
@@ -633,7 +633,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -661,7 +661,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -691,7 +691,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				VOID_TYPE.o());
@@ -720,7 +720,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				VOID_TYPE.o());
@@ -749,7 +749,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				VOID_TYPE.o());
@@ -775,7 +775,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
 				PROCESS.o());
 		}
@@ -803,7 +803,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o(),
 					CYCLIC_TYPE.o()),
@@ -838,7 +838,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o(),
 					CYCLIC_TYPE.o(),
@@ -868,7 +868,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),  // TODO Add Semaphore type
 				VOID_TYPE.o());
@@ -896,7 +896,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),  // TODO Add Semaphore type
 				VOID_TYPE.o());
@@ -922,7 +922,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				TYPE.o());
@@ -951,7 +951,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
@@ -982,7 +982,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
@@ -1012,7 +1012,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
@@ -1042,7 +1042,7 @@ public enum Primitive
 			}
 			assert returnType.isInstanceOfSubtypeOf(TYPE.o());
 			return interpreter.primitiveSuccess(
-				ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+				ClosureTypeDescriptor.create(
 					argTypes,
 					returnType));
 		}
@@ -1050,7 +1050,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -1082,7 +1082,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CLOSURE_TYPE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -1111,7 +1111,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CLOSURE_TYPE.o(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
@@ -1139,7 +1139,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					GENERALIZED_CLOSURE_TYPE.o()),
 				TYPE.o());
@@ -1171,7 +1171,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -1202,7 +1202,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				GENERALIZED_CLOSURE_TYPE.o());
@@ -1251,7 +1251,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					GeneralizedClosureTypeDescriptor.forReturnType(
 						VOID_TYPE.o()),
@@ -1292,13 +1292,13 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					BOOLEAN_TYPE.o(),
-					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						VOID_TYPE.o()),
-					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						VOID_TYPE.o())),
 				VOID_TYPE.o());
@@ -1333,10 +1333,10 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					BOOLEAN_TYPE.o(),
-					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						VOID_TYPE.o())),
 				VOID_TYPE.o());
@@ -1368,10 +1368,10 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					BOOLEAN_TYPE.o(),
-					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						BOOLEAN_TYPE.o())),
 				BOOLEAN_TYPE.o());
@@ -1416,7 +1416,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.wrapInnerType(CONTINUATION.o()),
 					CLOSURE.o(),
@@ -1448,7 +1448,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION_TYPE.o()),
 				CLOSURE_TYPE.o());
@@ -1476,7 +1476,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CLOSURE_TYPE.o()),
 				CONTINUATION_TYPE.o());
@@ -1508,7 +1508,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
 				CONTINUATION.o());
@@ -1534,7 +1534,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
 				CLOSURE.o());
@@ -1563,7 +1563,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
 				IntegerRangeTypeDescriptor.naturalNumbers());
@@ -1594,7 +1594,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
 				IntegerRangeTypeDescriptor.naturalNumbers());
@@ -1665,7 +1665,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o(),
 					TupleTypeDescriptor.mostGeneralTupleType()),
@@ -1724,7 +1724,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o(),
 					ALL.o()),
@@ -1778,7 +1778,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
 				TERMINATES.o());
@@ -1819,7 +1819,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
 				TupleTypeDescriptor.mostGeneralTupleType());
@@ -1848,7 +1848,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o(),
 					ALL.o()),
@@ -1877,7 +1877,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -1908,7 +1908,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectTypeDescriptor.objectTypeFromMap(
 						MapDescriptor.empty())),
@@ -1940,7 +1940,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -1973,7 +1973,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
@@ -2019,7 +2019,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
@@ -2064,7 +2064,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
@@ -2102,7 +2102,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PRIMITIVE_TYPE.o()),
 				TupleTypeDescriptor.stringTupleType());
@@ -2136,7 +2136,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
@@ -2176,7 +2176,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
@@ -2209,7 +2209,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ALL.o()),
@@ -2250,7 +2250,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2283,7 +2283,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CLOSURE.o()),
 				COMPILED_CODE.o());
@@ -2327,7 +2327,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CLOSURE.o()),
 				TupleTypeDescriptor.mostGeneralTupleType());
@@ -2356,7 +2356,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o(),
 					TupleTypeDescriptor.mostGeneralTupleType()),
@@ -2385,7 +2385,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2416,7 +2416,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2448,7 +2448,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2485,7 +2485,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2522,7 +2522,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2554,7 +2554,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.singleInteger(
@@ -2583,7 +2583,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2621,7 +2621,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o(),
 					TYPE.o(),
@@ -2652,7 +2652,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MAP_TYPE.o()),
 				INTEGER_TYPE.o());
@@ -2678,7 +2678,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MAP_TYPE.o()),
 				TYPE.o());
@@ -2704,7 +2704,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MAP_TYPE.o()),
 				TYPE.o());
@@ -2731,7 +2731,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2761,7 +2761,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2792,7 +2792,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2823,7 +2823,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2858,7 +2858,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2894,7 +2894,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2930,7 +2930,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2964,7 +2964,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2997,7 +2997,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -3027,7 +3027,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.singleInteger(
@@ -3056,7 +3056,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralTupleType()),
 				SetTypeDescriptor.setTypeForSizesContentType(
@@ -3086,7 +3086,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -3118,7 +3118,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o(),
 					TYPE.o()),
@@ -3148,7 +3148,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SET_TYPE.o()),
 				INTEGER_TYPE.o());
@@ -3174,7 +3174,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SET_TYPE.o()),
 				TYPE.o());
@@ -3202,7 +3202,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				CYCLIC_TYPE.o());
@@ -3228,7 +3228,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				TupleTypeDescriptor.stringTupleType());
@@ -3255,7 +3255,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralTupleType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -3283,7 +3283,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralTupleType(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
@@ -3316,7 +3316,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralTupleType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3348,7 +3348,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3377,7 +3377,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3413,7 +3413,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralTupleType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3443,7 +3443,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -3479,7 +3479,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o(),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3513,7 +3513,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o()),
 				INTEGER_TYPE.o());
@@ -3540,7 +3540,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3570,7 +3570,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o()),
 				TYPE.o());
@@ -3599,7 +3599,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
@@ -3645,7 +3645,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3683,7 +3683,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3717,7 +3717,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TUPLE_TYPE.o(),
 					TUPLE_TYPE.o()),
@@ -3766,7 +3766,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				CYCLIC_TYPE.o());
@@ -3824,7 +3824,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				CYCLIC_TYPE.o());
@@ -3873,7 +3873,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				CYCLIC_TYPE.o());
@@ -3928,7 +3928,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				VOID_TYPE.o());
@@ -4005,7 +4005,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -4071,7 +4071,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -4132,7 +4132,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4186,7 +4186,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4241,7 +4241,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -4293,7 +4293,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				VOID_TYPE.o());
@@ -4337,7 +4337,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				BOOLEAN_TYPE.o());
@@ -4381,7 +4381,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				BOOLEAN_TYPE.o());
@@ -4425,7 +4425,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				BOOLEAN_TYPE.o());
@@ -4469,7 +4469,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				BOOLEAN_TYPE.o());
@@ -4518,7 +4518,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -4567,7 +4567,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				VOID_TYPE.o());
@@ -4594,7 +4594,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4622,7 +4622,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4650,7 +4650,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4678,7 +4678,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4705,7 +4705,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -4735,7 +4735,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				CLOSURE_TYPE.o());
@@ -4763,7 +4763,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				IntegerRangeTypeDescriptor.unsignedShorts());
@@ -4810,7 +4810,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					COMPILED_CODE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -4865,7 +4865,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -4906,12 +4906,12 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						VOID_TYPE.o()),
-					ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(
 							TERMINATES.o()),
 						VOID_TYPE.o())),
@@ -4946,7 +4946,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				TERMINATES.o());
@@ -4976,7 +4976,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE_TREE.o()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5009,7 +5009,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE_TREE.o()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5043,7 +5043,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5077,7 +5077,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5108,7 +5108,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				CYCLIC_TYPE.o());
@@ -5136,7 +5136,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -5172,7 +5172,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				SetTypeDescriptor.setTypeForSizesContentType(
@@ -5203,7 +5203,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				BOOLEAN_TYPE.o());
@@ -5231,7 +5231,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -5264,7 +5264,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
 				CLOSURE_TYPE.o());
@@ -5292,7 +5292,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
 				CLOSURE.o());
@@ -5320,7 +5320,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
 				GeneralizedClosureTypeDescriptor.forReturnType(
@@ -5349,7 +5349,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
 				GeneralizedClosureTypeDescriptor.forReturnType(
@@ -5380,7 +5380,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				IMPLEMENTATION_SET.o());
@@ -5409,7 +5409,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IMPLEMENTATION_SET.o()),
 				CYCLIC_TYPE.o());
@@ -5454,7 +5454,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				ALL.o());
@@ -5490,7 +5490,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				CYCLIC_TYPE.o());
@@ -5526,7 +5526,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					GeneralizedClosureTypeDescriptor.forReturnType(
@@ -5567,7 +5567,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.unsignedShorts()),
 				BOOLEAN_TYPE.o());
@@ -5602,7 +5602,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					CLOSURE_TYPE.o(),
@@ -5638,7 +5638,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					CLOSURE_TYPE.o()),
@@ -5668,7 +5668,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					GeneralizedClosureTypeDescriptor.forReturnType(
@@ -5705,7 +5705,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					GeneralizedClosureTypeDescriptor.forReturnType(
@@ -5767,7 +5767,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -5807,7 +5807,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				TERMINATES.o());
@@ -5837,7 +5837,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
 				VOID_TYPE.o());
 		}
@@ -5864,7 +5864,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				VOID_TYPE.o());
@@ -5893,7 +5893,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ALL.o()),
 				TupleTypeDescriptor.stringTupleType());
@@ -5933,7 +5933,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
 				CYCLIC_TYPE.o());
 		}
@@ -5967,7 +5967,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -6017,7 +6017,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -6070,7 +6070,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -6101,7 +6101,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o()),
 				CLOSURE_TYPE.o());
@@ -6164,7 +6164,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CYCLIC_TYPE.o(),
 					TupleTypeDescriptor.mostGeneralTupleType()),
@@ -6196,7 +6196,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -6231,7 +6231,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					INTEGER_TYPE.o(),
 					IntegerRangeTypeDescriptor.integers(),
@@ -6261,7 +6261,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
 				BOOLEAN_TYPE.o());
 		}
@@ -6291,7 +6291,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6323,7 +6323,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6355,7 +6355,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6391,7 +6391,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6422,7 +6422,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6453,7 +6453,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6483,7 +6483,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o()),
 				FLOAT.o());
@@ -6513,7 +6513,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o()),
 				FLOAT.o());
@@ -6550,7 +6550,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6608,7 +6608,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -6662,7 +6662,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers()),
 				FLOAT.o());
@@ -6695,7 +6695,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					IntegerRangeTypeDescriptor.integers()),
@@ -6727,7 +6727,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -6759,7 +6759,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -6791,7 +6791,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -6827,7 +6827,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -6858,7 +6858,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -6889,7 +6889,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -6919,7 +6919,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o()),
 				DOUBLE.o());
@@ -6948,7 +6948,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o()),
 				DOUBLE.o());
@@ -6985,7 +6985,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7041,7 +7041,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -7106,7 +7106,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers()),
 				DOUBLE.o());
@@ -7139,7 +7139,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					IntegerRangeTypeDescriptor.integers()),
@@ -7169,7 +7169,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CHARACTER.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -7198,7 +7198,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.wholeNumbers()),
 				CHARACTER.o());
@@ -7274,7 +7274,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o(),
 					PARSE_NODE.o()),
@@ -7304,7 +7304,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					PARSE_NODE.o()),
 				TYPE.o());
@@ -7335,7 +7335,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				TERMINATES.o());
@@ -7398,7 +7398,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o(),
 					PARSE_NODE.o()),
@@ -7442,7 +7442,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o()),
 				REFERENCE_NODE.o());
@@ -7472,7 +7472,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(
@@ -7512,7 +7512,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectMetaDescriptor.fromObjectTypeAndLevel(
 						ObjectTypeDescriptor.objectTypeFromMap(

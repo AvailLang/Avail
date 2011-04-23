@@ -6271,4 +6271,22 @@ implements Iterable<AvailObject>
 	{
 		descriptor().o_ObjectMetaLevels(this, level);
 	}
+
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject checkedExceptions ()
+	{
+		return descriptor().o_CheckedExceptions(this);
+	}
+
+
+	/**
+	 * @param exceptionSet
+	 */
+	public void checkedExceptions (final @NotNull AvailObject exceptionSet)
+	{
+		descriptor().o_CheckedExceptions(this, exceptionSet);
+	}
 }

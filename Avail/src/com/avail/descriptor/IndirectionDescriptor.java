@@ -56,6 +56,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * takes place.  If the objects are found to be equal, one of them is mutated
  * into an indirection (by replacing its descriptor with an {@link
  * IndirectionDescriptor}) to cause subsequent comparisons to be faster.
+ * </p>
  * <p>
  * When Avail has had its own garbage collector over the years, it has been
  * possible to strip off indirections during a suitable level of garbage
@@ -65,6 +66,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * a set, causing <em>all</em> equal objects in that generation to be compared
  * against each other.  So not only does this mechanism save time, it also saves
  * space.
+ * </p>
  * <p>
  * Of course, the cost of traversing indirections, and even just of descriptors
  * may be significant.  That's a complexity price that's paid once, with
@@ -73,6 +75,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * optimizations can be replaced with expression folding, dynamic inlining,
  * object escape analysis, instance-specific optimizations, and a plethora of
  * other just-in-time optimizations.
+ * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -4585,5 +4588,20 @@ extends AbstractDescriptor
 		final @NotNull AvailObject level)
 	{
 		o_Traversed(object).objectMetaLevels(level);
+	}
+
+	@Override
+	public @NotNull AvailObject o_CheckedExceptions (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).checkedExceptions();
+	}
+
+	@Override
+	public void o_CheckedExceptions (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject exceptionSet)
+	{
+		o_Traversed(object).checkedExceptions(exceptionSet);
 	}
 }

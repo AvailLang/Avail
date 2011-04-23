@@ -193,7 +193,7 @@ public class L1InstructionWriter
 			argumentTypes.size(),
 			localTypes.size(),
 			stackTracker.maxDepth(),
-			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			ClosureTypeDescriptor.create(
 				TupleDescriptor.fromList(argumentTypes),
 				returnType),
 			primitiveNumber,

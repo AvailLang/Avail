@@ -95,7 +95,8 @@ public class SetDescriptor extends Descriptor
 			{
 				aStream.append(", ");
 			}
-			tuple.tupleAt(i).printOnAvoidingIndent(aStream, recursionList, indent + 1);
+			tuple.tupleAt(i).printOnAvoidingIndent(
+				aStream, recursionList, indent + 1);
 		}
 		aStream.append('}');
 	}

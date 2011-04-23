@@ -5220,4 +5220,17 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract @NotNull AvailObject o_ObjectMetaLevels (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 */
+	public abstract @NotNull AvailObject o_CheckedExceptions (
+		@NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_CheckedExceptions (
+		@NotNull AvailObject object, @NotNull AvailObject value);
 }

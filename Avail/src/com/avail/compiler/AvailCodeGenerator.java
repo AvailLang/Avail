@@ -223,7 +223,7 @@ public class AvailCodeGenerator
 			_numArgs,
 			_varMap.size() - _numArgs,
 			_maxDepth,
-			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			ClosureTypeDescriptor.create(
 				argsTuple,
 				_resultType),
 			_primitive,

@@ -880,7 +880,7 @@ extends AbstractAvailCompiler
 			argumentTypesList.add(argument.declaredType());
 		}
 		final AvailObject implicitBlockType =
-			ClosureTypeDescriptor.closureTypeForArgumentTypesReturnType(
+			ClosureTypeDescriptor.create(
 				TupleDescriptor.fromList(argumentTypesList),
 				lastStatementType.value);
 		boolean blockTypeGood = true;
@@ -929,7 +929,7 @@ extends AbstractAvailCompiler
 					final AvailObject returnType)
 				{
 					final AvailObject explicitBlockType = ClosureTypeDescriptor
-						.closureTypeForArgumentTypesReturnType(
+						.create(
 							TupleDescriptor.fromList(argumentTypesList),
 							returnType);
 					if (thePrimitive != null)

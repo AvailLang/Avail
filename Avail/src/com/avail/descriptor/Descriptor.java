@@ -7495,7 +7495,8 @@ extends AbstractDescriptor
 	{
 		// Answer whether object is an instance of a subtype of aType.  Don't
 		// generate an approximate type and do the comparison, because the
-			return object.exactType().isSubtypeOf(aType);
+		// approximate type will simply send this message to the object.
+		return object.exactType().isSubtypeOf(aType);
 	}
 
 	/**
@@ -8841,6 +8842,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public @NotNull AvailObject o_ObjectMetaLevels (
+		final @NotNull AvailObject object)
+	{
+		subclassResponsibility("o_ObjectMetaLevel");
+		return null;
+	}
+
+	@Override
 	public void o_ObjectMetaLevels (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -8849,10 +8858,18 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ObjectMetaLevels (
+	public @NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
-		subclassResponsibility("o_ObjectMetaLevel");
+		subclassResponsibility("o_RaiseType");
 		return null;
+	}
+
+	@Override
+	public void o_CheckedExceptions (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		subclassResponsibility("o_RaiseType");
 	}
 }
