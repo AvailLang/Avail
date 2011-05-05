@@ -57,3 +57,20 @@ Assert integer range [0..3] times [-4..-2] = [-12..0];
 Assert integer range [-3..0] times [-4..-2] = [0..12];
 Assert integer range 0 type times -INF type = terminates;
 Assert integer range 0 type times INF type = terminates;
+
+Method "phony_+_" is
+[
+	a : extended integer,
+	b : extended integer
+|
+	Primitive 1 (failureReason : string);
+	Print failureReason;
+	Print "Answering 0 instead.";
+	0;
+] : extended integer;
+
+Assert phony 1 + 2 = 3;
+Assert phony 2 + 2 = 4;
+Assert phony INF + INF = INF;
+Assert phony -INF + -INF = -INF;
+Assert phony INF + -INF = 0;
