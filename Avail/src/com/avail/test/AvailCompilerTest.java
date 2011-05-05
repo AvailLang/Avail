@@ -106,7 +106,7 @@ public class AvailCompilerTest
 	public void initializeAllWellKnownObjects ()
 	throws RenamesFileParserException
 	{
-		Primitive.clearBlockTypeRestrictions();
+		Primitive.clearCachedData();
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
 		resolver = new RenamesFileParser(new StringReader(""), roots).parse();

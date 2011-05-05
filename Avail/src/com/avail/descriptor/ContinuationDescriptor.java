@@ -32,8 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -151,7 +150,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_LocalOrArgOrStackAt (
+	public @NotNull AvailObject o_ArgOrLocalOrStackAt (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
@@ -159,7 +158,7 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_LocalOrArgOrStackAtPut (
+	public void o_ArgOrLocalOrStackAtPut (
 		final @NotNull AvailObject object,
 		final int subscript,
 		final @NotNull AvailObject value)
@@ -183,6 +182,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
+		assert value > 0; //TODO: Remove safety check
 		object.integerSlotPut(IntegerSlots.STACK_POINTER, value);
 	}
 
@@ -254,10 +254,10 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
+		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			if (!object.localOrArgOrStackAt(i)
-					.equals(aContinuation.localOrArgOrStackAt(i)))
+			if (!object.argOrLocalOrStackAt(i)
+					.equals(aContinuation.argOrLocalOrStackAt(i)))
 			{
 				return false;
 			}
@@ -280,9 +280,9 @@ extends Descriptor
 		int h = 0x593599A;
 		h ^= object.caller().hash();
 		h = h + object.closure().hash() + object.pc() * object.stackp();
-		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
+		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			h = h * 23 + 0x221C9 ^ object.localOrArgOrStackAt(i).hash();
+			h = h * 23 + 0x221C9 ^ object.argOrLocalOrStackAt(i).hash();
 		}
 		return h;
 	}
@@ -299,9 +299,9 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.numLocalsOrArgsOrStack(); i <= _end1; i++)
+		for (int i = 1, _end1 = object.numArgsAndLocalsAndStack(); i <= _end1; i++)
 		{
-			if (!object.localOrArgOrStackAt(i).isHashAvailable())
+			if (!object.argOrLocalOrStackAt(i).isHashAvailable())
 			{
 				return false;
 			}
@@ -391,14 +391,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the number of slots allocated for locals, arguments, and stack
+	 * Answer the number of slots allocated for arguments, locals, and stack
 	 * entries.
 	 */
 	@Override
-	public int o_NumLocalsOrArgsOrStack (
+	public short o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlotsCount() - numberOfFixedObjectSlots;
+		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
 	}
 
 	/**
@@ -450,9 +450,9 @@ extends Descriptor
 		result.pc(object.pc());
 		result.stackp(object.stackp());
 		result.hiLevelTwoChunkLowOffset(object.hiLevelTwoChunkLowOffset());
-		for (int i = object.numLocalsOrArgsOrStack(); i >= 1; i--)
+		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			result.localOrArgOrStackAtPut(i, object.localOrArgOrStackAt(i));
+			result.argOrLocalOrStackAtPut(i, object.argOrLocalOrStackAt(i));
 		}
 		return result;
 	}
@@ -482,6 +482,46 @@ extends Descriptor
 		final int startingChunkIndex,
 		final @NotNull List<AvailObject> args)
 	{
+		final AvailObject code = closure.code();
+		final List<AvailObject> locals = new ArrayList<AvailObject>(
+			code.numLocals());
+		final int nArgs = args.size();
+		assert nArgs == code.numArgs();
+		final int nLocals = code.numLocals();
+		for (int i = 1; i <= nLocals; i++)
+		{
+			locals.add(
+				ContainerDescriptor.forOuterType(
+					code.localTypeAt(i)));
+		}
+		return create(
+			closure,
+			caller,
+			startingChunkIndex,
+			args,
+			locals);
+	}
+
+	/**
+	 * Create a new continuation with the given data.  The continuation should
+	 * represent the state upon entering the new context - i.e., set the pc to
+	 * the first instruction (skipping the primitive indicator if necessary),
+	 * clear the stack, and set up all local variables.
+	 *
+	 * @param closure The closure being invoked.
+	 * @param caller The calling continuation.
+	 * @param startingChunkIndex The index of the level two chunk to invoke.
+	 * @param args The {@link List} of arguments
+	 * @param locals The {@link List} of (non-argument) local variables.
+	 * @return The new continuation.
+	 */
+	public static AvailObject create (
+		final @NotNull AvailObject closure,
+		final @NotNull AvailObject caller,
+		final int startingChunkIndex,
+		final @NotNull List<AvailObject> args,
+		final @NotNull List<AvailObject> locals)
+	{
 		final ContinuationDescriptor descriptor = mutable();
 		final AvailObject code = closure.code();
 		final AvailObject cont = descriptor.create(
@@ -494,27 +534,24 @@ extends Descriptor
 		cont.hiLevelTwoChunkLowOffset((startingChunkIndex << 16) + 1);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			cont.localOrArgOrStackAtPut(i, VoidDescriptor.voidObject());
+			cont.argOrLocalOrStackAtPut(i, VoidDescriptor.voidObject());
 		}
 		//  Set up arguments...
 		final int nArgs = args.size();
-		if (nArgs != code.numArgs())
-		{
-			error("Wrong number of arguments");
-			return VoidDescriptor.voidObject();
-		}
+		assert nArgs == code.numArgs();
 		for (int i = 1; i <= nArgs; i++)
 		{
 			//  arguments area
-			cont.localOrArgOrStackAtPut(i, args.get(i - 1));
+			cont.argOrLocalOrStackAtPut(i, args.get(i - 1));
 		}
-		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
+		final int nLocals = locals.size();
+		assert nLocals == code.numLocals();
+		for (int i = 1; i <= nLocals; i++)
 		{
 			//  non-argument locals
-			cont.localOrArgOrStackAtPut(
+			cont.argOrLocalOrStackAtPut(
 				nArgs + i,
-				ContainerDescriptor.forOuterType(
-					code.localTypeAt(i)));
+				locals.get(i));
 		}
 		return cont;
 	}

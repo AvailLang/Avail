@@ -319,7 +319,9 @@ extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
-		final int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int word = object.integerSlotAt(
+			IntegerSlots.RAW_QUAD_AT_,
+			wordIndex);
 		final int shift = (nybbleIndex - 1 & 7) * 4;
 		return (byte) (word>>>shift & 0x0F);
 	}

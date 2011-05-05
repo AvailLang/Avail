@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CreateVariableInstruction.java
+ * interpreter/levelTwo/instruction/L2InterpretOneInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,81 +32,68 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateVariableTypeConstant_destObject_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
+import com.avail.descriptor.L2ChunkDescriptor;
+import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
+import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
- * {@code L2CreateVariableInstruction} creates a new {@linkplain
- * ContainerDescriptor container} given a statically determined {@linkplain
- * TypeDescriptor type}.
+ * {@code L2InterpretOneInstruction} resides solely in the {@linkplain
+ * L2Translator#createChunkForFirstInvocation() default} {@linkplain
+ * L2ChunkDescriptor chunk} and exists to simulate a single {@linkplain
+ * L1Instruction level one Avail instruction}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2CreateVariableInstruction
+public final class L2InterpretOneInstructionAndBranchBackIfNoInterrupt
 extends L2Instruction
 {
 	/**
-	 * The constant {@linkplain TypeDescriptor type} with which the {@linkplain
-	 * ContainerDescriptor container} should be created.
-	 */
-	private final @NotNull AvailObject constantType;
-
-	/**
-	 * The {@linkplain L2ObjectRegister register} into which the new {@linkplain
-	 * ContainerDescriptor container} will be written.
-	 */
-	private final @NotNull L2ObjectRegister destinationRegister;
-
-	/**
-	 * Construct a new {@link L2CreateVariableInstruction}.
+	 * {@inheritDoc}
 	 *
-	 * @param constantType
-	 *        The constant {@linkplain TypeDescriptor type} with which the
-	 *        {@linkplain ContainerDescriptor variable} should be created.
-	 * @param destinationRegister
-	 *        The {@linkplain L2ObjectRegister register} into which the new
-	 *        {@linkplain ContainerDescriptor variable} will be written.
+	 * <p>
+	 * Note that this should never be produced by the {@linkplain L2Translator
+	 * optimizer}, as its existence and purpose are restricted to the
+	 * {@linkplain L2Translator#createChunkForFirstInvocation() default}
+	 * {@linkplain L2ChunkDescriptor chunk}.
+	 * </p>
 	 */
-	public L2CreateVariableInstruction (
-		final @NotNull AvailObject constantType,
-		final @NotNull L2ObjectRegister destinationRegister)
-	{
-		this.constantType = constantType;
-		this.destinationRegister = destinationRegister;
-	}
-
 	@Override
 	public @NotNull List<L2Register> sourceRegisters ()
 	{
 		return Collections.emptyList();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Ignore the {@linkplain L2Interpreter#callerRegister() caller register},
+	 * as it is implicit in the {@linkplain
+	 * L2InterpretOneInstructionAndBranchBackIfNoInterrupt instruction}.
+	 * </p>
+	 */
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
-		return Collections.<L2Register>singletonList(destinationRegister);
+		return Collections.emptyList();
 	}
 
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitL2Operation(
-			L2_doCreateVariableTypeConstant_destObject_);
-		codeGenerator.emitLiteral(constantType);
-		codeGenerator.emitObjectRegister(destinationRegister);
+			L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt);
 	}
 
 	@Override
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  We know the exact type...
-		translator.registerTypeAtPut(destinationRegister, constantType);
-		//  ...but the instance is new so it can't be a constant.
-		translator.removeConstantForRegister(destinationRegister);
+		// No real optimization should ever be done near this wordcode.
+		// Do nothing.
 	}
 }

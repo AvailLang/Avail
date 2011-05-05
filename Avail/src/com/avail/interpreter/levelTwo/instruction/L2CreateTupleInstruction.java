@@ -101,9 +101,9 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_.ordinal());
-		codeGenerator.emitWord(sourceVector.registers().size());
+		codeGenerator.emitL2Operation(
+			L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_);
+		codeGenerator.emitImmediate(sourceVector.registers().size());
 		codeGenerator.emitVector(sourceVector);
 		codeGenerator.emitObjectRegister(destinationRegister);
 	}

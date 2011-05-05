@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doAttemptPrimitive_withArguments_result_ifFail_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doAttemptPrimitive_withArguments_result_failure_ifFail_;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.Primitive;
@@ -65,6 +65,13 @@ extends L2Instruction
 	private final @NotNull L2ObjectRegister destinationRegister;
 
 	/**
+	 * The {@linkplain L2ObjectRegister register} to which the failure output
+	 * of the {@linkplain Primitive primitive} will be written in the event of
+	 * failure.
+	 */
+	private final @NotNull L2ObjectRegister failureValueRegister;
+
+	/**
 	 * The {@linkplain L2LabelInstruction target} to which execution should jump
 	 * in the event that the {@linkplain Primitive primitive} fails.
 	 */
@@ -74,28 +81,34 @@ extends L2Instruction
 	 * Construct a new {@link L2AttemptPrimitiveInstruction}.
 	 *
 	 * @param primitiveNumber
-	 *        The {@linkplain Primitive primitive} number.
+	 *            The {@linkplain Primitive primitive} number.
 	 * @param primitiveArguments
-	 *        The {@linkplain L2RegisterVector arguments} to the {@linkplain
-	 *        Primitive primitive}.
+	 *            The {@linkplain L2RegisterVector arguments} to the {@linkplain
+	 *            Primitive primitive}.
 	 * @param destinationRegister
-	 *        The {@linkplain L2ObjectRegister register} to which the result of
-	 *        the {@linkplain Primitive primitive} will be written in the event
-	 *        of success.
+	 *            The {@linkplain L2ObjectRegister register} to which the result
+	 *            of the {@linkplain Primitive primitive} will be written in the
+	 *            event of success.
+	 * @param failureValueRegister
+	 *            The {@linkplain L2ObjectRegister register} to which the
+	 *            failure output of the {@linkplain Primitive primitive} will be
+	 *            written in the event of failure.
 	 * @param failureLabel
-	 *        The {@linkplain L2LabelInstruction target} to which execution
-	 *        should jump in the event that the {@linkplain Primitive primitive}
-	 *        fails.
+	 *            The {@linkplain L2LabelInstruction target} to which execution
+	 *            should jump in the event that the {@linkplain Primitive
+	 *            primitive} fails.
 	 */
 	public L2AttemptPrimitiveInstruction (
 			final int primitiveNumber,
 			final L2RegisterVector primitiveArguments,
 			final L2ObjectRegister destinationRegister,
+			final L2ObjectRegister failureValueRegister,
 			final L2LabelInstruction failureLabel)
 	{
 		this.primitiveNumber = primitiveNumber;
 		this.primitiveArguments = primitiveArguments;
 		this.destinationRegister = destinationRegister;
+		this.failureValueRegister = failureValueRegister;
 		this.failureLabel = failureLabel;
 	}
 
@@ -118,18 +131,22 @@ extends L2Instruction
 	@Override
 	public @NotNull List<L2Register> destinationRegisters ()
 	{
-		return Collections.<L2Register>singletonList(destinationRegister);
+		List<L2Register> result = new ArrayList<L2Register>(2);
+		result.add(destinationRegister);
+		result.add(failureValueRegister);
+		return result;
 	}
 
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doAttemptPrimitive_withArguments_result_ifFail_.ordinal());
-		codeGenerator.emitWord(primitiveNumber);
+		codeGenerator.emitL2Operation(
+			L2_doAttemptPrimitive_withArguments_result_failure_ifFail_);
+		codeGenerator.emitPrimitiveNumber(primitiveNumber);
 		codeGenerator.emitVector(primitiveArguments);
 		codeGenerator.emitObjectRegister(destinationRegister);
-		codeGenerator.emitWord(failureLabel.offset());
+		codeGenerator.emitObjectRegister(failureValueRegister);
+		codeGenerator.emitWordcodeOffsetOf(failureLabel);
 	}
 
 	@Override

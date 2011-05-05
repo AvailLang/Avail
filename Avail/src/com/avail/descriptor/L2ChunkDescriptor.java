@@ -508,7 +508,7 @@ extends Descriptor
 	static void createWellKnownObjects ()
 	{
 		AvailObject head;
-		head = L2ChunkDescriptor.allocateIndexCodeLiteralsVectorsNumObjectsNumIntegersNumFloatsWordcodesContingentImpSets(
+		head = L2ChunkDescriptor.allocate(
 			false,
 			VoidDescriptor.voidObject(),
 			Collections.<AvailObject>emptyList(),
@@ -571,12 +571,12 @@ extends Descriptor
 
 	public static int offsetToContinueUnoptimizedChunk ()
 	{
-		return 4;
+		return 3;
 	}
 
 	public static int offsetToPauseUnoptimizedChunk ()
 	{
-		return 5;
+		return 4;
 	}
 
 	public static int countdownForInvalidatedCode ()
@@ -586,7 +586,7 @@ extends Descriptor
 
 	public static int countdownForNewCode ()
 	{
-		return 20;
+		return 20; //TODO: Change back to 20
 	}
 
 	public static int countdownForNewlyOptimizedCode ()
@@ -594,7 +594,7 @@ extends Descriptor
 		return 200;
 	}
 
-	public static AvailObject allocateIndexCodeLiteralsVectorsNumObjectsNumIntegersNumFloatsWordcodesContingentImpSets(
+	public static AvailObject allocate(
 		final boolean allocateIndex,
 		final AvailObject code,
 		final List<AvailObject> arrayOfLiterals,

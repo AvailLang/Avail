@@ -3208,20 +3208,20 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject localOrArgOrStackAt (
+	public AvailObject argOrLocalOrStackAt (
 		final int index)
 	{
-		return descriptor().o_LocalOrArgOrStackAt(this, index);
+		return descriptor().o_ArgOrLocalOrStackAt(this, index);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void localOrArgOrStackAtPut (
+	public void argOrLocalOrStackAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		descriptor().o_LocalOrArgOrStackAtPut(
+		descriptor().o_ArgOrLocalOrStackAtPut(
 			this,
 			index,
 			value);
@@ -3239,10 +3239,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject lookupByTypesFromArray (
-		final List<AvailObject> argumentTypeArray)
+	public AvailObject lookupByTypesFromList (
+		final List<AvailObject> argumentTypeList)
 	{
-		return descriptor().o_LookupByTypesFromArray(this, argumentTypeArray);
+		return descriptor().o_LookupByTypesFromList(this, argumentTypeList);
 	}
 
 	/**
@@ -3270,23 +3270,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject lookupByValuesFromArray (
-		final List<AvailObject> argumentArray)
+	public AvailObject lookupByValuesFromList (
+		final List<AvailObject> argumentList)
 	{
-		return descriptor().o_LookupByValuesFromArray(this, argumentArray);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject lookupByValuesFromContinuationStackp (
-		final AvailObject continuation,
-		final int stackp)
-	{
-		return descriptor().o_LookupByValuesFromContinuationStackp(
-			this,
-			continuation,
-			stackp);
+		return descriptor().o_LookupByValuesFromList(this, argumentList);
 	}
 
 	/**
@@ -3755,14 +3742,6 @@ implements Iterable<AvailObject>
 	public short numLocals ()
 	{
 		return descriptor().o_NumLocals(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int numLocalsOrArgsOrStack ()
-	{
-		return descriptor().o_NumLocalsOrArgsOrStack(this);
 	}
 
 	/**

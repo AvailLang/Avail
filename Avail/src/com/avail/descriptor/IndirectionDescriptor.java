@@ -1590,34 +1590,36 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_LocalOrArgOrStackAt (
+	public @NotNull AvailObject o_ArgOrLocalOrStackAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		return o_Traversed(object).localOrArgOrStackAt(index);
+		return o_Traversed(object).argOrLocalOrStackAt(index);
 	}
 
 	@Override
-	public void o_LocalOrArgOrStackAtPut (
+	public void o_ArgOrLocalOrStackAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).localOrArgOrStackAtPut(index, value);
+		o_Traversed(object).argOrLocalOrStackAtPut(index, value);
 	}
 
 	@Override
-	public @NotNull AvailObject o_LocalTypeAt (final AvailObject object, final int index)
+	public @NotNull AvailObject o_LocalTypeAt (
+		final AvailObject object,
+		final int index)
 	{
 		return o_Traversed(object).localTypeAt(index);
 	}
 
 	@Override
-	public @NotNull AvailObject o_LookupByTypesFromArray (
+	public @NotNull AvailObject o_LookupByTypesFromList (
 		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argumentTypeArray)
+		final @NotNull List<AvailObject> argumentTypeList)
 	{
-		return o_Traversed(object).lookupByTypesFromArray(argumentTypeArray);
+		return o_Traversed(object).lookupByTypesFromList(argumentTypeList);
 	}
 
 	@Override
@@ -1640,22 +1642,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_LookupByValuesFromArray (
+	public @NotNull AvailObject o_LookupByValuesFromList (
 		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argumentArray)
+		final @NotNull List<AvailObject> argumentList)
 	{
-		return o_Traversed(object).lookupByValuesFromArray(argumentArray);
-	}
-
-	@Override
-	public @NotNull AvailObject o_LookupByValuesFromContinuationStackp (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp)
-	{
-		return o_Traversed(object).lookupByValuesFromContinuationStackp(
-			continuation,
-			stackp);
+		return o_Traversed(object).lookupByValuesFromList(argumentList);
 	}
 
 	@Override
@@ -3736,12 +3727,6 @@ extends AbstractDescriptor
 	public short o_NumLocals (final AvailObject object)
 	{
 		return o_Traversed(object).numLocals();
-	}
-
-	@Override
-	public int o_NumLocalsOrArgsOrStack (final AvailObject object)
-	{
-		return o_Traversed(object).numLocalsOrArgsOrStack();
 	}
 
 	@Override

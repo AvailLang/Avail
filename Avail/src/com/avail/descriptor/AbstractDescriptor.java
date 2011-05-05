@@ -1689,7 +1689,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_LocalOrArgOrStackAt (
+	public abstract AvailObject o_ArgOrLocalOrStackAt (
 		final AvailObject object,
 		final int index);
 
@@ -1698,7 +1698,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_LocalOrArgOrStackAtPut (
+	public abstract void o_ArgOrLocalOrStackAtPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject value);
@@ -1714,12 +1714,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argumentTypeArray
+	 * @param argumentTypeList
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByTypesFromArray (
+	public abstract AvailObject o_LookupByTypesFromList (
 		final AvailObject object,
-		final List<AvailObject> argumentTypeArray);
+		final List<AvailObject> argumentTypeList);
 
 	/**
 	 * @param object
@@ -1743,23 +1743,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argumentArray
+	 * @param argumentList
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByValuesFromArray (
+	public abstract AvailObject o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<AvailObject> argumentArray);
-
-	/**
-	 * @param object
-	 * @param continuation
-	 * @param stackp
-	 * @return
-	 */
-	public abstract AvailObject o_LookupByValuesFromContinuationStackp (
-		final AvailObject object,
-		final AvailObject continuation,
-		final int stackp);
+		final List<AvailObject> argumentList);
 
 	/**
 	 * @param object
@@ -3744,12 +3733,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract short o_NumLocals (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_NumLocalsOrArgsOrStack (final AvailObject object);
 
 	/**
 	 * @param object

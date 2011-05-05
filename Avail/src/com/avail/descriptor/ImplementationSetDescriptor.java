@@ -594,9 +594,9 @@ extends Descriptor
 	 * a lookup error occurs).
 	 */
 	@Override
-	public @NotNull AvailObject o_LookupByTypesFromArray (
+	public @NotNull AvailObject o_LookupByTypesFromList (
 		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argumentTypeArray)
+		final @NotNull List<AvailObject> argumentTypeList)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
@@ -611,8 +611,8 @@ extends Descriptor
 					? VoidDescriptor.voidObject()
 					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature()
-				.acceptsArrayOfArgTypes(argumentTypeArray))
+			if (impsTuple.tupleAt(test).bodySignature().acceptsArrayOfArgTypes(
+				argumentTypeList))
 			{
 				index += 2;
 			}
@@ -704,9 +704,9 @@ extends Descriptor
 	 * a lookup error occurs).
 	 */
 	@Override
-	public @NotNull AvailObject o_LookupByValuesFromArray (
+	public @NotNull AvailObject o_LookupByValuesFromList (
 		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argumentArray)
+		final @NotNull List<AvailObject> argumentList)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
@@ -722,44 +722,7 @@ extends Descriptor
 					: impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature()
-					.acceptsArrayOfArgValues(argumentArray))
-			{
-				index += 2;
-			}
-			else
-			{
-				index = index + 2 + tree.tupleAt(index + 1).extractInt();
-			}
-		}
-	}
-
-	/**
-	 * Assume the arguments have been pushed in the continuation.  The object at
-	 * {@code stackp} is the last argument, and the object at {@code stackp +
-	 * numArgs - 1} is the first.  Use the testingTree to find the
-	 * implementation to invoke (answer void if a lookup error occurs).
-	 */
-	@Override
-	public @NotNull AvailObject o_LookupByValuesFromContinuationStackp (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp)
-	{
-		final AvailObject impsTuple = object.implementationsTuple();
-		final AvailObject tree = object.testingTree();
-		int index = 1;
-		while (true) {
-			int test = tree.tupleAt(index).extractInt();
-		final int lowBit = test & 1;
-			test = test >>> 1;
-			if (lowBit == 1)
-			{
-				return test == 0
-					? VoidDescriptor.voidObject()
-					: impsTuple.tupleAt(test);
-			}
-			if (impsTuple.tupleAt(test).bodySignature()
-				.acceptsArgumentsFromContinuationStackp(continuation, stackp))
+					.acceptsArrayOfArgValues(argumentList))
 			{
 				index += 2;
 			}

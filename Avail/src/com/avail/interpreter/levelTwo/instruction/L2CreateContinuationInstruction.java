@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CreateContinuationInstruction.java
+ * interpreter/levelTwo/instruction/L2CreateContinuationNoPrimitiveInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -154,15 +154,15 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_);
 		codeGenerator.emitObjectRegister(caller);
 		codeGenerator.emitObjectRegister(closure);
-		codeGenerator.emitWord(pc);
-		codeGenerator.emitWord(stackp);
-		codeGenerator.emitWord(size);
+		codeGenerator.emitImmediate(pc);
+		codeGenerator.emitImmediate(stackp);
+		codeGenerator.emitImmediate(size);
 		codeGenerator.emitVector(slotsVector);
-		codeGenerator.emitWord(continuationLabel.offset());
+		codeGenerator.emitWordcodeOffsetOf(continuationLabel);
 		codeGenerator.emitObjectRegister(destinationRegister);
 	}
 

@@ -104,7 +104,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(L2_doSetVariable_sourceObject_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doSetVariable_sourceObject_);
 		codeGenerator.emitObjectRegister(container);
 		codeGenerator.emitObjectRegister(value);
 	}

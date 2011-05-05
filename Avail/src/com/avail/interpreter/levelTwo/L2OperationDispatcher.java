@@ -53,17 +53,17 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateSimpleContinuationIn_}
+	 * {@link L2Operation#L2_doPrepareNewFrame}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateSimpleContinuationIn_ ();
+	public void L2_doPrepareNewFrame ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doInterpretOneInstruction}
+	 * {@link L2Operation#L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doInterpretOneInstruction ();
+	public void L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt ();
 
 	/**
 	 * Process an
@@ -445,7 +445,7 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_}
+	 * {@link L2Operation#L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_
 	 * {@linkplain L2Operation operation}.
 	 */
 	public void L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_ ();
@@ -477,6 +477,13 @@ interface L2OperationDispatcher
 	 * {@linkplain L2Operation operation}.
 	 */
 	public void L2_doSend_argumentsVector_ ();
+
+	/**
+	 * Process an
+	 * {@link L2Operation#L2_doSend_argumentsVector_}
+	 * {@linkplain L2Operation operation}.
+	 */
+	public void L2_doSendAfterFailedPrimitive_argumentsVector_ ();
 
 	/**
 	 * Process an
@@ -574,5 +581,5 @@ interface L2OperationDispatcher
 	 * {@link L2Operation#L2_doAttemptPrimitive_withArguments_result_ifFail_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAttemptPrimitive_withArguments_result_ifFail_ ();
+	public void L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ ();
 }

@@ -99,8 +99,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doReturnToContinuationObject_valueObject_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doReturnToContinuationObject_valueObject_);
 		codeGenerator.emitObjectRegister(continuation);
 		codeGenerator.emitObjectRegister(value);
 	}

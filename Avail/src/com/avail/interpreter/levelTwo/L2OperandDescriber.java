@@ -34,8 +34,6 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2OperandTypeDispatcher;
 
 class L2OperandDescriber implements L2OperandTypeDispatcher
 {
@@ -45,10 +43,10 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 
 
 	public void describeInOperandChunkOn (
-			L2OperandType operandType,
-			int operand,
-			AvailObject chunk,
-			StringBuilder stream)
+			final L2OperandType operandType,
+			final int operand,
+			final AvailObject chunk,
+			final StringBuilder stream)
 	{
 		_operand = operand;
 		_chunk = chunk;
@@ -148,7 +146,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 			{
 				_description.append(",");
 			}
-			_description.append(vector.tupleAt(_operand).extractInt());
+			_description.append(vector.tupleAt(i).extractInt());
 		}
 		_description.append(")[read]");
 	}
@@ -165,7 +163,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 			{
 				_description.append(",");
 			}
-			_description.append(vector.tupleAt(_operand).extractInt());
+			_description.append(vector.tupleAt(i).extractInt());
 		}
 		_description.append(")[write]");
 	}

@@ -46,22 +46,21 @@ public enum L2Operation
 		}
 	},
 
-	L2_doCreateSimpleContinuationIn_ (
-		WRITE_POINTER)
+	L2_doPrepareNewFrame
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateSimpleContinuationIn_();
+			operationDispatcher.L2_doPrepareNewFrame();
 		}
 	},
 
-	L2_doInterpretOneInstruction
+	L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doInterpretOneInstruction();
+			operationDispatcher.L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt();
 		}
 	},
 
@@ -105,7 +104,7 @@ public enum L2Operation
 	},
 
 	L2_doCreateVariableTypeConstant_destObject_ (
-		IMMEDIATE, WRITE_POINTER)
+		CONSTANT, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
@@ -645,12 +644,22 @@ public enum L2Operation
 	},
 
 	L2_doSend_argumentsVector_ (
-		SELECTOR, IMMEDIATE, READ_VECTOR)
+		SELECTOR, READ_VECTOR)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doSend_argumentsVector_();
+		}
+	},
+
+	L2_doSendAfterFailedPrimitive_argumentsVector_ (
+		SELECTOR, READ_VECTOR, READ_POINTER)
+	{
+		@Override
+		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L2_doSendAfterFailedPrimitive_argumentsVector_();
 		}
 	},
 
@@ -665,7 +674,7 @@ public enum L2Operation
 	},
 
 	L2_doSuperSend_argumentsVector_argumentTypesVector_ (
-		SELECTOR, IMMEDIATE, READ_VECTOR, READ_VECTOR)
+		SELECTOR, READ_VECTOR, READ_VECTOR)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
@@ -684,13 +693,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doAttemptPrimitive_withArguments_result_ifFail_ (
-		PRIMITIVE, READ_VECTOR, WRITE_POINTER, PC)
+	L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ (
+		PRIMITIVE, READ_VECTOR, WRITE_POINTER, WRITE_POINTER, PC)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doAttemptPrimitive_withArguments_result_ifFail_();
+			operationDispatcher.L2_doAttemptPrimitive_withArguments_result_failure_ifFail_();
 		}
 	},
 

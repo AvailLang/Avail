@@ -35,7 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import static java.lang.Math.*;
 import java.io.*;
 import java.nio.ByteOrder;
@@ -180,7 +180,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			if (b.equals(IntegerDescriptor.zero()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			return interpreter.primitiveSuccess(a.divideCanDestroy(b, true));
 		}
@@ -685,7 +685,7 @@ public enum Primitive
 			@SuppressWarnings("unused")
 			final AvailObject processObject = args.get(0);
 			error("process suspend is not yet implemented");
-			return FAILURE;
+			return interpreter.primitiveFailure("zzz"); //TODO
 		}
 
 		@Override
@@ -714,7 +714,7 @@ public enum Primitive
 			@SuppressWarnings("unused")
 			final AvailObject processObject = args.get(0);
 			error("process resume is not yet implemented");
-			return FAILURE;
+			return interpreter.primitiveFailure("zzz"); //TODO
 		}
 
 		@Override
@@ -743,7 +743,7 @@ public enum Primitive
 			@SuppressWarnings("unused")
 			final AvailObject processObject = args.get(0);
 			error("process terminate is not yet implemented");
-			return FAILURE;
+			return interpreter.primitiveFailure("zzz"); //TODO
 		}
 
 		@Override
@@ -862,7 +862,7 @@ public enum Primitive
 			@SuppressWarnings("unused")
 			final AvailObject semaphore = args.get(0);
 			error("This semaphore primitive is not yet implemented");
-			return FAILURE;
+			return interpreter.primitiveFailure("zzz"); //TODO
 		}
 
 		@Override
@@ -890,7 +890,7 @@ public enum Primitive
 			@SuppressWarnings("unused")
 			final AvailObject semaphore = args.get(0);
 			error("This semaphore primitive is not yet implemented");
-			return FAILURE;
+			return interpreter.primitiveFailure("zzz"); //TODO
 		}
 
 		@Override
@@ -1229,7 +1229,7 @@ public enum Primitive
 			final int numArgs = argTuple.tupleSize();
 			if (blockType.numArgs() != numArgs)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final List<AvailObject> callArgs =
 				new ArrayList<AvailObject>(numArgs);
@@ -1238,7 +1238,7 @@ public enum Primitive
 				final AvailObject anArg = argTuple.tupleAt(i);
 				if (!anArg.isInstanceOfSubtypeOf(blockType.argTypeAt(i)))
 				{
-					return FAILURE;
+					return interpreter.primitiveFailure("zzz"); //TODO
 				}
 				//  Transfer the argument into callArgs.
 				callArgs.add(anArg);
@@ -1408,7 +1408,7 @@ public enum Primitive
 				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 			for (int i = 1, _end3 = stack.tupleSize(); i <= _end3; i++)
 			{
-				cont.localOrArgOrStackAtPut(i, stack.tupleAt(i));
+				cont.argOrLocalOrStackAtPut(i, stack.tupleAt(i));
 			}
 			return interpreter.primitiveSuccess(cont);
 		}
@@ -1500,7 +1500,7 @@ public enum Primitive
 			final AvailObject caller = con.caller();
 			if (caller.equalsVoid())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			return interpreter.primitiveSuccess(caller);
 		}
@@ -1638,23 +1638,23 @@ public enum Primitive
 			final AvailObject itsCode = conCopy.closure().code();
 			if (!arguments.isTuple())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			if (itsCode.numArgs() != arguments.tupleSize())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			if (!itsCode.closureType().acceptsTupleOfArguments(arguments))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			for (int i = 1, _end4 = itsCode.numArgs(); i <= _end4; i++)
 			{
-				conCopy.localOrArgOrStackAtPut(i, arguments.tupleAt(i));
+				conCopy.argOrLocalOrStackAtPut(i, arguments.tupleAt(i));
 			}
 			for (int i = 1, _end5 = itsCode.numLocals(); i <= _end5; i++)
 			{
-				conCopy.localOrArgOrStackAtPut(
+				conCopy.argOrLocalOrStackAtPut(
 					itsCode.numArgs() + i,
 					ContainerDescriptor.forOuterType(itsCode.localTypeAt(i)));
 			}
@@ -1706,14 +1706,14 @@ public enum Primitive
 			if (!result.isInstanceOfSubtypeOf(expectedType))
 			{
 				// Wasn't strong enough to meet the block's declared type.
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			if (!result.isInstanceOfSubtypeOf(linkStrengthenedType))
 			{
 				// Wasn't strong enough to meet the *call site's* type.
 				// A useful distinction when we start to record primitive
 				// failure reason codes.
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject targetCon = caller.ensureMutable();
 			targetCon.stackAtPut(targetCon.stackp(), result);
@@ -1766,7 +1766,7 @@ public enum Primitive
 			final AvailObject itsCode = conCopy.closure().code();
 			for (int i = 1, _end6 = itsCode.numLocals(); i <= _end6; i++)
 			{
-				conCopy.localOrArgOrStackAtPut(
+				conCopy.argOrLocalOrStackAtPut(
 					itsCode.numArgs() + i,
 					ContainerDescriptor.forOuterType(
 						itsCode.localTypeAt(i)));
@@ -1805,7 +1805,7 @@ public enum Primitive
 				count);
 			for (int i = 1; i <= count; i++)
 			{
-				AvailObject entry = con.localOrArgOrStackAt(i);
+				AvailObject entry = con.argOrLocalOrStackAt(i);
 				if (entry.equalsVoid())
 				{
 					entry = IntegerDescriptor.zero();
@@ -2167,7 +2167,7 @@ public enum Primitive
 				interpreter.runtime().nameForType(userType);
 			if (name == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(name);
@@ -2304,8 +2304,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
-			final AvailObject newTupleObject = ObjectTupleDescriptor.mutable()
-				.create(aClosure.numOuterVars());
+			final AvailObject newTupleObject =
+				ObjectTupleDescriptor.mutable().create(aClosure.numOuterVars());
 			newTupleObject.hashOrZero(0);
 			CanAllocateObjects(false);
 			for (int i = 1, _end7 = aClosure.numOuterVars(); i <= _end7; i++)
@@ -3744,7 +3744,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final AvailObject handle =
@@ -3757,7 +3757,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(handle);
@@ -3794,7 +3794,7 @@ public enum Primitive
 			final AvailObject append = args.get(1);
 			if (!filename.isString() || !append.isBoolean())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final AvailObject handle =
@@ -3815,7 +3815,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(handle);
@@ -3850,7 +3850,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final AvailObject handle =
@@ -3864,7 +3864,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(handle);
@@ -3899,14 +3899,14 @@ public enum Primitive
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			try
@@ -3958,14 +3958,14 @@ public enum Primitive
 			final AvailObject size = args.get(1);
 			if (!handle.isCyclicType() || !size.isExtendedInteger())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final byte[] buffer;
@@ -3981,7 +3981,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final AvailObject tuple;
@@ -4038,14 +4038,14 @@ public enum Primitive
 			final AvailObject bytes = args.get(1);
 			if (!handle.isCyclicType() || !bytes.isByteTuple())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final byte[] buffer = new byte[bytes.tupleSize()];
@@ -4060,7 +4060,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			// Always return an empty tuple since RandomAccessFile writes
@@ -4105,14 +4105,14 @@ public enum Primitive
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final long fileSize;
@@ -4122,7 +4122,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4159,14 +4159,14 @@ public enum Primitive
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final long filePosition;
@@ -4176,7 +4176,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4216,14 +4216,14 @@ public enum Primitive
 					|| !filePosition.isExtendedInteger()
 					|| !filePosition.isFinite())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			try
@@ -4232,7 +4232,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4268,14 +4268,14 @@ public enum Primitive
 			final AvailObject handle = args.get(0);
 			if (!handle.isCyclicType())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			try
@@ -4284,7 +4284,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4304,7 +4304,7 @@ public enum Primitive
 	 * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
 	 * the specified filename?
 	 */
-	prim170_FileExists_nameString(170, 1, CanInline, HasSideEffect)
+	prim170_FileExists_nameString(170, 1, CanInline)
 	{
 		@Override
 		public Result attempt (
@@ -4316,7 +4316,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final File file = new File(filename.asNativeString());
@@ -4327,7 +4327,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4348,7 +4348,7 @@ public enum Primitive
 	 * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
 	 * specified filename readable by the OS process?
 	 */
-	prim171_FileCanRead_nameString(171, 1, CanInline, HasSideEffect)
+	prim171_FileCanRead_nameString(171, 1, CanInline)
 	{
 		@Override
 		public Result attempt (
@@ -4360,7 +4360,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final File file = new File(filename.asNativeString());
@@ -4371,7 +4371,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4392,7 +4392,7 @@ public enum Primitive
 	 * <strong>Primitive 172:</strong> Is the {@linkplain File file} with the
 	 * specified filename writable by the OS process?
 	 */
-	prim172_FileCanWrite_nameString(172, 1, CanInline, HasSideEffect)
+	prim172_FileCanWrite_nameString(172, 1, CanInline)
 	{
 		@Override
 		public Result attempt (
@@ -4404,7 +4404,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final File file = new File(filename.asNativeString());
@@ -4415,7 +4415,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4436,7 +4436,7 @@ public enum Primitive
 	 * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
 	 * specified filename executable by the OS process?
 	 */
-	prim173_FileCanExecute_nameString(173, 1, CanInline, HasSideEffect)
+	prim173_FileCanExecute_nameString(173, 1, CanInline)
 	{
 		@Override
 		public Result attempt (
@@ -4448,7 +4448,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final File file = new File(filename.asNativeString());
@@ -4459,7 +4459,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4493,7 +4493,7 @@ public enum Primitive
 			final AvailObject destination = args.get(1);
 			if (!source.isString() || !destination.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final File file = new File(source.asNativeString());
@@ -4504,12 +4504,12 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			if (!renamed)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4542,7 +4542,7 @@ public enum Primitive
 			final AvailObject filename = args.get(0);
 			if (!filename.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final File file = new File(filename.asNativeString());
@@ -4553,12 +4553,12 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			if (!deleted)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4900,7 +4900,8 @@ public enum Primitive
 			final AvailObject bodyBlock = args.get(0);
 			@SuppressWarnings("unused")
 			final AvailObject handlerBlock = args.get(1);
-			return FAILURE;
+			return interpreter.primitiveFailure(
+				"Primitive 200 failed like it's supposed to");
 		}
 
 		@Override
@@ -5440,12 +5441,12 @@ public enum Primitive
 			}
 			catch (final ArrayIndexOutOfBoundsException e)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			if (result == null)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(result);
@@ -5481,7 +5482,7 @@ public enum Primitive
 			final AvailObject name = args.get(0);
 			if (!name.isString())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(interpreter.lookupName(name));
@@ -5551,13 +5552,13 @@ public enum Primitive
 			final AvailObject ordinal = args.get(0);
 			if (!ordinal.isExtendedInteger() || !ordinal.isFinite())
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			final int index = ordinal.extractInt();
 			if (index < 0 || index > 65535)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 
 			return interpreter.primitiveSuccess(BooleanDescriptor.objectFrom(
@@ -5824,14 +5825,19 @@ public enum Primitive
 			final List<AvailObject> args,
 			final Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
-			/* From Smalltalk:
-				self currentContinuation
-					stackAt: self currentContinuation stackp
-					put: VoidDescriptor voidObject.
-				self prepareToExecuteContinuation: self currentContinuation debug.
-				^#continuationChanged
-			 */
+			// Throw and catch a RuntimeException.  A sensibly configured
+			// debugger will pause during the throw.  There are also ample
+			// locations here to insert an explicit breakpoint if you don't want
+			// to pause on caught RuntimeExceptions.
+			try
+			{
+				throw new RuntimeException("Breakpoint");
+			}
+			catch (RuntimeException e)
+			{
+				return interpreter.primitiveSuccess(
+					VoidDescriptor.voidObject());
+			}
 		}
 
 		@Override
@@ -5912,7 +5918,7 @@ public enum Primitive
 	 * </li>
 	 * </ol>
 	 */
-	prim260_CreateLibrarySpec(260, 0, CanInline, HasSideEffect)
+	prim260_CreateLibrarySpec(260, 0, CanInline)
 	{
 		@Override
 		public Result attempt (
@@ -6083,7 +6089,7 @@ public enum Primitive
 	 * <strong>Primitive 264:</strong> Answer the closure type associated with
 	 * the given entry point.
 	 */
-	prim264_EntryPointClosureType_entryPointHandle(264, 1, CanInline, HasSideEffect)
+	prim264_EntryPointClosureType_entryPointHandle(264, 1, CanInline)
 	{
 		@Override
 		public Result attempt (
@@ -6379,7 +6385,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			if (b.extractFloat() == 0.0)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectWithRecycling(
@@ -6539,7 +6545,7 @@ public enum Primitive
 			final float fb = b.extractFloat();
 			if (fb == 0.0f)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final float div = fa / fb;
 			final float mod = fa - (float)floor(div) * fb;
@@ -6815,7 +6821,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			if (b.extractDouble() == 0.0d)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecyclingOr(
@@ -6974,7 +6980,7 @@ public enum Primitive
 			final double db = b.extractDouble();
 			if (db == 0.0d)
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final double div = da / db;
 			final double mod = da - floor(div) * db;
@@ -7208,20 +7214,18 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 340:</strong> The first literal is being returned.
-	 * FAIL so that the non-primitive code will run instead -- otherwise we
-	 * would have to figure out if we were running in level one or two, and if
-	 * the latter, where do we even find the code object we're emulating?
-	 * Easier to just fail.  But... the dynamic translator should still make a
-	 * special effort to fold this.
+	 * Extract the first literal from the compiled code that the interpreter has
+	 * squirreled away for this purpose.
 	 */
-	prim340_PushConstant_ignoreArgs(340, -1, SpecialReturnConstant)
+	prim340_PushConstant_ignoreArgs(340, -1, SpecialReturnConstant, CannotFail)
 	{
 		@Override
 		public Result attempt (
 			final List<AvailObject> args,
 			final Interpreter interpreter)
 		{
-			return FAILURE;
+			return interpreter.primitiveSuccess(
+				interpreter.primitiveCompiledCodeBeingAttempted().literalAt(1));
 		}
 
 		@Override
@@ -7250,19 +7254,19 @@ public enum Primitive
 			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o())
 				|| !expression.isInstanceOfSubtypeOf(PARSE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject declarationType =
 				variable.declaration().type();
 			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
 				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			if (!expression.expressionType().isSubtypeOf(
 				variable.expressionType()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject assignment =
 				AssignmentNodeDescriptor.mutable().create();
@@ -7296,7 +7300,7 @@ public enum Primitive
 			final AvailObject parseNode = args.get(0);
 			if (!parseNode.isInstanceOfSubtypeOf(PARSE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			return interpreter.primitiveSuccess(parseNode.expressionType());
 		}
@@ -7327,7 +7331,7 @@ public enum Primitive
 			if (!parseNode.isInstanceOfSubtypeOf(
 					TupleTypeDescriptor.stringTupleType()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			throw new AvailRejectedParseException(parseNode);
 		}
@@ -7361,19 +7365,19 @@ public enum Primitive
 			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o())
 				|| !expression.isInstanceOfSubtypeOf(PARSE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject declarationType =
 				variable.declaration().type();
 			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
 				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			if (!expression.expressionType().isSubtypeOf(
 				variable.expressionType()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject assignment =
 				AssignmentNodeDescriptor.mutable().create();
@@ -7423,7 +7427,7 @@ public enum Primitive
 			final AvailObject variable = args.get(0);
 			if (!variable.isInstanceOfSubtypeOf(VARIABLE_USE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject declaration = variable.declaration();
 			assert declaration != null;
@@ -7431,7 +7435,7 @@ public enum Primitive
 			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
 				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
-				return FAILURE;
+				return interpreter.primitiveFailure("zzz"); //TODO
 			}
 			final AvailObject reference =
 				ReferenceNodeDescriptor.mutable().create();
@@ -7715,15 +7719,64 @@ public enum Primitive
 	}
 
 	/**
-	 * Clear the cached block type restrictions.
+	 * Return an Avail {@linkplain TypeDescriptor type} that a failure variable
+	 * must accept in order to be compliant with this primitive.  A more general
+	 * type is acceptable for the variable.  This type is cached upon first
+	 * request and should be accessed via {@link #failureVariableType()}.
+	 *
+	 * <p>
+	 * By default, expect the primitive to fail with a string.
+	 * </p>
+	 *
+	 * @return
+	 *             A type which is at least as specific as the type of the
+	 *             failure variable declared in a block using this primitive.
 	 */
-	public static void clearBlockTypeRestrictions ()
+	protected @NotNull AvailObject privateFailureVariableType ()
+	{
+		return TupleTypeDescriptor.stringTupleType();
+	}
+
+	/**
+	 * A {@linkplain TypeDescriptor type} to constrain the {@linkplain
+	 * ContainerTypeDescriptor#o_InnerType(AvailObject) inner type} of the
+	 * variable declaration within the primitive declaration of a block.  The
+	 * actual variable must be this type or a supertype.
+	 */
+	private AvailObject cachedFailureVariableType;
+
+	/**
+	 * Return an Avail {@linkplain TypeDescriptor type} that a failure variable
+	 * must accept in order to be compliant with this primitive.  A more general
+	 * type is acceptable for the variable.  The type is cached for performance.
+	 *
+	 * @return
+	 *             A type which is at least as specific as the type of the
+	 *             failure variable declared in a block using this primitive.
+	 */
+	public final @NotNull AvailObject failureVariableType ()
+	{
+		if (cachedFailureVariableType == null)
+		{
+			cachedFailureVariableType = privateFailureVariableType();
+			assert cachedFailureVariableType.isType();
+		}
+		return cachedFailureVariableType;
+	}
+
+
+	/**
+	 * Clear all cached block type restrictions and failure variable types.
+	 */
+	public static void clearCachedData ()
 	{
 		for (final Primitive primitive : Primitive.values())
 		{
 			primitive.cachedBlockTypeRestriction = null;
+			primitive.cachedFailureVariableType = null;
 		}
 	}
+
 
 	/**
 	 * This primitive's number.  The Avail source code refers to this primitive

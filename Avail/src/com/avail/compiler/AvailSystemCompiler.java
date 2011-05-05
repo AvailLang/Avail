@@ -756,7 +756,8 @@ extends AbstractAvailCompiler
 				parseOptionalPrimitiveForArgCountThen(
 					afterArguments,
 					arguments.size(),
-					new Con<Integer>("Optional primitive")
+					new Con<Integer>(
+						"Optional primitive declaration")
 					{
 						@Override
 						public void value (
@@ -775,30 +776,32 @@ extends AbstractAvailCompiler
 									Collections.<AvailObject>emptyList(),
 									scopeOutsideBlock,
 									continuation);
+								return;
 							}
-							else
-							{
-								parseStatementsThen(
-									afterOptionalPrimitive,
-									primitive == 0,
-									Collections.<AvailObject> emptyList(),
-									new Con<List<AvailObject>>("Block statements")
+							parseStatementsThen(
+								afterOptionalPrimitive,
+								primitive == 0,
+								primitive == 0
+									? Collections.<AvailObject>emptyList()
+									: Collections.<AvailObject> singletonList(
+										afterOptionalPrimitive
+											.scopeStack.declaration()),
+								new Con<List<AvailObject>>("Block statements")
+								{
+									@Override
+									public void value (
+										final ParserState afterStatements,
+										final List<AvailObject> statements)
 									{
-										@Override
-										public void value (
-											final ParserState afterStatements,
-											final List<AvailObject> statements)
-										{
-											finishBlockThen(
-												afterStatements,
-												arguments,
-												primitive,
-												statements,
-												scopeOutsideBlock,
-												continuation);
-										}
-									});
-							}
+										finishBlockThen(
+											afterStatements,
+											arguments,
+											primitive,
+											statements,
+											scopeOutsideBlock,
+											continuation);
+									}
+								});
 						}
 					});
 			}
@@ -1366,8 +1369,8 @@ extends AbstractAvailCompiler
 			{
 				// Underpop saved parse position (from 2nd-to-top of stack).
 				assert successorTrees.tupleSize() == 1;
-				final List<AvailObject> newArgsSoFar = new ArrayList<AvailObject>(
-					argsSoFar);
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
 				final AvailObject marker =
 					newArgsSoFar.remove(newArgsSoFar.size() - 2);
 				assert marker.traversed().descriptor()
@@ -1891,9 +1894,8 @@ extends AbstractAvailCompiler
 				@Override
 				public String value ()
 				{
-					return "A non-zero unsigned short "
-							+ IntegerRangeTypeDescriptor.unsignedShorts()
-							+ " after the Primitive keyword";
+					return "A non-zero unsigned short [1..65535] "
+							+ "after the Primitive keyword";
 				}
 			});
 			return;
@@ -1960,6 +1962,18 @@ extends AbstractAvailCompiler
 					final @NotNull ParserState afterDeclaration,
 					final @NotNull AvailObject declaration)
 				{
+					if (!prim.failureVariableType().isSubtypeOf(
+						declaration.declaredType()))
+					{
+						afterDeclaration.expected(
+							"primitive #"
+							+ primitiveNumber
+							+ " failure variable to be able to hold values "
+							+ "of type ("
+							+ prim.failureVariableType()
+							+ ")");
+						return;
+					}
 					if (!afterDeclaration.peekToken(
 						CLOSE_PARENTHESIS,
 						"close parenthesis after primitive failure variable "

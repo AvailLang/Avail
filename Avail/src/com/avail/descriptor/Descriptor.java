@@ -2192,7 +2192,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_LocalOrArgOrStackAt (
+	public @NotNull AvailObject o_ArgOrLocalOrStackAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -2208,7 +2208,7 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_LocalOrArgOrStackAtPut (
+	public void o_ArgOrLocalOrStackAtPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject value)
@@ -2237,17 +2237,17 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argumentTypeArray
+	 * @param argumentTypeList
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_LookupByTypesFromArray (
+	public @NotNull AvailObject o_LookupByTypesFromList (
 		final AvailObject object,
-		final List<AvailObject> argumentTypeArray)
+		final List<AvailObject> argumentTypeList)
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByTypesFromArray:", object);
+		subclassResponsibility("Object:lookupByTypesFromList:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2287,35 +2287,17 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argumentArray
+	 * @param argumentList
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_LookupByValuesFromArray (
+	public @NotNull AvailObject o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<AvailObject> argumentArray)
+		final List<AvailObject> argumentList)
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByValuesFromArray:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param continuation
-	 * @param stackp
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_LookupByValuesFromContinuationStackp (
-		final AvailObject object,
-		final AvailObject continuation,
-		final int stackp)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:lookupByValuesFromContinuation:stackp:", object);
+		subclassResponsibility("Object:lookupByValuesFromList:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6310,20 +6292,6 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_NumLocals:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_NumLocalsOrArgsOrStack (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_NumLocalsOrArgsOrStack:", object);
 		return 0;
 	}
 

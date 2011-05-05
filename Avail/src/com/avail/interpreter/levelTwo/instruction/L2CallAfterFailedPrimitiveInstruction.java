@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CreateVariableInstruction.java
+ * interpreter/levelTwo/instruction/L2CallInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,81 +32,81 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateVariableTypeConstant_destObject_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doSendAfterFailedPrimitive_argumentsVector_;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
- * {@code L2CreateVariableInstruction} creates a new {@linkplain
- * ContainerDescriptor container} given a statically determined {@linkplain
- * TypeDescriptor type}.
+ * {@code L2CallInstruction} attempts to execute a specific {@linkplain
+ * MethodSignatureDescriptor method} by matching the actual {@linkplain
+ * AvailObject arguments} against an {@linkplain ImplementationSetDescriptor
+ * implementation set}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2CreateVariableInstruction
-extends L2Instruction
+public final class L2CallAfterFailedPrimitiveInstruction
+extends L2CallInstruction
 {
 	/**
-	 * The constant {@linkplain TypeDescriptor type} with which the {@linkplain
-	 * ContainerDescriptor container} should be created.
+	 * The {@linkplain L2ObjectRegister register} holding failure information
+	 * about a recently failed {@linkplain Primitive primitive} invocation
+	 * attempt.
 	 */
-	private final @NotNull AvailObject constantType;
+	private final @NotNull L2ObjectRegister failureObjectReg;
 
 	/**
-	 * The {@linkplain L2ObjectRegister register} into which the new {@linkplain
-	 * ContainerDescriptor container} will be written.
-	 */
-	private final @NotNull L2ObjectRegister destinationRegister;
-
-	/**
-	 * Construct a new {@link L2CreateVariableInstruction}.
+	 * Construct a new {@link L2CallAfterFailedPrimitiveInstruction}.
 	 *
-	 * @param constantType
-	 *        The constant {@linkplain TypeDescriptor type} with which the
-	 *        {@linkplain ContainerDescriptor variable} should be created.
-	 * @param destinationRegister
-	 *        The {@linkplain L2ObjectRegister register} into which the new
-	 *        {@linkplain ContainerDescriptor variable} will be written.
+	 * @param implementationSet
+	 *        The {@linkplain ImplementationSetDescriptor implementation set}
+	 *        from which a {@linkplain MethodSignatureDescriptor method} should
+	 *        be selected and called based on the exact {@linkplain #arguments
+	 *        arguments}.
+	 * @param arguments
+	 *        The {@linkplain AvailObject arguments} of the {@linkplain
+	 *        MethodSignatureDescriptor method} call.
+	 * @param failureObjectReg
+	 *        The {@linkplain L2ObjectRegister register} which holds the most
+	 *        recent primitive failure value, specifically an attempt at the
+	 *        current primitive {@linkplain CompiledCodeDescriptor compiled
+	 *        code} object.
 	 */
-	public L2CreateVariableInstruction (
-		final @NotNull AvailObject constantType,
-		final @NotNull L2ObjectRegister destinationRegister)
+	public L2CallAfterFailedPrimitiveInstruction (
+		final @NotNull AvailObject implementationSet,
+		final @NotNull L2RegisterVector arguments,
+		final @NotNull L2ObjectRegister failureObjectReg)
 	{
-		this.constantType = constantType;
-		this.destinationRegister = destinationRegister;
+		super(implementationSet, arguments);
+		this.failureObjectReg = failureObjectReg;
 	}
 
 	@Override
 	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		return Collections.emptyList();
-	}
-
-	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
-	{
-		return Collections.<L2Register>singletonList(destinationRegister);
+		List<L2Register> result = new ArrayList<L2Register>(
+			super.sourceRegisters());
+		result.add(failureObjectReg);
+		return result;
 	}
 
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitL2Operation(
-			L2_doCreateVariableTypeConstant_destObject_);
-		codeGenerator.emitLiteral(constantType);
-		codeGenerator.emitObjectRegister(destinationRegister);
+			L2_doSendAfterFailedPrimitive_argumentsVector_);
+		codeGenerator.emitLiteral(implementationSet);
+		codeGenerator.emitVector(arguments);
+		codeGenerator.emitObjectRegister(failureObjectReg);
 	}
 
 	@Override
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		//  We know the exact type...
-		translator.registerTypeAtPut(destinationRegister, constantType);
-		//  ...but the instance is new so it can't be a constant.
-		translator.removeConstantForRegister(destinationRegister);
+		translator.restrictPropagationInformationToArchitecturalRegisters();
 	}
 }

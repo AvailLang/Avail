@@ -81,8 +81,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doProcessInterruptNowWithContinuationObject_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doProcessInterruptNowWithContinuationObject_);
 		codeGenerator.emitObjectRegister(sourceRegister);
 	}
 }

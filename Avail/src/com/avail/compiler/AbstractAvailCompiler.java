@@ -1128,8 +1128,6 @@ public abstract class AbstractAvailCompiler
 		final AvailObject result = interpreter.runClosureArguments(
 			closure,
 			args);
-		// System.out.println(Integer.toString(position) + " evaluated (" +
-		// expressionNode.toString() + ") = " + result.toString());
 		return result;
 	}
 

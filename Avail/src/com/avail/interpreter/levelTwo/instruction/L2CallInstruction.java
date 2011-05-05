@@ -48,7 +48,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2CallInstruction
+public class L2CallInstruction
 extends L2Instruction
 {
 	/**
@@ -56,13 +56,13 @@ extends L2Instruction
 	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
 	 * and called based on the exact {@linkplain #arguments arguments}.
 	 */
-	private final @NotNull AvailObject implementationSet;
+	protected final @NotNull AvailObject implementationSet;
 
 	/**
 	 * The {@linkplain AvailObject arguments} of the {@linkplain
 	 * MethodSignatureDescriptor method} call.
 	 */
-	private final @NotNull L2RegisterVector arguments;
+	protected final @NotNull L2RegisterVector arguments;
 
 	/**
 	 * Construct a new {@link L2CallInstruction}.
@@ -109,7 +109,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(L2_doSend_argumentsVector_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doSend_argumentsVector_);
 		codeGenerator.emitLiteral(implementationSet);
 		codeGenerator.emitVector(arguments);
 	}

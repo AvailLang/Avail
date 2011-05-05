@@ -74,10 +74,15 @@ extends SignatureDescriptor
 	{
 		//  We simply run the 'returns' block, passing in the static argument types from the call site.
 
-		final AvailObject result = anAvailInterpreter.runClosureArguments(object.returnsBlock(), argTypes);
+		final AvailObject result = anAvailInterpreter.runClosureArguments(
+			object.returnsBlock(),
+			argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
 		{
-			error("The 'returns' block should produce a type more specific than the body's basic return type", object);
+			error(
+				"The 'returns' block should produce a type more specific "
+				+ "than the body's basic return type",
+				object);
 			return VoidDescriptor.voidObject();
 		}
 		return result;
@@ -92,7 +97,9 @@ extends SignatureDescriptor
 		//  We simply run the 'requires' block, passing in the static arguments types from the call site.  The result of
 		//  the 'requires' block is an Avail boolean, which we convert before answering it.
 
-		final AvailObject result = interpreter.runClosureArguments(object.requiresBlock(), argTypes);
+		final AvailObject result = interpreter.runClosureArguments(
+			object.requiresBlock(),
+			argTypes);
 		return result.extractBoolean();
 	}
 

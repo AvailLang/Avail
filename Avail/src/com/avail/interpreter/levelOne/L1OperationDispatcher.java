@@ -61,6 +61,6 @@ public interface L1OperationDispatcher
 	void L1Ext_doSuperCall();
 	void L1Ext_doGetType();
 	void L1Ext_doReserved();
-	void L1Implied_doReturn();
 	void L1Ext_doDuplicate ();
+	void L1Implied_doReturn();
 }

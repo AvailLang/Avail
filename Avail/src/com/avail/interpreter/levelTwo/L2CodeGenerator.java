@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import static java.lang.Math.max;
 import java.util.*;
+import java.util.logging.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.instruction.*;
@@ -50,6 +51,18 @@ import com.avail.interpreter.levelTwo.register.*;
  */
 public final class L2CodeGenerator
 {
+	/** A {@linkplain Logger logger}. */
+	private static final @NotNull Logger logger =
+		Logger.getLogger(L2CodeGenerator.class.getCanonicalName());
+
+	/**
+	 * The instruction stream emitted thus far of the {@linkplain
+	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
+	 * generation}.
+	 */
+	private final @NotNull List<L2OperandType> expectedOperandTypes =
+		new ArrayList<L2OperandType>(10);
+
 	/**
 	 * The {@linkplain AvailObject literals} that will be embedded into the
 	 * created {@linkplain L2ChunkDescriptor chunk}.
@@ -65,6 +78,9 @@ public final class L2CodeGenerator
 	 */
 	public void emitLiteral (final @NotNull AvailObject literal)
 	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.CONSTANT
+			|| expected == L2OperandType.SELECTOR;
 		literal.readBarrierFault();
 		assert !literal.descriptor().isMutable();
 		int index = literals.indexOf(literal) + 1;
@@ -93,6 +109,10 @@ public final class L2CodeGenerator
 	 */
 	public void emitVector (final @NotNull L2RegisterVector registerVector)
 	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.READ_VECTOR
+			|| expected == L2OperandType.READWRITE_VECTOR
+			|| expected == L2OperandType.WRITE_VECTOR;
 		List<L2ObjectRegister> registersList = registerVector.registers();
 		List<Integer> registerIndices =
 			new ArrayList<Integer>(registersList.size());
@@ -126,11 +146,13 @@ public final class L2CodeGenerator
 	public void emitObjectRegister (
 		final @NotNull L2ObjectRegister objectRegister)
 	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.READ_POINTER
+			|| expected == L2OperandType.READWRITE_POINTER
+			|| expected == L2OperandType.WRITE_POINTER;
 		final int index = objectRegister.identity().finalIndex();
-		if (index != -1)
-		{
-			objectRegisterCount = max(objectRegisterCount, index);
-		}
+		assert index > 0;
+		objectRegisterCount = max(objectRegisterCount, index);
 		emitWord(index);
 	}
 
@@ -152,6 +174,10 @@ public final class L2CodeGenerator
 	public void emitIntegerRegister (
 		final @NotNull L2IntegerRegister integerRegister)
 	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.READ_INT
+			|| expected == L2OperandType.READWRITE_INT
+			|| expected == L2OperandType.WRITE_INT;
 		final int index = integerRegister.identity().finalIndex();
 		if (index != -1)
 		{
@@ -212,19 +238,70 @@ public final class L2CodeGenerator
 	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
 	 * generation}.
 	 */
-	private @NotNull List<Integer> wordcodes =
-		new ArrayList<Integer>(20);
+	private @NotNull List<Integer> wordcodes = new ArrayList<Integer>(20);
 
 	/**
 	 * Emit the specified wordcode into the instruction stream.
 	 *
 	 * @param wordcode A wordcode.
 	 */
-	public void emitWord (final int wordcode)
+	private void emitWord (final int wordcode)
 	{
-		assert wordcode >= -0x8000 && wordcode <= 0x7FFF
-			: "Word is out of range";
 		wordcodes.add(wordcode);
+	}
+
+	/**
+	 * Emit the wordcode offset of the specified {@link L2Instruction} into the
+	 * instruction stream.
+	 *
+	 * @param targetInstruction
+	 *            The {@link L2Instruction} whose offset is to be written into
+	 *            the instruction stream.
+	 */
+	public void emitWordcodeOffsetOf (final L2Instruction targetInstruction)
+	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.PC;
+		wordcodes.add(targetInstruction.offset());
+	}
+
+	/**
+	 * Emit the specified primitive number into the instruction stream.
+	 *
+	 * @param primitive The primitive number to record.
+	 */
+	public void emitPrimitiveNumber (final int primitive)
+	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.PRIMITIVE;
+		wordcodes.add(primitive);
+	}
+
+	/**
+	 * Emit the specified immediate value into the instruction stream.
+	 *
+	 * @param immediate The immediate {@code int} to record.
+	 */
+	public void emitImmediate (final int immediate)
+	{
+		L2OperandType expected = expectedOperandTypes.remove(0);
+		assert expected == L2OperandType.IMMEDIATE;
+		wordcodes.add(immediate);
+	}
+
+	/**
+	 * Emit the wordcode for the specified {@link L2Operation} into the
+	 * instruction stream.  Also set up the expectation for the operation's
+	 * {@linkplain L2OperandType operand types}.
+	 *
+	 * @param operation
+	 *            The {@link L2Operation} to record.
+	 */
+	public void emitL2Operation (final @NotNull L2Operation operation)
+	{
+		assert expectedOperandTypes.isEmpty();
+		wordcodes.add(operation.ordinal());
+		Collections.addAll(expectedOperandTypes, operation.operandTypes());
 	}
 
 	/**
@@ -278,18 +355,31 @@ public final class L2CodeGenerator
 	 *        code} currently undergoing translation to Level Two.
 	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	public @NotNull AvailObject createChunkFor (final @NotNull AvailObject code)
+	@NotNull AvailObject createChunkFor (final @NotNull AvailObject code)
 	{
-		return L2ChunkDescriptor
-			.allocateIndexCodeLiteralsVectorsNumObjectsNumIntegersNumFloatsWordcodesContingentImpSets(
-				true,
-				code,
-				literals,
-				vectors,
-				objectRegisterCount,
-				integerRegisterCount,
-				floatRegisterCount,
-				wordcodes,
-				contingentImpSets);
+		assert expectedOperandTypes.isEmpty();
+		if (logger.isLoggable(Level.FINE))
+		{
+			logger.fine(String.format(
+				"translating L1 compiled code: %s ...", code));
+		}
+
+		AvailObject newChunk = L2ChunkDescriptor.allocate(
+			true,
+			code,
+			literals,
+			vectors,
+			objectRegisterCount,
+			integerRegisterCount,
+			floatRegisterCount,
+			wordcodes,
+			contingentImpSets);
+		if (logger.isLoggable(Level.FINE))
+		{
+			logger.fine(String.format(
+				"... into L2 optimized chunk: %s", newChunk));
+		}
+
+		return newChunk;
 	}
 }

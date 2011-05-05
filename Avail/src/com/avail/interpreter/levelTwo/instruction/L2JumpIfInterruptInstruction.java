@@ -63,7 +63,8 @@ extends L2AbstractJumpInstruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(L2_doJumpIfInterrupt_.ordinal());
-		codeGenerator.emitWord(target().offset());
+		codeGenerator.emitL2Operation(
+			L2_doJumpIfInterrupt_);
+		codeGenerator.emitWordcodeOffsetOf(target());
 	}
 }

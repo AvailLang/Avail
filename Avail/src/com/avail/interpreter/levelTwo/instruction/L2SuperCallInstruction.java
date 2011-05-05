@@ -124,8 +124,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doSuperSend_argumentsVector_argumentTypesVector_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doSuperSend_argumentsVector_argumentTypesVector_);
 		codeGenerator.emitLiteral(implementationSet);
 		codeGenerator.emitVector(argumentsVector);
 		codeGenerator.emitVector(typesVector);

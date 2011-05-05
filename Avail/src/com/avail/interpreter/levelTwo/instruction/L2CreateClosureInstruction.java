@@ -107,8 +107,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doCreateClosureFromCodeObject_outersVector_destObject_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doCreateClosureFromCodeObject_outersVector_destObject_);
 		codeGenerator.emitLiteral(code);
 		codeGenerator.emitVector(outersVector);
 		codeGenerator.emitObjectRegister(destinationRegister);

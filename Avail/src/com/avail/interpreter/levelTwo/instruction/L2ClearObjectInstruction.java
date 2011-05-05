@@ -79,7 +79,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(L2_doClearObject_.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doClearObject_);
 		codeGenerator.emitObjectRegister(destinationRegister);
 	}
 

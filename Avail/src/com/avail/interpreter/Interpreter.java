@@ -34,12 +34,15 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Result.*;
 import java.util.*;
+import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.utility.*;
@@ -51,6 +54,10 @@ import com.avail.utility.*;
  */
 public abstract class Interpreter
 {
+	/** A {@linkplain Logger logger}. */
+	protected static final @NotNull Logger logger =
+		Logger.getLogger(Interpreter.class.getCanonicalName());
+
 	/** An {@link AvailRuntime}. */
 	private final @NotNull AvailRuntime runtime;
 
@@ -105,6 +112,28 @@ public abstract class Interpreter
 	 */
 	public AvailObject primitiveResult;
 
+	/**
+	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
+	 * compiled code} being attempted.  That allows {@linkplain
+	 * Primitive#prim340_PushConstant_ignoreArgs} to get to the first literal
+	 * in order to return it from the primitive.
+	 */
+	private AvailObject primitiveCompiledCodeBeingAttempted;
+
+	/**
+	 * Answer the primitive {@linkplain CompiledCodeDescriptor compiled code}
+	 * that is currently being attempted.  That allows {@linkplain
+	 * Primitive#prim340_PushConstant_ignoreArgs} to get to the first literal
+	 * in order to return it from the primitive.
+	 *
+	 * @return
+	 *            The {@linkplain CompiledCodeDescriptor compiled code} whose
+	 *            primitive is being attempted.
+	 */
+	public final AvailObject primitiveCompiledCodeBeingAttempted ()
+	{
+		return primitiveCompiledCodeBeingAttempted;
+	}
 
 	/**
 	 * Construct a new {@link Interpreter}.
@@ -901,7 +930,7 @@ public abstract class Interpreter
 	public @NotNull Result primitiveSuccess (final @NotNull AvailObject result)
 	{
 		primitiveResult = result;
-		return Result.SUCCESS;
+		return SUCCESS;
 	}
 
 	/**
@@ -915,7 +944,7 @@ public abstract class Interpreter
 	public @NotNull Result primitiveFailure (final @NotNull AvailObject result)
 	{
 		primitiveResult = result;
-		return Result.FAILURE;
+		return FAILURE;
 	}
 
 	/**
@@ -930,7 +959,7 @@ public abstract class Interpreter
 	public @NotNull Result primitiveFailure (final @NotNull String result)
 	{
 		primitiveResult = ByteStringDescriptor.from(result);
-		return Result.FAILURE;
+		return FAILURE;
 	}
 
 	/**
@@ -955,23 +984,53 @@ public abstract class Interpreter
 	 * answer continuationChanged.  Otherwise the primitive succeeded, and we
 	 * simply capture the resulting value with {@link
 	 * Interpreter#primitiveResult(AvailObject)} and return {@link
-	 * Primitive.Result#SUCCESS}.
+	 * Result#SUCCESS}.
 	 *
 	 * @param primitiveNumber The number of the primitive to invoke.
+	 * @param compiledCode The compiled code whose primitive is being attempted.
 	 * @param args The list of arguments to supply to the primitive.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
+		final @NotNull AvailObject compiledCode,
 		final List<AvailObject> args)
 	{
+		Primitive primitive = Primitive.byPrimitiveNumber(primitiveNumber);
+		if (logger.isLoggable(Level.FINER))
+		{
+			logger.finer(String.format(
+				"attempting primitive %d (%s) ...",
+				primitiveNumber,
+				primitive));
+		}
+
 		primitiveResult = null;
-		return Primitive.byPrimitiveNumber(primitiveNumber).attempt(args, this);
+		primitiveCompiledCodeBeingAttempted = compiledCode;
+		Result success = primitive.attempt(args, this);
+		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
+		primitiveCompiledCodeBeingAttempted = null;
+		if (logger.isLoggable(Level.FINER))
+		{
+			logger.finer(String.format(
+				"... completed primitive %d (%s) => %s",
+				primitiveNumber,
+				primitive,
+				success.name()));
+		}
+
+		return success;
 	}
 
 	public abstract Result invokeClosureArguments (
 		AvailObject aClosure,
 		List<AvailObject> args);
+
+	/**
+	 * Ensure any cached interpreter state is represented in the current
+	 * continuation.
+	 */
+	public abstract void reifyContinuation ();
 
 	public abstract void prepareToExecuteContinuation (
 		AvailObject continuation);
@@ -984,6 +1043,14 @@ public abstract class Interpreter
 		AvailObject aClosure,
 		List<AvailObject> args);
 
+	/**
+	 * Run the given closure with the provided arguments as a top-level action.
+	 * Run until the entire process completes, then return the result.
+	 *
+	 * @param aClosure A {@linkplain ClosureDescriptor closure} to run.
+	 * @param arguments The arguments for the closure.
+	 * @return The result of running the specified closure to completion.
+	 */
 	public abstract AvailObject runClosureArguments (
 		AvailObject aClosure,
 		List<AvailObject> arguments);
@@ -995,6 +1062,6 @@ public abstract class Interpreter
 	{
 		//TODO: [MvG] Phase this out without ever implementing it.
 		error("Can't call back to Smalltalk -- not supported.");
-		return Result.FAILURE;
+		return FAILURE;
 	}
 }

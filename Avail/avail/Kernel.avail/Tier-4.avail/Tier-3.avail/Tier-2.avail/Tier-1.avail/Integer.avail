@@ -36,10 +36,10 @@ Uses
 	"Tier-0"
 Names
 	"range from_inclusive_to_inclusive_",
-	"[_.._]",		"[_.._)",		"(_.._]",		"(_.._)",
-	"_lower inclusive",			"_lower bound",
-	"_upper inclusive",			"_upper bound",
-	"INF",			"_is finite",		"_is infinite",
+	"[_.._]", "[_.._)", "(_.._]", "(_.._)",
+	"_lower inclusive", "_lower bound",
+	"_upper inclusive", "_upper bound",
+	"INF", "_is finite", "_is infinite",
 	"byte"
 Body
 
@@ -102,6 +102,15 @@ Method "_upper inclusive" is [range : integerType |
 /* Define public access to infinity ... */
 
 privateInfinity ::= extended integer upper bound;
+
+/* TODO: delete these diagnostics. */
+Print 123;
+Print [123;];
+Print range from 5 inclusive true to 6 inclusive true;
+Print [7..8];
+Print [privateInfinity..privateInfinity];
+t : [privateInfinity..privateInfinity];
+t := privateInfinity;
 
 Method "INF" is [
 	privateInfinity;

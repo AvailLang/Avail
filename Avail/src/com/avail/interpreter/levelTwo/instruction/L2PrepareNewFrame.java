@@ -1,6 +1,6 @@
 /**
- * interpreter/levelTwo/instruction/L2InterpretOneInstruction.java
- * Copyright (c) 2010, Mark van Gulik.
+ * interpreter/levelTwo/instruction/L2PrepareNewFrame.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,49 +32,43 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doInterpretOneInstruction;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doPrepareNewFrame;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.interpreter.levelOne.L1Instruction;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
- * {@code L2InterpretOneInstruction} resides solely in the {@linkplain
- * L2Translator#createChunkForFirstInvocation() default} {@linkplain
- * L2ChunkDescriptor chunk} and exists to simulate a single {@linkplain
- * L1Instruction level one Avail instruction}.
+ * {@code L2CreateContinuationInstruction} creates a new {@linkplain
+ * ContinuationDescriptor continuation} from a calling continuation, a
+ * {@linkplain ClosureDescriptor closure}, a level one program counter and stack
+ * pointer, some slot information, and a level two program counter.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2InterpretOneInstruction
+public final class L2PrepareNewFrame
 extends L2Instruction
 {
 	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>But this should never be produced by the {@linkplain L2Translator
-	 * optimizer}, as its existence and purpose are restricted to the
-	 * {@linkplain L2Translator#createChunkForFirstInvocation() default}
-	 * {@linkplain L2ChunkDescriptor chunk}.</p>
+	 * Construct a new {@link L2PrepareNewFrame}.  The instance doesn't need to
+	 * keep track of which registers are read or written, because it should only
+	 * ever be invoked within the default {@linkplain L2ChunkDescriptor chunk}.
 	 */
+	public L2PrepareNewFrame ()
+	{
+		// No state to initialize.
+	}
+
 	@Override
 	public @NotNull List<L2Register> sourceRegisters ()
 	{
 		return Collections.emptyList();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>Ignore the {@linkplain L2Interpreter#callerRegister() caller
-	 * register}, as it is implicit in the {@linkplain L2InterpretOneInstruction
-	 * instruction}.</p>
-	 */
 	@Override
-	public List<L2Register> destinationRegisters ()
+	public @NotNull List<L2Register> destinationRegisters ()
 	{
 		return Collections.emptyList();
 	}
@@ -82,7 +76,8 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(L2_doInterpretOneInstruction.ordinal());
+		codeGenerator.emitL2Operation(
+			L2_doPrepareNewFrame);
 	}
 
 	@Override

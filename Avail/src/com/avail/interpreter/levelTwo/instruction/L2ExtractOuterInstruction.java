@@ -105,9 +105,9 @@ extends L2Instruction
 	@Override
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
-		codeGenerator.emitWord(
-			L2_doMoveFromOuterVariable_ofClosureObject_destObject_.ordinal());
-		codeGenerator.emitWord(outerIndex);
+		codeGenerator.emitL2Operation(
+			L2_doMoveFromOuterVariable_ofClosureObject_destObject_);
+		codeGenerator.emitImmediate(outerIndex);
 		codeGenerator.emitObjectRegister(sourceRegister);
 		codeGenerator.emitObjectRegister(destinationRegister);
 	}

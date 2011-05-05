@@ -38,6 +38,7 @@ import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -226,6 +227,7 @@ public class MessageSplitter
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
 			builder.append(messageParts.get(tokenIndex - 1).asNativeString());
+			builder.append(")");
 			return builder.toString();
 		}
 
@@ -729,8 +731,8 @@ public class MessageSplitter
 		 *        single {@link ParseNodeDescriptor parse node} or a {@link
 		 *        TupleNodeDescriptor tuple node} of parse nodes, depending on
 		 *        {@code doubleWrap}.  The root group always has doubleWrap
-		 *        true, and passes a synthetic {@code TupleNodeDescriptor tuple
-		 *        node}.
+		 *        true, and passes a synthetic {@linkplain TupleNodeDescriptor
+		 *        tuple node}.
 		 * @param aStream
 		 *        The {@link StringBuilder} on which to print.
 		 * @param indent
@@ -756,10 +758,13 @@ public class MessageSplitter
 			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
-				argumentsIterator = availObject.iterator();
+				assert availObject.isInstanceOfSubtypeOf(Types.TUPLE_NODE.o());
+				argumentsIterator = availObject.expressionsTuple().iterator();
 			}
 			else
 			{
+				assert availObject.isInstanceOfSubtypeOf(
+					Types.EXPRESSION_NODE.o());
 				final List<AvailObject> argumentNodes =
 					Collections.singletonList(availObject);
 				argumentsIterator = argumentNodes.iterator();
@@ -809,9 +814,7 @@ public class MessageSplitter
 					assert expr instanceof Group;
 					final Group subgroup = (Group)expr;
 					final AvailObject argument = argumentsIterator.next();
-					final AvailObject arguments = argument;
-					final AvailObject occurrences =
-						arguments.expressionsTuple();
+					final AvailObject occurrences = argument.expressionsTuple();
 					for (int i = 1; i <= occurrences.tupleSize(); i++)
 					{
 						if (i > 1)
@@ -930,7 +933,7 @@ public class MessageSplitter
 		final int indent)
 	{
 		rootGroup.printWithArguments(
-			sendNode.arguments(),
+			TupleNodeDescriptor.newExpressions(sendNode.arguments()),
 			aStream,
 			indent,
 			true,

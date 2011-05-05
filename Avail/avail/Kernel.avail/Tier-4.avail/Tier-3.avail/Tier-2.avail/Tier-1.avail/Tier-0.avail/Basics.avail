@@ -144,7 +144,6 @@ privateTrue                        ::= Special Object 70;
 privateFalse                       ::= Special Object 71;
 
 
-
 /* First define all the primitive types... */
 Method "all"                    is [privateAll;] : privateType;
 Method "boolean"                is [privateBoolean;] : privatePrimType;

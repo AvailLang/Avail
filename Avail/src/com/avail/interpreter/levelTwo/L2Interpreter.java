@@ -32,15 +32,16 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.Primitive.Flag.SpecialReturnConstant;
 import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.max;
 import java.util.*;
+import java.util.logging.Level;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 
@@ -57,62 +58,125 @@ implements L2OperationDispatcher
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
 	 */
-	AvailObject _chunk;
+	AvailObject chunk;
+
+	private void setChunk (final @NotNull AvailObject chunk)
+	{
+		this.chunk = chunk;
+		if (logger.isLoggable(Level.FINER))
+		{
+			logger.finer(String.format(
+				"executing new chunk (%d)", chunk.index()));
+		}
+	}
 
 	/**
 	 * The L2 instruction stream as a tuple of integers.
 	 */
-	AvailObject _chunkWords;
+	private AvailObject chunkWords;
 
 	/**
 	 * This chunk's register vectors.  A register vector is a tuple of integers
-	 * that represent {@link #_pointers Avail object registers}.
+	 * that represent {@link #pointers Avail object registers}.
 	 */
-	AvailObject _chunkVectors;
+	private AvailObject chunkVectors;
 
 	/**
 	 * The registers that hold {@link AvailObject Avail objects}.
 	 */
-	AvailObject[] _pointers = new AvailObject[10];
+	private AvailObject[] pointers = new AvailObject[10];
 
 	/**
 	 * The 32-bit signed integer registers.
 	 */
-	int[] _integers = new int[10];
+	private int[] integers = new int[10];
 
 	/**
 	 * The double-precision floating point registers.
 	 */
-	double[] _doubles = new double[10];
+	private double[] doubles = new double[10];
 
 	/**
-	 * The current pointer into {@link #_chunkWords}, the level two instruction
+	 * The current pointer into {@link #chunkWords}, the level two instruction
 	 * stream.
 	 */
-	int _offset;
+	private int offset;
 
 	/**
 	 * A reusable temporary buffer used to hold arguments during method
 	 * invocations.
 	 */
-	List<AvailObject> _argsBuffer = new ArrayList<AvailObject>();
+	final List<AvailObject> argsBuffer = new ArrayList<AvailObject>();
 
 	/**
 	 * Whether or not execution has completed.
 	 */
-	boolean _exitNow = false;
+	private boolean exitNow = false;
 
 	/**
 	 * The value returned by the outermost continuation.
 	 */
-	AvailObject _exitValue;
+	private AvailObject exitValue;
 
 	/**
 	 * The dispatcher used to simulate level one instructions via {@link
-	 * #L2_doInterpretOneInstruction()}.
+	 * #L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt()}.
 	 */
-	L1OperationDispatcher levelOneDispatcher = new L1OperationDispatcher()
+	final L1OperationDispatcher levelOneDispatcher = new L1OperationDispatcher()
 	{
+		/**
+		 * Push a value onto the current virtualized continuation's stack (which
+		 * is just some consecutively-numbered pointer registers and an integer
+		 * register that maintains the position).
+		 *
+		 * @param value The value to push on the virtualized stack.
+		 */
+		private final void push (@NotNull final AvailObject value)
+		{
+			int stackp = integerAt(stackpRegister());
+			stackp--;
+			assert stackp >= argumentRegister(1);
+			pointerAtPut(stackp, value);
+			integerAtPut(stackpRegister(), stackp);
+		}
+
+		/**
+		 * Pop a value off the current virtualized continuation's stack (which
+		 * is just some consecutively-numbered pointer registers and an integer
+		 * register that maintains the position).
+		 *
+		 * @return The value popped off the virtualized stack.
+		 */
+		private final @NotNull AvailObject pop ()
+		{
+			final int stackp = integerAt(stackpRegister());
+			assert stackp <= argumentRegister(
+				pointerAt(closureRegister()).code().numArgsAndLocalsAndStack());
+			final AvailObject popped = pointerAt(stackp);
+			// Clear the stack slot
+			pointerAtPut(stackp, VoidDescriptor.voidObject());
+			integerAtPut(stackpRegister(), stackp + 1);
+			return popped;
+		}
+
+		/**
+		 * Extract the specified literal from the current closure's code.
+		 *
+		 * @param literalIndex
+		 *            The index of the literal to look up in the current
+		 *            closure's code.
+		 * @return
+		 *            The literal extracted from the specified literal slot of
+		 *            the code.
+		 */
+		private final @NotNull AvailObject literalAt (final int literalIndex)
+		{
+			final AvailObject closure = pointerAt(closureRegister());
+			final AvailObject code = closure.code();
+			return code.literalAt(literalIndex);
+		}
+
+
 		/**
 		 * [n] - Send the message at index n in the compiledCode's literals. Pop the
 		 * arguments for this message off the stack (the message itself knows how
@@ -127,21 +191,18 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doCall()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			// Look up the method implementations.  They all know numArgs.
-			final AvailObject implementations =
-				cont.closure().code().literalAt(getInteger());
-			final AvailObject expectedReturnType =
-				cont.closure().code().literalAt(getInteger());
+			final AvailObject implementations = literalAt(getInteger());
+			final AvailObject expectedReturnType = literalAt(getInteger());
+			final int numArgs = implementations.numArgs();
+			argsBuffer.clear();
+			for (int i = numArgs; i >= 1; i--)
+			{
+				argsBuffer.add(0, pop());
+			}
 			final AvailObject matching =
-				implementations.lookupByValuesFromContinuationStackp(
-					cont,
-					cont.stackp());
+				implementations.lookupByValuesFromList(argsBuffer);
 			if (matching.equalsVoid())
 			{
-				//TODO: Debug
-				System.out.print(cont);
-				System.out.print(cont.closure());
 				error("Ambiguous or invalid lookup");
 				return;
 			}
@@ -156,50 +217,14 @@ implements L2OperationDispatcher
 				error("Attempted to execute an abstract method.");
 				return;
 			}
-			final AvailObject theClosure = matching.bodyBlock();
-			final AvailObject theCode = theClosure.code();
-			// Call the method...
-			final short nArgs = matching.bodySignature().numArgs();
-			_argsBuffer.clear();
-			for (int i = 1; i <= nArgs; i++)
-			{
-				// Reverse order - i.e., _argsBuffer.get(0) was pushed first.
-				final int stackIndex = cont.stackp() + nArgs - i;
-				_argsBuffer.add(cont.stackAt(stackIndex));
-				cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
-			}
-			cont.stackp(cont.stackp() + nArgs - 1);
-			cont.stackAtPut(cont.stackp(), expectedReturnType);
 			// Leave the expected return type pushed on the stack.  This will be
 			// used when the method returns, and it also helps distinguish label
 			// continuations from call continuations.
-			final int primNum = theCode.primitiveNumber();
-			if (primNum != 0)
-			{
-				assert _chunk == L2ChunkDescriptor.chunkFromId (
-						_pointers[callerRegister()].levelTwoChunkIndex());
-				final Result primResult = attemptPrimitive(
-					primNum,
-					_argsBuffer);
-				if (primResult == CONTINUATION_CHANGED)
-				{
-					return;
-				}
-				if (primResult == SUCCESS)
-				{
-					if (!primitiveResult.isInstanceOfSubtypeOf(
-						expectedReturnType))
-					{
-						error("Primitive result did not agree " +
-							"with expected type");
-					}
-					final AvailObject callerCont = _pointers[callerRegister()];
-					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
-					return;
-				}
-			}
-			// Either not a primitive or else a failed primitive.
-			invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
+			push(expectedReturnType);
+
+			// Call the method...
+			reifyContinuation();
+			invokePossiblePrimitiveWithReifiedCaller(matching.bodyBlock());
 		}
 
 		/**
@@ -208,14 +233,11 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doPushLiteral ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject constant = cont.closure().code().literalAt(index);
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
+			final int literalIndex = getInteger();
+			final AvailObject constant = literalAt(literalIndex);
 			// We don't need to make constant beImmutable because *code objects*
 			// are always immutable.
-			cont.stackAtPut(stackp, constant);
+			push(constant);
 		}
 
 		/**
@@ -227,13 +249,10 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doPushLastLocal ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.localOrArgOrStackAt(index);
-			cont.localOrArgOrStackAtPut(index, VoidDescriptor.voidObject());
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, variable);
+			final int localIndex = argumentRegister(getInteger());
+			final AvailObject local = pointerAt(localIndex);
+			pointerAtPut(localIndex, VoidDescriptor.voidObject());
+			push(local);
 		}
 
 		/**
@@ -243,13 +262,10 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doPushLocal ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.localOrArgOrStackAt(index);
-			variable.makeImmutable();
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, variable);
+			final int localIndex = argumentRegister(getInteger());
+			final AvailObject local = pointerAt(localIndex);
+			local.makeImmutable();
+			push(local);
 		}
 
 		/**
@@ -261,21 +277,19 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doPushLastOuter ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.closure().outerVarAt(index);
-			if (variable.equalsVoid())
+			final AvailObject closure = pointerAt(closureRegister());
+			final int outerIndex = getInteger();
+			final AvailObject outer = closure.outerVarAt(outerIndex);
+			if (outer.equalsVoid())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
 			}
-			if (!cont.closure().optionallyNilOuterVar(index))
+			if (!closure.optionallyNilOuterVar(outerIndex))
 			{
-				variable.makeImmutable();
+				outer.makeImmutable();
 			}
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, variable);
+			push(outer);
 		}
 
 		/**
@@ -286,32 +300,28 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doClose ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
 			final int numCopiedVars = getInteger();
-			final AvailObject codeToClose = cont.closure().code()
-			.literalAt(getInteger());
-			final int stackp = cont.stackp() + numCopiedVars - 1;
-			cont.stackp(stackp);
+			final int literalIndexOfCode = getInteger();
+			final AvailObject codeToClose = literalAt(literalIndexOfCode);
 			final AvailObject newClosure = ClosureDescriptor.mutable().create(
 				numCopiedVars);
 			newClosure.code(codeToClose);
-			int stackIndex = stackp;
-			for (int i = 1; i <= numCopiedVars; i++)
+			for (int i = numCopiedVars; i >= 1; i--)
 			{
-				newClosure.outerVarAtPut(i, cont.stackAt(stackIndex));
-				cont.stackAtPut(stackIndex, VoidDescriptor.voidObject());
-				stackIndex--;
+				final AvailObject value = pop();
+				assert !value.equalsVoid();
+				newClosure.outerVarAtPut(i, value);
 			}
 			/*
 			 * We don't assert assertObjectUnreachableIfMutable: on the popped
-			 * copied vars because each copied var's new reference from the
-			 * closure balances the lost reference from the wiped stack.
+			 * outer variables because each outer variable's new reference from
+			 * the closure balances the lost reference from the wiped stack.
 			 * Likewise we don't tell them makeImmutable(). The closure itself
-			 * should remain mutable at this point, otherwise the copied vars
-			 * would have to makeImmutable() to be referenced by an immutable
-			 * closure.
+			 * should remain mutable at this point, otherwise the outer
+			 * variables would have to makeImmutable() to be referenced by an
+			 * immutable closure.
 			 */
-			cont.stackAtPut(stackp, newClosure);
+			push(newClosure);
 		}
 
 		/**
@@ -321,16 +331,11 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doSetLocal ()
 		{
-
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.localOrArgOrStackAt(index);
-			final AvailObject value = cont.stackAt(cont.stackp());
-			final int stackp = cont.stackp();
-			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-			cont.stackp(stackp + 1);
+			final int localIndex = argumentRegister(getInteger());
+			final AvailObject localVariable = pointerAt(localIndex);
+			final AvailObject value = pop();
 			// The value's reference from the stack is now from the variable.
-			variable.setValue(value);
+			localVariable.setValue(value);
 		}
 
 		/**
@@ -341,21 +346,18 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doGetLocalClearing ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.localOrArgOrStackAt(index);
-			final AvailObject value = variable.getValue();
-			if (variable.traversed().descriptor().isMutable())
+			final int localIndex = argumentRegister(getInteger());
+			final AvailObject localVariable = pointerAt(localIndex);
+			final AvailObject value = localVariable.getValue();
+			if (localVariable.traversed().descriptor().isMutable())
 			{
-				variable.clearValue();
+				localVariable.clearValue();
 			}
 			else
 			{
 				value.makeImmutable();
 			}
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, value);
+			push(value);
 		}
 
 		/**
@@ -364,31 +366,25 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doPushOuter ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.closure().outerVarAt(index);
-			if (variable.equalsVoid())
+			final AvailObject closure = pointerAt(closureRegister());
+			final int outerIndex = getInteger();
+			final AvailObject outer = closure.outerVarAt(outerIndex);
+			if (outer.equalsVoid())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
 			}
-			variable.makeImmutable();
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, variable);
+			outer.makeImmutable();
+			push(outer);
 		}
 
 		/**
-		 * Remove the top item from the stack.
+		 * [] - Remove the top item from the stack.
 		 */
 		@Override
 		public void L1_doPop ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			cont.stackAt(cont.stackp()).assertObjectUnreachableIfMutable();
-			cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
-			final int stackp = cont.stackp() + 1;
-			cont.stackp(stackp);
+			pop();
 		}
 
 		/**
@@ -399,22 +395,19 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doGetOuterClearing ()
 		{
-
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.closure().outerVarAt(index);
-			final AvailObject value = variable.getValue();
-			if (variable.traversed().descriptor().isMutable())
+			final AvailObject closure = pointerAt(closureRegister());
+			final int outerIndex = getInteger();
+			final AvailObject outerVariable = closure.outerVarAt(outerIndex);
+			final AvailObject value = outerVariable.getValue();
+			if (outerVariable.traversed().descriptor().isMutable())
 			{
-				variable.clearValue();
+				outerVariable.clearValue();
 			}
 			else
 			{
 				value.makeImmutable();
 			}
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, value);
+			push(value);
 		}
 
 		/**
@@ -424,20 +417,17 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doSetOuter ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.closure().outerVarAt(index);
-			if (variable.equalsVoid())
+			final AvailObject closure = pointerAt(closureRegister());
+			final int outerIndex = getInteger();
+			final AvailObject outerVariable = closure.outerVarAt(outerIndex);
+			if (outerVariable.equalsVoid())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
 			}
-			final int stackp = cont.stackp();
-			final AvailObject value = cont.stackAt(stackp);
-			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-			cont.stackp(stackp + 1);
+			final AvailObject newValue = pop();
 			// The value's reference from the stack is now from the variable.
-			variable.setValue(value);
+			outerVariable.setValue(newValue);
 		}
 
 		/**
@@ -447,34 +437,28 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doGetLocal ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.localOrArgOrStackAt(index);
-			final AvailObject value = variable.getValue();
+			final int localIndex = argumentRegister(getInteger());
+			final AvailObject localVariable = pointerAt(localIndex);
+			final AvailObject value = localVariable.getValue();
 			value.makeImmutable();
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, value);
+			push(value);
 		}
 
+		/**
+		 * [n] - Pop n values off the stack to make a tuple.
+		 */
 		@Override
 		public void L1_doMakeTuple ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
 			final int count = getInteger();
 			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
 				count);
-			int stackp = cont.stackp();
 			for (int i = count; i >= 1; i--)
 			{
-				tuple.tupleAtPut(i, cont.stackAt(stackp));
-				cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-				stackp++;
+				tuple.tupleAtPut(i, pop());
 			}
 			tuple.hashOrZero(0);
-			stackp--;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, tuple);
+			push(tuple);
 		}
 
 		/**
@@ -484,14 +468,17 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doGetOuter ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.closure().outerVarAt(index);
-			final AvailObject value = variable.getValue();
-			value.makeImmutable();
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, value);
+			final AvailObject closure = pointerAt(closureRegister());
+			final int outerIndex = getInteger();
+			final AvailObject outerVariable = closure.outerVarAt(outerIndex);
+			final AvailObject outer = outerVariable.getValue();
+			if (outer.equalsVoid())
+			{
+				error("Someone prematurely erased this outer var");
+				return;
+			}
+			outer.makeImmutable();
+			push(outer);
 		}
 
 		/**
@@ -501,11 +488,14 @@ implements L2OperationDispatcher
 		@Override
 		public void L1_doExtension ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final byte nextNybble = cont.closure().code().nybbles()
-			.extractNybbleFromTupleAt(cont.pc());
-			cont.pc(cont.pc() + 1);
-			L1Operation.values()[nextNybble + 16].dispatch(levelOneDispatcher);
+			final AvailObject closure = pointerAt(closureRegister());
+			final AvailObject code = closure.code();
+			final AvailObject nybbles = code.nybbles();
+			int pc = integerAt(pcRegister());
+			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+			pc++;
+			integerAtPut(pcRegister(), pc);
+			L1Operation.values()[nybble + 16].dispatch(levelOneDispatcher);
 		}
 
 		/**
@@ -515,45 +505,35 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Ext_doPushLabel ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final AvailObject code = cont.closure().code();
-			int stackp = cont.stackp();
-
-			// Always copy it.
-			final AvailObject newContinuation = cont.copyAsMutableContinuation();
-
-			// Fix up this new continuation. It needs to have its pc set, its
-			// stackp reset, its stack area and non-argument locals cleared, and
-			// its caller, closure, and args made immutable.
-
-			// Set the new continuation's pc to the first instruction...
-			newContinuation.pc(1);
-
-			// Reset the new continuation's stack pointer...
-			newContinuation.stackp(code.numArgsAndLocalsAndStack() + 1);
-			for (int i = code.numArgsAndLocalsAndStack(); i >= stackp; i--)
+			final AvailObject closure = pointerAt(closureRegister());
+			final AvailObject code = closure.code();
+			final int numArgs = code.numArgs();
+			final List<AvailObject> args = new ArrayList<AvailObject>(numArgs);
+			for (int i = 1; i <= numArgs; i++)
 			{
-				newContinuation.stackAtPut(i, VoidDescriptor.voidObject());
+				args.add(pointerAt(argumentRegister(i)));
 			}
-			final int limit = code.numArgs() + code.numLocals();
-			for (int i = code.numArgs() + 1; i <= limit; i++)
+			final int numLocals = code.numLocals();
+			final List<AvailObject> locals =
+				new ArrayList<AvailObject>(numLocals);
+			for (int i = 1; i <= numLocals; i++)
 			{
-				newContinuation.localOrArgOrStackAtPut(
-					i,
-					VoidDescriptor.voidObject());
+				locals.add(pointerAt(argumentRegister(numArgs + i)));
 			}
+			AvailObject newContinuation = ContinuationDescriptor.create(
+				closure,
+				pointerAt(callerRegister()),
+				chunk.index(),
+				args,
+				locals);
 			// Freeze all fields of the new object, including its caller,
 			// closure, and args.
 			newContinuation.makeSubobjectsImmutable();
 			// ...always a fresh copy, always mutable (uniquely owned).
 			assert newContinuation.caller().equalsVoid()
-			|| !newContinuation.caller().descriptor().isMutable()
+				|| !newContinuation.caller().descriptor().isMutable()
 			: "Caller should freeze because two continuations can see it";
-			assert cont.descriptor().isMutable()
-			: "The CURRENT continuation can't POSSIBLY be seen by anyone!";
-			stackp--;
-			cont.stackAtPut(stackp, newContinuation);
-			cont.stackp(stackp);
+			push(newContinuation);
 		}
 
 		/**
@@ -563,13 +543,13 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Ext_doGetLiteral ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject constant = cont.closure().code().literalAt(index);
-			final AvailObject value = constant.getValue().makeImmutable();
-			final int stackp = cont.stackp() - 1;
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, value);
+			final int literalIndex = getInteger();
+			final AvailObject literalVariable = literalAt(literalIndex);
+			// We don't need to make constant beImmutable because *code objects*
+			// are always immutable.
+			final AvailObject value = literalVariable.getValue();
+			value.makeImmutable();
+			push(value);
 		}
 
 		/**
@@ -579,15 +559,11 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Ext_doSetLiteral ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final AvailObject variable = cont.closure().code().literalAt(index);
-			final int stackp = cont.stackp();
-			final AvailObject value = cont.stackAt(stackp);
-			cont.stackAtPut(stackp, VoidDescriptor.voidObject());
-			cont.stackp(stackp + 1);
+			final int literalIndex = getInteger();
+			final AvailObject literalVariable = literalAt(literalIndex);
+			final AvailObject value = pop();
 			// The value's reference from the stack is now from the variable.
-			variable.setValue(value);
+			literalVariable.setValue(value);
 		}
 
 		/**
@@ -608,14 +584,17 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Ext_doSuperCall ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final AvailObject code = cont.closure().code();
-			final int stackp = cont.stackp();
-			// Look up the method implementations.
-			final AvailObject implementations = code.literalAt(getInteger());
-			final AvailObject expectedReturnType = code.literalAt(getInteger());
-			final AvailObject matching = implementations
-			.lookupByTypesFromContinuationStackp(cont, stackp);
+			final AvailObject implementations = literalAt(getInteger());
+			final AvailObject expectedReturnType = literalAt(getInteger());
+			final int numArgs = implementations.numArgs();
+			// Pop the argument types (the types by which to do a lookup)...
+			argsBuffer.clear();
+			for (int i = numArgs; i >= 1; i--)
+			{
+				argsBuffer.add(0, pop());
+			}
+			final AvailObject matching =
+				implementations.lookupByTypesFromList(argsBuffer);
 			if (matching.equalsVoid())
 			{
 				error("Ambiguous or invalid lookup");
@@ -632,74 +611,45 @@ implements L2OperationDispatcher
 				error("Attempted to execute an abstract method.");
 				return;
 			}
-			final AvailObject theClosure = matching.bodyBlock();
-			final AvailObject theCode = theClosure.traversed().code();
-			// Clear the argument types off the stack...
-			final short nArgs = theCode.numArgs();
-			for (int i = 1; i <= nArgs; i++)
+			// Pop the arguments themselves...
+			argsBuffer.clear();
+			for (int i = numArgs; i >= 1; i--)
 			{
-				cont.stackAtPut(stackp + i - 1, VoidDescriptor.voidObject());
+				argsBuffer.add(0, pop());
 			}
-			_argsBuffer.clear();
-			final int base = stackp + nArgs + nArgs;
-			for (int i = 1; i <= nArgs; i++)
-			{
-				_argsBuffer.add(cont.stackAt(base - i));
-				cont.stackAtPut(base - i, VoidDescriptor.voidObject());
-			}
-			// Remove types and arguments, but then leave the expected return
-			// type pushed.  This allows the return type to be verified when the
-			// called method returns, and it also helps distinguish label/call
-			// kinds of continuations.
-			cont.stackp(base - 1);
-			cont.stackAtPut(base - 1, expectedReturnType);
-			final int primNum = theCode.primitiveNumber();
-			if (primNum != 0)
-			{
-				assert _chunk == L2ChunkDescriptor.chunkFromId(
-						_pointers[callerRegister()].levelTwoChunkIndex());
-				final Result primResult = attemptPrimitive(
-					primNum,
-					_argsBuffer);
-				if (primResult == CONTINUATION_CHANGED)
-				{
-					return;
-				}
-				if (primResult == SUCCESS)
-				{
-					if (!primitiveResult.isInstanceOfSubtypeOf(
-						expectedReturnType))
-					{
-						error("Primitive result did not agree " +
-							"with expected type");
-					}
-					final AvailObject callerCont = _pointers[callerRegister()];
-					callerCont.stackAtPut(callerCont.stackp(), primitiveResult);
-					return;
-				}
-			}
-			// Either not a primitive or else a failed primitive.
-			invokeWithoutPrimitiveClosureArguments(theClosure, _argsBuffer);
+			// Leave the expected return type pushed on the stack.  This will be
+			// used when the method returns, and it also helps distinguish label
+			// continuations from call continuations.
+			push(expectedReturnType);
+
+			// Call the method...
+			reifyContinuation();
+			invokePossiblePrimitiveWithReifiedCaller(matching.bodyBlock());
 		}
 
 		/**
-		 * [n] - Push the (n+1)st stack element's type. This is only used by the
+		 * [n] - Push the nth stack element's type. This is only used by the
 		 * supercast mechanism to produce types for arguments not being cast.
 		 * See #doSuperCall. This implies the type will be used for a lookup and
 		 * then discarded. We therefore don't treat the type as acquiring a new
 		 * reference from the stack, so it doesn't have to become immutable.
 		 * This could be a sticky point with the garbage collector if it finds
-		 * only one reference to the type, but I think it's ok still.
+		 * only one reference to the type, but I think it will still work.
+		 *
+		 * <p>
+		 * Strike that.  The level one state has to have a consistent reference
+		 * count, so we have to make the object immutable in case the type has
+		 * to refer to it.
+		 * </p>
 		 */
 		@Override
 		public void L1Ext_doGetType ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int index = getInteger();
-			final int stackp = cont.stackp() - 1;
-			final AvailObject value = cont.stackAt(stackp + index + 1);
-			cont.stackp(stackp);
-			cont.stackAtPut(stackp, value.type());
+			final int depth = getInteger();
+			final int deepStackp = integerAt(stackpRegister() + depth);
+			final AvailObject value = pointerAt(deepStackp);
+			value.makeImmutable();
+			push(value.type());
 		}
 
 		/**
@@ -709,12 +659,10 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Ext_doDuplicate ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final int stackp = cont.stackp() - 1;
-			final AvailObject value = cont.stackAt(stackp + 1);
+			final int stackp = integerAt(stackpRegister());
+			final AvailObject value = pointerAt(stackp);
 			value.makeImmutable();
-			cont.stackAtPut(stackp, value);
-			cont.stackp(stackp);
+			push(value);
 		}
 
 		/**
@@ -724,7 +672,6 @@ implements L2OperationDispatcher
 		@Override
 		public  void L1Ext_doReserved ()
 		{
-
 			error("That nybblecode is not supported");
 			return;
 		}
@@ -732,7 +679,7 @@ implements L2OperationDispatcher
 		/**
 		 * Return to the calling continuation with top of stack.  This isn't an
 		 * actual instruction (any more), but it's implied after every block.
-		 * Note that the calling continuation has automatically pre-pushed the
+		 * Note that the calling continuation has automatically pushed the
 		 * expected return type, which after being used to check the return
 		 * value should simply be replaced by this value.  This avoids
 		 * manipulating the stack depth.
@@ -740,33 +687,46 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Implied_doReturn ()
 		{
-			final AvailObject cont = pointerAt(callerRegister());
-			final AvailObject valueObject = cont.stackAt(cont.stackp());
-			final AvailObject closureType = cont.closure().code().closureType();
-			assert valueObject.isInstanceOfSubtypeOf(closureType.returnType())
+			AvailObject caller = pointerAt(callerRegister());
+			final AvailObject value = pop();
+			final AvailObject closure = pointerAt(closureRegister());
+			assert value.isInstanceOfSubtypeOf(
+					closure.code().closureType().returnType())
 				: "Return type from method disagrees with declaration";
-			// Necessary to avoid accidental destruction.
-			cont.stackAtPut(cont.stackp(), VoidDescriptor.voidObject());
-			AvailObject caller = cont.caller();
 			if (caller.equalsVoid())
 			{
-				process.executionState(ExecutionState.terminated);
-				process.continuation(VoidDescriptor.voidObject());
-				_exitNow = true;
-				_exitValue = valueObject;
+				exitProcessWith(value);
 				return;
 			}
-			caller = caller.ensureMutable();
-			final int callerStackp = caller.stackp();
-			final AvailObject expectedType = caller.stackAt(callerStackp);
-			if (!valueObject.isInstanceOfSubtypeOf(expectedType))
+			prepareToExecuteContinuation(caller);
+			final AvailObject expectedType = pop();
+			if (!value.isInstanceOfSubtypeOf(expectedType))
 			{
 				error("Return value does not agree with expected type");
 			}
-			caller.stackAtPut(callerStackp, valueObject);
-			prepareToExecuteContinuation(caller);
+			push(value);
 		}
 	};
+
+
+	/**
+	 * Exit the current {@linkplain ProcessDescriptor process} with the
+	 * specified result.
+	 *
+	 * @param finalObject
+	 *            The {@link AvailObject} that is the final result of running
+	 *            the {@linkplain ProcessDescriptor process}.
+	 *
+	 */
+	void exitProcessWith (final AvailObject finalObject)
+	{
+		process.executionState(ExecutionState.terminated);
+		process.continuation(VoidDescriptor.voidObject());
+		exitNow = true;
+		exitValue = finalObject;
+		pointerAtPut(callerRegister(), null);
+		pointerAtPut(closureRegister(), null);
+	}
 
 
 	/**
@@ -786,9 +746,9 @@ implements L2OperationDispatcher
 	 *
 	 * @return The position in the L2 wordcode stream.
 	 */
-	int offset ()
+	private int offset ()
 	{
-		return _offset;
+		return offset;
 	}
 
 	/**
@@ -796,11 +756,225 @@ implements L2OperationDispatcher
 	 *
 	 * @param newOffset The new position in the L2 wordcode stream.
 	 */
-	void offset (final int newOffset)
+	private void offset (final int newOffset)
 	{
 		// System.out.printf("[#%d] %d -> %d%n", _chunk.index(), _offset,
 		// newOffset);
-		_offset = newOffset;
+		offset = newOffset;
+	}
+
+	/**
+	 * Answer the subscript of the integer register reserved for holding the
+	 * current (virtualized) continuation's {@linkplain
+	 * ContinuationDescriptor#o_Pc(AvailObject) pc} (program counter).
+	 *
+	 * @return The subscript to use with {@link L2Interpreter#integerAt(int)}.
+	 */
+	final public int pcRegister ()
+	{
+		// reserved
+		return 1;
+	}
+
+
+	/**
+	 * Answer the subscript of the integer register reserved for holding the
+	 * current (virtualized) continuation's {@linkplain
+	 * ContinuationDescriptor#o_Stackp(AvailObject) stackp} (stack pointer).
+	 * While in this register, the value refers to the exact pointer register
+	 * number rather than the value that would be stored in a continuation's
+	 * stackp slot, so adjustments must be made during reification and
+	 * explosion of continuations.
+	 *
+	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
+	 */
+	final public int stackpRegister ()
+	{
+		// reserved
+		return 2;
+	}
+
+
+	/**
+	 * Answer the subscript of the register holding the argument with the given
+	 * index (e.g., the first argument is in register 3).
+	 *
+	 * @param localNumber The one-based argument/local number.
+	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
+	 */
+	final public int argumentRegister (final int localNumber)
+	{
+		// Skip the continuation and closure.
+		return localNumber + 2;
+	}
+
+
+	/**
+	 * Answer the current continuation.
+	 *
+	 * @return The current continuation.
+	 */
+	final public AvailObject currentContinuation ()
+	{
+		return pointerAt(callerRegister());
+	}
+
+
+	/**
+	 * Answer the subscript of the register holding the current context's caller
+	 * context.
+	 *
+	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
+	 */
+	final public int callerRegister ()
+	{
+		// reserved
+		return 1;
+	}
+
+
+	/**
+	 * Answer the subscript of the register holding the current context's
+	 * closure.
+	 *
+	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
+	 */
+	final public int closureRegister ()
+	{
+		// reserved
+		return 2;
+	}
+
+
+	/**
+	 * Answer an integer extracted at the current program counter. The program
+	 * counter will be adjusted to skip over the integer.
+	 *
+	 * @return An integer extracted from the instruction stream.
+	 */
+	public int getInteger ()
+	{
+		final AvailObject closure = pointerAt(closureRegister());
+		final AvailObject code = closure.code();
+		final AvailObject nybbles = code.nybbles();
+		int pc = integerAt(pcRegister());
+		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
+		int value = 0;
+		final byte[] counts =
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
+		};
+		for (int count = counts[nybble]; count > 0; --count)
+		{
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
+			pc++;
+		}
+		final byte[] offsets =
+		{
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
+		};
+		value += offsets[nybble];
+		integerAtPut(pcRegister(), pc);
+		return value;
+	}
+
+
+	/**
+	 * Read from an object register.  The index is one-based in both Smalltalk
+	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
+	 *
+	 * @param index The one-based object-register index.
+	 * @return The object in the specified register.
+	 */
+	public AvailObject pointerAt (final int index)
+	{
+		assert index > 0;
+		assert pointers[index] != null;
+		return pointers[index];
+	}
+
+
+	/**
+	 * Write to an object register.  The index is one-based in both Smalltalk
+	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
+	 *
+	 * @param index The one-based object-register index.
+	 * @param anAvailObject The object to write to the specified register.
+	 */
+	public void pointerAtPut (final int index, final AvailObject anAvailObject)
+	{
+		assert index > 0;
+		assert index < 3 || anAvailObject != null;
+		if (index <= 2)
+		{
+			//TODO: Remove
+			int foo = index;
+			foo++;
+		}
+		pointers[index] = anAvailObject;
+	}
+
+
+	/**
+	 * Read from an integer register.  The index is one-based.  Entry [0] is
+	 * unused.
+	 *
+	 * @param index The one-based integer-register index.
+	 * @return The int in the specified register.
+	 */
+	public int integerAt (final int index)
+	{
+		assert index > 0;
+		return integers[index];
+	}
+
+
+	/**
+	 * Write to an integer register.  The index is one-based.  Entry [0] is
+	 * unused.
+	 *
+	 * @param index The one-based integer-register index.
+	 * @param value The value to write to the register.
+	 */
+	public void integerAtPut (final int index, final int value)
+	{
+		assert index > 0;
+		integers[index] = value;
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Construct the continuation from the L2 registers that hold the
+	 * L1-architectural state.  Write the resulting continuation into the
+	 * {@linkplain L2Interpreter#callerRegister() caller register}.
+	 * </p>
+	 */
+	@Override
+	public void reifyContinuation ()
+	{
+		final AvailObject closure = pointerAt(closureRegister());
+		final AvailObject code = closure.code();
+		final AvailObject continuation =
+			ContinuationDescriptor.mutable().create(
+				code.numArgsAndLocalsAndStack());
+		continuation.caller(pointerAt(callerRegister()));
+		continuation.closure(closure);
+		continuation.pc(integerAt(pcRegister()));
+		continuation.stackp(
+			integerAt(stackpRegister()) + 1 - argumentRegister(1));
+		continuation.hiLevelTwoChunkLowOffset(
+			(chunk.index() << 16) + offset());
+		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
+		{
+			continuation.argOrLocalOrStackAtPut(
+				i,
+				pointerAt(argumentRegister(i)));
+		}
+		pointerAtPut(callerRegister(), continuation);
 	}
 
 	@Override
@@ -808,17 +982,17 @@ implements L2OperationDispatcher
 	{
 		if (continuation.equalsVoid())
 		{
-			_chunk = VoidDescriptor.voidObject();
-			_chunkWords = VoidDescriptor.voidObject();
-			_chunkVectors = VoidDescriptor.voidObject();
+			setChunk(VoidDescriptor.voidObject());
+			chunkWords = VoidDescriptor.voidObject();
+			chunkVectors = VoidDescriptor.voidObject();
 			offset(0);
 			pointerAtPut(callerRegister(), VoidDescriptor.voidObject());
 			pointerAtPut(closureRegister(), VoidDescriptor.voidObject());
 			return;
 		}
-		_chunk = L2ChunkDescriptor.chunkFromId(continuation
-			.levelTwoChunkIndex());
-		if (!_chunk.isValid())
+		setChunk(L2ChunkDescriptor.chunkFromId(
+			continuation.levelTwoChunkIndex()));
+		if (!chunk.isValid())
 		{
 			// The chunk has been invalidated, but the continuation still refers
 			// to it.  The garbage collector will reclaim the chunk only when
@@ -828,15 +1002,22 @@ implements L2OperationDispatcher
 			continuation.levelTwoChunkIndexOffset(
 				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 				L2ChunkDescriptor.offsetToPauseUnoptimizedChunk());
-			_chunk = L2ChunkDescriptor.chunkFromId(
-				continuation.levelTwoChunkIndex());
+			setChunk(L2ChunkDescriptor.chunkFromId(
+				continuation.levelTwoChunkIndex()));
 		}
-		_chunkWords = _chunk.wordcodes();
-		_chunkVectors = _chunk.vectors();
-		makeRoomForChunkRegisters(_chunk, continuation.closure().code());
-		pointerAtPut(callerRegister(), continuation);
-		pointerAtPut(closureRegister(), continuation.closure());
+		chunkWords = chunk.wordcodes();
+		chunkVectors = chunk.vectors();
+		makeRoomForChunkRegisters(chunk, continuation.closure().code());
 		offset(continuation.levelTwoOffset());
+		integerAtPut(pcRegister(), continuation.pc());
+		integerAtPut(stackpRegister(), argumentRegister(continuation.stackp()));
+		pointerAtPut(callerRegister(), continuation.caller());
+		pointerAtPut(closureRegister(), continuation.closure());
+		final int slots = continuation.numArgsAndLocalsAndStack();
+		for (int i = 1; i <= slots; i++)
+		{
+			pointerAtPut(argumentRegister(i), continuation.stackAt(i));
+		}
 	}
 
 	/**
@@ -847,32 +1028,32 @@ implements L2OperationDispatcher
 	 *                 invoked.
 	 * @param theCode The code about to be invoked.
 	 */
-	void makeRoomForChunkRegisters (
+	private void makeRoomForChunkRegisters (
 		final AvailObject theChunk,
 		final AvailObject theCode)
 	{
 		final int neededObjectCount = max(
 			theChunk.numObjects(),
 			theCode.numArgsAndLocalsAndStack()) + 3;
-		if (neededObjectCount > _pointers.length)
+		if (neededObjectCount > pointers.length)
 		{
 			final AvailObject[] newPointers =
 				new AvailObject[neededObjectCount * 2 + 10];
-			System.arraycopy(_pointers, 0, newPointers, 0, _pointers.length);
-			_pointers = newPointers;
+			System.arraycopy(pointers, 0, newPointers, 0, pointers.length);
+			pointers = newPointers;
 		}
-		if (theChunk.numIntegers() > _integers.length)
+		if (theChunk.numIntegers() > integers.length)
 		{
 			final int[] newIntegers = new int[theChunk.numIntegers() * 2 + 10];
-			System.arraycopy(_integers, 0, newIntegers, 0, _integers.length);
-			_integers = newIntegers;
+			System.arraycopy(integers, 0, newIntegers, 0, integers.length);
+			integers = newIntegers;
 		}
-		if (theChunk.numDoubles() > _doubles.length)
+		if (theChunk.numDoubles() > doubles.length)
 		{
 			final double[] newDoubles =
 				new double[theChunk.numDoubles() * 2 + 10];
-			System.arraycopy(_doubles, 0, newDoubles, 0, _doubles.length);
-			_doubles = newDoubles;
+			System.arraycopy(doubles, 0, newDoubles, 0, doubles.length);
+			doubles = newDoubles;
 		}
 	}
 
@@ -885,7 +1066,7 @@ implements L2OperationDispatcher
 	 * @param effort How much effort to put into the optimization effort.
 	 * @return The (potentially new) {@link L2ChunkDescriptor L2Chunk}.
 	 */
-	AvailObject privateTranslateCodeOptimization (
+	private AvailObject privateTranslateCodeOptimization (
 		final AvailObject theCode,
 		final int effort)
 	{
@@ -910,17 +1091,17 @@ implements L2OperationDispatcher
 		final List<AvailObject> args)
 	{
 
-		AvailObject cont = _pointers[callerRegister()];
+		AvailObject cont = pointerAt(callerRegister());
 		AvailObject handler = VoidDescriptor.voidObject();
 		while (!cont.equalsVoid())
 		{
 			if (cont.closure().code().primitiveNumber() == 200
-					&& exceptionValue.isInstanceOfSubtypeOf(cont
-						.localOrArgOrStackAt(2).type().argTypeAt(1)))
+					&& exceptionValue.isInstanceOfSubtypeOf(
+						cont.argOrLocalOrStackAt(2).type().argTypeAt(1)))
 			{
-				handler = cont.localOrArgOrStackAt(2);
+				handler = cont.argOrLocalOrStackAt(2);
 				assert !handler.equalsVoid();
-				_pointers[callerRegister()] = cont.ensureMutable();
+				prepareToExecuteContinuation(cont);
 				return invokeClosureArguments(handler, args);
 			}
 			cont = cont.caller();
@@ -943,16 +1124,13 @@ implements L2OperationDispatcher
 		final AvailObject aClosure,
 		final List<AvailObject> args)
 	{
-
-		final int primNum = aClosure.code().primitiveNumber();
+		final AvailObject code = aClosure.code();
+		final int primNum = code.primitiveNumber();
 		if (primNum != 0)
 		{
-			Result result;
-			result = attemptPrimitive(primNum, args);
+			final Result result = attemptPrimitive(primNum, code, args);
 			if (result == SUCCESS)
 			{
-				final AvailObject cont = pointerAt(callerRegister());
-				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return result;
 			}
 			if (result == CONTINUATION_CHANGED)
@@ -961,65 +1139,92 @@ implements L2OperationDispatcher
 			}
 		}
 		// Either it wasn't a primitive or the primitive failed.
+		if (!pointerAt(closureRegister()).equalsVoid())
+		{
+			integerAtPut(pcRegister(), 1);
+			integerAtPut(
+				stackpRegister(),
+				argumentRegister(code.numArgsAndLocalsAndStack() + 1));
+			// reifyContinuation();
+		}
 		invokeWithoutPrimitiveClosureArguments(aClosure, args);
 		return CONTINUATION_CHANGED;
 	}
 
 	/**
 	 * Prepare the L2Interpreter to deal with executing the given closure, using
-	 * the given parameters.
+	 * the given arguments.  Also set up the new closure's locals.  Assume the
+	 * current context has already been reified.  If the closure is a primitive,
+	 * then it was already attempted and must have failed, so the failure value
+	 * must be in {@link #primitiveResult}.  The (Java) caller will deal with
+	 * that.
 	 */
 	@Override
 	public void invokeWithoutPrimitiveClosureArguments (
 		final AvailObject aClosure,
 		final List<AvailObject> args)
 	{
-		_chunk = L2ChunkDescriptor.chunkFromId(aClosure.code()
-			.startingChunkIndex());
-		if (!_chunk.isValid())
+		final AvailObject code = aClosure.code();
+		setChunk(L2ChunkDescriptor.chunkFromId(code.startingChunkIndex()));
+		if (!chunk.isValid())
 		{
 			// The chunk is invalid, so use the default chunk and patch up
 			// aClosure's code.
-			_chunk = L2ChunkDescriptor.chunkFromId(L2ChunkDescriptor
-				.indexOfUnoptimizedChunk());
-			aClosure.code().startingChunkIndex(_chunk.index());
-			aClosure.code().invocationCount(
+			setChunk(L2ChunkDescriptor.chunkFromId(
+				L2ChunkDescriptor.indexOfUnoptimizedChunk()));
+			code.startingChunkIndex(chunk.index());
+			code.invocationCount(
 				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
-		_chunk.moveToHead();
+		chunk.moveToHead();
 		offset(1);
 
-		makeRoomForChunkRegisters(_chunk, aClosure.code());
+		makeRoomForChunkRegisters(chunk, code);
 
-		_chunkWords = _chunk.wordcodes();
-		_chunkVectors = _chunk.vectors();
+		chunkWords = chunk.wordcodes();
+		chunkVectors = chunk.vectors();
 		pointerAtPut(closureRegister(), aClosure);
 		// Transfer arguments...
-		for (int i1 = aClosure.code().numArgs(); i1 >= 1; --i1)
+		final int numArgs = code.numArgs();
+		final int numLocals = code.numLocals();
+		final int numStackSlots = code.numArgsAndLocalsAndStack()
+			- numLocals
+			- numArgs;
+		int dest = argumentRegister(1);
+		for (int i = 1; i <= numArgs; i++)
 		{
-			pointerAtPut(argumentRegister(i1), args.get(i1 - 1));
+			pointerAtPut(dest, args.get(i - 1));
+			dest++;
+		}
+		// Create locals...
+		for (int i = 1; i <= numLocals; i++)
+		{
+			pointerAtPut(
+				dest,
+				ContainerDescriptor.forOuterType(code.localTypeAt(i)));
+			dest++;
+		}
+		// Void the stack slots...
+		for (int i = 1; i <= numStackSlots; i++)
+		{
+			pointerAtPut(dest, VoidDescriptor.voidObject());
+			dest++;
 		}
 	}
 
 	/**
-	 * Run the given process to completion, answering the result returned by
-	 * the outermost process.  We can only resume the continuation safely if it
-	 * was just entering a closure, or just returning from one, or if it took an
-	 * off-ramp for which there is an on-ramp.
+	 * Run the interpreter until the outermost closure returns, answering the
+	 * result it returns.  Assume the interpreter has already been set up to run
+	 * something other than a (successful) primitive closure at the outermost
+	 * level.
 	 *
-	 * @param aProcess The process to execute.
-	 * @return The final result produced by the process.
+	 * @return The final result produced by outermost closure.
 	 */
-	public AvailObject run (final AvailObject aProcess)
+	private AvailObject run ()
 	{
-		process = aProcess;
-		final AvailObject continuationTemp = aProcess.continuation();
 		interruptRequestFlag = 0;
-		_exitNow = false;
-		prepareToExecuteContinuation(continuationTemp);
-
-		// The caches are set up. Start dispatching nybblecodes.
-		do
+		exitNow = false;
+		while (!exitNow)
 		{
 			/**
 			 * This loop is only exited by a return off the end of the outermost
@@ -1034,71 +1239,46 @@ implements L2OperationDispatcher
 			 */
 			final int wordCode = nextWord();
 			final L2Operation operation = L2Operation.values()[wordCode];
-			//System.out.printf(
-			//	"[%d@%d] %s%n",
-			//	_chunk.index(),
-			//	_offset - 1,
-			//	operation.name());
+			if (logger.isLoggable(Level.FINEST))
+			{
+				final StringBuilder stackString = new StringBuilder();
+				AvailObject chain = pointerAt(callerRegister());
+				while (!chain.equalsVoid())
+				{
+					stackString.insert(0, "->");
+					stackString.insert(0, argumentRegister(chain.stackp()));
+					chain = chain.caller();
+				}
+
+				logger.finest(String.format(
+					"executing %s (pc = %d) [stack: %s]",
+					operation,
+					offset - 1,
+					stackString));
+			}
+
 			operation.dispatch(this);
 		}
-		while (!_exitNow);
-
-		return _exitValue;
+		return exitValue;
 	}
 
 	@Override
 	public AvailObject runClosureArguments (
-		final AvailObject aClosure,
+		final AvailObject closure,
 		final List<AvailObject> arguments)
 	{
-		final AvailObject theCode = aClosure.code();
-		final int prim = theCode.primitiveNumber();
-		if (prim != 0)
+		pointerAtPut(callerRegister(), VoidDescriptor.voidObject());
+		pointerAtPut(closureRegister(), VoidDescriptor.voidObject());
+		// Keep the process's current continuation void during execution.
+		process.continuation(VoidDescriptor.voidObject());
+
+		Result result = invokeClosureArguments(closure, arguments);
+		if (result == SUCCESS)
 		{
-			assert Primitive.byPrimitiveNumber(prim).hasFlag(
-				SpecialReturnConstant)
-			: "The outermost context can't be a primitive.";
-			process.continuation(VoidDescriptor.voidObject());
-			return theCode.literalAt(1);
+			// Outermost call was a primitive invocation.
+			return primitiveResult;
 		}
-		if (theCode.numArgs() != arguments.size())
-		{
-			error("Closure should take " + theCode.numArgs() + " arguments");
-		}
-
-		// Safety precaution.
-		aClosure.makeImmutable();
-		final AvailObject outermostContinuation =
-			ContinuationDescriptor.create(
-				aClosure,
-				VoidDescriptor.voidObject(),
-				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
-				arguments);
-		outermostContinuation.levelTwoChunkIndexOffset(
-			L2ChunkDescriptor.indexOfUnoptimizedChunk(),
-			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-		process.continuation(outermostContinuation);
-		prepareToExecuteContinuation(outermostContinuation);
-
-		AvailObject result;
-		do
-		{
-			result = jumpContinuation();
-		}
-		while (!process.continuation().equalsVoid());
-
-		return result;
-	}
-
-	/**
-	 * Run the current continuation within the current process.
-	 *
-	 * @return The result of executing the process.
-	 */
-	private AvailObject jumpContinuation ()
-	{
-		process.continuation(currentContinuation());
-		return run(process);
+		return run();
 	}
 
 	/**
@@ -1106,10 +1286,10 @@ implements L2OperationDispatcher
 	 *
 	 * @return The word.
 	 */
-	int nextWord ()
+	private int nextWord ()
 	{
 		final int offset = offset();
-		final int word = _chunkWords.tupleIntAt(offset);
+		final int word = chunkWords.tupleIntAt(offset);
 		offset(offset + 1);
 		return word;
 	}
@@ -1123,75 +1303,69 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doCreateSimpleContinuationIn_ ()
+	public void L2_doPrepareNewFrame ()
 	{
-		// Create a simple continuation using the current calling continuation,
-		// closure, and arguments.
-		// Place the closure in the callerRegister.
-
-		final int destIndex = nextWord();
-		final AvailObject theClosure = pointerAt(closureRegister());
-		final AvailObject theCode = theClosure.code();
-		final AvailObject newContinuation = ContinuationDescriptor.mutable()
-			.create(theCode.numArgsAndLocalsAndStack());
-		final short nArgs = theCode.numArgs();
-		newContinuation.caller(pointerAt(callerRegister()));
-		newContinuation.closure(theClosure);
-		newContinuation.pc(1);
-		newContinuation.stackp(theCode.numArgsAndLocalsAndStack() + 1);
-		newContinuation.levelTwoChunkIndexOffset(_chunk.index(), offset());
-		for (int i = 1; i <= nArgs; i++)
-		{
-			newContinuation.localOrArgOrStackAtPut(
-				i,
-				pointerAt(argumentRegister(i)));
-		}
-		for (
-				int i = nArgs + 1, _end1 = theCode.numArgsAndLocalsAndStack();
-				i <= _end1;
-				i++)
-		{
-			newContinuation.localOrArgOrStackAtPut(
-				i,
-				VoidDescriptor.voidObject());
-		}
-		for (int i = 1, _end2 = theCode.numLocals(); i <= _end2; i++)
-		{
-			// non-argument locals
-			newContinuation.localOrArgOrStackAtPut(
-				nArgs + i,
-				ContainerDescriptor.forOuterType(theCode
-					.localTypeAt(i)));
-		}
-		pointerAtPut(destIndex, newContinuation);
+		// A new closure has been set up for execution.  Its L1-architectural
+		// slots have already been initialized, except for the pc and stackp.
+		// Note that the stack pointer must be adjusted to point to the actual
+		// register just above the last slot reserved for continuation frame
+		// data.
+		final AvailObject closure = pointerAt(closureRegister());
+		final AvailObject code = closure.code();
+		integerAtPut(pcRegister(), 1);
+		integerAtPut(
+			stackpRegister(),
+			argumentRegister(code.numArgsAndLocalsAndStack() + 1));
 	}
 
 	/**
 	 * Execute a single nybblecode of the current continuation, found in
-	 * {@link #callerRegister() callerRegister}.
+	 * {@link #callerRegister() callerRegister}.  If no interrupt is indicated,
+	 * move the L2 {@link #offset()} back to the same instruction (which always
+	 * occupies a single word, so the address is implicit).
 	 */
 	@Override
-	public void L2_doInterpretOneInstruction ()
+	public void L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt ()
 	{
-		final AvailObject continutation = pointerAt(callerRegister());
-		final AvailObject closure = continutation.closure();
+		final AvailObject closure = pointerAt(closureRegister());
 		final AvailObject code = closure.code();
 		final AvailObject nybbles = code.nybbles();
-		int pc = continutation.pc();
+		final int pc = integerAt(pcRegister());
 
-		// Before we extract the nybblecode, may sure that the PC hasn't passed
+		if (interruptRequestFlag == 0)
+		{
+			// Branch back to this (operandless) instruction by default.
+			offset(offset() - 1);
+		}
+
+		// Before we extract the nybblecode, make sure that the PC hasn't passed
 		// the end of the instruction sequence. If we have, then execute an
-		// {@code L1Implied_doReturn}.
+		// L1Implied_doReturn.
 		if (pc > nybbles.tupleSize())
 		{
+			assert pc == nybbles.tupleSize() + 1;
+			if (logger.isLoggable(Level.FINEST))
+			{
+				logger.finest(String.format(
+					"simulating %s (pc = %d)",
+					L1Operation.L1Implied_Return,
+					pc));
+			}
 			levelOneDispatcher.L1Implied_doReturn();
 			return;
 		}
-
 		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
-		pc++;
-		continutation.pc(pc);
-		L1Operation.values()[nybble].dispatch(levelOneDispatcher);
+		integerAtPut(pcRegister(), pc + 1);
+
+		L1Operation operation = L1Operation.values()[nybble];
+		if (logger.isLoggable(Level.FINEST))
+		{
+			logger.finest(String.format(
+				"simulating %s (pc = %d)",
+				operation,
+				pc));
+		}
+		operation.dispatch(levelOneDispatcher);
 	}
 
 	@Override
@@ -1210,18 +1384,18 @@ implements L2OperationDispatcher
 		}
 		else
 		{
-			theCode.invocationCount(L2ChunkDescriptor
-				.countdownForNewlyOptimizedCode());
+			theCode.invocationCount(
+				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 			final AvailObject newChunk =
 				privateTranslateCodeOptimization(theCode, 3);
 			assert theCode.startingChunkIndex() == newChunk.index();
-			_argsBuffer.clear();
+			argsBuffer.clear();
 			final int nArgs = theCode.numArgs();
 			for (int i = 1; i <= nArgs; i++)
 			{
-				_argsBuffer.add(_pointers[argumentRegister(i)]);
+				argsBuffer.add(pointerAt(argumentRegister(i)));
 			}
-			invokeClosureArguments(theClosure, _argsBuffer);
+			invokeClosureArguments(theClosure, argsBuffer);
 		}
 	}
 
@@ -1238,7 +1412,7 @@ implements L2OperationDispatcher
 	{
 		final int fromIndex = nextWord();
 		final int destIndex = nextWord();
-		pointerAtPut(destIndex, _chunk.literalAt(fromIndex));
+		pointerAtPut(destIndex, chunk.literalAt(fromIndex));
 	}
 
 	@Override
@@ -1257,8 +1431,7 @@ implements L2OperationDispatcher
 		final int destIndex = nextWord();
 		pointerAtPut(
 			destIndex,
-			ContainerDescriptor.forOuterType(_chunk
-				.literalAt(typeIndex)));
+			ContainerDescriptor.forOuterType(chunk.literalAt(typeIndex)));
 	}
 
 	@Override
@@ -1363,13 +1536,13 @@ implements L2OperationDispatcher
 		final int addIndex = nextWord();
 		final int destIndex = nextWord();
 		final int failOffset = nextWord();
-		final long add = _integers[addIndex];
-		final long dest = _integers[destIndex];
+		final long add = integers[addIndex];
+		final long dest = integers[destIndex];
 		final long result = dest + add;
 		final int resultInt = (int) result;
 		if (result == resultInt)
 		{
-			_integers[destIndex] = resultInt;
+			integers[destIndex] = resultInt;
 		}
 		else
 		{
@@ -1815,7 +1988,7 @@ implements L2OperationDispatcher
 		final int valueIndex = nextWord();
 		final int typeConstIndex = nextWord();
 		final AvailObject value = pointerAt(valueIndex);
-		final AvailObject type = _chunk.literalAt(typeConstIndex);
+		final AvailObject type = chunk.literalAt(typeConstIndex);
 		if (value.isInstanceOfSubtypeOf(type))
 		{
 			offset(doIndex);
@@ -1872,21 +2045,16 @@ implements L2OperationDispatcher
 	public void L2_doProcessInterruptNowWithContinuationObject_ ()
 	{
 		// The current process has been asked to pause for an inter-nybblecode
-		// interrupt for
-		// some reason. It has possibly executed several more wordcodes since
-		// that time, to
-		// place the process into a state that's consistent with naive Level One
-		// execution
-		// semantics. That is, a naive Level One interpreter should be able to
-		// resume the
-		// process later. The continuation to use can be found in
-		// _pointers[continuationIndex].
-
+		// interrupt for some reason. It has possibly executed several more
+		// wordcodes since that time, to place the process into a state that's
+		// consistent with naive Level One execution semantics. That is, a naive
+		// Level One interpreter should be able to resume the process later. The
+		// continuation to use can be found in pointerAt(continuationIndex).
 		final int continuationIndex = nextWord();
-		process.continuation(_pointers[continuationIndex]);
+		process.continuation(pointerAt(continuationIndex));
 		process.interruptRequestFlag(interruptRequestFlag);
-		_exitValue = VoidDescriptor.voidObject();
-		_exitNow = true;
+		exitValue = VoidDescriptor.voidObject();
+		exitNow = true;
 	}
 
 	@Override
@@ -1902,8 +2070,9 @@ implements L2OperationDispatcher
 		final int destIndex = nextWord();
 		final AvailObject closure = pointerAt(closureIndex);
 		final AvailObject code = closure.code();
-		final AvailObject continuation = ContinuationDescriptor.mutable()
-			.create(code.numArgsAndLocalsAndStack());
+		final AvailObject continuation =
+			ContinuationDescriptor.mutable().create(
+				code.numArgsAndLocalsAndStack());
 		continuation.caller(pointerAt(senderIndex));
 		continuation.closure(closure);
 		continuation.pc(pcIndex);
@@ -1912,11 +2081,11 @@ implements L2OperationDispatcher
 			- code.maxStackDepth()
 			+ stackpIndex);
 		continuation.hiLevelTwoChunkLowOffset(
-			(_chunk.index() << 16) + wordcodeOffset);
-		final AvailObject slots = _chunkVectors.tupleAt(slotsIndex);
+			(chunk.index() << 16) + wordcodeOffset);
+		final AvailObject slots = chunkVectors.tupleAt(slotsIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{
-			continuation.localOrArgOrStackAtPut(
+			continuation.argOrLocalOrStackAtPut(
 				i,
 				pointerAt(slots.tupleAt(i).extractInt()));
 		}
@@ -1959,9 +2128,9 @@ implements L2OperationDispatcher
 		final AvailObject cont = pointerAt(continuationIndex);
 		pointerAtPut(senderDestIndex, cont.caller());
 		pointerAtPut(closureDestIndex, cont.closure());
-		final AvailObject slotsVector = _chunkVectors.tupleAt(slotsDestIndex);
-		if (!(slotsVector.tupleSize() == cont.closure().code()
-				.numArgsAndLocalsAndStack()))
+		final AvailObject slotsVector = chunkVectors.tupleAt(slotsDestIndex);
+		if (slotsVector.tupleSize()
+			!= cont.closure().code().numArgsAndLocalsAndStack())
 		{
 			error("problem in doExplode...");
 			return;
@@ -1970,24 +2139,55 @@ implements L2OperationDispatcher
 		{
 			pointerAtPut(
 				slotsVector.tupleAt(i).extractInt(),
-				cont.localOrArgOrStackAt(i));
+				cont.argOrLocalOrStackAt(i));
 		}
 	}
 
 	@Override
 	public void L2_doSend_argumentsVector_ ()
 	{
+		// Assume the current continuation is already reified.
 		final int selectorIndex = nextWord();
 		final int argumentsIndex = nextWord();
-		final AvailObject vect = _chunkVectors.tupleAt(argumentsIndex);
-		_argsBuffer.clear();
+		final AvailObject vect = chunkVectors.tupleAt(argumentsIndex);
+		argsBuffer.clear();
 		for (int i = 1; i <= vect.tupleSize(); i++)
 		{
-			_argsBuffer.add(_pointers[vect.tupleIntAt(i)]);
+			argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
 		}
-		final AvailObject selector = _chunk.literalAt(selectorIndex);
-		final AvailObject signatureToCall = selector
-		.lookupByValuesFromArray(_argsBuffer);
+		final AvailObject selector = chunk.literalAt(selectorIndex);
+		final AvailObject signatureToCall =
+			selector.lookupByValuesFromList(argsBuffer);
+		if (signatureToCall.equalsVoid())
+		{
+			error("Unable to find unique implementation for call");
+			return;
+		}
+		if (!signatureToCall.isMethod())
+		{
+			error("Attempted to call a non-implementation signature");
+			return;
+		}
+		invokePossiblePrimitiveWithReifiedCaller(
+			signatureToCall.bodyBlock());
+	}
+
+	@Override
+	public void L2_doSendAfterFailedPrimitive_argumentsVector_ ()
+	{
+		// The continuation is required to have already been reified.
+		final int selectorIndex = nextWord();
+		final int argumentsIndex = nextWord();
+		final int failureValueIndex = nextWord();
+		final AvailObject vect = chunkVectors.tupleAt(argumentsIndex);
+		argsBuffer.clear();
+		for (int i = 1; i <= vect.tupleSize(); i++)
+		{
+			argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
+		}
+		final AvailObject selector = chunk.literalAt(selectorIndex);
+		final AvailObject signatureToCall =
+			selector.lookupByValuesFromList(argsBuffer);
 		if (signatureToCall.equalsVoid())
 		{
 			error("Unable to find unique implementation for call");
@@ -2001,26 +2201,17 @@ implements L2OperationDispatcher
 		final AvailObject closureToCall = signatureToCall.bodyBlock();
 		final AvailObject codeToCall = closureToCall.code();
 		final int primNum = codeToCall.primitiveNumber();
-		if (primNum != 0)
-		{
-			prepareToExecuteContinuation(_pointers[callerRegister()]);
-			final Result primResult = attemptPrimitive(primNum, _argsBuffer);
-			if (primResult == CONTINUATION_CHANGED)
-			{
-				return;
-			}
-			else if (primResult != FAILURE)
-			{
-				// Primitive succeeded.
-				final AvailObject cont = _pointers[callerRegister()];
-				assert _chunk.index() == cont.levelTwoChunkIndex();
-				cont.readBarrierFault();
-				assert cont.descriptor().isMutable();
-				cont.stackAtPut(cont.stackp(), primitiveResult);
-				return;
-			}
-		}
-		invokeWithoutPrimitiveClosureArguments(closureToCall, _argsBuffer);
+		assert primNum != 0;
+		assert !Primitive.byPrimitiveNumber(primNum).hasFlag(Flag.CannotFail);
+		invokeWithoutPrimitiveClosureArguments(
+			closureToCall,
+			argsBuffer);
+		// Now write the primitive failure value into the first local.
+		final int failureVariableIndex =
+			argumentRegister(vect.tupleSize() + 1);
+		final AvailObject failureVariable = pointerAt(failureVariableIndex);
+		final AvailObject failureValue = pointerAt(failureValueIndex);
+		failureVariable.setValue(failureValue);
 	}
 
 	@Override
@@ -2037,18 +2228,18 @@ implements L2OperationDispatcher
 		final int selectorIndex = nextWord();
 		final int argumentsIndex = nextWord();
 		final int typesIndex = nextWord();
-		AvailObject vect = _chunkVectors.tupleAt(typesIndex);
+		AvailObject vect = chunkVectors.tupleAt(typesIndex);
 		if (true)
 		{
-			_argsBuffer.clear();
+			argsBuffer.clear();
 			for (int i = 1; i < vect.tupleSize(); i++)
 			{
-				_argsBuffer.add(_pointers[vect.tupleIntAt(i)]);
+				argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
 			}
 		}
-		final AvailObject selector = _chunk.literalAt(selectorIndex);
+		final AvailObject selector = chunk.literalAt(selectorIndex);
 		final AvailObject signatureToCall = selector
-		.lookupByTypesFromArray(_argsBuffer);
+		.lookupByTypesFromList(argsBuffer);
 		if (signatureToCall.equalsVoid())
 		{
 			error("Unable to find unique implementation for call");
@@ -2059,19 +2250,22 @@ implements L2OperationDispatcher
 			error("Attempted to call a non-implementation signature");
 			return;
 		}
-		vect = _chunkVectors.tupleAt(argumentsIndex);
-		_argsBuffer.clear();
+		vect = chunkVectors.tupleAt(argumentsIndex);
+		argsBuffer.clear();
 		for (int i = 1; i < vect.tupleSize(); i++)
 		{
-			_argsBuffer.add(_pointers[vect.tupleIntAt(i)]);
+			argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
 		}
 		final AvailObject closureToCall = signatureToCall.bodyBlock();
 		final AvailObject codeToCall = closureToCall.code();
 		final int primNum = codeToCall.primitiveNumber();
 		if (primNum != 0)
 		{
-			prepareToExecuteContinuation(_pointers[callerRegister()]);
-			final Result primResult = attemptPrimitive(primNum, _argsBuffer);
+			prepareToExecuteContinuation(pointerAt(callerRegister()));
+			final Result primResult = attemptPrimitive(
+				primNum,
+				codeToCall,
+				argsBuffer);
 			if (primResult == CONTINUATION_CHANGED)
 			{
 				return;
@@ -2079,15 +2273,15 @@ implements L2OperationDispatcher
 			else if (primResult != FAILURE)
 			{
 				// Primitive succeeded.
-				final AvailObject cont = _pointers[callerRegister()];
-				assert _chunk.index() == cont.levelTwoChunkIndex();
+				final AvailObject cont = pointerAt(callerRegister());
+				assert chunk.index() == cont.levelTwoChunkIndex();
 				cont.readBarrierFault();
 				assert cont.descriptor().isMutable();
 				cont.stackAtPut(cont.stackp(), primitiveResult);
 				return;
 			}
 		}
-		invokeWithoutPrimitiveClosureArguments(closureToCall, _argsBuffer);
+		invokeWithoutPrimitiveClosureArguments(closureToCall, argsBuffer);
 	}
 
 	@Override
@@ -2096,7 +2290,7 @@ implements L2OperationDispatcher
 		final int sizeIndex = nextWord();
 		final int valuesIndex = nextWord();
 		final int destIndex = nextWord();
-		final AvailObject indices = _chunkVectors.tupleAt(valuesIndex);
+		final AvailObject indices = chunkVectors.tupleAt(valuesIndex);
 		assert indices.tupleSize() == sizeIndex;
 		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
 			sizeIndex);
@@ -2167,10 +2361,10 @@ implements L2OperationDispatcher
 		final int codeIndex = nextWord();
 		final int outersIndex = nextWord();
 		final int destIndex = nextWord();
-		final AvailObject outers = _chunkVectors.tupleAt(outersIndex);
+		final AvailObject outers = chunkVectors.tupleAt(outersIndex);
 		final AvailObject clos = ClosureDescriptor.mutable().create(
 			outers.tupleSize());
-		clos.code(_chunk.literalAt(codeIndex));
+		clos.code(chunk.literalAt(codeIndex));
 		for (int i = 1, _end1 = outers.tupleSize(); i <= _end1; i++)
 		{
 			clos.outerVarAtPut(i, pointerAt(outers.tupleAt(i).extractInt()));
@@ -2191,22 +2385,17 @@ implements L2OperationDispatcher
 		AvailObject caller = pointerAt(continuationIndex);
 		if (caller.equalsVoid())
 		{
-			process.executionState(ExecutionState.terminated);
-			process.continuation(VoidDescriptor.voidObject());
-			_exitValue = valueObject;
-			_exitNow = true;
+			exitProcessWith(valueObject);
+			return;
 		}
-		// Check that the return value matches the expected type which was
-		// stored on the caller's stack, then replace it.
-		caller = caller.ensureMutable();
-		final int callerStackp = caller.stackp();
-		final AvailObject expectedType = caller.stackAt(callerStackp);
+		prepareToExecuteContinuation(caller);
+		final int callerStackpIndex = argumentRegister(caller.stackp());
+		final AvailObject expectedType = pointerAt(callerStackpIndex);
 		if (!valueObject.isInstanceOfSubtypeOf(expectedType))
 		{
 			error("Return value does not agree with expected type");
 		}
-		caller.stackAtPut(callerStackp, valueObject);
-		prepareToExecuteContinuation(caller);
+		pointerAtPut(callerStackpIndex, valueObject);
 	}
 
 	@Override
@@ -2252,22 +2441,33 @@ implements L2OperationDispatcher
 	 * not the case for an <em>inlined</em> primitive.
 	 */
 	@Override
-	public void L2_doAttemptPrimitive_withArguments_result_ifFail_ ()
+	public void L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ ()
 	{
 		final int primNumber = nextWord();
 		final int argsVector = nextWord();
 		final int resultRegister = nextWord();
+		final int failureValueRegister = nextWord();
 		final int failureOffset = nextWord();
-		final AvailObject argsVect = _chunkVectors.tupleAt(argsVector);
-		_argsBuffer.clear();
+		final AvailObject argsVect = chunkVectors.tupleAt(argsVector);
+		argsBuffer.clear();
 		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
 		{
-			_argsBuffer.add(_pointers[argsVect.tupleAt(i1).extractInt()]);
+			argsBuffer.add(pointerAt(argsVect.tupleAt(i1).extractInt()));
 		}
-		final Result res = attemptPrimitive((short) primNumber, _argsBuffer);
+		// Only primitive 340 needs the compiledCode argument, and it's always
+		// folded.
+		final Result res = attemptPrimitive(
+			primNumber,
+			null,
+			argsBuffer);
 		if (res == SUCCESS)
 		{
-			_pointers[resultRegister] = primitiveResult;
+			pointerAtPut(resultRegister, primitiveResult);
+		}
+		else if (res == FAILURE)
+		{
+			pointerAtPut(failureValueRegister, primitiveResult);
+			offset(failureOffset);
 		}
 		else if (res == CONTINUATION_CHANGED)
 		{
@@ -2276,118 +2476,64 @@ implements L2OperationDispatcher
 				+ "a new continuation",
 				primNumber);
 		}
-		else if (res == FAILURE)
-		{
-			offset(failureOffset);
-		}
 		else
 		{
 			error("Unrecognized return type from attemptPrimitive()");
 		}
 	}
 
-	/**
-	 * Answer the subscript of the register holding the argument with the given
-	 * index (e.g., the first argument is in register 3).
-	 *
-	 * @param localNumber The one-based argument/local number.
-	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
-	 */
-	public int argumentRegister (final int localNumber)
-	{
-		// Skip the continuation and closure.
-		return localNumber + 2;
-	}
 
 	/**
-	 * Answer the subscript of the register holding the current context's caller
-	 * context.
+	 * Start or complete execution of the specified closure.  The closure is
+	 * permitted to be primitive.  The current continuation must already have
+	 * been reified.
 	 *
-	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
+	 * @param theClosure
+	 *            The closure to invoke.
 	 */
-	public int callerRegister ()
+	void invokePossiblePrimitiveWithReifiedCaller (
+		final AvailObject theClosure)
 	{
-		// reserved
-		return 1;
-	}
-
-	/**
-	 * Answer the subscript of the register holding the current context's
-	 * closure.
-	 *
-	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
-	 */
-	public int closureRegister ()
-	{
-		// reserved
-		return 2;
-	}
-
-	/**
-	 * Answer the current continuation.
-	 *
-	 * @return The current continuation.
-	 */
-	public AvailObject currentContinuation ()
-	{
-		return pointerAt(callerRegister());
-	}
-
-	/**
-	 * Answer an integer extracted at the current program counter. The program
-	 * counter will be adjusted to skip over the integer.
-	 *
-	 * @return An integer extracted from the instruction stream.
-	 */
-	public int getInteger ()
-	{
-		final AvailObject cont = _pointers[callerRegister()];
-		final AvailObject clos = cont.closure();
-		final AvailObject cod = clos.code();
-		final AvailObject nybs = cod.nybbles();
-		int pc = cont.pc();
-		final byte nyb = nybs.extractNybbleFromTupleAt(pc);
-		pc++;
-		int value = 0;
-		final byte[] counts =
+		final AvailObject theCode = theClosure.code();
+		final int primNum = theCode.primitiveNumber();
+		if (primNum != 0)
 		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
-		};
-		for (int count = counts[nyb]; count > 0; --count)
-		{
-			value = (value << 4) + nybs.extractNybbleFromTupleAt(pc);
-			pc++;
+			final Result primResult = attemptPrimitive(
+				primNum,
+				theCode,
+				argsBuffer);
+			switch (primResult)
+			{
+				case CONTINUATION_CHANGED:
+				case SUSPENDED:
+					return;
+				case SUCCESS:
+					final AvailObject caller = pointerAt(callerRegister());
+					prepareToExecuteContinuation(caller);
+					final int callerStackpIndex =
+						argumentRegister(caller.stackp());
+					final AvailObject expectedType =
+						pointerAt(callerStackpIndex);
+					if (!primitiveResult.isInstanceOfSubtypeOf(expectedType))
+					{
+						error("Return value does not agree with expected type");
+					}
+					pointerAtPut(callerStackpIndex, primitiveResult);
+					return;
+				case FAILURE:
+					invokeWithoutPrimitiveClosureArguments(
+						theClosure,
+						argsBuffer);
+					final int failureVariableIndex =
+						argumentRegister(theCode.numArgs() + 1);
+					final AvailObject failureVariable =
+						pointerAt(failureVariableIndex);
+					failureVariable.setValue(primitiveResult);
+					return;
+			}
 		}
-		final byte[] offsets =
-		{
-			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
-		};
-		value += offsets[nyb];
-		cont.pc(pc);
-		return value;
-	}
-
-	/**
-	 * Read from an object register.  The index is one-based in both Smalltalk
-	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
-	 *
-	 * @param index The one-based object-register index.
-	 * @return The object in the specified register.
-	 */
-	public AvailObject pointerAt (final int index)
-	{
-		return _pointers[index];
-	}
-
-	/**
-	 * Write to an object register.  The index is one-based in both Smalltalk
-	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
-	 *
-	 * @param index The one-based object-register index.
-	 * @param anAvailObject The object to write to the specified register.
-	 */
-	public void pointerAtPut (final int index, final AvailObject anAvailObject)
-	{
-		_pointers[index] = anAvailObject;
+		invokeWithoutPrimitiveClosureArguments(
+			theClosure,
+			argsBuffer);
 	}
 }

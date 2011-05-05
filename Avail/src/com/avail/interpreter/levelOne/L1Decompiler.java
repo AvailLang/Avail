@@ -229,175 +229,6 @@ public class L1Decompiler implements L1OperationDispatcher
 		_expressionStack.add(expression);
 	}
 
-	/**
-	 * The presence of the {@linkplain L1Operation operation} indicates that
-	 * an assignment is being used as a subexpression or final statement from a
-	 * non-void valued {@linkplain ClosureDescriptor block}.
-	 *
-	 * <p>Pop the expression (that represents the right hand side of the
-	 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
-	 * whose markerValue is the {@linkplain VoidDescriptor#voidObject() void
-	 * object}, then push the right-hand side expression back onto the
-	 * expression stack.</p>
-	 */
-	@Override
-	public void L1Ext_doDuplicate ()
-	{
-		final AvailObject rightSide = popExpression();
-		final AvailObject marker = MarkerNodeDescriptor.mutable().create();
-		marker.markerValue(VoidDescriptor.voidObject());
-		pushExpression(marker);
-		pushExpression(rightSide);
-	}
-
-	@Override
-	public void L1Ext_doGetLiteral ()
-	{
-		final AvailObject globalToken = TokenDescriptor.mutable().create();
-		globalToken.tokenType(TokenType.KEYWORD);
-		globalToken.string(
-			ByteStringDescriptor.from("SomeGlobal"));
-		globalToken.start(0);
-		final AvailObject globalVar = _code.literalAt(getInteger());
-
-		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
-			globalToken,
-			globalVar);
-		final AvailObject varUse = VariableUseNodeDescriptor.newUse(
-			globalToken,
-			decl);
-		pushExpression(varUse);
-	}
-
-	@Override
-	public void L1Ext_doGetType ()
-	{
-		getInteger();
-		pushExpression(null);
-	}
-
-	@Override
-	public void L1Ext_doPushLabel ()
-	{
-		AvailObject label;
-		if (_statements.size() > 0
-			&& _statements.get(0).declarationKind() == LABEL)
-		{
-			label = _statements.get(0);
-		}
-		else
-		{
-			final AvailObject labelToken = TokenDescriptor.mutable().create();
-			labelToken.tokenType(TokenType.KEYWORD);
-			labelToken.string(
-				ByteStringDescriptor.from(
-					_tempGenerator.value("label")));
-			labelToken.start(0);
-
-			label = DeclarationNodeDescriptor.newLabel(
-				labelToken,
-				ContinuationTypeDescriptor.forClosureType(_code.closureType()));
-
-			_statements.add(0, label);
-		}
-
-		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
-			label.token(),
-			label);
-		pushExpression(useNode);
-	}
-
-	@Override
-	public void L1Ext_doReserved ()
-	{
-		error("Illegal extended nybblecode: F+"
-			+ _nybbles.extractNybbleFromTupleAt(_pc - 1));
-	}
-
-	@Override
-	public void L1Ext_doSetLiteral ()
-	{
-		final AvailObject globalToken = TokenDescriptor.mutable().create();
-		globalToken.tokenType(TokenType.KEYWORD);
-		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
-		globalToken.start(0);
-		final AvailObject globalVar = _code.literalAt(getInteger());
-
-		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
-			globalToken,
-			globalVar);
-
-		final AvailObject varUse = VariableUseNodeDescriptor.newUse(
-			globalToken,
-			decl);
-		final AvailObject assignmentNode =
-			AssignmentNodeDescriptor.mutable().create();
-		assignmentNode.variable(varUse);
-		assignmentNode.expression(popExpression());
-		if (_expressionStack.isEmpty())
-		{
-			_statements.add(assignmentNode);
-		}
-		else
-		{
-			// We had better see a marker with a void markerValue, otherwise the
-			// code generator didn't do what we expected.  Remove that bogus
-			// marker and replace it with the (embedded) assignment node itself.
-			final AvailObject duplicateExpression = popExpression();
-			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsVoid();
-			_expressionStack.add(assignmentNode);
-		}
-	}
-
-	@Override
-	public void L1Ext_doSuperCall ()
-	{
-		final AvailObject impSet = _code.literalAt(getInteger());
-		final AvailObject type = _code.literalAt(getInteger());
-		final AvailObject cyclicType = impSet.name();
-		int nArgs = 0;
-		final AvailObject str = cyclicType.name();
-		final AvailObject underscore =
-			TupleDescriptor.underscoreTuple().tupleAt(1);
-		for (int i = 1, _end1 = str.tupleSize(); i <= _end1; i++)
-		{
-			if (str.tupleAt(i).equals(underscore))
-			{
-				nArgs++;
-			}
-		}
-		final List<AvailObject> types = popExpressions(nArgs);
-		final List<AvailObject> callArgs = popExpressions(nArgs);
-		for (int i = 0; i < nArgs; i++)
-		{
-			final AvailObject typeLiteralNode = types.get(i);
-			if (typeLiteralNode != null)
-			{
-				assert typeLiteralNode.isInstanceOfSubtypeOf(LITERAL_NODE.o());
-				final AvailObject superCast =
-					SuperCastNodeDescriptor.mutable().create();
-				superCast.expression(callArgs.get(i));
-				superCast.superCastType(typeLiteralNode.token().literal());
-				callArgs.set(i, superCast);
-			}
-		}
-		final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-		sendNode.arguments(TupleDescriptor.fromList(callArgs));
-		sendNode.implementationSet(impSet);
-		sendNode.returnType(type);
-		pushExpression(sendNode);
-	}
-
-	@Override
-	public void L1Implied_doReturn ()
-	{
-		assert _pc == _nybbles.tupleSize() + 1;
-		_statements.add(popExpression());
-		assert _expressionStack.size() == 0
-		: "There should be nothing on the stack after a return";
-	}
-
 	@Override
 	public void L1_doCall ()
 	{
@@ -471,13 +302,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doGetLocalClearing ()
 	{
-		final AvailObject localDecl =
-			_locals.get(getInteger() - _code.numArgs() - 1);
-		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
-			localDecl.token(),
-			localDecl);
-		useNode.isLastUse(true);
-		pushExpression(useNode);
+		L1_doGetLocal();
 	}
 
 
@@ -485,27 +310,17 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doGetOuter ()
 	{
 		final AvailObject use;
-		final AvailObject outer = _outers.get(getInteger() - 1);
-		if (outer.type().equals(LITERAL_NODE.o()))
+		final int outerIndex = getInteger();
+		final AvailObject outer = _outers.get(outerIndex - 1);
+		if (outer.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
 		{
-			final AvailObject synthToken = TokenDescriptor.mutable().create();
-			synthToken.tokenType(TokenType.KEYWORD);
-			synthToken.string(outer.name().string());
-			synthToken.start(0);
-
-			final AvailObject synthDecl =
-				DeclarationNodeDescriptor.newModuleVariable(
-					synthToken,
-					outer.token().literal());
-			use = VariableUseNodeDescriptor.newUse(synthToken, synthDecl);
+			pushExpression(outer);
+			return;
 		}
-		else
-		{
-			final AvailObject outerDecl = outer.variable().declaration();
-			use = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(),
-				outerDecl);
-		}
+		final AvailObject outerDecl = outer.variable().declaration();
+		use = VariableUseNodeDescriptor.newUse(
+			outerDecl.token(),
+			outerDecl);
 		pushExpression(use);
 	}
 
@@ -513,29 +328,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		final AvailObject use;
-		final AvailObject outer = _outers.get(getInteger() - 1);
-		if (outer.type().equals(LITERAL_NODE.o()))
-		{
-			final AvailObject synthToken = TokenDescriptor.mutable().create();
-			synthToken.tokenType(TokenType.KEYWORD);
-			synthToken.string(outer.name().string());
-			synthToken.start(0);
-
-			final AvailObject synthDecl =
-				DeclarationNodeDescriptor.newModuleVariable(
-					synthToken,
-					outer.token().literal());
-			use = VariableUseNodeDescriptor.newUse(synthToken, synthDecl);
-		}
-		else
-		{
-			final AvailObject outerDecl = outer.variable().declaration();
-			use = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(),
-				outerDecl);
-		}
-		pushExpression(use);
+		L1_doGetOuter();
 	}
 
 
@@ -584,7 +377,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		pushExpression(_outers.get(getInteger() - 1));
+		L1_doPushOuter();
 	}
 
 	@Override
@@ -593,28 +386,29 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject value = _code.literalAt(getInteger());
 		if (value.isInstanceOfSubtypeOf(CLOSURE.o()))
 		{
-			List<AvailObject> closureOuterLiterals;
-			closureOuterLiterals = new ArrayList<AvailObject>(
-				value.numOuterVars());
+			final List<AvailObject> closureOuters =
+				new ArrayList<AvailObject>(value.numOuterVars());
+			// Due to stub-building primitives, it's possible for a non-clean
+			// closure to be a literal, so deal with it here.
 			for (int i = 1; i <= value.numOuterVars(); i++)
 			{
-				final AvailObject var = value.outerVarAt(i);
+				final AvailObject varObject = value.outerVarAt(i);
 				final AvailObject token =
 					LiteralTokenDescriptor.mutable().create();
 				token.tokenType(TokenType.LITERAL);
-				token.string(
-					ByteStringDescriptor.from(
-						"AnOuter" + Integer.toString(i)));
+				token.string(ByteStringDescriptor.from(
+					"OuterOfUncleanConstantClosure#" + i));
 				token.start(0);
-				token.literal(var);
-				final AvailObject outerLiteral =
+				token.lineNumber(0);
+				token.literal(varObject);
+				final AvailObject literalNode =
 					LiteralNodeDescriptor.fromToken(token);
-				closureOuterLiterals.add(outerLiteral);
+				closureOuters.add(literalNode);
 			}
 			final AvailObject blockNode =
 				new L1Decompiler().parseWithOuterVarsTempGenerator(
 					value.code(),
-					closureOuterLiterals,
+					closureOuters,
 					_tempGenerator);
 			pushExpression(blockNode);
 		}
@@ -622,9 +416,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		{
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(
-				ByteStringDescriptor.from(
-					value.toString()));
+			token.string(ByteStringDescriptor.from(value.toString()));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(value);
@@ -670,7 +462,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject valueNode = popExpression();
 		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
 			localDecl.token(),
-			valueNode);
+			localDecl);
 		final AvailObject assignmentNode =
 			AssignmentNodeDescriptor.mutable().create();
 		assignmentNode.variable(variableUse);
@@ -696,30 +488,26 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject variableUse;
 		final AvailObject outerExpr = _outers.get(getInteger() - 1);
+		final AvailObject outerDecl;
 		if (outerExpr.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
 		{
-			final AvailObject outerLiteral = outerExpr;
-			final AvailObject synthToken = TokenDescriptor.mutable().create();
-			synthToken.tokenType(TokenType.KEYWORD);
-			synthToken.string(outerLiteral.token().string());
-			synthToken.start(0);
-			final AvailObject moduleVarDecl =
-				DeclarationNodeDescriptor.newModuleVariable(
-					synthToken,
-					outerLiteral.token().literal());
-			variableUse = VariableUseNodeDescriptor.newUse(
-				synthToken,
-				moduleVarDecl);
+			// Writing into a synthetic literal (a byproduct of decompiling a
+			// block without decompiling its outer scopes).
+			AvailObject token = outerExpr.token();
+			AvailObject variableObject = token.literal();
+			assert variableObject.isInstanceOfSubtypeOf(CONTAINER.o());
+			outerDecl = DeclarationNodeDescriptor.newModuleVariable(
+				token,
+				variableObject);
 		}
 		else
 		{
-			final AvailObject referenceNode = outerExpr;
-			final AvailObject outerDecl =
-				referenceNode.variable().declaration();
-			variableUse = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(),
-				outerDecl);
+			assert outerExpr.isInstanceOfSubtypeOf(REFERENCE_NODE.o());
+			outerDecl = outerExpr.variable().declaration();
 		}
+		variableUse = VariableUseNodeDescriptor.newUse(
+			outerDecl.token(),
+			outerDecl);
 		final AvailObject valueExpr = popExpression();
 		final AvailObject assignmentNode =
 			AssignmentNodeDescriptor.mutable().create();
@@ -739,6 +527,191 @@ public class L1Decompiler implements L1OperationDispatcher
 			assert duplicateExpression.markerValue().equalsVoid();
 			_expressionStack.add(assignmentNode);
 		}
+	}
+
+
+
+	/**
+	 * The presence of the {@linkplain L1Operation operation} indicates that
+	 * an assignment is being used as a subexpression or final statement from a
+	 * non-void valued {@linkplain ClosureDescriptor block}.
+	 *
+	 * <p>Pop the expression (that represents the right hand side of the
+	 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
+	 * whose markerValue is the {@linkplain VoidDescriptor#voidObject() void
+	 * object}, then push the right-hand side expression back onto the
+	 * expression stack.</p>
+	 */
+	@Override
+	public void L1Ext_doDuplicate ()
+	{
+		final AvailObject rightSide = popExpression();
+		final AvailObject marker = MarkerNodeDescriptor.mutable().create();
+		marker.markerValue(VoidDescriptor.voidObject());
+		pushExpression(marker);
+		pushExpression(rightSide);
+	}
+
+
+
+	@Override
+	public void L1Ext_doGetLiteral ()
+	{
+		final AvailObject globalToken = TokenDescriptor.mutable().create();
+		globalToken.tokenType(TokenType.KEYWORD);
+		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
+		globalToken.start(0);
+		final AvailObject globalVar = _code.literalAt(getInteger());
+
+		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
+			globalToken,
+			globalVar);
+		final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			globalToken,
+			decl);
+		pushExpression(varUse);
+	}
+
+
+
+	@Override
+	public void L1Ext_doGetType ()
+	{
+		getInteger();
+		pushExpression(null);
+	}
+
+
+
+	@Override
+	public void L1Ext_doPushLabel ()
+	{
+		AvailObject label;
+		if (_statements.size() > 0
+			&& _statements.get(0).isInstanceOfSubtypeOf(DECLARATION_NODE.o())
+			&& _statements.get(0).declarationKind() == LABEL)
+		{
+			label = _statements.get(0);
+		}
+		else
+		{
+			final AvailObject labelToken = TokenDescriptor.mutable().create();
+			labelToken.tokenType(TokenType.KEYWORD);
+			labelToken.string(
+				ByteStringDescriptor.from(
+					_tempGenerator.value("label")));
+			labelToken.start(0);
+
+			label = DeclarationNodeDescriptor.newLabel(
+				labelToken,
+				ContinuationTypeDescriptor.forClosureType(_code.closureType()));
+
+			_statements.add(0, label);
+		}
+
+		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
+			label.token(),
+			label);
+		pushExpression(useNode);
+	}
+
+
+
+	@Override
+	public void L1Ext_doReserved ()
+	{
+		error("Illegal extended nybblecode: F+"
+			+ _nybbles.extractNybbleFromTupleAt(_pc - 1));
+	}
+
+
+
+	@Override
+	public void L1Ext_doSetLiteral ()
+	{
+		final AvailObject globalToken = TokenDescriptor.mutable().create();
+		globalToken.tokenType(TokenType.KEYWORD);
+		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
+		globalToken.start(0);
+		final AvailObject globalVar = _code.literalAt(getInteger());
+
+		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
+			globalToken,
+			globalVar);
+
+		final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+			globalToken,
+			decl);
+		final AvailObject assignmentNode =
+			AssignmentNodeDescriptor.mutable().create();
+		assignmentNode.variable(varUse);
+		assignmentNode.expression(popExpression());
+		if (_expressionStack.isEmpty())
+		{
+			_statements.add(assignmentNode);
+		}
+		else
+		{
+			// We had better see a marker with a void markerValue, otherwise the
+			// code generator didn't do what we expected.  Remove that bogus
+			// marker and replace it with the (embedded) assignment node itself.
+			final AvailObject duplicateExpression = popExpression();
+			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.markerValue().equalsVoid();
+			_expressionStack.add(assignmentNode);
+		}
+	}
+
+
+
+	@Override
+	public void L1Ext_doSuperCall ()
+	{
+		final AvailObject impSet = _code.literalAt(getInteger());
+		final AvailObject type = _code.literalAt(getInteger());
+		final AvailObject cyclicType = impSet.name();
+		int nArgs = 0;
+		final AvailObject str = cyclicType.name();
+		final AvailObject underscore =
+			TupleDescriptor.underscoreTuple().tupleAt(1);
+		for (int i = 1, _end1 = str.tupleSize(); i <= _end1; i++)
+		{
+			if (str.tupleAt(i).equals(underscore))
+			{
+				nArgs++;
+			}
+		}
+		final List<AvailObject> types = popExpressions(nArgs);
+		final List<AvailObject> callArgs = popExpressions(nArgs);
+		for (int i = 0; i < nArgs; i++)
+		{
+			final AvailObject typeLiteralNode = types.get(i);
+			if (typeLiteralNode != null)
+			{
+				assert typeLiteralNode.isInstanceOfSubtypeOf(LITERAL_NODE.o());
+				final AvailObject superCast =
+					SuperCastNodeDescriptor.mutable().create();
+				superCast.expression(callArgs.get(i));
+				superCast.superCastType(typeLiteralNode.token().literal());
+				callArgs.set(i, superCast);
+			}
+		}
+		final AvailObject sendNode = SendNodeDescriptor.mutable().create();
+		sendNode.arguments(TupleDescriptor.fromList(callArgs));
+		sendNode.implementationSet(impSet);
+		sendNode.returnType(type);
+		pushExpression(sendNode);
+	}
+
+
+
+	@Override
+	public void L1Implied_doReturn ()
+	{
+		assert _pc == _nybbles.tupleSize() + 1;
+		_statements.add(popExpression());
+		assert _expressionStack.size() == 0
+		: "There should be nothing on the stack after a return";
 	}
 
 
@@ -811,7 +784,7 @@ public class L1Decompiler implements L1OperationDispatcher
 
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.from("AnOuter" + i));
+			token.string(ByteStringDescriptor.from("Outer#" + i));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(varObject);

@@ -379,7 +379,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 *        The enumeration instance of {@link TypeDescriptor.Types} that
 		 *        is associated with this kind of declaration.
 		 */
-		DeclarationKind (
+		private DeclarationKind (
 			final boolean isVariable,
 			final Types typeEnumeration)
 		{
