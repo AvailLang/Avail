@@ -1,5 +1,5 @@
 /**
- * com.avail.annotations/EnumField.java
+ * com.avail.annotations/BitFields.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -36,8 +36,8 @@ import java.lang.annotation.*;
 import com.avail.descriptor.*;
 
 /**
- * {@code EnumField} annotation is used to indicate which enumeration should be
- * used to describe an integer value embedded in an {@linkplain
+ * The {@code BitFields} annotation is used to indicate the presence of a
+ * set of {@linkplain BitField bit field}s within an {@linkplain
  * AvailObjectUsingArrays#integerSlot(Enum) integer slot} that has this
  * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
  *
@@ -47,14 +47,10 @@ import com.avail.descriptor.*;
 @Target({
 	ElementType.FIELD,
 })
-public @interface EnumField
+public @interface BitFields
 {
 	/**
-	 * This annotation field indicates the {@link Enum} responsible for
-	 * describing the {@link AvailObject#objectSlotAt(Enum, int) object slot} to
-	 * which the annotation is applied.  The value of the field (an {@code int})
-	 * should always equal an {@linkplain Enum#ordinal() ordinal} of a member
-	 * of the specified {@code enum}.
+	 * The {@link Enum} which describes the bit fields I encode.
 	 */
-	public Class<? extends Enum<?>> describedBy();
+	public Class<?> describedBy();
 }

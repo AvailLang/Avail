@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.NotNull;
 
 public class MessageBundleDescriptor
@@ -140,17 +140,8 @@ extends Descriptor
 					count++;
 				}
 			}
-			restrictions = parts.copyTupleFromToCanDestroy(
-				1,
-				count,
-				false);
-			for (int index = 1; index <= count; index++)
-			{
-				restrictions = restrictions.tupleAtPuttingCanDestroy(
-					index,
-					SetDescriptor.empty(),
-					true);
-			}
+			restrictions = TupleDescriptor.fromList(
+				Collections.nCopies(count, SetDescriptor.empty()));
 			object.myRestrictions(restrictions.makeImmutable());
 		}
 		return restrictions;

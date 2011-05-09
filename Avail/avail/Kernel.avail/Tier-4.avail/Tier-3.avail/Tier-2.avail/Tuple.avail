@@ -53,8 +53,7 @@ Names
 	"_[_]",
 	"_[_->_]",
 	"_[_.._->_]",
-	"_then_",
-	"_then_then_",
+	"«_‡then»",
 	"splice_",
 	"_[_.._]",
 	"_[.._]",
@@ -72,7 +71,7 @@ Body
 /* Forward declarations of the remainder of this module... */
 
 Forward "_[_]" for [tuple, natural number]->all;
-Forward "_then_" for [tuple, tuple]->tuple;
+Forward "«_‡then»" for [tuple of tuple]->tuple;
 Forward "splice_" for [tuple of tuple]->tuple;
 Forward "_to_" for [integer, integer]->tuple;
 Forward "_[_->_]" for [tuple, natural number, all]->tuple;
@@ -82,10 +81,7 @@ Forward "_[_->_]" for [tuple, natural number, all]->tuple;
 
 {"_do_"} can't have <{"_to_"}, {}>;
 
-/* Also support up to three-at-a-time chained concatenation via _then_then_... */
-
-{"_then_"} can't have <{"_then_"} , {"_then_" , "_then_then_"}>;
-{"_then_then_"} can't have <{"_then_"} , {"_then_" , "_then_then_"} , {"_then_" , "_then_then_"}>;
+{"«_‡then»"} can't have <{"«_‡then»"}>;
 
 
 /* Iteration... */
@@ -303,9 +299,10 @@ returns [tType : tupleType, iType : integerType |
 /* Interval construction... */
 
 Method "_to_" is [a : integer, b : integer |
-	result : tuple := <>;   /* Weak type so result of unrefined "_then_" operation will fit. */
+	/* Use a weak type so result of unrefined "«_‡then»" operation will fit. */
+	result : tuple := <>;   
 	a to b do [i : integer | result := result then <i>;];
-	/* The "_then_" operation is not yet refined with a returns clause.
+	/* The "«_‡then»" operation is not yet refined with a returns clause.
 	   Cast the type downwards, as we know the entries are all integers. */
 	cast result into [x : tuple of integer | x;];
 ] : tuple of integer
@@ -337,7 +334,7 @@ returns [aRange : integerType, bRange : integerType |
 		] else [
 			/* Either the uncertainty of the starting value is arbitrarily
 			   large or we have no static bound on the final tuple length.
-			   Either way, we approximate with a homogenous tuple... */
+			   Either way, we approximate with a homogeneous tuple... */
 			tuple sizes
 				like <>
 				default [aRange lower bound..bRange upper bound + 1);
@@ -347,18 +344,23 @@ returns [aRange : integerType, bRange : integerType |
 
 /* Private subtuple extraction type helper... */
 
-Method "type of subtuple_from range_to range_" is [tt : tupleType, starts : integerType, ends : integerType |
+Method "type of subtuple_from range_to range_" is [
+		tt : tupleType,
+		starts : integerType,
+		ends : integerType |
 	minStart ::= starts lower bound max 1;
 	maxStart ::= starts upper bound max 1;
 	minEnd ::= ends lower bound max 0;
 	maxEnd ::= ends upper bound max 0;
 	if minEnd > tt sizes upper bound then [
 		/* All possible subtuples that this subrange could represent are out
-		   of bounds for the tuple.  Answer terminates to indicate this operation
-		   will never succeed at runtime. */
+		   of bounds for the tuple.  Answer terminates to indicate this
+		   operation will never succeed at runtime. */
 		terminates;
 	] else [
-		limit ::= maxEnd min tt sizes upper bound min (|| tt leading types || + 1);
+		limit ::= maxEnd
+			min tt sizes upper bound
+			min (|| tt leading types || + 1);
 		minTrimmedStart ::= (minStart min limit) max 1;
 		maxTrimmedStart ::= (maxStart min limit) max 1;
 		variance ::= maxTrimmedStart - minTrimmedStart;
@@ -392,8 +394,7 @@ Method "type of subtuple_from range_to range_" is [tt : tupleType, starts : inte
 Method "concatenate tuple type_and_" is [
 		tt1 : tupleType,
 		tt2 : tupleType |
-	Primitive 144 (failureCode : all);
-	Failed;
+	Primitive 144;
 ] : tupleType;
 
 
@@ -426,12 +427,14 @@ returns [tType : tupleType, iType : integerType, vType : type |
 			weaker ::= type union of default and vType;
 			newLeading ::= leading then
 				(|| leading || + 1 to upper collect [x : integer | weaker;]);
-			/* "_then_" is still too weak, so cast newLeading back to a tuple of
-			   type.  It'll be defined more strongly once it's defined below... */
+			/* "«_‡then»" is still too weak, so cast newLeading back to a tuple
+			   of type.  It'll be defined more strongly once it's defined below.
+			 */
 			cast newLeading into [x : tuple of type | leading := x;];
 		];
 	] otherwise [
-		/* Infinite extension - all indices >= lower bound are weakened to vType... */
+		/* Infinite extension - all indices >= lower bound are weakened to
+		   vType... */
 		if iType upper bound not = INF then [
 			Crash "Inconsistency in returns clause of _[_->_]";];
 		default := type union of default and vType;
@@ -460,28 +463,26 @@ requires [tvt : containerType, it : integerType, vt : type |
 
 
 
-Method "_then_" is [t1 : tuple, t2 : tuple |
-	/* Concatenate two tuples. */
-	splice <t1, t2>;
+Method "«_‡then»" is [tuples : tuple of tuple |
+	Primitive 136;
 ] : tuple
-returns [tt1 : tupleType, tt2 : tupleType |
-	concatenate tuple type tt1 and tt2;
-];
-
-Method "_then_then_" is [t1 : tuple, t2 : tuple , t3 :tuple |
-	/* Concatenate three tuples. */
-	splice <t1, t2, t3>;
-] : tuple
-returns [tt1 : tupleType, tt2 : tupleType, tt3 : tupleType |
-	concatenate tuple type
-		concatenate tuple type tt1 and tt2
-	and tt3;
-];
+returns [outerTupleType : tupleType |
+	output : tupleType := tuple like <>;
+	exactSize : whole number := outerTupleType sizes lower bound;
+	Assert exactSize = outerTupleType sizes upper bound;
+	index : natural number := 1;
+	While [index <= exactSize;]
+	loop [
+		output := concatenate tuple type clearing*&output
+			and cast outerTupleType[index] into [t : tupleType | t;];
+		index := index + 1;
+	];
+	output;
+]; 
 
 Method "splice_" is [tupleOfTuples : tuple of tuple |
 	/* Concatenate a tuple of tuples into one big tuple. */
-	Primitive 136 (failureCode : all);
-	Failed;
+	Primitive 136;
 ] : tuple
 returns [ttType : tupleType |
 	limit ::= if ttType sizes upper bound is infinite then [
@@ -496,7 +497,9 @@ returns [ttType : tupleType |
 	];
 	if ttType sizes upper bound is infinite then [
 		result := tuple [result sizes lower bound .. INF)
-			like result [1 .. cast result sizes upper bound into [w : whole number | w;]]
+			like result
+				[1 ..
+					cast result sizes upper bound into [w : whole number | w;]]
 			default union of types in
 				(cast ttType default type
 					into [t : tupleType |
@@ -544,12 +547,20 @@ returns [tt : tupleType, startT : integerType |
 
 
 
-Method "_[_.._->_]" is [t : tuple, start : natural number, end : whole number, replacement : tuple |
+Method "_[_.._->_]" is [
+		t : tuple,
+		start : natural number,
+		end : whole number,
+		replacement : tuple |
 	/* Create a tuple with the given range replaced by replacement.  The
 	   range need not match the size of the replacement. */
 	splice <t[1..start-1], replacement, t[end+1..||t||]>;
 ] : tuple
-returns [tt : tupleType, startT : integerType, endT : integerType, repT : tupleType |
+returns [
+		tt : tupleType,
+		startT : integerType,
+		endT : integerType,
+		repT : tupleType |
 	part1 ::= type of subtuple tt
 		from range [1..1]
 		to range (startT lower bound - 2 .. startT upper bound);
@@ -588,15 +599,13 @@ Method "_hex" is [a : integer |
 	a radix 16;
 ] : string;
 
-Method "code point_" is [w : whole number |
-	Primitive 331 (failureCode : all);
-	Failed;
+Method "code point_" is [cp : character code points |
+	Primitive 331;
 ] : character;
 
 Method "code point of_" is [c : character |
-	Primitive 330 (failureCode : all);
-	Failed;
-] : whole number;
+	Primitive 330;
+] : character code points;
 
 Method "$_" is [str : tuple [1..1] of character |
 	str [1];
@@ -604,7 +613,7 @@ Method "$_" is [str : tuple [1..1] of character |
 
 Method "#_" is [str : tuple [1..1] of character |
 	code point of str [1];
-] : whole number;
+] : character code points;
 
 digitZero ::= #"0";
 digitNine ::= #"9";
@@ -614,7 +623,8 @@ letterA ::= #"A";
 letterZ ::= #"Z";
 
 Method "_r_" is [radix : [2..36], digits : string |
-	/* Variable-radix string to integer conversion.  For example, 16r"ff" is 255. */
+	/* Variable-radix string to integer conversion.
+	   For example, 16r"ff" is 255. */
 	result : whole number := 0;
 	digits do [char : character |
 		dig ::= code point of char;
@@ -639,7 +649,12 @@ Method "_r_" is [radix : [2..36], digits : string |
 
 Method "_to_" is [a : character, b : character |
 	result : string := "";
-	code point of a to code point of b do [cp : whole number | result := result then <code point cp>; ];
+	start : whole number := code point of a;
+	end : whole number := code point of b;
+	start to end do [i : whole number |
+		cp ::= cast i into [narrow : character code points | narrow;];
+		result := result then <code point cp>;
+	];
 	result;
 ] : string;
 

@@ -39,6 +39,15 @@ import static java.util.Collections.max;
 import java.util.*;
 import com.avail.annotations.NotNull;
 
+/**
+ * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
+ * representations are defined (not counting {@link TerminatesTypeDescriptor
+ * terminates} and {@link IndirectionDescriptor transparent indirections}).  It
+ * defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which
+ * must be defined in all subclasses.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class TupleDescriptor
 extends Descriptor
 {
@@ -47,6 +56,12 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
 		HASH_OR_ZERO
 	}
 
@@ -154,9 +169,9 @@ extends Descriptor
 		else
 		{
 			object.becomeIndirectionTo(aTuple);
+			// Now that there are at least two references to it...
 			aTuple.makeImmutable();
 		}
-		// Now that there are at least two references to it
 		return true;
 	}
 
@@ -216,8 +231,10 @@ extends Descriptor
 		final AvailObject anotherObject)
 	{
 		// Given two objects that are known to be equal, is the first one in a
-		// better form (more
-			return object.bitsPerEntry() < anotherObject.bitsPerEntry();
+		// better form (more compact, more efficient, older generation) than
+		// the second one?
+
+		return object.bitsPerEntry() < anotherObject.bitsPerEntry();
 	}
 
 	@Override
@@ -226,10 +243,10 @@ extends Descriptor
 		final AvailObject aTypeObject)
 	{
 		// Answer whether object is an instance of a subtype of aTypeObject.
-		// Don't generate
-		// an approximate type and do the comparison, because the approximate
-		// type
-			if (aTypeObject.equals(VOID_TYPE.o()))
+		// Don't generate an approximate type and do the comparison, because the
+		// approximate type will defer to this very method.
+
+		if (aTypeObject.equals(VOID_TYPE.o()))
 		{
 			return true;
 		}
@@ -242,14 +259,15 @@ extends Descriptor
 			return false;
 		}
 		// See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
-		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		final int tupleSize = object.tupleSize();
+		final AvailObject sizeObject = IntegerDescriptor.fromInt(tupleSize);
+		if (!sizeObject.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
-		// tuple's size is out of range.
+		// The tuple's size is out of range.
 		final AvailObject typeTuple = aTypeObject.typeTuple();
-		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
+		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
 			if (!object.tupleAt(i).isInstanceOfSubtypeOf(
@@ -259,11 +277,14 @@ extends Descriptor
 			}
 		}
 		final AvailObject defaultTypeObject = aTypeObject.defaultType();
-		for (int i = breakIndex + 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		if (!ALL.o().isSubtypeOf(defaultTypeObject))
 		{
-			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+			for (int i = breakIndex + 1; i <= tupleSize; i++)
 			{
-				return false;
+				if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+				{
+					return false;
+				}
 			}
 		}
 		return true;
@@ -273,8 +294,11 @@ extends Descriptor
 	public @NotNull AvailObject o_ExactType (final AvailObject object)
 	{
 		// Answer the object's type. Not very efficient - should cache the type
-			final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		// inside the object.
+
+		final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
+		final int tupleSize = object.tupleSize();
+		for (int i = 1; i <= tupleSize; i++)
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
 				i,
@@ -291,12 +315,12 @@ extends Descriptor
 	public int o_Hash (final AvailObject object)
 	{
 		// The hash value is stored raw in the object's hashOrZero slot if it
-		// has been computed,
-		// otherwise that slot is zero. If a zero is detected, compute the hash
-		// and store it in
-		// hashOrZero. Note that the hash can (extremely rarely) be zero, in
-		// which case the
-			int hash = object.hashOrZero();
+		// has been computed, otherwise that slot is zero. If a zero is
+		// detected, compute the hash and store it in hashOrZero. Note that the
+		// hash can (extremely rarely) be zero, in which case the hash has to be
+		// computed each time.
+
+		int hash = object.hashOrZero();
 		if (hash == 0)
 		{
 			hash = computeHashForObject(object);
@@ -308,8 +332,6 @@ extends Descriptor
 	@Override
 	public @NotNull AvailObject o_Type (final AvailObject object)
 	{
-		// Answer the object's type.
-
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
 
@@ -445,16 +467,19 @@ extends Descriptor
 		final boolean canDestroy)
 	{
 		// Take a tuple of tuples and answer one big tuple constructed by
-		// concatenating the
-		// subtuples together. Optimized so that the resulting splice tuple's
-		// zones are not
-			int zones = 0;
+		// concatenating the subtuples together. Optimized so that the resulting
+		// splice tuple's zones are not themselves splice tuples.
+
+		int zones = 0;
 		int newSize = 0;
 		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
 		{
 			final AvailObject sub = object.tupleAt(i);
-			final int subZones = sub.tupleSize() == 0 ? 0 : sub.traversed()
-					.isSplice() ? sub.numberOfZones() : 1;
+			final int subZones = sub.tupleSize() == 0
+				? 0
+				: sub.traversed().isSplice()
+					? sub.numberOfZones()
+					: 1;
 			// Empty zones are not allowed in splice tuples.
 			zones += subZones;
 			newSize += sub.tupleSize();
@@ -468,11 +493,12 @@ extends Descriptor
 		// will never increase the number of zones, so there will always be
 		// room in the allocated chunk (maybe more than enough) for all the
 		// zones.
-		final AvailObject result = AvailObject
-				.newObjectIndexedIntegerIndexedDescriptor(
-					zones,
-					(zones * 2),
-					SpliceTupleDescriptor.mutable());
+
+		final AvailObject result =
+			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+				zones,
+				(zones * 2),
+				SpliceTupleDescriptor.mutable());
 		int majorIndex = 0;
 		int zone = 1;
 		for (int i = 1, _end2 = object.tupleSize(); i <= _end2; i++)
@@ -535,12 +561,12 @@ extends Descriptor
 		final boolean canDestroy)
 	{
 		// Make a tuple that only contains the given range of elements of the
-		// given tuple.
-		// Overidden in o_Tuple so that if isMutable and canDestroy are true
-		// then the
-		// parts of the tuple outside the subrange will have their refcounts
-		// decremented
-			assert 1 <= start && start <= end + 1;
+		// given tuple.  Overridden in ObjectTupleDescriptor so that if
+		// isMutable and canDestroy are true then the parts of the tuple outside
+		// the subrange will have their refcounts decremented and those tuple
+		// slots will be set to void.
+
+		assert 1 <= start && start <= end + 1;
 		assert 0 <= end && end <= object.tupleSize();
 		if (start - 1 == end)
 		{
@@ -554,7 +580,7 @@ extends Descriptor
 		{
 			if (start != 1)
 			{
-				for (int i = 1, _end1 = end - start + 1; i <= _end1; i++)
+				for (int i = 1; i <= end - start + 1; i++)
 				{
 					object.tupleAtPut(i, object.tupleAt(start + i - 1));
 				}
@@ -562,17 +588,17 @@ extends Descriptor
 			object.truncateTo(end - start + 1);
 			return object;
 		}
-		final AvailObject result = AvailObject
-				.newObjectIndexedIntegerIndexedDescriptor(
-					1,
-					2,
-					SpliceTupleDescriptor.mutable());
+		final AvailObject result =
+			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+				1,
+				2,
+				SpliceTupleDescriptor.mutable());
 		result.hashOrZero(object.computeHashFromTo(start, end));
 		result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
 			1,
 			object,
 			start,
-			(end - start + 1));
+			end - start + 1);
 		result.verify();
 		return result;
 	}
@@ -583,10 +609,10 @@ extends Descriptor
 		final int index)
 	{
 		// Get the element at the given index in the tuple object, and extract a
-		// nybble from it.
-		// Fail if it's not a nybble. Obviously overidden for speed in
-		// NybbleTupleDescriptor
-			final int nyb = object.tupleIntAt(index);
+		// nybble from it.  Fail if it's not a nybble. Obviously overidden for
+		// speed in NybbleTupleDescriptor.
+
+		final int nyb = object.tupleIntAt(index);
 		if (!(nyb >= 0 && nyb <= 15))
 		{
 			error("nybble is out of range", object);
@@ -628,10 +654,11 @@ extends Descriptor
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		// Answer a tuple with all the elements of object except at the given
-		// index we should
-		// have newValueObject. This may destroy the original tuple if
-			error(
+		// Answer a tuple with all the elements of object, except at the given
+		// index we should have newValueObject. This may destroy the original
+		// tuple if canDestroy is true.
+
+		error(
 			"Subclass responsibility: Object:tupleAt:putting:canDestroy: in Avail.TupleDescriptor",
 			object);
 		return VoidDescriptor.voidObject();
@@ -672,7 +699,7 @@ extends Descriptor
 	@Override
 	public boolean o_IsByteTuple (final AvailObject object)
 	{
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		for (int i = object.tupleSize(); i >= 1; i--)
 		{
 			if (!object.tupleAt(i).isByte())
 			{
@@ -689,7 +716,7 @@ extends Descriptor
 	@Override
 	public boolean o_IsString (final @NotNull AvailObject object)
 	{
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		for (int i = object.tupleSize(); i >= 1; i--)
 		{
 			if (!object.tupleAt(i).isCharacter())
 			{
@@ -746,7 +773,9 @@ extends Descriptor
 		// ed., page 102, row 26. See also pages 19, 20, theorems B and C. The
 		// period of this cycle is 2^30. The element hash values are xored with
 		// a random constant (16r9EE570A6) before being used, to help prevent
-			int hash = 0;
+		// similar nested tuples from producing equal hashes.
+
+		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
 		final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
@@ -829,16 +858,44 @@ extends Descriptor
 		};
 	}
 
-	// Startup/shutdown
-
+	/**
+	 * The empty tuple.
+	 */
 	static AvailObject EmptyTuple;
+
+	/**
+	 * A tuple containing just the underscore character.
+	 */
 	static AvailObject UnderscoreTuple;
+
+	/**
+	 * A tuple containing just the open-chevron character.
+	 */
 	static AvailObject OpenChevronTuple;
+
+	/**
+	 * A tuple containing just the close-chevron character.
+	 */
 	static AvailObject CloseChevronTuple;
+
+	/**
+	 * A tuple containing just the double-dagger character.
+	 */
 	static AvailObject DoubleDaggerTuple;
+
+	/**
+	 * A tuple containing just the back-quote character.
+	 */
 	static AvailObject BackQuoteTuple;
+
+	/**
+	 * A tuple containing just the ellipsis character.
+	 */
 	static AvailObject EllipsisTuple;
 
+	/**
+	 * Create my cached empty tuple and various well known strings.
+	 */
 	static void createWellKnownObjects ()
 	{
 		EmptyTuple = NybbleTupleDescriptor.isMutableSize(true, 0).create();
@@ -864,10 +921,11 @@ extends Descriptor
 		EllipsisTuple.makeImmutable();
 }
 
+	/**
+	 * Clear my cached empty tuple and various well known strings.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		// Clear my cached empty tuple and various well known strings.
-
 		EmptyTuple = null;
 		UnderscoreTuple = null;
 		OpenChevronTuple = null;

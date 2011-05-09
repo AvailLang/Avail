@@ -1,5 +1,5 @@
 /**
- * com.avail.annotations/EnumField.java
+ * com.avail.annotations/BitField.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,28 +33,30 @@
 package com.avail.annotations;
 
 import java.lang.annotation.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObject;
 
 /**
- * {@code EnumField} annotation is used to indicate which enumeration should be
- * used to describe an integer value embedded in an {@linkplain
- * AvailObjectUsingArrays#integerSlot(Enum) integer slot} that has this
- * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
+ * A {@code BitField} annotates an Enum value.  This Enum value contains
+ * information about how to extract its value from an {@linkplain
+ * AvailObject#integerSlotAt(Enum, int) int slot}.  It may also include
+ * information and behavior to assist in printing.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({
-	ElementType.FIELD,
+	ElementType.FIELD
 })
-public @interface EnumField
+public @interface BitField
 {
 	/**
-	 * This annotation field indicates the {@link Enum} responsible for
-	 * describing the {@link AvailObject#objectSlotAt(Enum, int) object slot} to
-	 * which the annotation is applied.  The value of the field (an {@code int})
-	 * should always equal an {@linkplain Enum#ordinal() ordinal} of a member
-	 * of the specified {@code enum}.
+	 * The lowest bit position that this BitField occupies.  Zero ({@code 0}) is
+	 * the rightmost or lowest order bit.
 	 */
-	public Class<? extends Enum<?>> describedBy();
+	public int shift();
+
+	/**
+	 * The number of bits that this BitField occupies within an int.
+	 */
+	public int bits();
 }

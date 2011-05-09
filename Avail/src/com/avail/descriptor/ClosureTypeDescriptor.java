@@ -215,7 +215,7 @@ extends TypeDescriptor
 				{
 					aStream.append(", ");
 				}
-				aStream.append(tempStrings.get(i - 1));
+				aStream.append(tempStrings.get(i));
 			}
 		}
 	}

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.BitField;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 
 /**
@@ -205,58 +206,6 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public int integerSlotsCount ()
-	{
-		return _intSlots.length;
-	}
-
-	@Override
-	public int integerSlot (
-			final Enum<?> e)
-	{
-		//  Extract an int using the given Enum value that identifies the field.
-
-		// verifyToSpaceAddress();
-		return _intSlots[e.ordinal()];
-	}
-
-	@Override
-	public void integerSlotPut (
-			final Enum<?> e,
-			final int anInteger)
-	{
-		//  Set an int using the given Enum value that identifies the field.
-
-		checkWriteForField(e);
-		// verifyToSpaceAddress();
-		_intSlots[e.ordinal()] = anInteger;
-	}
-
-	@Override
-	public int integerSlotAt (
-			final Enum<?> e,
-			final int subscript)
-	{
-		//  Extract an int using the given Enum value that identifies the field.
-
-		// verifyToSpaceAddress();
-		return _intSlots[e.ordinal() + subscript - 1];
-	}
-
-	@Override
-	public void integerSlotAtPut (
-			final Enum<?> e,
-			final int subscript,
-			final int anInteger)
-	{
-		//  Set an int using the given Enum value that identifies the field.
-
-		checkWriteForField(e);
-		// verifyToSpaceAddress();
-		_intSlots[e.ordinal() + subscript - 1] = anInteger;
-	}
-
-	@Override
 	public int objectSlotsCount ()
 	{
 		return _objectSlots.length;
@@ -306,6 +255,81 @@ final public class AvailObjectUsingArrays extends AvailObject
 		// verifyToSpaceAddress();
 		checkWriteForField(e);
 		_objectSlots[e.ordinal() + subscript - 1] = anAvailObject;
+	}
+
+	@Override
+	public int integerSlotsCount ()
+	{
+		return _intSlots.length;
+	}
+
+	@Override
+	public int integerSlot (
+			final Enum<?> e)
+	{
+		// verifyToSpaceAddress();
+		return _intSlots[e.ordinal()];
+	}
+
+	@Override
+	public void integerSlotPut (
+			final Enum<?> e,
+			final int anInteger)
+	{
+		checkWriteForField(e);
+		// verifyToSpaceAddress();
+		_intSlots[e.ordinal()] = anInteger;
+	}
+
+	@Override
+	public int integerSlotAt (
+			final Enum<?> e,
+			final int subscript)
+	{
+		//  Extract an int using the given Enum value that identifies the field.
+
+		// verifyToSpaceAddress();
+		return _intSlots[e.ordinal() + subscript - 1];
+	}
+
+	@Override
+	public void integerSlotAtPut (
+			final Enum<?> e,
+			final int subscript,
+			final int anInteger)
+	{
+		//  Set an int using the given Enum value that identifies the field.
+
+		checkWriteForField(e);
+		// verifyToSpaceAddress();
+		_intSlots[e.ordinal() + subscript - 1] = anInteger;
+	}
+
+	@Override
+	public int bitSlot (
+		final Enum<?> field,
+		final BitField bitField)
+	{
+		// verifyToSpaceAddress();
+		int value = _intSlots[field.ordinal()];
+		value >>>= bitField.shift();
+		int mask = ~(-1 << bitField.bits());
+		return value & mask;
+	}
+
+	@Override
+	public void bitSlotPut (
+		final Enum<?> field,
+		final BitField bitField,
+		final int anInteger)
+	{
+		checkWriteForField(field);
+		// verifyToSpaceAddress();
+		int value = _intSlots[field.ordinal()];
+		int mask = ~(-1 << bitField.bits());
+		value &= ~(mask << bitField.shift());
+		value |= (anInteger & mask) << bitField.shift();
+		_intSlots[field.ordinal()] = value;
 	}
 
 	@Override

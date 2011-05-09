@@ -49,8 +49,7 @@ Body
    of range type operations, starting with some helpers... */
 
 Method "_basicType" is [x : all |
-	Primitive 30 (failureCode : all);
-	Failed;
+	Primitive 30;
 ] :  type;
 
 Method "range from_inclusive_to_inclusive_" is [
@@ -58,8 +57,7 @@ Method "range from_inclusive_to_inclusive_" is [
 		inclusive1 : boolean,
 		max : extended integer,
 		inclusive2 : boolean |
-	Primitive 7 (failureCode : all);
-	Failed;
+	Primitive 7;
 ] : integerType;
 
 
@@ -80,13 +78,11 @@ Method "(_.._)" is [min : extended integer, max : extended integer |
 ] : integerType;
 
 Method "_lower bound" is [range : integerType |
-	Primitive 8 (failureCode : all);
-	Failed;
+	Primitive 8;
 ] : extended integer;
 
 Method "_upper bound" is [range : integerType |
-	Primitive 9 (failureCode : all);
-	Failed;
+	Primitive 9;
 ] : extended integer;
 
 Method "_lower inclusive" is [range : integerType |

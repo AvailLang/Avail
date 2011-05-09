@@ -450,19 +450,14 @@ public abstract class AbstractDescriptor
 			try
 			{
 				final Field slotMirror = slot.getClass().getField(slot.name());
-				final EnumField annotation =
+				final EnumField enumAnnotation =
 					slotMirror.getAnnotation(EnumField.class);
-				if (annotation == null)
-				{
-					builder.append(
-						new Formatter().format(
-							" = 0x%08X",
-							value & 0xFFFFFFFFL));
-				}
-				else
+				final BitFields bitFieldsAnnotation =
+					slotMirror.getAnnotation(BitFields.class);
+				if (enumAnnotation != null)
 				{
 					final Class<? extends Enum<?>> describingClass =
-						annotation.describedBy();
+						enumAnnotation.describedBy();
 					final Enum<?>[] allValues =
 						describingClass.getEnumConstants();
 					if (0 <= value && value < allValues.length)
@@ -478,8 +473,46 @@ public abstract class AbstractDescriptor
 								value & 0xFFFFFFFFL));
 					}
 				}
+				else if (bitFieldsAnnotation != null)
+				{
+					// Show each bit field.
+					final Class<?> describingClass =
+						bitFieldsAnnotation.describedBy();
+					final Field[] allSubfields =
+						describingClass.getDeclaredFields();
+					builder.append(" (");
+					for (
+						int subfieldIndex = 0;
+						subfieldIndex < allSubfields.length;
+						subfieldIndex++)
+					{
+						if (subfieldIndex > 0)
+						{
+							builder.append(", ");
+						}
+						Field subfield = allSubfields[subfieldIndex];
+						builder.append(subfield.getName());
+						builder.append("=");
+						BitField bitField;
+						bitField = (BitField)subfield.get(null);
+						int subfieldValue = object.bitSlot(slot, bitField);
+						builder.append(subfieldValue);
+					}
+					builder.append(")");
+					//TODO: Finish this new feature
+				}
+				else
+				{
+					builder.append(
+						new Formatter().format(
+							" = 0x%08X",
+							value & 0xFFFFFFFFL));
+				}
 			}
 			catch (final NoSuchFieldException e) {
+				throw new RuntimeException(e);
+			}
+			catch (final IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -530,6 +563,43 @@ public abstract class AbstractDescriptor
 			}
 		}
 	}
+
+	/**
+	 * Extract the {@link BitField} that is specified as an annotation of the
+	 * member of the given class with the given name.  This uses reflection so
+	 * it might be a bit slow.  It's recommended that the resulting BitField be
+	 * stored somewhere statically, preferably as the value of the field
+	 * itself.
+	 *
+	 * @param theClass
+	 *            The class which defines one or more {@code BitField}s as
+	 *            static members having the {@link BitField @BitField}
+	 *            annotation.
+	 * @param fieldName
+	 *            The name of the static member for which to extract the {@code
+	 *            BitField} annotation.
+	 * @return
+	 *            The {@code BitField} that the specified static member was
+	 *            annotated with.
+	 */
+	protected static BitField bitField (
+		final Class<?> theClass,
+		final String fieldName)
+	{
+		BitField bitField;
+		try
+		{
+			Field field = theClass.getDeclaredField(fieldName);
+			bitField = field.getAnnotation(BitField.class);
+		}
+		catch (NoSuchFieldException e)
+		{
+			throw new RuntimeException(e);
+		}
+		return bitField;
+	}
+
+
 
 	/**
 	 * @param object
@@ -1403,12 +1473,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_InclusiveFlags (final AvailObject object, final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
 	public abstract void o_LazyIncomplete (
 		final AvailObject object,
 		final AvailObject value);
@@ -1769,16 +1833,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param lowInc
-	 * @param highInc
-	 */
-	public abstract void o_LowerInclusiveUpperInclusive (
-		final AvailObject object,
-		final boolean lowInc,
-		final boolean highInc);
-
-	/**
-	 * @param object
 	 * @param keyObject
 	 * @return
 	 */
@@ -2066,13 +2120,17 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_PreviousIndex (final AvailObject object, final int value);
+	public abstract void o_PreviousIndex (
+		final AvailObject object,
+		final int value);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Priority (final AvailObject object, final int value);
+	public abstract void o_Priority (
+		final AvailObject object,
+		final AvailObject value);
 
 	/**
 	 * @param object
@@ -3451,12 +3509,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_InclusiveFlags (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract AvailObject o_LazyIncomplete (final AvailObject object);
 
 	/**
@@ -3804,7 +3856,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Priority (final AvailObject object);
+	public abstract AvailObject o_Priority (final AvailObject object);
 
 	/**
 	 * @param object
@@ -5216,4 +5268,32 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract void o_CheckedExceptions (
 		@NotNull AvailObject object, @NotNull AvailObject value);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsInt (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsLong (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param lowerInclusive
+	 */
+	public abstract void o_LowerInclusive (
+		AvailObject object,
+		boolean lowerInclusive);
+
+	/**
+	 * @param object
+	 * @param upperInclusive
+	 */
+	public abstract void o_UpperInclusive (
+		final AvailObject object,
+		final boolean upperInclusive);
 }

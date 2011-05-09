@@ -589,8 +589,7 @@ public abstract class Interpreter
 			TupleTypeDescriptor.stringTupleType(),
 			GeneralizedClosureTypeDescriptor.forReturnType(VOID_TYPE.o()));
 		writer.primitiveNumber(
-			Primitive.prim253_SimpleMethodDeclaration_string_block
-			.primitiveNumber);
+			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
 		writer.returnType(VOID_TYPE.o());
 		final AvailObject newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
@@ -775,6 +774,7 @@ public abstract class Interpreter
 			return;
 		}
 		final AvailObject impSet = runtime.methodsAt(methodName);
+		assert !impSet.equalsVoid();
 		if (!pendingForwards.hasElement(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
@@ -843,6 +843,7 @@ public abstract class Interpreter
 	{
 		assert methodName.isCyclicType();
 		final AvailObject implementations = runtime.methodsAt(methodName);
+		assert !implementations.equalsVoid();
 		final List<AvailObject> matching =
 			implementations.filterByTypes(argTypes);
 		if (matching.size() == 0)
@@ -893,6 +894,7 @@ public abstract class Interpreter
 		final @NotNull Continuation1<Generator<String>> failBlock)
 	{
 		final AvailObject impSet = runtime.methodsAt(methodName);
+		assert !impSet.equalsVoid();
 		final List<AvailObject> argTypes =
 			new ArrayList<AvailObject>(argumentExpressions.size());
 		for (final AvailObject argumentExpression : argumentExpressions)
@@ -911,7 +913,7 @@ public abstract class Interpreter
 			"unnamed, creation time = %d, hash = %d",
 			System.currentTimeMillis(),
 			process.hash())));
-		process.priority(50);
+		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
 		process.continuation(VoidDescriptor.voidObject());
 		process.executionState(ExecutionState.running);
 		process.interruptRequestFlag(0);

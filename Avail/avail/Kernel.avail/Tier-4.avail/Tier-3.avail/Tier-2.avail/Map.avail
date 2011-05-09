@@ -91,26 +91,22 @@ Method "map" is [
 
 
 Method "_sizes" is [mt : mapType |
-	Primitive 88 (failureCode : all);
-	Failed;
+	Primitive 88;
 ] : integerType;
 
 
 Method "_keyType" is [mt : mapType |
-	Primitive 89 (failureCode : all);
-	Failed;
+	Primitive 89;
 ] : type;
 
 
 Method "_valueType" is [mt : mapType |
-	Primitive 90 (failureCode : all);
-	Failed;
+	Primitive 90;
 ] : type;
 
 
 Method "||_||" is [m : map |
-	Primitive 80 (failureCode : all);
-	Failed;
+	Primitive 80;
 ] : integer
 returns [mt : mapType |
 	mt sizes;
@@ -119,8 +115,7 @@ returns [mt : mapType |
 
 Method "_[_]?" is [m : map, k : all |
 	/* Test if the key is present */
-	Primitive 81 (failureCode : all);
-	Failed;
+	Primitive 81;
 ] : boolean
 returns [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates | [mt sizes upper bound = 0;] then [
@@ -148,8 +143,7 @@ returns [mt : mapType, kt : type |
 
 Method "_[_->_]" is [m : map, k : all, v : all |
 	/* Copy map but with k->v in it. */
-	Primitive 83 (failureCode : all);
-	Failed;
+	Primitive 83;
 ] : map
 returns [mt : mapType, kt : type, vt : type |
 	map [mt sizes lower bound .. mt sizes upper bound + 2)
@@ -160,8 +154,7 @@ returns [mt : mapType, kt : type, vt : type |
 
 Method "_[_->nil]" is [m : map, k : all |
 	/* Copy map but without the given key. */
-	Primitive 84 (failureCode : all);
-	Failed;
+	Primitive 84;
 ] : map
 returns [mt : mapType, kt : type |
 	/* Original map type but allowing one fewer element (dealing with possibly
@@ -210,8 +203,7 @@ requires [mvt : containerType, kt : type |
 
 Method "[->]" is [
 	/* Answer the empty map. */
-	Primitive 85 (failureCode : all);
-	Failed;
+	Primitive 85;
 ] : map [0..0] from terminates to terminates;
 
 
@@ -227,16 +219,14 @@ returns [kt : type, vt : type |
 /* Iteration support... */
 
 Method "_keys" is [m : map |
-	Primitive 86 (failureCode : all);
-	Failed;
+	Primitive 86;
 ] : set
 returns [mt : mapType |
 	set mt sizes of mt keyType;
 ];
 
 Method "_values" is [m : map |
-	Primitive 91 (failureCode : all);
-	Failed;
+	Primitive 91;
 ] : tuple
 returns [mt : mapType |
 	tuple mt sizes of mt valueType;
@@ -250,5 +240,3 @@ Method "_do_" is [m : map , blk : [terminates, terminates]->void |
 requires [mt : mapType, bT : closureType |
 	mt keyType <= bT[1] & mt valueType <= bT[2];
 ];
-
-

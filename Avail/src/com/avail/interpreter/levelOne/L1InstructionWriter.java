@@ -190,7 +190,6 @@ public class L1InstructionWriter
 	{
 		return CompiledCodeDescriptor.create(
 			nybbles(),
-			argumentTypes.size(),
 			localTypes.size(),
 			stackTracker.maxDepth(),
 			ClosureTypeDescriptor.create(

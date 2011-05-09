@@ -109,22 +109,32 @@ extends TupleDescriptor
 		final @NotNull AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  Compare a subrange of this splice tuple and a subrange of the given tuple.
-		//
-		//  Compare identity...
+		// Compare a subrange of this splice tuple and a subrange of the given
+		// tuple.
 
 		if (object.sameAddressAs(anotherObject) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
+		final int startZone = object.zoneForIndex(startIndex1);
+		final int endZone = object.zoneForIndex(endIndex1);
+		for (int zone = startZone; zone <= endZone; zone++)
 		{
-			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
+			final int clipOffsetInZone =
+				max(
+					(object.translateToZone(startIndex1, zone)
+						- object.startSubtupleIndexInZone(zone)),
+					0);
 			if (!object.subtupleForZone(zone).compareFromToWithStartingAt(
 				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
+				min(
+					object.endSubtupleIndexInZone(zone),
+					object.translateToZone(endIndex1, zone)),
 				anotherObject,
-				(object.startOfZone(zone) - startIndex1 + startIndex2 + clipOffsetInZone)))
+				(object.startOfZone(zone)
+					- startIndex1
+					+ startIndex2
+					+ clipOffsetInZone)))
 			{
 				return false;
 			}

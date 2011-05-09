@@ -1302,12 +1302,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_InclusiveFlags (final AvailObject object, final int value)
-	{
-		o_Traversed(object).inclusiveFlags(value);
-	}
-
-	@Override
 	public void o_LazyIncomplete (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).lazyIncomplete(value);
@@ -1664,15 +1658,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_LowerInclusiveUpperInclusive (
-		final @NotNull AvailObject object,
-		final boolean lowInc,
-		final boolean highInc)
-	{
-		o_Traversed(object).lowerInclusiveUpperInclusive(lowInc, highInc);
-	}
-
-	@Override
 	public @NotNull AvailObject o_MapAt (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject keyObject)
@@ -1959,7 +1944,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Priority (final AvailObject object, final int value)
+	public void o_Priority (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).priority(value);
 	}
@@ -3322,12 +3307,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_InclusiveFlags (final AvailObject object)
-	{
-		return o_Traversed(object).inclusiveFlags();
-	}
-
-	@Override
 	public @NotNull AvailObject o_LazyIncomplete (final AvailObject object)
 	{
 		return o_Traversed(object).lazyIncomplete();
@@ -3802,7 +3781,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_Priority (final AvailObject object)
+	public AvailObject o_Priority (final AvailObject object)
 	{
 		return o_Traversed(object).priority();
 	}
@@ -4588,5 +4567,31 @@ extends AbstractDescriptor
 		final @NotNull AvailObject exceptionSet)
 	{
 		o_Traversed(object).checkedExceptions(exceptionSet);
+	}
+
+	@Override
+	public boolean o_IsInt (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isInt();
+	}
+
+	@Override
+	public boolean o_IsLong (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isLong();
+	}
+
+	@Override
+	public void o_LowerInclusive (final AvailObject object, final boolean lowerInclusive)
+	{
+		o_Traversed(object).lowerInclusive(lowerInclusive);
+	}
+
+	@Override
+	public void o_UpperInclusive (final AvailObject object, final boolean upperInclusive)
+	{
+		o_Traversed(object).upperInclusive(upperInclusive);
 	}
 }

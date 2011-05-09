@@ -35,8 +35,14 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
+/**
+ * My instances represent the types of one or more extended integers.  There is
+ * a lower and upper bound, and flags to indicate whether
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class IntegerRangeTypeDescriptor
 extends TypeDescriptor
 {
@@ -46,6 +52,11 @@ extends TypeDescriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * An int field used to hold the {@linkplain #o_LowerInclusive lower
+		 * inclusive} and {@linkplain #o_UpperInclusive upper inclusive} flags.
+		 */
+		@BitFields(describedBy = Flags.class)
 		INCLUSIVE_FLAGS
 	}
 
@@ -54,16 +65,42 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The extended integer which is the lower bound of this range.  It is
+		 * either inclusive or exclusive depending on the {@linkplain
+		 * IntegerRangeTypeDescriptor#o_LowerInclusive lowerInclusive} flag.
+		 */
 		LOWER_BOUND,
+
+		/**
+		 * The extended integer which is the upper bound of this range.  It is
+		 * either inclusive or exclusive depending on the {@linkplain
+		 * IntegerRangeTypeDescriptor#o_UpperInclusive upperInclusive} flag.
+		 */
 		UPPER_BOUND
 	}
 
-	@Override
-	public void o_InclusiveFlags (
-		final @NotNull AvailObject object,
-		final int value)
+	/**
+	 * The layout of bit fields within my {@linkplain
+	 * IntegerSlots#INCLUSIVE_FLAGS}.
+	 */
+	public static class Flags
 	{
-		object.integerSlotPut(IntegerSlots.INCLUSIVE_FLAGS, value);
+		/**
+		 * The position of the lowerInclusive flag within the {@link
+		 * IntegerSlots#INCLUSIVE_FLAGS}.
+		 */
+		@BitField(shift=0, bits=1)
+		final static BitField LowerInclusive =
+			bitField(Flags.class, "LowerInclusive");
+
+		/**
+		 * The position of the upperInclusive flag within the {@link
+		 * IntegerSlots#INCLUSIVE_FLAGS}.
+		 */
+		@BitField(shift=1, bits=1)
+		final static BitField UpperInclusive =
+			bitField(Flags.class, "UpperInclusive");
 	}
 
 	@Override
@@ -80,13 +117,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.UPPER_BOUND, value);
-	}
-
-	@Override
-	public int o_InclusiveFlags (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.INCLUSIVE_FLAGS);
 	}
 
 	@Override
@@ -111,9 +141,15 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append(object.lowerInclusive() ? '[' : '(');
-		object.lowerBound().printOnAvoidingIndent(aStream, recursionList, indent + 1);
+		object.lowerBound().printOnAvoidingIndent(
+			aStream,
+			recursionList,
+			indent + 1);
 		aStream.append("..");
-		object.upperBound().printOnAvoidingIndent(aStream, recursionList, indent + 1);
+		object.upperBound().printOnAvoidingIndent(
+			aStream,
+			recursionList,
+			indent + 1);
 		aStream.append(object.upperInclusive() ? ']' : ')');
 	}
 
@@ -130,8 +166,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Integer range types compare for equality by comparing their minima and maxima.
-
 		if (!object.lowerBound().equals(another.lowerBound()))
 		{
 			return false;
@@ -160,18 +194,23 @@ extends TypeDescriptor
 		return INTEGER_TYPE.o();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer the object's hash value.  Be careful, as the range (10..20) is the
+	 * same type as the range [11..19], so they should hash the same.  Actually,
+	 * this is taken care of during instance creation - if an exclusive bound is
+	 * finite, it is converted to its inclusive equivalent.  Otherwise asking
+	 * for one of the bounds will yield a value which is either inside or
+	 * outside depending on something that should not be observable (because it
+	 * serves to distinguish two representations of equal objects).
+	 */
 	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's hash value.  Be careful, as the range (10..20) is the same type
-		//  as the range [11..19], so they should hash the same.  Actually, this is taken
-		//  care of during instance creation - if an exclusive bound is finite, it is converted
-		//  to its inclusive equivalent.  Otherwise asking for one of the bounds will yield a value
-		//  which is either inside or outside depending on something that should not be
-		//  observable (because it serves to distinguish two representations of equal objects).
-
-		return IntegerRangeTypeDescriptor.computeHashFromLowerBoundHashUpperBoundHashLowerInclusiveUpperInclusive(
+		return IntegerRangeTypeDescriptor.computeHash(
 			object.lowerBound().hash(),
 			object.upperBound().hash(),
 			object.lowerInclusive(),
@@ -182,34 +221,49 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return INTEGER_TYPE.o();
 	}
 
 	@Override
-	public void o_LowerInclusiveUpperInclusive (
+	public void o_LowerInclusive (
 		final @NotNull AvailObject object,
-		final boolean lowInc,
-		final boolean highInc)
+		final boolean lowerInclusive)
 	{
-		//  Set the lower inclusive and upper inclusive flags.
+		// Assign to the lower inclusive flag.
+		object.bitSlotPut(
+			IntegerSlots.INCLUSIVE_FLAGS,
+			Flags.LowerInclusive,
+			lowerInclusive ? 1 : 0);
+	}
 
-		object.inclusiveFlags(((lowInc ? 1 : 0) + (highInc ? 256 : 0)));
+	@Override
+	public void o_UpperInclusive (
+		final @NotNull AvailObject object,
+		final boolean upperInclusive)
+	{
+		// Assign to the upper inclusive flag.
+		object.bitSlotPut(
+			IntegerSlots.INCLUSIVE_FLAGS,
+			Flags.UpperInclusive,
+			upperInclusive ? 1 : 0);
 	}
 
 	@Override
 	public boolean o_LowerInclusive (
 		final @NotNull AvailObject object)
 	{
-		return (object.inclusiveFlags() & 1) == 1;
+		return object.bitSlot(
+			IntegerSlots.INCLUSIVE_FLAGS,
+			Flags.LowerInclusive) != 0;
 	}
 
 	@Override
 	public boolean o_UpperInclusive (
 		final @NotNull AvailObject object)
 	{
-		return (object.inclusiveFlags() & 256) == 256;
+		return object.bitSlot(
+			IntegerSlots.INCLUSIVE_FLAGS,
+			Flags.UpperInclusive) != 0;
 	}
 
 	@Override
@@ -241,7 +295,9 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		if (subMinObject.equals(superMinObject) && possibleSub.lowerInclusive() && !object.lowerInclusive())
+		if (subMinObject.equals(superMinObject)
+			&& possibleSub.lowerInclusive()
+			&& !object.lowerInclusive())
 		{
 			return false;
 		}
@@ -251,7 +307,9 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		if (superMaxObject.equals(subMaxObject) && possibleSub.upperInclusive() && !object.upperInclusive())
+		if (superMaxObject.equals(subMaxObject)
+			&& possibleSub.upperInclusive()
+			&& !object.upperInclusive())
 		{
 			return false;
 		}
@@ -263,8 +321,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -281,8 +337,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		AvailObject minObject = object.lowerBound();
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
@@ -320,8 +374,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -338,8 +390,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		AvailObject minObject = object.lowerBound();
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
@@ -376,26 +426,58 @@ extends TypeDescriptor
 		return true;
 	}
 
-	// Startup/shutdown
-
-	static AvailObject Nybbles;
-
-	static AvailObject Characters;
-
+	/**
+	 * The range [0..255].
+	 */
 	static AvailObject Bytes;
 
+	/**
+	 * The range of Unicode code points, [0..1114111].
+	 */
+	static AvailObject CharacterCodePoints;
+
+	/**
+	 * The range of integers including infinities, [-∞..∞].
+	 */
 	static AvailObject ExtendedIntegers;
 
+	/**
+	 * The range of integers not including infinities, (∞..∞).
+	 */
 	static AvailObject Integers;
 
-	static AvailObject UnsignedShorts;
-
+	/**
+	 * The range of natural numbers, [1..∞).
+	 */
 	static AvailObject NaturalNumbers;
 
+	/**
+	 * The range [0..15].
+	 */
+	static AvailObject Nybbles;
+
+	/**
+	 * The range [0..65535].
+	 */
+	static AvailObject UnsignedShorts;
+
+	/**
+	 * The range of whole numbers, [0..∞).
+	 */
 	static AvailObject WholeNumbers;
 
 	static void createWellKnownObjects ()
 	{
+		Bytes = create(
+			IntegerDescriptor.zero(),
+			true,
+			IntegerDescriptor.fromUnsignedByte(((short)255)),
+			true);
+		CharacterCodePoints = create(
+			IntegerDescriptor.zero(),
+			true,
+			IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt),
+			true);
 		ExtendedIntegers = create(
 			InfinityDescriptor.negativeInfinity(),
 			true,
@@ -406,53 +488,51 @@ extends TypeDescriptor
 			false,
 			InfinityDescriptor.positiveInfinity(),
 			false);
-		UnsignedShorts = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromInt(65535),
-			true);
 		NaturalNumbers = create(
 			IntegerDescriptor.one(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
 			false);
-		WholeNumbers = create(
-			IntegerDescriptor.zero(),
-			true,
-			InfinityDescriptor.positiveInfinity(),
-			false);
-		Bytes = create(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromUnsignedByte(((short)255)),
-			true);
 		Nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromUnsignedByte(((short)15)),
 			true);
-		Characters = create(
+		UnsignedShorts = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.fromInt(0xFFFF),
+			IntegerDescriptor.fromInt(65535),
 			true);
+		WholeNumbers = create(
+			IntegerDescriptor.zero(),
+			true,
+			InfinityDescriptor.positiveInfinity(),
+			false);
 	}
 
 	static void clearWellKnownObjects ()
 	{
-		//  Default implementation - subclasses may need more variations.
-
+		Bytes = null;
+		CharacterCodePoints = null;
 		ExtendedIntegers = null;
 		Integers = null;
 		NaturalNumbers = null;
-		WholeNumbers = null;
-		Bytes = null;
 		Nybbles = null;
-		Characters = null;
+		UnsignedShorts = null;
+		WholeNumbers = null;
 	}
 
-	/* Hashing */
-	static int computeHashFromLowerBoundHashUpperBoundHashLowerInclusiveUpperInclusive (
+	/**
+	 * Compute the hash of the {@link IntegerRangeTypeDescriptor} that has the
+	 * specified information.
+	 *
+	 * @param lowerBoundHash The hash of the lower bound.
+	 * @param upperBoundHash The hash of the upper bound.
+	 * @param lowerInclusive Whether the lower bound is inclusive.
+	 * @param upperInclusive Whether the upper bound is inclusive.
+	 * @return The hash value.
+	 */
+	static int computeHash (
 		final int lowerBoundHash,
 		final int upperBoundHash,
 		final boolean lowerInclusive,
@@ -465,43 +545,92 @@ extends TypeDescriptor
 		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
 	}
 
-	/* Object creation */
-
-	public static AvailObject extendedIntegers ()
-	{
-		return ExtendedIntegers;
-	}
-
-	public static AvailObject integers ()
-	{
-		return Integers;
-	}
-
-	public static AvailObject unsignedShorts ()
-	{
-		return UnsignedShorts;
-	}
-
-	public static AvailObject wholeNumbers ()
-	{
-		return WholeNumbers;
-	}
-
-	public static AvailObject naturalNumbers ()
-	{
-		return NaturalNumbers;
-	}
-
+	/**
+	 * Return the range [0..255].
+	 *
+	 * @return The unsigned byte range.
+	 */
 	public static AvailObject bytes ()
 	{
 		return Bytes;
 	}
 
+	/**
+	 * Return the range of Unicode code points, [0..1114111].
+	 *
+	 * @return The range of Unicode code points.
+	 */
+	public static AvailObject characterCodePoints ()
+	{
+		return CharacterCodePoints;
+	}
+
+	/**
+	 * Return the range of integers including infinities, [-∞..∞].
+	 *
+	 * @return The range of integers including infinities.
+	 */
+	public static AvailObject extendedIntegers ()
+	{
+		return ExtendedIntegers;
+	}
+
+	/**
+	 * Return the range of integers not including infinities, (∞..∞).
+	 *
+	 * @return The range of finite integers.
+	 */
+	public static AvailObject integers ()
+	{
+		return Integers;
+	}
+
+	/**
+	 * Return the range of natural numbers, [1..∞).
+	 *
+	 * @return The range of positive finite integers.
+	 */
+	public static AvailObject naturalNumbers ()
+	{
+		return NaturalNumbers;
+	}
+
+	/**
+	 * Return the range [0..15].
+	 *
+	 * @return The non-negative integers that can be represented in 4 bits.
+	 */
 	public static AvailObject nybbles ()
 	{
 		return Nybbles;
 	}
 
+	/**
+	 * Return the range [0..65535].
+	 *
+	 * @return The non-negative integers that can be represented in 16 bits.
+	 */
+	public static AvailObject unsignedShorts ()
+	{
+		return UnsignedShorts;
+	}
+
+	/**
+	 * Return the range of whole numbers, [0..∞).
+	 *
+	 * @return The non-negative finite integers.
+	 */
+	public static AvailObject wholeNumbers ()
+	{
+		return WholeNumbers;
+	}
+
+	/**
+	 * Return a range consisting of a single integer or infinity.
+	 *
+	 * @param integerObject An Avail integer or infinity.
+	 * @return A range containing a single value.
+	 */
 	public static AvailObject singleInteger (final AvailObject integerObject)
 	{
 		integerObject.makeImmutable();
@@ -509,6 +638,22 @@ extends TypeDescriptor
 			integerObject, true, integerObject, true);
 	}
 
+	/**
+	 * Create an integer range type.  Normalize it as necessary, converting
+	 * exclusive finite bounds into equivalent inclusive bounds.  An empty range
+	 * is always converted to {@linkplain TerminatesTypeDescriptor terminates}.
+	 *
+	 * @param lowerBound
+	 *            The lowest value inside (or just outside) the range.
+	 * @param lowerInclusive
+	 *            Whether to include the lowerBound.
+	 * @param upperBound
+	 *            The highest value inside (or just outside) the range.
+	 * @param upperInclusive
+	 *            Whether to include the upperBound.
+	 * @return
+	 *            The new normalized integer range type.
+	 */
 	public static AvailObject create (
 		final @NotNull AvailObject lowerBound,
 		final boolean lowerInclusive,
@@ -519,14 +664,16 @@ extends TypeDescriptor
 		{
 			if (lowerBound.descriptor().isMutable())
 			{
-				error("Don't plug a mutable object in as two distinct construction parameters");
+				error(
+					"Don't plug in a mutable object as two distinct"
+					+ " construction parameters");
 			}
 		}
 		AvailObject low = lowerBound;
 		boolean lowInc = lowerInclusive;
 		if (!lowInc)
 		{
-			//  Try to rewrite (if possible) as inclusive boundary.
+			// Try to rewrite (if possible) as inclusive boundary.
 			if (low.isFinite())
 			{
 				low = low.plusCanDestroy(IntegerDescriptor.one(), false);
@@ -537,7 +684,7 @@ extends TypeDescriptor
 		boolean highInc = upperInclusive;
 		if (!highInc)
 		{
-			//  Try to rewrite (if possible) as inclusive boundary.
+			// Try to rewrite (if possible) as inclusive boundary.
 			if (high.isFinite())
 			{
 				high = high.minusCanDestroy(IntegerDescriptor.one(), false);
@@ -550,13 +697,15 @@ extends TypeDescriptor
 		}
 		if (high.equals(low) && (!highInc || !lowInc))
 		{
-			//  Unusual cases such as [INF..INF) give preference to exclusion over inclusion.
+			// Unusual cases such as [INF..INF) give preference to exclusion
+			// over inclusion.
 			return TERMINATES.o();
 		}
 		AvailObject result = mutable().create();
 		result.lowerBound(low);
 		result.upperBound(high);
-		result.lowerInclusiveUpperInclusive(lowInc, highInc);
+		result.lowerInclusive(lowInc);
+		result.upperInclusive(highInc);
 		return result;
 	}
 

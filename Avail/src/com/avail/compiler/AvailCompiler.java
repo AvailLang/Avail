@@ -725,6 +725,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		AvailObject message = bundle.message();
 		final AvailObject impSet = interpreter.runtime().methodsAt(message);
+		assert !impSet.equalsVoid();
 		AvailObject implementationsTuple = impSet.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
 

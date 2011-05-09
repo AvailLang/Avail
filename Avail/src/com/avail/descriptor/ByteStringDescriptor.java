@@ -286,9 +286,9 @@ extends TupleDescriptor
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		final short codePoint = object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
-		return CharacterDescriptor.newImmutableCharacterWithByteCodePoint(
-			codePoint);
+		final short codePoint =
+			object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
+		return CharacterDescriptor.fromByteCodePoint(codePoint);
 	}
 
 	@Override

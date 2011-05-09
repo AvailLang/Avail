@@ -501,7 +501,6 @@ extends Descriptor
 	 */
 	public static AvailObject create (
 		final @NotNull AvailObject nybbles,
-		final int numArgs,
 		final int locals,
 		final int stack,
 		final @NotNull AvailObject closureType,
@@ -521,7 +520,7 @@ extends Descriptor
 		}
 
 		assert localTypes.tupleSize() == locals;
-		assert closureType.numArgs() == numArgs;
+		final int numArgs = closureType.numArgs();
 		final int literalsSize = literals.tupleSize();
 		final int outersSize = outerTypes.tupleSize();
 		final AvailObject code = mutable().create(

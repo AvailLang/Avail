@@ -84,8 +84,7 @@ divisionByZeroHandler : [] -> extended integer := [
 /* Integer comparison operations... */
 
 Method "_<_" is [a : extended integer, b : extended integer |
-	Primitive 5 (failureCode : all);
-	Failed;
+	Primitive 5;
 ] : boolean;
 
 Method "_>_" is [a : extended integer, b : extended integer |
@@ -93,8 +92,7 @@ Method "_>_" is [a : extended integer, b : extended integer |
 ] : boolean;
 
 Method "_<=_" is [a : extended integer, b : extended integer |
-	Primitive 6 (failureCode : all);
-	Failed;
+	Primitive 6;
 ] : boolean;
 
 Method "_>=_" is [a : extended integer, b : extended integer |
@@ -142,8 +140,7 @@ Method "_>=_>=_" is [a : extended integer, b : extended integer, c : extended in
 setOfString ::= Special Object 75;
 
 Method "_U_" is [s1 : setOfString, s2 : setOfString |
-	Primitive 102 (failureCode : all);
-	Failed;
+	Primitive 102;
 ] : set
 returns [st : setType, st2 : setType |
 	setOfString;

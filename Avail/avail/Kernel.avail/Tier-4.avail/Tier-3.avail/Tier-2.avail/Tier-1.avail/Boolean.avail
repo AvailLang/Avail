@@ -62,8 +62,7 @@ is [
 		trueBlock : []->void,
 		falseBlock : []->void |
 	/* Conditionally evaluate either the trueBlock or the falseBlock. */
-	Primitive 43 (failureCode : all);
-	Failed;
+	Primitive 43;
 ] : void
 returns [bt : type, tbt : closureType, fbt : closureType |
 	/* We have to use a local variable (result) because at this point
@@ -96,8 +95,7 @@ Method "if_then_" is [bool : boolean, trueBlock : []->void |
 	   simply call if_then_else_ with an empty block [] for the else clause.
 	   We use another primitive instead, just for performance of the Level
 	   One interpreter.  */
-	Primitive 44 (failureCode : all);
-	Failed;
+	Primitive 44;
 ] : void;
 
 
@@ -144,8 +142,7 @@ returns [at : type, bt : closureType |
 
 Method "_&_" is [a : trueType, b : []->boolean |
 	/* Evaluate b because a leaves it contingent. */
-	Primitive 45 (failureCode : all);
-	Failed;
+	Primitive 45;
 ] : boolean
 returns [at : type, bt : closureType |
 	bt result;
@@ -191,8 +188,7 @@ Method "_|_" is [a : trueType, b :  []->boolean |
 
 Method "_|_" is [a : falseType, b :  []->boolean |
 	/* Evaluate b because a leaves it contingent. */
-	Primitive 45 (failureCode : all);
-	Failed;
+	Primitive 45;
 ] : boolean
 returns [at : type, bt : closureType |
 	bt result;

@@ -68,8 +68,7 @@ Method "fieldTypeMap" is [map from cyclicType to type;];
 
 Method "_as objectType" is [m : fieldTypeMap |
 	/* Now it's declared publicly with a return type of objectType... */
-	Primitive 63 (failureCode : all);
-	Failed;
+	Primitive 63;
 ] : objectType;
 
 Method "_private meta levels_" is [
@@ -126,8 +125,7 @@ validationList : tuple of [terminates]->boolean;
 validationList := <>;
 
 Method "_private as unvalidated object" is [m : fieldMap |
-	Primitive 61 (failureCode : all);
-	Failed;
+	Primitive 61;
 ] : [->] as objectType;
 
 Method "_as object" is [m : fieldMap |
@@ -147,8 +145,7 @@ Method "_as object" is [m : fieldMap |
 
 
 Method "Give type_the name_" is [t : objectType, name : string |
-	Primitive 68 (failureCode : all);
-	Failed;
+	Primitive 68;
 ] : void;
 
 /* Get the type name.*/
@@ -167,8 +164,7 @@ Give type Object the name "Object";
 /* Conversion from object to map (now that Object is defined). */
 
 Method "_as map" is [o : Object |
-	Primitive 62 (failureCode : all);
-	Failed;
+	Primitive 62;
 ] : fieldMap;
 
 

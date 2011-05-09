@@ -39,6 +39,22 @@ import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * An Avail {@linkplain IntegerDescriptor integer} is represented by a little
+ * endian series of {@code int} slots.  The slots are really treated as
+ * unsigned, except for the final slot which is considered signed.  The high bit
+ * of the final slot (i.e., its sign bit) is the sign bit of the entire object.
+ *
+ * <p>
+ * Avail integers should always occupy the fewest number of slots to
+ * unambiguously indicate the represented integer.  A zero integer is
+ * represented by a single slot containing a zero {@code int}.  Any {@code int}
+ * can be converted to an Avail integer by using a single slot, and any {@code
+ * long} can be represented with at most two slots.
+ * </p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class IntegerDescriptor
 extends ExtendedNumberDescriptor
 {
@@ -48,17 +64,21 @@ extends ExtendedNumberDescriptor
 	public enum IntegerSlots
 	{
 		/**
-		 * An Avail {@linkplain IntegerDescriptor integer} is represented by
-		 * a little-endian series of {@code int} slots.  The slots are really
-		 * treated as unsigned, except for the final slot which is considered
-		 * signed.  The high bit of the final slot (i.e., its sign bit) is used
-		 * for the sign bit of the entire object.
-		 *
-		 * <p>Avail integers should always occupy the fewest number of slots
+		 * <p>
+		 * Avail integers should always occupy the fewest number of slots
 		 * to unambiguously indicate the represented integer.  A zero integer is
 		 * represented by a single slot containing a zero {@code int}.  Any
 		 * {@code int} can be converted to an Avail integer by using a single
 		 * slot, and any {@code long} can be represented with at most two slots.
+		 * </p>
+		 *
+		 * <p>
+		 * Thus, if the top slot is zero ({@code 0}), the second-from-top slot
+		 * must have its upper bit set (fall in the range
+		 * <nobr>{@code -0x80000000..-1}</nobr>), otherwise the last slot would
+		 * be redundant.  Likewise, if the top slot is minus one ({code -1}),
+		 * the second-from-top slot must have its upper bit clear (fall in the
+		 * range <nobr>{@code 0..0x7FFFFFFF}</nobr>).
 		 * </p>
 		 */
 		RAW_SIGNED_INT_AT_
@@ -136,13 +156,15 @@ extends ExtendedNumberDescriptor
 		final AvailObject object,
 		final AvailObject anAvailInteger)
 	{
-		if (object.integerSlotsCount() != anAvailInteger.integerSlotsCount())
+		final int slotsCount = object.integerSlotsCount();
+		if (slotsCount != anAvailInteger.integerSlotsCount())
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.integerSlotsCount(); i <= _end1; i++)
+		for (int i = 1; i <= slotsCount; i++)
 		{
-			if (object.rawUnsignedIntegerAt(i) != anAvailInteger.rawUnsignedIntegerAt(i))
+			if (object.rawUnsignedIntegerAt(i)
+				!= anAvailInteger.rawUnsignedIntegerAt(i))
 			{
 				return false;
 			}
@@ -354,7 +376,7 @@ extends ExtendedNumberDescriptor
 		//  Answer my type's hash value (without creating any objects).
 
 		final int objectHash = object.hash();
-		return IntegerRangeTypeDescriptor.computeHashFromLowerBoundHashUpperBoundHashLowerInclusiveUpperInclusive(
+		return IntegerRangeTypeDescriptor.computeHash(
 			objectHash,
 			objectHash,
 			true,
@@ -419,6 +441,20 @@ extends ExtendedNumberDescriptor
 		//  Double-dispatch it.
 
 		return aNumber.multiplyByIntegerCanDestroy(object, canDestroy);
+	}
+
+	@Override
+	public boolean o_IsInt (
+		final AvailObject object)
+	{
+		return object.integerSlotsCount() == 1;
+	}
+
+	@Override
+	public boolean o_IsLong (
+		final AvailObject object)
+	{
+		return object.integerSlotsCount() <= 2;
 	}
 
 	@Override
@@ -573,7 +609,8 @@ extends ExtendedNumberDescriptor
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  Add the two Avail integers to produce another, destroying one if both allowed and useful.
+		// Add the two Avail integers to produce another, destroying one if both
+		// allowed and useful.
 
 		// This routine would be much quicker with access to machine carry flags,
 		// but Java doesn't let us actually go down to the metal (nor do C and C++).
@@ -1047,6 +1084,12 @@ extends ExtendedNumberDescriptor
 	}
 
 	/**
+	 * The maximum code point of a character, as an Avail {@linkplain
+	 * IntegerDescriptor integer}.
+	 */
+	private static AvailObject maxCharacterCodePoint;
+
+	/**
 	 * Create any instances of {@link AvailObject} that need to be present for
 	 * basic Avail operations like arithmetic to work correctly.  In particular,
 	 * generate the array of immutable Avail {@linkplain IntegerDescriptor
@@ -1062,6 +1105,8 @@ extends ExtendedNumberDescriptor
 			object.makeImmutable();
 			immutableByteObjects[i] = object;
 		}
+		maxCharacterCodePoint = IntegerDescriptor.fromInt(
+			CharacterDescriptor.maxCodePointInt);
 	}
 
 	/**
@@ -1078,6 +1123,7 @@ extends ExtendedNumberDescriptor
 		{
 			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
 		}
+		maxCharacterCodePoint = null;
 	}
 
 	/**

@@ -36,6 +36,15 @@ import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
 import com.avail.annotations.NotNull;
 
+/**
+ * My {@linkplain AvailObject object instances} are containers which can hold
+ * any object that agrees with my {@linkplain #forInnerType(AvailObject) inner
+ * type}.  A container may also hold no value at all.  Any attempt to read the
+ * {@linkplain #o_GetValue(AvailObject) current value} of a container that holds
+ * no value will fail immediately.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ContainerDescriptor
 extends Descriptor
 {
@@ -169,9 +178,8 @@ extends Descriptor
 	public @NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		//  If I am being frozen (a container), I don't need to freeze my current value.
-		//  I do, on the other hand, have to freeze my type object.
-
+		// If I am being frozen (a container), I don't need to freeze my current
+		// value.  I do, on the other hand, have to freeze my type object.
 		object.descriptor(ContainerDescriptor.immutable());
 		object.type().makeImmutable();
 		return object;
@@ -192,7 +200,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newValue)
 	{
-		assert newValue.isInstanceOfSubtypeOf(object.type().innerType()) : "Container can't hold that value (wrong type)";
+		if (!newValue.isInstanceOfSubtypeOf(object.type().innerType()))
+		{
+			error("container can't hold that value (wrong type)");
+		}
 		object.value(newValue);
 	}
 
@@ -200,9 +211,8 @@ extends Descriptor
 	public void o_ClearValue (
 		final @NotNull AvailObject object)
 	{
-		//  Clears the container (makes it have no current value).
-
-		//  Eventually, the previous contents should drop a reference.
+		// Clear the container (make it have no current value).
+		// Eventually, the previous contents should drop a reference.
 		object.value(VoidDescriptor.voidObject());
 	}
 
@@ -210,12 +220,12 @@ extends Descriptor
 	public @NotNull AvailObject o_GetValue (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the current value of the container.  Fail if no value assigned.
-
+		// Answer the current value of the container.  Fail if no value is
+		// currently assigned.
 		final AvailObject value = object.value();
 		if (value.equalsVoid())
 		{
-			error("That container has no value yet", object);
+			error("container has no value yet");
 			return VoidDescriptor.voidObject();
 		}
 		return value;
@@ -239,6 +249,16 @@ extends Descriptor
 		}
 	}
 
+	/**
+	 * Create a {@linkplain ContainerDescriptor container} which can only
+	 * contain values of the specified type.  The new container initially holds
+	 * no value.
+	 *
+	 * @param innerType
+	 *            The type of objects the new container can contain.
+	 * @return
+	 *            A new container able to hold the specified type of objects.
+	 */
 	public static @NotNull AvailObject forInnerType (
 		final @NotNull AvailObject innerType)
 	{
@@ -246,13 +266,23 @@ extends Descriptor
 			ContainerTypeDescriptor.wrapInnerType(innerType));
 	}
 
+	/**
+	 * Create a {@linkplain ContainerDescriptor container} of the specified
+	 * {@linkplain ContainerTypeDescriptor container type}.  The new container
+	 * initially holds no value.
+	 *
+	 * @param outerType
+	 *            The container type to instantiate.
+	 * @return
+	 *            A new container of the given type.
+	 */
 	public static @NotNull AvailObject forOuterType (
 		final @NotNull AvailObject outerType)
 	{
 		final AvailObject result = mutable().create();
-		result.type (outerType);
-		result.hashOrZero (0);
-		result.value (VoidDescriptor.voidObject());
+		result.type(outerType);
+		result.hashOrZero(0);
+		result.value(VoidDescriptor.voidObject());
 		return result;
 	}
 

@@ -1656,21 +1656,6 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_InclusiveFlags (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:inclusiveFlags:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_LazyIncomplete (
 		final AvailObject object,
 		final AvailObject value)
@@ -2334,23 +2319,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param lowInc
-	 * @param highInc
-	 */
-	@Override
-	public void o_LowerInclusiveUpperInclusive (
-		final AvailObject object,
-		final boolean lowInc,
-		final boolean highInc)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:lowerInclusive:upperInclusive:", object);
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param keyObject
 	 * @return
 	 */
@@ -2940,7 +2908,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_Priority (
 		final AvailObject object,
-		final int value)
+		final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -5631,20 +5599,6 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_InclusiveFlags (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_InclusiveFlags:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public @NotNull AvailObject o_LazyIncomplete (
 		final AvailObject object)
 	{
@@ -6454,13 +6408,13 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_Priority (
+	public AvailObject o_Priority (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_Priority:", object);
-		return 0;
+		return null;
 	}
 
 	/**
@@ -8839,5 +8793,50 @@ extends AbstractDescriptor
 		final @NotNull AvailObject value)
 	{
 		subclassResponsibility("o_RaiseType");
+	}
+
+
+	@Override
+	public boolean o_IsInt (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+
+	@Override
+	public boolean o_IsLong (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+
+	/**
+	 * @param object
+	 * @param lowInc
+	 */
+	@Override
+	public void o_LowerInclusive (
+		final AvailObject object,
+		final boolean lowInc)
+	{
+		subclassResponsibility("Object:lowerInclusive:", object);
+		return;
+	}
+
+
+	/**
+	 * @param object
+	 * @param lowInc
+	 * @param highInc
+	 */
+	@Override
+	public void o_UpperInclusive (
+		final AvailObject object,
+		final boolean highInc)
+	{
+		subclassResponsibility("Object:upperInclusive:", object);
+		return;
 	}
 }

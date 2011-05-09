@@ -603,13 +603,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_ (
+	L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_ (
 		READ_POINTER, READ_POINTER, IMMEDIATE, IMMEDIATE, IMMEDIATE, READ_VECTOR, PC, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_();
+			operationDispatcher.L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_();
 		}
 	},
 
@@ -700,6 +700,16 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doAttemptPrimitive_withArguments_result_failure_ifFail_();
+		}
+	},
+
+	L2_doNoFailPrimitive_withArguments_result_ (
+		PRIMITIVE, READ_VECTOR, WRITE_POINTER)
+	{
+		@Override
+		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L2_doNoFailPrimitive_withArguments_result_();
 		}
 	},
 

@@ -445,10 +445,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_
+	 * {@link L2Operation#L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_ ();
+	public void L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_ ();
 
 	/**
 	 * Process an
@@ -578,8 +578,15 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAttemptPrimitive_withArguments_result_ifFail_}
+	 * {@link L2Operation#L2_doAttemptPrimitive_withArguments_result_failure_ifFail_}
 	 * {@linkplain L2Operation operation}.
 	 */
 	public void L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ ();
+
+	/**
+	 * Process an
+	 * {@link L2Operation#L2_doNoFailPrimitive_withArguments_result_}
+	 * {@linkplain L2Operation operation}.
+	 */
+	public void L2_doNoFailPrimitive_withArguments_result_ ();
 }

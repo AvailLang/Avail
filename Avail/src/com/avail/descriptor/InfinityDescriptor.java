@@ -215,7 +215,7 @@ extends ExtendedNumberDescriptor
 		//  Answer my type's hash value (without creating any objects).
 
 		final int objectHash = object.hash();
-		return IntegerRangeTypeDescriptor.computeHashFromLowerBoundHashUpperBoundHashLowerInclusiveUpperInclusive(
+		return IntegerRangeTypeDescriptor.computeHash(
 			objectHash,
 			objectHash,
 			true,

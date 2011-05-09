@@ -160,6 +160,8 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.wholeNumbers();
 		specialObjects[37] =
 			IntegerRangeTypeDescriptor.naturalNumbers();
+		specialObjects[38] =
+			IntegerRangeTypeDescriptor.characterCodePoints();
 
 		// Code reflection
 		specialObjects[40] = MESSAGE_BUNDLE.o();
@@ -412,10 +414,15 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
-	 * bound to the specified {@linkplain CyclicTypeDescriptor selector}.
+	 * bound to the specified {@linkplain CyclicTypeDescriptor selector}.  If
+	 * there is no implementation set with that selector, answer {@linkplain
+	 * VoidDescriptor the void object}.
 	 *
-	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
-	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
+	 * @param selector
+	 *            A {@linkplain CyclicTypeDescriptor selector}.
+	 * @return
+	 *            An {@linkplain ImplementationSetDescriptor implementation set}
+	 *            or {@linkplain VoidDescriptor the void object}.
 	 */
 	@ThreadSafe
 	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)
@@ -425,7 +432,11 @@ public final class AvailRuntime
 		runtimeLock.readLock().lock();
 		try
 		{
-			return methods.mapAt(selector);
+			if (methods.hasKey(selector))
+			{
+				return methods.mapAt(selector);
+			}
+			return VoidDescriptor.voidObject();
 		}
 		finally
 		{

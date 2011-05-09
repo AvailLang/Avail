@@ -65,21 +65,18 @@ Method "set of_" is [elementType : type |
 ] : setType;
 
 Method "_content type" is [st : setType |
-	Primitive 113 (failureCode : all);
-	Failed;
+	Primitive 113;
 ] : type;
 
 Method "_sizes" is [st : setType |
-	Primitive 112 (failureCode : all);
-	Failed;
+	Primitive 112;
 ] : integerType;
 
 
 /* Set manipulation primitives... */
 
 Method "||_||" is [s : set |
-	Primitive 100 (failureCode : all);
-	Failed;
+	Primitive 100;
 ] : whole number
 returns [st : setType |
 	st sizes;
@@ -98,8 +95,7 @@ Method "_private plus_" is [a : extended integer, b : extended integer |
 
 Method "_as tuple" is [s : set |
 	/* Convert the set to a tuple, with arbitrary (and unstable) ordering. */
-	Primitive 110 (failureCode : all);
-	Failed;
+	Primitive 110;
 ] : tuple
 returns [st : setType |
 	tuple whole number
@@ -108,8 +104,7 @@ returns [st : setType |
 ];
 
 Method "_as set" is [t : tuple |
-	Primitive 109 (failureCode : all);
-	Failed;
+	Primitive 109;
 ] : set
 returns [tt : tupleType |
 	sizes ::= tt sizes;

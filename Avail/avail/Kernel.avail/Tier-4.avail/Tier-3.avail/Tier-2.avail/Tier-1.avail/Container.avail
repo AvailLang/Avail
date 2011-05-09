@@ -52,22 +52,19 @@ Method "*_?:=_" is [var : container, arg : all |
 /* Container type operations... */
 
 Method "&:_" is [t : type |
-	Primitive 13 (failureCode : all);
-	Failed;
+	Primitive 13;
 ] : containerType;
 
 
 Method "_contentType" is [ct : containerType |
 	/* Answer the type of thing my instances can contain. */
-	Primitive 14 (failureCode : all);
-	Failed;
+	Primitive 14;
 ] : type;
 
 
 Method "new container with content type_" is [t : type |
 	/* Answer a new container to hold the given type of contents. */
-	Primitive 16 (failureCode : all);
-	Failed;
+	Primitive 16;
 ] : container;
 
 

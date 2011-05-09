@@ -37,9 +37,9 @@ Uses
 Names
 	"all",
 	"boolean",
-	"character", "closure", "closureType","compiledCode",
-	"container", "containerType", "continuation", "continuationType",
-	"cyclicType",
+	"character", "character code points", "closure", "closureType",
+	"compiledCode", "container", "containerType", "continuation",
+	"continuationType", "cyclicType",
 	"double",
 	"extended integer",
 	"falseType", "float",
@@ -120,6 +120,7 @@ privateVoid                        ::= Special Object 35;
 
 privateWholeNumber                 ::= Special Object 36;
 privateNaturalNumber               ::= Special Object 37;
+privateCharacterCodePoints         ::= Special Object 38;
 
 privateParseNode                   ::= Special Object 50;
 privateMarkerNode                  ::= Special Object 51;
@@ -167,6 +168,7 @@ Method "void"                   is [privateVoid;] : privateType;
 
 Method "whole number"           is [privateWholeNumber;] : privateIntegerType;
 Method "natural number"         is [privateNaturalNumber;] : privateIntegerType;
+Method "character code points"  is [privateCharacterCodePoints;] : privateIntegerType;
 
 /* And the meta-types... */
 Method "integerType"            is [privateIntegerType;] : privateMeta;
@@ -250,8 +252,7 @@ Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
 
 
 Method "Print_" is [something : all |
-	Primitive 258 (failureCode : all);
-	Failed;
+	Primitive 258;
 ] : void;
 
 
@@ -264,22 +265,19 @@ Method "Discard_" is [somethingToIgnore : all |
 /* Pause the VM for debugging. */
 
 Method "Halt" is [
-	Primitive 257 (failureCode : all);
-	Failed;
+	Primitive 257;
 ] : void;
 
 
 /* General purpose primitive... */
 
 Method "_=_" is [a : all, b : all |
-	Primitive 60 (failureCode : all);
-	Failed;
+	Primitive 60;
 ] : boolean;
 
 
 /* The subtype relation... */
 Method "_<=_" is [a : type, b : type |
-	Primitive 33 (failureCode : all);
-	Failed;
+	Primitive 33;
 ] : boolean;
 

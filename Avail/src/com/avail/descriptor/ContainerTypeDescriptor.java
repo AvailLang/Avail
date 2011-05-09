@@ -36,6 +36,13 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * A {@code ContainerTypeDescriptor container type} is the {@link TypeDescriptor
+ * type} of any {@link ContainerDescriptor container} that can only hold objects
+ * having the specified {@linkplain ObjectSlots#INNER_TYPE inner type}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ContainerTypeDescriptor
 extends TypeDescriptor
 {
@@ -44,6 +51,9 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The type of values that my object instances can contain.
+		 */
 		INNER_TYPE
 	}
 
@@ -89,8 +99,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Container types compare for equality by comparing their innerTypes.
-
+		// Container types compare for equality by comparing their innerTypes.
 		if (object.sameAddressAs(aType))
 		{
 			return true;
@@ -102,8 +111,6 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return CONTAINER_TYPE.o();
 	}
 
@@ -111,8 +118,6 @@ extends TypeDescriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's hash value.
-
 		return object.innerType().hash() * 17 ^ 0x613E420;
 	}
 
@@ -120,11 +125,11 @@ extends TypeDescriptor
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
+		// Answer whether this object's hash value can be computed without
+		// creating new objects.  This method is used by the garbage collector
+		// to decide which objects to attempt to coalesce.  The garbage
+		// collector uses the hash values to find objects that it is likely can
+		// be coalesced together.
 		return object.innerType().isHashAvailable();
 	}
 
@@ -142,8 +147,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
+		// Check if object (a type) is a subtype of aType (which should also be
+		// a type).
 		return aType.isSupertypeOfContainerType(object);
 	}
 
@@ -152,9 +157,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  Container types are invariant (co- and contra-variant simultaneously).  Strange to
-		//  compare for equality, but that's how invariance is defined.
-
+		// Container types are invariant (both covariant and contravariant
+		// simultaneously).  Strange to compare for equality, but that's how
+		// invariance is defined.
 		return object.innerType().equals(aContainerType.innerType());
 	}
 
@@ -163,8 +168,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -181,8 +184,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.innerType().equals(aContainerType.innerType()))
 		{
 			return object;
@@ -195,8 +196,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -213,8 +212,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.innerType().equals(aContainerType.innerType()))
 		{
 			return object;
@@ -222,6 +219,15 @@ extends TypeDescriptor
 		return CONTAINER.o();
 	}
 
+	/**
+	 * Create a {@linkplain ContainerTypeDescriptor container type} based on
+	 * the given content {@linkplain TypeDescriptor type}.
+	 *
+	 * @param innerType
+	 *            The content type on which to base the container type.
+	 * @return
+	 *            The new container type.
+	 */
 	public static @NotNull AvailObject wrapInnerType (
 		final @NotNull AvailObject innerType)
 	{

@@ -286,9 +286,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  Answer what type the given index would have in an object instance of me.  Answer
-		//  terminates if the index is out of bounds.
-
+		// Answer what type the given index would have in an object instance of
+		// me.  Answer terminates if the index is out of bounds.
 		if (index <= 0)
 		{
 			return TERMINATES.o();

@@ -153,10 +153,9 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  The neat thing about cyclic types is that they're their own types.  The
-		//  problem is that when you ask its type it has to become immutable in
-		//  case the original (the 'instance') is also being held onto.
-
+		// The neat thing about cyclic types is that they're their own types.
+		// The problem is that when you ask its type it has to become immutable
+		// in case the original (the 'instance') is also being held onto.
 		return object.makeImmutable();
 	}
 
@@ -165,8 +164,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
 		return aType.isSupertypeOfCyclicType(object);
 	}
 
@@ -175,11 +172,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCyclicType)
 	{
-		//  Two cyclic types are identical if and only if they are at the same address in
-		//  memory (i.e., after traversal of indirections they are the same object under ==).
-		//  This means cyclic types have identity, so the hash should be a random value
-		//  for good distribution, especially when many cyclic types have the same name.
-
 		return object.sameAddressAs(aCyclicType);
 	}
 
@@ -188,8 +180,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;

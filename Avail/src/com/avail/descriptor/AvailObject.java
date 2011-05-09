@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import java.io.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
@@ -266,8 +266,68 @@ implements Iterable<AvailObject>
 		final short anInteger);
 
 
-	abstract public int integerSlotsCount ();
 
+	/**
+	 * Answer the number of object slots in this {@link AvailObject}.
+	 *
+	 * @return The number of object slots.
+	 */
+	abstract public int objectSlotsCount ();
+
+
+	/**
+	 * Store the AvailObject in the receiver at the given byte-index.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @return The AvailObject found at the specified slot in the receiver.
+	 */
+	abstract public AvailObject objectSlot (
+		final Enum<?> e);
+
+
+	/**
+	 * Store the AvailObject in the specified slot of the receiver.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param anAvailObject The AvailObject to store at the specified slot.
+	 */
+	abstract public void objectSlotPut (
+		final Enum<?> e,
+		final AvailObject anAvailObject);
+
+
+	/**
+	 * Extract the AvailObject at the specified slot of the receiver.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @return The AvailObject found at the specified slot in the receiver.
+	 */
+	abstract public AvailObject objectSlotAt (
+		final Enum<?> e,
+		final int subscript);
+
+
+	/**
+	 * Store the AvailObject in the specified slot of the receiver.
+	 *
+	 * @param e An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The AvailObject to store at the specified slot.
+	 */
+	abstract public void objectSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final AvailObject anAvailObject);
+
+
+
+	/**
+	 * Answer the number of integer slots in this {@link AvailObject}.
+	 *
+	 * @return The number of integer slots.
+	 */
+	abstract public int integerSlotsCount ();
 
 
 	/**
@@ -318,55 +378,32 @@ implements Iterable<AvailObject>
 		final int anInteger);
 
 
-	abstract public int objectSlotsCount ();
 
+	/**
+	 * Extract the value of the {@link BitField} of the int located at the
+	 * ordinal of the given field enum value.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subfield A BitField that defines the subfield layout.
+	 * @return An int extracted from this AvailObject.
+	 */
+	abstract public int bitSlot (
+		final Enum<?> field,
+		final BitField subfield);
 
 
 	/**
-	 * Store the AvailObject in the receiver at the given byte-index.
+	 * Replace the value of the {@link BitField} of the int located at the
+	 * ordinal of the given field enum value.
 	 *
-	 * @param e An enumeration value that defines the field ordering.
-	 * @return The AvailObject found at the specified slot in the receiver.
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subfield A BitField that defines the subfield layout.
+	 * @param anInteger An int to store in the indicated slot of the receiver.
 	 */
-	abstract public AvailObject objectSlot (
-		final Enum<?> e);
-
-
-	/**
-	 * Store the AvailObject in the specified slot of the receiver.
-	 *
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param anAvailObject The AvailObject to store at the specified slot.
-	 */
-	abstract public void objectSlotPut (
-		final Enum<?> e,
-		final AvailObject anAvailObject);
-
-
-	/**
-	 * Extract the AvailObject at the specified slot of the receiver.
-	 *
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return The AvailObject found at the specified slot in the receiver.
-	 */
-	abstract public AvailObject objectSlotAt (
-		final Enum<?> e,
-		final int subscript);
-
-
-	/**
-	 * Store the AvailObject in the specified slot of the receiver.
-	 *
-	 * @param e An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anAvailObject The AvailObject to store at the specified slot.
-	 */
-	abstract public void objectSlotAtPut (
-		final Enum<?> e,
-		final int subscript,
-		final AvailObject anAvailObject);
-
+	abstract public void bitSlotPut (
+		final Enum<?> field,
+		final BitField subfield,
+		final int anInteger);
 
 
 	public boolean isDestroyed ()
@@ -2492,23 +2529,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int inclusiveFlags ()
-	{
-		return descriptor().o_InclusiveFlags(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void inclusiveFlags (
-		final int value)
-	{
-		descriptor().o_InclusiveFlags(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject lazyIncomplete ()
 	{
 		return descriptor().o_LazyIncomplete(this);
@@ -3313,19 +3333,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void lowerInclusiveUpperInclusive (
-		final boolean lowInc,
-		final boolean highInc)
-	{
-		descriptor().o_LowerInclusiveUpperInclusive(
-			this,
-			lowInc,
-			highInc);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject makeImmutable ()
 	{
 		return descriptor().o_MakeImmutable(this);
@@ -3994,7 +4001,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int priority ()
+	public AvailObject priority ()
 	{
 		return descriptor().o_Priority(this);
 	}
@@ -4003,7 +4010,7 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public void priority (
-		final int value)
+		final @NotNull AvailObject value)
 	{
 		descriptor().o_Priority(this, value);
 	}
@@ -6267,5 +6274,45 @@ implements Iterable<AvailObject>
 	public void checkedExceptions (final @NotNull AvailObject exceptionSet)
 	{
 		descriptor().o_CheckedExceptions(this, exceptionSet);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isInt ()
+	{
+		return descriptor().o_IsInt(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isLong ()
+	{
+		return descriptor().o_IsLong(this);
+	}
+
+	/**
+	 * @param lowerInc
+	 */
+	public void lowerInclusive (
+		final boolean lowerInc)
+	{
+		descriptor().o_LowerInclusive(
+			this,
+			lowerInc);
+	}
+
+	/**
+	 * @param upperInc
+	 */
+	public void upperInclusive (
+		final boolean upperInc)
+	{
+		descriptor().o_UpperInclusive(
+			this,
+			upperInc);
 	}
 }

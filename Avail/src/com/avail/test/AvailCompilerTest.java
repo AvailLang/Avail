@@ -227,6 +227,53 @@ public class AvailCompilerTest
 			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
 	}
 
+//	@Test
+//	public void chevronTest2 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest3 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest4 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest5 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest6 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest7 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest8 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest9 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest10 () throws Exception
+//	{
+//		chevronTest();
+//	}
+
+
 	/**
 	 * Test: Compile the Test module (of the new Avail library).
 	 *

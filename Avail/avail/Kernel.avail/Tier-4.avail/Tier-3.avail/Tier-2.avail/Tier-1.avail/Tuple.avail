@@ -107,13 +107,11 @@ Method "tuple of_" is [elementType : type |
 /* Accessors for tupleTypes... */
 
 Method "_leading types" is [tt: tupleType |
-	Primitive 139 (failureCode : all);
-	Failed;
+	Primitive 139;
 ] : tuple [0..INF) like <> default type;
 
 Method "_default type" is [tt : tupleType |
-	Primitive 140 (failureCode : all);
-	Failed;
+	Primitive 140;
 ] : type;
 
 
@@ -122,8 +120,7 @@ setOfString ::= Special Object 75;
 /* Precedence rule to prevent problems later. */
 
 Method "_private as set" is [t : tuple of string |
-	Primitive 109 (failureCode : all);
-	Failed;
+	Primitive 109;
 ] : set
 returns [t : tupleType |
 	setOfString;
@@ -134,8 +131,7 @@ returns [t : tupleType |
 
 
 Method "_sizes" is [tt : tupleType |
-	Primitive 138 (failureCode : all);
-	Failed;
+	Primitive 138;
 ] : integerType;
 
 Method "_sizes lower bound" is [tt : tupleType |
@@ -159,8 +155,7 @@ Method "_sizes upper bound" is [tt : tupleType |
 
 Method "||_||" is [t : tuple |
 	/* Compute size of tuple. */
-	Primitive 130 (failureCode : all);
-	Failed;
+	Primitive 130;
 ] : whole number
 returns [tT : tupleType |
 	tT sizes;
@@ -183,8 +178,7 @@ Method "_[_]" is [
 		tt : tupleType,
 		i : natural number |
 	/* Indices out of range are simply the type terminates. */
-	Primitive 141 (failureCode : all);
-	Failed;
+	Primitive 141;
 ] : type;
 
 Method "_[_.._]" is [
@@ -201,8 +195,7 @@ Method "_[_.._]" is [
 
 Method "union of types in_" is [
 		typesTuple : tuple of type |
-	Primitive 38 (failureCode : all);
-	Failed;
+	Primitive 38;
 ] : type;
 
 

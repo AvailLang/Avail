@@ -67,14 +67,12 @@ returns [bt : closureType |
 
 Method "$_" is [closType : closureType |
 	/* Construct a continuation type from the given closure type. */
-	Primitive 51 (failureCode : all);
-	Failed;
+	Primitive 51;
 ] : continuationType;
 
 Method "_closureType" is [contType : continuationType |
 	/* Answer the closureType that this continuation type uses. */
-	Primitive 50 (failureCode : all);
-	Failed;
+	Primitive 50;
 ] : closureType;
 
 

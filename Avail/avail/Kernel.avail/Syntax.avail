@@ -68,23 +68,22 @@ Method "make assignment variable_expression_" is [
 
 Method "_expression type" is [
 		e : parseNode |
-	Primitive 351 (failureCode : all);
-	Crash "Failed to extract type of expression";
+	Primitive 351;
 ] : type;
 
 
 Macro "_:=_" is [v : variableUseNode, e : parseNode |
-	Primitive 353 (failureCode : all);
-	Fail parse "type of expression in assignment to have a type compatible with variable";
+	Primitive 353 (failureCode : string);
+	Fail parse failureCode;
 ] : parseNode;
 
 
 Macro "(_:=_)" is [v : variableUseNode, e : parseNode |
-	Primitive 350 (failureCode : all);
-	Fail parse "type of expression in embedded assignment to have a type compatible with variable";
+	Primitive 350 (failureCode : string);
+	Fail parse failureCode;
 ] : parseNode;
 
 Macro "&_" is [v : variableUseNode |
-	Primitive 354 (failureCode : all);
-	Fail parse "variable for reference not to have been constant, argument, or label";
+	Primitive 354 (failureCode : string);
+	Fail parse failureCode;
 ] : parseNode;

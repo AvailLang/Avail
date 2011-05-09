@@ -57,8 +57,7 @@ Body
  * be generalizedClosureType.
  */
 Method "[...]->_" is [result : type |
-	Primitive 39 (failureCode : all);
-	Failed;
+	Primitive 39;
 ] : generalizedClosureType;
 
 /**
@@ -91,8 +90,7 @@ returns [tt : tupleType |
 /* Block type constructors / extractors... */
 
 Method "||_||" is [ct : closureType |
-	Primitive 35 (failureCode : all);
-	Failed;
+	Primitive 35;
 ] : whole number;
 
 Method "_[_]" is [ct : closureType, index : natural number |
@@ -105,15 +103,13 @@ Method "_[_]" is [ct : closureType, index : natural number |
  * Answer the return result type for this generalized closure type.
  */
 Method "_result" is [ct : generalizedClosureType |
-	Primitive 37 (failureCode : all);
-	Failed;
+	Primitive 37;
 ] : type;
 
 tupleOfType ::= Special Object 73;
 
 Method "block type taking_and returning_" is [args : tupleOfType, ret : type |
-	Primitive 34 (failureCode : all);
-	Failed;
+	Primitive 34;
 ] : closureType;
 
 /**
@@ -129,21 +125,18 @@ Method "[«_‡,»]->_" is [types : tupleOfType, result : type |
 Method "stub block taking_arguments and returning_" is [
 		n : whole number,
 		a : all |
-	Primitive 70 (failureCode : all);
-	Failed;
+	Primitive 70;
 ] : [...]-> all;
 
 
 /* Detailed accessing (for object dumping / loading). */
 
 Method "_compiledCode" is [c : closure |
-	Primitive 72 (failureCode : all);
-	Failed;
+	Primitive 72;
 ] : compiledCode;
 
 Method "_outerVars" is [c : closure |
-	Primitive 73 (failureCode : all);
-	Failed;
+	Primitive 73;
 ] : tuple;
 
 

@@ -220,7 +220,6 @@ public class AvailCodeGenerator
 		final AvailObject outerTuple = TupleDescriptor.from(outerArray);
 		final AvailObject code = CompiledCodeDescriptor.create(
 			nybbleTuple,
-			_numArgs,
 			_varMap.size() - _numArgs,
 			_maxDepth,
 			ClosureTypeDescriptor.create(

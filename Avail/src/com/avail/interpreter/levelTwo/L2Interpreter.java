@@ -1106,7 +1106,7 @@ implements L2OperationDispatcher
 			}
 			cont = cont.caller();
 		}
-		return FAILURE;
+		return primitiveFailure("exception handler not found");
 	}
 
 	/**
@@ -2058,7 +2058,7 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_ ()
+	public void L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_ ()
 	{
 		final int senderIndex = nextWord();
 		final int closureIndex = nextWord();
@@ -2480,6 +2480,32 @@ implements L2OperationDispatcher
 		{
 			error("Unrecognized return type from attemptPrimitive()");
 		}
+	}
+
+	/**
+	 * Run the specified no-fail primitive with the given arguments, writing the
+	 * result into the specified destination.
+	 */
+	@Override
+	public void L2_doNoFailPrimitive_withArguments_result_ ()
+	{
+		final int primNumber = nextWord();
+		final int argsVector = nextWord();
+		final int resultRegister = nextWord();
+		final AvailObject argsVect = chunkVectors.tupleAt(argsVector);
+		argsBuffer.clear();
+		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
+		{
+			argsBuffer.add(pointerAt(argsVect.tupleAt(i1).extractInt()));
+		}
+		// Only primitive 340 needs the compiledCode argument, and it's always
+		// folded.
+		final Result res = attemptPrimitive(
+			primNumber,
+			null,
+			argsBuffer);
+		assert res == SUCCESS;
+		pointerAtPut(resultRegister, primitiveResult);
 	}
 
 

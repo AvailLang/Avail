@@ -37,8 +37,8 @@ import java.util.*;
 import com.avail.annotations.*;
 
 /**
- * {@code CharacterDescriptor} implements an Avail character. Avail code points
- * correspond to 32-bit Unicode code points.
+ * {@code CharacterDescriptor} implements an Avail character. Avail characters
+ * are Unicode characters, and their code points fall in the range 0..0x10FFFF.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -59,6 +59,11 @@ extends Descriptor
 
 	/** The hashes of the first 256 Unicode characters. */
 	private static final @NotNull int[] hashesOfByteCharacters = new int[256];
+
+	/**
+	 * The maximum code point value as an {@code int}.
+	 */
+	public static final int maxCodePointInt = 0x10FFFF;
 
 	static
 	{
@@ -121,7 +126,7 @@ extends Descriptor
 	 * @return An {@link AvailObject}.
 	 */
 	@ThreadSafe
-	public static @NotNull AvailObject newImmutableCharacterWithByteCodePoint (
+	public static @NotNull AvailObject fromByteCodePoint (
 		final short codePoint)
 	{
 		// Provided separately so it can return more efficiently by constant

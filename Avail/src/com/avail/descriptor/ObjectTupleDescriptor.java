@@ -196,13 +196,15 @@ extends TupleDescriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		//  Make a tuple that only contains the given range of elements of the given tuple.
-		//  If canDestroy and isMutable are true, go ahead and clobber all fields of the original
-		//  tuple that don't make it into the subrange.  Replace these clobbered fields with the
-		//  integer 0 (always immutable) after dropping the refcount on replaced objects.
+		// Make a tuple that only contains the given range of elements of the
+		// given tuple.  If canDestroy and isMutable are true, go ahead and
+		// clobber all fields of the original tuple that don't make it into the
+		// subrange.  Replace these clobbered fields with the integer 0 (always
+		// immutable) after dropping the refcount on replaced objects.
 
 		assert 1 <= start && start <= end + 1;
-		assert 0 <= end && end <= object.tupleSize();
+		final int originalSize = object.tupleSize();
+		assert 0 <= end && end <= originalSize;
 		if (isMutable && canDestroy)
 		{
 			if (start - 1 == end)
@@ -216,11 +218,11 @@ extends TupleDescriptor
 			{
 				if (start != 1)
 				{
-					for (int i = 1, _end1 = start - 1; i <= _end1; i++)
+					for (int i = 1; i < start; i++)
 					{
 						object.tupleAt(i).assertObjectUnreachableIfMutable();
 					}
-					for (int i = 1, _end2 = end - start + 1; i <= _end2; i++)
+					for (int i = 1; i <= end - start + 1; i++)
 					{
 						object.tupleAtPut(i, object.tupleAt(start + i - 1));
 					}
@@ -229,7 +231,7 @@ extends TupleDescriptor
 						object.tupleAtPut(i, zeroObject);
 					}
 				}
-				for (int i = end + 1, _end3 = object.tupleSize(); i <= _end3; i++)
+				for (int i = end + 1, _end3 = originalSize; i <= _end3; i++)
 				{
 					object.tupleAt(i).assertObjectUnreachableIfMutable();
 					object.tupleAtPut(i, zeroObject);
@@ -243,7 +245,7 @@ extends TupleDescriptor
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
 			}
-			for (int i = end + 1, _end5 = object.tupleSize(); i <= _end5; i++)
+			for (int i = end + 1, _end5 = originalSize; i <= _end5; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -155,7 +155,7 @@ extends L2Instruction
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitL2Operation(
-			L2_doCreateContinuationWithSenderObject_closureObject_pcInteger_stackpInteger_sizeImmediate_slotsVector_wordcodeOffset_destObject_);
+			L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_);
 		codeGenerator.emitObjectRegister(caller);
 		codeGenerator.emitObjectRegister(closure);
 		codeGenerator.emitImmediate(pc);

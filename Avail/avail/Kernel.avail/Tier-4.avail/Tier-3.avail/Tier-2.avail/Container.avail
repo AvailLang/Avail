@@ -104,14 +104,12 @@ returns [varType : container type |
 
 Method "*_:=nil" is [var : container |
 	/* Clear the variable. */
-	Primitive 12 (failureCode : all);
-	Failed;
+	Primitive 12;
 ] : void;
 
 Method "*_=nil" is [var : container |
 	/* Test for an unassigned variable. */
-	Primitive 17 (failureCode : all);
-	Failed;
+	Primitive 17;
 ] : boolean;
 
 

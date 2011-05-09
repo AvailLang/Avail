@@ -111,12 +111,6 @@ extends Descriptor
 		HASH_OR_ZERO,
 
 		/**
-		 * The priority of this process, where processes with larger values get
-		 * at least as much opportunity to run as processes with lower values.
-		 */
-		PRIORITY,
-
-		/**
 		 * The {@link ExecutionState execution state} of the process, indicating
 		 * whether the process is {@linkplain ExecutionState#running running},
 		 * {@linkplain ExecutionState#suspended suspended} or {@linkplain
@@ -137,14 +131,37 @@ extends Descriptor
 	public enum ObjectSlots
 	{
 		/**
+		 * The current {@linkplain ContinuationDescriptor state of execution} of
+		 * the process.
+		 */
+		CONTINUATION,
+
+		/**
+		 * The priority of this process, where processes with larger values get
+		 * at least as much opportunity to run as processes with lower values.
+		 */
+		PRIORITY,
+
+		/**
 		 * The client specified name of the {@linkplain ProcessDescriptor
 		 * process}.
 		 */
 		NAME,
 
-		CONTINUATION,
-		BREAKPOINT_BLOCK,
-		PROCESS_GLOBALS
+		/**
+		 * A map from {@linkplain CyclicTypeDescriptor cyclic types} to values.
+		 * Each process has its own unique such map, which allows processes to
+		 * record process-specific values.
+		 */
+		PROCESS_GLOBALS,
+
+		/**
+		 * Not yet implement.  This will be a block that should be invoked after
+		 * the process executes each nybblecode.  Using {@linkplain
+		 * VoidDescriptor the void object} here means run without this special
+		 * single-stepping mode enabled.
+		 */
+		BREAKPOINT_BLOCK
 	}
 
 	@Override
@@ -198,9 +215,9 @@ extends Descriptor
 	@Override
 	public void o_Priority (
 		final @NotNull AvailObject object,
-		final int value)
+		final @NotNull AvailObject value)
 	{
-		object.integerSlotPut(IntegerSlots.PRIORITY, value);
+		object.objectSlotPut(ObjectSlots.PRIORITY, value);
 	}
 
 	@Override
@@ -254,10 +271,10 @@ extends Descriptor
 	}
 
 	@Override
-	public int o_Priority (
+	public AvailObject o_Priority (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.PRIORITY);
+		return object.objectSlot(ObjectSlots.PRIORITY);
 	}
 
 	@Override
@@ -271,12 +288,13 @@ extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull Enum<?> e)
 	{
-		return e == ObjectSlots.NAME
-			|| e == ObjectSlots.CONTINUATION
-			|| e == ObjectSlots.BREAKPOINT_BLOCK
+		return
+			e == ObjectSlots.CONTINUATION
+			|| e == ObjectSlots.NAME
+			|| e == ObjectSlots.PRIORITY
 			|| e == ObjectSlots.PROCESS_GLOBALS
+			|| e == ObjectSlots.BREAKPOINT_BLOCK
 			|| e == IntegerSlots.HASH_OR_ZERO
-			|| e == IntegerSlots.PRIORITY
 			|| e == IntegerSlots.EXECUTION_STATE
 			|| e == IntegerSlots.INTERRUPT_REQUEST_FLAG;
 	}

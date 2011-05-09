@@ -610,15 +610,26 @@ public class L2Translator implements L1OperationDispatcher
 			assert success != CONTINUATION_CHANGED
 			: "This foldable primitive changed the continuation!";
 		}
-		final L2LabelInstruction postPrimitiveLabel = newLabel();
-		addInstruction(new L2AttemptPrimitiveInstruction(
-			primitiveNumber,
-			createVector(args),
-			topOfStackRegister(),
-			failureValueRegister,
-			postPrimitiveLabel));
-		addInstruction(new L2JumpInstruction(successLabel));
-		addInstruction(postPrimitiveLabel);
+		if (primitive.hasFlag(CannotFail))
+		{
+			addInstruction(new L2NoFailPrimitiveInstruction(
+				primitiveNumber,
+				createVector(args),
+				topOfStackRegister()));
+			addInstruction(new L2JumpInstruction(successLabel));
+		}
+		else
+		{
+			final L2LabelInstruction postPrimitiveLabel = newLabel();
+			addInstruction(new L2AttemptPrimitiveInstruction(
+				primitiveNumber,
+				createVector(args),
+				topOfStackRegister(),
+				failureValueRegister,
+				postPrimitiveLabel));
+			addInstruction(new L2JumpInstruction(successLabel));
+			addInstruction(postPrimitiveLabel);
+		}
 		return null;
 	}
 

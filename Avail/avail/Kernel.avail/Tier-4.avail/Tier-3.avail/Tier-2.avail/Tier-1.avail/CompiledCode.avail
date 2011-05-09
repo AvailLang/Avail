@@ -53,49 +53,40 @@ Body
 /* Here are some accessors to manipulate compiledCode objects... */
 
 Method "_numArgs" is [cc : compiledCode |
-	Primitive 180 (failureCode : all);
-	Failed;
+	Primitive 180;
 ] : whole number;
 
 Method "_numLocals" is [cc : compiledCode |
-	Primitive 181 (failureCode : all);
-	Failed;
+	Primitive 181;
 ] : whole number;
 
 Method "_numOuters" is [cc : compiledCode |
-	Primitive 182 (failureCode : all);
-	Failed;
+	Primitive 182;
 ] : whole number;
 
 Method "_stackSize" is [cc : compiledCode |
-	Primitive 183 (failureCode : all);
-	Failed;
+	Primitive 183;
 ] : whole number;
 
 Method "_nybbles" is [cc : compiledCode |
-	Primitive 184 (failureCode : all);
-	Failed;
+	Primitive 184;
 ] : tuple of [0..15];
 
 Method "_closureType" is [cc : compiledCode |
-	Primitive 185 (failureCode : all);
-	Failed;
+	Primitive 185;
 ] : closureType;
 
 Method "_primitive" is [cc : compiledCode |
-	Primitive 186 (failureCode : all);
-	Failed;
+	Primitive 186;
 ] : [0..65535];
 
 Method "_literals" is [cc : compiledCode |
-	Primitive 187 (failureCode : all);
-	Failed;
+	Primitive 187;
 ] : tuple;
 
 /* Construction... */
 
-Method "compiledCode for_args_locals_outers_stack entries,with nybbles_closureType_primitive_literals_" is [
-		numArgs : whole number,
+Method "compiledCode for_locals_outers_stack entries,with nybbles_closureType_primitive_literals_" is [
 		numLocals : whole number,
 		numOuters: whole number,
 		stackSize : whole number,
