@@ -32,130 +32,277 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.interpreter.levelTwo.L2OperandTypeDispatcher;
+import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.register.*;
 
 
+/**
+ * An {@code L2OperandType} specifies the nature of a level two operand.  It
+ * doesn't fully specify how the operand is used, but it does say whether the
+ * associated register is being read or written or both, and how to interpret
+ * the raw {@code int} that encodes such an operand.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public enum L2OperandType
 {
+	/**
+	 * The operand represents the actual object at the specified index of the
+	 * chunk's list of literals.
+	 */
 	CONSTANT(false, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doConstant();
 		};
 	},
+
+	/**
+	 * The operand represents the very integer used to encode it.
+	 */
 	IMMEDIATE(false, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doImmediate();
 		};
 	},
+
+	/**
+	 * The operand represents an offset into the chunk's wordcodes, presumably
+	 * for the purpose of branching there at some time and under some condition.
+	 */
 	PC(false, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doPC();
 		};
 	},
+
+	/**
+	 * The operand represents a virtual machine {@link Primitive} to be
+	 * executed.  It has the same number as the corresponding primitive's {@link
+	 * Enum#ordinal() ordinal()}.
+	 */
 	PRIMITIVE(false, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doPrimitive();
 		};
 	},
+
+	/**
+	 * Like a {@link #CONSTANT}, the operand represents the actual object at the
+	 * specified index of the chunk's list of literals, but more specifically
+	 * that object is an {@linkplain ImplementationSetDescriptor implementation
+	 * set} holding a hierarchy of multi-methods.  Presumably a dispatch will
+	 * take place through this implementation set, or at least a dependency is
+	 * established with respect to which multi-methods are present.
+	 */
 	SELECTOR(false, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doSelector();
 		};
 	},
+
+	/**
+	 * The operand represents an {@linkplain L2ObjectRegister object register},
+	 * capable of holding any Avail object.  The specified index is passed to
+	 * {@link L2Interpreter#pointerAt(int)} to extract the current value.
+	 */
 	READ_POINTER(true, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadPointer();
 		};
 	},
+
+	/**
+	 * The operand represents an {@linkplain L2ObjectRegister object register},
+	 * capable of holding any Avail object.  The specified index is passed to
+	 * {@link L2Interpreter#pointerAtPut(int, AvailObject)} to set the current
+	 * value.  This operand must <em>only</em> be used for blindly writing a new
+	 * value to the register -- the previous value of the register may not be
+	 * read on behalf of this operand.  Writing to the register is compulsory.
+	 */
 	WRITE_POINTER(false, true)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWritePointer();
 		};
 	},
+
+	/**
+	 * The operand represents an {@linkplain L2ObjectRegister object register},
+	 * capable of holding any Avail object.  The specified index is passed to
+	 * {@link L2Interpreter#pointerAt(int)} to read the current value, and
+	 * {@link L2Interpreter#pointerAtPut(int, AvailObject)} to set a new value.
+	 * A read before a write is not compulsory, but it is permitted.  Since a
+	 * read may precede the write, there's no point in making the write
+	 * compulsory, since it could just be writing the value that it read, and
+	 * that's essentially the same as not writing at all.
+	 */
 	READWRITE_POINTER(true, true)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadWritePointer();
 		};
 	},
+
+	/**
+	 * The operand represents an {@linkplain L2IntegerRegister integer
+	 * register}, capable of holding any {@code int}.  The specified index is
+	 * passed to {@link L2Interpreter#integerAt(int)} to extract the current
+	 * value.
+	 */
 	READ_INT(true, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadInt();
 		};
 	},
+
+	/**
+	 * The operand represents an {@linkplain L2IntegerRegister integer
+	 * register}, capable of holding any {@code int}.  The specified index is
+	 * passed (as the first argument) to {@link
+	 * L2Interpreter#integerAtPut(int, int)} to set the current value.  This
+	 * operand must <em>only</em> be used for blindly writing a new value to the
+	 * register -- the previous value of the register may not be read on behalf
+	 * of this operand.  Writing to the register is compulsory.
+	 */
 	WRITE_INT(false, true)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWriteInt();
 		};
 	},
+
+	/**
+	 * The operand represents an {@linkplain L2IntegerRegister integer
+	 * register}, capable of holding any {@code int}.  The specified index is
+	 * passed to {@link L2Interpreter#integerAt(int)} to read the current value,
+	 * and (as the first argument) to {@link
+	 * L2Interpreter#integerAtPut(int, int)} to set a new value.  A read before
+	 * a write is not compulsory, but it is permitted.  Since a read may precede
+	 * the write, there's no point in making the write compulsory, since it
+	 * could just be writing the value that it read, and that's essentially the
+	 * same as not writing at all.
+	 */
 	READWRITE_INT(true, true)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadWriteInt();
 		};
 	},
+
+	/**
+	 * The operand represents a {@linkplain L2RegisterVector vector of object
+	 * registers}, each of which should be treated as being read as though it
+	 * were a {@link #READ_POINTER}.  The specified index identifies a tuple of
+	 * integers in the {@linkplain L2ChunkDescriptor chunk}'s {@linkplain
+	 * L2ChunkDescriptor.ObjectSlots#VECTORS vectors}.  Each integer in that
+	 * tuple is the index of an {@link L2ObjectRegister}.
+	 */
 	READ_VECTOR(true, false)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadVector();
 		};
 	},
+
+	/**
+	 * The operand represents a {@linkplain L2RegisterVector vector of object
+	 * registers}, each of which should be treated as being written as though it
+	 * were a {@link #WRITE_POINTER}.  The specified index identifies a tuple of
+	 * integers in the {@linkplain L2ChunkDescriptor chunk}'s {@linkplain
+	 * L2ChunkDescriptor.ObjectSlots#VECTORS vectors}.  Each integer in that
+	 * tuple is the index of an {@link L2ObjectRegister}.
+	 */
 	WRITE_VECTOR(false, true)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWriteVector();
 		};
 	},
+
+	/**
+	 * The operand represents a {@linkplain L2RegisterVector vector of object
+	 * registers}, each of which should be treated as being read and/or written
+	 * as though it were a {@link #READWRITE_POINTER}.  The specified index
+	 * identifies a tuple of integers in the {@linkplain L2ChunkDescriptor
+	 * chunk}'s {@linkplain L2ChunkDescriptor.ObjectSlots#VECTORS}.  Each
+	 * integer in that tuple is the index of an {@link L2ObjectRegister}.
+	 */
 	READWRITE_VECTOR(true, true)
 	{
 		@Override
-		void dispatch(L2OperandTypeDispatcher dispatcher)
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadWriteVector();
 		};
 	};
 
+	/**
+	 * Invoke an entry point of the passed {@linkplain L2OperandTypeDispatcher
+	 * operand type dispatcher} that's specific to which {@link L2OperandType}
+	 * the receiver is.
+	 *
+	 * @param dispatcher
+	 *            The {@link L2OperandTypeDispatcher} to visit with the
+	 *            receiver.
+	 */
 	abstract void dispatch(L2OperandTypeDispatcher dispatcher);
 
+	/**
+	 * Whether the receiver is to be treated as a source of information.
+	 */
 	public final boolean isSource;
+
+	/**
+	 * Whether the receiver is to be treated as a destination for information.
+	 */
 	public final boolean isDestination;
 
-	L2OperandType (boolean isSource, boolean isDestination)
+	/**
+	 * Construct a new {@link L2OperandType}.  Remember, this is an enum, so
+	 * the only constructor calls are in the enum member definitions.
+	 *
+	 * @param isSource
+	 *            Whether I represent a (potential) read from a register.
+	 * @param isDestination
+	 *            Whether I represent a write to a register.  If I am also to be
+	 *            considered a read, then it is treated as a <em>potential</em>
+	 *            write.
+	 */
+	private L2OperandType (final boolean isSource, final boolean isDestination)
 	{
 		this.isSource = isSource;
 		this.isDestination = isDestination;

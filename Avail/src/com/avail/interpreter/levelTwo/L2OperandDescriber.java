@@ -32,16 +32,50 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 
+/**
+ * An {@code L2OperandDescriber} uses the {@link L2OperandTypeDispatcher}
+ * mechanism to describe one of the operands of a level two instruction.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 class L2OperandDescriber implements L2OperandTypeDispatcher
 {
+	/**
+	 * The numeric operand being described.
+	 */
 	private int _operand;
+
+	/**
+	 * The {@link L2ChunkDescriptor level two chunk} containing the operation
+	 * and the operand to be described.
+	 */
 	private AvailObject _chunk;
+
+	/**
+	 * The {@link StringBuilder} on which to write an operand description.
+	 */
 	private StringBuilder _description;
 
 
+	/**
+	 * Output a description of the given operand to the stream, given its
+	 * numeric encoding, its {@link L2OperandType operand type}, and the current
+	 * {@link L2ChunkDescriptor chunk}.
+	 *
+	 * @param operandType
+	 *            The {@link L2OperandType} used to interpret the operand.
+	 * @param operand
+	 *            The numeric operand itself, an {@code int}.
+	 * @param chunk
+	 *            The current {@link L2ChunkDescriptor level two chunk} within
+	 *            which the description is to occur.
+	 * @param stream
+	 *            The {@link StringBuilder} that will have a suitable operand
+	 *            description appended.
+	 */
 	public void describeInOperandChunkOn (
 			final L2OperandType operandType,
 			final int operand,

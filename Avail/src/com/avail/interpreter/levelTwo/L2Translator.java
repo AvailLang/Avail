@@ -696,11 +696,16 @@ public class L2Translator implements L1OperationDispatcher
 				postExplodeLabel);
 			if (folded != null)
 			{
-				return;
+				// It was folded to a constant.
+				if (folded.isInstanceOfSubtypeOf(expectedType))
+				{
+					return;
+				}
+				// It doesn't match the expected type.  Don't accept the folded
+				// value, but instead run the primitive at runtime -- in case
+				// this is dead code.
 			}
 		}
-		// The failure variable is always the first local variable by
-		// construction.
 		addInstruction(new L2LoadConstantInstruction(
 			expectedType,
 			expectedTypeReg));
@@ -742,11 +747,6 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(postCallLabel);
 		// And after the call returns, the callerRegister will contain the
 		// continuation to be exploded.
-//		addInstruction(new L2ExplodeInstruction(
-//			callerRegister(),
-//			callerRegister(),
-//			closureRegister(),
-//			createVector(postSlots)));
 		for (int i = 0; i < postSlots.size(); i++)
 		{
 			AvailObject type = savedSlotTypes.get(i);

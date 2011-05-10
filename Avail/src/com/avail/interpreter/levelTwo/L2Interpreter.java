@@ -37,7 +37,7 @@ import static java.lang.Math.max;
 import java.util.*;
 import java.util.logging.Level;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.*;
@@ -46,8 +46,106 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 
 /**
- * This class is used to execute level two code.  It mostly exposes the
- * machinery
+ * This class is used to execute {@link L2ChunkDescriptor level two code}, which
+ * is a translation of the level one nybblecodes found in {@link
+ * CompiledCodeDescriptor compiled code}.
+ *
+ * <p>
+ * Level one nybblecodes are designed to be compact and very simple, but not
+ * particularly efficiently executable.  Level two is designed for a clean model
+ * for optimization, including:
+ * <ul>
+ * <li>primitive folding.</li>
+ * <li>register coloring/allocation.</li>
+ * <li>inlining.</li>
+ * <li>common sub-expression elimination.</li>
+ * <li>side-effect analysis.</li>
+ * <li>object escape analysis.</li>
+ * <li>a variant of keyhole optimization that involves building the loosest
+ * possible level two instruction dependency graph, then "pulling" eligible
+ * instruction sequences that are profitably rewritten.</li>
+ * <li>further translation to native code &mdash; although the current plan is
+ * to
+ * generate Java bytecodes to leverage the enormous amount of effort that went
+ * into the bytecode verifier, concurrency semantics, and HotSpot's low-level
+ * optimizations.</li>
+ * </ul>
+ * As of 2011.05.09, only the first of these optimizations has been implemented,
+ * although a translation into Smalltalk blocks was implemented experimentally
+ * by Mark van Gulik in the mid-1990s.
+ * </p>
+ *
+ * <p>
+ * To accomplish these goals, the stack-oriented architecture of level one maps
+ * onto a register transfer language for level two.  At runtime the idealized
+ * {@linkplain L2Interpreter interpreter} has an arbitrarily large bank of
+ * pointer registers (that point to {@linkplain AvailObject Avail objects}),
+ * plus a separate bank for {@code int}s (unboxed 32-bit signed integers), and
+ * a similar bank yet for {@code double}s (unboxed double-precision floating
+ * point numbers).  Ideally these will map to machine registers, but more likely
+ * they will spill into physical arrays of the appropriate type.  Register
+ * spilling is a well studied art, and essentially a solved problem.  Better
+ * yet, the Java HotSpot optimizer should be able to do at least as good a job
+ * as we can, so we should be able to just generate Java bytecodes and leave it
+ * at that.
+ * </p>
+ *
+ * <p>
+ * One of the less intuitive aspects of the level one / level two mapping is how
+ * to handle the call stack.  The level one view is of a chain of continuations,
+ * but level two doesn't even have a stack!  We bridge this disconnect by
+ * reserving a register to hold the level one continuation of the
+ * <em>caller</em> of the current method.  This is at least vaguely analogous to
+ * the way that high level languages typically implement their calling
+ * conventions using stack frames and such.
+ * </p>
+ *
+ * <p>
+ * However, our target is not assembly language (nor something that purports to
+ * operate at that level in some platform-neutral way).  Instead, our target
+ * language, level two, is designed for representing and performing
+ * optimization.  With this in mind, the level two instruction set includes an
+ * instruction that constructs a new continuation from a list of registers.  A
+ * corresponding instruction "explodes" a continuation into registers reserved
+ * as part of the calling convention (strictly enforced).  During transition
+ * from caller to callee (and vice-versa), the only registers that hold usable
+ * state are the "architectural" registers &mdash; those that hold the state of
+ * a continuation being constructed or deconstructed.  This sounds brutally
+ * inefficient, but time will tell.  Also, I have devised and implemented
+ * mechanisms to allow deeper inlining than would normally be possible in a
+ * traditional system, the explicit construction and deconstruction of
+ * continuations being one such mechanism.
+ * </p>
+ *
+ * <p>
+ * Note that unlike languages like C and C++, optimizations below level one are
+ * always transparent &mdash; other than observations about performance and
+ * memory use.  Also note that this was a design constraint for Avail as far
+ * back as 1993, after Self, but before its technological successor Java.  The
+ * way in which this is accomplished (or will be more fully accomplished) in
+ * Avail is by allowing the generated level two code itself to define how to
+ * maintain the "accurate fiction" of a level one interpreter.  If a method is
+ * inlined ten layers deep inside an outer method, a non-inlined call from that
+ * inner method requires ten layers of continuations to be constructed prior to
+ * the call (to maintain the "accurate fiction").  There are ways to avoid or at
+ * least postpone this phase transition, but I don't have any solid plans for
+ * introducing such a mechanism any time soon.
+ * </p>
+ *
+ * <p>
+ * Finally, note that the Avail control structures are defined in terms of
+ * multi-method dispatch and continuation resumption.  As of 2011.05.09 they
+ * are also <em>implemented</em> that way, but a goal is to perform object
+ * escape analysis in such a way that it deeply favors chasing continuations.
+ * If successful, a continuation resumption can basically be rewritten as a
+ * jump, leading to a more traditional control flow in the typical case, which
+ * should be much easier to further optimize (say with SSA) than code which
+ * literally passes and resumes continuations.  In those cases that the
+ * continuation actually escapes (say, if the continuations are used for
+ * backtracking) then it can't dissolve into a simple jump &mdash; but it will still
+ * execute correctly, just not as quickly.
+ * </p>
+ *
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -58,11 +156,49 @@ implements L2OperationDispatcher
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
 	 */
-	AvailObject chunk;
+	private AvailObject chunk;
 
-	private void setChunk (final @NotNull AvailObject chunk)
+	/**
+	 * Return the currently executing {@linkplain L2ChunkDescriptor level two
+	 * chunk}.
+	 *
+	 * @return
+	 *            The {@linkplain L2ChunkDescriptor level two chunk} that is
+	 *            currently being executed.
+	 */
+	@InnerAccess AvailObject chunk ()
+	{
+		return chunk;
+	}
+
+	/**
+	 * Start executing a new chunk.  The {@linkplain #offset} at which to
+	 * execute must be set separately.
+	 *
+	 * <p>
+	 * Note that the {@linkplain CompiledCodeDescriptor compiled code} is passed
+	 * in because the {@linkplain L2ChunkDescriptor#indexOfUnoptimizedChunk()
+	 * default chunk} doesn't inherently know how many registers it needs
+	 * &mdash; the answer depends on the level one compiled code being executed.
+	 * </p>
+	 *
+	 * @param chunk
+	 *            The {@linkplain L2ChunkDescriptor level two chunk} to start
+	 *            executing.
+	 * @param code
+	 *            The {@linkplain CompiledCodeDescriptor compiled code} on whose
+	 *            behalf to start executing the chunk.
+	 */
+	private void setChunk (
+		final @NotNull AvailObject chunk,
+		final @NotNull AvailObject code)
 	{
 		this.chunk = chunk;
+		chunkWords = chunk.wordcodes();
+		chunkVectors = chunk.vectors();
+		makeRoomForChunkRegisters(chunk, code);
+		chunk.moveToHead();
+
 		if (logger.isLoggable(Level.FINER))
 		{
 			logger.finer(String.format(
@@ -523,7 +659,7 @@ implements L2OperationDispatcher
 			AvailObject newContinuation = ContinuationDescriptor.create(
 				closure,
 				pointerAt(callerRegister()),
-				chunk.index(),
+				chunk().index(),
 				args,
 				locals);
 			// Freeze all fields of the new object, including its caller,
@@ -906,12 +1042,6 @@ implements L2OperationDispatcher
 	{
 		assert index > 0;
 		assert index < 3 || anAvailObject != null;
-		if (index <= 2)
-		{
-			//TODO: Remove
-			int foo = index;
-			foo++;
-		}
 		pointers[index] = anAvailObject;
 	}
 
@@ -967,7 +1097,7 @@ implements L2OperationDispatcher
 		continuation.stackp(
 			integerAt(stackpRegister()) + 1 - argumentRegister(1));
 		continuation.hiLevelTwoChunkLowOffset(
-			(chunk.index() << 16) + offset());
+			(chunk().index() << 16) + offset());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			continuation.argOrLocalOrStackAtPut(
@@ -982,7 +1112,7 @@ implements L2OperationDispatcher
 	{
 		if (continuation.equalsVoid())
 		{
-			setChunk(VoidDescriptor.voidObject());
+			chunk = VoidDescriptor.voidObject();
 			chunkWords = VoidDescriptor.voidObject();
 			chunkVectors = VoidDescriptor.voidObject();
 			offset(0);
@@ -990,25 +1120,24 @@ implements L2OperationDispatcher
 			pointerAtPut(closureRegister(), VoidDescriptor.voidObject());
 			return;
 		}
-		setChunk(L2ChunkDescriptor.chunkFromId(
-			continuation.levelTwoChunkIndex()));
-		if (!chunk.isValid())
+		AvailObject chunkToInvoke = L2ChunkDescriptor.chunkFromId(
+			continuation.levelTwoChunkIndex());
+		if (!chunkToInvoke.isValid())
 		{
 			// The chunk has been invalidated, but the continuation still refers
 			// to it.  The garbage collector will reclaim the chunk only when
-			// all such continuations have let the chunk go -- therefore, let it
+			// all such continuations have let the chunk go.  Therefore, let it
 			// go.  Fall back to the default level two chunk that steps over
 			// nybblecodes.
 			continuation.levelTwoChunkIndexOffset(
 				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
 				L2ChunkDescriptor.offsetToPauseUnoptimizedChunk());
-			setChunk(L2ChunkDescriptor.chunkFromId(
-				continuation.levelTwoChunkIndex()));
+			chunkToInvoke = L2ChunkDescriptor.chunkFromId(
+				L2ChunkDescriptor.indexOfUnoptimizedChunk());
 		}
-		chunkWords = chunk.wordcodes();
-		chunkVectors = chunk.vectors();
-		makeRoomForChunkRegisters(chunk, continuation.closure().code());
+		setChunk(chunkToInvoke, continuation.closure().code());
 		offset(continuation.levelTwoOffset());
+
 		integerAtPut(pcRegister(), continuation.pc());
 		integerAtPut(stackpRegister(), argumentRegister(continuation.stackp()));
 		pointerAtPut(callerRegister(), continuation.caller());
@@ -1165,24 +1294,21 @@ implements L2OperationDispatcher
 		final List<AvailObject> args)
 	{
 		final AvailObject code = aClosure.code();
-		setChunk(L2ChunkDescriptor.chunkFromId(code.startingChunkIndex()));
-		if (!chunk.isValid())
+		AvailObject chunkToInvoke = L2ChunkDescriptor.chunkFromId(
+			code.startingChunkIndex());
+		if (!chunkToInvoke.isValid())
 		{
 			// The chunk is invalid, so use the default chunk and patch up
 			// aClosure's code.
-			setChunk(L2ChunkDescriptor.chunkFromId(
-				L2ChunkDescriptor.indexOfUnoptimizedChunk()));
-			code.startingChunkIndex(chunk.index());
+			chunkToInvoke = L2ChunkDescriptor.chunkFromId(
+				L2ChunkDescriptor.indexOfUnoptimizedChunk());
+			code.startingChunkIndex(chunkToInvoke.index());
 			code.invocationCount(
 				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
-		chunk.moveToHead();
+		setChunk(chunkToInvoke, code);
 		offset(1);
 
-		makeRoomForChunkRegisters(chunk, code);
-
-		chunkWords = chunk.wordcodes();
-		chunkVectors = chunk.vectors();
 		pointerAtPut(closureRegister(), aClosure);
 		// Transfer arguments...
 		final int numArgs = code.numArgs();
@@ -1288,9 +1414,9 @@ implements L2OperationDispatcher
 	 */
 	private int nextWord ()
 	{
-		final int offset = offset();
-		final int word = chunkWords.tupleIntAt(offset);
-		offset(offset + 1);
+		final int theOffset = offset();
+		final int word = chunkWords.tupleIntAt(theOffset);
+		offset(theOffset + 1);
 		return word;
 	}
 
@@ -1412,7 +1538,7 @@ implements L2OperationDispatcher
 	{
 		final int fromIndex = nextWord();
 		final int destIndex = nextWord();
-		pointerAtPut(destIndex, chunk.literalAt(fromIndex));
+		pointerAtPut(destIndex, chunk().literalAt(fromIndex));
 	}
 
 	@Override
@@ -1431,7 +1557,7 @@ implements L2OperationDispatcher
 		final int destIndex = nextWord();
 		pointerAtPut(
 			destIndex,
-			ContainerDescriptor.forOuterType(chunk.literalAt(typeIndex)));
+			ContainerDescriptor.forOuterType(chunk().literalAt(typeIndex)));
 	}
 
 	@Override
@@ -1988,7 +2114,7 @@ implements L2OperationDispatcher
 		final int valueIndex = nextWord();
 		final int typeConstIndex = nextWord();
 		final AvailObject value = pointerAt(valueIndex);
-		final AvailObject type = chunk.literalAt(typeConstIndex);
+		final AvailObject type = chunk().literalAt(typeConstIndex);
 		if (value.isInstanceOfSubtypeOf(type))
 		{
 			offset(doIndex);
@@ -2081,7 +2207,7 @@ implements L2OperationDispatcher
 			- code.maxStackDepth()
 			+ stackpIndex);
 		continuation.hiLevelTwoChunkLowOffset(
-			(chunk.index() << 16) + wordcodeOffset);
+			(chunk().index() << 16) + wordcodeOffset);
 		final AvailObject slots = chunkVectors.tupleAt(slotsIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{
@@ -2155,7 +2281,7 @@ implements L2OperationDispatcher
 		{
 			argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
 		}
-		final AvailObject selector = chunk.literalAt(selectorIndex);
+		final AvailObject selector = chunk().literalAt(selectorIndex);
 		final AvailObject signatureToCall =
 			selector.lookupByValuesFromList(argsBuffer);
 		if (signatureToCall.equalsVoid())
@@ -2185,7 +2311,7 @@ implements L2OperationDispatcher
 		{
 			argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
 		}
-		final AvailObject selector = chunk.literalAt(selectorIndex);
+		final AvailObject selector = chunk().literalAt(selectorIndex);
 		final AvailObject signatureToCall =
 			selector.lookupByValuesFromList(argsBuffer);
 		if (signatureToCall.equalsVoid())
@@ -2237,7 +2363,7 @@ implements L2OperationDispatcher
 				argsBuffer.add(pointerAt(vect.tupleIntAt(i)));
 			}
 		}
-		final AvailObject selector = chunk.literalAt(selectorIndex);
+		final AvailObject selector = chunk().literalAt(selectorIndex);
 		final AvailObject signatureToCall = selector
 		.lookupByTypesFromList(argsBuffer);
 		if (signatureToCall.equalsVoid())
@@ -2274,7 +2400,7 @@ implements L2OperationDispatcher
 			{
 				// Primitive succeeded.
 				final AvailObject cont = pointerAt(callerRegister());
-				assert chunk.index() == cont.levelTwoChunkIndex();
+				assert chunk().index() == cont.levelTwoChunkIndex();
 				cont.readBarrierFault();
 				assert cont.descriptor().isMutable();
 				cont.stackAtPut(cont.stackp(), primitiveResult);
@@ -2364,7 +2490,7 @@ implements L2OperationDispatcher
 		final AvailObject outers = chunkVectors.tupleAt(outersIndex);
 		final AvailObject clos = ClosureDescriptor.mutable().create(
 			outers.tupleSize());
-		clos.code(chunk.literalAt(codeIndex));
+		clos.code(chunk().literalAt(codeIndex));
 		for (int i = 1, _end1 = outers.tupleSize(); i <= _end1; i++)
 		{
 			clos.outerVarAtPut(i, pointerAt(outers.tupleAt(i).extractInt()));
