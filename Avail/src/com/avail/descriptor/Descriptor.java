@@ -60,8 +60,7 @@ import com.avail.visitor.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class Descriptor
-extends AbstractDescriptor
+public class Descriptor extends AbstractDescriptor
 {
 
 	/**
@@ -314,29 +313,6 @@ extends AbstractDescriptor
 
 		subclassResponsibility("Object:addToInteger:canDestroy:", object);
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param args
-	 * @param locals
-	 * @param stack
-	 * @param outers
-	 * @param primitive
-	 */
-	@Override
-	public void o_ArgsLocalsStackOutersPrimitive (
-		final AvailObject object,
-		final int args,
-		final int locals,
-		final int stack,
-		final int outers,
-		final int primitive)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:args:locals:stack:outers:primitive:", object);
-		return;
 	}
 
 	/**
@@ -692,21 +668,6 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("Object:closure:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ClosureType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:closureType:", object);
 		return;
 	}
 
@@ -1526,66 +1487,6 @@ extends AbstractDescriptor
 
 		subclassResponsibility("Object:hasKey:", object);
 		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_HiLevelTwoChunkLowOffset (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:hiLevelTwoChunkLowOffset:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_HiNumLocalsLowNumArgs (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:hiNumLocalsLowNumArgs:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:hiPrimitiveLowNumArgsAndLocalsAndStack:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_HiStartingChunkIndexLowNumOuters (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:hiStartingChunkIndexLowNumOuters:", object);
-		return;
 	}
 
 	/**
@@ -2693,21 +2594,6 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("Object:numObjects:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Nybbles (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:nybbles:", object);
 		return;
 	}
 
@@ -4757,21 +4643,6 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_WhichOne (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:whichOne:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_Wordcodes (
 		final AvailObject object,
 		final AvailObject value)
@@ -5522,62 +5393,6 @@ extends AbstractDescriptor
 
 		subclassResponsibility("o_HasRestrictions:", object);
 		return false;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_HiLevelTwoChunkLowOffset (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_HiLevelTwoChunkLowOffset:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_HiNumLocalsLowNumArgs (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_HiNumLocalsLowNumArgs:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_HiPrimitiveLowNumArgsAndLocalsAndStack:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_HiStartingChunkIndexLowNumOuters (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_HiStartingChunkIndexLowNumOuters:", object);
-		return 0;
 	}
 
 	/**
@@ -6960,7 +6775,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_WhichOne (
+	public int o_InfinitySign (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.

@@ -34,9 +34,20 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.List;
-import com.avail.annotations.NotNull;
+import java.util.*;
+import com.avail.annotations.*;
 
+/**
+ * I represent the {@link ExtendedNumberDescriptor extended integers} positive
+ * infinity and negative infinity.  By supporting these as first-class values in
+ * Avail we eliminate arbitrary limits, awkward duplication of effort,
+ * and a host of other dangling singularities.  For example, it makes sense to
+ * talk about iterating from 1 to infinity.  Infinities also play a key role in
+ * {@linkplain IntegerRangeTypeDescriptor integer range types}, specifically by
+ * their appearance as inclusive or exclusive bounds.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class InfinityDescriptor
 extends ExtendedNumberDescriptor
 {
@@ -45,22 +56,34 @@ extends ExtendedNumberDescriptor
 	 */
 	public enum IntegerSlots
 	{
-		WHICH_ONE
+		/**
+		 * A slot to indicate the sign of the infinity.
+		 */
+		@EnumField(describedBy=Sign.class)
+		SIGN
 	}
 
-	@Override
-	public void o_WhichOne (
-		final @NotNull AvailObject object,
-		final int value)
+	/**
+	 * An enumeration used to distinguish the two signed infinities.
+	 */
+	public enum Sign
 	{
-		object.integerSlotPut(IntegerSlots.WHICH_ONE, value);
+		/**
+		 * The value used to indicate the infinity is positive.
+		 */
+		POSITIVE,
+
+		/**
+		 * The value used to indicate the infinity is negative.
+		 */
+		NEGATIVE
 	}
 
 	@Override
-	public int o_WhichOne (
+	public int o_InfinitySign (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.WHICH_ONE);
+		return object.integerSlot(IntegerSlots.SIGN);
 	}
 
 	@Override
@@ -85,14 +108,19 @@ extends ExtendedNumberDescriptor
 		return another.equalsInfinity(object);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare infinities by their {@link IntegerSlots#SIGN} fields.
+	 * </p>
+	 */
 	@Override
 	public boolean o_EqualsInfinity (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anInfinity)
 	{
-		//  Compare infinities by their whichOne fields.
-
-		return object.whichOne() == anInfinity.whichOne();
+		return object.infinitySign() == anInfinity.infinitySign();
 	}
 
 	@Override
@@ -108,8 +136,7 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  1=+inf, 2=-inf
-		return object.whichOne() < another.whichOne();
+		return object.isPositive() && !another.isPositive();
 	}
 
 	@Override
@@ -117,10 +144,6 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Answer whether object is an instance of a subtype of aType.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
-
 		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
@@ -153,10 +176,9 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Answer whether object's type is equal to aType (known to be a type).
-		//  Since my implementation of o_CanComputeHashOfType: answers
-		//  true, I'm not allowed to allocate objects to figure this out.
-
+		// Answer whether object's type is equal to aType (known to be a type).
+		// Since my implementation of o_CanComputeHashOfType: answers
+		// true, I'm not allowed to allocate objects to figure this out.
 		if (!aType.isIntegerRangeType())
 		{
 			return false;
@@ -185,8 +207,7 @@ extends ExtendedNumberDescriptor
 	public boolean o_CanComputeHashOfType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether object supports the #hashOfType protocol.
-
+		// Answer whether object supports the #hashOfType protocol.
 		return true;
 	}
 
@@ -194,8 +215,7 @@ extends ExtendedNumberDescriptor
 	public AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
+		// Answer the object's type.
 		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
@@ -203,17 +223,15 @@ extends ExtendedNumberDescriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's hash value.
-
-		return object.whichOne() == 1 ? 0x14B326DA : 0xBF9302D;
+		// Answer the object's hash value.
+		return object.isPositive() ? 0x14B326DA : 0xBF9302D;
 	}
 
 	@Override
 	public int o_HashOfType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer my type's hash value (without creating any objects).
-
+		// Answer my type's hash value (without creating any objects).
 		final int objectHash = object.hash();
 		return IntegerRangeTypeDescriptor.computeHash(
 			objectHash,
@@ -233,8 +251,6 @@ extends ExtendedNumberDescriptor
 	public AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
 	}
 
@@ -244,8 +260,6 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  Double-dispatch it.
-
 		return aNumber.divideIntoInfinityCanDestroy(object, canDestroy);
 	}
 
@@ -255,8 +269,6 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  Double-dispatch it.
-
 		return aNumber.subtractFromInfinityCanDestroy(object, canDestroy);
 	}
 
@@ -266,8 +278,6 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  Double-dispatch it.
-
 		return aNumber.addToInfinityCanDestroy(object, canDestroy);
 	}
 
@@ -277,8 +287,6 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  Double-dispatch it.
-
 		return aNumber.multiplyByInfinityCanDestroy(object, canDestroy);
 	}
 
@@ -286,9 +294,7 @@ extends ExtendedNumberDescriptor
 	public boolean o_IsPositive (
 		final @NotNull AvailObject object)
 	{
-		//  Double-dispatch it.
-
-		return object.whichOne() == 1;
+		return object.infinitySign() == Sign.POSITIVE.ordinal();
 	}
 
 	@Override
@@ -339,7 +345,9 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject anInfinity,
 		final boolean canDestroy)
 	{
-		return anInfinity.isPositive() == object.isPositive() ? InfinityDescriptor.positiveInfinity() : InfinityDescriptor.negativeInfinity();
+		return anInfinity.isPositive() == object.isPositive()
+			? InfinityDescriptor.positiveInfinity()
+			: InfinityDescriptor.negativeInfinity();
 	}
 
 	@Override
@@ -353,7 +361,10 @@ extends ExtendedNumberDescriptor
 			error("Can't multiply infinity by zero", object);
 			return VoidDescriptor.voidObject();
 		}
-		return anInteger.greaterThan(IntegerDescriptor.zero()) ^ object.isPositive() ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity();
+		return anInteger.greaterThan(IntegerDescriptor.zero())
+				^ object.isPositive()
+			? InfinityDescriptor.negativeInfinity()
+			: InfinityDescriptor.positiveInfinity();
 	}
 
 	@Override
@@ -376,42 +387,63 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		return object.isPositive() ? InfinityDescriptor.negativeInfinity() : InfinityDescriptor.positiveInfinity();
+		return object.isPositive()
+			? InfinityDescriptor.negativeInfinity()
+			: InfinityDescriptor.positiveInfinity();
 	}
 
-	// Startup/shutdown
+	/**
+	 * The {@link EnumMap} from {@link Sign} to {@linkplain
+	 * InfinityDescriptor actual Avail object} representing that infinity.
+	 */
+	static final EnumMap<Sign, AvailObject> infinities =
+		new EnumMap<Sign, AvailObject>(Sign.class);
 
-	static AvailObject Negative;
-
-	static AvailObject Positive;
-
+	/**
+	 * Create the positive and negative infinities.
+	 */
 	static void createWellKnownObjects ()
 	{
-		Positive = mutable().create();
-		Positive.whichOne(1);
-		//  See #positiveInfinity
-		Positive.makeImmutable();
-		Negative = mutable().create();
-		Negative.whichOne(2);
-		//  See #negativeInfinity
-		Negative.makeImmutable();
+		final AvailObject positive = mutable().create();
+		positive.integerSlotPut(
+			IntegerSlots.SIGN,
+			Sign.POSITIVE.ordinal());
+		infinities.put(Sign.POSITIVE, positive);
+
+		final AvailObject negative = mutable().create();
+		negative.integerSlotPut(
+			IntegerSlots.SIGN,
+			Sign.NEGATIVE.ordinal());
+		infinities.put(Sign.NEGATIVE, negative);
 	}
 
+	/**
+	 * Release the positive and negative infinities.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		Positive = null;
-		Negative = null;
+		infinities.put(Sign.POSITIVE, null);
+		infinities.put(Sign.NEGATIVE, null);
 	}
 
-	/* Value conversion... */
+	/**
+	 * Answer the positive infinity object.
+	 *
+	 * @return Positive infinity.
+	 */
 	public static AvailObject positiveInfinity ()
 	{
-		return Positive;
+		return infinities.get(Sign.POSITIVE);
 	}
 
+	/**
+	 * Answer the negative infinity object.
+	 *
+	 * @return Negative infinity.
+	 */
 	public static AvailObject negativeInfinity ()
 	{
-		return Negative;
+		return infinities.get(Sign.NEGATIVE);
 	}
 
 	/**

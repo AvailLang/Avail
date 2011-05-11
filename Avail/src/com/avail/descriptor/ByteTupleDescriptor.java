@@ -46,11 +46,24 @@ extends TupleDescriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
 		HASH_OR_ZERO,
+
+		/**
+		 * The raw 32-bit machine words that constitute the representation of
+		 * the {@linkplain ByteTupleDescriptor byte tuple}.
+		 */
 		RAW_QUAD_AT_
 	}
 
-	private final int _unusedBytesOfLastWord;
+	/**
+	 * The number of bytes of the last 32-bit machine word that do not
+	 * participate in the representation of the {@linkplain ByteTupleDescriptor
+	 * byte tuple}.
+	 */
+	private final int unusedBytesOfLastWord;
 
 	@Override
 	public int o_RawQuadAt (
@@ -414,7 +427,7 @@ extends TupleDescriptor
 	{
 		//  Answer the number of elements in the object (as a Smalltalk Integer).
 
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - _unusedBytesOfLastWord;
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
 	}
 
 	public @NotNull AvailObject mutableObjectOfSize (
@@ -427,7 +440,7 @@ extends TupleDescriptor
 			error("This descriptor should be mutable");
 			return VoidDescriptor.voidObject();
 		}
-		assert (size + _unusedBytesOfLastWord & 3) == 0;
+		assert (size + unusedBytesOfLastWord & 3) == 0;
 		final AvailObject result = this.create((size + 3) / 4);
 		return result;
 	}
@@ -454,7 +467,7 @@ extends TupleDescriptor
 		final int unusedBytes)
 	{
 		super(isMutable);
-		_unusedBytesOfLastWord = unusedBytes;
+		unusedBytesOfLastWord = unusedBytes;
 	}
 
 	private final static ByteTupleDescriptor[] descriptors =

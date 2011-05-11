@@ -89,6 +89,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	{
 		/**
 		 * The {@link Primitive primitive} number to invoke for this block.
+		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
+		 * its {@link Primitive#primitiveNumber}.
 		 */
 		PRIMITIVE
 	}

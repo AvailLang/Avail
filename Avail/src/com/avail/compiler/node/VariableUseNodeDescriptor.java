@@ -33,11 +33,12 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.TokenDescriptor;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -60,7 +61,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		 * The {@link TokenDescriptor token} that is a mention of the entity
 		 * in question.
 		 */
-		TOKEN,
+		USE_TOKEN,
 
 		/**
 		 * The {@link DeclarationNodeDescriptor declaration} of the entity that
@@ -80,7 +81,21 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		 * A flag indicating (with 0/1) whether this is the last use of the
 		 * mentioned entity.
 		 */
+		@BitFields(describedBy=Flags.class)
 		FLAGS
+	}
+
+	/**
+	 * Bit fields for the {@link IntegerSlots#FLAGS} slot.
+	 */
+	public static class Flags
+	{
+		/**
+		 * Whether this is the last use of the mentioned entity.
+		 */
+		@BitField(shift=0, bits=1)
+		static final BitField LAST_USE =
+			bitField(Flags.class, "LAST_USE");
 	}
 
 	/**
@@ -91,7 +106,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject token)
 	{
-		object.objectSlotPut(ObjectSlots.TOKEN, token);
+		object.objectSlotPut(ObjectSlots.USE_TOKEN, token);
 	}
 
 	/**
@@ -101,7 +116,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	public AvailObject o_Token (
 		final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TOKEN);
+		return object.objectSlot(ObjectSlots.USE_TOKEN);
 	}
 
 	/**
@@ -126,29 +141,24 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	/**
-	 * Setter for field declaration.
-	 */
 	@Override
 	public void o_IsLastUse (
 		final AvailObject object,
 		final boolean isLastUse)
 	{
-		int flags = object.integerSlot(IntegerSlots.FLAGS);
-		flags = flags & ~1 + (isLastUse ? 1 : 0);
-		object.integerSlotPut(
+		object.bitSlotPut(
 			IntegerSlots.FLAGS,
-			flags & ~1 + (isLastUse ? 1 : 0));
+			Flags.LAST_USE,
+			isLastUse ? 1 : 0);
 	}
 
-	/**
-	 * Getter for field declaration.
-	 */
 	@Override
 	public boolean o_IsLastUse (
 		final AvailObject object)
 	{
-		return (object.integerSlot(IntegerSlots.FLAGS) & 1) != 0;
+		return object.bitSlot(
+			IntegerSlots.FLAGS,
+			Flags.LAST_USE) != 0;
 	}
 
 
@@ -161,13 +171,13 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Type (final AvailObject object)
 	{
-		return Types.VARIABLE_USE_NODE.o();
+		return VARIABLE_USE_NODE.o();
 	}
 
 	@Override
 	public AvailObject o_ExactType (final AvailObject object)
 	{
-		return Types.VARIABLE_USE_NODE.o();
+		return VARIABLE_USE_NODE.o();
 	}
 
 	@Override
@@ -209,8 +219,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append(
-			object.token().string().asNativeString());
+		builder.append(object.token().string().asNativeString());
 	}
 
 
@@ -226,9 +235,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject theToken,
 		final AvailObject declaration)
 	{
-		assert theToken.isInstanceOfSubtypeOf(Types.TOKEN.o());
-		assert declaration.isInstanceOfSubtypeOf(
-			Types.DECLARATION_NODE.o());
+		assert theToken.isInstanceOfSubtypeOf(TOKEN.o());
+		assert declaration.isInstanceOfSubtypeOf(DECLARATION_NODE.o());
 
 		final AvailObject newUse = mutable().create();
 		newUse.token(theToken);

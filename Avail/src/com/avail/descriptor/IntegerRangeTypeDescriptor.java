@@ -38,8 +38,9 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * My instances represent the types of one or more extended integers.  There is
- * a lower and upper bound, and flags to indicate whether
+ * My instances represent the types of one or more extended integers.  There are
+ * lower and upper bounds, and flags to indicate whether those bounds are to be
+ * treated as inclusive or exclusive of the bounds themselves.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -91,7 +92,7 @@ extends TypeDescriptor
 		 * IntegerSlots#INCLUSIVE_FLAGS}.
 		 */
 		@BitField(shift=0, bits=1)
-		final static BitField LowerInclusive =
+		static final BitField LowerInclusive =
 			bitField(Flags.class, "LowerInclusive");
 
 		/**
@@ -99,7 +100,7 @@ extends TypeDescriptor
 		 * IntegerSlots#INCLUSIVE_FLAGS}.
 		 */
 		@BitField(shift=1, bits=1)
-		final static BitField UpperInclusive =
+		static final BitField UpperInclusive =
 			bitField(Flags.class, "UpperInclusive");
 	}
 
@@ -229,7 +230,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final boolean lowerInclusive)
 	{
-		// Assign to the lower inclusive flag.
 		object.bitSlotPut(
 			IntegerSlots.INCLUSIVE_FLAGS,
 			Flags.LowerInclusive,
@@ -241,7 +241,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final boolean upperInclusive)
 	{
-		// Assign to the upper inclusive flag.
 		object.bitSlotPut(
 			IntegerSlots.INCLUSIVE_FLAGS,
 			Flags.UpperInclusive,

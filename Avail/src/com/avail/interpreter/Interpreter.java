@@ -915,7 +915,7 @@ public abstract class Interpreter
 			process.hash())));
 		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
 		process.continuation(VoidDescriptor.voidObject());
-		process.executionState(ExecutionState.running);
+		process.executionState(ExecutionState.RUNNING);
 		process.interruptRequestFlag(0);
 		process.breakpointBlock(VoidDescriptor.voidObject());
 		process.processGlobals(MapDescriptor.empty());

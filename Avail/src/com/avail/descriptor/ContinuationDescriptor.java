@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -92,6 +92,7 @@ extends Descriptor
 		 * be resumed directly to effect continued execution.  The low short is
 		 * the Level Two program counter at which to resume.
 		 */
+		@BitFields(describedBy=HiLevelTwoChunkLowOffset.class)
 		HI_LEVEL_TWO_CHUNK_LOW_OFFSET
 	}
 
@@ -125,6 +126,32 @@ extends Descriptor
 		FRAME_AT_
 	}
 
+	/**
+	 * The bit fields that make up the {@link
+	 * IntegerSlots#HI_LEVEL_TWO_CHUNK_LOW_OFFSET} integer field.
+	 */
+	public static class HiLevelTwoChunkLowOffset
+	{
+		/**
+		 * The {@linkplain L2ChunkDescriptor.IntegerSlots#INDEX index} of the
+		 * {@linkplain L2ChunkDescriptor level two chunk} to execute when this
+		 * continuation is resumed.
+		 */
+		@BitField(shift=16, bits=16)
+		static final BitField LEVEL_TWO_CHUNK =
+			bitField(HiLevelTwoChunkLowOffset.class, "LEVEL_TWO_CHUNK");
+
+		/**
+		 * The position in the level two chunk's {@linkplain
+		 * L2ChunkDescriptor.ObjectSlots#WORDCODES wordcodes} at which to resume
+		 * execution when the continuation is resumed.
+		 */
+		@BitField(shift=0, bits=16)
+		static final BitField OFFSET =
+			bitField(HiLevelTwoChunkLowOffset.class, "OFFSET");
+	}
+
+
 	@Override
 	public void o_Caller (
 		final @NotNull AvailObject object,
@@ -139,14 +166,6 @@ extends Descriptor
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CLOSURE, value);
-	}
-
-	@Override
-	public void o_HiLevelTwoChunkLowOffset (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET, value);
 	}
 
 	@Override
@@ -198,13 +217,6 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CLOSURE);
-	}
-
-	@Override
-	public int o_HiLevelTwoChunkLowOffset (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET);
 	}
 
 	@Override
@@ -325,7 +337,14 @@ extends Descriptor
 		final int index,
 		final int offset)
 	{
-		object.hiLevelTwoChunkLowOffset((index * 0x10000 + offset));
+		object.bitSlotPut(
+			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
+			HiLevelTwoChunkLowOffset.LEVEL_TWO_CHUNK,
+			index);
+		object.bitSlotPut(
+			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
+			HiLevelTwoChunkLowOffset.OFFSET,
+			offset);
 	}
 
 	/**
@@ -376,18 +395,18 @@ extends Descriptor
 	public int o_LevelTwoChunkIndex (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the chunk index (without the offset).
-
-		return object.hiLevelTwoChunkLowOffset() >>> 16;
+		return object.bitSlot(
+			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
+			HiLevelTwoChunkLowOffset.LEVEL_TWO_CHUNK);
 	}
 
 	@Override
 	public int o_LevelTwoOffset (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the wordcode offset into the chunk.
-
-		return object.hiLevelTwoChunkLowOffset() & 0xFFFF;
+		return object.bitSlot(
+			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
+			HiLevelTwoChunkLowOffset.OFFSET);
 	}
 
 	/**
@@ -449,7 +468,9 @@ extends Descriptor
 		result.closure(object.closure());
 		result.pc(object.pc());
 		result.stackp(object.stackp());
-		result.hiLevelTwoChunkLowOffset(object.hiLevelTwoChunkLowOffset());
+		result.levelTwoChunkIndexOffset(
+			object.levelTwoChunkIndex(),
+			object.levelTwoOffset());
 		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			result.argOrLocalOrStackAtPut(i, object.argOrLocalOrStackAt(i));
@@ -531,7 +552,9 @@ extends Descriptor
 		cont.pc(1);
 		cont.stackp(
 			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);
-		cont.hiLevelTwoChunkLowOffset((startingChunkIndex << 16) + 1);
+		cont.levelTwoChunkIndexOffset(
+			startingChunkIndex,
+			1);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			cont.argOrLocalOrStackAtPut(i, VoidDescriptor.voidObject());

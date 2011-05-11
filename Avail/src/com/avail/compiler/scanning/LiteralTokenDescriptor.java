@@ -87,17 +87,15 @@ extends TokenDescriptor
 		LINE_NUMBER,
 
 		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
+		 * The {@link Enum#ordinal() ordinal} of the {@link
+		 * TokenDescriptor.TokenType} that indicates what basic kind of token
+		 * this is.
 		 */
 		@EnumField(describedBy=TokenType.class)
 		TOKEN_TYPE_CODE
 	}
 
 
-	/**
-	 * Setter for field literal.
-	 */
 	@Override
 	public void o_Literal (
 		final AvailObject object,
@@ -106,9 +104,6 @@ extends TokenDescriptor
 		object.objectSlotPut(ObjectSlots.LITERAL, value);
 	}
 
-	/**
-	 * Getter for field literal.
-	 */
 	@Override
 	public AvailObject o_Literal (
 		final AvailObject object)

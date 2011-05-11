@@ -324,23 +324,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_ArgsLocalsStackOutersPrimitive (
-		final @NotNull AvailObject object,
-		final int args,
-		final int locals,
-		final int stack,
-		final int outers,
-		final int primitive)
-	{
-		o_Traversed(object).argsLocalsStackOutersPrimitive(
-			args,
-			locals,
-			stack,
-			outers,
-			primitive);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ArgTypeAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).argTypeAt(index);
@@ -553,12 +536,6 @@ extends AbstractDescriptor
 	public void o_Closure (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).closure(value);
-	}
-
-	@Override
-	public void o_ClosureType (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).closureType(value);
 	}
 
 	@Override
@@ -1239,38 +1216,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_HiLevelTwoChunkLowOffset (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		o_Traversed(object).hiLevelTwoChunkLowOffset(value);
-	}
-
-	@Override
-	public void o_HiNumLocalsLowNumArgs (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		o_Traversed(object).hiNumLocalsLowNumArgs(value);
-	}
-
-	@Override
-	public void o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		o_Traversed(object).hiPrimitiveLowNumArgsAndLocalsAndStack(value);
-	}
-
-	@Override
-	public void o_HiStartingChunkIndexLowNumOuters (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		o_Traversed(object).hiStartingChunkIndexLowNumOuters(value);
-	}
-
-	@Override
 	public List<AvailObject> o_ImplementationsAtOrBelow (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
@@ -1837,12 +1782,6 @@ extends AbstractDescriptor
 	public void o_NumObjects (final AvailObject object, final int value)
 	{
 		o_Traversed(object).numObjects(value);
-	}
-
-	@Override
-	public void o_Nybbles (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).nybbles(value);
 	}
 
 	@Override
@@ -2871,12 +2810,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_WhichOne (final AvailObject object, final int value)
-	{
-		o_Traversed(object).whichOne(value);
-	}
-
-	@Override
 	public void o_Wordcodes (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).wordcodes(value);
@@ -3273,31 +3206,6 @@ extends AbstractDescriptor
 	public boolean o_HasRestrictions (final AvailObject object)
 	{
 		return o_Traversed(object).hasRestrictions();
-	}
-
-	@Override
-	public int o_HiLevelTwoChunkLowOffset (final AvailObject object)
-	{
-		return o_Traversed(object).hiLevelTwoChunkLowOffset();
-	}
-
-	@Override
-	public int o_HiNumLocalsLowNumArgs (final AvailObject object)
-	{
-		return o_Traversed(object).hiNumLocalsLowNumArgs();
-	}
-
-	@Override
-	public int o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final @NotNull AvailObject object)
-	{
-		return o_Traversed(object).hiPrimitiveLowNumArgsAndLocalsAndStack();
-	}
-
-	@Override
-	public int o_HiStartingChunkIndexLowNumOuters (final AvailObject object)
-	{
-		return o_Traversed(object).hiStartingChunkIndexLowNumOuters();
 	}
 
 	@Override
@@ -4034,9 +3942,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_WhichOne (final AvailObject object)
+	public int o_InfinitySign (final AvailObject object)
 	{
-		return o_Traversed(object).whichOne();
+		return o_Traversed(object).infinitySign();
 	}
 
 	@Override

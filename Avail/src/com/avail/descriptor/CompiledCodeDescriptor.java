@@ -35,9 +35,10 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.CanAllocateObjects;
 import static com.avail.descriptor.TypeDescriptor.Types.COMPILED_CODE;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
+import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Disassembler;
+import com.avail.interpreter.levelOne.*;
 
 public class CompiledCodeDescriptor
 extends Descriptor
@@ -48,10 +49,39 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
+		 * code object}.  It is computed at construction time.
+		 */
 		HASH,
+
+		/**
+		 * A compound field consisting of the primitive number (or zero), and
+		 * the variable number of slots that should be allocated for a
+		 * {@linkplain ContinuationDescriptor continuation} running this code.
+		 */
+		@BitFields(describedBy=HiPrimLowFrameSlots.class)
 		HI_PRIM_LOW_FRAME_SLOTS,
+
+		/**
+		 * A compound field consisting of the number of locals variables and the
+		 * number of arguments.
+		 */
+		@BitFields(describedBy=HiNumLocalsLowNumArgs.class)
 		HI_NUM_LOCALS_LOW_NUM_ARGS,
+
+		/**
+		 * A compound field consisting of the index of the {@linkplain
+		 * L2ChunkDescriptor level two chunk} to execute when invoking this
+		 * code, and the number of lexically captured variables/values.
+		 */
+		@BitFields(describedBy=HiStartingChunkLowNumOuters.class)
 		HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+
+		/**
+		 * The remaining number of times to invoke this code before performing
+		 * a reoptimization attempt.
+		 */
 		INVOCATION_COUNT
 	}
 
@@ -60,18 +90,103 @@ extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The {@linkplain NybbleTupleDescriptor tuple of nybbles} that describe
+		 * what {@linkplain L1Operation level one operations} to perform.
+		 */
 		NYBBLES,
+
+		/**
+		 * The {@linkplain ClosureTypeDescriptor type} of any closure
+		 * based on this {@linkplain CompiledCodeDescriptor compiled code}.
+		 */
 		CLOSURE_TYPE,
+
+		/**
+		 * The literal objects that are referred to numerically by some of the
+		 * operands of {@linkplain L1Instruction level one instructions} encoded
+		 * in the {@linkplain #NYBBLES nybblecodes}.  This also includes
+		 */
 		LITERAL_AT_
 	}
 
-	@Override
-	public void o_ClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	/**
+	 * Bit fields for the {@link IntegerSlots#HI_PRIM_LOW_FRAME_SLOTS}
+	 * integer slot.
+	 */
+	public static class HiPrimLowFrameSlots
 	{
-		object.objectSlotPut(ObjectSlots.CLOSURE_TYPE, value);
+		/**
+		 * The primitive number or zero.  This does not correspond with the
+		 * {@linkplain Enum#ordinal() ordinal} of the {@link Primitive}
+		 * enumeration, but rather the value of its {@linkplain
+		 * Primitive#primitiveNumber primitiveNumber}.
+		 */
+		@BitField(shift=16, bits=16)
+		static final BitField PRIMITIVE_NUMBER =
+			bitField(HiPrimLowFrameSlots.class, "PRIMITIVE_NUMBER");
+
+		/**
+		 * The number of {@linkplain
+		 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} to allocate
+		 * for continuations running this code.
+		 */
+		@BitField(shift=0, bits=16)
+		static final BitField FRAME_SLOTS =
+			bitField(HiPrimLowFrameSlots.class, "FRAME_SLOTS");
 	}
+
+	/**
+	 * Bit fields for the {@link IntegerSlots#HI_NUM_LOCALS_LOW_NUM_ARGS}
+	 * integer slot.
+	 */
+	public static class HiNumLocalsLowNumArgs
+	{
+		/**
+		 * The number of local variables and constants declared in this code,
+		 * not counting the arguments.  Also don't count locals in nested code.
+		 */
+		@BitField(shift=16, bits=16)
+		static final BitField NUM_LOCALS =
+			bitField(HiNumLocalsLowNumArgs.class, "NUM_LOCALS");
+
+		/**
+		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
+		 * code expects.
+		 */
+		@BitField(shift=0, bits=16)
+		static final BitField NUM_ARGS =
+			bitField(HiNumLocalsLowNumArgs.class, "NUM_ARGS");
+	}
+
+	/**
+	 * Bit fields for the {@link IntegerSlots#HI_STARTING_CHUNK_LOW_NUM_OUTERS}
+	 * integer slot.
+	 */
+	public static class HiStartingChunkLowNumOuters
+	{
+		/**
+		 * The {@linkplain L2ChunkDescriptor level two chunk} that should be
+		 * invoked whenever this code is started.  The chunk may no longer be
+		 * {@linkplain L2ChunkDescriptor.IntegerSlots#VALIDITY valid}, in which
+		 * case the {@linkplain L2ChunkDescriptor#indexOfUnoptimizedChunk()
+		 * default chunk} will be substituted until the next reoptimization.
+		 */
+		@BitField(shift=16, bits=16)
+		static final BitField STARTING_CHUNK =
+			bitField(HiStartingChunkLowNumOuters.class, "STARTING_CHUNK");
+
+		/**
+		 * The number of variables and values that are {@linkplain
+		 * ClosureDescriptor.ObjectSlots#OUTER_VAR_AT_ lexically captured} by
+		 * this code.
+		 */
+		@BitField(shift=0, bits=16)
+		static final BitField NUM_OUTERS =
+			bitField(HiStartingChunkLowNumOuters.class, "NUM_OUTERS");
+	}
+
+
 
 	@Override
 	public void o_Hash (
@@ -79,30 +194,6 @@ extends Descriptor
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH, value);
-	}
-
-	@Override
-	public void o_HiNumLocalsLowNumArgs (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS, value);
-	}
-
-	@Override
-	public void o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS, value);
-	}
-
-	@Override
-	public void o_HiStartingChunkIndexLowNumOuters (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS, value);
 	}
 
 	@Override
@@ -131,14 +222,6 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_Nybbles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.NYBBLES, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ClosureType (
 		final @NotNull AvailObject object)
 	{
@@ -150,27 +233,6 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH);
-	}
-
-	@Override
-	public int o_HiNumLocalsLowNumArgs (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS);
-	}
-
-	@Override
-	public int o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS);
-	}
-
-	@Override
-	public int o_HiStartingChunkIndexLowNumOuters (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS);
 	}
 
 	@Override
@@ -212,27 +274,16 @@ extends Descriptor
 		{
 			return true;
 		}
-		if (object.hash() != aCompiledCode.hash())
-		{
-			return false;
-		}
-		if (object.numLiterals() != aCompiledCode.numLiterals())
-		{
-			return false;
-		}
-		if (!object.nybbles().equals(aCompiledCode.nybbles()))
-		{
-			return false;
-		}
-		if (object.hiPrimitiveLowNumArgsAndLocalsAndStack() != aCompiledCode.hiPrimitiveLowNumArgsAndLocalsAndStack())
-		{
-			return false;
-		}
-		if (object.hiNumLocalsLowNumArgs() != aCompiledCode.hiNumLocalsLowNumArgs())
-		{
-			return false;
-		}
-		if (!object.closureType().equals(aCompiledCode.closureType()))
+
+		if (object.hash() != aCompiledCode.hash()
+			|| object.numLiterals() != aCompiledCode.numLiterals()
+			|| !object.nybbles().equals(aCompiledCode.nybbles())
+			|| object.primitiveNumber() != aCompiledCode.primitiveNumber()
+			|| object.numArgsAndLocalsAndStack()
+				!= aCompiledCode.numArgsAndLocalsAndStack()
+			|| object.numLocals() != aCompiledCode.numLocals()
+			|| object.numArgs() != aCompiledCode.numArgs()
+			|| !object.closureType().equals(aCompiledCode.closureType()))
 		{
 			return false;
 		}
@@ -243,11 +294,12 @@ extends Descriptor
 				return false;
 			}
 		}
-		//  They're equal (but occupy disjoint storage).  Replace one with an indirection to the other
-		//  to reduce storage costs and the frequency of detailed comparisons.
+		// They're equal, but occupy disjoint storage.  Replace one with an
+		// indirection to the other to reduce storage costs and the need for
+		// subsequent detailed comparisons.
 		object.becomeIndirectionTo(aCompiledCode);
+		// Now that there are at least two references to it.
 		aCompiledCode.makeImmutable();
-		//  Now that there are at least two references to it
 		return true;
 	}
 
@@ -255,8 +307,6 @@ extends Descriptor
 	public @NotNull AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return COMPILED_CODE.o();
 	}
 
@@ -264,8 +314,6 @@ extends Descriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return COMPILED_CODE.o();
 	}
 
@@ -274,8 +322,8 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosure)
 	{
-		//  Answer true if either I am aClosure's code or I contain aClosure or its code.
-
+		// Answer true if either I am aClosure's code or I contain aClosure or
+		// its code.
 		if (object.sameAddressAs(aClosure.code().traversed()))
 		{
 			return true;
@@ -288,28 +336,6 @@ extends Descriptor
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public void o_ArgsLocalsStackOutersPrimitive (
-		final @NotNull AvailObject object,
-		final int args,
-		final int locals,
-		final int stack,
-		final int outers,
-		final int primitive)
-	{
-		//  Note - also zeroes the startingChunkIndex.
-
-		assert 0 <= args && args <= 0xFFFF;
-		assert 0 <= locals && locals <= 0xFFFF;
-		final int slotCount = args + locals + stack;
-		assert 0 <= slotCount && slotCount <= 0xFFFF;
-		assert 0 <= outers && outers <= 0xFFFF;
-		assert 0 <= primitive && primitive <= 0xFFFF;
-		object.hiNumLocalsLowNumArgs(((locals << 16) + args));
-		object.hiPrimitiveLowNumArgsAndLocalsAndStack(((primitive << 16) + slotCount));
-		object.hiStartingChunkIndexLowNumOuters(outers);
 	}
 
 	@Override
@@ -370,39 +396,52 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.hiStartingChunkIndexLowNumOuters(
-			(object.hiStartingChunkIndexLowNumOuters() & 0xFFFF) + (value << 16));
+		object.bitSlotPut(
+			IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+			HiStartingChunkLowNumOuters.STARTING_CHUNK,
+			value);
 	}
 
 	@Override
 	public short o_MaxStackDepth (
 		final @NotNull AvailObject object)
 	{
-		return (short)(object.numArgsAndLocalsAndStack() - object.numArgs() - object.numLocals());
+		return (short)(
+			object.numArgsAndLocalsAndStack()
+			- object.numArgs()
+			- object.numLocals());
 	}
 
 	@Override
 	public short o_NumArgs (
 		final @NotNull AvailObject object)
 	{
-		return (short)(object.hiNumLocalsLowNumArgs() & 0xFFFF);
+		return (short)object.bitSlot(
+			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
+			HiNumLocalsLowNumArgs.NUM_ARGS);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer the number of arguments + locals + stack slots to reserve in my
+	 * continuations.
+	 * </p>
+	 */
 	@Override
 	public short o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of args + locals + stack slots to reserve in my continuations.
-
-		return (short)(object.hiPrimitiveLowNumArgsAndLocalsAndStack() & 0xFFFF);
+		return (short)object.bitSlot(
+			IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS,
+			HiPrimLowFrameSlots.FRAME_SLOTS);
 	}
 
 	@Override
 	public short o_NumLiterals (
 		final @NotNull AvailObject object)
 	{
-		//  Answer how many literals I have.
-
 		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
 	}
 
@@ -410,14 +449,18 @@ extends Descriptor
 	public short o_NumLocals (
 		final @NotNull AvailObject object)
 	{
-		return (short)(object.hiNumLocalsLowNumArgs() >>> 16);
+		return (short)object.bitSlot(
+			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
+			HiNumLocalsLowNumArgs.NUM_LOCALS);
 	}
 
 	@Override
 	public short o_NumOuters (
 		final @NotNull AvailObject object)
 	{
-		return (short)(object.hiStartingChunkIndexLowNumOuters() & 0xFFFF);
+		return (short)object.bitSlot(
+			IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+			HiStartingChunkLowNumOuters.NUM_OUTERS);
 	}
 
 	@Override
@@ -426,15 +469,18 @@ extends Descriptor
 	{
 		//  Answer the primitive number I should try before falling back on
 		//  the Avail code.  Zero indicates not-a-primitive.
-
-		return object.hiPrimitiveLowNumArgsAndLocalsAndStack() >>> 16;
+		return object.bitSlot(
+			IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS,
+			HiPrimLowFrameSlots.PRIMITIVE_NUMBER);
 	}
 
 	@Override
 	public int o_StartingChunkIndex (
 		final @NotNull AvailObject object)
 	{
-		return object.hiStartingChunkIndexLowNumOuters() >>> 16;
+		return object.bitSlot(
+			IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+			HiStartingChunkLowNumOuters.STARTING_CHUNK);
 	}
 
 	@Override
@@ -527,10 +573,40 @@ extends Descriptor
 			literalsSize + outersSize + locals);
 
 		CanAllocateObjects(false);
-		code.nybbles(nybbles);
-		code.argsLocalsStackOutersPrimitive(
-			numArgs, locals, stack, outersSize, primitive);
-		code.closureType(closureType);
+
+		assert 0 <= numArgs && numArgs <= 0xFFFF;
+		assert 0 <= locals && locals <= 0xFFFF;
+		final int slotCount = numArgs + locals + stack;
+		assert 0 <= slotCount && slotCount <= 0xFFFF;
+		assert 0 <= outersSize && outersSize <= 0xFFFF;
+		assert 0 <= primitive && primitive <= 0xFFFF;
+		code.bitSlotPut(
+			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
+			HiNumLocalsLowNumArgs.NUM_LOCALS,
+			locals);
+		code.bitSlotPut(
+			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
+			HiNumLocalsLowNumArgs.NUM_ARGS,
+			numArgs);
+		code.bitSlotPut(
+			IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS,
+			HiPrimLowFrameSlots.PRIMITIVE_NUMBER,
+			primitive);
+		code.bitSlotPut(
+			IntegerSlots.HI_PRIM_LOW_FRAME_SLOTS,
+			HiPrimLowFrameSlots.FRAME_SLOTS,
+			slotCount);
+		code.bitSlotPut(
+			IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+			HiStartingChunkLowNumOuters.STARTING_CHUNK,
+			0); //TODO finish tidying this into a passed argument
+		code.bitSlotPut(
+			IntegerSlots.HI_STARTING_CHUNK_LOW_NUM_OUTERS,
+			HiStartingChunkLowNumOuters.NUM_OUTERS,
+			outersSize);
+
+		code.objectSlotPut(ObjectSlots.NYBBLES, nybbles);
+		code.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
 		code.startingChunkIndex(L2ChunkDescriptor.indexOfUnoptimizedChunk());
 		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
 		int dest;

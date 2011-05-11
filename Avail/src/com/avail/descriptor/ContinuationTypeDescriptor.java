@@ -71,8 +71,7 @@ import com.avail.interpreter.Primitive;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ContinuationTypeDescriptor
-extends TypeDescriptor
+public class ContinuationTypeDescriptor extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -87,14 +86,6 @@ extends TypeDescriptor
 		 * type.
 		 */
 		CLOSURE_TYPE
-	}
-
-	@Override
-	public void o_ClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.CLOSURE_TYPE, value);
 	}
 
 	@Override
@@ -319,8 +310,9 @@ extends TypeDescriptor
 	public static @NotNull AvailObject forClosureType (
 		final @NotNull AvailObject closureType)
 	{
+		closureType.makeImmutable();
 		final AvailObject result = mutable().create();
-		result.closureType(closureType.makeImmutable());
+		result.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
 		result.makeImmutable();
 		return result;
 	}

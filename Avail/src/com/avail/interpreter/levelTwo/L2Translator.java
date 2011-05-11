@@ -291,23 +291,22 @@ public class L2Translator implements L1OperationDispatcher
 	 */
 	private int getInteger ()
 	{
-		final int nyb = nybbles.extractNybbleFromTupleAt(pc);
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;
 		int value = 0;
 		final byte[] counts =
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
 		};
-		for (int count = counts[nyb]; count > 0; --count)
+		for (int count = counts[firstNybble]; count > 0; count--, pc++)
 		{
 			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
 		}
 		final byte[] offsets =
 		{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
 		};
-		value += offsets[nyb];
+		value += offsets[firstNybble];
 		return value;
 	}
 

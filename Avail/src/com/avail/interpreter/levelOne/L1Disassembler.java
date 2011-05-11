@@ -38,12 +38,12 @@ import com.avail.descriptor.*;
 
 public class L1Disassembler
 {
-	AvailObject _code;
-	StringBuilder _builder;
-	List<AvailObject> _recursionList;
-	int _indent;
-	AvailObject _nybbles;
-	int _pc;
+	AvailObject code;
+	StringBuilder builder;
+	List<AvailObject> recursionList;
+	int indent;
+	AvailObject nybbles;
+	int pc;
 
 
 	L1OperandTypeDispatcher operandTypePrinter = new L1OperandTypeDispatcher()
@@ -52,38 +52,38 @@ public class L1Disassembler
 		@Override
 		public void doImmediate ()
 		{
-			_builder.append("immediate=" + getInteger());
+			builder.append("immediate=" + getInteger());
 		}
 
 		@Override
 		public void doLiteral ()
 		{
 			final int index = getInteger();
-			_builder.append("literal#" + index + "=");
-			_code.literalAt(index).printOnAvoidingIndent(
-				_builder,
-				_recursionList,
-				_indent + 1);
+			builder.append("literal#" + index + "=");
+			code.literalAt(index).printOnAvoidingIndent(
+				builder,
+				recursionList,
+				indent + 1);
 		}
 
 		@Override
 		public void doLocal ()
 		{
 			final int index = getInteger();
-			if (index <= _code.numArgs())
+			if (index <= code.numArgs())
 			{
-				_builder.append("arg#" + index);
+				builder.append("arg#" + index);
 			}
 			else
 			{
-				_builder.append("local#" + (index - _code.numArgs()));
+				builder.append("local#" + (index - code.numArgs()));
 			}
 		}
 
 		@Override
 		public void doOuter ()
 		{
-			_builder.append("outer#" + getInteger());
+			builder.append("outer#" + getInteger());
 		}
 
 		@Override
@@ -112,15 +112,15 @@ public class L1Disassembler
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		_code = code;
-		_builder = builder;
-		_recursionList = recursionList;
-		_indent = indent;
+		this.code = code;
+		this.builder = builder;
+		this.recursionList = recursionList;
+		this.indent = indent;
 
-		_nybbles = code.nybbles();
-		_pc = 1;
+		this.nybbles = code.nybbles();
+		this.pc = 1;
 		boolean first = true;
-		while (_pc <= _nybbles.tupleSize())
+		while (pc <= nybbles.tupleSize())
 		{
 			if (!first)
 			{
@@ -131,11 +131,11 @@ public class L1Disassembler
 			{
 				builder.append("\t");
 			}
-			builder.append(_pc + ": ");
-			int nybble = _nybbles.extractNybbleFromTupleAt(_pc++);
+			builder.append(pc + ": ");
+			int nybble = nybbles.extractNybbleFromTupleAt(pc++);
 			if (nybble == L1Operation.L1_doExtension.ordinal())
 			{
-				nybble = 16 + _nybbles.extractNybbleFromTupleAt(_pc++);
+				nybble = 16 + nybbles.extractNybbleFromTupleAt(pc++);
 			}
 			final L1Operation operation = L1Operation.values()[nybble];
 			final L1OperandType[] operandTypes = operation.operandTypes();
@@ -163,29 +163,28 @@ public class L1Disassembler
 	 * encoding uses only a nybble for very small operands, and can still
 	 * represent up to {@link Integer#MAX_VALUE} if necessary.
 	 * <p>
-	 * Adjust the {@link #_pc program counter} to skip the integer.
+	 * Adjust the {@link #pc program counter} to skip the integer.
 	 *
 	 * @return The integer extracted from the nybblecode stream.
 	 */
 	public int getInteger ()
 	{
-		final int nyb = _nybbles.extractNybbleFromTupleAt(_pc);
-		_pc++;
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
 		int value = 0;
 		final byte[] counts =
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
 		};
-		for (int count = counts[nyb]; count > 0; --count)
+		for (int count = counts[firstNybble]; count > 0; count--, pc++)
 		{
-			value = (value << 4) + _nybbles.extractNybbleFromTupleAt(_pc);
-			_pc++;
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
 		}
 		final byte[] offsets =
 		{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
 		};
-		value += offsets[nyb];
+		value += offsets[firstNybble];
 		return value;
 	}
 }

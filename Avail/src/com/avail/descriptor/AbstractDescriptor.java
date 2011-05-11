@@ -582,7 +582,7 @@ public abstract class AbstractDescriptor
 	 *            The {@code BitField} that the specified static member was
 	 *            annotated with.
 	 */
-	protected static BitField bitField (
+	public static BitField bitField (
 		final Class<?> theClass,
 		final String fieldName)
 	{
@@ -596,6 +596,10 @@ public abstract class AbstractDescriptor
 		{
 			throw new RuntimeException(e);
 		}
+		assert bitField.shift() >= 0;
+		assert bitField.shift() <= 31;
+		assert bitField.bits() > 0;
+		assert bitField.shift() + bitField.bits() <= 32;
 		return bitField;
 	}
 
@@ -713,22 +717,6 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param args
-	 * @param locals
-	 * @param stack
-	 * @param outers
-	 * @param primitive
-	 */
-	public abstract void o_ArgsLocalsStackOutersPrimitive (
-		final AvailObject object,
-		final int args,
-		final int locals,
-		final int stack,
-		final int outers,
-		final int primitive);
 
 	/**
 	 * @param object
@@ -921,14 +909,6 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 */
 	public abstract void o_Closure (final AvailObject object, final AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_ClosureType (
-		final AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -1401,38 +1381,6 @@ public abstract class AbstractDescriptor
 	public abstract boolean o_HasKey (
 		final AvailObject object,
 		final AvailObject keyObject);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_HiLevelTwoChunkLowOffset (
-		final AvailObject object,
-		final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_HiNumLocalsLowNumArgs (
-		final AvailObject object,
-		final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final AvailObject object,
-		final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_HiStartingChunkIndexLowNumOuters (
-		final AvailObject object,
-		final int value);
 
 	/**
 	 * @param object
@@ -2019,12 +1967,6 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 */
 	public abstract void o_NumObjects (final AvailObject object, final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_Nybbles (final AvailObject object, final AvailObject value);
 
 	/**
 	 * @param object
@@ -3143,12 +3085,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_WhichOne (final AvailObject object, final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
 	public abstract void o_Wordcodes (
 		final AvailObject object,
 		final AvailObject value);
@@ -3473,31 +3409,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract boolean o_HasRestrictions (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_HiLevelTwoChunkLowOffset (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_HiNumLocalsLowNumArgs (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_HiPrimitiveLowNumArgsAndLocalsAndStack (
-		final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_HiStartingChunkIndexLowNumOuters (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4091,7 +4002,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_WhichOne (final AvailObject object);
+	public abstract int o_InfinitySign (final AvailObject object);
 
 	/**
 	 * @param object

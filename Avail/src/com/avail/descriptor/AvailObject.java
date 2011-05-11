@@ -766,25 +766,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void argsLocalsStackOutersPrimitive (
-		final int args,
-		final int locals,
-		final int stack,
-		final int outers,
-		final int primitive)
-	{
-		descriptor().o_ArgsLocalsStackOutersPrimitive(
-			this,
-			args,
-			locals,
-			stack,
-			outers,
-			primitive);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject argTypeAt (
 		final int index)
 	{
@@ -1235,15 +1216,6 @@ implements Iterable<AvailObject>
 	public AvailObject closureType ()
 	{
 		return descriptor().o_ClosureType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void closureType (
-		final AvailObject value)
-	{
-		descriptor().o_ClosureType(this, value);
 	}
 
 	/**
@@ -2410,74 +2382,6 @@ implements Iterable<AvailObject>
 	public boolean hasRestrictions ()
 	{
 		return descriptor().o_HasRestrictions(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int hiLevelTwoChunkLowOffset ()
-	{
-		return descriptor().o_HiLevelTwoChunkLowOffset(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void hiLevelTwoChunkLowOffset (
-		final int value)
-	{
-		descriptor().o_HiLevelTwoChunkLowOffset(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int hiNumLocalsLowNumArgs ()
-	{
-		return descriptor().o_HiNumLocalsLowNumArgs(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void hiNumLocalsLowNumArgs (
-		final int value)
-	{
-		descriptor().o_HiNumLocalsLowNumArgs(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int hiPrimitiveLowNumArgsAndLocalsAndStack ()
-	{
-		return descriptor().o_HiPrimitiveLowNumArgsAndLocalsAndStack(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void hiPrimitiveLowNumArgsAndLocalsAndStack (
-		final int value)
-	{
-		descriptor().o_HiPrimitiveLowNumArgsAndLocalsAndStack(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int hiStartingChunkIndexLowNumOuters ()
-	{
-		return descriptor().o_HiStartingChunkIndexLowNumOuters(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void hiStartingChunkIndexLowNumOuters (
-		final int value)
-	{
-		descriptor().o_HiStartingChunkIndexLowNumOuters(this, value);
 	}
 
 	/**
@@ -3790,15 +3694,6 @@ implements Iterable<AvailObject>
 	public AvailObject nybbles ()
 	{
 		return descriptor().o_Nybbles(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void nybbles (
-		final AvailObject value)
-	{
-		descriptor().o_Nybbles(this, value);
 	}
 
 	/**
@@ -5541,18 +5436,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int whichOne ()
+	public int infinitySign ()
 	{
-		return descriptor().o_WhichOne(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void whichOne (
-		final int value)
-	{
-		descriptor().o_WhichOne(this, value);
+		return descriptor().o_InfinitySign(this);
 	}
 
 	/**

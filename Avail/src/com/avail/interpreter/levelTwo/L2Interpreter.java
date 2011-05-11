@@ -856,7 +856,7 @@ implements L2OperationDispatcher
 	 */
 	void exitProcessWith (final AvailObject finalObject)
 	{
-		process.executionState(ExecutionState.terminated);
+		process.executionState(ExecutionState.TERMINATED);
 		process.continuation(VoidDescriptor.voidObject());
 		exitNow = true;
 		exitValue = finalObject;
@@ -994,23 +994,22 @@ implements L2OperationDispatcher
 		final AvailObject code = closure.code();
 		final AvailObject nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
-		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;
 		int value = 0;
 		final byte[] counts =
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
 		};
-		for (int count = counts[nybble]; count > 0; --count)
+		for (int count = counts[firstNybble]; count > 0; count--, pc++)
 		{
 			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
 		}
 		final byte[] offsets =
 		{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
 		};
-		value += offsets[nybble];
+		value += offsets[firstNybble];
 		integerAtPut(pcRegister(), pc);
 		return value;
 	}
@@ -1096,8 +1095,7 @@ implements L2OperationDispatcher
 		continuation.pc(integerAt(pcRegister()));
 		continuation.stackp(
 			integerAt(stackpRegister()) + 1 - argumentRegister(1));
-		continuation.hiLevelTwoChunkLowOffset(
-			(chunk().index() << 16) + offset());
+		continuation.levelTwoChunkIndexOffset(chunk().index(), offset());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			continuation.argOrLocalOrStackAtPut(
@@ -2206,8 +2204,9 @@ implements L2OperationDispatcher
 			code.numArgsAndLocalsAndStack()
 			- code.maxStackDepth()
 			+ stackpIndex);
-		continuation.hiLevelTwoChunkLowOffset(
-			(chunk().index() << 16) + wordcodeOffset);
+		continuation.levelTwoChunkIndexOffset(
+			chunk().index(),
+			wordcodeOffset);
 		final AvailObject slots = chunkVectors.tupleAt(slotsIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{

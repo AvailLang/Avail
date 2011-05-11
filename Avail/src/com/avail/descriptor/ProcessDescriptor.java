@@ -62,17 +62,17 @@ extends Descriptor
 		/**
 		 * The process is running or waiting for another process to yield.
 		 */
-		running,
+		RUNNING,
 
 		/**
 		 * The process has been suspended (always on a semaphore).
 		 */
-		suspended,
+		SUSPENDED,
 
 		/**
 		 * The process has terminated.  This state is permanent.
 		 */
-		terminated;
+		TERMINATED;
 	}
 
 	/**
@@ -83,13 +83,15 @@ extends Descriptor
 	 * <em>any</em> bits are set then an inter-nybblecode interrupt will take
 	 * place at the next convenient time.
 	 */
-	public class InterruptRequestFlag
+	public static class InterruptRequestFlag
 	{
 		/**
 		 * Interrupt because this process has executed the specified number of
 		 * nybblecodes.  This can be used to implement single-stepping.
 		 */
-		public static final int outOfGas = 0x0001;
+		@BitField(shift=0, bits=1)
+		static final BitField OUT_OF_GAS =
+			bitField(InterruptRequestFlag.class, "OUT_OF_GAS");
 
 		/**
 		 * Either this process's priority has been lowered or another process's
@@ -97,7 +99,9 @@ extends Descriptor
 		 * than the current one may be ready to schedule, and the process
 		 * scheduling machinery should have an opportunity for determining this.
 		 */
-		public static final int higherPriorityReady = 0x0002;
+		@BitField(shift=1, bits=1)
+		static final BitField HIGHER_PRIORITY_READY =
+			bitField(InterruptRequestFlag.class, "HIGHER_PRIORITY_READY");
 	}
 
 	/**
@@ -112,16 +116,18 @@ extends Descriptor
 
 		/**
 		 * The {@link ExecutionState execution state} of the process, indicating
-		 * whether the process is {@linkplain ExecutionState#running running},
-		 * {@linkplain ExecutionState#suspended suspended} or {@linkplain
-		 * ExecutionState#terminated terminated}.
+		 * whether the process is {@linkplain ExecutionState#RUNNING running},
+		 * {@linkplain ExecutionState#SUSPENDED suspended} or {@linkplain
+		 * ExecutionState#TERMINATED terminated}.
 		 */
 		@EnumField(describedBy=ExecutionState.class)
 		EXECUTION_STATE,
 
 		/**
-		 *
+		 * Flags indicating the reasons for interrupting this process.  If the
+		 * value is zero then no interrupt is indicated.
 		 */
+		@BitFields(describedBy=InterruptRequestFlag.class)
 		INTERRUPT_REQUEST_FLAG
 	}
 
@@ -367,64 +373,25 @@ extends Descriptor
 	{
 		AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
-		AvailObject nybblesObject = contObject.nybbles();
-		byte firstNybble = nybblesObject.extractNybbleFromTupleAt(pc);
-		int result = firstNybble;
-		switch (firstNybble)
+		AvailObject nybbles = contObject.nybbles();
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
+		int value = 0;
+		pc++;
+		final byte[] counts =
 		{
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-				pc ++;
-				break;
-			case 10:
-			case 11:
-			case 12:
-				// (x-10)*16+10+y
-				result = (result << 4)
-					- 150
-					+ nybblesObject.extractNybbleFromTupleAt(pc+1);
-				pc += 2;
-				break;
-			case 13:
-				result = (nybblesObject.extractNybbleFromTupleAt(pc+1) << 4)
-					+ nybblesObject.extractNybbleFromTupleAt(pc+2) + 58;
-				pc += 3;
-				break;
-			case 14:
-				result = 0;
-				{
-					for (int i = 1; i <= 4; ++ i)
-					{
-						result = result * 16
-							+ nybblesObject.extractNybbleFromTupleAt(pc+i);
-					}
-				}
-				pc += 5;
-				break;
-			case 15:
-				result = 0;
-				{
-					for (int i = 1; i <= 8; ++ i)
-					{
-						result = result * 16
-							+ nybblesObject.extractNybbleFromTupleAt(pc+i);
-					}
-				}
-				pc += 9;
-				break;
-			default:
-				error("Hey, that's not a nybble!");
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
 		};
+		for (int count = counts[firstNybble]; count > 0; count--, pc++)
+		{
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
+		}
+		final byte[] offsets =
+		{
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
+		};
+		value += offsets[firstNybble];
 		contObject.pc(pc);
-		return result;
+		return value;
 	}
 
 	@Override

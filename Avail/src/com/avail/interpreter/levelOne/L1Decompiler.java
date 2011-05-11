@@ -54,7 +54,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	 * The {@link CompiledCodeDescriptor compiled code} which is being
 	 * decompiled.
 	 */
-	AvailObject _code;
+	AvailObject code;
 
 	/**
 	 * {@link ParseNodeDescriptor Parse nodes} which correspond with the
@@ -63,46 +63,46 @@ public class L1Decompiler implements L1OperationDispatcher
 	 * LiteralNodeDescriptor literal nodes}, but the latter may be phased out
 	 * in favor of module constants and module variables.
 	 */
-	List<AvailObject> _outers;
+	List<AvailObject> outers;
 
 	/**
 	 * The {@link DeclarationNodeDescriptor.DeclarationKind#ARGUMENT arguments
 	 * declarations} for this code.
 	 */
-	List<AvailObject> _args;
+	List<AvailObject> args;
 
 	/**
 	 * The {@link DeclarationNodeDescriptor.DeclarationKind#LOCAL_VARIABLE}
 	 * local variables} defined by this code.
 	 */
-	List<AvailObject> _locals;
+	List<AvailObject> locals;
 
 	/**
 	 * The tuple of nybblecodes to decode.
 	 */
-	AvailObject _nybbles;
+	AvailObject nybbles;
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
 	 * currently occurring.
 	 */
-	int _pc;
+	int pc;
 
 	/**
 	 * Something to generate unique variable names from a prefix.
 	 */
-	Transformer1<String, String> _tempGenerator;
+	Transformer1<String, String> tempGenerator;
 
 	/**
 	 * The stack of expressions roughly corresponding to the subexpressions that
 	 * have been parsed but not yet integrated into their parent expressions.
 	 */
-	List<AvailObject> _expressionStack = new ArrayList<AvailObject>();
+	List<AvailObject> expressionStack = new ArrayList<AvailObject>();
 
 	/**
 	 * The list of completely decompiled {@link ParseNodeDescriptor statements}.
 	 */
-	List<AvailObject> _statements = new ArrayList<AvailObject>();
+	List<AvailObject> statements = new ArrayList<AvailObject>();
 
 
 
@@ -128,29 +128,29 @@ public class L1Decompiler implements L1OperationDispatcher
 		final Transformer1<String, String> tempBlock)
 	{
 
-		_code = aCodeObject;
-		_outers = outerVars;
-		_tempGenerator = tempBlock;
+		code = aCodeObject;
+		outers = outerVars;
+		tempGenerator = tempBlock;
 		buildArgsAndLocals();
 
-		_statements.addAll(_locals);
+		statements.addAll(locals);
 		//  Add all local declaration statements at the start.
-		_nybbles = _code.nybbles();
-		_pc = 1;
-		while (_pc <= _nybbles.tupleSize())
+		nybbles = code.nybbles();
+		pc = 1;
+		while (pc <= nybbles.tupleSize())
 		{
-			final byte nybble = _nybbles.extractNybbleFromTupleAt(_pc);
-			_pc++;
+			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+			pc++;
 			L1Operation.values()[nybble].dispatch(this);
 		}
 		L1Implied_doReturn();
-		assert _expressionStack.size() == 0
+		assert expressionStack.size() == 0
 		: "There should be nothing on the stack after the final return";
 
 		return BlockNodeDescriptor.newBlockNode(
-			_args,
-			_code.primitiveNumber(),
-			_statements,
+			args,
+			code.primitiveNumber(),
+			statements,
 			aCodeObject.closureType().returnType());
 	}
 
@@ -161,29 +161,28 @@ public class L1Decompiler implements L1OperationDispatcher
 	 * encoding uses only a nybble for very small operands, and can still
 	 * represent up to {@link Integer#MAX_VALUE} if necessary.
 	 * <p>
-	 * Adjust the {@link #_pc program counter} to skip the integer.
+	 * Adjust the {@link #pc program counter} to skip the integer.
 	 *
 	 * @return The integer extracted from the nybblecode stream.
 	 */
 	public int getInteger ()
 	{
-		final int nyb = _nybbles.extractNybbleFromTupleAt(_pc);
-		_pc++;
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
 		int value = 0;
 		final byte[] counts =
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
 		};
-		for (int count = counts[nyb]; count > 0; --count)
+		for (int count = counts[firstNybble]; count > 0; count--, pc++)
 		{
-			value = (value << 4) + _nybbles.extractNybbleFromTupleAt(_pc);
-			_pc++;
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
 		}
 		final byte[] offsets =
 		{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
 		};
-		value += offsets[nyb];
+		value += offsets[firstNybble];
 		return value;
 	}
 
@@ -195,7 +194,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	 */
 	AvailObject popExpression ()
 	{
-		return _expressionStack.remove(_expressionStack.size() - 1);
+		return expressionStack.remove(expressionStack.size() - 1);
 	}
 
 	/**
@@ -226,14 +225,14 @@ public class L1Decompiler implements L1OperationDispatcher
 	void pushExpression (
 		final AvailObject expression)
 	{
-		_expressionStack.add(expression);
+		expressionStack.add(expression);
 	}
 
 	@Override
 	public void L1_doCall ()
 	{
-		final AvailObject impSet = _code.literalAt(getInteger());
-		final AvailObject type = _code.literalAt(getInteger());
+		final AvailObject impSet = code.literalAt(getInteger());
+		final AvailObject type = code.literalAt(getInteger());
 		final AvailObject cyclicType = impSet.name();
 		int nArgs = 0;
 		final AvailObject str = cyclicType.name();
@@ -260,7 +259,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doClose ()
 	{
 		final int nOuters = getInteger();
-		final AvailObject theCode = _code.literalAt(getInteger());
+		final AvailObject theCode = code.literalAt(getInteger());
 		final List<AvailObject> theOuters = popExpressions(nOuters);
 		for (final AvailObject outer : theOuters)
 		{
@@ -273,7 +272,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			new L1Decompiler().parseWithOuterVarsTempGenerator(
 				theCode,
 				theOuters,
-				_tempGenerator);
+				tempGenerator);
 		pushExpression(blockNode);
 	}
 
@@ -281,8 +280,8 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doExtension ()
 	{
-		final byte nybble = _nybbles.extractNybbleFromTupleAt(_pc);
-		_pc++;
+		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+		pc++;
 		L1Operation.values()[nybble + 16].dispatch(this);
 	}
 
@@ -291,7 +290,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doGetLocal ()
 	{
 		final AvailObject localDecl =
-			_locals.get(getInteger() - _code.numArgs() - 1);
+			locals.get(getInteger() - code.numArgs() - 1);
 		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
 			localDecl.token(),
 			localDecl);
@@ -311,7 +310,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject use;
 		final int outerIndex = getInteger();
-		final AvailObject outer = _outers.get(outerIndex - 1);
+		final AvailObject outer = outers.get(outerIndex - 1);
 		if (outer.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
 		{
 			pushExpression(outer);
@@ -346,8 +345,8 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPop ()
 	{
-		_statements.add(popExpression());
-		assert _expressionStack.isEmpty();
+		statements.add(popExpression());
+		assert expressionStack.isEmpty();
 	}
 
 
@@ -355,10 +354,10 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPushLastLocal ()
 	{
 		final int index = getInteger();
-		final boolean isArg = index <= _code.numArgs();
+		final boolean isArg = index <= code.numArgs();
 		final AvailObject decl = isArg
-			? _args.get(index - 1)
-			: _locals.get(index - _code.numArgs() - 1);
+			? args.get(index - 1)
+			: locals.get(index - code.numArgs() - 1);
 		final AvailObject use = VariableUseNodeDescriptor.newUse(
 			decl.token(),
 			decl);
@@ -383,7 +382,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLiteral ()
 	{
-		final AvailObject value = _code.literalAt(getInteger());
+		final AvailObject value = code.literalAt(getInteger());
 		if (value.isInstanceOfSubtypeOf(CLOSURE.o()))
 		{
 			final List<AvailObject> closureOuters =
@@ -409,7 +408,7 @@ public class L1Decompiler implements L1OperationDispatcher
 				new L1Decompiler().parseWithOuterVarsTempGenerator(
 					value.code(),
 					closureOuters,
-					_tempGenerator);
+					tempGenerator);
 			pushExpression(blockNode);
 		}
 		else
@@ -430,10 +429,10 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPushLocal ()
 	{
 		final int index = getInteger();
-		final boolean isArg = index <= _code.numArgs();
+		final boolean isArg = index <= code.numArgs();
 		final AvailObject decl = isArg
-			? _args.get(index - 1)
-			: _locals.get(index - _code.numArgs() - 1);
+			? args.get(index - 1)
+			: locals.get(index - code.numArgs() - 1);
 		final AvailObject use = VariableUseNodeDescriptor.newUse(
 			decl.token(),
 			decl);
@@ -451,14 +450,14 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1_doPushOuter ()
 	{
-		pushExpression(_outers.get(getInteger() - 1));
+		pushExpression(outers.get(getInteger() - 1));
 	}
 
 	@Override
 	public void L1_doSetLocal ()
 	{
-		final AvailObject localDecl = _locals.get(
-			getInteger() - _code.numArgs() - 1);
+		final AvailObject localDecl = locals.get(
+			getInteger() - code.numArgs() - 1);
 		final AvailObject valueNode = popExpression();
 		final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
 			localDecl.token(),
@@ -467,9 +466,9 @@ public class L1Decompiler implements L1OperationDispatcher
 			AssignmentNodeDescriptor.mutable().create();
 		assignmentNode.variable(variableUse);
 		assignmentNode.expression(valueNode);
-		if (_expressionStack.isEmpty())
+		if (expressionStack.isEmpty())
 		{
-			_statements.add(assignmentNode);
+			statements.add(assignmentNode);
 		}
 		else
 		{
@@ -479,7 +478,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
 			assert duplicateExpression.markerValue().equalsVoid();
-			_expressionStack.add(assignmentNode);
+			expressionStack.add(assignmentNode);
 		}
 	}
 
@@ -487,7 +486,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doSetOuter ()
 	{
 		final AvailObject variableUse;
-		final AvailObject outerExpr = _outers.get(getInteger() - 1);
+		final AvailObject outerExpr = outers.get(getInteger() - 1);
 		final AvailObject outerDecl;
 		if (outerExpr.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
 		{
@@ -513,9 +512,9 @@ public class L1Decompiler implements L1OperationDispatcher
 			AssignmentNodeDescriptor.mutable().create();
 		assignmentNode.variable(variableUse);
 		assignmentNode.expression(valueExpr);
-		if (_expressionStack.isEmpty())
+		if (expressionStack.isEmpty())
 		{
-			_statements.add(assignmentNode);
+			statements.add(assignmentNode);
 		}
 		else
 		{
@@ -525,7 +524,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
 			assert duplicateExpression.markerValue().equalsVoid();
-			_expressionStack.add(assignmentNode);
+			expressionStack.add(assignmentNode);
 		}
 	}
 
@@ -561,7 +560,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
-		final AvailObject globalVar = _code.literalAt(getInteger());
+		final AvailObject globalVar = code.literalAt(getInteger());
 
 		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
 			globalToken,
@@ -587,11 +586,11 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1Ext_doPushLabel ()
 	{
 		AvailObject label;
-		if (_statements.size() > 0
-			&& _statements.get(0).isInstanceOfSubtypeOf(DECLARATION_NODE.o())
-			&& _statements.get(0).declarationKind() == LABEL)
+		if (statements.size() > 0
+			&& statements.get(0).isInstanceOfSubtypeOf(DECLARATION_NODE.o())
+			&& statements.get(0).declarationKind() == LABEL)
 		{
-			label = _statements.get(0);
+			label = statements.get(0);
 		}
 		else
 		{
@@ -599,14 +598,14 @@ public class L1Decompiler implements L1OperationDispatcher
 			labelToken.tokenType(TokenType.KEYWORD);
 			labelToken.string(
 				ByteStringDescriptor.from(
-					_tempGenerator.value("label")));
+					tempGenerator.value("label")));
 			labelToken.start(0);
 
 			label = DeclarationNodeDescriptor.newLabel(
 				labelToken,
-				ContinuationTypeDescriptor.forClosureType(_code.closureType()));
+				ContinuationTypeDescriptor.forClosureType(code.closureType()));
 
-			_statements.add(0, label);
+			statements.add(0, label);
 		}
 
 		final AvailObject useNode = VariableUseNodeDescriptor.newUse(
@@ -621,7 +620,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1Ext_doReserved ()
 	{
 		error("Illegal extended nybblecode: F+"
-			+ _nybbles.extractNybbleFromTupleAt(_pc - 1));
+			+ nybbles.extractNybbleFromTupleAt(pc - 1));
 	}
 
 
@@ -633,7 +632,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		globalToken.tokenType(TokenType.KEYWORD);
 		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
-		final AvailObject globalVar = _code.literalAt(getInteger());
+		final AvailObject globalVar = code.literalAt(getInteger());
 
 		final AvailObject decl = DeclarationNodeDescriptor.newModuleVariable(
 			globalToken,
@@ -646,9 +645,9 @@ public class L1Decompiler implements L1OperationDispatcher
 			AssignmentNodeDescriptor.mutable().create();
 		assignmentNode.variable(varUse);
 		assignmentNode.expression(popExpression());
-		if (_expressionStack.isEmpty())
+		if (expressionStack.isEmpty())
 		{
-			_statements.add(assignmentNode);
+			statements.add(assignmentNode);
 		}
 		else
 		{
@@ -658,7 +657,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
 			assert duplicateExpression.markerValue().equalsVoid();
-			_expressionStack.add(assignmentNode);
+			expressionStack.add(assignmentNode);
 		}
 	}
 
@@ -667,8 +666,8 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doSuperCall ()
 	{
-		final AvailObject impSet = _code.literalAt(getInteger());
-		final AvailObject type = _code.literalAt(getInteger());
+		final AvailObject impSet = code.literalAt(getInteger());
+		final AvailObject type = code.literalAt(getInteger());
 		final AvailObject cyclicType = impSet.name();
 		int nArgs = 0;
 		final AvailObject str = cyclicType.name();
@@ -708,9 +707,9 @@ public class L1Decompiler implements L1OperationDispatcher
 	@Override
 	public void L1Implied_doReturn ()
 	{
-		assert _pc == _nybbles.tupleSize() + 1;
-		_statements.add(popExpression());
-		assert _expressionStack.size() == 0
+		assert pc == nybbles.tupleSize() + 1;
+		statements.add(popExpression());
+		assert expressionStack.size() == 0
 		: "There should be nothing on the stack after a return";
 	}
 
@@ -721,31 +720,31 @@ public class L1Decompiler implements L1OperationDispatcher
 	 */
 	void buildArgsAndLocals ()
 	{
-		_args = new ArrayList<AvailObject>(_code.numArgs());
-		_locals = new ArrayList<AvailObject>(_code.numLocals());
-		for (int i = 1, _end1 = _code.numArgs(); i <= _end1; i++)
+		args = new ArrayList<AvailObject>(code.numArgs());
+		locals = new ArrayList<AvailObject>(code.numLocals());
+		for (int i = 1, _end1 = code.numArgs(); i <= _end1; i++)
 		{
-			final String argName = _tempGenerator.value("arg");
+			final String argName = tempGenerator.value("arg");
 			final AvailObject token = TokenDescriptor.mutable().create();
 			token.tokenType(TokenType.KEYWORD);
 			token.string(ByteStringDescriptor.from(argName));
 			token.start(0);
 			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
 				token,
-				_code.closureType().argTypeAt(i));
-			_args.add(decl);
+				code.closureType().argTypeAt(i));
+			args.add(decl);
 		}
-		for (int i = 1, _end2 = _code.numLocals(); i <= _end2; i++)
+		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
 		{
-			final String localName = _tempGenerator.value("local");
+			final String localName = tempGenerator.value("local");
 			final AvailObject token = TokenDescriptor.mutable().create();
 			token.tokenType(TokenType.KEYWORD);
 			token.string(ByteStringDescriptor.from(localName));
 			token.start(0);
 			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
 				token,
-				_code.localTypeAt(i).innerType());
-			_locals.add(decl);
+				code.localTypeAt(i).innerType());
+			locals.add(decl);
 		}
 	}
 
