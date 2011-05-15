@@ -274,6 +274,14 @@ implements Iterable<AvailObject>
 	 */
 	abstract public int objectSlotsCount ();
 
+	/**
+	 * Answer the number of variable object slots in this {@link AvailObject}.
+	 * This does not include the fixed object slots.
+	 */
+	public int variableObjectSlotsCount ()
+	{
+		return objectSlotsCount() - descriptor().numberOfFixedObjectSlots();
+	}
 
 	/**
 	 * Store the AvailObject in the receiver at the given byte-index.
@@ -328,6 +336,16 @@ implements Iterable<AvailObject>
 	 * @return The number of integer slots.
 	 */
 	abstract public int integerSlotsCount ();
+
+
+	/**
+	 * Answer the number of variable integer slots in this {@link AvailObject}.
+	 * This does not include the fixed integer slots.
+	 */
+	public int variableIntegerSlotsCount ()
+	{
+		return integerSlotsCount() - descriptor().numberOfFixedIntegerSlots();
+	}
 
 
 	/**
@@ -713,10 +731,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void addDependentChunkId (
+	public void addDependentChunkIndex (
 		final int aChunkIndex)
 	{
-		descriptor().o_AddDependentChunkId(this, aChunkIndex);
+		descriptor().o_AddDependentChunkIndex(this, aChunkIndex);
 	}
 
 	/**
@@ -1469,23 +1487,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject contingentImpSets ()
-	{
-		return descriptor().o_ContingentImpSets(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void contingentImpSets (
-		final AvailObject value)
-	{
-		descriptor().o_ContingentImpSets(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject continuation ()
 	{
 		return descriptor().o_Continuation(this);
@@ -1624,18 +1625,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject dependentChunks ()
+	public AvailObject dependentChunkIndices ()
 	{
-		return descriptor().o_DependentChunks(this);
+		return descriptor().o_DependentChunkIndices(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void dependentChunks (
+	public void dependentChunkIndices (
 		final AvailObject value)
 	{
-		descriptor().o_DependentChunks(this, value);
+		descriptor().o_DependentChunkIndices(this, value);
 	}
 
 	/**
@@ -2071,14 +2072,6 @@ implements Iterable<AvailObject>
 	public boolean equalsVoidOrBlank ()
 	{
 		return descriptor().o_EqualsVoidOrBlank(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void evictedByGarbageCollector ()
-	{
-		descriptor().o_EvictedByGarbageCollector(this);
 	}
 
 	/**
@@ -3064,19 +3057,19 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int levelTwoChunkIndex ()
+	public AvailObject levelTwoChunk ()
 	{
-		return descriptor().o_LevelTwoChunkIndex(this);
+		return descriptor().o_LevelTwoChunk(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void levelTwoChunkIndexOffset (
-		final int index,
+	public void levelTwoChunkOffset (
+		final AvailObject index,
 		final int offset)
 	{
-		descriptor().o_LevelTwoChunkIndexOffset(
+		descriptor().o_LevelTwoChunkOffset(
 			this,
 			index,
 			offset);
@@ -3307,7 +3300,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short maxStackDepth ()
+	public int maxStackDepth ()
 	{
 		return descriptor().o_MaxStackDepth(this);
 	}
@@ -3374,14 +3367,6 @@ implements Iterable<AvailObject>
 			this,
 			aNumber,
 			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void moveToHead ()
-	{
-		descriptor().o_MoveToHead(this);
 	}
 
 	/**
@@ -3507,15 +3492,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void necessaryImplementationSetChanged (
-		final AvailObject anImplementationSet)
-	{
-		descriptor().o_NecessaryImplementationSetChanged(this, anImplementationSet);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject newNames ()
 	{
 		return descriptor().o_NewNames(this);
@@ -3533,41 +3509,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject next ()
-	{
-		return descriptor().o_Next(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void next (
-		final AvailObject nextChunk)
-	{
-		descriptor().o_Next(this, nextChunk);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int nextIndex ()
-	{
-		return descriptor().o_NextIndex(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void nextIndex (
-		final int value)
-	{
-		descriptor().o_NextIndex(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public short numArgs ()
+	public int numArgs ()
 	{
 		return descriptor().o_NumArgs(this);
 	}
@@ -3575,7 +3517,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short numArgsAndLocalsAndStack ()
+	public int numArgsAndLocalsAndStack ()
 	{
 		return descriptor().o_NumArgsAndLocalsAndStack(this);
 	}
@@ -3642,7 +3584,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short numLiterals ()
+	public int numLiterals ()
 	{
 		return descriptor().o_NumLiterals(this);
 	}
@@ -3650,7 +3592,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short numLocals ()
+	public int numLocals ()
 	{
 		return descriptor().o_NumLocals(this);
 	}
@@ -3675,7 +3617,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short numOuters ()
+	public int numOuters ()
 	{
 		return descriptor().o_NumOuters(this);
 	}
@@ -3849,40 +3791,6 @@ implements Iterable<AvailObject>
 	public void postFault ()
 	{
 		descriptor().o_PostFault(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject previous ()
-	{
-		return descriptor().o_Previous(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void previous (
-		final AvailObject previousChunk)
-	{
-		descriptor().o_Previous(this, previousChunk);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int previousIndex ()
-	{
-		return descriptor().o_PreviousIndex(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void previousIndex (
-		final int value)
-	{
-		descriptor().o_PreviousIndex(this, value);
 	}
 
 	/**
@@ -4221,10 +4129,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void removeDependentChunkId (
+	public void removeDependentChunkIndex (
 		final int aChunkIndex)
 	{
-		descriptor().o_RemoveDependentChunkId(this, aChunkIndex);
+		descriptor().o_RemoveDependentChunkIndex(this, aChunkIndex);
 	}
 
 	/**
@@ -4234,14 +4142,6 @@ implements Iterable<AvailObject>
 		final Interpreter anInterpreter)
 	{
 		descriptor().o_RemoveFrom(this, anInterpreter);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void removeFromQueue ()
-	{
-		descriptor().o_RemoveFromQueue(this);
 	}
 
 	/**
@@ -4637,18 +4537,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int startingChunkIndex ()
+	public AvailObject startingChunk ()
 	{
-		return descriptor().o_StartingChunkIndex(this);
+		return descriptor().o_StartingChunk(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void startingChunkIndex (
-		final int value)
+	public void startingChunk (
+		final AvailObject value)
 	{
-		descriptor().o_StartingChunkIndex(this, value);
+		descriptor().o_StartingChunk(this, value);
 	}
 
 	/**

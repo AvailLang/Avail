@@ -173,8 +173,7 @@ public class L1InstructionWriter
 	private AvailObject nybbles ()
 	{
 		final AvailObject nybbles =
-			NybbleTupleDescriptor.isMutableSize(true, stream.size()).create(
-				(stream.size() + 7) / 8);
+			NybbleTupleDescriptor.mutableObjectOfSize(stream.size());
 		nybbles.hashOrZero(0);
 		final byte [] byteArray = stream.toByteArray();
 		for (int i = 0; i < byteArray.length; i++)

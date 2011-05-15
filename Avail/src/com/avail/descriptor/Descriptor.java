@@ -239,13 +239,13 @@ public class Descriptor extends AbstractDescriptor
 	 * @param aChunkIndex
 	 */
 	@Override
-	public void o_AddDependentChunkId (
+	public void o_AddDependentChunkIndex (
 		final AvailObject object,
 		final int aChunkIndex)
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:addDependentChunkId:", object);
+		subclassResponsibility("Object:addDependentChunkIndex:", object);
 		return;
 	}
 
@@ -955,21 +955,6 @@ public class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_ContingentImpSets (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:contingentImpSets:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_Continuation (
 		final AvailObject object,
 		final AvailObject value)
@@ -1104,13 +1089,11 @@ public class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_DependentChunks (
+	public void o_DependentChunkIndices (
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:dependentChunks:", object);
+		subclassResponsibility("Object:dependentChunkIndices:", object);
 		return;
 	}
 
@@ -2009,18 +1992,16 @@ public class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param index
+	 * @param chunk
 	 * @param offset
 	 */
 	@Override
-	public void o_LevelTwoChunkIndexOffset (
+	public void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final int index,
+		final AvailObject chunk,
 		final int offset)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:levelTwoChunkIndex:offset:", object);
+		subclassResponsibility("Object:levelTwoChunk:offset:", object);
 		return;
 	}
 
@@ -2479,21 +2460,6 @@ public class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anImplementationSet
-	 */
-	@Override
-	public void o_NecessaryImplementationSetChanged (
-		final AvailObject object,
-		final AvailObject anImplementationSet)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:necessaryImplementationSetChanged:", object);
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	@Override
@@ -2504,36 +2470,6 @@ public class Descriptor extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("Object:newNames:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param nextChunk
-	 */
-	@Override
-	public void o_Next (
-		final AvailObject object,
-		final AvailObject nextChunk)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:next:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_NextIndex (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:nextIndex:", object);
 		return;
 	}
 
@@ -2755,36 +2691,6 @@ public class Descriptor extends AbstractDescriptor
 
 		subclassResponsibility("Object:plus:canDestroy:", object);
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param previousChunk
-	 */
-	@Override
-	public void o_Previous (
-		final AvailObject object,
-		final AvailObject previousChunk)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:previous:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_PreviousIndex (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:previousIndex:", object);
-		return;
 	}
 
 	/**
@@ -3197,7 +3103,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @param aChunkIndex
 	 */
 	@Override
-	public void o_RemoveDependentChunkId (
+	public void o_RemoveDependentChunkIndex (
 		final AvailObject object,
 		final int aChunkIndex)
 	{
@@ -3653,13 +3559,11 @@ public class Descriptor extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_StartingChunkIndex (
+	public void o_StartingChunk (
 		final AvailObject object,
-		final int value)
+		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:startingChunkIndex:", object);
+		subclassResponsibility("Object:startingChunk:", object);
 		return;
 	}
 
@@ -4977,20 +4881,6 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_ContingentImpSets (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_ContingentImpSets:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public @NotNull AvailObject o_Continuation (
 		final AvailObject object)
 	{
@@ -5075,12 +4965,10 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_DependentChunks (
+	public @NotNull AvailObject o_DependentChunkIndices (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_DependentChunks:", object);
+		subclassResponsibility("o_DependentChunkIndices:", object);
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5136,19 +5024,6 @@ public class Descriptor extends AbstractDescriptor
 
 		subclassResponsibility("o_EnsureMutable:", object);
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 */
-	@Override
-	public void o_EvictedByGarbageCollector (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_EvictedByGarbageCollector:", object);
-		return;
 	}
 
 	/**
@@ -5692,13 +5567,11 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_LevelTwoChunkIndex (
+	public @NotNull AvailObject o_LevelTwoChunk (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_LevelTwoChunkIndex:", object);
-		return 0;
+		subclassResponsibility("o_LevelTwoChunk:", object);
+		return null;
 	}
 
 	/**
@@ -5776,7 +5649,7 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public short o_MaxStackDepth (
+	public int o_MaxStackDepth (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5825,19 +5698,6 @@ public class Descriptor extends AbstractDescriptor
 
 		subclassResponsibility("o_Methods:", object);
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 */
-	@Override
-	public void o_MoveToHead (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_MoveToHead:", object);
-		return;
 	}
 
 	/**
@@ -5929,39 +5789,9 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_Next (
+	public int o_NumArgs (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_Next:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_NextIndex (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_NextIndex:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public short o_NumArgs (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
 		subclassResponsibility("o_NumArgs:", object);
 		return 0;
 	}
@@ -5971,11 +5801,9 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public short o_NumArgsAndLocalsAndStack (
+	public int o_NumArgsAndLocalsAndStack (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		subclassResponsibility("o_NumArgsAndLocalsAndStack:", object);
 		return 0;
 	}
@@ -6041,11 +5869,9 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public short o_NumLiterals (
+	public int o_NumLiterals (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		subclassResponsibility("o_NumLiterals:", object);
 		return 0;
 	}
@@ -6055,11 +5881,9 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public short o_NumLocals (
+	public int o_NumLocals (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		subclassResponsibility("o_NumLocals:", object);
 		return 0;
 	}
@@ -6083,11 +5907,9 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public short o_NumOuters (
+	public int o_NumOuters (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		subclassResponsibility("o_NumOuters:", object);
 		return 0;
 	}
@@ -6173,34 +5995,6 @@ public class Descriptor extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_Pc:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_Previous (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_Previous:", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_PreviousIndex (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_PreviousIndex:", object);
 		return 0;
 	}
 
@@ -6312,19 +6106,6 @@ public class Descriptor extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		subclassResponsibility("o_ReleaseVariableOrMakeContentsImmutable:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 */
-	@Override
-	public void o_RemoveFromQueue (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_RemoveFromQueue:", object);
 		return;
 	}
 
@@ -6512,13 +6293,11 @@ public class Descriptor extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_StartingChunkIndex (
+	public AvailObject o_StartingChunk (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_StartingChunkIndex:", object);
-		return 0;
+		subclassResponsibility("o_StartingChunk:", object);
+		return null;
 	}
 
 	/**

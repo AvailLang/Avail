@@ -59,7 +59,7 @@ public class L2Translator implements L1OperationDispatcher
 	private int optimizationLevel;
 	private Map<L2RegisterIdentity, AvailObject> registerTypes;
 	private Map<L2RegisterIdentity, AvailObject> registerConstants;
-	private AvailObject contingentImpSets;
+	private Set<AvailObject> contingentImpSets;
 	private L2Interpreter interpreter;
 
 
@@ -560,9 +560,7 @@ public class L2Translator implements L1OperationDispatcher
 		final int primitiveNumber = primitiveClosure.code().primitiveNumber();
 		final Primitive primitive =
 			Primitive.byPrimitiveNumber(primitiveNumber);
-		contingentImpSets = contingentImpSets.setWithElementCanDestroy(
-			impSet,
-			true);
+		contingentImpSets.add(impSet);
 		if (primitive.hasFlag(SpecialReturnConstant))
 		{
 			// Use the first literal as the return value.
@@ -1030,7 +1028,8 @@ public class L2Translator implements L1OperationDispatcher
 		final int index = getInteger();
 		stackp--;
 		addInstruction(new L2GetTypeInstruction(
-			stackRegister((stackp + 1 + index)), topOfStackRegister()));
+			stackRegister(stackp + 1 + index),
+			topOfStackRegister()));
 	}
 
 	/**
@@ -1272,10 +1271,8 @@ public class L2Translator implements L1OperationDispatcher
 	{
 		final L2CodeGenerator codeGen = new L2CodeGenerator();
 		codeGen.setInstructions(instructions);
-		contingentImpSets.makeImmutable();
 		codeGen.addContingentImplementationSets(contingentImpSets);
 		final AvailObject chunk = codeGen.createChunkFor(code);
-		chunk.moveToHead();
 		return chunk;
 	}
 
@@ -1298,27 +1295,22 @@ public class L2Translator implements L1OperationDispatcher
 		code = null;
 		nybbles = null;
 
-		contingentImpSets = SetDescriptor.empty();
+		contingentImpSets = new HashSet<AvailObject>();
 		final L2LabelInstruction loopStart = new L2LabelInstruction();
-		final L2LabelInstruction pausePoint = new L2LabelInstruction();
 		Collections.<L2Instruction>addAll(
 			instructions,
 			new L2DecrementToZeroThenOptimizeInstruction(),
 			new L2PrepareNewFrame(),
 			loopStart,
 			new L2InterpretOneInstructionAndBranchBackIfNoInterrupt(),
-			pausePoint,
 			new L2ProcessInterruptNowInstruction(callerRegister()),
 			new L2JumpInstruction(loopStart));
 
-		optimize();
-		final AvailObject chunk = createChunk();
-		assert chunk.index() == 1;
+		final AvailObject newChunk = createChunk();
+		assert newChunk.index() == 0;
 		assert loopStart.offset() ==
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk();
-		assert pausePoint.offset() ==
-			L2ChunkDescriptor.offsetToPauseUnoptimizedChunk();
-		return chunk;
+		return newChunk;
 	}
 
 	/**
@@ -1379,9 +1371,8 @@ public class L2Translator implements L1OperationDispatcher
 	 *                            CompiledCode object}.
 	 * @param optLevel The optimization level.
 	 * @param anL2Interpreter An {@link L2Interpreter}.
-	 * @return An {@link L2ChunkDescriptor AvailObject}.
 	 */
-	AvailObject translateOptimizationFor (
+	void translateOptimizationFor (
 		final @NotNull AvailObject aCompiledCodeObject,
 		final int optLevel,
 		final @NotNull L2Interpreter anL2Interpreter)
@@ -1405,7 +1396,7 @@ public class L2Translator implements L1OperationDispatcher
 		stackp = code.maxStackDepth() + 1;
 		// Just past end.  This is not the same offset it would have during
 		// execution.
-		contingentImpSets = SetDescriptor.empty();
+		contingentImpSets = new HashSet<AvailObject>();
 		// The first instruction is a label that L1Ext_doPushLabel can always
 		// find at the start of the list of instructions.
 		addInstruction(newLabel());
@@ -1443,9 +1434,9 @@ public class L2Translator implements L1OperationDispatcher
 		// instruction sequence.
 		L1Operation.L1Implied_Return.dispatch(this);
 		assert pc == nybbles.tupleSize() + 1;
-		assert stackp == -0x29A;
+		assert stackp == -666;
 		optimize();
-		final AvailObject newChunk = createChunk();
-		return newChunk;
+		AvailObject newChunk = createChunk();
+		assert code.startingChunk() == newChunk;
 	}
 }

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
@@ -491,10 +491,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object)
 	{
 		final AvailObject result =
-			ByteTupleDescriptor.isMutableSize(true, object.tupleSize()).create(
-				(object.tupleSize() + 3) / 4);
-		// Transfer the leading information (the stuff before the tuple's first
-		// element).
+			ByteTupleDescriptor.mutableObjectOfSize(object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, _end1 = result.tupleSize(); i <= _end1; i++)
 		{
@@ -509,20 +506,16 @@ extends TupleDescriptor
 	 * @param size The number of elements for which to leave room.
 	 * @return A mutable {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 */
-	AvailObject mutableObjectOfSize (
+	public static AvailObject mutableObjectOfSize (
 		final int size)
 	{
-		if (!isMutable)
-		{
-			error("This descriptor should be mutable");
-			return VoidDescriptor.voidObject();
-		}
-		assert (size + unusedNybblesOfLastWord & 7) == 0;
-		final AvailObject result = this.create(((size + 7) / 8));
+		NybbleTupleDescriptor descriptor = isMutableSize(true, size);
+		assert (size + descriptor.unusedNybblesOfLastWord & 7) == 0;
+		final AvailObject result = descriptor.create((size + 7) / 8);
 		return result;
 	}
 
-	public static NybbleTupleDescriptor isMutableSize(
+	private static NybbleTupleDescriptor isMutableSize(
 		final boolean flag,
 		final int size)
 	{

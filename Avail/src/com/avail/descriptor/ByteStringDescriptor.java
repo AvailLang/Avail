@@ -359,6 +359,15 @@ extends TupleDescriptor
 	}
 
 	@Override
+	public int o_TupleSize (
+		final @NotNull AvailObject object)
+	{
+		//  Answer the number of elements in the object (as a Smalltalk Integer).
+
+		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
+	}
+
+	@Override
 	public int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
@@ -429,15 +438,6 @@ extends TupleDescriptor
 		return result;
 	}
 
-	@Override
-	public int o_TupleSize (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the number of elements in the object (as a Smalltalk Integer).
-
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
-	}
-
 	/**
 	 * Answer a new {@linkplain ByteStringDescriptor object} capacious enough to
 	 * hold the specified number of elements.
@@ -453,7 +453,7 @@ extends TupleDescriptor
 			return VoidDescriptor.voidObject();
 		}
 		assert (size + unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = this.create(((size + 3) / 4));
+		final AvailObject result = this.create((size + 3) / 4);
 		return result;
 	}
 

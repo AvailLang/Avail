@@ -63,12 +63,13 @@ extends Descriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@linkplain SetDescriptor set} of {@linkplain L2ChunkDescriptor
-		 * level two chunks} that depend on the membership of this {@linkplain
-		 * ImplementationSetDescriptor implementation set}.  A change to the
-		 * membership should cause these chunks to be invalidated.
+		 * The {@linkplain SetDescriptor set} of {@linkplain
+		 * L2ChunkDescriptor.IntegerSlots#INDEX indices} of {@linkplain
+		 * L2ChunkDescriptor level two chunks} that depend on the membership of
+		 * this {@linkplain ImplementationSetDescriptor implementation set}.  A
+		 * change to the membership should cause these chunks to be invalidated.
 		 */
-		DEPENDENT_CHUNKS,
+		DEPENDENT_CHUNK_INDICES,
 
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@link SignatureDescriptor
@@ -91,11 +92,11 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_DependentChunks (
+	public void o_DependentChunkIndices (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.DEPENDENT_CHUNKS, value);
+		object.objectSlotPut(ObjectSlots.DEPENDENT_CHUNK_INDICES, value);
 	}
 
 	@Override
@@ -123,10 +124,10 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_DependentChunks (
+	public @NotNull AvailObject o_DependentChunkIndices (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.DEPENDENT_CHUNKS);
+		return object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 	}
 
 	@Override
@@ -156,7 +157,7 @@ extends Descriptor
 	{
 		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
 			|| e == ObjectSlots.PRIVATE_TESTING_TREE
-			|| e == ObjectSlots.DEPENDENT_CHUNKS;
+			|| e == ObjectSlots.DEPENDENT_CHUNK_INDICES;
 	}
 
 	@Override
@@ -220,20 +221,18 @@ extends Descriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return IMPLEMENTATION_SET.o();
 	}
 
 	@Override
-	public void o_AddDependentChunkId (
+	public void o_AddDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
-		//  Record the fact that the chunk indexed by aChunkIndex depends on
-		//  this implementationSet not changing.
-		object.dependentChunks(
-			object.dependentChunks().setWithElementCanDestroy(
+		// Record the fact that the chunk indexed by aChunkIndex depends on
+		// this implementationSet not changing.
+		object.dependentChunkIndices(
+			object.dependentChunkIndices().setWithElementCanDestroy(
 				IntegerDescriptor.fromInt(aChunkIndex),
 				true));
 	}
@@ -260,26 +259,12 @@ extends Descriptor
 			// Ensure that we're not mixing macro and non-macro signatures.
 			assert implementation.isMacro() == oldTuple.tupleAt(1).isMacro();
 		}
-		AvailObject set =
-			oldTuple.asSet().setWithElementCanDestroy(
-				implementation,
-				true);
+		AvailObject set = oldTuple.asSet();
+		set = set.setWithElementCanDestroy(
+			implementation,
+			true);
 		object.implementationsTuple(set.asTuple());
-		final AvailObject chunks = object.dependentChunks();
-		if (chunks.setSize() > 0)
-		{
-			for (AvailObject chunkId : chunks.asTuple())
-			{
-				L2ChunkDescriptor.chunkFromId(chunkId.extractInt())
-					.necessaryImplementationSetChanged(object);
-			}
-			assert chunks.traversed().sameAddressAs(
-				object.dependentChunks().traversed())
-			: "dependentChunks must not change shape during invalidation loop";
-			object.dependentChunks(SetDescriptor.empty());
-		}
-		// Clear the privateTestingTree cache.
-		object.privateTestingTree(VoidDescriptor.voidObject());
+		membershipChanged(object);
 	}
 
 	/**
@@ -319,8 +304,7 @@ extends Descriptor
 				}
 				if (all)
 				{
-					result = ByteTupleDescriptor.isMutableSize(true, 1).create(
-						1);
+					result = ByteTupleDescriptor.mutableObjectOfSize(1);
 					result.hashOrZero(0);
 					result = result.tupleAtPuttingCanDestroy(
 						1,
@@ -332,11 +316,11 @@ extends Descriptor
 			}
 			// There was no most specific positive signature.  Indicate an
 			// ambiguity error at this point in the tree.
-			result = ByteTupleDescriptor.isMutableSize(true, 1).create(1);
+			result = ByteTupleDescriptor.mutableObjectOfSize(1);
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
-				IntegerDescriptor.fromInt((0 * 2 + 1)),
+				IntegerDescriptor.fromInt(0 * 2 + 1),
 				true);
 			return result;
 		}
@@ -382,11 +366,11 @@ extends Descriptor
 		}
 		if (!possibleSolutionExists)
 		{
-			result = ByteTupleDescriptor.isMutableSize(true, 1).create(1);
+			result = ByteTupleDescriptor.mutableObjectOfSize(1);
 			result.hashOrZero(0);
 			result = result.tupleAtPuttingCanDestroy(
 				1,
-				IntegerDescriptor.fromInt((0 * 2 + 1)),
+				IntegerDescriptor.fromInt(0 * 2 + 1),
 				true);
 			return result;
 		}
@@ -484,8 +468,7 @@ extends Descriptor
 				newPossible.asTuple());
 		//  Combine the subtrees together, preceded by a test-and-branch.
 		final int newSize = 2 + trueTree.tupleSize() + falseTree.tupleSize();
-		result = ByteTupleDescriptor.isMutableSize(true, newSize)
-			.mutableObjectOfSize(newSize);
+		result = ByteTupleDescriptor.mutableObjectOfSize(newSize);
 		result.hashOrZero(0);
 		result = result.tupleAtPuttingCanDestroy(
 			1,
@@ -777,13 +760,14 @@ extends Descriptor
 	 * implementation set that the chunk is contingent on.
 	 */
 	@Override
-	public void o_RemoveDependentChunkId (
+	public void o_RemoveDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
-		object.dependentChunks(
-			object.dependentChunks().setWithoutElementCanDestroy(
-				IntegerDescriptor.fromInt(aChunkIndex), true));
+		object.dependentChunkIndices(
+			object.dependentChunkIndices().setWithoutElementCanDestroy(
+				IntegerDescriptor.fromInt(aChunkIndex),
+				true));
 	}
 
 	/**
@@ -795,26 +779,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject implementation)
 	{
-		object.implementationsTuple(
-			object.implementationsTuple().asSet().setWithoutElementCanDestroy(
-				implementation, true).asTuple());
-		final AvailObject chunks = object.dependentChunks();
-		if (chunks.setSize() > 0)
-		{
-			final AvailObject chunksAsTuple = chunks.asTuple();
-			for (int i = 1, _end1 = chunksAsTuple.tupleSize(); i <= _end1; i++)
-			{
-				final AvailObject chunkId = chunksAsTuple.tupleAt(i);
-				L2ChunkDescriptor.chunkFromId(chunkId.extractInt())
-					.necessaryImplementationSetChanged(object);
-			}
-			assert chunks.traversed().sameAddressAs(
-				object.dependentChunks().traversed())
-			: "dependentChunks must not change shape during invalidation loop";
-			object.dependentChunks(SetDescriptor.empty());
-		}
-		//  Clear the privateTestingTree cache.
-		object.privateTestingTree(VoidDescriptor.voidObject());
+		AvailObject set = object.implementationsTuple().asSet();
+		set = set.setWithoutElementCanDestroy(implementation, true);
+		object.implementationsTuple(set.asTuple());
+		membershipChanged(object);
 	}
 
 	/**
@@ -969,7 +937,7 @@ extends Descriptor
 	 * Answer how many arguments my implementations require.
 	 */
 	@Override
-	public short o_NumArgs (
+	public int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
 		assert object.implementationsTuple().tupleSize() >= 1;
@@ -1004,9 +972,8 @@ extends Descriptor
 		}
 		//  Compute the tree.
 		final int indicesSize = object.implementationsTuple().tupleSize();
-		final ByteTupleDescriptor descriptor =
-			ByteTupleDescriptor.isMutableSize(true, indicesSize);
-		AvailObject indices = descriptor.mutableObjectOfSize(indicesSize);
+		AvailObject indices =
+			ByteTupleDescriptor.mutableObjectOfSize(indicesSize);
 		for (int i = 1; i <= indicesSize; i++)
 		{
 			indices = indices.tupleAtPuttingCanDestroy(
@@ -1037,11 +1004,38 @@ extends Descriptor
 		final AvailObject result = mutable().create();
 		result.implementationsTuple(TupleDescriptor.empty());
 		result.privateTestingTree(TupleDescriptor.empty());
-		result.dependentChunks(SetDescriptor.empty());
+		result.dependentChunkIndices(SetDescriptor.empty());
 		result.name(messageName);
 		result.makeImmutable();
 		return result;
 	};
+
+	/**
+	 * The membership of this {@linkplain ImplementationSetDescriptor
+	 * implementation set} has changed.  Invalidate anything that depended on
+	 * the previous membership, including the {@linkplain
+	 * ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any dependent level
+	 * two chunks.
+	 *
+	 * @param object The implementation set that changed.
+	 */
+	private static void membershipChanged (
+		final AvailObject object)
+	{
+		// Invalidate any affected level two chunks.
+		final AvailObject chunkIndices = object.dependentChunkIndices();
+		if (chunkIndices.setSize() > 0)
+		{
+			for (AvailObject chunkIndex : chunkIndices.asTuple())
+			{
+				L2ChunkDescriptor.invalidateChunkAtIndex(
+					chunkIndex.extractInt());
+			}
+			assert object.dependentChunkIndices().setSize() == 0;
+		}
+		// Clear the privateTestingTree cache.
+		object.privateTestingTree(VoidDescriptor.voidObject());
+	}
 
 	/**
 	 * Construct a new {@link ImplementationSetDescriptor}.

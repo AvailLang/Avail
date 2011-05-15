@@ -527,7 +527,7 @@ extends TupleDescriptor
 	public int o_NumberOfZones (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlotsCount() - numberOfFixedObjectSlots;
+		return object.variableObjectSlotsCount();
 	}
 
 	/**

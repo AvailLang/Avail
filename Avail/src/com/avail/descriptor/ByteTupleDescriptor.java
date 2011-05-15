@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
@@ -430,23 +430,23 @@ extends TupleDescriptor
 		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
 	}
 
-	public @NotNull AvailObject mutableObjectOfSize (
+	/**
+	 * Build a mutable {@link ByteTupleDescriptor byte tuple} with room for the
+	 * specified number of elements.
+	 *
+	 * @param size The number of bytes in the resulting tuple.
+	 * @return A byte tuple with the specified number of bytes (initially zero).
+	 */
+	public static @NotNull AvailObject mutableObjectOfSize (
 		final int size)
 	{
-		//  Build a new object instance with room for size elements.
-
-		if (!isMutable)
-		{
-			error("This descriptor should be mutable");
-			return VoidDescriptor.voidObject();
-		}
-		assert (size + unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = this.create((size + 3) / 4);
-		return result;
+		ByteTupleDescriptor descriptor = isMutableSize(true, size);
+		assert (size + descriptor.unusedBytesOfLastWord & 3) == 0;
+		return descriptor.create((size + 3) / 4);
 	}
 
 	/* Descriptor lookup */
-	public static @NotNull ByteTupleDescriptor isMutableSize (
+	private static @NotNull ByteTupleDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{

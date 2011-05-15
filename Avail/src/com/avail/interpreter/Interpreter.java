@@ -247,7 +247,7 @@ public abstract class Interpreter
 		final AvailObject methodName,
 		final AvailObject method)
 	{
-		final short numArgs = method.type().numArgs();
+		final int numArgs = method.type().numArgs();
 		final AvailObject returnsBlock =
 			ClosureDescriptor.createStubForNumArgsConstantResult(
 				numArgs,

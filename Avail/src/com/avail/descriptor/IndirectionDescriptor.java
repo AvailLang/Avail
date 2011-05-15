@@ -279,11 +279,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_AddDependentChunkId (
+	public void o_AddDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
-		o_Traversed(object).addDependentChunkId(aChunkIndex);
+		o_Traversed(object).addDependentChunkIndex(aChunkIndex);
 	}
 
 	@Override
@@ -713,14 +713,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_ContingentImpSets (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).contingentImpSets(value);
-	}
-
-	@Override
 	public void o_Continuation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -793,11 +785,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_DependentChunks (
+	public void o_DependentChunkIndices (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).dependentChunks(value);
+		o_Traversed(object).dependentChunkIndices(value);
 	}
 
 	@Override
@@ -1499,12 +1491,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_LevelTwoChunkIndexOffset (
+	public void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
-		final int index,
+		final @NotNull AvailObject chunk,
 		final int offset)
 	{
-		o_Traversed(object).levelTwoChunkIndexOffset(index, offset);
+		o_Traversed(object).levelTwoChunkOffset(chunk, offset);
 	}
 
 	@Override
@@ -1734,30 +1726,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_NecessaryImplementationSetChanged (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anImplementationSet)
-	{
-		o_Traversed(object).necessaryImplementationSetChanged(
-			anImplementationSet);
-	}
-
-	@Override
 	public void o_NewNames (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).newNames(value);
-	}
-
-	@Override
-	public void o_Next (final AvailObject object, final AvailObject nextChunk)
-	{
-		o_Traversed(object).next(nextChunk);
-	}
-
-	@Override
-	public void o_NextIndex (final AvailObject object, final int value)
-	{
-		o_Traversed(object).nextIndex(value);
 	}
 
 	@Override
@@ -1866,20 +1837,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).populateTupleStartingAt(
 			mutableTuple,
 			startingIndex);
-	}
-
-	@Override
-	public void o_Previous (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject previousChunk)
-	{
-		o_Traversed(object).previous(previousChunk);
-	}
-
-	@Override
-	public void o_PreviousIndex (final AvailObject object, final int value)
-	{
-		o_Traversed(object).previousIndex(value);
 	}
 
 	@Override
@@ -2080,11 +2037,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_RemoveDependentChunkId (
+	public void o_RemoveDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
-		o_Traversed(object).removeDependentChunkId(aChunkIndex);
+		o_Traversed(object).removeDependentChunkIndex(aChunkIndex);
 	}
 
 	@Override
@@ -2307,9 +2264,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_StartingChunkIndex (final AvailObject object, final int value)
+	public void o_StartingChunk (
+		final AvailObject object,
+		final AvailObject value)
 	{
-		o_Traversed(object).startingChunkIndex(value);
+		o_Traversed(object).startingChunk(value);
 	}
 
 	@Override
@@ -2978,12 +2937,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ContingentImpSets (final AvailObject object)
-	{
-		return o_Traversed(object).contingentImpSets();
-	}
-
-	@Override
 	public @NotNull AvailObject o_Continuation (final AvailObject object)
 	{
 		return o_Traversed(object).continuation();
@@ -3020,9 +2973,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_DependentChunks (final AvailObject object)
+	public @NotNull AvailObject o_DependentChunkIndices (
+		final AvailObject object)
 	{
-		return o_Traversed(object).dependentChunks();
+		return o_Traversed(object).dependentChunkIndices();
 	}
 
 	@Override
@@ -3077,12 +3031,6 @@ extends AbstractDescriptor
 	public boolean o_EqualsVoidOrBlank (final AvailObject object)
 	{
 		return o_Traversed(object).equalsVoidOrBlank();
-	}
-
-	@Override
-	public void o_EvictedByGarbageCollector (final AvailObject object)
-	{
-		o_Traversed(object).evictedByGarbageCollector();
 	}
 
 	@Override
@@ -3449,9 +3397,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_LevelTwoChunkIndex (final AvailObject object)
+	public @NotNull AvailObject o_LevelTwoChunk (final AvailObject object)
 	{
-		return o_Traversed(object).levelTwoChunkIndex();
+		return o_Traversed(object).levelTwoChunk();
 	}
 
 	@Override
@@ -3491,7 +3439,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public short o_MaxStackDepth (final AvailObject object)
+	public int o_MaxStackDepth (final AvailObject object)
 	{
 		return o_Traversed(object).maxStackDepth();
 	}
@@ -3512,12 +3460,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Methods (final AvailObject object)
 	{
 		return o_Traversed(object).methods();
-	}
-
-	@Override
-	public void o_MoveToHead (final AvailObject object)
-	{
-		o_Traversed(object).moveToHead();
 	}
 
 	@Override
@@ -3557,25 +3499,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Next (final AvailObject object)
-	{
-		return o_Traversed(object).next();
-	}
-
-	@Override
-	public int o_NextIndex (final AvailObject object)
-	{
-		return o_Traversed(object).nextIndex();
-	}
-
-	@Override
-	public short o_NumArgs (final AvailObject object)
+	public int o_NumArgs (final AvailObject object)
 	{
 		return o_Traversed(object).numArgs();
 	}
 
 	@Override
-	public short o_NumArgsAndLocalsAndStack (final AvailObject object)
+	public int o_NumArgsAndLocalsAndStack (final AvailObject object)
 	{
 		return o_Traversed(object).numArgsAndLocalsAndStack();
 	}
@@ -3605,13 +3535,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public short o_NumLiterals (final AvailObject object)
+	public int o_NumLiterals (final AvailObject object)
 	{
 		return o_Traversed(object).numLiterals();
 	}
 
 	@Override
-	public short o_NumLocals (final AvailObject object)
+	public int o_NumLocals (final AvailObject object)
 	{
 		return o_Traversed(object).numLocals();
 	}
@@ -3623,7 +3553,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public short o_NumOuters (final AvailObject object)
+	public int o_NumOuters (final AvailObject object)
 	{
 		return o_Traversed(object).numOuters();
 	}
@@ -3668,18 +3598,6 @@ extends AbstractDescriptor
 	public void o_PostFault (final AvailObject object)
 	{
 		o_Traversed(object).postFault();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Previous (final AvailObject object)
-	{
-		return o_Traversed(object).previous();
-	}
-
-	@Override
-	public int o_PreviousIndex (final AvailObject object)
-	{
-		return o_Traversed(object).previousIndex();
 	}
 
 	@Override
@@ -3735,12 +3653,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		o_Traversed(object).releaseVariableOrMakeContentsImmutable();
-	}
-
-	@Override
-	public void o_RemoveFromQueue (final AvailObject object)
-	{
-		o_Traversed(object).removeFromQueue();
 	}
 
 	@Override
@@ -3822,9 +3734,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public int o_StartingChunkIndex (final AvailObject object)
+	public AvailObject o_StartingChunk (final AvailObject object)
 	{
-		return o_Traversed(object).startingChunkIndex();
+		return o_Traversed(object).startingChunk();
 	}
 
 	@Override

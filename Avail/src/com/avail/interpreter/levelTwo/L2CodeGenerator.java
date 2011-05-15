@@ -210,27 +210,27 @@ public final class L2CodeGenerator
 	}
 
 	/**
-	 * A {@linkplain SetDescriptor set} of {@linkplain
-	 * ImplementationSetDescriptor implementation sets} upon which the
-	 * {@linkplain L2ChunkDescriptor chunk} is dependent.
+	 * A Java {@link Set} of {@linkplain ImplementationSetDescriptor
+	 * implementation sets} upon which the {@linkplain L2ChunkDescriptor chunk}
+	 * is dependent.
 	 */
-	private @NotNull AvailObject contingentImpSets = SetDescriptor.empty();
+	private @NotNull
+	final Set<AvailObject> contingentImpSets = new HashSet<AvailObject>();
 
 	/**
-	 * Merge the specified {@linkplain SetDescriptor set} of {@linkplain
+	 * Merge the specified {@link Set} of {@linkplain
 	 * ImplementationSetDescriptor implementation sets} with those already
 	 * upon which the {@linkplain L2ChunkDescriptor chunk} undergoing code
 	 * generation is already dependent.
 	 *
-	 * @param aSetOfImpSets
-	 *        A {@linkplain SetDescriptor set} of {@linkplain
-	 *        ImplementationSetDescriptor implementation sets}.
+	 * @param setOfImpSets
+	 *            A Java {@link Set} of {@linkplain ImplementationSetDescriptor
+	 *            implementation sets}.
 	 */
 	public void addContingentImplementationSets (
-		final @NotNull AvailObject aSetOfImpSets)
+		final @NotNull Set<AvailObject> setOfImpSets)
 	{
-		contingentImpSets = contingentImpSets.setUnionCanDestroy(
-			aSetOfImpSets, true);
+		contingentImpSets.addAll(setOfImpSets);
 	}
 
 	/**
@@ -365,7 +365,6 @@ public final class L2CodeGenerator
 		}
 
 		AvailObject newChunk = L2ChunkDescriptor.allocate(
-			true,
 			code,
 			literals,
 			vectors,

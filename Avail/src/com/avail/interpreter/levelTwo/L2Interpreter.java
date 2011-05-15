@@ -121,20 +121,22 @@ import com.avail.interpreter.levelOne.*;
  * Note that unlike languages like C and C++, optimizations below level one are
  * always transparent &mdash; other than observations about performance and
  * memory use.  Also note that this was a design constraint for Avail as far
- * back as 1993, after Self, but before its technological successor Java.  The
- * way in which this is accomplished (or will be more fully accomplished) in
- * Avail is by allowing the generated level two code itself to define how to
- * maintain the "accurate fiction" of a level one interpreter.  If a method is
- * inlined ten layers deep inside an outer method, a non-inlined call from that
- * inner method requires ten layers of continuations to be constructed prior to
- * the call (to maintain the "accurate fiction").  There are ways to avoid or at
- * least postpone this phase transition, but I don't have any solid plans for
- * introducing such a mechanism any time soon.
+ * back as 1993, after <span style="font-variant: small-caps;">Self</span>, but
+ * before its technological successor Java.  The way in which this is
+ * accomplished (or will be more fully accomplished) in Avail is by allowing the
+ * generated level two code itself to define how to maintain the "accurate
+ * fiction" of a level one interpreter.  If a method is inlined ten layers deep
+ * inside an outer method, a non-inlined call from that inner method requires
+ * ten layers of continuations to be constructed prior to the call (to
+ * accurately maintain the fiction that it was simply interpreting level one
+ * nybblecodes).  There are ways to avoid or at least postpone this phase
+ * transition, but I don't have any solid plans for introducing such a mechanism
+ * any time soon.
  * </p>
  *
  * <p>
  * Finally, note that the Avail control structures are defined in terms of
- * multi-method dispatch and continuation resumption.  As of 2011.05.09 they
+ * multimethod dispatch and continuation resumption.  As of 2011.05.09 they
  * are also <em>implemented</em> that way, but a goal is to perform object
  * escape analysis in such a way that it deeply favors chasing continuations.
  * If successful, a continuation resumption can basically be rewritten as a
@@ -142,8 +144,8 @@ import com.avail.interpreter.levelOne.*;
  * should be much easier to further optimize (say with SSA) than code which
  * literally passes and resumes continuations.  In those cases that the
  * continuation actually escapes (say, if the continuations are used for
- * backtracking) then it can't dissolve into a simple jump &mdash; but it will still
- * execute correctly, just not as quickly.
+ * backtracking) then it can't dissolve into a simple jump &mdash; but it will
+ * still execute correctly, just not as quickly.
  * </p>
  *
  *
@@ -177,7 +179,7 @@ implements L2OperationDispatcher
 	 *
 	 * <p>
 	 * Note that the {@linkplain CompiledCodeDescriptor compiled code} is passed
-	 * in because the {@linkplain L2ChunkDescriptor#indexOfUnoptimizedChunk()
+	 * in because the {@linkplain L2ChunkDescriptor#unoptimizedChunk()
 	 * default chunk} doesn't inherently know how many registers it needs
 	 * &mdash; the answer depends on the level one compiled code being executed.
 	 * </p>
@@ -197,7 +199,7 @@ implements L2OperationDispatcher
 		chunkWords = chunk.wordcodes();
 		chunkVectors = chunk.vectors();
 		makeRoomForChunkRegisters(chunk, code);
-		chunk.moveToHead();
+		L2ChunkDescriptor.moveToHead(chunk);
 
 		if (logger.isLoggable(Level.FINER))
 		{
@@ -659,7 +661,7 @@ implements L2OperationDispatcher
 			AvailObject newContinuation = ContinuationDescriptor.create(
 				closure,
 				pointerAt(callerRegister()),
-				chunk().index(),
+				chunk(),
 				args,
 				locals);
 			// Freeze all fields of the new object, including its caller,
@@ -1095,7 +1097,7 @@ implements L2OperationDispatcher
 		continuation.pc(integerAt(pcRegister()));
 		continuation.stackp(
 			integerAt(stackpRegister()) + 1 - argumentRegister(1));
-		continuation.levelTwoChunkIndexOffset(chunk().index(), offset());
+		continuation.levelTwoChunkOffset(chunk(), offset());
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			continuation.argOrLocalOrStackAtPut(
@@ -1118,8 +1120,7 @@ implements L2OperationDispatcher
 			pointerAtPut(closureRegister(), VoidDescriptor.voidObject());
 			return;
 		}
-		AvailObject chunkToInvoke = L2ChunkDescriptor.chunkFromId(
-			continuation.levelTwoChunkIndex());
+		AvailObject chunkToInvoke = continuation.levelTwoChunk();
 		if (!chunkToInvoke.isValid())
 		{
 			// The chunk has been invalidated, but the continuation still refers
@@ -1127,11 +1128,10 @@ implements L2OperationDispatcher
 			// all such continuations have let the chunk go.  Therefore, let it
 			// go.  Fall back to the default level two chunk that steps over
 			// nybblecodes.
-			continuation.levelTwoChunkIndexOffset(
-				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
-				L2ChunkDescriptor.offsetToPauseUnoptimizedChunk());
-			chunkToInvoke = L2ChunkDescriptor.chunkFromId(
-				L2ChunkDescriptor.indexOfUnoptimizedChunk());
+			chunkToInvoke = L2ChunkDescriptor.unoptimizedChunk();
+			continuation.levelTwoChunkOffset(
+				chunkToInvoke,
+				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		}
 		setChunk(chunkToInvoke, continuation.closure().code());
 		offset(continuation.levelTwoOffset());
@@ -1188,16 +1188,16 @@ implements L2OperationDispatcher
 	 * Translate the code into a chunk using the specified effort. An effort of
 	 * zero means produce an initial translation that decrements a counter on
 	 * each invocation, re-optimizing (with more effort) if it reaches zero.
+	 * The code is updated to refer to the new chunk.
 	 *
 	 * @param theCode The code to translate.
 	 * @param effort How much effort to put into the optimization effort.
-	 * @return The (potentially new) {@link L2ChunkDescriptor L2Chunk}.
 	 */
-	private AvailObject privateTranslateCodeOptimization (
+	private void privateTranslateCodeOptimization (
 		final AvailObject theCode,
 		final int effort)
 	{
-		return new L2Translator().translateOptimizationFor(
+		new L2Translator().translateOptimizationFor(
 			theCode,
 			effort,
 			this);
@@ -1292,15 +1292,13 @@ implements L2OperationDispatcher
 		final List<AvailObject> args)
 	{
 		final AvailObject code = aClosure.code();
-		AvailObject chunkToInvoke = L2ChunkDescriptor.chunkFromId(
-			code.startingChunkIndex());
+		AvailObject chunkToInvoke = code.startingChunk();
 		if (!chunkToInvoke.isValid())
 		{
 			// The chunk is invalid, so use the default chunk and patch up
 			// aClosure's code.
-			chunkToInvoke = L2ChunkDescriptor.chunkFromId(
-				L2ChunkDescriptor.indexOfUnoptimizedChunk());
-			code.startingChunkIndex(chunkToInvoke.index());
+			chunkToInvoke = L2ChunkDescriptor.unoptimizedChunk();
+			code.startingChunk(chunkToInvoke);
 			code.invocationCount(
 				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
@@ -1510,9 +1508,7 @@ implements L2OperationDispatcher
 		{
 			theCode.invocationCount(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
-			final AvailObject newChunk =
-				privateTranslateCodeOptimization(theCode, 3);
-			assert theCode.startingChunkIndex() == newChunk.index();
+			privateTranslateCodeOptimization(theCode, 3);
 			argsBuffer.clear();
 			final int nArgs = theCode.numArgs();
 			for (int i = 1; i <= nArgs; i++)
@@ -2204,8 +2200,8 @@ implements L2OperationDispatcher
 			code.numArgsAndLocalsAndStack()
 			- code.maxStackDepth()
 			+ stackpIndex);
-		continuation.levelTwoChunkIndexOffset(
-			chunk().index(),
+		continuation.levelTwoChunkOffset(
+			chunk(),
 			wordcodeOffset);
 		final AvailObject slots = chunkVectors.tupleAt(slotsIndex);
 		for (int i = 1; i <= sizeIndex; i++)
@@ -2399,7 +2395,7 @@ implements L2OperationDispatcher
 			{
 				// Primitive succeeded.
 				final AvailObject cont = pointerAt(callerRegister());
-				assert chunk().index() == cont.levelTwoChunkIndex();
+				assert chunk() == cont.levelTwoChunk();
 				cont.readBarrierFault();
 				assert cont.descriptor().isMutable();
 				cont.stackAtPut(cont.stackp(), primitiveResult);

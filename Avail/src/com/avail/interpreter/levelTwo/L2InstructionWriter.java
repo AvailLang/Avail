@@ -107,8 +107,7 @@ public class L2InstructionWriter
 		AvailObject words;
 		if (allBytes)
 		{
-			words = ByteTupleDescriptor.isMutableSize(true, wordCount).create(
-				(wordCount + 3) / 4);
+			words = ByteTupleDescriptor.mutableObjectOfSize(wordCount);
 			int dest = 1;
 			for (int source = 1; source < byteArray.length; source += 2)
 			{

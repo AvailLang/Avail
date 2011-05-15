@@ -898,7 +898,7 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		EmptyTuple = NybbleTupleDescriptor.isMutableSize(true, 0).create();
+		EmptyTuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
 		EmptyTuple.hashOrZero(0);
 		EmptyTuple.makeImmutable();
 
@@ -996,8 +996,7 @@ extends Descriptor
 		final int maxValue = list.size() == 0 ? 0 : max(list);
 		if (maxValue <= 15)
 		{
-			tuple = NybbleTupleDescriptor.isMutableSize(true, list.size())
-				.create((list.size() + 7) / 8);
+			tuple = NybbleTupleDescriptor.mutableObjectOfSize(list.size());
 			for (int i = 1; i <= list.size(); i++)
 			{
 				tuple.rawNybbleAtPut(i, list.get(i - 1).byteValue());
@@ -1005,8 +1004,7 @@ extends Descriptor
 		}
 		else if (maxValue <= 255)
 		{
-			tuple = ByteTupleDescriptor.isMutableSize(true, list.size())
-				.create((list.size() + 3) / 4);
+			tuple = ByteTupleDescriptor.mutableObjectOfSize(list.size());
 			for (int i = 1; i <= list.size(); i++)
 			{
 				tuple.rawByteAtPut(i, list.get(i - 1).shortValue());
@@ -1136,7 +1134,7 @@ extends Descriptor
 	 * combining them.  This reduces the chance of systematic collisions due to
 	 * using the same elements in different patterns of nested tuples.
 	 */
-	static final int PreToggle = 0x00E570A6;
+	static final int PreToggle = 0x71E570A6;
 
 	/**
 	 * Construct a new {@link TupleDescriptor}.

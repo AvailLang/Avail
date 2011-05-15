@@ -32,28 +32,40 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ALL;
-import java.lang.ref.SoftReference;
+import java.lang.ref.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.instruction.L2Instruction;
+import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * A Level Two chunk represents an optimized implementation of a {@linkplain
- * CompiledCodeDescriptor compiled code object}.  It keeps track of its
- * dependent {@linkplain ImplementationSetDescriptor implementation sets}, and
- * vice versa.  If one of the implementation sets that the chunk depends on
- * changes its membership (a method is added, removed, or replaced), this chunk
- * is automatically {@link IntegerSlots#VALIDITY invalidated}.
+ * CompiledCodeDescriptor compiled code object}.
  *
  * <p>
- * TODO: Since Avail-on-Java doesn't have its own garbage collector, there is no
- * longer a mechanism to visit all chunks used by compiled code and
- * continuations.  That means we can't determine when chunks can truly be
- * removed and their indices reused.  At some point we should use direct
- * references from compiled code objects and continuations to the chunks,
- * combined with a {@linkplain Map Java map} of {@linkplain SoftReference soft
- * references}.
+ * The chunks are held onto by weak references in a list (keyed by chunk index).
+ * When a chunk expires due to not being referred to by any code or
+ * continuations, its weak reference is added to a queue from which chunk index
+ * recycling takes place.  The weak references also keep track of the contingent
+ * implementation sets.  The implementation sets maintain the reverse relation
+ * by keeping track of the indices of all chunks that depend on them.  When an
+ * implementation set changes (due to a method being added or removed), the
+ * dependent chunks can be marked as invalid and eviscerated (to reclaim
+ * memory).  When an attempt is made to use an invalidated chunk by invoking a
+ * compiled code object or returning into a continuation, the reference to the
+ * chunk is replaced by a reference to the default chunk (and a continuation
+ * gets its offset set to the level one dispatch loop).  When all references to
+ * the chunk have been so replaced, the chunk's weak reference will appear on
+ * the ReferenceQueue, allowing the index to be recycled.
+ * </p>
+ *
+ * <p>
+ * Eventually we can limit the number of valid chunks by linking the weak
+ * references together into an LRU ring.  When adding a new chunk to a "full"
+ * ring, the oldest element can simply be invalidated, removing it from the
+ * ring.  The level two interpreter is already instrumented to call
+ * moveToHead() at appropriate times.
  * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -66,13 +78,33 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The unique integer that identifies this chunk.  Weak references are
+		 * used to determine when it is safe to recycle an index for a new
+		 * chunk.
+		 */
 		INDEX,
-		VALIDITY,
-		NUM_OBJECTS,
-		NUM_INTEGERS,
-		NUM_DOUBLES,
-		NEXT_INDEX,
-		PREVIOUS_INDEX
+
+		/**
+		 * A compound field that contains information about how many {@link
+		 * L2ObjectRegister object registers} are needed by this
+		 * chunk, as well as some flags.  Having the number of needed object
+		 * registers stored separately allows the register list to be
+		 * dynamically expanded as needed only when starting or resuming a
+		 * continuation.
+		 */
+		@BitFields(describedBy=NumObjectsAndFlags.class)
+		NUM_OBJECTS_AND_FLAGS,
+
+		/**
+		 * A compound field containing the number of {@link L2IntegerRegister
+		 * integer registers} and the number of {@link L2FloatRegister floating
+		 * point registers} that are used by this chunk.  Having this recorded
+		 * separately allows the register list to be dynamically expanded as
+		 * needed only when starting or resuming a continuation.
+		 */
+		@BitFields(describedBy=NumIntegersAndDoubles.class)
+		NUM_INTEGERS_AND_DOUBLES,
 	}
 
 	/**
@@ -80,18 +112,92 @@ extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
-		CONTINGENT_IMP_SETS,
+		/**
+		 * The {@linkplain L2Instruction level two instructions} encoded as a
+		 * tuple of integers.
+		 */
 		WORDCODES,
+
+		/**
+		 * A {@linkplain TupleDescriptor tuple} of tuples of integers.  Each
+		 * integer represents an object register, so each tuple of integers acts
+		 * like a list of registers to be processed together, such as supplying
+		 * arguments to a method invocation.
+		 */
 		VECTORS,
+
+		/**
+		 * The literal objects that the {@linkplain #WORDCODES wordcodes} refer
+		 * to via encoded operands of type {@link L2OperandType#CONSTANT} or
+		 * {@link L2OperandType#SELECTOR}.
+		 */
 		LITERAL_AT_
 	}
 
-	@Override
-	public void o_ContingentImpSets (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	/**
+	 * The bit field representation for {@link
+	 * IntegerSlots#NUM_OBJECTS_AND_FLAGS}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	static class NumObjectsAndFlags
 	{
-		object.objectSlotPut(ObjectSlots.CONTINGENT_IMP_SETS, value);
+		/**
+		 * The number of {@linkplain L2ObjectRegister object registers} that
+		 * this chunk uses.
+		 */
+		@BitField(shift=0, bits=30)
+		static final BitField NUM_OBJECTS =
+			bitField(NumObjectsAndFlags.class, "NUM_OBJECTS");
+
+		/**
+		 * A flag indicating whether this chunk has been reached by the garbage
+		 * collector in the current scavenge cycle.  If it's still clear at flip
+		 * time, the chunk is unreferenced and can be reclaimed.
+		 *
+		 * TODO: This is not used by the current (2011.05.11) Avail-on-Java VM.
+		 */
+		@BitField(shift=30, bits=1)
+		static final BitField SAVED =
+			bitField(NumObjectsAndFlags.class, "SAVED");
+
+		/**
+		 * A flag indicating whether this chunk is valid or if it has been
+		 * invalidated by the addition or removal of a method signature.
+		 */
+		@BitField(shift=31, bits=1)
+		static final BitField VALID =
+			bitField(NumObjectsAndFlags.class, "VALID");
+	}
+
+
+	/**
+	 * The bit field representation for {@link
+	 * IntegerSlots#NUM_INTEGERS_AND_DOUBLES}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	static class NumIntegersAndDoubles
+	{
+		/**
+		 * The number of {@link L2IntegerRegister integer registers} that are
+		 * used by this chunk.  Having this recorded separately allows the
+		 * register list to be dynamically expanded as needed only when starting
+		 * or resuming a continuation.
+		 */
+		@BitField(shift=0, bits=16)
+		static final BitField NUM_INTEGERS =
+			bitField(NumIntegersAndDoubles.class, "NUM_INTEGERS");
+
+		/**
+		 * The number of {@link L2FloatRegister floating point registers} that
+		 * are used by this chunk.  Having this recorded separately allows the
+		 * register list to be dynamically expanded as needed only when starting
+		 * or resuming a continuation.
+		 */
+		@BitField(shift=16, bits=16)
+		static final BitField NUM_DOUBLES =
+			bitField(NumIntegersAndDoubles.class, "NUM_DOUBLES");
 	}
 
 	@Override
@@ -120,19 +226,14 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_NextIndex (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.NEXT_INDEX, value);
-	}
-
-	@Override
 	public void o_NumFloats (
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.NUM_DOUBLES, value);
+		object.bitSlotPut(
+			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
+			NumIntegersAndDoubles.NUM_DOUBLES,
+			value);
 	}
 
 	@Override
@@ -140,7 +241,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.NUM_INTEGERS, value);
+		object.bitSlotPut(
+			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
+			NumIntegersAndDoubles.NUM_INTEGERS,
+			value);
 	}
 
 	@Override
@@ -148,15 +252,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.NUM_OBJECTS, value);
-	}
-
-	@Override
-	public void o_PreviousIndex (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.PREVIOUS_INDEX, value);
+		object.bitSlotPut(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.NUM_OBJECTS,
+			value);
 	}
 
 	@Override
@@ -164,7 +263,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.VALIDITY, value);
+		object.bitSlotPut(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.VALID,
+			value);
 	}
 
 	@Override
@@ -184,13 +286,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ContingentImpSets (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.CONTINGENT_IMP_SETS);
-	}
-
-	@Override
 	public int o_Index (
 		final @NotNull AvailObject object)
 	{
@@ -198,45 +293,39 @@ extends Descriptor
 	}
 
 	@Override
-	public int o_NextIndex (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.NEXT_INDEX);
-	}
-
-	@Override
 	public int o_NumDoubles (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.NUM_DOUBLES);
+		return object.bitSlot(
+			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
+			NumIntegersAndDoubles.NUM_DOUBLES);
 	}
 
 	@Override
 	public int o_NumIntegers (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.NUM_INTEGERS);
+		return object.bitSlot(
+			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
+			NumIntegersAndDoubles.NUM_INTEGERS);
 	}
 
 	@Override
 	public int o_NumObjects (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.NUM_OBJECTS);
-	}
-
-	@Override
-	public int o_PreviousIndex (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.PREVIOUS_INDEX);
+		return object.bitSlot(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.NUM_OBJECTS);
 	}
 
 	@Override
 	public int o_Validity (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.VALIDITY);
+		return object.bitSlot(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.VALID);
 	}
 
 	@Override
@@ -257,14 +346,10 @@ extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull Enum<?> e)
 	{
-		return e == ObjectSlots.CONTINGENT_IMP_SETS
-			|| e == ObjectSlots.WORDCODES
+		return e == ObjectSlots.WORDCODES
 			|| e == ObjectSlots.VECTORS
 			|| e == ObjectSlots.LITERAL_AT_
-			|| e == IntegerSlots.INDEX
-			|| e == IntegerSlots.VALIDITY
-			|| e == IntegerSlots.NEXT_INDEX
-			|| e == IntegerSlots.PREVIOUS_INDEX;
+			|| e == IntegerSlots.NUM_OBJECTS_AND_FLAGS;
 	}
 
 	@Override
@@ -334,102 +419,9 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_NecessaryImplementationSetChanged (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anImplementationSet)
-	{
-		//  An implementation set has changed.  This means a method definition (or a forward or
-		//  an abstract declaration) has been added or removed from the implementation set, and
-		//  the receiver previously expressed an interest in change notifications.  This must have
-		//  been because it was optimized in a way that relied on some aspect of the available
-		//  implementations (e.g., monomorphic inlining), so I need to invalidate myself.  Make me
-		//  into a chunk that looks just like the one that would be there if the compiledCode
-		//  associated with this chunk had never run.  Remove myself from all the implementation
-		//  sets I depend on, once I have been invalidated.
-		//  Mark myself as invalid so that if anyone wants to start up some code that uses me as
-		//  its chunk, or return into a continuation that uses me, they will immediately realize (by
-		//  checking) that I am invalid.  At that point, the method will be reoptimized.  Note that in
-		//  the case of returning into a continuation, we must either omit any optimization or take
-		//  care to optimize in such a way that the correct onramp is created and used.
-
-		object.isValid(false);
-		object.wordcodes(TupleDescriptor.empty());
-		final AvailObject impSets = object.contingentImpSets();
-		for (int i = 1, _end1 = impSets.tupleSize(); i <= _end1; i++)
-		{
-			final AvailObject imp = impSets.tupleAt(i);
-			if (!imp.equals(anImplementationSet))
-			{
-				imp.removeDependentChunkId(object.index());
-			}
-		}
-		object.contingentImpSets(TupleDescriptor.empty());
-		for (int i = 1, _end2 = object.objectSlotsCount() - numberOfFixedObjectSlots(); i <= _end2; i++)
-		{
-			object.literalAtPut(i, VoidDescriptor.voidObject());
-		}
-		object.vectors(TupleDescriptor.empty());
-		//  Make sure LRU queue doesn't refer to it.
-		object.removeFromQueue();
-	}
-
-	@Override
-	public void o_Next (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject nextChunk)
-	{
-		//  Set my successor in whatever ring I'm in.
-
-		object.nextIndex(nextChunk.index());
-	}
-
-	@Override
-	public void o_Previous (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject previousChunk)
-	{
-		//  Set my predecessor in whatever ring I'm in.
-
-		object.previousIndex(previousChunk.index());
-	}
-
-	@Override
-	public void o_EvictedByGarbageCollector (
-		final @NotNull AvailObject object)
-	{
-		//  The garbage collector has evicted me.  Since it is supposed to ensure I will never be
-		//  invoked again, I can remove myself from the implementation sets I used to depend on,
-		//  and tag myself as unusable.
-
-		object.isValid(false);
-		object.isSaved(false);
-		//  Nobody should be interested in this state any more.
-		object.wordcodes(VoidDescriptor.voidObject());
-		final AvailObject impSets = object.contingentImpSets();
-		for (int i = 1, _end1 = impSets.tupleSize(); i <= _end1; i++)
-		{
-			impSets.tupleAt(i).removeDependentChunkId(object.index());
-		}
-		object.contingentImpSets(VoidDescriptor.voidObject());
-		for (int i = 1, _end2 = object.objectSlotsCount() - numberOfFixedObjectSlots(); i <= _end2; i++)
-		{
-			object.literalAtPut(i, VoidDescriptor.voidObject());
-		}
-		object.vectors(VoidDescriptor.voidObject());
-		object.removeFromQueue();
-		//  Make sure LRU queue doesn't refer to it.
-		object.index(-666);
-		object.nextIndex(-666);
-		object.previousIndex(-666);
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit integer that is always the same for equal objects, but
-		//  statistically different for different objects.
-
 		return IntegerDescriptor.computeHashOfInt(object.index());
 	}
 
@@ -437,265 +429,371 @@ extends Descriptor
 	public boolean o_IsSaved (
 		final @NotNull AvailObject object)
 	{
-		return (object.validity() & 2) == 2;
+		return object.bitSlot(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.SAVED) != 0;
 	}
 
 	@Override
 	public boolean o_IsValid (
 		final @NotNull AvailObject object)
 	{
-		return (object.validity() & 1) == 1;
+		return object.bitSlot(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.VALID) != 0;
 	}
 
-	@Override
-	public void o_MoveToHead (
-		final @NotNull AvailObject object)
+
+	/**
+	 * A {@link WeakChunkReference} is the mechanism by which {@linkplain
+	 * L2ChunkDescriptor level two chunks} are recycled by the Java garbage
+	 * collector.  When a chunk is only weakly reachable (i.e., there are no
+	 * strong or soft references to it), the index reserved for that chunk
+	 * becomes eligible for recycling.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	static class WeakChunkReference extends WeakReference<AvailObject>
 	{
-		//  Maintain the LRU queue so that some percentage of the most recently used chunks
-		//  will survive a garbage collection.
+		/**
+		 * The finalization queue onto which {@linkplain L2ChunkDescriptor level
+		 * two chunks}' {@linkplain WeakChunkReference weak references} will be
+		 * placed upon expiration.  There is no special process to remove them
+		 * from here.  Rather, an element of this queue is consumed when needed
+		 * for {@linkplain L2ChunkDescriptor#allocate(AvailObject, List, List,
+		 * int, int, int, List, Set) allocation} of a new chunk.  If this queue
+		 * is empty, a fresh index is allocated.
+		 *
+		 * <p>
+		 * Note that this is not defined as final, since we must ensure that an
+		 * invocation of the virtual machine does not interfere with subsequent
+		 * invocations (for clean tests), and we construct a new {@link
+		 * ReferenceQueue} as part of {@link
+		 * L2ChunkDescriptor#createWellKnownObjects()}.
+		 */
+		static ReferenceQueue<AvailObject> RecyclingQueue =
+			new ReferenceQueue<AvailObject>();
 
-		object.next().previousIndex(object.previousIndex());
-		object.previous().nextIndex(object.nextIndex());
-		//  Now link it in at the head of the ring.
-		final AvailObject head = L2ChunkDescriptor.headOfRing();
-		final AvailObject headNext = head.next();
-		object.nextIndex(headNext.index());
-		object.previousIndex(head.index());
-		headNext.previousIndex(object.index());
-		head.nextIndex(object.index());
+		/**
+		 * The {@linkplain L2ChunkDescriptor.IntegerSlots#INDEX index} of the
+		 * {@linkplain L2ChunkDescriptor level two chunk} to which this
+		 * reference either refers or once referred.
+		 */
+		final int index;
+
+		/**
+		 * The list of {@linkplain ImplementationSetDescriptor implementation
+		 * sets} on which the referent chunk depends.  If one of these
+		 * implementation sets changes (due to adding or removing a
+		 * {@linkplain SignatureDescriptor method implementation}), this chunk
+		 * will be immediately invalidated.
+		 */
+		final Set<AvailObject> contingentImplementationSets;
+
+		/**
+		 * Construct a new {@link WeakChunkReference}.
+		 *
+		 * @param chunk
+		 *            The chunk to be wrapped with a weak reference.
+		 * @param contingentImplementationSets
+		 *            The {@link ImplementationSetDescriptor implementation
+		 *            sets} on which this chunk depends.
+		 */
+		public WeakChunkReference (
+			final AvailObject chunk,
+			final Set<AvailObject> contingentImplementationSets)
+		{
+			super(chunk, RecyclingQueue);
+			this.index = chunk.index();
+			this.contingentImplementationSets = contingentImplementationSets;
+		}
 	}
 
-	@Override
-	public @NotNull AvailObject o_Next (
-		final @NotNull AvailObject object)
-	{
-		//  Answer my successor in whatever ring I'm in.
+	/**
+	 * A list of {@linkplain WeakChunkReference weak chunk references} to every
+	 * {@linkplain L2ChunkDescriptor level two chunk}.  The chunks are wrapped
+	 * within a {@link WeakChunkReference} and placed in the list at their
+	 * {@linkplain IntegerSlots#INDEX index}, which the weak chunk reference
+	 * also records.  Some of the weak references may have a null {@linkplain
+	 * WeakReference#get() referent}, indicating the chunk at that position has
+	 * either been reclaimed or will appear on the {@link
+	 * WeakChunkReference#RecyclingQueue finalization queue} shortly.
+	 */
+	private static final List<WeakChunkReference> AllChunksWeakly =
+		new ArrayList<WeakChunkReference>(100);
 
-		final int index = object.nextIndex();
-		return index == 0 ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index);
-	}
+	/**
+	 * The special {@linkplain L2ChunkDescriptor level two chunk} that is used
+	 * to interpret level one nybblecodes until a piece of {@linkplain
+	 * CompiledCodeDescriptor compiled code} has been executed some number of
+	 * times.
+	 */
+	private static AvailObject UnoptimizedChunk;
 
-	@Override
-	public @NotNull AvailObject o_Previous (
-		final @NotNull AvailObject object)
-	{
-		//  Answer my predecessor in whatever ring I'm in.
 
-		final int index = object.previousIndex();
-		return index == 0 ? L2ChunkDescriptor.headOfRing() : L2ChunkDescriptor.allChunks().getValue().tupleAt(index);
-	}
-
-	@Override
-	public void o_RemoveFromQueue (
-		final @NotNull AvailObject object)
-	{
-		//  Unlink this no longer valid entry from the LRU queue.
-
-		object.next().previousIndex(object.previousIndex());
-		object.previous().nextIndex(object.nextIndex());
-		object.previousIndex(object.index());
-		object.nextIndex(object.index());
-	}
-
-	// Startup/shutdown
-
-	static AvailObject HeadOfRing;
-
-	static AvailObject AllChunks;
-
-	static int NextFreeChunkIndex;
-
+	/**
+	 * Create any statically well-known instances that are needed by the Avail
+	 * runtime system.
+	 */
 	static void createWellKnownObjects ()
 	{
-		AvailObject head;
-		head = L2ChunkDescriptor.allocate(
-			false,
-			VoidDescriptor.voidObject(),
-			Collections.<AvailObject>emptyList(),
-			Collections.<List<Integer>>emptyList(),
-			0,
-			0,
-			0,
-			Collections.<Integer>emptyList(),
-			SetDescriptor.empty());
-		head.next(head);
-		head.previous(head);
-		assert head.index() == 0;
-		assert head.nextIndex() == 0;
-		assert head.previousIndex() == 0;
-		final AvailObject allChunks = ContainerDescriptor.forInnerType(
-			ALL.o());
-		allChunks.setValue(TupleDescriptor.empty());
-		HeadOfRing = head;
-		AllChunks = allChunks;
-		NextFreeChunkIndex = -1;
-		new L2Translator().createChunkForFirstInvocation();
+		WeakChunkReference.RecyclingQueue = new ReferenceQueue<AvailObject>();
+		assert AllChunksWeakly.isEmpty();
+		UnoptimizedChunk = new L2Translator().createChunkForFirstInvocation();
+		assert AllChunksWeakly.size() == 1;
+		assert UnoptimizedChunk.index() == 0;
 	}
 
+	/**
+	 * Disconnect any statically well-known instances that were needed by the
+	 * Avail runtime system.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		HeadOfRing = null;
-		AllChunks = null;
-		NextFreeChunkIndex = -1;
+		UnoptimizedChunk = null;
+		AllChunksWeakly.clear();
+		WeakChunkReference.RecyclingQueue = null;
 	}
 
-	public static AvailObject headOfRing ()
+	/**
+	 * Return the special {@linkplain L2ChunkDescriptor level two chunk} that is
+	 * used to interpret level one nybblecodes until a piece of {@linkplain
+	 * CompiledCodeDescriptor compiled code} has been executed some threshold
+	 * number of times.
+	 *
+	 * @return The special {@linkplain #UnoptimizedChunk unoptimized chunk}.
+	 */
+	public static AvailObject unoptimizedChunk ()
 	{
-		return HeadOfRing;
+		return UnoptimizedChunk;
 	}
 
-	public static AvailObject allChunks ()
-	{
-		return AllChunks;
-	}
-
-	public static AvailObject chunkFromId (final int anId)
-	{
-		return allChunks().getValue().tupleAt(anId);
-	}
-
-	public static int indexOfUnoptimizedChunk ()
-	{
-		return 1;
-	}
-
-	public static int offsetOfUnoptimizedChunk ()
-	{
-		return 1;
-	}
-
-	public static int offsetToSingleStepUnoptimizedChunk ()
-	{
-		return 2;
-	}
-
+	/**
+	 * The level two wordcode offset to which to jump when returning into a
+	 * continuation that's running the {@linkplain #UnoptimizedChunk unoptimized
+	 * chunk}.
+	 *
+	 * @return A level two wordcode offset.
+	 */
 	public static int offsetToContinueUnoptimizedChunk ()
 	{
+		// This is hard-coded, but cross-checked by
+		// L2Translator#createChunkForFirstInvocation().
 		return 3;
 	}
 
-	public static int offsetToPauseUnoptimizedChunk ()
-	{
-		return 4;
-	}
-
+	/**
+	 * Return the number of times to invoke a {@linkplain CompiledCodeDescriptor
+	 * compiled code} object, <em>after an invalidation</em>, before attempting
+	 * to optimize it again.
+	 *
+	 * @return The number of invocations before post-invalidate reoptimization.
+	 */
 	public static int countdownForInvalidatedCode ()
 	{
 		return 100;
 	}
 
+	/**
+	 * Return the number of times to invoke a {@linkplain CompiledCodeDescriptor
+	 * compiled code} object, <em>after creation</em>, before attempting to
+	 * optimize it for the first time.
+	 *
+	 * @return The number of invocations before initial optimization.
+	 */
 	public static int countdownForNewCode ()
 	{
-		return 20; //TODO: Change back to 20
+		return 20;
 	}
 
+	/**
+	 * Return the number of times to invoke a {@linkplain CompiledCodeDescriptor
+	 * compiled code} object, <em>after optimization</em>, before attempting to
+	 * optimize it again with more effort.
+	 *
+	 * @return The number of invocations before attempting to improve the
+	 *         optimization.
+	 */
 	public static int countdownForNewlyOptimizedCode ()
 	{
 		return 200;
 	}
 
+	/**
+	 * The specified chunk has just been used.  Use this fact if possible to
+	 * balance an LRU cache of chunks in such a way that the least recently used
+	 * ones are more likely to be evicted.
+	 *
+	 * @param chunk A {@linkplain L2ChunkDescriptor Level Two chunk}.
+	 */
+	public static void moveToHead (final @NotNull AvailObject chunk)
+	{
+		// Do nothing for now.
+		// TODO: Move it to the head of a ring that holds chunks weakly but
+		// explicitly evicts & invalidates the oldest entry sometimes.
+	}
+
+	/**
+	 * Allocate and set up a new {@linkplain L2ChunkDescriptor level two chunk}
+	 * with the given information.  If {@code code} is non-null, set it up to
+	 * use the new chunk for subsequent invocations.
+	 *
+	 * @param code
+	 *            The {@linkplain CompiledCodeDescriptor code} for which to use
+	 *            the new level two chunk, or null for the initial unoptimized
+	 *            chunk.
+	 * @param listOfLiterals
+	 *            The {@link List} of literal objects used by the new chunk.
+	 * @param listOfVectors
+	 *            The {@link List} of vectors, each of which is a list of
+	 *            {@linkplain Integer}s denoting an {@link L2ObjectRegister}.
+	 * @param numObjects
+	 *            The number of {@link L2ObjectRegister object registers} that
+	 *            this chunk will require.
+	 * @param numIntegers
+	 *            The number of {@link L2IntegerRegister integer registers} that
+	 *            this chunk will require.
+	 * @param numFloats
+	 *            The number of {@link L2FloatRegister floating point registers}
+	 *            that this chunk will require.
+	 * @param theWordcodes
+	 *            A {@link List} of {@linkplain Integer}s that encode the
+	 *            {@linkplain L2Instruction}s to execute in place of the level
+	 *            one nybblecodes.
+	 * @param contingentSets
+	 *            A {@link Set} of {@linkplain ImplementationSetDescriptor
+	 *            implementation sets} on which the level two chunk depends.
+	 * @return
+	 *            The new level two chunk.
+	 */
 	public static AvailObject allocate(
-		final boolean allocateIndex,
 		final AvailObject code,
-		final List<AvailObject> arrayOfLiterals,
-		final List<List<Integer>> arrayOfVectors,
-		final int nObjs,
-		final int nInts,
-		final int nFloats,
+		final List<AvailObject> listOfLiterals,
+		final List<List<Integer>> listOfVectors,
+		final int numObjects,
+		final int numIntegers,
+		final int numFloats,
 		final List<Integer> theWordcodes,
-		final AvailObject contingentSets)
+		final Set<AvailObject> contingentSets)
 	{
 		final List<AvailObject> vectorTuples =
-			new ArrayList<AvailObject>(arrayOfVectors.size());
-		for (final List<Integer> vector : arrayOfVectors)
+			new ArrayList<AvailObject>(listOfVectors.size());
+		for (final List<Integer> vector : listOfVectors)
 		{
 			final AvailObject vectorTuple =
 				TupleDescriptor.fromIntegerList(vector);
 			vectorTuple.makeImmutable();
 			vectorTuples.add(vectorTuple);
 		}
-		final AvailObject vectorTuplesTuple = TupleDescriptor.fromList(
-			vectorTuples);
+		final AvailObject vectorTuplesTuple =
+			TupleDescriptor.fromList(vectorTuples);
 		vectorTuplesTuple.makeImmutable();
 		final AvailObject wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
-		final AvailObject chunk = mutable().create(
-			arrayOfLiterals.size());
+		final AvailObject chunk = mutable().create(listOfLiterals.size());
 		AvailObject.lock(chunk);
 		chunk.vectors(vectorTuplesTuple);
-		chunk.numObjects(nObjs);
-		chunk.numIntegers(nInts);
-		chunk.numFloats(nFloats);
+		chunk.numObjects(numObjects);
+		chunk.numIntegers(numIntegers);
+		chunk.numFloats(numFloats);
 		chunk.wordcodes(wordcodesTuple);
-		for (int i = 1; i <= arrayOfLiterals.size(); i++)
+		for (int i = 1; i <= listOfLiterals.size(); i++)
 		{
-			chunk.literalAtPut(i, arrayOfLiterals.get(i - 1));
+			chunk.literalAtPut(i, listOfLiterals.get(i - 1));
 		}
-		chunk.contingentImpSets(TupleDescriptor.empty());   // in case of GC below
-		if (allocateIndex)
+		// A new chunk starts out saved and valid.
+		chunk.isSaved(true);
+		chunk.isValid(true);
+		final int index;
+		final Reference<? extends AvailObject> weaklyTypedRecycledReference =
+			WeakChunkReference.RecyclingQueue.poll();
+		if (weaklyTypedRecycledReference != null)
 		{
-			int index;
-			chunk.isValid(true);
-			chunk.isSaved(true);   // it starts saved by default
-			if (NextFreeChunkIndex == -1)
+			// Recycle the reference.  Nobody referred to the chunk, so it has
+			// already been garbage collected and nulled from its weak
+			// reference.  It may or may not have been invalidated already, so
+			// clean it up if necessary.
+			final WeakChunkReference oldReference =
+				(WeakChunkReference)weaklyTypedRecycledReference;
+			for (AvailObject impSet : oldReference.contingentImplementationSets)
 			{
-				// Allocate room for more chunks in the tuple of all chunks.
-				final AvailObject oldChunks = allChunks().getValue();
-				final AvailObject newChunks = ObjectTupleDescriptor.mutable().create(
-					oldChunks.tupleSize() * 2 + 10);
-				for (int i = 1; i <= oldChunks.tupleSize(); i++)
-				{
-					newChunks.tupleAtPut(i, oldChunks.tupleAt(i));
-				}
-				for (int i = newChunks.tupleSize(); i > oldChunks.tupleSize(); i--)
-				{
-					newChunks.tupleAtPut(i, IntegerDescriptor.fromInt(NextFreeChunkIndex));
-					NextFreeChunkIndex = i;
-				}
-				allChunks().setValue(newChunks);
+				impSet.removeDependentChunkIndex(oldReference.index);
 			}
-			index = NextFreeChunkIndex;
-			NextFreeChunkIndex = allChunks().getValue().tupleIntAt(index);
-			allChunks().setValue(allChunks().getValue().tupleAtPuttingCanDestroy(
-				index,
-				chunk,
-				true));
-			chunk.index(index);
-			// Ring pointers should (initially) be aimed back at the chunk.
-			chunk.nextIndex(index);
-			chunk.previousIndex(index);
-			// Now that the index has been assigned, connect the dependency.  Since connecting
-			// the dependency may grow some sets, make sure the GC can be invoked safely.  To
-			// assist this, make sure the code is referring to the chunk being set up, to avoid having
-			// it garbage collected before we have a chance to install it.
-			if (code != null)
-			{
-				code.startingChunkIndex(index);
-				code.invocationCount(L2ChunkDescriptor.countdownForNewlyOptimizedCode());
-			}
-			final AvailObject contingentSetsTuple = contingentSets.asTuple();
-			chunk.contingentImpSets(contingentSetsTuple);
-			for (int i = 1; i <= contingentSetsTuple.tupleSize(); i++)
-			{
-				contingentSetsTuple.tupleAt(i).addDependentChunkId(index);
-			}
+			oldReference.contingentImplementationSets.clear();
+			index = oldReference.index;
 		}
 		else
 		{
-			// This is a special permanent chunk, so it should not be contingent on anything.  Also,
-			// its index should be zero, and it should not be in the allChunks() collection.
-			chunk.isValid(false);
-			chunk.isSaved(true);
-			chunk.index(0);
-			chunk.nextIndex(0);
-			chunk.previousIndex(0);
-			chunk.contingentImpSets(TupleDescriptor.empty());
-			assert contingentSets.setSize() == 0;
+			// Nothing available for recycling.  Make room for it at the end.
+			index = AllChunksWeakly.size();
+			AllChunksWeakly.add(null);
+		}
+		chunk.index(index);
+		final WeakChunkReference newReference = new WeakChunkReference(
+			chunk,
+			contingentSets);
+		AllChunksWeakly.set(chunk.index(), newReference);
+
+		// Now that the index has been assigned, connect the dependency.  Since
+		// connecting the dependency may grow some sets, make sure the Avail GC
+		// (not yet implemented in Java) can be invoked safely.  To assist this,
+		// make sure the code is referring to the chunk being set up, to avoid
+		// having it garbage collected before we have a chance to install it.
+		if (code != null)
+		{
+			code.startingChunk(chunk);
+			code.invocationCount(
+				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
+		}
+		for (AvailObject impSet : contingentSets)
+		{
+			impSet.addDependentChunkIndex(index);
 		}
 		AvailObject.unlock(chunk);
 		chunk.makeImmutable();
+		moveToHead(chunk);
 		return chunk;
+	}
+
+	/**
+	 * An implementation set has changed.  This means a method definition (or a
+	 * forward or an abstract declaration) has been added or removed from the
+	 * implementation set, and the specified chunk previously expressed an
+	 * interest in change notifications.  This must have been because it was
+	 * optimized in a way that relied on some aspect of the available
+	 * implementations (e.g., monomorphic inlining), so we need to invalidate
+	 * the chunk now, so that an attempt to invoke it or return into it will be
+	 * detected and converted into using the {@linkplain #UnoptimizedChunk
+	 * unoptimized chunk}.  Also remove this chunk's index from all
+	 * implementation sets on which it was depending.  Do not add the chunk's
+	 * reference to the reference queue, since it may still be referenced by
+	 * code or continuations that need to detect that it is now invalid.
+	 *
+	 * @param chunkIndex The index of the chunk to invalidate.
+	 */
+	public static void invalidateChunkAtIndex (
+		final int chunkIndex)
+	{
+		WeakChunkReference ref = AllChunksWeakly.get(chunkIndex);
+		assert ref.index == chunkIndex;
+		AvailObject chunk = ref.get();
+		if (chunk != null)
+		{
+			chunk.isValid(false);
+			chunk.wordcodes(TupleDescriptor.empty());
+			chunk.vectors(TupleDescriptor.empty());
+			for (int i = chunk.variableObjectSlotsCount(); i >= 1; i--)
+			{
+				chunk.literalAtPut(i, VoidDescriptor.voidObject());
+			}
+		}
+		final Set<AvailObject> impSets = ref.contingentImplementationSets;
+		for (AvailObject impSet : impSets)
+		{
+			impSet.removeDependentChunkIndex(chunkIndex);
+		}
+		ref.contingentImplementationSets.clear();
 	}
 
 	/**

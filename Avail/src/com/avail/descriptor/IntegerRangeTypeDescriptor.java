@@ -470,7 +470,7 @@ extends TypeDescriptor
 		Bytes = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.fromUnsignedByte(((short)255)),
+			IntegerDescriptor.fromUnsignedByte((short)255),
 			true);
 		CharacterCodePoints = create(
 			IntegerDescriptor.zero(),
@@ -495,7 +495,7 @@ extends TypeDescriptor
 		Nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
-			IntegerDescriptor.fromUnsignedByte(((short)15)),
+			IntegerDescriptor.fromUnsignedByte((short)15),
 			true);
 		UnsignedShorts = create(
 			IntegerDescriptor.zero(),

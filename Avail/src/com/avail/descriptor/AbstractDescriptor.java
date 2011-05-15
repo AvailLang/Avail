@@ -499,7 +499,6 @@ public abstract class AbstractDescriptor
 						builder.append(subfieldValue);
 					}
 					builder.append(")");
-					//TODO: Finish this new feature
 				}
 				else
 				{
@@ -676,7 +675,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param aChunkIndex
 	 */
-	public abstract void o_AddDependentChunkId (
+	public abstract void o_AddDependentChunkIndex (
 		final AvailObject object,
 		final int aChunkIndex);
 
@@ -1086,14 +1085,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_ContingentImpSets (
-		final AvailObject object,
-		final AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
 	public abstract void o_Continuation (
 		final AvailObject object,
 		final AvailObject value);
@@ -1172,7 +1163,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_DependentChunks (
+	public abstract void o_DependentChunkIndices (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -1661,12 +1652,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param index
+	 * @param chunk
 	 * @param offset
 	 */
-	public abstract void o_LevelTwoChunkIndexOffset (
+	public abstract void o_LevelTwoChunkOffset (
 		final AvailObject object,
-		final int index,
+		final AvailObject chunk,
 		final int offset);
 
 	/**
@@ -1916,33 +1907,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anImplementationSet
-	 */
-	public abstract void o_NecessaryImplementationSetChanged (
-		final AvailObject object,
-		final AvailObject anImplementationSet);
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	public abstract void o_NewNames (
 		final AvailObject object,
 		final AvailObject value);
-
-	/**
-	 * @param object
-	 * @param nextChunk
-	 */
-	public abstract void o_Next (
-		final AvailObject object,
-		final AvailObject nextChunk);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_NextIndex (final AvailObject object, final int value);
 
 	/**
 	 * @param object
@@ -2049,22 +2018,6 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param previousChunk
-	 */
-	public abstract void o_Previous (
-		final AvailObject object,
-		final AvailObject previousChunk);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_PreviousIndex (
-		final AvailObject object,
-		final int value);
 
 	/**
 	 * @param object
@@ -2290,7 +2243,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param aChunkIndex
 	 */
-	public abstract void o_RemoveDependentChunkId (
+	public abstract void o_RemoveDependentChunkIndex (
 		final AvailObject object,
 		final int aChunkIndex);
 
@@ -2536,9 +2489,9 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_StartingChunkIndex (
+	public abstract void o_StartingChunk (
 		final AvailObject object,
-		final int value);
+		final AvailObject value);
 
 	/**
 	 * @param object
@@ -3229,12 +3182,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ContingentImpSets (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract AvailObject o_Continuation (final AvailObject object);
 
 	/**
@@ -3271,7 +3218,8 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_DependentChunks (final AvailObject object);
+	public abstract AvailObject o_DependentChunkIndices (
+		final AvailObject object);
 
 	/**
 	 * @param object
@@ -3294,11 +3242,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_EnsureMutable (final AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	public abstract void o_EvictedByGarbageCollector (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3540,7 +3483,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_LevelTwoChunkIndex (final AvailObject object);
+	public abstract AvailObject o_LevelTwoChunk (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3576,7 +3519,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract short o_MaxStackDepth (final AvailObject object);
+	public abstract int o_MaxStackDepth (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3595,11 +3538,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_Methods (final AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	public abstract void o_MoveToHead (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3641,25 +3579,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Next (final AvailObject object);
+	public abstract int o_NumArgs (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NextIndex (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract short o_NumArgs (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract short o_NumArgsAndLocalsAndStack (final AvailObject object);
+	public abstract int o_NumArgsAndLocalsAndStack (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3689,13 +3615,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract short o_NumLiterals (final AvailObject object);
+	public abstract int o_NumLiterals (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract short o_NumLocals (final AvailObject object);
+	public abstract int o_NumLocals (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3707,7 +3633,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract short o_NumOuters (final AvailObject object);
+	public abstract int o_NumOuters (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3744,18 +3670,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract int o_Pc (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_Previous (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_PreviousIndex (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3804,11 +3718,6 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract void o_ReleaseVariableOrMakeContentsImmutable (
 		final AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	public abstract void o_RemoveFromQueue (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3891,7 +3800,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_StartingChunkIndex (final AvailObject object);
+	public abstract AvailObject o_StartingChunk (final AvailObject object);
 
 	/**
 	 * @param object

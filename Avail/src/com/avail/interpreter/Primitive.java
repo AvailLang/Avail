@@ -1389,8 +1389,8 @@ public enum Primitive
 
 
 	/**
-	 * <strong>Primitive 45:</strong> Run the block, ignoring the leading
-	 * boolean argument.  This is used for short-circuit evaluation.
+	 * <strong>Primitive 45:</strong> Run the zero-argument block, ignoring the
+	 * leading boolean argument.  This is used for short-circuit evaluation.
 	 */
 	prim45_ShortCircuitHelper_ignoredBool_block(45, 2, Invokes, CannotFail)
 	{
@@ -1448,8 +1448,8 @@ public enum Primitive
 			cont.closure(closure);
 			cont.pc(pc.extractInt());
 			cont.stackp(stackp.extractInt());
-			cont.levelTwoChunkIndexOffset(
-				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
+			cont.levelTwoChunkOffset(
+				L2ChunkDescriptor.unoptimizedChunk(),
 				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 			for (int i = 1, _end3 = stack.tupleSize(); i <= _end3; i++)
 			{
@@ -1850,7 +1850,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			final short count = con.closure().code().numArgsAndLocalsAndStack();
+			final int count = con.closure().code().numArgsAndLocalsAndStack();
 			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
 				count);
 			for (int i = 1; i <= count; i++)
@@ -4130,8 +4130,7 @@ public enum Primitive
 			final AvailObject tuple;
 			if (bytesRead > 0)
 			{
-				tuple = ByteTupleDescriptor.isMutableSize(
-					true, bytesRead).mutableObjectOfSize(bytesRead);
+				tuple = ByteTupleDescriptor.mutableObjectOfSize(bytesRead);
 				for (int i = 1; i <= bytesRead; i++)
 				{
 					tuple.rawByteAtPut(i, (short) (buffer[i - 1] & 0xff));

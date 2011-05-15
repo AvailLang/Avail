@@ -68,8 +68,8 @@ extends SetBinDescriptor
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.
-		 * TODO:  Allow this to be voided and recomputed on demand for
-		 * performance.
+		 * If this is {@linkplain VoidDescriptor#voidObject() void}, then it can
+		 * be recomputed when needed and cached.
 		 */
 		BIN_UNION_TYPE_OR_VOID,
 
@@ -182,7 +182,7 @@ extends SetBinDescriptor
 		if (union.equalsVoid())
 		{
 			union = object.binElementAt(1).binUnionType();
-			int limit = object.objectSlotsCount() - numberOfFixedObjectSlots;
+			int limit = object.variableObjectSlotsCount();
 			for (int i = 2; i <= limit; i++)
 			{
 				union = union.typeUnion(object.binElementAt(i).binUnionType());
@@ -209,8 +209,7 @@ extends SetBinDescriptor
 	{
 		assert myLevel == _level;
 		//  First, grab the appropriate 5 bits from the hash.
-		final int objectEntryCount =
-			object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * _level) & 31;
 		final int vector = object.bitVector();
 		final int masked = vector & bitShift(1,logicalIndex) - 1;
@@ -255,7 +254,7 @@ extends SetBinDescriptor
 						.create(objectEntryCount);
 				objectToModify.bitVector(vector);
 				final int limit =
-					object.objectSlotsCount() - numberOfFixedObjectSlots();
+					object.variableObjectSlotsCount();
 				for (int i = 1; i <= limit; i++)
 				{
 					objectToModify.binElementAtPut(i, object.binElementAt(i));
@@ -329,8 +328,7 @@ extends SetBinDescriptor
 		final boolean canDestroy)
 	{
 
-		final int objectEntryCount = object.objectSlotsCount()
-			- numberOfFixedObjectSlots();
+		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * _level) & 31;
 		final int vector = object.bitVector();
 		if ((vector & bitShift(1,logicalIndex)) == 0)
@@ -480,7 +478,7 @@ extends SetBinDescriptor
 		assert mutableTuple.descriptor().isMutable();
 		int writeIndex = startingIndex;
 		for (
-			int index = object.objectSlotsCount() - numberOfFixedObjectSlots;
+			int index = object.variableObjectSlotsCount();
 			index >= 1;
 			index--)
 		{

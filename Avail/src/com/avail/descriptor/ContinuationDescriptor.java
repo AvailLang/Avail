@@ -73,27 +73,19 @@ extends Descriptor
 	public enum IntegerSlots
 	{
 		/**
-		 * The index into the current continuation's {@linkplain
-		 * ObjectSlots#CLOSURE closure's} compiled code's
-		 * tuple of nybblecodes at which execution will next occur.
+		 * A composite field containing the {@linkplain
+		 * ProgramCounterAndStackPointer#PROGRAM_COUNTER program counter} and
+		 * {@linkplain ProgramCounterAndStackPointer#STACK_POINTER stack
+		 * pointer}.
 		 */
-		PC,
+		@BitFields(describedBy=ProgramCounterAndStackPointer.class)
+		PROGRAM_COUNTER_AND_STACK_POINTER,
 
 		/**
-		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
-		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
-		 * deepest it just abuts the last local variable.
+		 * The Level Two {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES
+		 * wordcode} index at which to resume.
 		 */
-		STACK_POINTER,
-
-		/**
-		 * An integer consisting of two unsigned shorts.  The high short is the
-		 * index of the {@linkplain L2ChunkDescriptor Level Two chunk} which can
-		 * be resumed directly to effect continued execution.  The low short is
-		 * the Level Two program counter at which to resume.
-		 */
-		@BitFields(describedBy=HiLevelTwoChunkLowOffset.class)
-		HI_LEVEL_TWO_CHUNK_LOW_OFFSET
+		LEVEL_TWO_OFFSET
 	}
 
 	/**
@@ -118,6 +110,13 @@ extends Descriptor
 		CLOSURE,
 
 		/**
+		 * The {@linkplain L2ChunkDescriptor Level Two chunk} which can be
+		 * resumed directly by the {@link L2Interpreter} to effect continued
+		 * execution.
+		 */
+		LEVEL_TWO_CHUNK,
+
+		/**
 		 * The slots allocated for locals, arguments, and stack entries.  The
 		 * arguments are first, then the locals, and finally the stack entries
 		 * (growing downwards from the top).  At its deepest, the stack slots
@@ -128,27 +127,27 @@ extends Descriptor
 
 	/**
 	 * The bit fields that make up the {@link
-	 * IntegerSlots#HI_LEVEL_TWO_CHUNK_LOW_OFFSET} integer field.
+	 * IntegerSlots#PROGRAM_COUNTER_AND_STACK_POINTER} integer field.
 	 */
-	public static class HiLevelTwoChunkLowOffset
+	static class ProgramCounterAndStackPointer
 	{
 		/**
-		 * The {@linkplain L2ChunkDescriptor.IntegerSlots#INDEX index} of the
-		 * {@linkplain L2ChunkDescriptor level two chunk} to execute when this
-		 * continuation is resumed.
+		 * The index into the current continuation's {@linkplain
+		 * ObjectSlots#CLOSURE closure's} compiled code's tuple of nybblecodes
+		 * at which execution will next occur.
 		 */
 		@BitField(shift=16, bits=16)
-		static final BitField LEVEL_TWO_CHUNK =
-			bitField(HiLevelTwoChunkLowOffset.class, "LEVEL_TWO_CHUNK");
+		static BitField PROGRAM_COUNTER
+			= bitField(ProgramCounterAndStackPointer.class, "PROGRAM_COUNTER");
 
 		/**
-		 * The position in the level two chunk's {@linkplain
-		 * L2ChunkDescriptor.ObjectSlots#WORDCODES wordcodes} at which to resume
-		 * execution when the continuation is resumed.
+		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
+		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
+		 * deepest it just abuts the last local variable.
 		 */
 		@BitField(shift=0, bits=16)
-		static final BitField OFFSET =
-			bitField(HiLevelTwoChunkLowOffset.class, "OFFSET");
+		static BitField STACK_POINTER
+			= bitField(ProgramCounterAndStackPointer.class, "STACK_POINTER");
 	}
 
 
@@ -193,7 +192,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.PC, value);
+		object.bitSlotPut(
+			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
+			ProgramCounterAndStackPointer.PROGRAM_COUNTER,
+			value);
 	}
 
 	@Override
@@ -201,8 +203,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		assert value > 0; //TODO: Remove safety check
-		object.integerSlotPut(IntegerSlots.STACK_POINTER, value);
+		object.bitSlotPut(
+			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
+			ProgramCounterAndStackPointer.STACK_POINTER,
+			value);
 	}
 
 	@Override
@@ -223,14 +227,18 @@ extends Descriptor
 	public int o_Pc (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.PC);
+		return object.bitSlot(
+			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
+			ProgramCounterAndStackPointer.PROGRAM_COUNTER);
 	}
 
 	@Override
 	public int o_Stackp (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.STACK_POINTER);
+		return object.bitSlot(
+			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
+			ProgramCounterAndStackPointer.STACK_POINTER);
 	}
 
 	@Override
@@ -332,19 +340,13 @@ extends Descriptor
 	 * Set both my chunk index and the offset into it.
 	 */
 	@Override
-	public void o_LevelTwoChunkIndexOffset (
+	public void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
-		final int index,
+		final @NotNull AvailObject chunk,
 		final int offset)
 	{
-		object.bitSlotPut(
-			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
-			HiLevelTwoChunkLowOffset.LEVEL_TWO_CHUNK,
-			index);
-		object.bitSlotPut(
-			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
-			HiLevelTwoChunkLowOffset.OFFSET,
-			offset);
+		object.objectSlotPut(ObjectSlots.LEVEL_TWO_CHUNK, chunk);
+		object.integerSlotPut(IntegerSlots.LEVEL_TWO_OFFSET, offset);
 	}
 
 	/**
@@ -392,21 +394,17 @@ extends Descriptor
 	}
 
 	@Override
-	public int o_LevelTwoChunkIndex (
+	public @NotNull AvailObject o_LevelTwoChunk (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
-			HiLevelTwoChunkLowOffset.LEVEL_TWO_CHUNK);
+		return object.objectSlot(ObjectSlots.LEVEL_TWO_CHUNK);
 	}
 
 	@Override
 	public int o_LevelTwoOffset (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET,
-			HiLevelTwoChunkLowOffset.OFFSET);
+		return object.integerSlot(IntegerSlots.LEVEL_TWO_OFFSET);
 	}
 
 	/**
@@ -414,10 +412,10 @@ extends Descriptor
 	 * entries.
 	 */
 	@Override
-	public short o_NumArgsAndLocalsAndStack (
+	public int o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
-		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
+		return object.variableObjectSlotsCount();
 	}
 
 	/**
@@ -436,16 +434,15 @@ extends Descriptor
 	public void o_PostFault (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject chunk = L2ChunkDescriptor.chunkFromId(
-			object.levelTwoChunkIndex());
+		final AvailObject chunk = object.levelTwoChunk();
 		if (chunk.isValid())
 		{
 			chunk.isSaved(true);
 		}
 		else
 		{
-			object.levelTwoChunkIndexOffset(
-				L2ChunkDescriptor.indexOfUnoptimizedChunk(),
+			object.levelTwoChunkOffset(
+				L2ChunkDescriptor.unoptimizedChunk(),
 				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		}
 	}
@@ -462,14 +459,14 @@ extends Descriptor
 			object.makeSubobjectsImmutable();
 		}
 		final AvailObject result = mutable().create(
-			object.objectSlotsCount() - numberOfFixedObjectSlots);
+			object.variableObjectSlotsCount());
 		assert result.objectSlotsCount() == object.objectSlotsCount();
 		result.caller(object.caller());
 		result.closure(object.closure());
 		result.pc(object.pc());
 		result.stackp(object.stackp());
-		result.levelTwoChunkIndexOffset(
-			object.levelTwoChunkIndex(),
+		result.levelTwoChunkOffset(
+			object.levelTwoChunk(),
 			object.levelTwoOffset());
 		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
@@ -482,7 +479,8 @@ extends Descriptor
 	public boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull Enum<?> e)
 	{
-		return e == IntegerSlots.HI_LEVEL_TWO_CHUNK_LOW_OFFSET;
+		return e == IntegerSlots.LEVEL_TWO_OFFSET
+			|| e == ObjectSlots.LEVEL_TWO_CHUNK;
 	}
 
 	/**
@@ -493,14 +491,14 @@ extends Descriptor
 	 *
 	 * @param closure The closure being invoked.
 	 * @param caller The calling continuation.
-	 * @param startingChunkIndex The index of the level two chunk to invoke.
+	 * @param startingChunk The level two chunk to invoke.
 	 * @param args The List of arguments
 	 * @return The new continuation.
 	 */
 	public static AvailObject create (
 		final @NotNull AvailObject closure,
 		final @NotNull AvailObject caller,
-		final int startingChunkIndex,
+		final @NotNull AvailObject startingChunk,
 		final @NotNull List<AvailObject> args)
 	{
 		final AvailObject code = closure.code();
@@ -518,7 +516,7 @@ extends Descriptor
 		return create(
 			closure,
 			caller,
-			startingChunkIndex,
+			startingChunk,
 			args,
 			locals);
 	}
@@ -531,7 +529,7 @@ extends Descriptor
 	 *
 	 * @param closure The closure being invoked.
 	 * @param caller The calling continuation.
-	 * @param startingChunkIndex The index of the level two chunk to invoke.
+	 * @param startingChunk The level two chunk to invoke.
 	 * @param args The {@link List} of arguments
 	 * @param locals The {@link List} of (non-argument) local variables.
 	 * @return The new continuation.
@@ -539,7 +537,7 @@ extends Descriptor
 	public static AvailObject create (
 		final @NotNull AvailObject closure,
 		final @NotNull AvailObject caller,
-		final int startingChunkIndex,
+		final @NotNull AvailObject startingChunk,
 		final @NotNull List<AvailObject> args,
 		final @NotNull List<AvailObject> locals)
 	{
@@ -552,8 +550,8 @@ extends Descriptor
 		cont.pc(1);
 		cont.stackp(
 			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);
-		cont.levelTwoChunkIndexOffset(
-			startingChunkIndex,
+		cont.levelTwoChunkOffset(
+			startingChunk,
 			1);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{

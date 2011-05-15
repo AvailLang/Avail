@@ -288,7 +288,7 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		final short num = object.numArgs();
+		final int num = object.numArgs();
 		if (num != aType.numArgs())
 		{
 			return false;
@@ -361,10 +361,10 @@ extends TypeDescriptor
 	 * {@linkplain ClosureTypeDescriptor object}.
 	 */
 	@Override
-	public short o_NumArgs (
+	public int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
-		return (short)(object.objectSlotsCount() - numberOfFixedObjectSlots);
+		return object.variableObjectSlotsCount();
 	}
 
 	/**
@@ -429,7 +429,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject continuation,
 		final int stackp)
 	{
-		final short numArgs = object.numArgs();
+		final int numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject arg = continuation.stackAt(stackp + numArgs - i);
@@ -453,7 +453,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject continuation,
 		final int stackp)
 	{
-		final short numArgs = object.numArgs();
+		final int numArgs = object.numArgs();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject argType =

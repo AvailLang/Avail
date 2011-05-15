@@ -42,9 +42,8 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 
 /**
  * {@code L2InterpretOneInstruction} resides solely in the {@linkplain
- * L2Translator#createChunkForFirstInvocation() default} {@linkplain
- * L2ChunkDescriptor chunk} and exists to simulate a single {@linkplain
- * L1Instruction level one Avail instruction}.
+ * L2ChunkDescriptor#unoptimizedChunk() default chunk} and exists to simulate a
+ * single {@linkplain L1Instruction level one Avail instruction}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -58,8 +57,7 @@ extends L2Instruction
 	 * <p>
 	 * Note that this should never be produced by the {@linkplain L2Translator
 	 * optimizer}, as its existence and purpose are restricted to the
-	 * {@linkplain L2Translator#createChunkForFirstInvocation() default}
-	 * {@linkplain L2ChunkDescriptor chunk}.
+	 * {@linkplain L2ChunkDescriptor#unoptimizedChunk() default chunk}.
 	 * </p>
 	 */
 	@Override

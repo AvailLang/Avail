@@ -125,7 +125,7 @@ extends SetBinDescriptor
 			return object;
 		}
 		//  It's not present, so grow the list.  Keep it simple for now by always replacing the list.
-		final int oldSize = object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int oldSize = object.variableObjectSlotsCount();
 		AvailObject result;
 		if (myLevel < 7 && oldSize >= 10)
 		{
@@ -217,8 +217,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash)
 	{
-		final int limit =
-			object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int limit = object.variableObjectSlotsCount();
 		for (int x = 1; x <= limit; x++)
 		{
 			if (elementObject.equals(object.binElementAt(x)))
@@ -240,8 +239,7 @@ extends SetBinDescriptor
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
-		final int oldSize =
-			object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int oldSize = object.variableObjectSlotsCount();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
 			if (object.binElementAt(searchIndex).equals(elementObject))
@@ -302,8 +300,7 @@ extends SetBinDescriptor
 		//  Check if object, a bin, holds a subset of aSet's elements.
 
 		for (
-				int physicalIndex = object.objectSlotsCount()
-					- numberOfFixedObjectSlots();
+				int physicalIndex = object.variableObjectSlotsCount();
 				physicalIndex >= 1;
 				physicalIndex--)
 		{
@@ -331,7 +328,7 @@ extends SetBinDescriptor
 		for (
 			int
 				readIndex = 1,
-				_end1 = object.objectSlotsCount() - numberOfFixedObjectSlots();
+				_end1 = object.variableObjectSlotsCount();
 			readIndex <= _end1;
 			readIndex++)
 		{
@@ -347,7 +344,7 @@ extends SetBinDescriptor
 	{
 		//  Answer how many elements this bin contains.
 
-		return object.objectSlotsCount() - numberOfFixedObjectSlots();
+		return object.variableObjectSlotsCount();
 	}
 
 	@Override
@@ -358,8 +355,7 @@ extends SetBinDescriptor
 		//  to be small, so recalculate it per request.
 
 		AvailObject unionType = object.binElementAt(1).type();
-		final int limit =
-			object.objectSlotsCount() - numberOfFixedObjectSlots();
+		final int limit = object.variableObjectSlotsCount();
 		for (int index = 2; index <= limit; index++)
 		{
 			unionType = unionType.typeUnion(object.binElementAt(index).type());

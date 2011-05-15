@@ -357,7 +357,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object)
 	{
 		//  Answer the number of elements in the object (as a Java int).
-		return object.objectSlotsCount() - numberOfFixedObjectSlots();
+		return object.variableObjectSlotsCount();
 	}
 
 	@Override

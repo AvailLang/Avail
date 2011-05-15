@@ -52,8 +52,27 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The basic hash value of the map, computed as some commutative
+		 * combination of the hashes of the map's <key,value> pairs.  This basic
+		 * hash is twiddled before being used as the map's formal hash, to
+		 * reduce the propagation of bad hashes (e.g., 0 for the empty map), and
+		 * to ensure various combinations of nested maps have uncorrelated
+		 * hash values.
+		 */
 		INTERNAL_HASH,
+
+		/**
+		 * The number of valid <key,value> pairs in the map.
+		 */
 		MAP_SIZE,
+
+		/**
+		 * The number of key slots that currently contain a {@linkplain
+		 * BlankDescriptor blank}.  Overwriting with blanks allows rehashing the
+		 * map to be significantly postponed for a reasonable cost in space.
+		 * The blanks disappear after the rehash.
+		 */
 		NUM_BLANKS
 	}
 
@@ -62,6 +81,13 @@ extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * The raw data, organized as key1, value1, key2, value2, etc.  Hashing
+		 * locates the key slot.  If it contains the expected key, great.  If
+		 * it contains a {@linkplain BlankDescriptor blank}, continue the search
+		 * with the next pair of slots, wrapping if necessary.  If it contains
+		 * the {@linkplain VoidDescriptor void object}, the key is not present.
+		 */
 		DATA_AT_INDEX_
 	}
 
@@ -578,7 +604,7 @@ extends Descriptor
 	{
 		//  Answer the total number of slots reserved for holding keys.
 
-		return object.objectSlotsCount() - numberOfFixedObjectSlots() >>> 1;
+		return object.variableObjectSlotsCount() >>> 1;
 	}
 
 	@Override
@@ -687,8 +713,8 @@ extends Descriptor
 					^ h0 + object.valueAtIndex(probe).hash() * 23);
 				object.keyAtIndexPut(probe, BlankDescriptor.blank());
 				object.valueAtIndexPut(probe, VoidDescriptor.voidObject());
-				object.mapSize((object.mapSize() - 1));
-				object.numBlanks((object.numBlanks() + 1));
+				object.mapSize(object.mapSize() - 1);
+				object.numBlanks(object.numBlanks() + 1);
 				AvailObject.unlock(object);
 				return object;
 			}
@@ -737,7 +763,7 @@ extends Descriptor
 			{
 				object.keyAtIndexPut(probe, keyObject);
 				object.valueAtIndexPut(probe, valueObject);
-				object.mapSize((object.mapSize() + 1));
+				object.mapSize(object.mapSize() + 1);
 				object.internalHash(
 					object.internalHash() ^ h0 + valueObject.hash() * 23);
 				if (slotValue.equalsBlank())

@@ -255,7 +255,7 @@ extends Descriptor
 	public int o_NumOuterVars (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlotsCount() - numberOfFixedObjectSlots();
+		return object.variableObjectSlotsCount();
 	}
 
 	/**
