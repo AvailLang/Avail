@@ -97,41 +97,41 @@ public class L1Disassembler
 	 * Parse the given compiled code object into a sequence of L1 instructions,
 	 * printing them on the provided stream.
 	 *
-	 * @param code
+	 * @param theCode
 	 *        The {@link CompiledCodeDescriptor code} to decompile.
-	 * @param builder
+	 * @param theBuilder
 	 *        Where to write the decompilation.
-	 * @param recursionList
+	 * @param theRecursionList
 	 *        Which objects are already being visited.
-	 * @param indent
+	 * @param theIndent
 	 *        The indentation level.
 	 */
 	public void disassemble (
-		final AvailObject code,
-		final StringBuilder builder,
-		final List<AvailObject> recursionList,
-		final int indent)
+		final AvailObject theCode,
+		final StringBuilder theBuilder,
+		final List<AvailObject> theRecursionList,
+		final int theIndent)
 	{
-		this.code = code;
-		this.builder = builder;
-		this.recursionList = recursionList;
-		this.indent = indent;
+		this.code = theCode;
+		this.builder = theBuilder;
+		this.recursionList = theRecursionList;
+		this.indent = theIndent;
 
-		this.nybbles = code.nybbles();
+		this.nybbles = theCode.nybbles();
 		this.pc = 1;
 		boolean first = true;
 		while (pc <= nybbles.tupleSize())
 		{
 			if (!first)
 			{
-				builder.append("\n");
+				theBuilder.append("\n");
 			}
 			first = false;
-			for (int i = indent; i > 0; i--)
+			for (int i = theIndent; i > 0; i--)
 			{
-				builder.append("\t");
+				theBuilder.append("\t");
 			}
-			builder.append(pc + ": ");
+			theBuilder.append(pc + ": ");
 			int nybble = nybbles.extractNybbleFromTupleAt(pc++);
 			if (nybble == L1Operation.L1_doExtension.ordinal())
 			{
@@ -139,19 +139,19 @@ public class L1Disassembler
 			}
 			final L1Operation operation = L1Operation.values()[nybble];
 			final L1OperandType[] operandTypes = operation.operandTypes();
-			builder.append(operation.name());
+			theBuilder.append(operation.name());
 			if (operandTypes.length > 0)
 			{
-				builder.append("(");
+				theBuilder.append("(");
 				for (int i = 0; i < operandTypes.length; i++)
 				{
 					if (i > 0)
 					{
-						builder.append(", ");
+						theBuilder.append(", ");
 					}
 					operandTypes[i].dispatch(operandTypePrinter);
 				}
-				builder.append(")");
+				theBuilder.append(")");
 			}
 		}
 	}

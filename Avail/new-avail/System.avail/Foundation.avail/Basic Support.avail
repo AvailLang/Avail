@@ -92,8 +92,7 @@ Method "Reject the current parse because_" is
 [
 	reason : string |
 	
-	Primitive 352 (failureCode : all);
-	Exit the current thread because "system error: primitive 352 failed";
+	Primitive 352;
 ] : terminates;
 
 /**

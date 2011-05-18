@@ -139,7 +139,7 @@ public class AvailCompilerTest
 						final @NotNull Long position,
 						final @NotNull Long moduleSize)
 					{
-						System.out.printf("[line %d]%n", lineNumber);
+//						 System.out.printf("[line %d]%n", lineNumber);
 					}
 				},
 				new Continuation3<ModuleName, Long, Long>()
@@ -154,14 +154,14 @@ public class AvailCompilerTest
 						{
 							lastModule.value = moduleName;
 							System.out.printf(
-								"%ncompiling %s ... [bytes remaining = %d]%n",
+								"compiling %s ... [bytes remaining = %d]%n",
 								moduleName,
 								globalCodeSize - position);
 						}
 
-						System.out.printf(
-							"(%.2f%% done)",
-							position * 100.0d / globalCodeSize);
+//						System.out.printf(
+//							"(%.2f%% done)",
+//							position * 100.0d / globalCodeSize);
 					}
 				});
 		}
