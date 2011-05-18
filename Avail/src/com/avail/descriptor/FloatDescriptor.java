@@ -36,6 +36,11 @@ import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * A boxed, identityless Avail representation of IEEE-754 floating point values.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class FloatDescriptor
 extends Descriptor
 {
@@ -45,22 +50,10 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
-		RAW_QUAD_1
-	}
-
-	@Override
-	public void o_RawQuad1 (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.RAW_QUAD_1, value);
-	}
-
-	@Override
-	public int o_RawQuad1 (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
+		/**
+		 * The Java {@code float} value, packed into an {@code int} field.
+		 */
+		RAW_INT
 	}
 
 	@Override
@@ -105,10 +98,7 @@ extends Descriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit long that is always the same for equal objects, but
-		//  statistically different for different objects.
-
-		return object.rawQuad1() ^ 0x16AE2BFD;
+		return object.integerSlot(IntegerSlots.RAW_INT) ^ 0x16AE2BFD;
 	}
 
 	@Override
@@ -124,22 +114,43 @@ extends Descriptor
 	{
 		//  Extract a Smalltalk Float from object.
 
-		int castAsInt = object.rawQuad1();
+		int castAsInt = object.integerSlot(IntegerSlots.RAW_INT);
 		return Float.intBitsToFloat(castAsInt);
 	}
 
-	/* Special instance accessing */
-	public static AvailObject objectFromFloat(final float aFloat)
+	/**
+	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
+	 * from the passed {@code float}.
+	 *
+	 * @param aFloat The Java {@code float} to box.
+	 * @return The boxed Avail {@code FloatDescriptor floating point object}.
+	 */
+	public static AvailObject objectFromFloat (final float aFloat)
 	{
 		AvailObject result = mutable().create();
-		result.rawQuad1(Float.floatToRawIntBits(aFloat));
+		result.integerSlotPut(
+			IntegerSlots.RAW_INT,
+			Float.floatToRawIntBits(aFloat));;
 		return result;
 	};
 
-	public static AvailObject objectFromFloatRecycling(final float aFloat, final AvailObject recyclable1)
+	/**
+	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
+	 * from the passed {@code float}.
+	 *
+	 * @param aFloat
+	 *            The Java {@code float} to box.
+	 * @param recyclable1
+	 *            A boxed float that may be reused if it's mutable.
+	 * @return
+	 *            The boxed Avail {@code FloatDescriptor floating point object}.
+	 */
+	public static AvailObject objectFromFloatRecycling (
+		final float aFloat,
+		final AvailObject recyclable1)
 	{
 		AvailObject result;
-		if (recyclable1.descriptor().isMutable())
+		if (recyclable1.descriptor() == mutable())
 		{
 			result = recyclable1;
 		}
@@ -147,29 +158,46 @@ extends Descriptor
 		{
 			result = mutable().create();
 		}
-		result.rawQuad1(Float.floatToRawIntBits(aFloat));
+		result.integerSlotPut(
+			IntegerSlots.RAW_INT,
+			Float.floatToRawIntBits(aFloat));
 		return result;
 	};
 
-	public static AvailObject objectWithRecycling(final float aFloat, final AvailObject recyclable1, final AvailObject recyclable2)
+	/**
+	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
+	 * from the passed {@code float}.
+	 *
+	 * @param aFloat
+	 *            The Java {@code float} to box.
+	 * @param recyclable1
+	 *            A boxed float that may be reused if it's mutable.
+	 * @param recyclable2
+	 *            Another boxed float that may be reused if it's mutable.
+	 * @return
+	 *            The boxed Avail {@code FloatDescriptor floating point object}.
+	 */
+	public static AvailObject objectFromFloatRecycling (
+		final float aFloat,
+		final AvailObject recyclable1,
+		final AvailObject recyclable2)
 	{
 		AvailObject result;
-		if (recyclable1.descriptor().isMutable())
+		if (recyclable1.descriptor() == mutable())
 		{
 			result = recyclable1;
 		}
+		else if (recyclable2.descriptor() == mutable())
+		{
+			result = recyclable2;
+		}
 		else
 		{
-			if (recyclable2.descriptor().isMutable())
-			{
-				result = recyclable2;
-			}
-			else
-			{
-				result = mutable().create();
-			}
+			result = mutable().create();
 		}
-		result.rawQuad1(Float.floatToRawIntBits(aFloat));
+		result.integerSlotPut(
+			IntegerSlots.RAW_INT,
+			Float.floatToRawIntBits(aFloat));
 		return result;
 	};
 

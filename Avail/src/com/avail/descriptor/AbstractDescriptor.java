@@ -2155,18 +2155,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	public abstract void o_RawQuad1 (final AvailObject object, final int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_RawQuad2 (final AvailObject object, final int value);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -3700,18 +3688,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_ProcessGlobals (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_RawQuad1 (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract int o_RawQuad2 (final AvailObject object);
 
 	/**
 	 * @param object

@@ -6500,7 +6500,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectWithRecycling(
+				FloatDescriptor.objectFromFloatRecycling(
 					(a.extractFloat() + b.extractFloat()),
 					a,
 					b));
@@ -6532,7 +6532,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectWithRecycling(
+				FloatDescriptor.objectFromFloatRecycling(
 					(a.extractFloat() - b.extractFloat()),
 					a,
 					b));
@@ -6564,7 +6564,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectWithRecycling(
+				FloatDescriptor.objectFromFloatRecycling(
 					(a.extractFloat() * b.extractFloat()),
 					a,
 					b));
@@ -6601,7 +6601,7 @@ public enum Primitive
 					"division by zero");
 			}
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectWithRecycling(
+				FloatDescriptor.objectFromFloatRecycling(
 					(a.extractFloat() / b.extractFloat()),
 					a,
 					b));
@@ -6764,7 +6764,7 @@ public enum Primitive
 			final float div = fa / fb;
 			final float mod = fa - (float)floor(div) * fb;
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectWithRecycling(mod, a, b));
+				FloatDescriptor.objectFromFloatRecycling(mod, a, b));
 		}
 
 		@Override
@@ -6938,7 +6938,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecyclingOr(
+				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() + b.extractDouble()),
 					a,
 					b));
@@ -6970,7 +6970,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecyclingOr(
+				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() - b.extractDouble()),
 					a,
 					b));
@@ -7002,7 +7002,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecyclingOr(
+				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() * b.extractDouble()),
 					a,
 					b));
@@ -7039,7 +7039,7 @@ public enum Primitive
 					"division by zero");
 			}
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecyclingOr(
+				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() / b.extractDouble()),
 					a,
 					b));
@@ -7201,7 +7201,7 @@ public enum Primitive
 			final double div = da / db;
 			final double mod = da - floor(div) * db;
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecyclingOr(mod, a, b));
+				DoubleDescriptor.objectFromDoubleRecycling(mod, a, b));
 		}
 
 		@Override

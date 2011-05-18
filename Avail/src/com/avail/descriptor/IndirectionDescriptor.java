@@ -1961,18 +1961,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_RawQuad1 (final AvailObject object, final int value)
-	{
-		o_Traversed(object).rawQuad1(value);
-	}
-
-	@Override
-	public void o_RawQuad2 (final AvailObject object, final int value)
-	{
-		o_Traversed(object).rawQuad2(value);
-	}
-
-	@Override
 	public int o_RawQuadAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).rawQuadAt(index);
@@ -3628,18 +3616,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ProcessGlobals (final AvailObject object)
 	{
 		return o_Traversed(object).processGlobals();
-	}
-
-	@Override
-	public int o_RawQuad1 (final AvailObject object)
-	{
-		return o_Traversed(object).rawQuad1();
-	}
-
-	@Override
-	public int o_RawQuad2 (final AvailObject object)
-	{
-		return o_Traversed(object).rawQuad2();
 	}
 
 	@Override

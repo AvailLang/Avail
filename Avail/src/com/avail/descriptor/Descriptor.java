@@ -2938,36 +2938,6 @@ public class Descriptor extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_RawQuad1 (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:rawQuad1:", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_RawQuad2 (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:rawQuad2:", object);
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -6066,34 +6036,6 @@ public class Descriptor extends AbstractDescriptor
 
 		subclassResponsibility("o_ProcessGlobals:", object);
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_RawQuad1 (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_RawQuad1:", object);
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public int o_RawQuad2 (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("o_RawQuad2:", object);
-		return 0;
 	}
 
 	/**

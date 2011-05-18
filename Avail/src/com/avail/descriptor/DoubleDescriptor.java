@@ -36,6 +36,12 @@ import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * A boxed, identityless Avail representation of IEEE-754 double-precision
+ * floating point values.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class DoubleDescriptor
 extends Descriptor
 {
@@ -44,41 +50,17 @@ extends Descriptor
 	 */
 	public enum IntegerSlots
 	{
-		RAW_QUAD_1,
-		RAW_QUAD_2
+		/**
+		 * The low 32 bits of a packed Java {@code double} value.
+		 */
+		LOW_INT,
+
+		/**
+		 * The high 32 bits of a packed Java {@code double} value.
+		 */
+		HIGH_INT
 	}
 
-	// GENERATED accessors
-
-	@Override
-	public void o_RawQuad1 (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.RAW_QUAD_1, value);
-	}
-
-	@Override
-	public void o_RawQuad2 (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.RAW_QUAD_2, value);
-	}
-
-	@Override
-	public int o_RawQuad1 (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.RAW_QUAD_1);
-	}
-
-	@Override
-	public int o_RawQuad2 (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.RAW_QUAD_2);
-	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -122,10 +104,9 @@ extends Descriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit long that is always the same for equal objects, but
-		//  statistically different for different objects.
-
-		return (object.rawQuad1() ^ 0x16AE2BFD) - (object.rawQuad2() ^ 0x7C453FD);
+		int low = object.integerSlot(IntegerSlots.LOW_INT);
+		int high = object.integerSlot(IntegerSlots.HIGH_INT);
+		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
 	}
 
 	@Override
@@ -139,26 +120,55 @@ extends Descriptor
 	public double o_ExtractDouble (
 		final @NotNull AvailObject object)
 	{
-		//  Extract a Smalltalk Double from object.
-
-		long castAsLong = object.rawQuad1() + ((long)object.rawQuad2() << 32);
+		int low = object.integerSlot(IntegerSlots.LOW_INT);
+		int high = object.integerSlot(IntegerSlots.HIGH_INT);
+		long castAsLong = (low & 0xFFFFFFFFL) + (high << 32);
 		return Double.longBitsToDouble(castAsLong);
 	}
 
-	public static AvailObject objectFromDouble(final double aDouble)
+	/**
+	 * Construct an Avail boxed {@link DoubleDescriptor double-precision
+	 * floating point object} from the passed {@code double}.
+	 *
+	 * @param aDouble
+	 *            The Java {@code double} to box.
+	 * @return
+	 *            The boxed Avail {@code DoubleDescriptor double-precision
+	 *            floating point object}.
+	 */
+	public static AvailObject objectFromDouble (
+		final double aDouble)
 	{
-		// We cannot return by reference if a new object might be constructed.
 		AvailObject result = mutable().create();
 		long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.rawQuad1((int)castAsLong);
-		result.rawQuad2((int)(castAsLong >> 32));
+		result.integerSlotPut(
+			IntegerSlots.LOW_INT,
+			(int)castAsLong);
+		result.integerSlotPut(
+			IntegerSlots.HIGH_INT,
+			(int)(castAsLong >> 32));
 		return result;
 	}
 
-	public static AvailObject objectFromDoubleRecycling(final double aDouble, final AvailObject recyclable1)
+	/**
+	 * Construct an Avail boxed {@link DoubleDescriptor double-precision
+	 * floating point object} from the passed {@code double}.
+	 *
+	 * @param aDouble
+	 *            The Java {@code double} to box.
+	 * @param recyclable1
+	 *            A {@link DoubleDescriptor boxed Avail double} that may be
+	 *            reused if it's mutable.
+	 * @return
+	 *            The boxed Avail {@code DoubleDescriptor double-precision
+	 *            floating point object}.
+	 */
+	public static AvailObject objectFromDoubleRecycling (
+		final double aDouble,
+		final AvailObject recyclable1)
 	{
 		AvailObject result;
-		if (recyclable1.descriptor().isMutable())
+		if (recyclable1.descriptor() == mutable())
 		{
 			result = recyclable1;
 		}
@@ -167,32 +177,56 @@ extends Descriptor
 			result = mutable().create();
 		}
 		long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.rawQuad1((int)castAsLong);
-		result.rawQuad2((int)(castAsLong >> 32));
+		result.integerSlotPut(
+			IntegerSlots.LOW_INT,
+			(int)castAsLong);
+		result.integerSlotPut(
+			IntegerSlots.HIGH_INT,
+			(int)(castAsLong >> 32));
 		return result;
 	}
 
-	public static AvailObject objectFromDoubleRecyclingOr(final double aDouble, final AvailObject recyclable1, final AvailObject recyclable2)
+	/**
+	 * Construct an Avail boxed {@link DoubleDescriptor double-precision
+	 * floating point object} from the passed {@code double}.
+	 *
+	 * @param aDouble
+	 *            The Java {@code double} to box.
+	 * @param recyclable1
+	 *            A {@link DoubleDescriptor boxed Avail double} that may be
+	 *            reused if it's mutable.
+	 * @param recyclable2
+	 *            Another {@link DoubleDescriptor boxed Avail double} that may
+	 *            be reused if it's mutable.
+	 * @return
+	 *            The boxed Avail {@code DoubleDescriptor double-precision
+	 *            floating point object}.
+	 */
+	public static AvailObject objectFromDoubleRecycling (
+		final double aDouble,
+		final AvailObject recyclable1,
+		final AvailObject recyclable2)
 	{
 		AvailObject result;
-		if (recyclable1.descriptor().isMutable())
+		if (recyclable1.descriptor() == mutable())
 		{
 			result = recyclable1;
 		}
+		else if (recyclable2.descriptor() == mutable())
+		{
+			result = recyclable2;
+		}
 		else
 		{
-			if (recyclable2.descriptor().isMutable())
-			{
-				result = recyclable2;
-			}
-			else
-			{
-				result = mutable().create();
-			}
+			result = mutable().create();
 		}
 		long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.rawQuad1((int)castAsLong);
-		result.rawQuad2((int)(castAsLong >> 32));
+		result.integerSlotPut(
+			IntegerSlots.LOW_INT,
+			(int)castAsLong);
+		result.integerSlotPut(
+			IntegerSlots.HIGH_INT,
+			(int)(castAsLong >> 32));
 		return result;
 	}
 

@@ -3991,40 +3991,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int rawQuad1 ()
-	{
-		return descriptor().o_RawQuad1(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void rawQuad1 (
-		final int value)
-	{
-		descriptor().o_RawQuad1(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int rawQuad2 ()
-	{
-		return descriptor().o_RawQuad2(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void rawQuad2 (
-		final int value)
-	{
-		descriptor().o_RawQuad2(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public int rawQuadAt (
 		final int index)
 	{
