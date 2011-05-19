@@ -74,13 +74,17 @@ final public class AvailObjectUsingArrays extends AvailObject
 			final AvailObject anotherObject)
 	{
 		// verifyToSpaceAddress();
-		if (traversed().sameAddressAs(anotherObject.traversed()))
+		AvailObject traversed = traversed();
+		AvailObject anotherTraversed = anotherObject.traversed();
+		if (traversed.sameAddressAs(anotherTraversed))
 		{
 			return;
 		}
 		final int oldSlotsSize = objectSlotsCount();
 		if (oldSlotsSize == 0)
 		{
+			// Java-specific mechanism for now.  Requires more complex solution
+			// when Avail starts using raw memory again.
 			_objectSlots = new AvailObject[1];
 			_objectSlots[0] = VoidDescriptor.voidObject();
 		}
@@ -88,16 +92,17 @@ final public class AvailObjectUsingArrays extends AvailObject
 		{
 			if (CanDestroyObjects())
 			{
-				scanSubobjects(new AvailMarkUnreachableSubobjectVisitor(anotherObject));
+				scanSubobjects(
+					new AvailMarkUnreachableSubobjectVisitor(anotherObject));
 			}
 			descriptor(IndirectionDescriptor.mutable());
-			target(anotherObject.traversed());
+			_objectSlots[0] = anotherTraversed;
 		}
 		else
 		{
 			anotherObject.makeImmutable();
 			descriptor(IndirectionDescriptor.mutable());
-			target(anotherObject.traversed());
+			_objectSlots[0] = anotherTraversed;
 			makeImmutable();
 		}
 	}

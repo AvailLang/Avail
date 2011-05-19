@@ -6822,7 +6822,7 @@ public enum Primitive
 				f -= intSlice;
 				f = scalb(f, 32);
 			}
-			out.trimExcessLongs();
+			out.trimExcessInts();
 			if (neg)
 			{
 				out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
@@ -6854,13 +6854,14 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
-			// Extract the top 32 bits and the next-to-top 32 bits.  That guarantees 33 bits
-			// of mantissa, which is more than a float actually captures.
+			// Extract the top 32 bits and the next-to-top 32 bits.  That
+			// guarantees 33 bits of mantissa, which is more than a float
+			// actually captures.
 			float f;
 			final int size = a.integerSlotsCount();
-			if (size == 1)
+			if (a.isLong())
 			{
-				f = a.extractInt();
+				f = a.extractLong();
 			}
 			else
 			{
@@ -7257,7 +7258,7 @@ public enum Primitive
 				d -= intSlice;
 				d = scalb(d, 32);
 			}
-			out.trimExcessLongs();
+			out.trimExcessInts();
 			if (neg)
 			{
 				out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
@@ -7288,17 +7289,17 @@ public enum Primitive
 			final Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject a = args.get(0);
+			final AvailObject a = args.get(0).traversed();
 			// Extract the top three 32-bit pieces.  That guarantees 65 bits
 			// of mantissa, which is more than a double actually captures.
 			double d;
-			final int size = a.integerSlotsCount();
-			if (size == 1)
+			if (a.isLong())
 			{
-				d = a.extractInt();
+				d = a.extractLong();
 			}
 			else
 			{
+				final int size = a.integerSlotsCount();
 				long highInt = a.rawUnsignedIntegerAt(size);
 				long nextInt = a.rawUnsignedIntegerAt(size - 1);
 				long lowInt = size >= 3 ? a.rawUnsignedIntegerAt(size - 2) : 0;
@@ -7321,10 +7322,7 @@ public enum Primitive
 				d = scalb(lowInt, (size - 3) * 32);
 				d += scalb(nextInt, (size - 2) * 32);
 				d += scalb(highInt, (size-1) * 32);
-				if (neg)
-				{
-					d = -d;
-				}
+				d = neg ? -d : d;
 			}
 			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDouble(d));

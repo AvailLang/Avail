@@ -6278,7 +6278,7 @@ extends AbstractDescriptor
 	 * @param object
 	 */
 	@Override
-	public void o_TrimExcessLongs (
+	public void o_TrimExcessInts (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7216,37 +7216,6 @@ extends AbstractDescriptor
 		//  do nothing
 
 
-	}
-
-
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Target (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  From IndirectionObjectDescriptor.  Fail if we're not an indirection object.
-
-		error("This isn't an indirection object", object);
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_Target (
-		final AvailObject object)
-	{
-		//  From IndirectionObjectDescriptor.  Fail if we're not an indirection object.
-
-		error("This isn't an indirection object", object);
-		return VoidDescriptor.voidObject();
 	}
 
 	/**

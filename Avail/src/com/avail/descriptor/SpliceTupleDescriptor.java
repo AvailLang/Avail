@@ -37,6 +37,11 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * TODO: Document this type!
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class SpliceTupleDescriptor
 extends TupleDescriptor
 {
@@ -45,7 +50,16 @@ extends TupleDescriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash value of this splice tuple, or zero.  If the hash value
+		 * happens to equal zero it will have to be recomputed each time it is
+		 * requested.
+		 */
 		HASH_OR_ZERO,
+
+		/**
+		 * TODO
+		 */
 		INTEGER_ZONE_DATA_AT_
 	}
 
@@ -54,6 +68,9 @@ extends TupleDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * TODO
+		 */
 		OBJECT_ZONE_DATA_AT_
 	}
 
@@ -101,6 +118,14 @@ extends TupleDescriptor
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare a subrange of this splice tuple and a subrange of the given
+	 * tuple.
+	 * </p>
+	 */
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
 		final @NotNull AvailObject object,
@@ -109,9 +134,6 @@ extends TupleDescriptor
 		final @NotNull AvailObject anotherObject,
 		final int startIndex2)
 	{
-		// Compare a subrange of this splice tuple and a subrange of the given
-		// tuple.
-
 		if (object.sameAddressAs(anotherObject) && startIndex1 == startIndex2)
 		{
 			return true;
@@ -122,19 +144,19 @@ extends TupleDescriptor
 		{
 			final int clipOffsetInZone =
 				max(
-					(object.translateToZone(startIndex1, zone)
-						- object.startSubtupleIndexInZone(zone)),
+					object.translateToZone(startIndex1, zone)
+						- object.startSubtupleIndexInZone(zone),
 					0);
 			if (!object.subtupleForZone(zone).compareFromToWithStartingAt(
-				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
+				object.startSubtupleIndexInZone(zone) + clipOffsetInZone,
 				min(
 					object.endSubtupleIndexInZone(zone),
 					object.translateToZone(endIndex1, zone)),
 				anotherObject,
-				(object.startOfZone(zone)
+				object.startOfZone(zone)
 					- startIndex1
 					+ startIndex2
-					+ clipOffsetInZone)))
+					+ clipOffsetInZone))
 			{
 				return false;
 			}
@@ -142,6 +164,14 @@ extends TupleDescriptor
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare a subrange of this splice tuple and a subrange of the given
+	 * byte string.
+	 * </p>
+	 */
 	@Override
 	public boolean o_CompareFromToWithByteStringStartingAt (
 		final @NotNull AvailObject object,
@@ -150,18 +180,28 @@ extends TupleDescriptor
 		final @NotNull AvailObject aByteString,
 		final int startIndex2)
 	{
-		//  Compare a subrange of this splice tuple and a subrange of the given bytestring.
-		//
-		//  Verify the tuple entries are the same inside.
-
-		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
+		for (
+			int
+				zone = object.zoneForIndex(startIndex1),
+				end = object.zoneForIndex(endIndex1);
+			zone <= end;
+			zone++)
 		{
-			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (!object.subtupleForZone(zone).compareFromToWithByteStringStartingAt(
-				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
-				aByteString,
-				(startIndex2 + object.startOfZone(zone) + clipOffsetInZone - startIndex1)))
+			final int clipOffsetInZone = max(
+				object.translateToZone(startIndex1, zone)
+					- object.startSubtupleIndexInZone(zone),
+				0);
+			if (!object.subtupleForZone(zone)
+				.compareFromToWithByteStringStartingAt(
+					object.startSubtupleIndexInZone(zone) + clipOffsetInZone,
+					min(
+						object.endSubtupleIndexInZone(zone),
+						object.translateToZone(endIndex1, zone)),
+					aByteString,
+					startIndex2
+						+ object.startOfZone(zone)
+						+ clipOffsetInZone
+						- startIndex1))
 			{
 				return false;
 			}
@@ -169,6 +209,14 @@ extends TupleDescriptor
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare a subrange of this splice tuple and a subrange of the given
+	 * byte tuple.
+	 * </p>
+	 */
 	@Override
 	public boolean o_CompareFromToWithByteTupleStartingAt (
 		final @NotNull AvailObject object,
@@ -177,18 +225,28 @@ extends TupleDescriptor
 		final @NotNull AvailObject aByteTuple,
 		final int startIndex2)
 	{
-		//  Compare a subrange of this splice tuple and a subrange of the given byte tuple.
-		//
-		//  Verify the tuple entries are the same inside.
-
-		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
+		for (
+			int
+				zone = object.zoneForIndex(startIndex1),
+				end = object.zoneForIndex(endIndex1);
+			zone <= end;
+			zone++)
 		{
-			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (!object.subtupleForZone(zone).compareFromToWithByteTupleStartingAt(
-				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
-				aByteTuple,
-				(startIndex2 + object.startOfZone(zone) + clipOffsetInZone - startIndex1)))
+			final int clipOffsetInZone = max(
+				object.translateToZone(startIndex1, zone)
+					- object.startSubtupleIndexInZone(zone),
+				0);
+			if (!object.subtupleForZone(zone)
+				.compareFromToWithByteTupleStartingAt(
+					object.startSubtupleIndexInZone(zone) + clipOffsetInZone,
+					min(
+						object.endSubtupleIndexInZone(zone),
+						object.translateToZone(endIndex1, zone)),
+					aByteTuple,
+					startIndex2
+						+ object.startOfZone(zone)
+						+ clipOffsetInZone
+						- startIndex1))
 			{
 				return false;
 			}
@@ -196,6 +254,14 @@ extends TupleDescriptor
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare a subrange of this splice tuple and a subrange of the given
+	 * nybble tuple.
+	 * </p>
+	 */
 	@Override
 	public boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final @NotNull AvailObject object,
@@ -204,22 +270,29 @@ extends TupleDescriptor
 		final @NotNull AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
-		//  Compare a subrange of this splice tuple and a subrange of the given nybble tuple.
-		//
-		//  Compare identity...
-
 		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
+		for (
+			int
+				zone = object.zoneForIndex(startIndex1),
+				end = object.zoneForIndex(endIndex1);
+			zone <= end;
+			zone++)
 		{
-			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (!object.subtupleForZone(zone).compareFromToWithNybbleTupleStartingAt(
-				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
-				aNybbleTuple,
-				(object.startOfZone(zone) + clipOffsetInZone)))
+			final int clipOffsetInZone = max(
+				object.translateToZone(startIndex1, zone)
+					- object.startSubtupleIndexInZone(zone),
+				0);
+			if (!object.subtupleForZone(zone)
+				.compareFromToWithNybbleTupleStartingAt(
+					object.startSubtupleIndexInZone(zone) + clipOffsetInZone,
+					min(
+						object.endSubtupleIndexInZone(zone),
+						object.translateToZone(endIndex1, zone)),
+					aNybbleTuple,
+					object.startOfZone(zone) + clipOffsetInZone))
 			{
 				return false;
 			}
@@ -227,6 +300,14 @@ extends TupleDescriptor
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare a subrange of this splice tuple and a subrange of the given
+	 * object tuple.
+	 * </p>
+	 */
 	@Override
 	public boolean o_CompareFromToWithObjectTupleStartingAt (
 		final @NotNull AvailObject object,
@@ -235,22 +316,32 @@ extends TupleDescriptor
 		final @NotNull AvailObject anObjectTuple,
 		final int startIndex2)
 	{
-		//  Compare a subrange of this splice tuple and a subrange of the given object tuple.
-		//
-		//  Compare identity...
-
 		if (object.sameAddressAs(anObjectTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		for (int zone = object.zoneForIndex(startIndex1), _end1 = object.zoneForIndex(endIndex1); zone <= _end1; zone++)
+		for (
+			int
+				zone = object.zoneForIndex(startIndex1),
+				end = object.zoneForIndex(endIndex1);
+			zone <= end;
+			zone++)
 		{
-			final int clipOffsetInZone = max((object.translateToZone(startIndex1, zone) - object.startSubtupleIndexInZone(zone)), 0);
-			if (!object.subtupleForZone(zone).compareFromToWithObjectTupleStartingAt(
-				(object.startSubtupleIndexInZone(zone) + clipOffsetInZone),
-				min(object.endSubtupleIndexInZone(zone), object.translateToZone(endIndex1, zone)),
-				anObjectTuple,
-				(object.startOfZone(zone) - startIndex1 + startIndex2 + clipOffsetInZone)))
+			final int clipOffsetInZone = max(
+				object.translateToZone(startIndex1, zone)
+					- object.startSubtupleIndexInZone(zone),
+				0);
+			if (!object.subtupleForZone(zone)
+				.compareFromToWithObjectTupleStartingAt(
+					object.startSubtupleIndexInZone(zone) + clipOffsetInZone,
+					min(
+						object.endSubtupleIndexInZone(zone),
+						object.translateToZone(endIndex1, zone)),
+					anObjectTuple,
+					object.startOfZone(zone)
+						- startIndex1
+						+ startIndex2
+						+ clipOffsetInZone))
 			{
 				return false;
 			}
@@ -289,7 +380,7 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		for (int zone = 1, _end1 = object.numberOfZones(); zone <= _end1; zone++)
+		for (int zone = 1, end = object.numberOfZones(); zone <= end; zone++)
 		{
 			if (!object.subtupleForZone(zone).compareFromToWithStartingAt(
 				object.startSubtupleIndexInZone(zone),
@@ -300,7 +391,8 @@ extends TupleDescriptor
 				return false;
 			}
 		}
-		if (!anotherTuple.isSplice() || anotherTuple.numberOfZones() < object.numberOfZones())
+		if (!anotherTuple.isSplice()
+			|| anotherTuple.numberOfZones() < object.numberOfZones())
 		{
 			object.becomeIndirectionTo(anotherTuple);
 			anotherTuple.makeImmutable();
@@ -317,23 +409,18 @@ extends TupleDescriptor
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
 		if (object.hashOrZero() != 0)
 		{
 			return true;
 		}
-		for (int zone = 1, _end1 = object.numberOfZones(); zone <= _end1; zone++)
+		for (int zone = 1, end = object.numberOfZones(); zone <= end; zone++)
 		{
 			if (!object.subtupleForZone(zone).isHashAvailable())
 			{
 				return false;
 			}
 		}
-		//  Conservative approximation
+		// Conservative approximation
 		return true;
 	}
 
@@ -342,7 +429,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int zone)
 	{
-		//  Answer the ending index for the given zone.
+		// Answer the ending index for the given zone.
 
 		return object.integerSlotAt(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
@@ -370,12 +457,13 @@ extends TupleDescriptor
 	 * true.
 	 */
 	@Override
-	public @NotNull AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		final @NotNull AvailObject object,
-		final int zone,
-		final @NotNull AvailObject newSubtuple,
-		final int startSubtupleIndex,
-		final int endOfZone)
+	public @NotNull AvailObject
+		o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+			final @NotNull AvailObject object,
+			final int zone,
+			final @NotNull AvailObject newSubtuple,
+			final int startSubtupleIndex,
+			final int endOfZone)
 	{
 		assert isMutable;
 		object.objectSlotAtPut(
@@ -818,7 +906,8 @@ extends TupleDescriptor
 	/**
 	 * The mutable {@link SpliceTupleDescriptor}.
 	 */
-	private final static SpliceTupleDescriptor mutable = new SpliceTupleDescriptor(true);
+	private final static SpliceTupleDescriptor mutable =
+		new SpliceTupleDescriptor(true);
 
 
 	/**
@@ -835,7 +924,8 @@ extends TupleDescriptor
 	/**
 	 * The immutable {@link SpliceTupleDescriptor}.
 	 */
-	private final static SpliceTupleDescriptor immutable = new SpliceTupleDescriptor(false);
+	private final static SpliceTupleDescriptor immutable =
+		new SpliceTupleDescriptor(false);
 
 
 	/**

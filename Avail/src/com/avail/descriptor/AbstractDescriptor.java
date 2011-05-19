@@ -3905,7 +3905,7 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 */
-	public abstract void o_TrimExcessLongs (final AvailObject object);
+	public abstract void o_TrimExcessInts (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4419,18 +4419,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 */
 	public abstract void o_ReadBarrierFault (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_Target (final AvailObject object, final AvailObject value);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_Target (final AvailObject object);
 
 	/**
 	 * @param object

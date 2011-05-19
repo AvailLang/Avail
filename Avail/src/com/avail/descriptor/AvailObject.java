@@ -4787,23 +4787,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject target ()
-	{
-		return descriptor().o_Target(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void target (
-		final AvailObject value)
-	{
-		descriptor().o_Target(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject testingTree ()
 	{
 		return descriptor().o_TestingTree(this);
@@ -4863,9 +4846,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void trimExcessLongs ()
+	public void trimExcessInts ()
 	{
-		descriptor().o_TrimExcessLongs(this);
+		descriptor().o_TrimExcessInts(this);
 	}
 
 	/**

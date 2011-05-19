@@ -101,18 +101,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Target (final AvailObject object, final AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.TARGET, value);
-	}
-
-	@Override
-	public @NotNull AvailObject o_Target (final AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.TARGET);
-	}
-
-	@Override
 	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
 	{
 		return e == ObjectSlots.TARGET;
@@ -125,8 +113,10 @@ extends AbstractDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		object.traversed()
-				.printOnAvoidingIndent(aStream, recursionList, indent);
+		object.traversed().printOnAvoidingIndent(
+			aStream,
+			recursionList,
+			indent);
 	}
 
 	@Override
@@ -136,31 +126,44 @@ extends AbstractDescriptor
 	{
 		// Manually constructed scanning method.
 
-		visitor.invoke(object, object.target());
+		visitor.invoke(object, object.objectSlot(ObjectSlots.TARGET));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Make the object immutable so it can be shared safely. If it was mutable
+	 * then we have to make my target immutable as well (recursively down to
+	 * immutable descendants).
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		// Make the object immutable so it can be shared safely. If I was
-		// mutable I have to make my
-			if (isMutable)
+		if (isMutable)
 		{
-			object.descriptor(IndirectionDescriptor.immutable());
-			object.target().makeImmutable();
+			object.descriptor(immutable());
+			object.objectSlot(ObjectSlots.TARGET).makeImmutable();
 		}
 		return object;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer the non-indirection pointed to (transitively) by object.  Also
+	 * changes the object to point directly at the ultimate target to save hops
+	 * next time if possible.
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_Traversed (final AvailObject object)
 	{
-		// Answer a non-indirection pointed to (transitively) by object.
-
-		final AvailObject finalObject = object.target().traversed();
-		// Shorten the path to one step to reduce amortized traversal costs to
-		// approximately inv_Ackermann(N).
-		object.target(finalObject);
+		final AvailObject next = object.objectSlot(ObjectSlots.TARGET);
+		final AvailObject finalObject = next.traversed();
+		object.objectSlotPut(ObjectSlots.TARGET, finalObject);
 		return finalObject;
 	}
 
@@ -3745,9 +3748,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_TrimExcessLongs (final AvailObject object)
+	public void o_TrimExcessInts (final AvailObject object)
 	{
-		o_Traversed(object).trimExcessLongs();
+		o_Traversed(object).trimExcessInts();
 	}
 
 	@Override
@@ -4385,13 +4388,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_LowerInclusive (final AvailObject object, final boolean lowerInclusive)
+	public void o_LowerInclusive (
+		final AvailObject object,
+		final boolean lowerInclusive)
 	{
 		o_Traversed(object).lowerInclusive(lowerInclusive);
 	}
 
 	@Override
-	public void o_UpperInclusive (final AvailObject object, final boolean upperInclusive)
+	public void o_UpperInclusive (
+		final AvailObject object,
+		final boolean upperInclusive)
 	{
 		o_Traversed(object).upperInclusive(upperInclusive);
 	}
