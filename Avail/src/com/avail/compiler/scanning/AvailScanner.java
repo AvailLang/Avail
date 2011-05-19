@@ -254,7 +254,7 @@ public class AvailScanner
 			final AvailObject ten = IntegerDescriptor.ten();
 			while (peekIsDigit())
 			{
-				result = result.timesCanDestroy(ten, true);
+				result = result.noFailTimesCanDestroy(ten, true);
 				result = result.noFailPlusCanDestroy(
 					IntegerDescriptor.fromUnsignedByte(
 						nextDigitValue()), true);

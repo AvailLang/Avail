@@ -151,13 +151,14 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			if (!a.isFinite() && b.equals(IntegerDescriptor.zero())
-				|| !b.isFinite() && a.equals(IntegerDescriptor.zero()))
+			try
 			{
-				return interpreter.primitiveFailure(
-					"can't multiply infinity and zero");
+				return interpreter.primitiveSuccess(a.timesCanDestroy(b, true));
 			}
-			return interpreter.primitiveSuccess(a.timesCanDestroy(b, true));
+			catch (final ArithmeticException e)
+			{
+				return interpreter.primitiveFailure(e.numericCode());
+			}
 		}
 
 		@Override
@@ -185,12 +186,15 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			if (b.equals(IntegerDescriptor.zero()))
+			try
 			{
-				return interpreter.primitiveFailure(
-					"can't divide by zero");
+				return interpreter.primitiveSuccess(
+					a.divideCanDestroy(b, true));
 			}
-			return interpreter.primitiveSuccess(a.divideCanDestroy(b, true));
+			catch (final ArithmeticException e)
+			{
+				return interpreter.primitiveFailure(e.numericCode());
+			}
 		}
 
 		@Override

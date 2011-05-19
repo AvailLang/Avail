@@ -1110,56 +1110,35 @@ extends AbstractDescriptor
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param aNumber
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_DivideCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * @param object
-	 * @param anInfinity
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * @param object
-	 * @param anInteger
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
@@ -2322,38 +2301,24 @@ extends AbstractDescriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * @param object
-	 * @param anInfinity
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * @param object
-	 * @param anInteger
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
@@ -3550,20 +3515,13 @@ extends AbstractDescriptor
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * @param object
-	 * @param aNumber
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_TimesCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}

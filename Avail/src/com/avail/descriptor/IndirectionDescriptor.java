@@ -805,18 +805,20 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_DivideCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).divideCanDestroy(aNumber, canDestroy);
 	}
 
 	@Override
 	public @NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).divideIntoInfinityCanDestroy(
 			anInfinity,
@@ -825,9 +827,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).divideIntoIntegerCanDestroy(
 			anInteger,
@@ -1669,9 +1672,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).multiplyByInfinityCanDestroy(
 			anInfinity,
@@ -1680,9 +1684,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).multiplyByIntegerCanDestroy(
 			anInteger,
@@ -2292,9 +2297,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_TimesCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).timesCanDestroy(aNumber, canDestroy);
 	}

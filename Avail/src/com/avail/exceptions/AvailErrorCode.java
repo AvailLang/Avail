@@ -56,7 +56,26 @@ public enum AvailErrorCode
 	 * Cannot {@linkplain AvailObject#minusCanDestroy(AvailObject, boolean)
 	 * subtract} {@linkplain InfinityDescriptor infinities} of unlike sign.
 	 */
-	E_CANNOT_SUBTRACT_LIKE_INFINITIES (2);
+	E_CANNOT_SUBTRACT_LIKE_INFINITIES (2),
+
+	/**
+	 * Cannot {@linkplain AvailObject#timesCanDestroy(AvailObject, boolean)
+	 * multiply} {@linkplain IntegerDescriptor#zero() zero} and {@linkplain
+	 * InfinityDescriptor infinity}.
+	 */
+	E_CANNOT_MULTIPLY_ZERO_AND_INFINITY (3),
+
+	/**
+	 * Cannot {@linkplain AvailObject#divideCanDestroy(AvailObject, boolean)
+	 * divide} by {@linkplain IntegerDescriptor#zero() zero}.
+	 */
+	E_CANNOT_DIVIDE_BY_ZERO (4),
+
+	/**
+	 * Cannot {@linkplain AvailObject#divideCanDestroy(AvailObject, boolean)
+	 * divide} two {@linkplain InfinityDescriptor infinities}.
+	 */
+	E_CANNOT_DIVIDE_INFINITIES (5);
 
 	/** The numeric error code. */
 	private final int code;

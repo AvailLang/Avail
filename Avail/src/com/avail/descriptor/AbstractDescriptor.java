@@ -697,7 +697,7 @@ public abstract class AbstractDescriptor
 		final AvailObject restrictions);
 
 	/**
-	 * Add the {@linkplain AvailObject operands} together and answer the result.
+	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>This method should only be called from {@link
 	 * AvailObject#plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It
@@ -724,7 +724,7 @@ public abstract class AbstractDescriptor
 		throws ArithmeticException;
 
 	/**
-	 * Add the {@linkplain AvailObject operands} together and answer the result.
+	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>This method should only be called from {@link
 	 * AvailObject#plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It
@@ -1217,37 +1217,88 @@ public abstract class AbstractDescriptor
 		final int value);
 
 	/**
+	 * Divide the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * AvailObject#divideIntoIntegerCanDestroy(AvailObject, boolean)
+	 * divideIntoIntegerCanDestroy} or {@link
+	 * AvailObject#divideIntoInfinityCanDestroy(AvailObject, boolean)
+	 * divideIntoInfinityCanDestroy}, where actual implementations of the
+	 * division operation should reside.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param aNumber
+	 *        An integral numeric.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of dividing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject divisor} was {@linkplain
+	 *         IntegerDescriptor#zero() zero}.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_DivideCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy);
+	public abstract @NotNull AvailObject o_DivideCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
+	 * Divide the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * AvailObject#divideCanDestroy(AvailObject, boolean) divideCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+
 	 * @param object
+	 *        The divisor, an integral numeric.
 	 * @param anInfinity
+	 *        The dividend, an {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of dividing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject divisor} was {@linkplain
+	 *         IntegerDescriptor#zero() zero}.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_DivideIntoInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy);
+	abstract AvailObject o_DivideIntoInfinityCanDestroy (
+			final AvailObject object,
+			final AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
+	 * Divide the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * AvailObject#divideCanDestroy(AvailObject, boolean) divideCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+
 	 * @param object
-	 * @param anInteger
+	 *        The divisor, an integral numeric.
+	 * @param anInfinity
+	 *        The dividend, an {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of dividing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject divisor} was {@linkplain
+	 *         IntegerDescriptor#zero() zero}.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_DivideIntoIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
-		final boolean canDestroy);
+	abstract AvailObject o_DivideIntoIntegerCanDestroy (
+			final AvailObject object,
+			final AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
 	 * @param object
@@ -1928,26 +1979,60 @@ public abstract class AbstractDescriptor
 		throws ArithmeticException;
 
 	/**
+	 * Multiply the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * AvailObject#timesCanDestroy(AvailObject, boolean) timesCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param anInfinity
+	 *        An {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of multiplying the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
+	 *         infinity}.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_MultiplyByInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy);
+	abstract @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
+	 * Multiply the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * AvailObject#timesCanDestroy(AvailObject, boolean) timesCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param anInteger
+	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of multiplying the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
+	 *         infinity}.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_MultiplyByIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
-		final boolean canDestroy);
+	abstract @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
 	 * @param object
@@ -2100,16 +2185,14 @@ public abstract class AbstractDescriptor
 	public abstract void o_Pc (final AvailObject object, final int value);
 
 	/**
-	 * Add the {@linkplain AvailObject operands} together and answer the
-	 * result.
+	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
 	 * AvailObject#addToIntegerCanDestroy(AvailObject, boolean)
 	 * addToIntegerCanDestroy} or {@link
 	 * AvailObject#addToInfinityCanDestroy(AvailObject, boolean)
 	 * addToInfinityCanDestroy}, where actual implementations of the addition
-	 * operation should reside.
-	 * </p>
+	 * operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
@@ -2672,15 +2755,35 @@ public abstract class AbstractDescriptor
 		final int zone);
 
 	/**
+	 * Multiply the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * AvailObject#multiplyByIntegerCanDestroy(AvailObject, boolean)
+	 * multiplyByIntegerCanDestroy} or {@link
+	 * AvailObject#multiplyByInfinityCanDestroy(AvailObject, boolean)
+	 * multiplyByInfinityCanDestroy}, where actual implementations of the
+	 * multiplication operation should reside.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param aNumber
+	 *        An integral numeric.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of multiplying the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
+	 *         infinity}.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_TimesCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy);
+	public abstract @NotNull AvailObject o_TimesCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
 	 * @param object

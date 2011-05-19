@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 
 /**
@@ -377,9 +378,10 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_DivideCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final AvailObject object,
+			final AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return aNumber.divideIntoIntegerCanDestroy(object, canDestroy);
 	}
@@ -405,9 +407,10 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_TimesCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return aNumber.multiplyByIntegerCanDestroy(object, canDestroy);
 	}
@@ -685,14 +688,15 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		if (object.equals(zero()))
 		{
-			error("Can't divide infinity (or anything else) by zero", object);
-			return VoidDescriptor.voidObject();
+			throw new ArithmeticException(
+				AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO);
 		}
 		return object.greaterThan(zero()) ^ anInfinity.isPositive()
 			? InfinityDescriptor.negativeInfinity()
@@ -701,16 +705,17 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInteger,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		// Compute anInteger / object. Round towards ZERO. Expect the division
 		// to take a lot of time, as I haven't optimized it much.
 		if (object.equals(zero()))
 		{
-			error("Division by zero");
-			return VoidDescriptor.voidObject();
+			throw new ArithmeticException(
+				AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO);
 		}
 		if (anInteger.equals(zero()))
 		{
@@ -857,7 +862,7 @@ extends ExtendedNumberDescriptor
 					partialQuotient.addToIntegerCanDestroy(fullQuotient, false);
 			}
 			remainder = remainder.noFailMinusCanDestroy(
-				object.multiplyByIntegerCanDestroy(partialQuotient, false),
+				partialQuotient.noFailTimesCanDestroy(object, false),
 				false);
 			if (remainder.lessThan(zero()))
 			{
@@ -897,14 +902,15 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		if (object.equals(zero()))
 		{
-			error("Can't multiply infinity by zero", object);
-			return VoidDescriptor.voidObject();
+			throw new ArithmeticException(
+				AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY);
 		}
 		return object.greaterThan(zero()) ^ anInfinity.isPositive()
 			? InfinityDescriptor.negativeInfinity()
@@ -913,8 +919,8 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		AvailObject output = null;
