@@ -38,6 +38,12 @@ import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
+ * two-byte characters.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class TwoByteStringDescriptor
 extends TupleDescriptor
 {
@@ -46,28 +52,27 @@ extends TupleDescriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash value of this two-byte string or zero.  In the rare case
+		 * that the hash of the string is actually zero, it must be recomputed
+		 * every time.
+		 */
 		HASH_OR_ZERO,
+
+		/**
+		 * A sequence of {@code int}s that encode the two-byte characters of the
+		 * string.  Each int stores two two-byte characters, in Little Endian
+		 * order.
+		 */
 		RAW_QUAD_AT_
 	}
 
+	/**
+	 * The number of shorts that are unused in the last {@linkplain
+	 * IntegerSlots#RAW_QUAD_AT_ integer slot}.  Zero when the number of
+	 * characters is even, one if odd.
+	 */
 	int unusedShortsOfLastWord;
-
-	@Override
-	public int o_RawQuadAt (
-		final @NotNull AvailObject object,
-		final int subscript)
-	{
-		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
-	}
-
-	@Override
-	public void o_RawQuadAtPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final int value)
-	{
-		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
-	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -77,9 +82,9 @@ extends TupleDescriptor
 		final int indent)
 	{
 		aStream.append("\"");
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
-		final char c = (char)object.rawShortForCharacterAt(i);
+			final char c = (char)object.rawShortForCharacterAt(i);
 			if (c == '\"' || c == '\'' || c == '\\')
 			{
 				aStream.append('\\');
@@ -316,7 +321,7 @@ extends TupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
-		final int codePoint = newValueObject.codePoint();
+			final int codePoint = newValueObject.codePoint();
 			if (codePoint >= 0 && codePoint <= 0xFFFF)
 			{
 				if (canDestroy & isMutable)
@@ -354,26 +359,16 @@ extends TupleDescriptor
 	public int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of elements in the object.
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 2
-				- unusedShortsOfLastWord;
+		return object.variableIntegerSlotsCount() * 2 - unusedShortsOfLastWord;
 	}
 
 	@Override
 	public int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
-		//  Answer approximately how many bits per entry are taken up by this object.
-
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
 		return 16;
-	}
-
-	void unusedShortsOfLastWord (
-		final int anInteger)
-	{
-		//  Set unusedBytesOfLastWord in this descriptor instance.  Must be 0 or 1.
-		assert 0 <= anInteger && anInteger <= 1;
-		unusedShortsOfLastWord = anInteger;
 	}
 
 	@Override
@@ -387,7 +382,7 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-		final int itemHash =
+			final int itemHash =
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
 					object.rawShortForCharacterAt(index))
 				^ PreToggle;
@@ -396,22 +391,43 @@ extends TupleDescriptor
 		return hash * Multiplier;
 	}
 
+	/**
+	 * Answer a mutable copy of object that also only holds 16-bit characters.
+	 *
+	 * @param object
+	 *            The {@linkplain TwoByteStringDescriptor two-byte string} to
+	 *            copy.
+	 * @return
+	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
+	 *            with the same content as the argument.
+	 */
 	AvailObject copyAsMutableTwoByteString (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a mutable copy of object that also only holds 16-bit characters.
-
-		final AvailObject result = isMutableSize(true, object.tupleSize()).create(
-			object.tupleSize() + 1 >> 1);
+		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
 		{
-			result.rawShortForCharacterAtPut(i, object.rawShortForCharacterAt(i));
+			result.integerSlotAtPut(
+				IntegerSlots.RAW_QUAD_AT_,
+				i,
+				object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
 	}
 
+	/**
+	 * Answer a mutable {@linkplain TwoByteStringDescriptor two-byte string}
+	 * containing the characters specified in the Java {@link String}.
+	 *
+	 * @param aNativeTwoByteString
+	 *            The Java {@link String} with which to initialize the new
+	 *            {@linkplain TwoByteStringDescriptor two-byte string}.
+	 * @return
+	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
+	 *            with the specified content.
+	 */
 	AvailObject privateMutableObjectFromNativeTwoByteString (
 		final @NotNull String aNativeTwoByteString)
 	{
@@ -419,29 +435,40 @@ extends TupleDescriptor
 			aNativeTwoByteString.length());
 		for (int index = 1; index <= aNativeTwoByteString.length(); index++)
 		{
-		final char c = aNativeTwoByteString.charAt(index - 1);
+			final char c = aNativeTwoByteString.charAt(index - 1);
 			result.rawShortForCharacterAtPut(index, (short)c);
 		}
 		return result;
 	}
 
-	AvailObject mutableObjectOfSize (
+	/**
+	 * Create a new mutable {@link TwoByteStringDescriptor two-byte string} with
+	 * the specified number of elements.
+	 *
+	 * @param size The number of elements in the new tuple.
+	 * @return The new tuple, initialized to null characters (codepoint 0).
+	 */
+	static AvailObject mutableObjectOfSize (
 		final int size)
 	{
-		//  Build a new object instance with room for size elements.
-
-		if (!isMutable)
-		{
-			error("This descriptor should be mutable");
-			return VoidDescriptor.voidObject();
-		}
-		assert ((size + unusedShortsOfLastWord) * 2 & 3) == 0;
-		final AvailObject result = this.create(
-			size + 1 >> 1);
-		return result;
+		return isMutableSize(true, size).create(size + 1 >> 1);
 	}
 
-	static TwoByteStringDescriptor isMutableSize(
+	/**
+	 * Answer the descriptor that has the specified mutability flag and is
+	 * suitable to describe a tuple with the given number of elements.
+	 *
+	 * @param flag
+	 *            Whether the requested descriptor should be mutable.
+	 * @param size
+	 *            How many elements are in a tuple to be represented by the
+	 *            descriptor.
+	 * @return
+	 *            A {@link TwoByteStringDescriptor} suitable for representing a
+	 *            two-byte string of the given mutability and {@link
+	 *            AvailObject#tupleSize() size}.
+	 */
+	static TwoByteStringDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{
@@ -449,10 +476,23 @@ extends TupleDescriptor
 		return descriptors [delta + (size & 1) * 2];
 	};
 
-	public static AvailObject mutableObjectFromNativeTwoByteString(final String aNativeTwoByteString)
+	/**
+	 * Create a mutable {@link TwoByteStringDescriptor two-byte string} with the
+	 * specified Java {@linkplain String}'s characters.
+	 *
+	 * @param aNativeTwoByteString
+	 *            A Java String that may contain characters outside the Latin-1
+	 *            range (0-255).
+	 * @return
+	 *            A two-byte string with the given content.
+	 */
+	public static AvailObject mutableObjectFromNativeTwoByteString (
+		final String aNativeTwoByteString)
 	{
-		final TwoByteStringDescriptor descriptor = isMutableSize(true, aNativeTwoByteString.length());
-		return descriptor.privateMutableObjectFromNativeTwoByteString(aNativeTwoByteString);
+		final TwoByteStringDescriptor descriptor =
+			isMutableSize(true, aNativeTwoByteString.length());
+		return descriptor.privateMutableObjectFromNativeTwoByteString(
+			aNativeTwoByteString);
 	}
 
 	/**
@@ -472,6 +512,11 @@ extends TupleDescriptor
 		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
 	}
 
+	/**
+	 * The static list of descriptors of this kind, organized in such a way that
+	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
+	 * number of unused shorts in the last word.
+	 */
 	final static TwoByteStringDescriptor[] descriptors =
 	{
 		new TwoByteStringDescriptor(true, 0),
@@ -479,5 +524,4 @@ extends TupleDescriptor
 		new TwoByteStringDescriptor(true, 1),
 		new TwoByteStringDescriptor(false, 1)
 	};
-
 }

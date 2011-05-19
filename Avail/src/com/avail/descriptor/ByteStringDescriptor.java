@@ -58,35 +58,19 @@ extends TupleDescriptor
 		HASH_OR_ZERO,
 
 		/**
-		 * The raw 32-bit machine words that constitute the representation of
-		 * the {@linkplain ByteStringDescriptor byte string}.
+		 * The raw 32-bit machine words ({@code int}s) that constitute the
+		 * representation of the {@linkplain ByteStringDescriptor byte string}.
+		 * The bytes occur in Little Endian order within each int.
 		 */
 		RAW_QUAD_AT_
 	}
 
 	/**
-	 * The number of bytes of the last 32-bit machine word that do not
-	 * participate in the representation of the {@linkplain ByteStringDescriptor
-	 * byte string}.
+	 * The number of bytes of the last {@code int} that do not participate in
+	 * the representation of the {@linkplain ByteStringDescriptor byte string}.
+	 * Must be between 0 and 3.
 	 */
 	private final int unusedBytesOfLastWord;
-
-	@Override
-	public int o_RawQuadAt (
-		final @NotNull AvailObject object,
-		final int subscript)
-	{
-		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
-	}
-
-	@Override
-	public void o_RawQuadAtPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final int value)
-	{
-		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
-	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -317,8 +301,8 @@ extends TupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
-		final int codePoint = newValueObject.codePoint();
-			if (codePoint >= 0 && codePoint <= 255)
+			final int codePoint = newValueObject.codePoint();
+			if ((codePoint & 0xFF) == codePoint)
 			{
 				if (canDestroy & isMutable)
 				{
@@ -332,12 +316,13 @@ extends TupleDescriptor
 					newValueObject,
 					true);
 			}
-			if (codePoint >= 0 && codePoint <= 0xFFFF)
+			if ((codePoint & 0xFFFF) == codePoint)
 			{
-				return copyAsMutableTwoByteString(object).tupleAtPuttingCanDestroy(
-					index,
-					newValueObject,
-					true);
+				return copyAsMutableTwoByteString(object)
+					.tupleAtPuttingCanDestroy(
+						index,
+						newValueObject,
+						true);
 			}
 		}
 		//  Convert to an arbitrary Tuple instead.
@@ -362,32 +347,37 @@ extends TupleDescriptor
 	public int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of elements in the object (as a Smalltalk Integer).
-
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
+		// Answer the number of elements in the object (as a Smalltalk Integer).
+		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
 
 	@Override
 	public int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
-		//  Answer approximately how many bits per entry are taken up by this object.
-
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
 		return 8;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * See comment in superclass.  This overridden method must produce the same
+	 * value.
+	 * </p>
+	 */
 	@Override
 	public int o_ComputeHashFromTo (
 		final @NotNull AvailObject object,
 		final int start,
 		final int end)
 	{
-		//  See comment in superclass.  This method must produce the same value.
-
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-		final int itemHash =
+			final int itemHash =
 				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
 					object.rawByteForCharacterAt(index)) ^ PreToggle;
 			hash = hash * Multiplier + itemHash;
@@ -405,13 +395,16 @@ extends TupleDescriptor
 	private @NotNull AvailObject copyAsMutableByteString (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject result = isMutableSize(true, object.tupleSize())
-			.create((object.tupleSize() + 3) / 4);
+		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		// Copy four bytes at a time.
+		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
 		{
-			result.rawByteForCharacterAtPut(i, object.rawByteForCharacterAt(i));
+			result.integerSlotAtPut(
+				IntegerSlots.RAW_QUAD_AT_,
+				i,
+				object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
 	}
@@ -427,13 +420,13 @@ extends TupleDescriptor
 		final @NotNull AvailObject object)
 	{
 		final AvailObject result =
-			TwoByteStringDescriptor.isMutableSize(true, object.tupleSize())
-				.create((object.tupleSize() + 1) / 2);
+			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			result.rawShortForCharacterAtPut(
-				i, object.rawByteForCharacterAt(i));
+				i,
+				object.rawByteForCharacterAt(i));
 		}
 		return result;
 	}
@@ -453,7 +446,7 @@ extends TupleDescriptor
 			return VoidDescriptor.voidObject();
 		}
 		assert (size + unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = this.create((size + 3) / 4);
+		final AvailObject result = this.create(size + 3 >> 2);
 		return result;
 	}
 

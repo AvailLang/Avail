@@ -93,7 +93,7 @@ extends TupleDescriptor
 				aStream.append("(mut)");
 			}
 			aStream.append("SpliceTuple: \"");
-			for (int i = 1, _end2 = object.tupleSize(); i <= _end2; i++)
+			for (int i = 1, end = object.tupleSize(); i <= end; i++)
 			{
 				final char c = (char) object.tupleAt(i).codePoint();
 				if (c == '\"' || c == '\'' || c == '\\')
@@ -809,8 +809,8 @@ extends TupleDescriptor
 		for (
 				int
 					zone = object.zoneForIndex(startIndex),
-					_end1 = object.zoneForIndex(endIndex);
-				zone <= _end1;
+					end = object.zoneForIndex(endIndex);
+				zone <= end;
 				zone++)
 		{
 			final int clipOffsetInZone = max(

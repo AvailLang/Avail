@@ -319,7 +319,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.numArgsAndLocalsAndStack(); i <= _end1; i++)
+		for (int i = 1, end = object.numArgsAndLocalsAndStack(); i <= end; i++)
 		{
 			if (!object.argOrLocalOrStackAt(i).isHashAvailable())
 			{

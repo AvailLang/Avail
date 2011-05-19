@@ -69,7 +69,7 @@ extends TypeDescriptor
 			return false;
 		}
 		AvailObject.lock(typeMap);
-		for (int i1 = 1, _end1 = typeMap.capacity(); i1 <= _end1; i1++)
+		for (int i1 = 1, end = typeMap.capacity(); i1 <= end; i1++)
 		{
 			final AvailObject key = typeMap.keyAtIndex(i1);
 			if (!key.equalsVoidOrBlank())
@@ -162,7 +162,7 @@ extends TypeDescriptor
 			return false;
 		}
 		AvailObject.lock(m1);
-		for (int i1 = 1, _end1 = m1.capacity(); i1 <= _end1; i1++)
+		for (int i1 = 1, end = m1.capacity(); i1 <= end; i1++)
 		{
 			final AvailObject key = m1.keyAtIndex(i1);
 			if (!key.equalsVoidOrBlank())

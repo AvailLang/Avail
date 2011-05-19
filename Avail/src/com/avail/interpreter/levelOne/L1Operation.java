@@ -367,38 +367,38 @@ public enum L1Operation
 	L1Operation (
 		final int ordinalCheck,
 		final L1OperandType ... operandTypes)
-		{
+	{
 		assert ordinalCheck == ordinal();
 		this.operandTypes = operandTypes;
-		};
+	};
 
-		/**
-		 * Dispatch this operation through an {@link L1OperationDispatcher}.
-		 *
-		 * @param operationDispatcher The {@link L1OperationDispatcher} that will
-		 *                            accept this operation.
-		 */
-		public abstract void dispatch (L1OperationDispatcher operationDispatcher);
+	/**
+	 * Dispatch this operation through an {@link L1OperationDispatcher}.
+	 *
+	 * @param operationDispatcher The {@link L1OperationDispatcher} that will
+	 *                            accept this operation.
+	 */
+	public abstract void dispatch (L1OperationDispatcher operationDispatcher);
 
-		/**
-		 * Write this operation to a {@link ByteArrayOutputStream}.  Do not output
-		 * operands.
-		 *
-		 * @param stream The {@link ByteArrayOutputStream} on which to write the
-		 *               nybble(s) representing this operation.
-		 */
-		public void writeTo (final ByteArrayOutputStream stream)
+	/**
+	 * Write this operation to a {@link ByteArrayOutputStream}.  Do not output
+	 * operands.
+	 *
+	 * @param stream The {@link ByteArrayOutputStream} on which to write the
+	 *               nybble(s) representing this operation.
+	 */
+	public void writeTo (final ByteArrayOutputStream stream)
+	{
+		int nybble = ordinal();
+		if (nybble < 16)
 		{
-			int nybble = ordinal();
-			if (nybble < 16)
-			{
-				stream.write(nybble);
-			}
-			else
-			{
-				assert nybble < 32;
-				stream.write(L1_doExtension.ordinal());
-				stream.write(nybble - 16);
-			}
+			stream.write(nybble);
 		}
+		else
+		{
+			assert nybble < 32;
+			stream.write(L1_doExtension.ordinal());
+			stream.write(nybble - 16);
+		}
+	}
 };

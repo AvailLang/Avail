@@ -472,7 +472,7 @@ extends Descriptor
 
 		int zones = 0;
 		int newSize = 0;
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			final AvailObject sub = object.tupleAt(i);
 			final int subZones = sub.tupleSize() == 0
@@ -497,17 +497,20 @@ extends Descriptor
 		final AvailObject result =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				zones,
-				(zones * 2),
+				zones * 2,
 				SpliceTupleDescriptor.mutable());
 		int majorIndex = 0;
 		int zone = 1;
-		for (int i = 1, _end2 = object.tupleSize(); i <= _end2; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			final AvailObject sub = object.tupleAt(i).traversed();
 			if (sub.isSplice())
 			{
 				assert sub.tupleSize() > 0;
-				for (int originalZone = 1, _end3 = sub.numberOfZones(); originalZone <= _end3; originalZone++)
+				for (
+					int originalZone = 1, end2 = sub.numberOfZones();
+					originalZone <= end2;
+					originalZone++)
 				{
 					majorIndex += sub.sizeOfZone(originalZone);
 					result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
@@ -563,8 +566,8 @@ extends Descriptor
 		// Make a tuple that only contains the given range of elements of the
 		// given tuple.  Overridden in ObjectTupleDescriptor so that if
 		// isMutable and canDestroy are true then the parts of the tuple outside
-		// the subrange will have their refcounts decremented and those tuple
-		// slots will be set to void.
+		// the subrange will have their reference counts decremented (i.e.,
+		// destroyed if mutable) and those tuple slots will be set to void.
 
 		assert 1 <= start && start <= end + 1;
 		assert 0 <= end && end <= object.tupleSize();
@@ -609,7 +612,7 @@ extends Descriptor
 		final int index)
 	{
 		// Get the element at the given index in the tuple object, and extract a
-		// nybble from it.  Fail if it's not a nybble. Obviously overidden for
+		// nybble from it.  Fail if it's not a nybble. Obviously overridden for
 		// speed in NybbleTupleDescriptor.
 
 		final int nyb = object.tupleIntAt(index);
@@ -682,7 +685,7 @@ extends Descriptor
 
 		AvailObject result = SetDescriptor.empty();
 		AvailObject.lock(object);
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			result = result.setWithElementCanDestroy(object.tupleAt(i), true);
 		}
@@ -778,7 +781,7 @@ extends Descriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-		final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
+			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
 			hash = hash * Multiplier + itemHash;
 		}
 		return hash * Multiplier;

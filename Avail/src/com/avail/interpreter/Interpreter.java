@@ -188,12 +188,12 @@ public abstract class Interpreter
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		final AvailObject impsTuple = imps.implementationsTuple();
-		for (int i = 1, _end1 = impsTuple.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject existingType =
 				impsTuple.tupleAt(i).bodySignature();
 			boolean same = true;
-			for (int k = 1, _end2 = bodySignature.numArgs(); k <= _end2; k++)
+			for (int k = 1, end2 = bodySignature.numArgs(); k <= end2; k++)
 			{
 				if (!existingType.argTypeAt(k).equals(
 					bodySignature.argTypeAt(k)))
@@ -299,7 +299,7 @@ public abstract class Interpreter
 		{
 			final AvailObject existingType = existingImp.bodySignature();
 			boolean same = true;
-			for (int k = 1, _end2 = macroBodyType.numArgs(); k <= _end2; k++)
+			for (int k = 1, end = macroBodyType.numArgs(); k <= end; k++)
 			{
 				if (!existingType.argTypeAt(k).equals(
 					macroBodyType.argTypeAt(k)))
@@ -386,7 +386,7 @@ public abstract class Interpreter
 		{
 			final AvailObject existingType = existingImp.bodySignature();
 			boolean same = true;
-			for (int k = 1, _end2 = bodySignature.numArgs(); k <= _end2; k++)
+			for (int k = 1, end = bodySignature.numArgs(); k <= end; k++)
 			{
 				if (!existingType.argTypeAt(k).equals(
 					bodySignature.argTypeAt(k)))
@@ -488,7 +488,7 @@ public abstract class Interpreter
 		{
 			final AvailObject existingType = existingImp.bodySignature();
 			boolean same = true;
-			for (int k = 1, _end2 = bodySignature.numArgs(); k <= _end2; k++)
+			for (int k = 1, end = bodySignature.numArgs(); k <= end; k++)
 			{
 				if (!existingType.argTypeAt(k).equals(
 					bodySignature.argTypeAt(k)))

@@ -46,28 +46,26 @@ extends TupleDescriptor
 	 */
 	public enum IntegerSlots
 	{
+		/**
+		 * The hash of the tuple or zero.  In the rare case that the hash is
+		 * actually zero, it will have to be recalculated each time it is
+		 * requested.
+		 */
 		HASH_OR_ZERO,
+
+		/**
+		 * The {@code int} slots that hold the nybble values of the tuple, eight
+		 * per slot (except the last one which may be less), in Little Endian
+		 * order.
+		 */
 		RAW_QUAD_AT_
 	}
 
+	/**
+	 * The number of nybbles of the last {@linkplain IntegerSlots#RAW_QUAD_AT_
+	 * integer slot} that are not considered part of the tuple.
+	 */
 	int unusedNybblesOfLastWord;
-
-	@Override
-	public int o_RawQuadAt (
-		final @NotNull AvailObject object,
-		final int subscript)
-	{
-		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
-	}
-
-	@Override
-	public void o_RawQuadAtPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final int value)
-	{
-		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
-	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -103,8 +101,8 @@ extends TupleDescriptor
 			for (
 					int
 						i = rowStart,
-						_end2 = min(rowStart + rowSize - 1, object.tupleSize());
-					i <= _end2;
+						end = min(rowStart + rowSize - 1, object.tupleSize());
+					i <= end;
 					i++)
 			{
 				final byte val = object.extractNybbleFromTupleAt(i);
@@ -203,8 +201,9 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		//  They're equal (but occupy disjoint storage).  Replace one with an indirection to the other
-		//  to reduce storage costs and the frequency of nybble-wise comparisons.
+		// They're equal (but occupy disjoint storage).  Replace one with an
+		// indirection to the other to reduce storage costs and the frequency
+		// of nybble-wise comparisons.
 		object.becomeIndirectionTo(aNybbleTuple);
 		aNybbleTuple.makeImmutable();
 		//  Now that there are at least two references to it
@@ -216,10 +215,10 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
-		//  Given two objects that are known to be equal, is the first one in a better form (more
-		//  compact, more efficient, older generation) than the second one?
-
-		//  Currently there is no more desirable representation than a nybble tuple
+		// Given two objects that are known to be equal, is the first one in a
+		// better form (more compact, more efficient, older generation) than the
+		// second one?  Currently there is no more desirable representation than
+		// a nybble tuple.
 		return true;
 	}
 
@@ -228,10 +227,9 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Answer whether object is an instance of a subtype of aType.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
-
+		// Answer whether object is an instance of a subtype of aType.  Don't
+		// generate an approximate type and do the comparison, because the
+		// approximate type will just send this message recursively.
 		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
@@ -265,7 +263,7 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		for (int i = breakIndex + 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
 		{
 			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
 			{
@@ -298,8 +296,6 @@ extends TupleDescriptor
 	public @NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.
-
 		if (isMutable)
 		{
 			object.descriptor(
@@ -435,9 +431,7 @@ extends TupleDescriptor
 	public int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of elements in the object (as a Smalltalk Integer).
-
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots()) * 8 - unusedNybblesOfLastWord;
+		return object.variableIntegerSlotsCount() * 8 - unusedNybblesOfLastWord;
 	}
 
 	@Override
@@ -468,9 +462,9 @@ extends TupleDescriptor
 		final int start,
 		final int end)
 	{
-		//  See comment in superclass.  This method must produce the same value.
-		//  This could eventually be rewritten to do byte at a time (table lookup) and to
-		//  use the square of the current multiplier.
+		// See comment in superclass.  This method must produce the same value.
+		// This could eventually be rewritten to do a byte at a time (table
+		// lookup) and to use the square of the current multiplier.
 
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
@@ -486,6 +480,13 @@ extends TupleDescriptor
 	/**
 	 * Answer a mutable copy of object that holds bytes, as opposed to just
 	 * nybbles.
+	 *
+	 * @param object
+	 *            A {@linkplain NybbleTupleDescriptor nybble tuple} to copy as a
+	 *            {@linkplain ByteTupleDescriptor byte tuple}.
+	 * @return
+	 *            A new {@linkplain ByteTupleDescriptor byte tuple} with the
+	 *            same sequence of integers as the argument.
 	 */
 	AvailObject copyAsMutableByteTuple (
 		final @NotNull AvailObject object)
@@ -493,7 +494,7 @@ extends TupleDescriptor
 		final AvailObject result =
 			ByteTupleDescriptor.mutableObjectOfSize(object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, _end1 = result.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = result.tupleSize(); i <= end; i++)
 		{
 			result.rawByteAtPut(i, object.rawNybbleAt(i));
 		}
@@ -515,7 +516,21 @@ extends TupleDescriptor
 		return result;
 	}
 
-	private static NybbleTupleDescriptor isMutableSize(
+	/**
+	 * Answer the descriptor that has the specified mutability flag and is
+	 * suitable to describe a tuple with the given number of elements.
+	 *
+	 * @param flag
+	 *            Whether the requested descriptor should be mutable.
+	 * @param size
+	 *            How many elements are in a tuple to be represented by the
+	 *            descriptor.
+	 * @return
+	 *            A {@link NybbleTupleDescriptor} suitable for representing a
+	 *            nybble tuple of the given mutability and {@link
+	 *            AvailObject#tupleSize() size}.
+	 */
+	private static NybbleTupleDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{
@@ -539,6 +554,11 @@ extends TupleDescriptor
 		unusedNybblesOfLastWord = unusedNybbles;
 	}
 
+	/**
+	 * The static list of descriptors of this kind, organized in such a way that
+	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
+	 * number of unused nybbles in the last word.
+	 */
 	final static NybbleTupleDescriptor descriptors[] = {
 		new NybbleTupleDescriptor(true, 0),
 		new NybbleTupleDescriptor(false, 0),

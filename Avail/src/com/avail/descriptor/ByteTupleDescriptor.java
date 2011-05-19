@@ -38,6 +38,13 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * {@code ByteTupleDescriptor} represents a tuple of integers that happen to
+ * fall in the range 0..255.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
 public class ByteTupleDescriptor
 extends TupleDescriptor
 {
@@ -59,28 +66,11 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * The number of bytes of the last 32-bit machine word that do not
-	 * participate in the representation of the {@linkplain ByteTupleDescriptor
-	 * byte tuple}.
+	 * The number of bytes of the last {@code int} that do not participate in
+	 * the representation of the {@linkplain ByteTupleDescriptor byte tuple}.
+	 * Must be between 0 and 3.
 	 */
 	private final int unusedBytesOfLastWord;
-
-	@Override
-	public int o_RawQuadAt (
-		final @NotNull AvailObject object,
-		final int subscript)
-	{
-		return object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, subscript);
-	}
-
-	@Override
-	public void o_RawQuadAtPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final int value)
-	{
-		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, subscript, value);
-	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -95,25 +85,25 @@ extends TupleDescriptor
 		}
 		aStream.append("ByteTuple with: #[");
 		int rowSize = max(30 - indent * 3 / 2, 8);
-		rowSize = (rowSize + 3) / 4 * 4;
+		rowSize = rowSize + 3 & ~3;
 		//  How many equal (shorter by at least 1 on the last) rows are needed?
 		final int rows = (object.tupleSize() + rowSize) / rowSize;
 		//  How many on each row for that layout?
 		rowSize = (object.tupleSize() + rows) / rows;
 		//  Round up to a multiple of four per row.
-		rowSize = (rowSize + 3) / 4 * 4;
+		rowSize = rowSize + 3 & ~3;
 		int rowStart = 1;
 		while (rowStart <= object.tupleSize()) {
 			aStream.append('\n');
-			for (int _count1 = 1; _count1 <= indent; _count1++)
+			for (int count = 1; count <= indent; count++)
 			{
 				aStream.append('\t');
 			}
 			for (
 					int
 						i = rowStart,
-						_end2 = min(rowStart + rowSize - 1, object.tupleSize());
-					i <= _end2;
+						end = min(rowStart + rowSize - 1, object.tupleSize());
+					i <= end;
 					i++)
 			{
 				final short val = object.tupleAt(i).extractByte();
@@ -142,7 +132,7 @@ extends TupleDescriptor
 
 		return anotherObject.compareFromToWithByteTupleStartingAt(
 			startIndex2,
-			(startIndex2 + endIndex1 - startIndex1),
+			startIndex2 + endIndex1 - startIndex1,
 			object,
 			startIndex1);
 	}
@@ -187,8 +177,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aByteTuple)
 	{
-		//  First, check for object-structure (address) identity.
-
+		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aByteTuple))
 		{
 			return true;
@@ -209,11 +198,12 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		//  They're equal (but occupy disjoint storage).  Replace one with an indirection to the other
-		//  to keep down the frequency of byte-wise comparisons.
+		// They're equal (but occupy disjoint storage).  Replace one with an
+		// indirection to the other to keep down the frequency of byte-wise
+		// comparisons.
 		object.becomeIndirectionTo(aByteTuple);
+		// There are now at least two references to it.
 		aByteTuple.makeImmutable();
-		//  Now that there are at least two references to it
 		return true;
 	}
 
@@ -228,10 +218,6 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Answer whether object is an instance of a subtype of aType.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
-
 		if (aType.equals(VOID_TYPE.o()))
 		{
 			return true;
@@ -265,7 +251,7 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		for (int i = breakIndex + 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
 		{
 			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
 			{
@@ -398,25 +384,32 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-		final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
 				object.rawByteAt(index)) ^ PreToggle;
 			hash = hash * Multiplier + itemHash;
 		}
 		return hash * Multiplier;
 	}
 
+	/**
+	 * Answer a mutable copy of object that also only holds bytes.
+	 *
+	 * @param object The byte tuple to copy.
+	 * @return The new mutable byte tuple.
+	 */
 	private @NotNull AvailObject copyAsMutableByteTuple (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a mutable copy of object that also only holds bytes.
-
-		final AvailObject result = isMutableSize(true, object.tupleSize()).create(
-			(object.tupleSize() + 3) / 4);
+		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		// Copy four bytes at a time.
+		for (int i = 1, end = object.tupleSize() + 3 >> 2; i <= end; i++)
 		{
-			result.rawByteAtPut(i, object.rawByteAt(i));
+			result.integerSlotAtPut(
+				IntegerSlots.RAW_QUAD_AT_,
+				i,
+				object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
 	}
@@ -425,9 +418,7 @@ extends TupleDescriptor
 	public int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of elements in the object (as a Smalltalk Integer).
-
-		return (object.integerSlotsCount() - numberOfFixedIntegerSlots) * 4 - unusedBytesOfLastWord;
+		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
 
 	/**
@@ -442,7 +433,7 @@ extends TupleDescriptor
 	{
 		ByteTupleDescriptor descriptor = isMutableSize(true, size);
 		assert (size + descriptor.unusedBytesOfLastWord & 3) == 0;
-		return descriptor.create((size + 3) / 4);
+		return descriptor.create(size + 3 >> 2);
 	}
 
 	/* Descriptor lookup */

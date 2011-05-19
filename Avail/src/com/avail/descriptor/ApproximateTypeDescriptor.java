@@ -469,7 +469,7 @@ extends TypeDescriptor
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  Since metas intersect at terminatesType rather than terminates, we must
-		//  be very careful to overide this properly.
+		//  be very careful to override this properly.
 
 		return object.becomeExactType().typeIntersectionOfMeta(someMeta);
 	}
@@ -728,7 +728,10 @@ extends TypeDescriptor
 			return TERMINATES.o();
 		}
 		AvailObject unionType = TERMINATES.o();
-		for (int i = max(startIndex, 1), _end1 = min(endIndex, upperIndex); i <= _end1; i++)
+		for (
+			int i = max(startIndex, 1), end = min(endIndex, upperIndex);
+			i <= end;
+			i++)
 		{
 			unionType = unionType.typeUnion(tupleObject.tupleAt(i).type());
 		}

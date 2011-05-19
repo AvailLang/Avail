@@ -1452,7 +1452,7 @@ public enum Primitive
 			cont.levelTwoChunkOffset(
 				L2ChunkDescriptor.unoptimizedChunk(),
 				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-			for (int i = 1, _end3 = stack.tupleSize(); i <= _end3; i++)
+			for (int i = 1, end = stack.tupleSize(); i <= end; i++)
 			{
 				cont.argOrLocalOrStackAtPut(i, stack.tupleAt(i));
 			}
@@ -1815,7 +1815,7 @@ public enum Primitive
 			// continuation to always be mutable.
 			final AvailObject conCopy = con.ensureMutable();
 			final AvailObject itsCode = conCopy.closure().code();
-			for (int i = 1, _end6 = itsCode.numLocals(); i <= _end6; i++)
+			for (int i = 1, end = itsCode.numLocals(); i <= end; i++)
 			{
 				conCopy.argOrLocalOrStackAtPut(
 					itsCode.numArgs() + i,
@@ -2367,7 +2367,7 @@ public enum Primitive
 				ObjectTupleDescriptor.mutable().create(aClosure.numOuterVars());
 			newTupleObject.hashOrZero(0);
 			CanAllocateObjects(false);
-			for (int i = 1, _end7 = aClosure.numOuterVars(); i <= _end7; i++)
+			for (int i = 1, end = aClosure.numOuterVars(); i <= end; i++)
 			{
 				final AvailObject outer = aClosure.outerVarAt(i);
 				if (outer.equalsVoid())

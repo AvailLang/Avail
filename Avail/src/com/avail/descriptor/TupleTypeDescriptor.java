@@ -137,8 +137,8 @@ extends TypeDescriptor
 			{
 				aStream.append("tuple like <");
 				for (
-						int i = 1, _end1 = object.sizeRange().upperBound().extractInt();
-						i <= _end1;
+						int i = 1, end = object.sizeRange().upperBound().extractInt();
+						i <= end;
 						i++)
 				{
 					if (i > 1)
@@ -374,7 +374,7 @@ extends TypeDescriptor
 		}
 		final AvailObject subTuple = aTupleType.typeTuple();
 		final AvailObject superTuple = object.typeTuple();
-		for (int i = 1, _end1 = max(subTuple.tupleSize(), superTuple.tupleSize()); i <= _end1; i++)
+		for (int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize()); i <= end; i++)
 		{
 			AvailObject subType;
 			if (i <= subTuple.tupleSize())

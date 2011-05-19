@@ -1299,12 +1299,12 @@ extends AbstractDescriptor
 	public List<AvailObject> o_FilterByTypes (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
-		{
+	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
 		return null;
-		}
+	}
 
 	/**
 	 * @param object
@@ -1479,12 +1479,12 @@ extends AbstractDescriptor
 	public List<AvailObject> o_ImplementationsAtOrBelow (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
-		{
+	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
 		return null;
-		}
+	}
 
 	/**
 	 * @param object
@@ -2611,36 +2611,6 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_Pad1 (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Pad2 (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_Parent (
 		final AvailObject object,
 		final AvailObject value)
@@ -2913,39 +2883,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index,
 		final byte aNybble)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
-	@Override
-	public int o_RawQuadAt (
-		final AvailObject object,
-		final int index)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	@Override
-	public void o_RawQuadAtPut (
-		final AvailObject object,
-		final int index,
-		final int value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -5474,12 +5411,12 @@ extends AbstractDescriptor
 	@Override
 	public List<AvailObject> o_KeysAsArray (
 		final AvailObject object)
-		{
+	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
 		return null;
-		}
+	}
 
 	/**
 	 * @param object
@@ -5881,34 +5818,6 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Nybbles (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_Pad1 (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_Pad2 (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -7226,7 +7135,7 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Traversed (
 		final AvailObject object)
 	{
-		//  Overidden in IndirectionDescriptor to skip over indirections.
+		//  Overridden in IndirectionDescriptor to skip over indirections.
 
 		return object;
 	}
@@ -7470,7 +7379,7 @@ extends AbstractDescriptor
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
 		//  The current message may only be sent if the subclass receiving it has
-		//  overidden o_CanComputeHashOfType to answer true.
+		//  overridden o_CanComputeHashOfType to answer true.
 
 		//  only provide if subclass canComputeHashOfType.
 		unsupportedOperation();
@@ -7591,13 +7500,13 @@ extends AbstractDescriptor
 	@Override
 	public @NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
-		{
+	{
 		error(
 			"Subclass responsibility: o_Iterator() in "
 			+ getClass().getCanonicalName(),
 			object);
 		return null;
-		}
+	}
 
 
 	/**

@@ -179,7 +179,7 @@ extends TupleDescriptor
 		{
 			return true;
 		}
-		for (int i = 1, _end1 = object.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			if (!object.tupleAt(i).isHashAvailable())
 			{
@@ -192,8 +192,8 @@ extends TupleDescriptor
 	@Override
 	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
 		final @NotNull AvailObject object,
-		final int start,
-		final int end,
+		final int startIndex,
+		final int endIndex,
 		final boolean canDestroy)
 	{
 		// Make a tuple that only contains the given range of elements of the
@@ -202,56 +202,56 @@ extends TupleDescriptor
 		// subrange.  Replace these clobbered fields with the integer 0 (always
 		// immutable) after dropping the refcount on replaced objects.
 
-		assert 1 <= start && start <= end + 1;
+		assert 1 <= startIndex && startIndex <= endIndex + 1;
 		final int originalSize = object.tupleSize();
-		assert 0 <= end && end <= originalSize;
+		assert 0 <= endIndex && endIndex <= originalSize;
 		if (isMutable && canDestroy)
 		{
-			if (start - 1 == end)
+			if (startIndex - 1 == endIndex)
 			{
 				object.assertObjectUnreachableIfMutable();
 				return TupleDescriptor.empty();
 			}
 			final AvailObject zeroObject = IntegerDescriptor.zero();
 			object.hashOrZero(0);
-			if (start == 1 || end - start < 30)
+			if (startIndex == 1 || endIndex - startIndex < 30)
 			{
-				if (start != 1)
+				if (startIndex != 1)
 				{
-					for (int i = 1; i < start; i++)
+					for (int i = 1; i < startIndex; i++)
 					{
 						object.tupleAt(i).assertObjectUnreachableIfMutable();
 					}
-					for (int i = 1; i <= end - start + 1; i++)
+					for (int i = 1; i <= endIndex - startIndex + 1; i++)
 					{
-						object.tupleAtPut(i, object.tupleAt(start + i - 1));
+						object.tupleAtPut(i, object.tupleAt(startIndex + i - 1));
 					}
-					for (int i = end - start + 2; i <= end; i++)
+					for (int i = endIndex - startIndex + 2; i <= endIndex; i++)
 					{
 						object.tupleAtPut(i, zeroObject);
 					}
 				}
-				for (int i = end + 1, _end3 = originalSize; i <= _end3; i++)
+				for (int i = endIndex + 1, end = originalSize; i <= end; i++)
 				{
 					object.tupleAt(i).assertObjectUnreachableIfMutable();
 					object.tupleAtPut(i, zeroObject);
 				}
-				object.truncateTo(end - start + 1);
+				object.truncateTo(endIndex - startIndex + 1);
 				//  Clip remaining items off end, padding lost space with a dummy header.
 				return object;
 			}
-			for (int i = 1, _end4 = start - 1; i <= _end4; i++)
+			for (int i = 1, end = startIndex - 1; i <= end; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
 			}
-			for (int i = end + 1, _end5 = originalSize; i <= _end5; i++)
+			for (int i = endIndex + 1, end = originalSize; i <= end; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
 			}
 		}
-		if (start - 1 == end)
+		if (startIndex - 1 == endIndex)
 		{
 			return TupleDescriptor.empty();
 		}
@@ -259,15 +259,15 @@ extends TupleDescriptor
 		//  might trigger a garbage collection.
 		int newHash = 0;
 		//  This is just to assist the type deducer.
-		newHash = object.computeHashFromTo(start, end);
+		newHash = object.computeHashFromTo(startIndex, endIndex);
 		AvailObject result;
-		if (end - start < 20)
+		if (endIndex - startIndex < 20)
 		{
-			result = mutable().create(end - start + 1);
+			result = mutable().create(endIndex - startIndex + 1);
 			result.hashOrZero(newHash);
-			for (int i = 1, _end6 = end - start + 1; i <= _end6; i++)
+			for (int i = 1, end = endIndex - startIndex + 1; i <= end; i++)
 			{
-				result.tupleAtPut(i, object.tupleAt(i + start - 1).makeImmutable());
+				result.tupleAtPut(i, object.tupleAt(i + startIndex - 1).makeImmutable());
 			}
 		}
 		else
@@ -285,8 +285,8 @@ extends TupleDescriptor
 			result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
 				1,
 				object,
-				start,
-				(end - start + 1));
+				startIndex,
+				(endIndex - startIndex + 1));
 			result.verify();
 		}
 		return result;

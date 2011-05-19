@@ -656,7 +656,7 @@ public class AvailCodeGenerator
 				Arrays.asList(new AvailVariableAccessNote[_varMap.size()]));
 		outerData = new ArrayList<AvailVariableAccessNote>(
 				Arrays.asList(new AvailVariableAccessNote[_outerMap.size()]));
-		for (int index = 1, _end1 = _instructions.size(); index <= _end1; index++)
+		for (int index = 1, end = _instructions.size(); index <= end; index++)
 		{
 			final AvailInstruction instruction = _instructions.get(index - 1);
 			instruction.fixFlagsUsingLocalDataOuterDataCodeGenerator(

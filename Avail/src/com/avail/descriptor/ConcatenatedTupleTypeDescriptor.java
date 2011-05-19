@@ -424,7 +424,10 @@ extends TypeDescriptor
 		}
 		final AvailObject subTuple = aTupleType.typeTuple();
 		final AvailObject superTuple = object.typeTuple();
-		for (int i = 1, _end1 = max(subTuple.tupleSize(), superTuple.tupleSize()); i <= _end1; i++)
+		for (
+			int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize());
+			i <= end;
+			i++)
 		{
 			AvailObject subType;
 			if (i <= subTuple.tupleSize())

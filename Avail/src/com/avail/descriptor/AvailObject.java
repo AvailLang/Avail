@@ -2249,9 +2249,9 @@ implements Iterable<AvailObject>
 	 */
 	public List<AvailObject> filterByTypes (
 		final List<AvailObject> argTypes)
-		{
+	{
 		return descriptor().o_FilterByTypes(this, argTypes);
-		}
+	}
 
 	/**
 	 * Dispatch to the descriptor.
@@ -2416,9 +2416,9 @@ implements Iterable<AvailObject>
 	 */
 	public List<AvailObject> implementationsAtOrBelow (
 		final List<AvailObject> argTypes)
-		{
+	{
 		return descriptor().o_ImplementationsAtOrBelow(this, argTypes);
-		}
+	}
 
 	/**
 	 * Dispatch to the descriptor.
@@ -3785,41 +3785,6 @@ implements Iterable<AvailObject>
 			index,
 			value);
 	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject pad1 ()
-	{
-		return descriptor().o_Pad1(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject pad2 ()
-	{
-		return descriptor().o_Pad2(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void pad1 (
-		final AvailObject value)
-	{
-		descriptor().o_Pad1(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void pad2 (
-		final AvailObject value)
-	{
-		descriptor().o_Pad2(this, value);
-	}
-
 	/**
 	 * Dispatch to the descriptor.
 	 */
@@ -4141,28 +4106,6 @@ implements Iterable<AvailObject>
 			this,
 			index,
 			aNybble);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int rawQuadAt (
-		final int index)
-	{
-		return descriptor().o_RawQuadAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void rawQuadAtPut (
-		final int index,
-		final int value)
-	{
-		descriptor().o_RawQuadAtPut(
-			this,
-			index,
-			value);
 	}
 
 	/**

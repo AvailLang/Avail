@@ -155,7 +155,7 @@ extends Descriptor
 		assert ret.numArgs() == sig.numArgs() : "Wrong number of arguments in returns block.";
 		assert req.returnType().isSubtypeOf(BOOLEAN_TYPE.o()) : "Wrong return type in requires block";
 		assert ret.returnType().isSubtypeOf(TYPE.o()) : "Wrong return type in returns block";
-		for (int i = 1, _end1 = sig.numArgs(); i <= _end1; i++)
+		for (int i = 1, end = sig.numArgs(); i <= end; i++)
 		{
 			final AvailObject bodyType = sig.argTypeAt(i);
 			final AvailObject bodyMeta = bodyType.type();

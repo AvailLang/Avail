@@ -212,7 +212,7 @@ extends TypeDescriptor
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//  Since metas intersect at terminatesType rather than terminates, we must
-		//  be very careful to overide this properly.  Note that the cases of the types
+		//  be very careful to override this properly.  Note that the cases of the types
 		//  being equal or one being a subtype of the other have already been dealt
 		//  with (in Object:typeIntersection:), so don't test for them here.
 

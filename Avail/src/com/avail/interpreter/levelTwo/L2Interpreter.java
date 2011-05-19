@@ -64,8 +64,7 @@ import com.avail.interpreter.levelOne.*;
  * <li>a variant of keyhole optimization that involves building the loosest
  * possible level two instruction dependency graph, then "pulling" eligible
  * instruction sequences that are profitably rewritten.</li>
- * <li>further translation to native code &mdash; although the current plan is
- * to
+ * <li>further translation to native code – although the current plan is to
  * generate Java bytecodes to leverage the enormous amount of effort that went
  * into the bytecode verifier, concurrency semantics, and HotSpot's low-level
  * optimizations.</li>
@@ -109,8 +108,8 @@ import com.avail.interpreter.levelOne.*;
  * corresponding instruction "explodes" a continuation into registers reserved
  * as part of the calling convention (strictly enforced).  During transition
  * from caller to callee (and vice-versa), the only registers that hold usable
- * state are the "architectural" registers &mdash; those that hold the state of
- * a continuation being constructed or deconstructed.  This sounds brutally
+ * state are the "architectural" registers – those that hold the state of a
+ * continuation being constructed or deconstructed.  This sounds brutally
  * inefficient, but time will tell.  Also, I have devised and implemented
  * mechanisms to allow deeper inlining than would normally be possible in a
  * traditional system, the explicit construction and deconstruction of
@@ -119,19 +118,18 @@ import com.avail.interpreter.levelOne.*;
  *
  * <p>
  * Note that unlike languages like C and C++, optimizations below level one are
- * always transparent &mdash; other than observations about performance and
- * memory use.  Also note that this was a design constraint for Avail as far
- * back as 1993, after <span style="font-variant: small-caps;">Self</span>, but
- * before its technological successor Java.  The way in which this is
- * accomplished (or will be more fully accomplished) in Avail is by allowing the
- * generated level two code itself to define how to maintain the "accurate
- * fiction" of a level one interpreter.  If a method is inlined ten layers deep
- * inside an outer method, a non-inlined call from that inner method requires
- * ten layers of continuations to be constructed prior to the call (to
- * accurately maintain the fiction that it was simply interpreting level one
- * nybblecodes).  There are ways to avoid or at least postpone this phase
- * transition, but I don't have any solid plans for introducing such a mechanism
- * any time soon.
+ * always transparent – other than observations about performance and memory
+ * use.  Also note that this was a design constraint for Avail as far back as
+ * 1993, after <span style="font-variant: small-caps;">Self</span>, but before
+ * its technological successor Java.  The way in which this is accomplished (or
+ * will be more fully accomplished) in Avail is by allowing the generated level
+ * two code itself to define how to maintain the "accurate fiction" of a level
+ * one interpreter.  If a method is inlined ten layers deep inside an outer
+ * method, a non-inlined call from that inner method requires ten layers of
+ * continuations to be constructed prior to the call (to accurately maintain the
+ * fiction that it was always simply interpreting level one nybblecodes).  There
+ * are ways to avoid or at least postpone this phase transition, but I don't
+ * have any solid plans for introducing such a mechanism any time soon.
  * </p>
  *
  * <p>
@@ -144,8 +142,8 @@ import com.avail.interpreter.levelOne.*;
  * should be much easier to further optimize (say with SSA) than code which
  * literally passes and resumes continuations.  In those cases that the
  * continuation actually escapes (say, if the continuations are used for
- * backtracking) then it can't dissolve into a simple jump &mdash; but it will
- * still execute correctly, just not as quickly.
+ * backtracking) then it can't dissolve into a simple jump – but it will still
+ * execute correctly, just not as quickly.
  * </p>
  *
  *
@@ -181,7 +179,7 @@ implements L2OperationDispatcher
 	 * Note that the {@linkplain CompiledCodeDescriptor compiled code} is passed
 	 * in because the {@linkplain L2ChunkDescriptor#unoptimizedChunk()
 	 * default chunk} doesn't inherently know how many registers it needs
-	 * &mdash; the answer depends on the level one compiled code being executed.
+	 * – the answer depends on the level one compiled code being executed.
 	 * </p>
 	 *
 	 * @param chunk
@@ -2256,7 +2254,7 @@ implements L2OperationDispatcher
 			error("problem in doExplode...");
 			return;
 		}
-		for (int i = 1, _end1 = slotsVector.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = slotsVector.tupleSize(); i <= end; i++)
 		{
 			pointerAtPut(
 				slotsVector.tupleAt(i).extractInt(),
@@ -2486,7 +2484,7 @@ implements L2OperationDispatcher
 		final AvailObject clos = ClosureDescriptor.mutable().create(
 			outers.tupleSize());
 		clos.code(chunk().literalAt(codeIndex));
-		for (int i = 1, _end1 = outers.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = outers.tupleSize(); i <= end; i++)
 		{
 			clos.outerVarAtPut(i, pointerAt(outers.tupleAt(i).extractInt()));
 		}

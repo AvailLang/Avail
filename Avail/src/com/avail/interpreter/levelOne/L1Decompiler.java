@@ -207,14 +207,14 @@ public class L1Decompiler implements L1OperationDispatcher
 	 */
 	List<AvailObject> popExpressions (
 		final int count)
-		{
+	{
 		final List<AvailObject> result = new ArrayList<AvailObject>(count);
 		for (int i = 1; i <= count; i++)
 		{
 			result.add(0, popExpression());
 		}
 		return result;
-		}
+	}
 
 	/**
 	 * Push the given {@link ParseNodeDescriptor parse node} onto the expression
@@ -238,7 +238,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject str = cyclicType.name();
 		final AvailObject underscore =
 			TupleDescriptor.underscoreTuple().tupleAt(1);
-		for (int i = 1, _end1 = str.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = str.tupleSize(); i <= end; i++)
 		{
 			if (str.tupleAt(i).equals(underscore))
 			{
@@ -673,7 +673,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject str = cyclicType.name();
 		final AvailObject underscore =
 			TupleDescriptor.underscoreTuple().tupleAt(1);
-		for (int i = 1, _end1 = str.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = str.tupleSize(); i <= end; i++)
 		{
 			if (str.tupleAt(i).equals(underscore))
 			{
@@ -722,7 +722,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		args = new ArrayList<AvailObject>(code.numArgs());
 		locals = new ArrayList<AvailObject>(code.numLocals());
-		for (int i = 1, _end1 = code.numArgs(); i <= _end1; i++)
+		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final String argName = tempGenerator.value("arg");
 			final AvailObject token = TokenDescriptor.mutable().create();
@@ -734,7 +734,7 @@ public class L1Decompiler implements L1OperationDispatcher
 				code.closureType().argTypeAt(i));
 			args.add(decl);
 		}
-		for (int i = 1, _end2 = code.numLocals(); i <= _end2; i++)
+		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final String localName = tempGenerator.value("local");
 			final AvailObject token = TokenDescriptor.mutable().create();

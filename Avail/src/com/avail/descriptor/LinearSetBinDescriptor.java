@@ -328,8 +328,8 @@ extends SetBinDescriptor
 		for (
 			int
 				readIndex = 1,
-				_end1 = object.variableObjectSlotsCount();
-			readIndex <= _end1;
+				end = object.variableObjectSlotsCount();
+			readIndex <= end;
 			readIndex++)
 		{
 			mutableTuple.tupleAtPut(writeIndex, object.binElementAt(readIndex));

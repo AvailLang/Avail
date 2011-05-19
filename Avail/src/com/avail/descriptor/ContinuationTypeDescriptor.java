@@ -202,7 +202,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = subClosureType.numArgs(); i <= _end1; i++)
+		for (int i = 1, end = subClosureType.numArgs(); i <= end; i++)
 		{
 			if (!superClosureType.argTypeAt(i).isSubtypeOf(
 				subClosureType.argTypeAt(i)))
@@ -249,7 +249,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		AvailObject.lock(intersection);
 		intersection.returnType(
 			closType1.returnType().typeUnion(closType2.returnType()));
-		for (int i = 1, _end1 = closType1.numArgs(); i <= _end1; i++)
+		for (int i = 1, end = closType1.numArgs(); i <= end; i++)
 		{
 			intersection.argTypeAtPut(i, closType1.argTypeAt(i).typeUnion(
 				closType2.argTypeAt(i)));
@@ -295,7 +295,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		AvailObject.lock(closureUnion);
 		closureUnion.returnType(
 			closType1.returnType().typeIntersection(closType2.returnType()));
-		for (int i = 1, _end1 = closType1.numArgs(); i <= _end1; i++)
+		for (int i = 1, end = closType1.numArgs(); i <= end; i++)
 		{
 			closureUnion.argTypeAtPut(
 				i,

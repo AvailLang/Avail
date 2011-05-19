@@ -1802,18 +1802,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Pad1 (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).pad1(value);
-	}
-
-	@Override
-	public void o_Pad2 (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).pad2(value);
-	}
-
-	@Override
 	public void o_Parent (final AvailObject object, final AvailObject value)
 	{
 		o_Traversed(object).parent(value);
@@ -1965,21 +1953,6 @@ extends AbstractDescriptor
 		final byte aNybble)
 	{
 		o_Traversed(object).rawNybbleAtPut(index, aNybble);
-	}
-
-	@Override
-	public int o_RawQuadAt (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).rawQuadAt(index);
-	}
-
-	@Override
-	public void o_RawQuadAtPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final int value)
-	{
-		o_Traversed(object).rawQuadAtPut(index, value);
 	}
 
 	@Override
@@ -3564,18 +3537,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Nybbles (final AvailObject object)
 	{
 		return o_Traversed(object).nybbles();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Pad1 (final AvailObject object)
-	{
-		return o_Traversed(object).pad1();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Pad2 (final AvailObject object)
-	{
-		return o_Traversed(object).pad2();
 	}
 
 	@Override

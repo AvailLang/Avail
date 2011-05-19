@@ -428,8 +428,8 @@ extends Descriptor
 				final AvailObject sig2 =
 					imps.tupleAt(bestIndex).bodySignature();
 				for (
-						int argIndex = 1, _end10 = sig1.numArgs();
-						argIndex <= _end10;
+						int argIndex = 1, end = sig1.numArgs();
+						argIndex <= end;
 						argIndex++)
 				{
 					if (sig1.argTypeAt(argIndex)
@@ -478,14 +478,14 @@ extends Descriptor
 			2,
 			IntegerDescriptor.fromInt(trueTree.tupleSize()),
 			true);
-		for (int i = 1, _end12 = trueTree.tupleSize(); i <= _end12; i++)
+		for (int i = 1, end = trueTree.tupleSize(); i <= end; i++)
 		{
 			result = result.tupleAtPuttingCanDestroy(
 				(2 + i),
 				trueTree.tupleAt(i),
 				true);
 		}
-		for (int i = 1, _end13 = falseTree.tupleSize(); i <= _end13; i++)
+		for (int i = 1, end = falseTree.tupleSize(); i <= end; i++)
 		{
 			result = result.tupleAtPuttingCanDestroy(
 				(2 + trueTree.tupleSize() + i),
@@ -508,7 +508,7 @@ extends Descriptor
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
 		final AvailObject impsTuple = object.implementationsTuple();
-		for (int i = 1, _end1 = impsTuple.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject imp = impsTuple.tupleAt(i);
 			if (imp.bodySignature().acceptsArrayOfArgTypes(argTypes))
@@ -542,7 +542,7 @@ extends Descriptor
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
 		final AvailObject impsTuple = object.implementationsTuple();
-		for (int i = 1, _end1 = impsTuple.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject imp = impsTuple.tupleAt(i);
 			if (imp.bodySignature().couldEverBeInvokedWith(argTypes))
@@ -797,7 +797,7 @@ extends Descriptor
 	{
 		final Mutable<List<AvailObject>> mostSpecific =
 			new Mutable<List<AvailObject>>();
-		for (int index = 1, _end1 = argTypes.size(); index <= _end1; index++)
+		for (int index = 1, end = argTypes.size(); index <= end; index++)
 		{
 			final int finalIndex = index;
 			if (argTypes.get(finalIndex - 1).equals(TERMINATES.o()))

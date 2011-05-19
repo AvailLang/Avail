@@ -338,7 +338,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
+		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			final AvailObject keyObject = object.keyAtIndex(i);
 			if (!keyObject.equalsVoidOrBlank())
@@ -388,7 +388,7 @@ extends Descriptor
 		final AvailObject valueTypeObject = aTypeObject.valueType();
 		AvailObject key;
 		AvailObject value;
-		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
+		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			key = object.keyAtIndex(i);
 			if (!key.equalsVoidOrBlank())
@@ -448,7 +448,7 @@ extends Descriptor
 		//  This is ONLY overridden here for the garbage collector's use.  It probably
 		//  slows down the garbage collector in some cases.
 
-		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
+		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			if (!object.keyAtIndex(i).isHashAvailable())
 			{
@@ -622,7 +622,7 @@ extends Descriptor
 
 		AvailObject.lock(object);
 		AvailObject result = SetDescriptor.empty();
-		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
+		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
 			if (!eachKeyObject.equalsVoidOrBlank())
@@ -646,7 +646,7 @@ extends Descriptor
 			object.mapSize());
 		AvailObject.lock(result);
 		CanAllocateObjects(false);
-		for (int i = 1, _end1 = object.mapSize(); i <= _end1; i++)
+		for (int i = 1, end = object.mapSize(); i <= end; i++)
 		{
 			result.tupleAtPut(i, VoidDescriptor.voidObject());
 		}
@@ -807,7 +807,7 @@ extends Descriptor
 		AvailObject.lock(object);
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(object.mapSize());
-		for (int i = 1, _end1 = object.capacity(); i <= _end1; i++)
+		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
 			if (!eachKeyObject.equalsVoidOrBlank())

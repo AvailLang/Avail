@@ -253,7 +253,7 @@ public class SetDescriptor extends Descriptor
 		//  Do something hokey for now - convert smaller to a tuple then iterate over it.
 		//  The right answer probably involves creating a set visitor mechanism.
 		final AvailObject smallerAsTuple = smaller.asTuple();
-		for (int i = 1, _end1 = smallerAsTuple.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = smallerAsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject element = smallerAsTuple.tupleAt(i);
 			if (!larger.hasElement(element))
@@ -281,7 +281,7 @@ public class SetDescriptor extends Descriptor
 		//  Do something hokey for now - convert object to a tuple then iterate over it.
 		//  The right answer probably involves implementing a set visitor mechanism.
 		final AvailObject objectAsTuple = object.asTuple();
-		for (int i = 1, _end1 = objectAsTuple.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = objectAsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject element = objectAsTuple.tupleAt(i);
 			if (otherSet.hasElement(element))
@@ -335,7 +335,7 @@ public class SetDescriptor extends Descriptor
 		//  Do something hokey for now - convert toScan to a tuple then iterate over it.
 		//  The right answer probably involves creating a set visitor mechanism.
 		final AvailObject toScanAsTuple = toScan.asTuple();
-		for (int i = 1, _end1 = toScanAsTuple.tupleSize(); i <= _end1; i++)
+		for (int i = 1, end = toScanAsTuple.tupleSize(); i <= end; i++)
 		{
 			toModify = toModify.setWithElementCanDestroy(toScanAsTuple.tupleAt(i), true);
 		}

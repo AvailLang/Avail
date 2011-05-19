@@ -128,7 +128,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
+		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
 			if (!object.outerVarAt(i).equals(aClosure.outerVarAt(i)))
 			{
@@ -163,7 +163,7 @@ extends Descriptor
 		//  *used to be* for this closure.
 
 		int hash = object.code().hash() ^ 0x1386D4F6;
-		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
+		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
 			hash = hash * 13 + object.outerVarAt(i).hash();
 		}
@@ -191,7 +191,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (int i = 1, _end1 = object.numOuterVars(); i <= _end1; i++)
+		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
 			if (!object.outerVarAt(i).isHashAvailable())
 			{

@@ -370,8 +370,8 @@ extends Descriptor
 					dest = object.numLiterals()
 						- object.numLocals()
 						- object.numOuters() + 1,
-					_end1 = object.numLiterals() - object.numLocals();
-				dest <= _end1;
+					end = object.numLiterals() - object.numLocals();
+				dest <= end;
 				dest++, src++)
 		{
 			object.literalAtPut(dest, tupleOfOuterTypes.tupleAt(src));
@@ -380,8 +380,8 @@ extends Descriptor
 				int
 					src = 1,
 					dest = object.numLiterals() - object.numLocals() + 1,
-					_end2 = object.numLiterals();
-				dest <= _end2;
+					end = object.numLiterals();
+				dest <= end;
 				dest++, src++)
 		{
 			object.literalAtPut(dest, tupleOfLocalContainerTypes.tupleAt(src));

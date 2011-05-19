@@ -108,17 +108,23 @@ extends PrimitiveTypeDescriptor
 		return TERMINATES.o();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer the most general type that is still at least as specific as these.
+	 * Since metas intersect at terminatesType rather than terminates, we must
+	 * be very careful to override this properly.  Note that the cases of the
+	 * types being equal or one being a subtype of the other have already been
+	 * dealt with (in {@linkplain Descriptor#o_TypeIntersection(AvailObject,
+	 * AvailObject)}), so don't test for them here.
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject someMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-		//  Since metas intersect at terminatesType rather than terminates, we must
-		//  be very careful to overide this properly.  Note that the cases of the types
-		//  being equal or one being a subtype of the other have already been dealt
-		//  with (in Object:typeIntersection:), so don't test for them here.
-
 		return TERMINATES_TYPE.o();
 	}
 
@@ -147,8 +153,9 @@ extends PrimitiveTypeDescriptor
 	public boolean o_IsCyclicType (
 		final @NotNull AvailObject object)
 	{
-		//  Because terminatesType is a subtype of all other metatypes, it is even considered
-		//  a cyclic type.  Coincidentally, terminatesType has itself as its type.
+		// Because terminatesType is a subtype of all other metatypes, it is
+		// even considered a cyclic type.  Coincidentally, terminatesType has
+		// itself as its type.
 
 		return true;
 	}
@@ -168,7 +175,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link TerminatesMetaDescriptor}.
 	 */
-	private final static TerminatesMetaDescriptor mutable = new TerminatesMetaDescriptor(true);
+	private final static TerminatesMetaDescriptor mutable =
+		new TerminatesMetaDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TerminatesMetaDescriptor}.
@@ -183,7 +191,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The immutable {@link TerminatesMetaDescriptor}.
 	 */
-	private final static TerminatesMetaDescriptor immutable = new TerminatesMetaDescriptor(false);
+	private final static TerminatesMetaDescriptor immutable =
+		new TerminatesMetaDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TerminatesMetaDescriptor}.

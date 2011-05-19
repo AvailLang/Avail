@@ -281,7 +281,7 @@ extends SetBinDescriptor
 		objectToModify.binSize(object.binSize() + 1);
 		objectToModify.binUnionTypeOrVoid(unionType);
 		objectToModify.bitVector(vector | bitShift(1,logicalIndex));
-		for (int i = 1, _end2 = physicalIndex - 1; i <= _end2; i++)
+		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 		{
 			objectToModify.binElementAtPut(i, object.binElementAt(i));
 		}
