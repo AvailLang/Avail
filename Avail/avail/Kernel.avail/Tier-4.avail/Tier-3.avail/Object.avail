@@ -74,7 +74,7 @@ Method "_as objectType" is [m : fieldTypeMap |
 Method "_private meta levels_" is [
 		ot : objectType,
 		levels : integerType |
-	Primitive 66 (failureCode : all);
+	Primitive 66 (failureCode : natural number);
 	Failed;
 ] : type;
 
@@ -95,7 +95,7 @@ Method "meta levels of_" is [
 Method "_meta levels_" is [
 		ot : objectType,
 		levels : integerType |
-	Primitive 66 (failureCode : all);
+	Primitive 66 (failureCode : natural number);
 	Failed;
 ] : objectMeta*;
 
@@ -111,7 +111,7 @@ Method "_as map" is [o : objectType |
 Forward "_instance" for [objectMeta*]->type;
 
 Method "_instance" is [omm : objectMeta* |
-	Primitive 65 (failureCode : all);
+	Primitive 65 (failureCode : natural number);
 	Failed;
 ] : type
 returns [ommT : objectMeta* |
@@ -151,7 +151,7 @@ Method "Give type_the name_" is [t : objectType, name : string |
 /* Get the type name.*/
 
 Method "_name" is [t : objectType |
-	Primitive 69 (failureCode : all);
+	Primitive 69 (failureCode : natural number);
 	Failed;
 ] : string;
 

@@ -45,27 +45,27 @@ Body
 
 
 Method "create primitive library" is [
-	Primitive 260 (failureCode : all);
+	Primitive 260 (failureCode : natural number);
 	Failed;
 ] : integer;
 
 Method "Open primitive library_file_" is [
 		libraryHandle : integer,
 		file : string |
-	Primitive 261 (failureCode : all);
+	Primitive 261 (failureCode : natural number);
 	Failed;
 ] : void;
 
 Method "_declare primitive function_" is [
 		libraryHandle : integer,
 		declaration : string |
-	Primitive 262 (failureCode : all);
+	Primitive 262 (failureCode : natural number);
 	Failed;
 ] : integer;
 
 Method "invoke primitive entry point_with arguments_" is [
 		entryPointHandle : integer,
 		arguments : tuple |
-	Primitive 263 (failureCode : all);
+	Primitive 263 (failureCode : natural number);
 	Failed;
 ] : all;

@@ -122,7 +122,7 @@ Method "bootstrap:_doesn't allow_" is
 	methodNames : bootstrap: set of string,
 	forbiddenSubexpressions : bootstrap: tuple of set of string |
 
-	Primitive 255 (unusedFailureCode : all);
+	Primitive 255 (unusedFailureCode : natural number);
 	Exit the current thread because "system error: primitive 255 failed";
 ] : void;
 	
@@ -168,7 +168,7 @@ Method "expression type of_" is
 [
 	parseNode : parse node |
 	
-	Primitive 351 (unusedFailureCode : all);
+	Primitive 351 (unusedFailureCode : natural number);
 	Exit the current thread because "system error: primitive 351 failed";
 ] : type;
 
@@ -204,7 +204,7 @@ Method "{«_‡,»}" is
 [
 	argument : tuple |
 
-	Primitive 109 (unusedFailureCode : all);
+	Primitive 109 (unusedFailureCode : natural number);
 	Exit the current thread because "system error: primitive 109 failed";
 ] : set;
 
@@ -262,7 +262,7 @@ Method "_=_" is
 	a : all,
 	b : all |
 	
-	Primitive 60 (unusedFailureCode : all);
+	Primitive 60 (unusedFailureCode : natural number);
 	Exit the current thread because "system error: primitive 60 failed";
 ] : boolean;
 
@@ -282,7 +282,7 @@ Method "_≤_" is
 	a : type,
 	b : type |
 	
-	Primitive 33 (unusedFailureCode : all);
+	Primitive 33 (unusedFailureCode : natural number);
 	Exit the current thread because "system error: primitive 33 failed";
 ] : boolean;
 

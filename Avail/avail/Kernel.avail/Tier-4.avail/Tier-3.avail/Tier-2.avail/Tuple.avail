@@ -264,7 +264,7 @@ returns [tType : tupleType |
 
 Method "_[_]" is [t : tuple, i : natural number |
 	/* Get tuple entry with given index. */
-	Primitive 131 (failureCode : all);
+	Primitive 131 (failureCode : natural number);
 	Failed;
 ] : all
 requires [tType : tupleType, iType : integerType |
@@ -402,7 +402,7 @@ Method "concatenate tuple type_and_" is [
 
 Method "_[_->_]" is [t : tuple, i : natural number, v : all |
 	/* Answer new tuple with given index set to the given value. */
-	Primitive 132 (failureCode : all);
+	Primitive 132 (failureCode : natural number);
 	Failed;
 ] : tuple
 returns [tType : tupleType, iType : integerType, vType : type |
@@ -514,7 +514,7 @@ returns [ttType : tupleType |
 
 Method "_[_.._]" is [t : tuple, start : natural number, end : whole number |
 	/* Extract a contiguous region from a tuple. */
-	Primitive 135 (failureCode : all);
+	Primitive 135 (failureCode : natural number);
 	Failed;
 ] : tuple
 returns [tt : tupleType, startT : integerType, endT : integerType |

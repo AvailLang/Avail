@@ -89,7 +89,7 @@ Method "_evaluate with handler_" is [
 	   argument, the handler block, with the argument passed to Raise_.
 	   Aside from that, primitive 200 always fails, so the backup code
 	   should just invoke the body. */
-	Primitive 200 (failureCode : all);
+	Primitive 200 (failureCode : 0 type);
 	body();
 ] : void
 returns [bt : closureType, ht : closureType |
@@ -205,7 +205,7 @@ Method "Raise_" is [exception : Exception |
 	   argument (a handler block of one argument) will accept the given
 	   exception object, pop the stack to leave the primitive 200 method on
 	   the top, and invoke the handler with the exception object. */
-	Primitive 201 (failureCode : all);
+	Primitive 201 (failureCode : natural number);
 	Crash "No suitable handler was found for the exception";
 ] : terminates;
 

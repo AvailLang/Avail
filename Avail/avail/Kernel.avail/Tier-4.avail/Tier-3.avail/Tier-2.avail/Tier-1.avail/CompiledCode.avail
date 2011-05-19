@@ -94,7 +94,7 @@ Method "compiledCode for_locals_outers_stack entries,with nybbles_closureType_pr
 		closureType : closureType,
 		prim : [0..65535],
 		literals : tuple |
-	Primitive 188 (failureCode : all);
+	Primitive 188 (failureCode : natural number);
 	Failed;
 ] : compiledCode;
 

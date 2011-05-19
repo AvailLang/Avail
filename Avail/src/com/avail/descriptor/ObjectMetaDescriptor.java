@@ -108,10 +108,10 @@ extends TypeDescriptor
 		}
 
 		newMetaLevels = IntegerRangeTypeDescriptor.create(
-			newMetaLevels.lowerBound().plusCanDestroy(
+			newMetaLevels.lowerBound().noFailPlusCanDestroy(
 				IntegerDescriptor.one(), false),
 			true,
-			newMetaLevels.upperBound().plusCanDestroy(
+			newMetaLevels.upperBound().noFailPlusCanDestroy(
 				IntegerDescriptor.one(), false),
 			newMetaLevels.upperInclusive());
 		return fromObjectTypeAndLevel(object.myObjectType(), newMetaLevels);
@@ -153,10 +153,10 @@ extends TypeDescriptor
 		}
 
 		newMetaLevels = IntegerRangeTypeDescriptor.create(
-			newMetaLevels.lowerBound().plusCanDestroy(
+			newMetaLevels.lowerBound().noFailPlusCanDestroy(
 				IntegerDescriptor.one(), false),
 			true,
-			newMetaLevels.upperBound().plusCanDestroy(
+			newMetaLevels.upperBound().noFailPlusCanDestroy(
 				IntegerDescriptor.one(), false),
 			newMetaLevels.upperInclusive());
 		return fromObjectTypeAndLevel(object.myObjectType(), newMetaLevels);
@@ -186,10 +186,10 @@ extends TypeDescriptor
 		}
 
 		metaLevels = IntegerRangeTypeDescriptor.create(
-			metaLevels.lowerBound().minusCanDestroy(
+			metaLevels.lowerBound().noFailMinusCanDestroy(
 				IntegerDescriptor.one(), false),
 			true,
-			metaLevels.upperBound().minusCanDestroy(
+			metaLevels.upperBound().noFailMinusCanDestroy(
 				IntegerDescriptor.one(), false),
 			metaLevels.upperInclusive());
 		return fromObjectTypeAndLevel(object.myObjectType(), metaLevels);

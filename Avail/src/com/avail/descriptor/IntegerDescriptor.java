@@ -38,6 +38,7 @@ import static java.lang.Math.*;
 import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.exceptions.ArithmeticException;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little
@@ -416,19 +417,16 @@ extends ExtendedNumberDescriptor
 		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
-		//  Double-dispatch it.
-
 		return aNumber.subtractFromIntegerCanDestroy(object, canDestroy);
 	}
 
 	@Override
 	public @NotNull AvailObject o_PlusCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  Double-dispatch it.
-
 		return aNumber.addToIntegerCanDestroy(object, canDestroy);
 	}
 
@@ -609,23 +607,27 @@ extends ExtendedNumberDescriptor
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		// Add the two Avail integers to produce another, destroying one if both
-		// allowed and useful.
-
-		// This routine would be much quicker with access to machine carry flags,
-		// but Java doesn't let us actually go down to the metal (nor do C and C++).
-		// Our best recourse without reverting to assembly language is to use 64-bit
-			final int objectSize = object.integerSlotsCount();
+		// This routine would be much quicker with access to machine carry
+		// flags, but Java doesn't let us actually go down to the metal (nor do
+		// C and C++). Our best recourse without reverting to assembly language
+		// is to use 64-bit.
+		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
 		AvailObject output = null;
 		if (canDestroy)
 		{
-			// Choose the most spacious one to destroy, but reject it if it's immutable.
-			// Never choose the smaller one, even if it's the only one that's mutable.
-			// If they're equal sized and mutable it doesn't matter which we choose.
+			// Choose the most spacious one to destroy, but reject it if it's
+			// immutable. Never choose the smaller one, even if it's the only
+			// one that's mutable. If they're equal sized and mutable it doesn't
+			// matter which we choose.
 			if (objectSize == anIntegerSize)
 			{
-				output = isMutable ? object : anInteger.descriptor().isMutable() ? anInteger : null;
+				output =
+					isMutable
+						? object
+						: anInteger.descriptor().isMutable()
+							? anInteger
+							: null;
 			}
 			else if (objectSize > anIntegerSize)
 			{
@@ -638,11 +640,15 @@ extends ExtendedNumberDescriptor
 		}
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
-			// See if the (signed) sum will fit in 32 bits, the most common case by far.
-		final long sum = (long)object.rawSignedIntegerAt(1) + (long)anInteger.rawSignedIntegerAt(1);
-			if (sum == (int)sum)
+			// See if the (signed) sum will fit in 32 bits, the most common case
+			// by far.
+			final long sum =
+				(long) object.rawSignedIntegerAt(1)
+				+ (long) anInteger.rawSignedIntegerAt(1);
+			if (sum == (int) sum)
 			{
-				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
+				// Yes, it fits.  Clobber one of the inputs, or create a new
+				// object if they were both immutable...
 				if (output == null)
 				{
 					output = mutable().create(1);
@@ -653,44 +659,51 @@ extends ExtendedNumberDescriptor
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
 			output = mutable().create(2);
-			output.rawSignedIntegerAtPut(1, (int)sum);
-			output.rawSignedIntegerAtPut(2, (int)(sum>>32));
+			output.rawSignedIntegerAtPut(1, (int) sum);
+			output.rawSignedIntegerAtPut(2, (int) (sum>>32));
 			return output;
 		}
-		//  Set estimatedSize to the max of the input sizes.  There will only rarely be an overflow
-		//  and at most by one cell.  Underflows should also be pretty rare, and they're handled
-		//  by output.trimExcessLongs().
+		// Set estimatedSize to the max of the input sizes. There will only
+		// rarely be an overflow and at most by one cell. Underflows should also
+		// be pretty rare, and they're handled by output.trimExcessLongs().
 		if (output == null)
 		{
 			output = mutable().create(max(objectSize, anIntegerSize));
 		}
 		final int outputSize = output.integerSlotsCount();
-		final long extendedObject = object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
-		final long extendedAnInteger = anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
+		final long extendedObject =
+			object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
+		final long extendedAnInteger =
+			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
 		long partial = 0;
 		int lastInt = 0;
-		// The object is always big enough to store the max of the number of quads from each
-		// input, so after the loop we can check partial and the upper bit of the result to see
-		// if another quad needs to be appended.
+		// The object is always big enough to store the max of the number of
+		// quads from each input, so after the loop we can check partial and the
+		// upper bit of the result to see if another quad needs to be appended.
 		for (int i = 1; i <= outputSize; i++)
 		{
-			partial += i > objectSize ? extendedObject : object.rawUnsignedIntegerAt(i);
-			partial += i > anIntegerSize ? extendedAnInteger : anInteger.rawUnsignedIntegerAt(i);
-			lastInt = (int)partial;
+			partial += i > objectSize
+				? extendedObject
+				: object.rawUnsignedIntegerAt(i);
+			partial += i > anIntegerSize
+				? extendedAnInteger
+				: anInteger.rawUnsignedIntegerAt(i);
+			lastInt = (int) partial;
 			output.rawSignedIntegerAtPut(i, lastInt);
 			partial >>>= 32;
 		}
 		partial += extendedObject + extendedAnInteger;
-		if (lastInt >> 31 != (int)partial)
+		if (lastInt >> 31 != (int) partial)
 		{
-			// Top bit of last word no longer agrees with sign of result.  Extend it.
-			final AvailObject newOutput = mutable().create(
-				outputSize + 1);
+			// Top bit of last word no longer agrees with sign of result. Extend
+			// it.
+			final AvailObject newOutput = mutable().create(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
-				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i));
+				newOutput.rawSignedIntegerAtPut(
+					i, output.rawSignedIntegerAt(i));
 			}
-			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int)partial);
+			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int) partial);
 			// No need to truncate it in this case.
 			return newOutput;
 		}
@@ -718,10 +731,8 @@ extends ExtendedNumberDescriptor
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  Divide anInteger / object.  Round the result towards zero.
-
-		//  Compute anInteger / object.  Round towards ZERO.  Expect the
-		//  division to take a lot of time, as I haven't optimized it much.
+		// Compute anInteger / object. Round towards ZERO. Expect the division
+		// to take a lot of time, as I haven't optimized it much.
 		if (object.equals(IntegerDescriptor.zero()))
 		{
 			error("Division by zero");
@@ -733,30 +744,36 @@ extends ExtendedNumberDescriptor
 		}
 		if (object.lessThan(IntegerDescriptor.zero()))
 		{
-			return object.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy)
-			.divideIntoIntegerCanDestroy(anInteger, canDestroy)
-			.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy);
+			return object.subtractFromIntegerCanDestroy(
+				IntegerDescriptor.zero(), canDestroy)
+				.divideIntoIntegerCanDestroy(anInteger, canDestroy)
+				.subtractFromIntegerCanDestroy(
+					IntegerDescriptor.zero(), canDestroy);
 		}
 		if (anInteger.lessThan(IntegerDescriptor.zero()))
 		{
 			return object.divideIntoIntegerCanDestroy(
-				anInteger.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy),
-				canDestroy)
-				.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), canDestroy);
+				anInteger.subtractFromIntegerCanDestroy(
+					IntegerDescriptor.zero(), canDestroy), canDestroy)
+				.subtractFromIntegerCanDestroy(
+					IntegerDescriptor.zero(), canDestroy);
 		}
-		//  Both integers are now positive, and the divisor is not zero.  That simplifies things
-		//  quite a bit.  Ok, we need to keep estimating the quotient and reverse multiplying
-		//  until our remainder is in [0..divisor - 1].  Each pass through the loop we estimate
-		//  partialQuotient = remainder / object.  This should be accurate to about 50 bits.
-		//  We then set remainder = remainder - (partialQuotient * object).  If remainder goes
-		//  negative (due to overestimation), we toggle a flag (saying whether it represents a
-		//  positive or negative quantity), then negate it to make it a positive integer.  Also,
-		//  we either add partialQuotient to the fullQuotient or subtract it, depending on the
-		//  setting of this flag.  At the end, we adjust the remainder (in case it represents
-		//  a negative value) and quotient (accordingly).  Note that we're using double
-		//  precision floating point math to do the estimation.  Not all processors will do
-		//  this well, so a 32-bit fixed-point division estimation might be a more 'portable'
-		//  way to do this.  The rest of the algorithm would stay the same, however.
+		// Both integers are now positive, and the divisor is not zero. That
+		// simplifies things quite a bit. Ok, we need to keep estimating the
+		// quotient and reverse multiplying until our remainder is in
+		// [0..divisor - 1]. Each pass through the loop we estimate
+		// partialQuotient = remainder / object. This should be accurate to
+		// about 50 bits. We then set remainder = remainder - (partialQuotient *
+		// object). If remainder goes negative (due to overestimation), we
+		// toggle a flag (saying whether it represents a positive or negative
+		// quantity), then negate it to make it a positive integer. Also, we
+		// either add partialQuotient to the fullQuotient or subtract it,
+		// depending on the setting of this flag. At the end, we adjust the
+		// remainder (in case it represents a negative value) and quotient
+		// (accordingly). Note that we're using double precision floating point
+		// math to do the estimation. Not all processors will do this well, so a
+		// 32-bit fixed-point division estimation might be a more 'portable' way
+		// to do this. The rest of the algorithm would stay the same, however.
 
 		AvailObject remainder = anInteger;
 		boolean remainderIsReallyNegative = false;
@@ -764,10 +781,15 @@ extends ExtendedNumberDescriptor
 		AvailObject partialQuotient = IntegerDescriptor.zero();
 
 		final int divisorSlotsCount = object.integerSlotsCount();
-		final long divisorScale = (divisorSlotsCount - 1) * 32L;   // Power of two by which to scale doubleDivisor to get actual value
+		// Power of two by which to scale doubleDivisor to get actual value
+		final long divisorScale = (divisorSlotsCount - 1) * 32L;
 		final long divisorHigh = object.rawUnsignedIntegerAt(divisorSlotsCount);
-		final long divisorMedium = divisorSlotsCount > 1 ? object.rawUnsignedIntegerAt(divisorSlotsCount - 1) : 0;
-		final long divisorLow = divisorSlotsCount > 2 ? object.rawUnsignedIntegerAt(divisorSlotsCount - 2) : 0;
+		final long divisorMedium = divisorSlotsCount > 1
+			? object.rawUnsignedIntegerAt(divisorSlotsCount - 1)
+			: 0;
+		final long divisorLow = divisorSlotsCount > 2
+			? object.rawUnsignedIntegerAt(divisorSlotsCount - 2)
+			: 0;
 		final double doubleDivisor =
 			scalb((double)divisorLow, -64) +
 			scalb((double)divisorMedium, -32) +
@@ -775,49 +797,66 @@ extends ExtendedNumberDescriptor
 
 		while (remainder.greaterOrEqual(object))
 		{
-			//  Estimate partialQuotient = remainder / object, using the uppermost 3 words of each.
-			//  Allow a slightly negative remainder due to rounding.  Compensate at the bottom of the loop.
-		final int dividendSlotsCount = remainder.integerSlotsCount();
-		final long dividendScale = (dividendSlotsCount - 1) * 32L;   // Power of two by which to scale doubleDividend to get actual value
-		final long dividendHigh = remainder.rawUnsignedIntegerAt(dividendSlotsCount);
-		final long dividendMedium = dividendSlotsCount > 1 ? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 1) : 0;
-		final long dividendLow = dividendSlotsCount > 2 ? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 2) : 0;
-		final double doubleDividend =
+			// Estimate partialQuotient = remainder / object, using the
+			// uppermost 3 words of each. Allow a slightly negative remainder
+			// due to rounding.  Compensate at the bottom of the loop.
+			final int dividendSlotsCount = remainder.integerSlotsCount();
+		   // Power of two by which to scale doubleDividend to get actual value
+			final long dividendScale = (dividendSlotsCount - 1) * 32L;
+			final long dividendHigh =
+				remainder.rawUnsignedIntegerAt(dividendSlotsCount);
+			final long dividendMedium = dividendSlotsCount > 1
+				? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 1)
+				: 0;
+			final long dividendLow = dividendSlotsCount > 2
+				? remainder.rawUnsignedIntegerAt(dividendSlotsCount - 2)
+				: 0;
+			final double doubleDividend =
 				scalb((double)dividendLow, -64) +
 				scalb((double)dividendMedium, -32) +
 				dividendHigh;
 
-			// Divide the doubles to estimate remainder / object.  The estimate should be very good since
-			// we extracted 96 bits of data, only about 33 of which could be leading zero bits.  The mantissas
-			// are basically filled with as many bits as they can hold, so the division should produce about as
-			// many bits of useful output.  After suitable truncation and conversion to an integer, this quotient
-			// should produce about 50 bits of the final result.
+			// Divide the doubles to estimate remainder / object. The estimate
+			// should be very good since we extracted 96 bits of data, only
+			// about 33 of which could be leading zero bits. The mantissas are
+			// basically filled with as many bits as they can hold, so the
+			// division should produce about as many bits of useful output.
+			// After suitable truncation and conversion to an integer, this
+			// quotient should produce about 50 bits of the final result.
 			//
-			// It's not obvious that it always converges, but here's my reasoning.  The first pass produces 50
-			// accurate bits of quotient (or completes by producing a small enough remainder).  The remainder
-			// from this pass is used as the dividend in the next pass, and this is always at least 50 bits smaller
-			// than the previous dividend.  Eventually this leads to a remainder within a factor of two of the
-			// dividend.
+			// It's not obvious that it always converges, but here's my
+			// reasoning. The first pass produces 50 accurate bits of quotient
+			// (or completes by producing a small enough remainder). The
+			// remainder from this pass is used as the dividend in the next
+			// pass, and this is always at least 50 bits smaller than the
+			// previous dividend. Eventually this leads to a remainder within a
+			// factor of two of the dividend.
 			//
-			// Now say we have a very large divisor and that the first 50+ bits of the divisor and (remaining)
-			// dividend agree exactly.  In that case the estimated division will still make progress, because it
-			// will produce exactly 1.0d as the quotient, which causes the remainder to decrease to <= the
-			// divisor (because we already got it to within a factor of two above), thus terminating the loop.
-			// Note that the quotient can't be <1.0d (when quotientScale is also zero), since that can only
-			// happen when the remainder is truly less than the divisor, which would have caused an exit
-			// after the previous iteration.  If it's >1.0d (or =1.0d) then we are making progress each step,
-			// eliminating 50 actual bits, except on the final iteration which must converge in at most one
-			// more step.  Note that we could have used just a few bits in the floating point division and still
-			// always converged in time proportional to the difference in bit lengths divided by the number
-				final double doubleQuotient = doubleDividend / doubleDivisor;
-		final long quotientScale = dividendScale - divisorScale;
+			// Now say we have a very large divisor and that the first 50+ bits
+			// of the divisor and (remaining) dividend agree exactly. In that
+			// case the estimated division will still make progress, because it
+			// will produce exactly 1.0d as the quotient, which causes the
+			// remainder to decrease to <= the divisor (because we already got
+			// it to within a factor of two above), thus terminating the loop.
+			// Note that the quotient can't be <1.0d (when quotientScale is also
+			// zero), since that can only happen when the remainder is truly
+			// less than the divisor, which would have caused an exit after the
+			// previous iteration. If it's >1.0d (or =1.0d) then we are making
+			// progress each step, eliminating 50 actual bits, except on the
+			// final iteration which must converge in at most one more step.
+			// Note that we could have used just a few bits in the floating
+			// point division and still always converged in time proportional to
+			// the difference in bit lengths divided by the number
+			final double doubleQuotient = doubleDividend / doubleDivisor;
+			final long quotientScale = dividendScale - divisorScale;
 			assert quotientScale >= 0L;
 
 			// Include room for sign bit plus safety margin.
 			partialQuotient = mutable().create(
 				(int)((quotientScale + 2 >> 5) + 1));
 
-		final long bitShift = quotientScale - ((long) partialQuotient.integerSlotsCount() - 1 << 5L);
+			final long bitShift = quotientScale
+				- ((long) partialQuotient.integerSlotsCount() - 1 << 5L);
 			assert -100L < bitShift && bitShift < 100L;
 			double scaledDoubleQuotient = scalb(doubleQuotient, (int)bitShift);
 			for (int i = partialQuotient.integerSlotsCount(); i >= 1; --i)
@@ -836,37 +875,53 @@ extends ExtendedNumberDescriptor
 
 			if (remainderIsReallyNegative)
 			{
-				fullQuotient = partialQuotient.subtractFromIntegerCanDestroy(fullQuotient, false);
+				fullQuotient =
+					partialQuotient.subtractFromIntegerCanDestroy(
+						fullQuotient, false);
 			}
 			else
 			{
-				fullQuotient = partialQuotient.addToIntegerCanDestroy(fullQuotient, false);
+				fullQuotient =
+					partialQuotient.addToIntegerCanDestroy(fullQuotient, false);
 			}
-			remainder = remainder.minusCanDestroy(object.multiplyByIntegerCanDestroy(partialQuotient, false), false);
+			remainder = remainder.noFailMinusCanDestroy(
+				object.multiplyByIntegerCanDestroy(partialQuotient, false),
+				false);
 			if (remainder.lessThan(IntegerDescriptor.zero()))
 			{
-				//  Oops, we overestimated the partial quotient by a little bit.  I would guess this never
-				//  gets much more than one part in 2^50.  Because of the way we've done the math,
-				//  when the problem is small enough the estimated division is always correct.  So we
-				//  don't need to worry about this case near the end, just when there are plenty of
-				//  digits of accuracy produced by the estimated division.  So instead of correcting the
-				//  partial quotient and remainder, we simply toggle a flag indicating whether the
-				//  remainder we're actually dealing with is positive or negative, and then negate the
-				//  remainder to keep it positive.
-				remainder = remainder.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), false);
+				// Oops, we overestimated the partial quotient by a little bit.
+				// I would guess this never gets much more than one part in
+				// 2^50. Because of the way we've done the math, when the
+				// problem is small enough the estimated division is always
+				// correct. So we don't need to worry about this case near the
+				// end, just when there are plenty of digits of accuracy
+				// produced by the estimated division. So instead of correcting
+				// the partial quotient and remainder, we simply toggle a flag
+				// indicating whether the remainder we're actually dealing with
+				// is positive or negative, and then negate the remainder to
+				// keep it positive.
+				remainder = remainder.subtractFromIntegerCanDestroy(
+					IntegerDescriptor.zero(), false);
 				remainderIsReallyNegative = !remainderIsReallyNegative;
 			}
 		}
-		//  At this point, we really have a remainder in [-object+1..object-1].  If the remainder is less than zero,
-		//  adjust it to make it positive.  This just involves adding the divisor to it while decrementing the quotient
-		//  because the divisor doesn't quite go into the dividend as many times as we thought.
+		// At this point, we really have a remainder in [-object+1..object-1].
+		// If the remainder is less than zero, adjust it to make it positive.
+		// This just involves adding the divisor to it while decrementing the
+		// quotient because the divisor doesn't quite go into the dividend as
+		// many times as we thought.
 		if (remainderIsReallyNegative && remainder.greaterThan(IntegerDescriptor.zero()))
 		{
-			//  We fix the sign of remainder then add object all in one fell swoop.
+			// We fix the sign of remainder then add object all in one fell
+			// swoop.
 			remainder = remainder.subtractFromIntegerCanDestroy(object, false);
-			fullQuotient = IntegerDescriptor.one().subtractFromIntegerCanDestroy(fullQuotient, false);
+			fullQuotient =
+				IntegerDescriptor.one().subtractFromIntegerCanDestroy(
+					fullQuotient, false);
 		}
-		assert remainder.greaterOrEqual(IntegerDescriptor.zero()) && remainder.lessThan(object);
+		assert
+			remainder.greaterOrEqual(IntegerDescriptor.zero())
+			&& remainder.lessThan(object);
 		return fullQuotient;
 	}
 
@@ -981,8 +1036,8 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInfinity,
 		final boolean canDestroy)
 	{
 		return anInfinity;
@@ -990,26 +1045,30 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  Subtract object from anInteger to produce another, destroying one of them if allowed and useful.
-
-		// This routine would be much quicker with access to machine carry flags,
-		// but Java doesn't let us actually go down to the metal (nor do C and C++).
-		// Our best recourse without reverting to assembly language is to use 64-bit
-			final int objectSize = object.integerSlotsCount();
+		// This routine would be much quicker with access to machine carry
+		// flags, but Java doesn't let us actually go down to the metal (nor do
+		// C and C++). Our best recourse without reverting to assembly language
+		// is to use 64-bit arithmetic.
+		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
 		AvailObject output = null;
 		if (canDestroy)
 		{
-			// Choose the most spacious one to destroy, but reject it if it's immutable.
-			// Never choose the smaller one, even if it's the only one that's mutable.
-			// If they're equal sized and mutable it doesn't matter which we choose.
+			// Choose the most spacious one to destroy, but reject it if it's
+			// immutable. Never choose the smaller one, even if it's the only
+			// one that's mutable. If they're equal sized and mutable it doesn't
+			// matter which we choose.
 			if (objectSize == anIntegerSize)
 			{
-				output = isMutable ? object : anInteger.descriptor().isMutable() ? anInteger : null;
+				output = isMutable
+					? object
+					: anInteger.descriptor().isMutable()
+						? anInteger
+						: null;
 			}
 			else if (objectSize > anIntegerSize)
 			{
@@ -1022,11 +1081,15 @@ extends ExtendedNumberDescriptor
 		}
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
-			// See if the (signed) difference will fit in 32 bits, the most common case by far.
-		final long diff = (long)anInteger.rawSignedIntegerAt(1) - (long)object.rawSignedIntegerAt(1);
-			if (diff == (int)diff)
+			// See if the (signed) difference will fit in 32 bits, the most
+			// common case by far.
+			final long diff =
+				(long) anInteger.rawSignedIntegerAt(1)
+				- (long) object.rawSignedIntegerAt(1);
+			if (diff == (int) diff)
 			{
-				// Yes, it fits.  Clobber one of the inputs, or create a new object if they were both immutable...
+				// Yes, it fits. Clobber one of the inputs, or create a new
+				// object if they were both immutable...
 				if (output == null)
 				{
 					output = mutable().create(1);
@@ -1041,41 +1104,48 @@ extends ExtendedNumberDescriptor
 			output.rawSignedIntegerAtPut(2, (int)(diff>>32));
 			return output;
 		}
-		//  Set estimatedSize to the max of the input sizes.  There will only rarely be an overflow
-		//  and at most by one cell.  Underflows should also be pretty rare, and they're handled
-		//  by output.trimExcessLongs().
+		// Set estimatedSize to the max of the input sizes. There will only
+		// rarely be an overflow and at most by one cell. Underflows should also
+		// be pretty rare, and they're handled by output.trimExcessLongs().
 		if (output == null)
 		{
 			output = mutable().create(
 				max(objectSize, anIntegerSize));
 		}
 		final int outputSize = output.integerSlotsCount();
-		final long extendedObject = object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
-		final long extendedAnInteger = anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
+		final long extendedObject =
+			object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
+		final long extendedAnInteger =
+			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
 		long partial = 1;
 		int lastInt = 0;
-		// The object is always big enough to store the max of the number of quads from each
-		// input, so after the loop we can check partial and the upper bit of the result to see
-		// if another quad needs to be appended.
+		// The object is always big enough to store the max of the number of
+		// quads from each input, so after the loop we can check partial and the
+		// upper bit of the result to see if another quad needs to be appended.
 		for (int i = 1; i <= outputSize; i++)
 		{
-			partial += i > anIntegerSize ? extendedAnInteger : anInteger.rawUnsignedIntegerAt(i);
-			partial += (i > objectSize ? extendedObject : object.rawUnsignedIntegerAt(i)) ^ 0xFFFFFFFFL;
-			lastInt = (int)partial;
+			partial += i > anIntegerSize
+				? extendedAnInteger
+				: anInteger.rawUnsignedIntegerAt(i);
+			partial += (i > objectSize
+				? extendedObject
+				: object.rawUnsignedIntegerAt(i)) ^ 0xFFFFFFFFL;
+			lastInt = (int) partial;
 			output.rawSignedIntegerAtPut(i, lastInt);
 			partial >>>= 32;
 		}
 		partial += extendedAnInteger + (extendedObject ^ 0xFFFFFFFFL);
-		if (lastInt >> 31 != (int)partial)
+		if (lastInt >> 31 != (int) partial)
 		{
-			// Top bit of last word no longer agrees with sign of result.  Extend it.
-			final AvailObject newOutput = mutable().create(
-				outputSize + 1);
+			// Top bit of last word no longer agrees with sign of result.
+			// Extend it.
+			final AvailObject newOutput = mutable().create(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
-				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i));
+				newOutput.rawSignedIntegerAtPut(
+					i, output.rawSignedIntegerAt(i));
 			}
-			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int)partial);
+			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int) partial);
 			// No need to truncate it in this case.
 			return newOutput;
 		}

@@ -71,22 +71,22 @@ returns [ftT : File type type, strT : string type |
 /* Filename inquiries... */
 
 Method "_exists" is [filename : string |
-	Primitive 170 (failureCode : all);
+	Primitive 170 (failureCode : natural number);
 	Failed;
 ] : boolean;
 
 Method "_is readable" is [filename : string |
-	Primitive 171 (failureCode : all);
+	Primitive 171 (failureCode : natural number);
 	Failed;
 ] : boolean;
 
 Method "_is writable" is [filename : string |
-	Primitive 172 (failureCode : all);
+	Primitive 172 (failureCode : natural number);
 	Failed;
 ] : boolean;
 
 Method "_is executable" is [filename : string |
-	Primitive 173 (failureCode : all);
+	Primitive 173 (failureCode : natural number);
 	Failed;
 ] : boolean;
 
@@ -94,12 +94,12 @@ Method "_is executable" is [filename : string |
 /* Filename operations... */
 
 Method "Rename_to_" is [source : string, destination : string |
-	Primitive 174 (failureCode : all);
+	Primitive 174 (failureCode : natural number);
 	Failed;
 ] : void;
 
 Method "Unlink_from filesystem" is [filename : string |
-	Primitive 175 (failureCode : all);
+	Primitive 175 (failureCode : natural number);
 	Failed;
 ] : void;
 
@@ -107,14 +107,14 @@ Method "Unlink_from filesystem" is [filename : string |
 
 Method "_position" is [file: File |
 	[handle : cyclicType |
-		Primitive 167 (failureCode : all);
+		Primitive 167 (failureCode : natural number);
 		Failed;
 	] : [0..INF] (file -> handle);
 ] : [0..INF];
 
 Method "_size" is [file : File |
 	[handle : cyclicType |
-		Primitive 166 (failureCode : all);
+		Primitive 166 (failureCode : natural number);
 		Failed;
 	] : [0..INF] (file -> handle);
 ] : [0..INF];
@@ -125,14 +125,14 @@ Method "_is at end" is [file : File |
 
 Method "_go to_" is [file : File, newPosition : [0..INF] |
 	[handle : cyclicType, newPosition : [0..INF] |
-		Primitive 168 (failureCode : all);
+		Primitive 168 (failureCode : natural number);
 		Failed;
 	] : void (file -> handle, newPosition);
 ] : void;
 
 Method "Close_" is [file : File |
 	[handle : cyclicType |
-		Primitive 163 (failureCode : all);
+		Primitive 163 (failureCode : natural number);
 		Failed;
 	] : void (file -> handle);
 ] : void;

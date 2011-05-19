@@ -675,7 +675,7 @@ extends TypeDescriptor
 			// Try to rewrite (if possible) as inclusive boundary.
 			if (low.isFinite())
 			{
-				low = low.plusCanDestroy(IntegerDescriptor.one(), false);
+				low = low.noFailPlusCanDestroy(IntegerDescriptor.one(), false);
 				lowInc = true;
 			}
 		}
@@ -686,7 +686,8 @@ extends TypeDescriptor
 			// Try to rewrite (if possible) as inclusive boundary.
 			if (high.isFinite())
 			{
-				high = high.minusCanDestroy(IntegerDescriptor.one(), false);
+				high = high.noFailMinusCanDestroy(
+					IntegerDescriptor.one(), false);
 				highInc = true;
 			}
 		}

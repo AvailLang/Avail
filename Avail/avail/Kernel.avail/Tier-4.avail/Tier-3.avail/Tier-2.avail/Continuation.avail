@@ -83,7 +83,7 @@ Method "Restart_" is [con : continuation |
 	   middle of a sequence of statements, and only allow a leading label (as
 	   part of the block syntax rather than statement syntax).  If the continuation
 	   requires arguments, use the values captured by its invocation 'con'.  */
-	Primitive 58 (failureCode : all);
+	Primitive 58 (failureCode : natural number);
 	Failed;
 ] : terminates
 requires [conType : type |
@@ -95,7 +95,7 @@ Method "Restart_with_" is [con : continuation, args : tuple |
 	   the arguments that were passed in originally.  The continuation is restarted
 	   in the same context it was originally executed.  That is, its caller is the same
 	   continuation as what it was in the original invocation.  */
-	Primitive 56 (failureCode : all);
+	Primitive 56 (failureCode : natural number);
 	Failed;
 ] : terminates
 requires [conType : type, argsType : tupleType |
@@ -115,7 +115,7 @@ Method "Exit_with_" is [con : continuation, value : all |
 	   return type general enough to accept the given return value.  Don't allow
 	   this form if the continuation has return type void (the passed argument
 	   would be misleading).  */
-	Primitive 57 (failureCode : all);
+	Primitive 57 (failureCode : natural number);
 	Failed;
 ] : terminates
 requires [conType : type, valueType : type |
@@ -129,7 +129,7 @@ Method "Exit_" is [con : continuation |
 	/* Exit the passed continuation.  The continuation's closure must have a
 	   return type of void to use this special form of Exit.  */
 	[c : continuation, ignored : all |
-		Primitive 57 (failureCode : all);
+		Primitive 57 (failureCode : natural number);
 		Failed;
 	] : terminates apply <con,123>;
 ] : terminates

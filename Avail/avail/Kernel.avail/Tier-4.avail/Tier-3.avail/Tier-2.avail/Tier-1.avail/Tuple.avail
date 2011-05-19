@@ -74,7 +74,7 @@ Method "private tuple type for sizes_like_default_" is [
 		typeTuple : tupleOfType,
 		defaultType : type |
 	/* Construct a new tuple type.  Defined here privately with weak input types... */
-	Primitive 137 (failureCode : all);
+	Primitive 137 (failureCode : natural number);
 	Failed;
 ] : tupleType;
 
@@ -86,7 +86,7 @@ Method "tuple_like_default_" is [
 		typeTuple : (private tuple type for sizes whole number like <> default (type)),
 		defaultType : type |
 	/* Construct a new tuple type.  Redefined here publicly for stronger input types... */
-	Primitive 137 (failureCode : all);
+	Primitive 137 (failureCode : natural number);
 	Failed;
 ] : tupleType;
 
@@ -186,7 +186,7 @@ Method "_[_.._]" is [
 		start : natural number,
 		end : whole number |
 	/* Indices out of range are simply the type terminates. */
-	Primitive 142 (failureCode : all);
+	Primitive 142 (failureCode : natural number);
 	Failed;
 ] : tuple of type;
 
@@ -208,7 +208,7 @@ Method "union of types in_at indices_through_" is [
 		tt : tupleType,
 		start : natural number,
 		end : whole number |
-	Primitive 143 (failureCode : all);
+	Primitive 143 (failureCode : natural number);
 	Failed;
 ] : type;
 

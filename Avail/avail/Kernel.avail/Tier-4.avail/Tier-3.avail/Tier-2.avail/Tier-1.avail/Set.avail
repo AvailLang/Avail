@@ -56,7 +56,7 @@ Body
 /* Set type construction / accessing */
 
 Method "set_of_" is [sizes : integerType, contentType : type |
-	Primitive 111 (failureCode : all);
+	Primitive 111 (failureCode : natural number);
 	Failed;
 ] : setType;
 
@@ -86,7 +86,7 @@ returns [st : setType |
 /* Helper arithmetic... */
 
 Method "_private plus_" is [a : extended integer, b : extended integer |
-	Primitive 1 (failureCode : all);
+	Primitive 1 (failureCode : natural number);
 	Failed;
 ] : extended integer;
 

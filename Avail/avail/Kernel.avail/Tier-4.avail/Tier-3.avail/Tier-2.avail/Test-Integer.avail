@@ -63,7 +63,7 @@ Method "phony_+_" is
 	a : extended integer,
 	b : extended integer
 |
-	Primitive 1 (failureReason : string);
+	Primitive 1 (failureReason : natural number);
 	Print failureReason;
 	Print "Answering 0 instead.";
 	0;

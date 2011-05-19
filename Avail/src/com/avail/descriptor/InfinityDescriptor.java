@@ -36,6 +36,8 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.exceptions.*;
+import com.avail.exceptions.ArithmeticException;
 
 /**
  * I represent the {@link ExtendedNumberDescriptor extended integers} positive
@@ -264,19 +266,21 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_MinusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
-		final boolean canDestroy)
+	public @NotNull AvailObject o_MinusCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return aNumber.subtractFromInfinityCanDestroy(object, canDestroy);
 	}
 
 	@Override
-	public AvailObject o_PlusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
-		final boolean canDestroy)
+	public @NotNull AvailObject o_PlusCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return aNumber.addToInfinityCanDestroy(object, canDestroy);
 	}
@@ -298,17 +302,18 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_AddToInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
-		final boolean canDestroy)
+	public @NotNull AvailObject o_AddToInfinityCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		if (anInfinity.isPositive() == object.isPositive())
 		{
 			return object;
 		}
-		error("Can't add negative and positive infinities", object);
-		return VoidDescriptor.voidObject();
+		throw new ArithmeticException(
+			AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES);
 	}
 
 	@Override
@@ -368,21 +373,22 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_SubtractFromInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
-		final boolean canDestroy)
+	public @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		if (anInfinity.isPositive() ^ object.isPositive())
 		{
 			return anInfinity;
 		}
-		error("Can't subtract infinity from same signed infinity", object);
-		return VoidDescriptor.voidObject();
+		throw new ArithmeticException(
+			AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES);
 	}
 
 	@Override
-	public AvailObject o_SubtractFromIntegerCanDestroy (
+	public @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)

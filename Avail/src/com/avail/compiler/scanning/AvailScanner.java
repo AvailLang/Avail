@@ -252,10 +252,12 @@ public class AvailScanner
 		{
 			result = IntegerDescriptor.zero();
 			final AvailObject ten = IntegerDescriptor.ten();
-			while (peekIsDigit()) {
+			while (peekIsDigit())
+			{
 				result = result.timesCanDestroy(ten, true);
-				result = result.plusCanDestroy(
-					IntegerDescriptor.fromUnsignedByte(nextDigitValue()), true);
+				result = result.noFailPlusCanDestroy(
+					IntegerDescriptor.fromUnsignedByte(
+						nextDigitValue()), true);
 			}
 		}
 		addTokenForLiteral(result);

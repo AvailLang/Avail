@@ -69,7 +69,7 @@ is [
 		body : [...]-> void,
 		requires: [...]-> boolean,
 		returns : [...]-> type |
-	Primitive 254 (failureCode : all);
+	Primitive 254 (failureCode : natural number);
 	Failed;
 ] : void;
 
@@ -94,7 +94,7 @@ Method "||_||" is [ct : closureType |
 ] : whole number;
 
 Method "_[_]" is [ct : closureType, index : natural number |
-	Primitive 36 (failureCode : all);
+	Primitive 36 (failureCode : natural number);
 	Failed;
 ] : type;
 
@@ -147,7 +147,7 @@ Method "_outerVars" is [c : closure |
 Method "closure from_outer variables_" is [
 		c : compiledCode,
 		outers : tuple |
-	Primitive 74 (failureCode : all);
+	Primitive 74 (failureCode : natural number);
 	Failed;
 ] : closure;
 

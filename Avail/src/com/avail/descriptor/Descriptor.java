@@ -33,13 +33,14 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.lang.reflect.Array;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.ArithmeticException;
+import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -59,10 +60,11 @@ import com.avail.visitor.*;
  * suitable implementation is added to AvailObject.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class Descriptor extends AbstractDescriptor
+public class Descriptor
+extends AbstractDescriptor
 {
-
 	/**
 	 * Construct a new {@link Descriptor}.
 	 *
@@ -75,16 +77,26 @@ public class Descriptor extends AbstractDescriptor
 
 
 	/**
-	 * Indicate that a runtime error has occurred due to failure to implement
-	 * some message in a subclass.  This may be an indication that the wrong
-	 * kind of object is being used somewhere.
+	 * Raise a {@linkplain RuntimeException runtime exception} to indicate that
+	 * the specified argument's {@linkplain Descriptor descriptor} does not
+	 * meaningfully implement the caller of this method. This may be an
+	 * indication that the wrong kind of object is being used somewhere.
 	 *
-	 * @param args An {@linkplain Array array} of arguments describing the
-	 *             problem.
+	 * @throws UnsupportedOperationException
+	 *         Always thrown.
 	 */
-	public void subclassResponsibility(final Object... args)
+	public void unsupportedOperation () throws UnsupportedOperationException
 	{
-		error(args);
+		final String callerName;
+		try
+		{
+			throw new Exception("just want the caller's frame");
+		}
+		catch (final Exception e)
+		{
+			callerName = e.getStackTrace()[1].getMethodName();
+		}
+		throw new UnsupportedOperationException(getClass(), callerName);
 	}
 
 	/**
@@ -93,7 +105,8 @@ public class Descriptor extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	enum FakeObjectSlotsForScanning {
+	enum FakeObjectSlotsForScanning
+	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.
 		 */
@@ -130,7 +143,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsArgTypesFromClosureType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -148,7 +161,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsArgumentsFromContinuation:stackp:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -166,7 +179,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsArgumentTypesFromContinuation:stackp:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -182,7 +195,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsArrayOfArgTypes:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -198,7 +211,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsArrayOfArgValues:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -214,7 +227,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsTupleOfArgTypes:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -230,7 +243,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:acceptsTupleOfArguments:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -245,7 +258,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:addDependentChunkIndex:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -260,7 +273,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:addImplementation:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -275,43 +288,28 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:addRestrictions:", object);
+		unsupportedOperation();
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param anInfinity
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_AddToInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:addToInfinity:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
-	/**
-	 * @param object
-	 * @param anInteger
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_AddToIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:addToInteger:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -327,7 +325,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:argTypeAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -344,7 +342,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:argTypeAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -361,7 +359,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:at:addMessageRestrictions:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -378,7 +376,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:at:addMethodImplementation:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -395,7 +393,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:atMessage:addBundle:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -412,7 +410,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:atName:add:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -429,7 +427,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:atNewName:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -446,7 +444,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:atPrivateName:add:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -462,7 +460,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:binElementAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -479,7 +477,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:binElementAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -494,7 +492,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:binHash:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -509,7 +507,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:binSize:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -524,7 +522,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:binUnionType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -539,7 +537,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:bitVector:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -554,7 +552,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:bodyBlock:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -573,7 +571,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:bodyBlock:requiresBlock:returnsBlock:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -588,7 +586,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:bodySignature:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -607,7 +605,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:bodySignature:requiresBlock:returnsBlock:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -622,7 +620,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:breakpointBlock:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -637,7 +635,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:buildFilteredBundleTreeFrom:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -652,7 +650,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:caller:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -667,7 +665,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:closure:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -682,7 +680,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:code:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -697,7 +695,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:codePoint:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -719,7 +717,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:with:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -741,7 +739,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:withAnyTuple:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -763,7 +761,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:withByteString:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -785,7 +783,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:withByteTuple:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -807,7 +805,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:withNybbleTuple:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -829,7 +827,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:withObjectTuple:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -851,7 +849,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:compareFrom:to:withTwoByteString:startingAt:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -864,7 +862,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("o_LazyComplete", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -882,7 +880,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:computeHashFrom:to:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -900,7 +898,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:computeReturnTypeFromArgumentTypes:interpreter:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -916,7 +914,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:concatenateTuplesCanDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -931,7 +929,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:constantBindings:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -946,7 +944,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:contentType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -961,7 +959,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:continuation:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -978,7 +976,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:copyTo:restrictedTo:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -998,7 +996,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:copyTupleFrom:to:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1014,7 +1012,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:couldEverBeInvokedWith:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1032,7 +1030,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:createTestingTreeWithPositiveMatches:remainingPossibilities:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1048,7 +1046,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:dataAtIndex:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1065,7 +1063,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:dataAtIndex:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1080,7 +1078,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:defaultType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1093,7 +1091,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("Object:dependentChunkIndices:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1108,7 +1106,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:depth:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1126,7 +1124,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:divide:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1144,7 +1142,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:divideIntoInfinity:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1162,7 +1160,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:divideIntoInteger:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1178,7 +1176,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:elementAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1195,7 +1193,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:elementAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1211,7 +1209,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:endOfZone:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -1227,7 +1225,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:endSubtupleIndexInZone:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -1242,7 +1240,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:executionState:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1258,7 +1256,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:extractNybbleFromTupleAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -1273,7 +1271,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:fieldMap:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1288,7 +1286,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:fieldTypeMap:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1304,7 +1302,7 @@ public class Descriptor extends AbstractDescriptor
 		{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:filterByTypes:", object);
+		unsupportedOperation();
 		return null;
 		}
 
@@ -1319,7 +1317,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:filteredBundleTree:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1334,7 +1332,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:firstTupleType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1356,7 +1354,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:forZone:setSubtuple:startSubtupleIndex:endOfZone:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1372,7 +1370,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:greaterThanInteger:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1388,7 +1386,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:greaterThanSignedInfinity:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1404,7 +1402,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:hasElement:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1419,7 +1417,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:hash:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1437,7 +1435,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:hashFrom:to:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -1452,7 +1450,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:hashOrZero:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1468,7 +1466,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:hasKey:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1484,7 +1482,7 @@ public class Descriptor extends AbstractDescriptor
 		{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:implementationsAtOrBelow:", object);
+		unsupportedOperation();
 		return null;
 		}
 
@@ -1499,7 +1497,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:implementationsTuple:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1515,7 +1513,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:includeBundle:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1531,7 +1529,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:includes:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1544,7 +1542,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("o_LazyIncomplete", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1559,7 +1557,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:index:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1574,7 +1572,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:innerType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1589,7 +1587,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:instance:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1604,7 +1602,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:internalHash:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1619,7 +1617,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:interruptRequestFlag:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1634,7 +1632,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:invocationCount:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1649,7 +1647,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSaved:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1665,7 +1663,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSubsetOf:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1681,7 +1679,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSubtypeOf:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1697,7 +1695,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfClosureType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1713,7 +1711,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfContainerType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1729,7 +1727,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfContinuationType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1745,7 +1743,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfCyclicType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1761,7 +1759,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfGeneralizedClosureType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1777,7 +1775,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfIntegerRangeType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1793,7 +1791,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfMapType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1809,7 +1807,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfObjectMeta:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1825,7 +1823,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfObjectType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1841,7 +1839,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfPrimitiveType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1857,7 +1855,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfSetType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1873,7 +1871,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isSupertypeOfTupleType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1888,7 +1886,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isValid:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1906,7 +1904,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:isValidForArgumentTypes:interpreter:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1922,7 +1920,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:keyAtIndex:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -1939,7 +1937,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:keyAtIndex:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1954,7 +1952,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:keyType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -1970,7 +1968,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lessOrEqual:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -1986,7 +1984,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lessThan:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -2001,7 +1999,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject chunk,
 		final int offset)
 	{
-		subclassResponsibility("Object:levelTwoChunk:offset:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2016,7 +2014,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:literal:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2032,7 +2030,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:literalAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2049,7 +2047,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:literalAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2065,7 +2063,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:localOrArgOrStackAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2082,7 +2080,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:localOrArgOrStackAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2098,7 +2096,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:localTypeAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2114,7 +2112,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByTypesFromList:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2132,7 +2130,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByTypesFromContinuation:stackp:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2148,7 +2146,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByTypesFromTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2164,7 +2162,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByValuesFromList:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2180,7 +2178,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lookupByValuesFromTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2195,7 +2193,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:lowerBound:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2211,7 +2209,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:mapAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2231,7 +2229,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:mapAt:putting:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2246,7 +2244,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:mapSize:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2264,7 +2262,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:mapWithoutKey:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2279,7 +2277,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:message:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2294,7 +2292,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:messageParts:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2309,25 +2307,18 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:methods:", object);
+		unsupportedOperation();
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param aNumber
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_MinusCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:minus:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2345,7 +2336,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:multiplyByInfinity:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2363,7 +2354,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:multiplyByInteger:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2378,7 +2369,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:myObjectType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2393,7 +2384,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:myRestrictions:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2408,7 +2399,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:myType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2423,7 +2414,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:name:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2438,7 +2429,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:names:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2454,7 +2445,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:nameVisible:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -2469,7 +2460,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:newNames:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2484,7 +2475,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:numBlanks:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2499,7 +2490,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:numFloats:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2514,7 +2505,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:numIntegers:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2529,7 +2520,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:numObjects:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2545,7 +2536,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:optionallyNilOuterVar:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -2561,7 +2552,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:outerTypeAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2578,7 +2569,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:outerTypes:localTypes:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2594,7 +2585,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:outerVarAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2611,7 +2602,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:outerVarAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2626,7 +2617,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:pad1:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2641,7 +2632,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:pad2:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2656,7 +2647,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:parent:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2671,25 +2662,18 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:pc:", object);
+		unsupportedOperation();
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param aNumber
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_PlusCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:plus:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2704,7 +2688,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:priority:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2720,7 +2704,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateAddElement:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2736,7 +2720,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateExcludeElement:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2754,7 +2738,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateExcludeElement:knownIndex:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2770,7 +2754,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateExcludeKey:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2788,7 +2772,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateMapAt:put:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -2803,7 +2787,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateNames:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2818,7 +2802,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:privateTestingTree:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2833,7 +2817,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:processGlobals:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2849,7 +2833,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawByteAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -2866,7 +2850,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawByteAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2882,7 +2866,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawByteForCharacterAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -2899,7 +2883,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawByteForCharacterAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2915,7 +2899,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawNybbleAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -2932,7 +2916,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawNybbleAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2948,7 +2932,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawQuadAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -2965,7 +2949,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawQuadAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -2981,7 +2965,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawShortForCharacterAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -2998,7 +2982,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawShortForCharacterAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3014,7 +2998,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawSignedIntegerAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3031,7 +3015,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawSignedIntegerAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3047,7 +3031,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawUnsignedIntegerAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3064,7 +3048,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rawUnsignedIntegerAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3079,7 +3063,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:removeDependentChunkId:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3094,7 +3078,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:removeFrom:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3109,7 +3093,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:removeImplementation:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3124,7 +3108,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:removeMessage:parts:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -3139,7 +3123,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:removeRestrictions:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3154,7 +3138,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:requiresBlock:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3171,7 +3155,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:resolvedForward:withName:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3186,7 +3170,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:restrictions:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3201,7 +3185,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:returnsBlock:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3216,7 +3200,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:returnType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3231,7 +3215,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:rootBin:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3246,7 +3230,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:secondTupleType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3264,7 +3248,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setIntersection:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3282,7 +3266,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setMinus:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3297,7 +3281,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setSize:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3314,7 +3298,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setSubtupleForZone:to:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3332,7 +3316,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setUnion:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3347,7 +3331,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setValue:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3365,7 +3349,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setWithElement:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3383,7 +3367,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:setWithoutElement:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3398,7 +3382,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:signature:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3413,7 +3397,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:size:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3429,7 +3413,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:sizeOfZone:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3444,7 +3428,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:sizeRange:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3457,7 +3441,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("o_LazySpecialActions", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3473,7 +3457,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:stackAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3490,7 +3474,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:stackAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3505,7 +3489,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:stackp:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3520,7 +3504,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:start:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3533,7 +3517,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("Object:startingChunk:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3549,7 +3533,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:startOfZone:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3565,7 +3549,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:startSubtupleIndexInZone:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3580,25 +3564,18 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:string:", object);
+		unsupportedOperation();
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param anInfinity
-	 * @param canDestroy
-	 * @return
-	 */
 	@Override
 	public @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
-		//  GENERATED pure (abstract) method.
-
-		subclassResponsibility("Object:subtractFromInfinity:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3616,7 +3593,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:subtractFromInteger:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3632,7 +3609,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:subtupleForZone:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3650,7 +3627,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:times:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3665,7 +3642,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:tokenTypeCode:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3683,7 +3660,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:translate:toZone:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3699,7 +3676,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:trueNamesForStringName:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3715,7 +3692,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:truncateTo:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3731,7 +3708,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:tupleAt:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3748,7 +3725,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:tupleAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3768,7 +3745,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:tupleAt:putting:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3784,7 +3761,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:tupleIntAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -3799,7 +3776,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:type:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -3815,7 +3792,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeAtIndex:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3831,7 +3808,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersection:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3847,7 +3824,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfClosureType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3865,7 +3842,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfClosureType:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3881,7 +3858,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfContainerType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3897,7 +3874,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfContinuationType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3913,7 +3890,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfCyclicType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3929,7 +3906,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfGeneralizedClosureType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3947,7 +3924,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfGeneralizedClosureType:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3963,7 +3940,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfIntegerRangeType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3979,7 +3956,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfMapType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -3995,7 +3972,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfMeta:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4011,7 +3988,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfObjectMeta:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4027,7 +4004,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfObjectType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4043,7 +4020,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfSetType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4059,7 +4036,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeIntersectionOfTupleType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4074,7 +4051,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeTuple:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4090,7 +4067,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnion:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4106,7 +4083,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfClosureType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4124,7 +4101,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfClosureType:canDestroy:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4140,7 +4117,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfContainerType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4156,7 +4133,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfContinuationType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4172,7 +4149,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfCyclicType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4188,7 +4165,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfGeneralizedClosureType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4204,7 +4181,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfIntegerRangeType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4220,7 +4197,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfMapType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4236,7 +4213,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfObjectMeta:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4252,7 +4229,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfObjectType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4268,7 +4245,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfSetType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4284,7 +4261,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:typeUnionOfTupleType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4299,7 +4276,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:unclassified:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4317,7 +4294,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:unionOfTypesAt:through:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4333,7 +4310,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:untranslatedDataAt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4350,7 +4327,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:untranslatedDataAt:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4365,7 +4342,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:upperBound:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4385,7 +4362,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:validateArgumentTypes:interpreter:ifFail:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4400,7 +4377,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:validity:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4415,7 +4392,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:value:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4431,7 +4408,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:valueAtIndex:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4448,7 +4425,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:valueAtIndex:put:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4463,7 +4440,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:valueType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4478,7 +4455,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:variableBindings:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4493,7 +4470,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:vectors:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4508,7 +4485,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:visibleNames:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4523,7 +4500,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:wordcodes:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4539,7 +4516,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("Object:zoneForIndex:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4553,7 +4530,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_AsNativeString:", object);
+		unsupportedOperation();
 		return "";
 	}
 
@@ -4567,7 +4544,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_AsObject:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4581,7 +4558,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_AsSet:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4595,7 +4572,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_AsTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4609,7 +4586,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BecomeExactType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4622,7 +4599,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BecomeRealTupleType:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4636,7 +4613,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BitsPerEntry:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4650,7 +4627,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BitVector:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4664,7 +4641,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BodyBlock:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4678,7 +4655,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BodySignature:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4692,7 +4669,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_BreakpointBlock:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4706,7 +4683,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Caller:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4720,7 +4697,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Capacity:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4733,7 +4710,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_CleanUpAfterCompile:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4746,7 +4723,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ClearValue:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4760,7 +4737,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Closure:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4774,7 +4751,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ClosureType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4788,7 +4765,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Code:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4802,7 +4779,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_CodePoint:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4814,7 +4791,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_LazyComplete (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_LazyComplete", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4828,7 +4805,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ConstantBindings:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4842,7 +4819,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ContentType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4856,7 +4833,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Continuation:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4870,7 +4847,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_CopyAsMutableContinuation:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4884,7 +4861,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_CopyAsMutableObjectTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4898,7 +4875,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_CopyAsMutableSpliceTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4912,7 +4889,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_CopyMutable:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4926,7 +4903,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_DefaultType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4938,7 +4915,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_DependentChunkIndices (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_DependentChunkIndices:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -4952,7 +4929,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Depth:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -4965,7 +4942,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_DisplayTestingTree:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4978,7 +4955,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_EnsureMetacovariant:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -4992,7 +4969,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_EnsureMutable:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5006,7 +4983,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExecutionState:", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -5020,7 +4997,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Expand:", object);
+		unsupportedOperation();
 	}
 
 	/**
@@ -5033,7 +5010,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExtractBoolean:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5047,7 +5024,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExtractByte:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5061,7 +5038,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExtractDouble:", object);
+		unsupportedOperation();
 		return 0.0d;
 	}
 
@@ -5075,7 +5052,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExtractFloat:", object);
+		unsupportedOperation();
 		return 0.0f;
 	}
 
@@ -5089,7 +5066,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExtractInt:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5124,7 +5101,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ExtractNybble:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5138,7 +5115,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_FieldMap:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5152,7 +5129,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_FieldTypeMap:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5166,7 +5143,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_FilteredBundleTree:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5180,7 +5157,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_FirstTupleType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5194,7 +5171,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_GetInteger:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5208,7 +5185,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_GetValue:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5222,7 +5199,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_HashOrZero:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5236,7 +5213,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_HasRestrictions:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5250,7 +5227,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ImplementationsTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5262,7 +5239,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_LazyIncomplete (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_LazyIncomplete", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5276,7 +5253,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Index:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5290,7 +5267,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_InnerType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5304,7 +5281,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Instance:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5318,7 +5295,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_InternalHash:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5332,7 +5309,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_InterruptRequestFlag:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5346,7 +5323,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_InvocationCount:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5360,7 +5337,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsAbstract:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5374,7 +5351,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsFinite:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5388,7 +5365,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsForward:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5402,7 +5379,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsImplementation:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5416,7 +5393,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsPositive:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5430,7 +5407,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsSaved:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5444,7 +5421,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsSplice:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5458,7 +5435,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsSupertypeOfTerminates:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5472,7 +5449,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsSupertypeOfVoid:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5486,7 +5463,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_IsValid:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5500,7 +5477,7 @@ public class Descriptor extends AbstractDescriptor
 		{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_KeysAsArray:", object);
+		unsupportedOperation();
 		return null;
 		}
 
@@ -5514,7 +5491,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_KeysAsSet:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5528,7 +5505,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_KeyType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5540,7 +5517,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_LevelTwoChunk (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_LevelTwoChunk:", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -5554,7 +5531,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_LevelTwoOffset:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5568,7 +5545,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Literal:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5582,7 +5559,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_LowerBound:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5596,7 +5573,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_LowerInclusive:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -5610,7 +5587,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_MapSize:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5624,7 +5601,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_MaxStackDepth:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5638,7 +5615,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Message:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5652,7 +5629,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_MessageParts:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5666,7 +5643,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Methods:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5680,7 +5657,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_MyObjectType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5694,7 +5671,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_MyRestrictions:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5708,7 +5685,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_MyType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5722,7 +5699,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Name:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5736,7 +5713,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Names:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5750,7 +5727,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NewNames:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5762,7 +5739,7 @@ public class Descriptor extends AbstractDescriptor
 	public int o_NumArgs (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_NumArgs:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5774,7 +5751,7 @@ public class Descriptor extends AbstractDescriptor
 	public int o_NumArgsAndLocalsAndStack (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_NumArgsAndLocalsAndStack:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5788,7 +5765,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NumberOfZones:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5802,7 +5779,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NumBlanks:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5816,7 +5793,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NumFloats:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5830,7 +5807,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NumIntegers:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5842,7 +5819,7 @@ public class Descriptor extends AbstractDescriptor
 	public int o_NumLiterals (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_NumLiterals:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5854,7 +5831,7 @@ public class Descriptor extends AbstractDescriptor
 	public int o_NumLocals (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_NumLocals:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5868,7 +5845,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NumObjects:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5880,7 +5857,7 @@ public class Descriptor extends AbstractDescriptor
 	public int o_NumOuters (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_NumOuters:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5894,7 +5871,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_NumOuterVars:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5908,7 +5885,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Nybbles:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5922,7 +5899,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Pad1:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5936,7 +5913,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Pad2:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5950,7 +5927,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Parent:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -5964,7 +5941,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Pc:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5978,7 +5955,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_PrimitiveNumber:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -5992,7 +5969,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Priority:", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -6006,7 +5983,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_PrivateNames:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6020,7 +5997,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_PrivateTestingTree:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6034,7 +6011,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ProcessGlobals:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6047,7 +6024,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ReleaseVariableOrMakeContentsImmutable:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -6060,7 +6037,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_RemoveRestrictions:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -6074,7 +6051,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_RequiresBlock:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6088,7 +6065,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Restrictions:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6102,7 +6079,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ReturnsBlock:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6116,7 +6093,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ReturnType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6130,7 +6107,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_RootBin:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6144,7 +6121,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_SecondTupleType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6158,7 +6135,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_SetSize:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -6172,7 +6149,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Signature:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6186,7 +6163,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_SizeRange:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6198,7 +6175,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_LazySpecialActions (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_LazySpecialActions", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6212,7 +6189,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Stackp:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -6226,7 +6203,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Start:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -6238,7 +6215,7 @@ public class Descriptor extends AbstractDescriptor
 	public AvailObject o_StartingChunk (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_StartingChunk:", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -6251,7 +6228,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Step:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -6265,7 +6242,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_String:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6279,7 +6256,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_TestingTree:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6293,7 +6270,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_TokenTypeCode:", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -6306,7 +6283,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_TrimExcessLongs:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -6320,7 +6297,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_TupleSize:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -6334,7 +6311,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_TypeTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6348,7 +6325,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Unclassified:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6362,7 +6339,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_UpperBound:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6376,7 +6353,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_UpperInclusive:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -6390,7 +6367,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Validity:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -6404,7 +6381,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Value:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6418,7 +6395,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ValuesAsTuple:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6432,7 +6409,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_ValueType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6446,7 +6423,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_VariableBindings:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6460,7 +6437,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Vectors:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6473,7 +6450,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Verify:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -6487,7 +6464,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_VisibleNames:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6501,7 +6478,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_WhichOne:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -6515,7 +6492,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		subclassResponsibility("o_Wordcodes:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -6533,7 +6510,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		subclassResponsibility("Object:equals:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -6937,7 +6914,7 @@ public class Descriptor extends AbstractDescriptor
 		//  Explanation: This must be called with a tuple type as the second argument, but
 		//  the two arguments must also be equal.  All alternative implementations of tuple
 		//  types should reimplement this method.
-		subclassResponsibility("Object:isBetterRepresentationThanTupleType:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -7039,7 +7016,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  Answer the object's type.  Don't answer an ApproximateType.
 
-		subclassResponsibility("o_ExactType:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7054,7 +7031,7 @@ public class Descriptor extends AbstractDescriptor
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
 
-		subclassResponsibility("o_Hash:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -7128,7 +7105,7 @@ public class Descriptor extends AbstractDescriptor
 	{
 		//  Answer the object's type.
 
-		subclassResponsibility("o_Type:", object);
+		unsupportedOperation();
 		return VoidDescriptor.voidObject();
 	}
 
@@ -7497,7 +7474,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_BinUnionTypeOrVoid (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_BinUnionTypeOrVoid");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7527,7 +7504,7 @@ public class Descriptor extends AbstractDescriptor
 		//  overidden o_CanComputeHashOfType to answer true.
 
 		//  only provide if subclass canComputeHashOfType.
-		subclassResponsibility("Object:typeEquals:", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -7546,7 +7523,7 @@ public class Descriptor extends AbstractDescriptor
 		//  this method.
 
 		//  only provide if subclass canComputeHashOfType.
-		subclassResponsibility("o_HashOfType:", object);
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -7663,7 +7640,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject instructionsTuple)
 	{
-		subclassResponsibility("o_ParsingInstructions", object);
+		unsupportedOperation();
 	}
 
 	/**
@@ -7673,7 +7650,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public @NotNull AvailObject o_ParsingInstructions (final AvailObject object)
 	{
-		subclassResponsibility("o_ParsingInstructions", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7682,13 +7659,13 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject expression)
 	{
-		subclassResponsibility("o_Expression", object);
+		unsupportedOperation();
 	}
 
 	@Override
 	public @NotNull AvailObject o_Expression (final AvailObject object)
 	{
-		subclassResponsibility("o_Expression", object);
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7697,13 +7674,13 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject variable)
 	{
-		subclassResponsibility("o_Variable", object);
+		unsupportedOperation();
 	}
 
 	@Override
 	public @NotNull AvailObject o_Variable (final AvailObject object)
 	{
-		subclassResponsibility("o_Variable");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7717,7 +7694,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject argumentsTuple)
 	{
-		subclassResponsibility("o_ArgumentsTuple", argumentsTuple);
+		unsupportedOperation();
 	}
 
 
@@ -7728,7 +7705,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public @NotNull AvailObject o_ArgumentsTuple (final AvailObject object)
 	{
-		subclassResponsibility("o_ArgumentsTuple");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7742,7 +7719,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject statementsTuple)
 	{
-		subclassResponsibility("o_StatementsTuple");
+		unsupportedOperation();
 	}
 
 
@@ -7753,7 +7730,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public @NotNull AvailObject o_StatementsTuple (final AvailObject object)
 	{
-		subclassResponsibility("o_StatementsTuple");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7765,7 +7742,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_ResultType (final AvailObject object, final AvailObject resultType)
 	{
-		subclassResponsibility("o_ResultType");
+		unsupportedOperation();
 	}
 
 
@@ -7776,7 +7753,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public @NotNull AvailObject o_ResultType (final AvailObject object)
 	{
-		subclassResponsibility("o_ResultType");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7790,7 +7767,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject neededVariables)
 	{
-		subclassResponsibility("o_NeededVariables");
+		unsupportedOperation();
 	}
 
 
@@ -7801,7 +7778,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public @NotNull AvailObject o_NeededVariables (final AvailObject object)
 	{
-		subclassResponsibility("o_NeededVariables");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7813,7 +7790,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_Primitive (final AvailObject object, final int primitive)
 	{
-		subclassResponsibility("o_Primitive");
+		unsupportedOperation();
 	}
 
 
@@ -7824,7 +7801,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public int o_Primitive (final AvailObject object)
 	{
-		subclassResponsibility("o_Primitive");
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -7832,14 +7809,14 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_DeclaredType (final AvailObject object, final AvailObject declaredType)
 	{
-		subclassResponsibility("o_DeclaredType");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_DeclaredType (final AvailObject object)
 	{
-		subclassResponsibility("o_DeclaredType");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7847,7 +7824,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public DeclarationKind o_DeclarationKind (final AvailObject object)
 	{
-		subclassResponsibility("o_DeclarationKind");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7857,14 +7834,14 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final DeclarationKind declarationKind)
 	{
-		subclassResponsibility("o_DeclarationKind");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_InitializationExpression (final AvailObject object)
 	{
-		subclassResponsibility("o_InitializationExpression");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7874,14 +7851,14 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject initializationExpression)
 	{
-		subclassResponsibility("o_InitializationExpression");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_LiteralObject (final AvailObject object)
 	{
-		subclassResponsibility("o_LiteralObject");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7889,14 +7866,14 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_LiteralObject (final AvailObject object, final AvailObject literalObject)
 	{
-		subclassResponsibility("o_LiteralObject");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_Token (final AvailObject object)
 	{
-		subclassResponsibility("o_Token");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7904,14 +7881,14 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_Token (final AvailObject object, final AvailObject token)
 	{
-		subclassResponsibility("o_Token");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_MarkerValue (final AvailObject object)
 	{
-		subclassResponsibility("o_MarkerValue");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7919,14 +7896,14 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_MarkerValue (final AvailObject object, final AvailObject markerValue)
 	{
-		subclassResponsibility("o_MarkerValue");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_Arguments (final AvailObject object)
 	{
-		subclassResponsibility("o_Arguments");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7934,14 +7911,14 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_Arguments (final AvailObject object, final AvailObject arguments)
 	{
-		subclassResponsibility("o_Arguments");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_ImplementationSet(final AvailObject object)
 	{
-		subclassResponsibility("o_ImplementationSet");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7951,14 +7928,14 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject implementationSet)
 	{
-		subclassResponsibility("o_ImplementationSet");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_SuperCastType (final AvailObject object)
 	{
-		subclassResponsibility("o_SuperCastType");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7968,14 +7945,14 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject superCastType)
 	{
-		subclassResponsibility("o_SuperCastType");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_ExpressionsTuple (final AvailObject object)
 	{
-		subclassResponsibility("o_ExpressionsTuple");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -7985,21 +7962,21 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject expressionsTuple)
 	{
-		subclassResponsibility("o_ExpressionsTuple");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public void o_TupleType (final AvailObject object, final AvailObject tupleType)
 	{
-		subclassResponsibility("o_TupleType");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public @NotNull AvailObject o_TupleType (final AvailObject object)
 	{
-		subclassResponsibility("o_TupleType");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8007,20 +7984,20 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_Declaration (final AvailObject object, final AvailObject declaration)
 	{
-		subclassResponsibility("o_Declaration");
+		unsupportedOperation();
 	}
 
 	@Override
 	public @NotNull AvailObject o_Declaration (final AvailObject object)
 	{
-		subclassResponsibility("o_Declaration");
+		unsupportedOperation();
 		return null;
 	}
 
 	@Override
 	public @NotNull AvailObject o_ExpressionType (final AvailObject object)
 	{
-		subclassResponsibility("o_ExpresionType");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8029,7 +8006,7 @@ public class Descriptor extends AbstractDescriptor
 		 final AvailObject object,
 		 final AvailCodeGenerator codeGenerator)
 	{
-		subclassResponsibility("o_EmitEffectOn");
+		unsupportedOperation();
 	}
 
 
@@ -8038,7 +8015,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		subclassResponsibility("o_EmitValueOn");
+		unsupportedOperation();
 	}
 
 
@@ -8051,7 +8028,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		subclassResponsibility("o_ChildrenMap");
+		unsupportedOperation();
 	}
 
 
@@ -8063,7 +8040,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		subclassResponsibility("o_ChildrenDo");
+		unsupportedOperation();
 	}
 
 
@@ -8074,7 +8051,7 @@ public class Descriptor extends AbstractDescriptor
 		 final List<AvailObject> outerBlocks,
 		 final L2Interpreter anAvailInterpreter)
 	{
-		subclassResponsibility("o_ValidateLocally");
+		unsupportedOperation();
 	}
 
 
@@ -8083,7 +8060,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		subclassResponsibility("o_Generate");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8093,7 +8070,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject newParseNode)
 	{
-		subclassResponsibility("o_CopyWith");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8103,7 +8080,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final boolean isLastUse)
 	{
-		subclassResponsibility("o_IsLastUse");
+		unsupportedOperation();
 	}
 
 
@@ -8111,7 +8088,7 @@ public class Descriptor extends AbstractDescriptor
 	public boolean o_IsLastUse (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_IsLastUse");
+		unsupportedOperation();
 		return false;
 	}
 
@@ -8120,7 +8097,7 @@ public class Descriptor extends AbstractDescriptor
 	public boolean o_IsMacro (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_IsMacro");
+		unsupportedOperation();
 		return false;
 	}
 
@@ -8130,7 +8107,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("o_Macros");
+		unsupportedOperation();
 	}
 
 
@@ -8138,7 +8115,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_Macros (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_Macros");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8146,7 +8123,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_CopyMutableParseNode (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_CopyMutableParseNode");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8164,7 +8141,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("o_MacroName");
+		unsupportedOperation();
 	}
 
 
@@ -8172,7 +8149,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_MacroName (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_MacroName");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8182,7 +8159,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		subclassResponsibility("o_OutputParseNode");
+		unsupportedOperation();
 	}
 
 
@@ -8190,7 +8167,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_OutputParseNode (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_OutputParseNode");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8199,7 +8176,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_ApparentSendName (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_ApparentSendName");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8209,7 +8186,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject statementsTuple)
 	{
-		subclassResponsibility("o_Statements");
+		unsupportedOperation();
 	}
 
 
@@ -8217,7 +8194,7 @@ public class Descriptor extends AbstractDescriptor
 	public AvailObject o_Statements (
 		final AvailObject object)
 	{
-		subclassResponsibility("o_Statements");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8227,21 +8204,21 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
-		subclassResponsibility("o_FlattenStatementsInto");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public void o_LineNumber (final AvailObject object, final int value)
 	{
-		subclassResponsibility("o_LineNumber");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public int o_LineNumber (final AvailObject object)
 	{
-		subclassResponsibility("o_LineNumber");
+		unsupportedOperation();
 		return 0;
 	}
 
@@ -8249,14 +8226,14 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public void o_AllBundles (final AvailObject object, final AvailObject value)
 	{
-		subclassResponsibility("o_AllBundles");
+		unsupportedOperation();
 	}
 
 
 	@Override
 	public AvailObject o_AllBundles (final AvailObject object)
 	{
-		subclassResponsibility("o_AllBundles");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8271,7 +8248,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
 	{
-		subclassResponsibility("o_MapIterator");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8279,7 +8256,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public AvailObject o_Complete (final AvailObject object)
 	{
-		subclassResponsibility("o_Complete");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8287,7 +8264,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public AvailObject o_Incomplete (final AvailObject object)
 	{
-		subclassResponsibility("o_Incomplete");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8295,7 +8272,7 @@ public class Descriptor extends AbstractDescriptor
 	@Override
 	public AvailObject o_SpecialActions (final AvailObject object)
 	{
-		subclassResponsibility("o_SpecialActions");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8303,7 +8280,7 @@ public class Descriptor extends AbstractDescriptor
 	public @NotNull AvailObject o_ObjectMetaLevels (
 		final @NotNull AvailObject object)
 	{
-		subclassResponsibility("o_ObjectMetaLevel");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8312,14 +8289,14 @@ public class Descriptor extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		subclassResponsibility("o_ObjectMetaLevel");
+		unsupportedOperation();
 	}
 
 	@Override
 	public @NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
-		subclassResponsibility("o_RaiseType");
+		unsupportedOperation();
 		return null;
 	}
 
@@ -8328,7 +8305,7 @@ public class Descriptor extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		subclassResponsibility("o_RaiseType");
+		unsupportedOperation();
 	}
 
 
@@ -8357,7 +8334,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final boolean lowInc)
 	{
-		subclassResponsibility("Object:lowerInclusive:", object);
+		unsupportedOperation();
 		return;
 	}
 
@@ -8372,7 +8349,7 @@ public class Descriptor extends AbstractDescriptor
 		final AvailObject object,
 		final boolean highInc)
 	{
-		subclassResponsibility("Object:upperInclusive:", object);
+		unsupportedOperation();
 		return;
 	}
 }

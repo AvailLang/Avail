@@ -63,44 +63,44 @@ Body
 
 
 Method "_priority" is [p : process |
-	Primitive 20 (failureCode : all);
+	Primitive 20 (failureCode : natural number);
 	Failed;
 ] : [0..100];
 
 
 Method "_priority_" is [p : process, priority : [0..100] |
-	Primitive 21 (failureCode : all);
+	Primitive 21 (failureCode : natural number);
 	Failed;
 ] : void;
 
 Method "_suspend" is [p : process |
-	Primitive 22 (failureCode : all);
+	Primitive 22 (failureCode : natural number);
 	Failed;
 ] : void;
 
 Method "_resume" is [p : process |
-	Primitive 23 (failureCode : all);
+	Primitive 23 (failureCode : natural number);
 	Failed;
 ] : void;
 
 Method "_terminate" is [p : process |
-	Primitive 24 (failureCode : all);
+	Primitive 24 (failureCode : natural number);
 	Failed;
 ] : void;
 
 Method "current process" is [
-	Primitive 25 (failureCode : all);
+	Primitive 25 (failureCode : natural number);
 	Failed;
 ] : process;
 
 Method "_[_]" is [p : process, key : cyclicType |
 	/* Lookup a process variable. */
-	Primitive 26 (failureCode : all);
+	Primitive 26 (failureCode : natural number);
 	Failed;
 ] : all;
 
 Method "_[_]:=_" is [p : process, key : cyclicType, value : all |
 	/* Set a process variable. */
-	Primitive 27 (failureCode : all);
+	Primitive 27 (failureCode : natural number);
 	Failed;
 ] : void;

@@ -179,34 +179,40 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  Answer what type the given index would have in an object instance of me.  Answer
-		//  terminates if the index is definitely out of bounds.
+		// Answer what type the given index would have in an object instance of
+		// me. Answer terminates if the index is definitely out of bounds.
 
 		if (index <= 0)
 		{
 			return TERMINATES.o();
 		}
-		final AvailObject firstUpper = object.firstTupleType().sizeRange().upperBound();
-		final AvailObject secondUpper = object.secondTupleType().sizeRange().upperBound();
-		final AvailObject totalUpper = firstUpper.plusCanDestroy(secondUpper, false);
+
+		final AvailObject firstUpper =
+			object.firstTupleType().sizeRange().upperBound();
+		final AvailObject secondUpper =
+			object.secondTupleType().sizeRange().upperBound();
+		AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
+			secondUpper, false);
 		if (totalUpper.isFinite())
 		{
-		final AvailObject indexObject = IntegerDescriptor.fromInt(index);
+			final AvailObject indexObject = IntegerDescriptor.fromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
 				return TERMINATES.o();
 			}
 		}
-		final AvailObject firstLower = object.firstTupleType().sizeRange().lowerBound();
+		final AvailObject firstLower =
+			object.firstTupleType().sizeRange().lowerBound();
 		if (index <= firstLower.extractInt())
 		{
 			return object.firstTupleType().typeAtIndex(index);
 		}
-		//  Besides possibly being at a fixed offset within the firstTupleType, the index
-		//  might represent a range of possible indices of the secondTupleType, depending
-		//  on the spread between the first tuple type's lower and upper bounds.  Compute
-		//  the union of these types.
-		final AvailObject unionType = object.firstTupleType().typeAtIndex(index);
+		// Besides possibly being at a fixed offset within the firstTupleType,
+		// the index might represent a range of possible indices of the
+		// secondTupleType, depending on the spread between the first tuple
+		// type's lower and upper bounds. Compute the union of these types.
+		final AvailObject unionType =
+			object.firstTupleType().typeAtIndex(index);
 		int startIndex;
 		if (firstUpper.isFinite())
 		{
@@ -218,7 +224,9 @@ extends TypeDescriptor
 		}
 		final int endIndex = index - firstLower.extractInt();
 		assert endIndex >= startIndex;
-		return unionType.typeUnion(object.secondTupleType().unionOfTypesAtThrough(startIndex, endIndex));
+		return unionType.typeUnion(
+			object.secondTupleType().unionOfTypesAtThrough(
+				startIndex, endIndex));
 	}
 
 	@Override
@@ -227,9 +235,10 @@ extends TypeDescriptor
 		final int startIndex,
 		final int endIndex)
 	{
-		//  Answer the union of the types that object's instances could have in the
-		//  given range of indices.  Out-of-range indices are treated as terminates,
-		//  which don't affect the union (unless all indices are out of range).
+		// Answer the union of the types that object's instances could have in
+		// the given range of indices. Out-of-range indices are treated as
+		// terminates, which don't affect the union (unless all indices are out
+		// of range).
 
 		assert startIndex <= endIndex;
 		if (startIndex == endIndex)
@@ -240,9 +249,12 @@ extends TypeDescriptor
 		{
 			return TERMINATES.o();
 		}
-		final AvailObject firstUpper = object.firstTupleType().sizeRange().upperBound();
-		final AvailObject secondUpper = object.secondTupleType().sizeRange().upperBound();
-		final AvailObject totalUpper = firstUpper.plusCanDestroy(secondUpper, false);
+		final AvailObject firstUpper =
+			object.firstTupleType().sizeRange().upperBound();
+		final AvailObject secondUpper =
+			object.secondTupleType().sizeRange().upperBound();
+		AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
+			secondUpper, false);
 		if (totalUpper.isFinite())
 		{
 			if (startIndex > totalUpper.extractInt())
@@ -250,10 +262,14 @@ extends TypeDescriptor
 				return TERMINATES.o();
 			}
 		}
-		AvailObject unionType = object.firstTupleType().unionOfTypesAtThrough(startIndex, endIndex);
+		AvailObject unionType =
+			object.firstTupleType().unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
-		final int endInSecond = endIndex - object.firstTupleType().sizeRange().lowerBound().extractInt();
-		unionType = unionType.typeUnion(object.secondTupleType().unionOfTypesAtThrough(startInSecond, endInSecond));
+		final int endInSecond = endIndex
+			- object.firstTupleType().sizeRange().lowerBound().extractInt();
+		unionType = unionType.typeUnion(
+			object.secondTupleType().unionOfTypesAtThrough(
+				startInSecond, endInSecond));
 		return unionType;
 	}
 
@@ -347,14 +363,16 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
-		//  Answer what range of tuple sizes my instances could be.  Note that this can not
-		//  be asked during a garbage collection because it allocates space for its answer.
+		// Answer what range of tuple sizes my instances could be. Note that
+		// this can not be asked during a garbage collection because it
+		// allocates space for its answer.
 
 		final AvailObject a = object.firstTupleType().sizeRange();
 		final AvailObject b = object.secondTupleType().sizeRange();
-		final AvailObject upper = a.upperBound().plusCanDestroy(b.upperBound(), false);
+		final AvailObject upper = a.upperBound().noFailPlusCanDestroy(
+			b.upperBound(), false);
 		return IntegerRangeTypeDescriptor.create(
-			a.lowerBound().plusCanDestroy(b.lowerBound(), false),
+			a.lowerBound().noFailPlusCanDestroy(b.lowerBound(), false),
 			true,
 			upper,
 			upper.isFinite());

@@ -38,6 +38,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -304,9 +305,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_AddToInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).addToInfinityCanDestroy(
 			anInfinity,
@@ -1654,9 +1656,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MinusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).minusCanDestroy(aNumber, canDestroy);
 	}
@@ -1821,9 +1824,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_PlusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).plusCanDestroy(aNumber, canDestroy);
 	}
@@ -2281,9 +2285,10 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
-		final boolean canDestroy)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return o_Traversed(object).subtractFromInfinityCanDestroy(
 			anInfinity,

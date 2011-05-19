@@ -97,7 +97,7 @@ is [
 		body : [...]-> void,
 		requires: [...]-> boolean,
 		returns : [...]-> type |
-	Primitive 254 (failureCode : all);
+	Primitive 254 (failureCode : natural number);
 	Failed;
 ] : void;
 
@@ -179,7 +179,7 @@ is [
 		blockType : closureType |
 	/* Declare method without body (for recursion / mutual recursion).  Must be
 	   followed in same module by a legitimate definition. */
-	Primitive 252 (failureCode : all);
+	Primitive 252 (failureCode : natural number);
 	Failed;
 ] : void;
 
@@ -198,7 +198,7 @@ Method "Abstract method_for_requires_returns_" is [
 		bodyType : closureType,
 		requires : [...]-> boolean,
 		returns : [...]-> type |
-	Primitive 251 (failureCode : all);
+	Primitive 251 (failureCode : natural number);
 	Failed;
 ] : void;
 
@@ -257,6 +257,6 @@ Method "Fail parse_" is [
  * module's namespace.
  */
 Method "lookup_" is [t : string |
-	Primitive 245 (failureCode : all);
+	Primitive 245 (failureCode : natural number);
 	Failed;
 ] : cyclicType;

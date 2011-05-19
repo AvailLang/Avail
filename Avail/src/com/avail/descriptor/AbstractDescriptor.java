@@ -39,6 +39,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -696,25 +697,53 @@ public abstract class AbstractDescriptor
 		final AvailObject restrictions);
 
 	/**
+	 * Add the {@linkplain AvailObject operands} together and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * AvailObject#plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param anInfinity
+	 *        An {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of differing signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_AddToInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy);
+	abstract @NotNull AvailObject o_AddToInfinityCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
+	 * Add the {@linkplain AvailObject operands} together and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * AvailObject#plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param anInteger
+	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_AddToIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
+	abstract @NotNull AvailObject o_AddToIntegerCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy);
 
 	/**
@@ -1830,15 +1859,34 @@ public abstract class AbstractDescriptor
 	public abstract void o_Methods (final AvailObject object, final AvailObject value);
 
 	/**
+	 * Difference the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * AvailObject#subtractFromIntegerCanDestroy(AvailObject, boolean)
+	 * subtractFromIntegerCanDestroy} or {@link
+	 * AvailObject#subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * subtractFromInfinityCanDestroy}, where actual implementations of the
+	 * subtraction operation should reside.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param aNumber
+	 *        An integral numeric.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of like signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
 	public abstract AvailObject o_MinusCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy);
+			final AvailObject object,
+			final AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
 	 * @param object
@@ -2009,15 +2057,34 @@ public abstract class AbstractDescriptor
 	public abstract void o_Pc (final AvailObject object, final int value);
 
 	/**
+	 * Add the {@linkplain AvailObject operands} together and answer the
+	 * result.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * AvailObject#addToIntegerCanDestroy(AvailObject, boolean)
+	 * addToIntegerCanDestroy} or {@link
+	 * AvailObject#addToInfinityCanDestroy(AvailObject, boolean)
+	 * addToInfinityCanDestroy}, where actual implementations of the addition
+	 * operation should reside.
+	 * </p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param aNumber
+	 *        An integral numeric.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of differing signs.
 	 */
 	public abstract AvailObject o_PlusCanDestroy (
-		final AvailObject object,
-		final AvailObject aNumber,
-		final boolean canDestroy);
+			final AvailObject object,
+			final AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
 	 * @param object
@@ -2506,25 +2573,59 @@ public abstract class AbstractDescriptor
 		final AvailObject value);
 
 	/**
+	 * Difference the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * AvailObject#subtractFromIntegerCanDestroy(AvailObject, boolean)
+	 * subtractFromIntegerCanDestroy} or {@link
+	 * AvailObject#subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * subtractFromInfinityCanDestroy}, where actual implementations of the
+	 * subtraction operation should reside.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param anInfinity
+	 *        An {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of like signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_SubtractFromInfinityCanDestroy (
-		final AvailObject object,
-		final AvailObject anInfinity,
-		final boolean canDestroy);
+	abstract @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException;
 
 	/**
+	 * Difference the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * AvailObject#subtractFromIntegerCanDestroy(AvailObject, boolean)
+	 * subtractFromIntegerCanDestroy} or {@link
+	 * AvailObject#subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * subtractFromInfinityCanDestroy}, where actual implementations of the
+	 * subtraction operation should reside.</p>
+	 *
 	 * @param object
+	 *        An integral numeric.
 	 * @param anInteger
+	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 * @return
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_SubtractFromIntegerCanDestroy (
-		final AvailObject object,
-		final AvailObject anInteger,
+	abstract @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy);
 
 	/**

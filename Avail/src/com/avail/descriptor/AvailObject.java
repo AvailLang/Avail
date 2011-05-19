@@ -39,6 +39,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -54,6 +55,7 @@ import com.avail.visitor.*;
  * make them stand out better and to indicate the additional first argument.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public abstract class AvailObject
 implements Iterable<AvailObject>
@@ -756,11 +758,29 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Add the receiver and the argument {@code anInfinity} together and answer
+	 * the {@linkplain AvailObject result}.
+	 *
+	 * <p>This method should only be called from {@link
+	 * #plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It exists for
+	 * double-dispatch only.</p>
+	 *
+	 * @param anInfinity
+	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of differing signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public AvailObject addToInfinityCanDestroy (
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+	@NotNull AvailObject addToInfinityCanDestroy (
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return descriptor().o_AddToInfinityCanDestroy(
 			this,
@@ -769,10 +789,24 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Add the receiver and the argument {@code anInteger} together and answer
+	 * the {@linkplain AvailObject result}.
+	 *
+	 * <p>This method should only be called from {@link
+	 * #plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It exists for
+	 * double-dispatch only.</p>
+	 *
+	 * @param anInteger
+	 *        An {@linkplain IntegerDescriptor integer}.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public AvailObject addToIntegerCanDestroy (
-		final AvailObject anInteger,
+	@NotNull AvailObject addToIntegerCanDestroy (
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return descriptor().o_AddToIntegerCanDestroy(
@@ -3357,16 +3391,77 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Subtract the argument {@code aNumber} from a receiver and answer
+	 * the {@linkplain AvailObject result}.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * #subtractFromIntegerCanDestroy(AvailObject, boolean)
+	 * subtractFromIntegerCanDestroy} or {@link
+	 * #subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * subtractFromInfinityCanDestroy}, where actual implementations of the
+	 * subtraction operation should reside.</p>
+	 *
+	 * @param aNumber
+	 *        An integral numeric.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of like signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public AvailObject minusCanDestroy (
-		final AvailObject aNumber,
-		final boolean canDestroy)
+	public @NotNull AvailObject minusCanDestroy (
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return descriptor().o_MinusCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
+	}
+
+	/**
+	 * Difference the receiver and the argument {@code aNumber} and answer the
+	 * {@linkplain AvailObject result}. The operation is not allowed to fail,
+	 * so the caller must ensure that the arguments are valid, i.e. not
+	 * {@linkplain InfinityDescriptor infinities} of like sign.
+	 *
+	 * @param aNumber
+	 *        An integral numeric.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of like signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
+	 */
+	public @NotNull AvailObject noFailMinusCanDestroy (
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		try
+		{
+			return descriptor().o_MinusCanDestroy(
+				this,
+				aNumber,
+				canDestroy);
+		}
+		catch (final ArithmeticException e)
+		{
+			// This had better not happen, otherwise the caller has violated the
+			// intention of this method.
+			assert false;
+		}
+
+		error("noFailMinusCanDestroy failed!");
+		return VoidDescriptor.voidObject();
 	}
 
 	/**
@@ -3760,16 +3855,76 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Add the receiver and the argument {@code aNumber} and answer the
+	 * {@linkplain AvailObject result}.
+	 *
+	 * <p>Implementations may double-dispatch to {@link
+	 * #addToIntegerCanDestroy(AvailObject, boolean) addToIntegerCanDestroy} or
+	 * {@link #addToInfinityCanDestroy(AvailObject, boolean)
+	 * addToInfinityCanDestroy}, where actual implementations of the addition
+	 * operation should reside.</p>
+	 *
+	 * @param aNumber
+	 *        An integral numeric.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of differing signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public AvailObject plusCanDestroy (
-		final AvailObject aNumber,
-		final boolean canDestroy)
+	public @NotNull AvailObject plusCanDestroy (
+			final @NotNull AvailObject aNumber,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return descriptor().o_PlusCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
+	}
+
+	/**
+	 * Add the receiver and the argument {@code aNumber} and answer the
+	 * {@linkplain AvailObject result}. The operation is not allowed to fail,
+	 * so the caller must ensure that the arguments are valid, i.e. not
+	 * {@linkplain InfinityDescriptor infinities} of unlike sign.
+	 *
+	 * @param aNumber
+	 *        An integral numeric.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        Avail operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of differing signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
+	 */
+	public @NotNull AvailObject noFailPlusCanDestroy (
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		try
+		{
+			return descriptor().o_PlusCanDestroy(
+				this,
+				aNumber,
+				canDestroy);
+		}
+		catch (final ArithmeticException e)
+		{
+			// This had better not happen, otherwise the caller has violated the
+			// intention of this method.
+			assert false;
+		}
+
+		error("noFailPlusCanDestroy failed!");
+		return VoidDescriptor.voidObject();
 	}
 
 	/**
@@ -4561,11 +4716,30 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Difference the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * #minusCanDestroy(AvailObject, boolean) minusCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+	 *
+	 * @param object
+	 *        An integral numeric.
+	 * @param anInfinity
+	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @throws ArithmeticException
+	 *         If the {@linkplain AvailObject operands} were {@linkplain
+	 *         InfinityDescriptor infinities} of like signs.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public AvailObject subtractFromInfinityCanDestroy (
-		final AvailObject anInfinity,
-		final boolean canDestroy)
+	@NotNull AvailObject subtractFromInfinityCanDestroy (
+			final @NotNull AvailObject anInfinity,
+			final boolean canDestroy)
+		throws ArithmeticException
 	{
 		return descriptor().o_SubtractFromInfinityCanDestroy(
 			this,
@@ -4574,10 +4748,25 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Difference the {@linkplain AvailObject operands} and answer the result.
+	 *
+	 * <p>This method should only be called from {@link
+	 * #minusCanDestroy(AvailObject, boolean) minusCanDestroy}. It
+	 * exists for double-dispatch only.</p>
+	 *
+	 * @param object
+	 *        An integral numeric.
+	 * @param anInteger
+	 *        An {@linkplain IntegerDescriptor integer}.
+	 * @param canDestroy
+	 *        {@code true} if the operation may modify either {@linkplain
+	 *        AvailObject operand}, {@code false} otherwise.
+	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 * @see IntegerDescriptor
+	 * @see InfinityDescriptor
 	 */
-	public AvailObject subtractFromIntegerCanDestroy (
-		final AvailObject anInteger,
+	@NotNull AvailObject subtractFromIntegerCanDestroy (
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return descriptor().o_SubtractFromIntegerCanDestroy(

@@ -246,7 +246,7 @@ setOfString ::= Special Object 75;
    parsed left-recursive, we say:  {"_+_"} can't have <{} , {"_+_"}>.   */
 
 Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
-	Primitive 255 (failureCode : all);
+	Primitive 255 (failureCode : natural number);
 	Failed;
 ] : void;
 

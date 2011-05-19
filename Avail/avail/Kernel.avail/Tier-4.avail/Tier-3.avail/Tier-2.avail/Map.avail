@@ -73,7 +73,7 @@ Method "map_from_to_" is [
 		sizes : integerType,
 		keyType : type,
 		valueType : type |
-	Primitive 87 (failureCode : all);
+	Primitive 87 (failureCode : natural number);
 	Failed;
 ] : mapType;
 
@@ -128,7 +128,7 @@ returns [mt : mapType, kt : type |
 
 
 Method "_[_]" is [m : map, k : all |
-	Primitive 82 (failureCode : all);
+	Primitive 82 (failureCode : natural number);
 	Failed;
 ] : all
 returns [mt : mapType, kt : type |

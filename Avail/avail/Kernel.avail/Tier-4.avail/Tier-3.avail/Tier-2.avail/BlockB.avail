@@ -80,7 +80,7 @@ Method "stub block taking_and applying_to_and argument tuple returning_" is [
 		message : cyclicType,
 		clientArg : all,
 		resultType : type |
-	Primitive 71 (failureCode : all);
+	Primitive 71 (failureCode : natural number);
 	Failed;
 ] : [...]-> void;
 

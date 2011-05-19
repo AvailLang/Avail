@@ -79,7 +79,7 @@ Method "tuple" is
  */
 Method "private <>" is
 [
-	Primitive 134 (failureCode : all);
+	Primitive 134 (failureCode : natural number);
 ] : tuple;
 
 /**
@@ -87,7 +87,7 @@ Method "private <>" is
  */
 Method "<>" is
 [
-	Primitive 134 (failureCode : all);
+	Primitive 134 (failureCode : natural number);
 ] : type of private <>;
 
 /** The compiler needs this in order to specify "set type". */

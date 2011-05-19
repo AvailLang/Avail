@@ -53,7 +53,7 @@ Body
 
 
 Method "Macro_is_" is [name : string, block : [...]-> parseNode |
-	Primitive 249 (failureCode : all);
+	Primitive 249 (failureCode : natural number);
 	Failed;
 ] : void;
 
@@ -61,7 +61,7 @@ Method "Macro_is_" is [name : string, block : [...]-> parseNode |
 Method "make assignment variable_expression_" is [
 		v : variableUseNode,
 		e : parseNode |
-	Primitive 353 (failureCode : all);
+	Primitive 353 (failureCode : string);
 	Crash "Failed to create assignment";
 ] : parseNode;
 

@@ -47,6 +47,7 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
 
@@ -81,18 +82,18 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			if (!a.isFinite()
-				&& !b.isFinite()
-				&& a.isPositive() != b.isPositive())
+			try
 			{
-				return interpreter.primitiveFailure(
-					"can't add mixed infinities");
+				return interpreter.primitiveSuccess(a.plusCanDestroy(b, true));
 			}
-			return interpreter.primitiveSuccess(a.plusCanDestroy(b, true));
+			catch (final ArithmeticException e)
+			{
+				return interpreter.primitiveFailure(e.numericCode());
+			}
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -115,18 +116,18 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			if (!a.isFinite()
-				&& !b.isFinite()
-				&& a.isPositive() == b.isPositive())
+			try
 			{
-				return interpreter.primitiveFailure(
-					"can't subtract like infinities");
+				return interpreter.primitiveSuccess(a.minusCanDestroy(b, true));
 			}
-			return interpreter.primitiveSuccess(a.minusCanDestroy(b, true));
+			catch (final ArithmeticException e)
+			{
+				return interpreter.primitiveFailure(e.numericCode());
+			}
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5081,8 +5082,7 @@ public enum Primitive
 			final AvailObject bodyBlock = args.get(0);
 			@SuppressWarnings("unused")
 			final AvailObject handlerBlock = args.get(1);
-			return interpreter.primitiveFailure(
-				"primitive 200 failed like it's supposed to");
+			return interpreter.primitiveFailure(IntegerDescriptor.zero());
 		}
 
 		@Override
@@ -5098,6 +5098,13 @@ public enum Primitive
 							TERMINATES.o()),
 						VOID_TYPE.o())),
 				VOID_TYPE.o());
+		}
+
+		@Override
+		protected AvailObject privateFailureVariableType ()
+		{
+			return IntegerRangeTypeDescriptor.singleInteger(
+				IntegerDescriptor.zero());
 		}
 	},
 
@@ -6818,9 +6825,7 @@ public enum Primitive
 			out.trimExcessLongs();
 			if (neg)
 			{
-				out = out.subtractFromIntegerCanDestroy(
-					IntegerDescriptor.zero(),
-					true);
+				out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
 			}
 			return interpreter.primitiveSuccess(out);
 		}
@@ -7255,7 +7260,7 @@ public enum Primitive
 			out.trimExcessLongs();
 			if (neg)
 			{
-				out = out.subtractFromIntegerCanDestroy(IntegerDescriptor.zero(), true);
+				out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
 			}
 			return interpreter.primitiveSuccess(out);
 		}
@@ -7497,6 +7502,15 @@ public enum Primitive
 					PARSE_NODE.o()),
 				ASSIGNMENT_NODE.o());
 		}
+
+
+		@Override
+		protected AvailObject privateFailureVariableType ()
+		{
+			// TODO: [TLS] This should really use a handful of special
+			// AvailErrorCodes rather than Strings, but I just want to test!
+			return TupleTypeDescriptor.stringTupleType();
+		}
 	},
 
 	/**
@@ -7609,6 +7623,14 @@ public enum Primitive
 					PARSE_NODE.o()),
 				PARSE_NODE.o());
 		}
+
+		@Override
+		protected AvailObject privateFailureVariableType ()
+		{
+			// TODO: [TLS] This should really use a handful of special
+			// AvailErrorCodes rather than Strings, but I just want to test!
+			return TupleTypeDescriptor.stringTupleType();
+		}
 	},
 
 	/**
@@ -7649,6 +7671,14 @@ public enum Primitive
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o()),
 				REFERENCE_NODE.o());
+		}
+
+		@Override
+		protected AvailObject privateFailureVariableType ()
+		{
+			// TODO: [TLS] This should really use a handful of special
+			// AvailErrorCodes rather than Strings, but I just want to test!
+			return TupleTypeDescriptor.stringTupleType();
 		}
 	},
 
@@ -7933,7 +7963,7 @@ public enum Primitive
 	 */
 	protected @NotNull AvailObject privateFailureVariableType ()
 	{
-		return TupleTypeDescriptor.stringTupleType();
+		return IntegerRangeTypeDescriptor.naturalNumbers();
 	}
 
 	/**
