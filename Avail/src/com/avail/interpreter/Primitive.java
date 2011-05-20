@@ -47,6 +47,7 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
@@ -70,7 +71,8 @@ import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
 public enum Primitive
 {
 	/**
-	 * <strong>Primitive 1:</strong> Add two extended integers together.
+	 * <strong>Primitive 1:</strong> Add two {@linkplain
+	 * ExtendedNumberDescriptor extended integers}.
 	 */
 	prim1_Addition_a_b(1, 2, CanFold)
 	{
@@ -104,7 +106,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 2:</strong> Subtract extended integer b from a.
+	 * <strong>Primitive 2:</strong> Subtract {@linkplain
+	 * ExtendedNumberDescriptor extended integer} b from a.
 	 */
 	prim2_Subtraction_a_b(2, 2, CanFold)
 	{
@@ -137,9 +140,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 3:</strong> Multiply extended integers a and b.
+	 * <strong>Primitive 3:</strong> Multiply {@linkplain
+	 * ExtendedNumberDescriptor extended integers} a and b.
 	 */
 	prim3_Multiplication_a_b(3, 2, CanFold)
 	{
@@ -172,9 +175,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 4:</strong> Compute extended integer a divided by b.
+	 * <strong>Primitive 4:</strong> Compute {@linkplain
+	 * ExtendedNumberDescriptor extended integer} a divided by b.
 	 */
 	prim4_Division_a_b(4, 2, CanFold)
 	{
@@ -208,10 +211,10 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 5:</strong> Compare extended integers a < b.  Answers
-	 * an Avail boolean.
+	 * <strong>Primitive 5:</strong> Compare {@linkplain
+	 * ExtendedNumberDescriptor extended integers} {@code a < b}. Answer
+	 * a {@linkplain BooleanDescriptor boolean}.
 	 */
 	prim5_LessThan_a_b(5, 2, CanFold, CannotFail)
 	{
@@ -238,10 +241,10 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 6:</strong> Compare extended integers a <= b.  Answers
-	 * an Avail boolean.
+	 * <strong>Primitive 6:</strong> Compare {@linkplain
+	 * ExtendedNumberDescriptor extended integers} {@code a <= b}. Answer
+	 * a {@linkplain BooleanDescriptor boolean}.
 	 */
 	prim6_LessOrEqual_a_b(6, 2, CanFold, CannotFail)
 	{
@@ -268,11 +271,13 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 7:</strong> Answer the integer range {@code
-	 * 'min <?1 instance <?2 max'}, where {@code <?1} means {@code <=} when
-	 * {@code minInc=true}, else {@code <}, and likewise for {@code <?2}.
+	 * <strong>Primitive 7:</strong> Answer the {@linkplain
+	 * IntegerRangeTypeDescriptor integer range} constrained by the specified
+	 * {@linkplain ExtendedNumberDescriptor upper and lower bounds}. The
+	 * provided {@linkplain BooleanDescriptor booleans} indicate whether their
+	 * corresponding bounds are inclusive ({@code true}) or exclusive
+	 * ({@code false}).
 	 */
 	prim7_CreateIntegerRange_min_minInc_max_maxInc(7, 4, CanFold, CannotFail)
 	{
@@ -307,10 +312,11 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 8:</strong> Answer the lower bound.  Test membership to
-	 * determine if it's inclusive or exclusive.
+	 * <strong>Primitive 8:</strong> Answer the {@linkplain
+	 * ExtendedNumberDescriptor lower bound}. The client can ask the
+	 * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
+	 * answer to determine whether it is inclusive or exclusive.
 	 */
 	prim8_LowerBound_range(8, 1, CanFold, CannotFail)
 	{
@@ -334,10 +340,11 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 9:</strong> Answer the upper bound.  Test membership to
-	 * determine if it's inclusive or exclusive.
+	 * <strong>Primitive 9:</strong> Answer the {@linkplain
+	 * ExtendedNumberDescriptor upper bound}. The client can ask the
+	 * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
+	 * answer to determine whether it is inclusive or exclusive.
 	 */
 	prim9_UpperBound_range(9, 1, CanFold, CannotFail)
 	{
@@ -361,14 +368,14 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 10:</strong> There are two possibilities.  The
-	 * container is mutable, in which case we want to destroy it, or the
-	 * container is immutable, in which case we want to make sure the extracted
-	 * value becomes immutable (in case the container is being held onto by
-	 * something.  Since the primitive invocation code is going to erase it if
-	 * it's mutable anyhow, only the second case requires any real work.
+	 * {@linkplain ContainerDescriptor variable} is mutable, in which case we
+	 * want to destroy it, or the variable is immutable, in which case we want
+	 * to make sure the extracted value becomes immutable (in case the variable
+	 * is being held onto by something). Since the primitive invocation code is
+	 * going to erase it if it's mutable anyhow, only the second case requires
+	 * any real work.
 	 */
 	prim10_GetValue_var(10, 1, CanInline)
 	{
@@ -383,7 +390,8 @@ public enum Primitive
 			if (value.equalsVoid())
 			{
 				return interpreter.primitiveFailure(
-					"can't read from unassigned variable");
+					AvailErrorCode
+						.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
 			}
 			if (!var.descriptor().isMutable())
 			{
@@ -401,9 +409,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 11:</strong> Assign the value to the variable.
+	 * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
+	 * to the {@linkplain ContainerDescriptor variable}.
 	 */
 	prim11_SetValue_var_value(11, 2, CanInline, HasSideEffect)
 	{
@@ -418,7 +426,9 @@ public enum Primitive
 			if (!value.isInstanceOfSubtypeOf(var.type().innerType()))
 			{
 				return interpreter.primitiveFailure(
-					"value does not match container type");
+					AvailErrorCode
+						.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE
+						.numericCode());
 			}
 			var.setValue(value);
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -435,9 +445,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 12:</strong> Clear the variable.
+	 * <strong>Primitive 12:</strong> Clear the {@linkplain ContainerDescriptor
+	 * variable}.
 	 */
 	prim12_ClearValue_var(12, 1, CanInline, HasSideEffect, CannotFail)
 	{
@@ -461,10 +471,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 13:</strong> Create a container type using the given
-	 * inner type.
+	 * <strong>Primitive 13:</strong> Create a {@linkplain
+	 * ContainerTypeDescriptor variable type} using the given inner type.
 	 */
 	prim13_CreateContainerType_type(13, 1, CanFold, CannotFail)
 	{
@@ -489,10 +498,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 14:</strong> Extract the inner type of a container
-	 * type.
+	 * <strong>Primitive 14:</strong> Extract the inner type of a {@linkplain
+	 * ContainerTypeDescriptor variable type}.
 	 */
 	prim14_InnerType_type(14, 1, CanFold, CannotFail)
 	{
@@ -516,9 +524,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 15:</strong> Swap the contents of two containers.
+	 * <strong>Primitive 15:</strong> Swap the contents of two {@linkplain
+	 * ContainerDescriptor variables}.
 	 */
 	prim15_Swap_var1_var2(15, 2, CanInline, HasSideEffect)
 	{
@@ -533,7 +541,9 @@ public enum Primitive
 			if (!var1.type().equals(var2.type()))
 			{
 				return interpreter.primitiveFailure(
-					"variables must have the same type");
+					AvailErrorCode
+						.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES
+						.numericCode());
 			}
 			final AvailObject value1 = var1.getValue();
 			final AvailObject value2 = var2.getValue();
@@ -553,9 +563,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 16:</strong> Create a container with the given inner
+	 * <strong>Primitive 16:</strong> Create a {@linkplain
+	 * ContainerDescriptor variable} with the given inner
 	 * type.
 	 */
 	prim16_CreateContainer_innerType(16, 1, CanInline, CannotFail)
@@ -581,10 +591,10 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 17:</strong> Answer true if the variable is unassigned
-	 * (has no value).
+	 * <strong>Primitive 17:</strong> Answer {@linkplain TrueDescriptor true} if
+	 * the {@linkplain ContainerDescriptor variable} is unassigned (has no
+	 * value).
 	 */
 	prim17_HasNoValue_var(17, 1, CanInline, CannotFail)
 	{
@@ -609,10 +619,10 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 18:</strong> Get the value of the variable, clear the
-	 * variable, then answer the previously extracted value.  This operation
+	 * <strong>Primitive 18:</strong> Get the value of the {@linkplain
+	 * ContainerDescriptor variable}, clear the variable, then answer the
+	 * previously extracted {@linkplain AvailObject value}. This operation
 	 * allows store-back patterns to be efficiently implemented in Level One
 	 * code while keeping the interpreter itself thread-safe and debugger-safe.
 	 */
@@ -628,8 +638,9 @@ public enum Primitive
 			final AvailObject valueObject = var.value();
 			if (valueObject.equalsVoid())
 			{
-				return interpreter.primitiveFailure(
-					"cannot read from uninitialized variable");
+				return interpreter.primitiveFailure(AvailErrorCode
+					.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
+
 			}
 			var.clearValue();
 			return interpreter.primitiveSuccess(valueObject);
@@ -646,9 +657,9 @@ public enum Primitive
 
 	},
 
-
 	/**
-	 * <strong>Primitive 20:</strong> Get the priority of the given process.
+	 * <strong>Primitive 20:</strong> Get the priority of the given {@linkplain
+	 * ProcessDescriptor process}.
 	 */
 	prim20_GetPriority_processObject(20, 1, CanInline, CannotFail)
 	{
@@ -673,9 +684,9 @@ public enum Primitive
 		}
 	},
 
-
 	/**
-	 * <strong>Primitive 21:</strong> Set the priority of the given process.
+	 * <strong>Primitive 21:</strong> Set the priority of the given {@linkplain
+	 * ProcessDescriptor process}.
 	 */
 	prim21_SetPriority_processObject_newPriority(21, 2, Unknown, CannotFail)
 	{
@@ -702,6 +713,7 @@ public enum Primitive
 		}
 	},
 
+	// TODO: [TLS] Resume rewriting for error codes from here!
 
 	/**
 	 * <strong>Primitive 22:</strong> Suspend the given process.  Ignore if the
@@ -731,7 +743,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 23:</strong> Resume the given process.  Ignore if the
 	 * process is already running.
@@ -759,7 +770,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 24:</strong> Terminate the given process.  Ignore if
@@ -789,7 +799,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 25:</strong> Answer the currently running process.
 	 */
@@ -813,7 +822,6 @@ public enum Primitive
 				PROCESS.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 26:</strong> Lookup the given name (key) in the
@@ -849,7 +857,6 @@ public enum Primitive
 				ALL.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 27:</strong> Associate the given value with the given
@@ -887,7 +894,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 28:</strong> Wait for the given semaphore.
 	 */
@@ -915,7 +921,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 29:</strong> Signal the given semaphore.
@@ -945,7 +950,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 30:</strong> Answer the type of the given object.
 	 */
@@ -970,7 +974,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 31:</strong> This eventually needs to be rewritten as
@@ -1000,7 +1003,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 32:</strong> This eventually needs to be rewritten as
@@ -1032,7 +1034,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 33:</strong> Answer whether type1 is a subtype of type2
 	 * (or equal).
@@ -1061,7 +1062,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 34:</strong> Create a closure type from a tuple of
@@ -1097,7 +1097,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 35:</strong> Answer the number of arguments that this
 	 * closureType takes.
@@ -1124,7 +1123,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 36:</strong> Answer the type of the argument at the
@@ -1166,7 +1164,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 37:</strong> Answer the return type of the given
 	 * closureType.
@@ -1192,7 +1189,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 38:</strong> Answer the union of the types in the given
@@ -1228,7 +1224,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 39:</strong> Answer a generalized closure type with the
 	 * given return type.
@@ -1255,7 +1250,6 @@ public enum Primitive
 				GENERALIZED_CLOSURE_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 40:</strong> Block evaluation, given a tuple of
@@ -1309,7 +1303,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 43:</strong> Invoke either the trueBlock or the
 	 * falseBlock, depending on aBoolean.
@@ -1354,7 +1347,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 44:</strong> Invoke the trueBlock if aBoolean is true,
 	 * otherwise just answer void.
@@ -1392,7 +1384,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 45:</strong> Run the zero-argument block, ignoring the
 	 * leading boolean argument.  This is used for short-circuit evaluation.
@@ -1426,7 +1417,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 49:</strong> Create a continuation.  Don't allow
@@ -1477,7 +1467,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 50:</strong> Answer the closure type within the given
 	 * continuation type.
@@ -1506,7 +1495,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 51:</strong> Answer a continuation type that uses the
 	 * given closure type.
@@ -1533,7 +1521,6 @@ public enum Primitive
 				CONTINUATION_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 52:</strong> Answer the caller of a continuation.  Fail
@@ -1567,7 +1554,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 53:</strong> Answer the closure of a continuation.
 	 */
@@ -1592,7 +1578,6 @@ public enum Primitive
 				CLOSURE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 54:</strong> Answer the pc of a continuation.  This is
@@ -1621,7 +1606,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.naturalNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 55:</strong> Answer a continuation's stack pointer.
@@ -1652,7 +1636,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.naturalNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 56:</strong> Restart the given continuation, but
@@ -1726,7 +1709,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 57:</strong> Exit the given continuation (returning
 	 * result to its caller).
@@ -1787,7 +1769,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 58:</strong> Restart the given continuation.  Make sure
 	 * it's a label-like continuation rather than a call-like, because a
@@ -1840,7 +1821,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 59:</strong> Answer a tuple containing the
 	 * continuation's stack data.  Substitute the integer zero for any void
@@ -1881,7 +1861,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 60:</strong> Compare for equality.  Answer an Avail
 	 * boolean.
@@ -1910,7 +1889,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 61:</strong> Convert a map from fields to values into
@@ -1943,7 +1921,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 62:</strong> Convert an object into a map from fields
 	 * to values.
@@ -1973,7 +1950,6 @@ public enum Primitive
 					ALL.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 63:</strong> Convert a map from fields to types into an
@@ -2008,7 +1984,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 64:</strong> Convert an object type into a map from
 	 * fields to types.
@@ -2040,7 +2015,6 @@ public enum Primitive
 					TYPE.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 65:</strong> Answer an {@linkplain ObjectMetaDescriptor
@@ -2087,7 +2061,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 66:</strong> Construct a new {@linkplain
@@ -2137,7 +2110,6 @@ public enum Primitive
 						true)));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 67:</strong> Answer the name of a primitive type.
@@ -2274,7 +2246,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 71:</strong> Construct a block that takes arguments
 	 * whose types are specified in argTypes, and returns the result of invoking
@@ -2326,7 +2297,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 72:</strong> Answer the compiledCode within this
 	 * closure.
@@ -2352,7 +2322,6 @@ public enum Primitive
 				COMPILED_CODE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 73:</strong> Answer the tuple of outer variables
@@ -2397,7 +2366,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 74:</strong> Answer a closure built from the
 	 * compiledCode and the outer variables.
@@ -2432,7 +2400,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 80:</strong> Answer the size of the map.  This is the
 	 * number of entries, which is also the number of keys.
@@ -2462,7 +2429,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 81:</strong> Check if the key is present in the map.
@@ -2494,7 +2460,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 82:</strong> Look up the key in the map, answering the
@@ -2531,7 +2496,6 @@ public enum Primitive
 				ALL.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 83:</strong> Answer a new map like the given map, but
@@ -2573,7 +2537,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 84:</strong> Answer a new map, but without the given
 	 * key.  Answer the original map if the key does not occur in it.
@@ -2609,7 +2572,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 85:</strong> Answer an empty map.
 	 */
@@ -2636,7 +2598,6 @@ public enum Primitive
 					TERMINATES.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 86:</strong> Answer the keys of this map as a set.
@@ -2667,7 +2628,6 @@ public enum Primitive
 					ALL.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 87:</strong> Answer a map type with the given type
@@ -2708,7 +2668,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 88:</strong> Answer the size range of a map type.  This
 	 * specifies the range of sizes a map can have while being considered an
@@ -2737,7 +2696,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 89:</strong> Answer the key type of a map type.
 	 */
@@ -2763,7 +2721,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 90:</strong> Answer the value type of a map type.
 	 */
@@ -2788,7 +2745,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 91:</strong> Answer the values of this map as a tuple,
@@ -2819,7 +2775,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 100:</strong> Answer the size of the set.
 	 */
@@ -2847,7 +2802,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 101:</strong> Check if the object is an element of the
@@ -2879,7 +2833,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 102:</strong> Answer the union of two sets.
@@ -2915,7 +2868,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 103:</strong> Answer the intersection of two sets.
 	 */
@@ -2949,7 +2901,6 @@ public enum Primitive
 					ALL.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 104:</strong> Answer the difference between two sets
@@ -2986,7 +2937,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 105:</strong> Answer a new set but with newElement in
 	 * it.  If it was already present, answer the original set.
@@ -3019,7 +2969,6 @@ public enum Primitive
 					ALL.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 106:</strong> Answer a new set but without
@@ -3054,7 +3003,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 107:</strong> Check if set1 is a subset of set2.
 	 */
@@ -3087,7 +3035,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 108:</strong> Answer the empty set.
 	 */
@@ -3113,7 +3060,6 @@ public enum Primitive
 					ALL.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 109:</strong> Convert a tuple into a set.  Clear from
@@ -3143,7 +3089,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 110:</strong> Convert a set into an arbitrarily ordered
 	 * tuple.  The conversion is unstable (two calls may produce different
@@ -3172,7 +3117,6 @@ public enum Primitive
 				TupleTypeDescriptor.mostGeneralTupleType());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 111:</strong> Create a set type.
@@ -3209,7 +3153,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 112:</strong> Extract a set type's range of sizes.
 	 * This is the range of sizes that a set must fall in to be considered a
@@ -3238,7 +3181,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 113:</strong> Extract a set type's content type.
 	 */
@@ -3263,7 +3205,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 120:</strong> Create a new cyclic type with the given
@@ -3292,7 +3233,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 121:</strong> Answer the name of a cyclicType.
 	 */
@@ -3317,7 +3257,6 @@ public enum Primitive
 				TupleTypeDescriptor.stringTupleType());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 130:</strong> Answer the size of the tuple.
@@ -3344,7 +3283,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 131:</strong> Look up an element in the tuple.
@@ -3384,7 +3322,6 @@ public enum Primitive
 				ALL.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 132:</strong> Answer a tuple like the given one, but
@@ -3430,7 +3367,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 133:</strong> Build a tuple with one element.
 	 */
@@ -3464,7 +3400,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 134:</strong> Answer the tuple with no elements.
 	 */
@@ -3492,7 +3427,6 @@ public enum Primitive
 					TERMINATES.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 135:</strong> Extract a subtuple with the given range
@@ -3543,7 +3477,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 136:</strong> Concatenate a tuple of tuples together
 	 * into a single tuple.
@@ -3573,7 +3506,6 @@ public enum Primitive
 				TupleTypeDescriptor.mostGeneralTupleType());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 137:</strong> Construct a tuple type with the given
@@ -3617,7 +3549,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 138:</strong> Answer the allowed tuple sizes for this
 	 * tupleType.  These are the sizes that a tuple may be and still be
@@ -3645,7 +3576,6 @@ public enum Primitive
 				INTEGER_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 139:</strong> Answer the tuple of leading types that
@@ -3676,7 +3606,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 140:</strong> Answer the default type for elements past
 	 * the leading types.
@@ -3702,7 +3631,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 141:</strong> Answer the type for the given element of
@@ -3737,7 +3665,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 142:</strong> Answer a tuple of types representing the
@@ -3795,7 +3722,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 143:</strong> Answer the type that is the union of the
 	 * types within the given range of indices of the given tupleType.  Answer
@@ -3841,7 +3767,6 @@ public enum Primitive
 				TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 144:</strong> Answer the type that is the type of all
@@ -3917,7 +3842,6 @@ public enum Primitive
 				CYCLIC_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 161:</strong> Open a {@linkplain RandomAccessFile file}
@@ -4744,7 +4668,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 181:</strong> Answer the number of locals created by
 	 * the compiledCode.
@@ -4771,7 +4694,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 182:</strong> Answer the number of outer variables in
@@ -4800,7 +4722,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 183:</strong> Answer the number of stack slots (not
 	 * counting arguments and locals) created for the compiledCode.
@@ -4827,7 +4748,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 184:</strong> Answer the nybblecodes of the
@@ -4858,7 +4778,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 185:</strong> Answer the type of closure this
 	 * compiledCode will be closed into.
@@ -4884,7 +4803,6 @@ public enum Primitive
 				CLOSURE_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 186:</strong> Answer the primitive number of this
@@ -4912,7 +4830,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.unsignedShorts());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 187:</strong> Answer a tuple with the literals from
@@ -4963,7 +4880,6 @@ public enum Primitive
 					ALL.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 188:</strong> Answer a compiledCode with the given
@@ -5068,7 +4984,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 200:</strong> The Avail failure code invokes the
 	 * bodyBlock.  The handlerBlock is only invoked when an exception is raised
@@ -5112,7 +5027,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 201:</strong> Raise an exception.  Scan the stack of
 	 * continuations until one is found for a closure whose code is the
@@ -5146,7 +5060,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 207:</strong> Answer a collection of all visible
 	 * messages inside the current tree that expect no more parts than those
@@ -5179,7 +5092,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 208:</strong> Answer a collection of all visible
 	 * messages inside the current tree that expect more parts than those
@@ -5211,7 +5123,6 @@ public enum Primitive
 					MESSAGE_BUNDLE_TREE.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 209:</strong> Answer a collection of all visible
@@ -5247,7 +5158,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 210:</strong> Produce a collection of all visible
 	 * methods that start with the given string, and have more than one part.
@@ -5282,7 +5192,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 211:</strong> Answer a message bundle's message (a
 	 * {@link CyclicTypeDescriptor cyclicType}).
@@ -5309,7 +5218,6 @@ public enum Primitive
 				CYCLIC_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 212:</strong> Answer a message bundle's messageParts (a
@@ -5340,7 +5248,6 @@ public enum Primitive
 					TupleTypeDescriptor.stringTupleType()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 213:</strong> Answer a set of all currently defined
@@ -5381,7 +5288,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 214:</strong> Answer whether precedence restrictions
 	 * have been defined (yet) for this bundle.
@@ -5409,7 +5315,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 215:</strong> Answer the current precedence
@@ -5443,7 +5348,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 216:</strong> Answer this signature's body's type (a
 	 * {@link ClosureTypeDescriptor closureType}).
@@ -5471,7 +5375,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 217:</strong> Answer this methodSignature's bodyBlock
 	 * (a {@link ClosureDescriptor closure}).
@@ -5498,7 +5401,6 @@ public enum Primitive
 				CLOSURE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 218:</strong> Answer this signature's requiresBlock (a
@@ -5535,7 +5437,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 219:</strong> Answer this signature's returnsBlock, a
 	 * closure.
@@ -5570,7 +5471,6 @@ public enum Primitive
 					TYPE.o()));
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 220:</strong> Answer the implementationSet (see
@@ -5608,7 +5508,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 221:</strong> Answer the cyclicType associated with the
 	 * given implementationSet (see ImplementationSetDescriptor).  This is
@@ -5636,7 +5535,6 @@ public enum Primitive
 				CYCLIC_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 240:</strong> Retrieve the {@linkplain
@@ -5689,7 +5587,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 245:</strong> Look up the {@linkplain
 	 * CyclicTypeDescriptor true name} bound to the specified {@linkplain
@@ -5719,7 +5616,6 @@ public enum Primitive
 				CYCLIC_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 249:</strong> Simple macro definition.
@@ -5789,7 +5685,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 251:</strong> Declare method as abstract.  This
 	 * identifies responsibility for subclasses that want to be concrete.
@@ -5831,7 +5726,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 252:</strong> Declare method without body (for
 	 * recursion or mutual recursion).
@@ -5865,7 +5759,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 253:</strong> Method definition, without type
 	 * constraint or result type deduction).
@@ -5898,7 +5791,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 254:</strong> Method definition with type constraint
@@ -5940,7 +5832,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 255:</strong> Message precedence declaration with tuple
@@ -6072,7 +5963,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 258:</strong> Print an object to System.out.
 	 */
@@ -6099,7 +5989,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 259:</strong> Produce a {@linkplain
@@ -6128,7 +6017,6 @@ public enum Primitive
 				TupleTypeDescriptor.stringTupleType());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 260:</strong> Create an opaque library object into
@@ -6168,7 +6056,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 261:</strong> Open a previously constructed library.
 	 * Its handle (into openLibraries) is passed.
@@ -6203,7 +6090,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 262:</strong> Declare a function for the given library.
@@ -6253,7 +6139,6 @@ public enum Primitive
 				VOID_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 263:</strong> Create an entry point handle to deal with
@@ -6307,7 +6192,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 264:</strong> Answer the closure type associated with
 	 * the given entry point.
@@ -6336,7 +6220,6 @@ public enum Primitive
 				CLOSURE_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 265:</strong> Invoke the entry point associated with
@@ -6401,7 +6284,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 266:</strong> Read an integer of the specified type
 	 * from the memory location specified as an integer.
@@ -6432,7 +6314,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.integers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 267:</strong> Write an integer of the specified type to
@@ -6469,7 +6350,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 268:</strong> Answer a boolean indicating if the
 	 * current platform is big-endian.
@@ -6495,7 +6375,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 280:</strong> Add two floats.
@@ -6528,7 +6407,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 281:</strong> Subtract float b from float a.
 	 */
@@ -6560,7 +6438,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 282:</strong> Multiply float a and float b.
 	 */
@@ -6591,7 +6468,6 @@ public enum Primitive
 				FLOAT.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 283:</strong> Divide float a by float b.
@@ -6629,7 +6505,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 284:</strong> Compare float a < float b.  Answers an
 	 * Avail boolean.
@@ -6659,7 +6534,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 285:</strong> Compare float a <= float b.  Answers an
@@ -6691,7 +6565,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 286:</strong> Compute the natural logarithm of float a.
 	 */
@@ -6719,7 +6592,6 @@ public enum Primitive
 				FLOAT.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 287:</strong> Compute e^a, the natural exponential of
@@ -6749,7 +6621,6 @@ public enum Primitive
 				FLOAT.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 288:</strong> Divide float a by float b, but answer
@@ -6788,7 +6659,6 @@ public enum Primitive
 				FLOAT.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 289:</strong> Convert a float to an integer, rounding
@@ -6844,7 +6714,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 290:</strong> Convert an integer to a float, failing
 	 * if out of range.
@@ -6899,7 +6768,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 291:</strong> Compute a*(2**b) without intermediate
 	 * overflow or any precision loss.
@@ -6933,7 +6801,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 310:</strong> Add two doubles.
 	 */
@@ -6964,7 +6831,6 @@ public enum Primitive
 				DOUBLE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 311:</strong> Subtract double b from double a.
@@ -6997,7 +6863,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 312:</strong> Multiply double a and double b.
 	 */
@@ -7028,7 +6893,6 @@ public enum Primitive
 				DOUBLE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 313:</strong> Divide double a by double b.
@@ -7066,7 +6930,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 314:</strong> Compare double a < double b.  Answers an
 	 * Avail boolean.
@@ -7096,7 +6959,6 @@ public enum Primitive
 				BOOLEAN_TYPE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 315:</strong> Compare double a <= double b.  Answers an
@@ -7128,7 +6990,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 316:</strong> Compute the natural logarithm of the
 	 * double a.
@@ -7157,7 +7018,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 317:</strong> Compute e^a, the natural exponential of
 	 * the double a.
@@ -7185,7 +7045,6 @@ public enum Primitive
 				DOUBLE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 318:</strong> Divide double a by double b, but answer
@@ -7224,7 +7083,6 @@ public enum Primitive
 				DOUBLE.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 319:</strong> Convert a double to an integer, rounding
@@ -7279,7 +7137,6 @@ public enum Primitive
 				IntegerRangeTypeDescriptor.extendedIntegers());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 320:</strong> Convert an integer to a double, failing
@@ -7342,7 +7199,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 321:</strong> Compute the double a*(2**b) without
 	 * intermediate overflow or any precision loss.
@@ -7376,7 +7232,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 330:</strong> Extract the code point (integer) from a
 	 * character.
@@ -7405,7 +7260,6 @@ public enum Primitive
 		}
 	},
 
-
 	/**
 	 * <strong>Primitive 331:</strong> Convert a code point (integer) into a
 	 * character.
@@ -7433,7 +7287,6 @@ public enum Primitive
 				CHARACTER.o());
 		}
 	},
-
 
 	/**
 	 * <strong>Primitive 340:</strong> The first literal is being returned.
@@ -7504,7 +7357,6 @@ public enum Primitive
 					PARSE_NODE.o()),
 				ASSIGNMENT_NODE.o());
 		}
-
 
 		@Override
 		protected AvailObject privateFailureVariableType ()
