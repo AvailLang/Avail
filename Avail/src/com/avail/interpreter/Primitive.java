@@ -713,11 +713,9 @@ public enum Primitive
 		}
 	},
 
-	// TODO: [TLS] Resume rewriting for error codes from here!
-
 	/**
-	 * <strong>Primitive 22:</strong> Suspend the given process.  Ignore if the
-	 * process is already suspended.
+	 * <strong>Primitive 22:</strong> Suspend the given {@linkplain
+	 * ProcessDescriptor process}. Ignore if the process is already suspended.
 	 */
 	prim22_Suspend_processObject(22, 1, Unknown)
 	{
@@ -744,8 +742,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 23:</strong> Resume the given process.  Ignore if the
-	 * process is already running.
+	 * <strong>Primitive 23:</strong> Resume the given {@linkplain
+	 * ProcessDescriptor process}. Ignore if the process is already running.
 	 */
 	prim23_Resume_processObject(23, 1, Unknown)
 	{
@@ -772,8 +770,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 24:</strong> Terminate the given process.  Ignore if
-	 * the process is already terminated.
+	 * <strong>Primitive 24:</strong> Terminate the given {@linkplain
+	 * ProcessDescriptor process}. Ignore if the process is already terminated.
 	 */
 	prim24_Terminate_processObject(24, 1, Unknown)
 	{
@@ -800,7 +798,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 25:</strong> Answer the currently running process.
+	 * <strong>Primitive 25:</strong> Answer the currently running {@linkplain
+	 * ProcessDescriptor process}.
 	 */
 	prim25_CurrentProcess(25, 0, CanInline, CannotFail)
 	{
@@ -824,8 +823,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 26:</strong> Lookup the given name (key) in the
-	 * variables of the given process.
+	 * <strong>Primitive 26:</strong> Lookup the given {@linkplain
+	 * CyclicTypeDescriptor name} (key) in the variables of the given
+	 * {@linkplain ProcessDescriptor process}.
 	 */
 	prim26_LookupProcessVariable_processObject_key(26, 2, CanInline)
 	{
@@ -838,10 +838,10 @@ public enum Primitive
 			final AvailObject processObject = args.get(0);
 			final AvailObject key = args.get(1);
 			final AvailObject globals = processObject.processGlobals();
-			if (globals.hasKey(key))
+			if (!globals.hasKey(key))
 			{
 				return interpreter.primitiveFailure(
-					"process variable has no value");
+					AvailErrorCode.E_NO_SUCH_PROCESS_VARIABLE.numericCode());
 			}
 			return interpreter.primitiveSuccess(
 				globals.mapAt(key).makeImmutable());
@@ -860,7 +860,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 27:</strong> Associate the given value with the given
-	 * name (key) in the variables of the given process.
+	 * {@linkplain CyclicTypeDescriptor name} (key) in the variables of the
+	 * given {@linkplain ProcessDescriptor process}.
 	 */
 	prim27_SetProcessVariable_processObject_key_value(
 		27, 3, CanInline, HasSideEffect, CannotFail)
@@ -976,8 +977,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 31:</strong> This eventually needs to be rewritten as
-	 * an invocation of typeUnion:canDestroy:.  For now make result immutable.
+	 * <strong>Primitive 31:</strong> Answer the type union of the specified
+	 * {@linkplain TypeDescriptor types}.
 	 */
 	prim31_TypeUnion_type1_type2(31, 2, CanFold, CannotFail)
 	{
@@ -1005,9 +1006,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 32:</strong> This eventually needs to be rewritten as
-	 * an invocation of typeIntersection:canDestroy:.  For now make result
-	 * immutable.
+	 * <strong>Primitive 32:</strong> Answer the type intersection of the
+	 * specified {@linkplain TypeDescriptor types}.
 	 */
 	prim32_TypeIntersection_type1_type2(32, 2, CanFold, CannotFail)
 	{
@@ -1142,13 +1142,13 @@ public enum Primitive
 			if (!indexObject.isInt())
 			{
 				return interpreter.primitiveFailure(
-					"argument subscript out of bounds");
+					AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
 			}
 			final int index = indexObject.extractInt();
 			if (index > closureType.numArgs())
 			{
 				return interpreter.primitiveFailure(
-					"argument subscript out of bounds");
+					AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
 			}
 			return interpreter.primitiveSuccess(closureType.argTypeAt(index));
 		}
@@ -1250,6 +1250,8 @@ public enum Primitive
 				GENERALIZED_CLOSURE_TYPE.o());
 		}
 	},
+
+	// TODO: [TLS] Resume rewriting for error codes from here!
 
 	/**
 	 * <strong>Primitive 40:</strong> Block evaluation, given a tuple of

@@ -93,7 +93,17 @@ public enum AvailErrorCode
 	 * Cannot swap the contents of two differently typed {@linkplain
 	 * ContainerDescriptor variables}.
 	 */
-	E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES (8);
+	E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES (8),
+
+	/**
+	 * No such {@linkplain ProcessDescriptor process} variable.
+	 */
+	E_NO_SUCH_PROCESS_VARIABLE (9),
+
+	/**
+	 * Subscript out of bounds.
+	 */
+	E_SUBSCRIPT_OUT_OF_BOUNDS (10);
 
 	/** The numeric error code. */
 	private final int code;
