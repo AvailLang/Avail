@@ -42,6 +42,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -933,6 +934,38 @@ public abstract class Interpreter
 	{
 		primitiveResult = result;
 		return SUCCESS;
+	}
+
+	/**
+	 * Set the resulting value of a primitive invocation to the {@linkplain
+	 * AvailErrorCode#numericCode() numeric code} of the specified {@link
+	 * AvailErrorCode}. Answer primitive {@linkplain Result#FAILURE failure}.
+	 *
+	 * @param code
+	 *        An {@link AvailErrorCode}.
+	 * @return Primitive {@linkplain Result#FAILURE failure}.
+	 */
+	public @NotNull Result primitiveFailure (final @NotNull AvailErrorCode code)
+	{
+		primitiveResult = code.numericCode();
+		return FAILURE;
+	}
+
+	/**
+	 * Set the resulting value of a primitive invocation to the {@linkplain
+	 * AvailErrorCode#numericCode() numeric code} of the {@link AvailErrorCode}
+	 * embedded within the specified {@linkplain AvailException exception}.
+	 * Answer primitive {@linkplain Result#FAILURE failure}.
+	 *
+	 * @param exception
+	 *        An {@linkplain AvailException exception}.
+	 * @return Primitive {@linkplain Result#FAILURE failure}.
+	 */
+	public @NotNull Result primitiveFailure (
+		final @NotNull AvailException exception)
+	{
+		primitiveResult = exception.numericCode();
+		return FAILURE;
 	}
 
 	/**

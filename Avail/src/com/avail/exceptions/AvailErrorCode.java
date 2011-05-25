@@ -103,7 +103,28 @@ public enum AvailErrorCode
 	/**
 	 * Subscript out of bounds.
 	 */
-	E_SUBSCRIPT_OUT_OF_BOUNDS (10);
+	E_SUBSCRIPT_OUT_OF_BOUNDS (10),
+
+	/**
+	 * Incorrect number of arguments.
+	 */
+	E_INCORRECT_NUMBER_OF_ARGUMENTS (11),
+
+	/**
+	 * Incorrect argument {@linkplain TypeDescriptor type}.
+	 */
+	E_INCORRECT_ARGUMENT_TYPE (12),
+
+	/**
+	 * {@linkplain ContinuationDescriptor Continuation} has no caller.
+	 */
+	E_CONTINUATION_HAS_NO_CALLER (13),
+
+	/**
+	 * {@linkplain ContinuationDescriptor Continuation} expected a stronger
+	 * {@linkplain TypeDescriptor type}.
+	 */
+	E_CONTINUATION_EXPECTED_STRONGER_TYPE (14);
 
 	/** The numeric error code. */
 	private final int code;

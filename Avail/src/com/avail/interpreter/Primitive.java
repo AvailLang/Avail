@@ -34,6 +34,7 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import static java.lang.Math.*;
@@ -47,7 +48,6 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
@@ -77,9 +77,9 @@ public enum Primitive
 	prim1_Addition_a_b(1, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -90,7 +90,7 @@ public enum Primitive
 			}
 			catch (final ArithmeticException e)
 			{
-				return interpreter.primitiveFailure(e.numericCode());
+				return interpreter.primitiveFailure(e);
 			}
 		}
 
@@ -112,9 +112,9 @@ public enum Primitive
 	prim2_Subtraction_a_b(2, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -125,7 +125,7 @@ public enum Primitive
 			}
 			catch (final ArithmeticException e)
 			{
-				return interpreter.primitiveFailure(e.numericCode());
+				return interpreter.primitiveFailure(e);
 			}
 		}
 
@@ -147,9 +147,9 @@ public enum Primitive
 	prim3_Multiplication_a_b(3, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -160,12 +160,12 @@ public enum Primitive
 			}
 			catch (final ArithmeticException e)
 			{
-				return interpreter.primitiveFailure(e.numericCode());
+				return interpreter.primitiveFailure(e);
 			}
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -182,9 +182,9 @@ public enum Primitive
 	prim4_Division_a_b(4, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -196,12 +196,12 @@ public enum Primitive
 			}
 			catch (final ArithmeticException e)
 			{
-				return interpreter.primitiveFailure(e.numericCode());
+				return interpreter.primitiveFailure(e);
 			}
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -219,9 +219,9 @@ public enum Primitive
 	prim5_LessThan_a_b(5, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -231,7 +231,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -249,9 +249,9 @@ public enum Primitive
 	prim6_LessOrEqual_a_b(6, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -261,7 +261,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -282,9 +282,9 @@ public enum Primitive
 	prim7_CreateIntegerRange_min_minInc_max_maxInc(7, 4, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject min = args.get(0);
@@ -300,7 +300,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -321,9 +321,9 @@ public enum Primitive
 	prim8_LowerBound_range(8, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject range = args.get(0);
@@ -331,7 +331,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -349,9 +349,9 @@ public enum Primitive
 	prim9_UpperBound_range(9, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject range = args.get(0);
@@ -359,7 +359,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -380,9 +380,9 @@ public enum Primitive
 	prim10_GetValue_var(10, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
@@ -390,8 +390,7 @@ public enum Primitive
 			if (value.equalsVoid())
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode
-						.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
+					E_CANNOT_READ_UNASSIGNED_VARIABLE);
 			}
 			if (!var.descriptor().isMutable())
 			{
@@ -401,7 +400,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(CONTAINER.o()),
@@ -416,9 +415,9 @@ public enum Primitive
 	prim11_SetValue_var_value(11, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject var = args.get(0);
@@ -426,16 +425,14 @@ public enum Primitive
 			if (!value.isInstanceOfSubtypeOf(var.type().innerType()))
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode
-						.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE
-						.numericCode());
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
 			}
 			var.setValue(value);
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -452,9 +449,9 @@ public enum Primitive
 	prim12_ClearValue_var(12, 1, CanInline, HasSideEffect, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
@@ -463,7 +460,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(CONTAINER.o()),
@@ -478,9 +475,9 @@ public enum Primitive
 	prim13_CreateContainerType_type(13, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
@@ -489,7 +486,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -505,9 +502,9 @@ public enum Primitive
 	prim14_InnerType_type(14, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
@@ -515,7 +512,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -531,9 +528,9 @@ public enum Primitive
 	prim15_Swap_var1_var2(15, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject var1 = args.get(0);
@@ -541,9 +538,7 @@ public enum Primitive
 			if (!var1.type().equals(var2.type()))
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode
-						.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES
-						.numericCode());
+					E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES);
 			}
 			final AvailObject value1 = var1.getValue();
 			final AvailObject value2 = var2.getValue();
@@ -553,7 +548,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -571,9 +566,9 @@ public enum Primitive
 	prim16_CreateContainer_innerType(16, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject innerType = args.get(0);
@@ -582,7 +577,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -599,9 +594,9 @@ public enum Primitive
 	prim17_HasNoValue_var(17, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
@@ -610,7 +605,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -629,17 +624,17 @@ public enum Primitive
 	prim18_GetClearing_var(18, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			final AvailObject valueObject = var.value();
 			if (valueObject.equalsVoid())
 			{
-				return interpreter.primitiveFailure(AvailErrorCode
-					.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
+				return interpreter.primitiveFailure(
+					E_CANNOT_READ_UNASSIGNED_VARIABLE);
 
 			}
 			var.clearValue();
@@ -647,7 +642,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -664,9 +659,9 @@ public enum Primitive
 	prim20_GetPriority_processObject(20, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject processObject = args.get(0);
@@ -675,7 +670,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -691,9 +686,9 @@ public enum Primitive
 	prim21_SetPriority_processObject_newPriority(21, 2, Unknown, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject processObject = args.get(0);
@@ -703,7 +698,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -720,9 +715,9 @@ public enum Primitive
 	prim22_Suspend_processObject(22, 1, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
@@ -732,7 +727,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -748,9 +743,9 @@ public enum Primitive
 	prim23_Resume_processObject(23, 1, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
@@ -760,7 +755,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -776,9 +771,9 @@ public enum Primitive
 	prim24_Terminate_processObject(24, 1, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
@@ -788,7 +783,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -804,9 +799,9 @@ public enum Primitive
 	prim25_CurrentProcess(25, 0, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			return interpreter.primitiveSuccess(
@@ -814,7 +809,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
@@ -830,9 +825,9 @@ public enum Primitive
 	prim26_LookupProcessVariable_processObject_key(26, 2, CanInline)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject processObject = args.get(0);
@@ -841,14 +836,14 @@ public enum Primitive
 			if (!globals.hasKey(key))
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode.E_NO_SUCH_PROCESS_VARIABLE.numericCode());
+					E_NO_SUCH_PROCESS_VARIABLE);
 			}
 			return interpreter.primitiveSuccess(
 				globals.mapAt(key).makeImmutable());
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -867,9 +862,9 @@ public enum Primitive
 		27, 3, CanInline, HasSideEffect, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject processObject = args.get(0);
@@ -884,7 +879,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -901,9 +896,9 @@ public enum Primitive
 	prim28_SemaphoreWait_semaphore(28, 1, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
@@ -914,7 +909,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -929,9 +924,9 @@ public enum Primitive
 	prim29_SemaphoreSignal_semaphore(29, 1, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
@@ -942,7 +937,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -957,9 +952,9 @@ public enum Primitive
 	prim30_Type_value(30, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject value = args.get(0);
@@ -967,7 +962,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -983,9 +978,9 @@ public enum Primitive
 	prim31_TypeUnion_type1_type2(31, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
@@ -995,7 +990,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1012,9 +1007,9 @@ public enum Primitive
 	prim32_TypeIntersection_type1_type2(32, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
@@ -1024,7 +1019,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1041,9 +1036,9 @@ public enum Primitive
 	prim33_IsSubtypeOf_type1_type2(33, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject type1 = args.get(0);
@@ -1053,7 +1048,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1070,9 +1065,9 @@ public enum Primitive
 	prim34_CreateClosureType_argTypes_returnType(34, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject argTypes = args.get(0);
@@ -1084,7 +1079,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1104,9 +1099,9 @@ public enum Primitive
 	prim35_ClosureTypeNumArgs_closureType(35, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
@@ -1115,7 +1110,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1131,9 +1126,9 @@ public enum Primitive
 	prim36_ArgTypeAt_closureType_index(36, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject closureType = args.get(0);
@@ -1142,19 +1137,19 @@ public enum Primitive
 			if (!indexObject.isInt())
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
+					E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int index = indexObject.extractInt();
 			if (index > closureType.numArgs())
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
+					E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			return interpreter.primitiveSuccess(closureType.argTypeAt(index));
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1171,9 +1166,9 @@ public enum Primitive
 	prim37_ReturnType_closureType(37, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
@@ -1181,7 +1176,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1197,9 +1192,9 @@ public enum Primitive
 	prim38_UnionOfTupleOfTypes_tupleOfTypes(38, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleOfTypes = args.get(0);
@@ -1212,7 +1207,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1231,9 +1226,9 @@ public enum Primitive
 	prim39_CreateGeneralizedClosureType_returnType(39, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject returnType = args.get(0);
@@ -1242,7 +1237,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1251,19 +1246,19 @@ public enum Primitive
 		}
 	},
 
-	// TODO: [TLS] Resume rewriting for error codes from here!
-
 	/**
-	 * <strong>Primitive 40:</strong> Block evaluation, given a tuple of
-	 * arguments.  Check the types dynamically to prevent corruption of the type
-	 * system.  Fail if the arguments are not of the required types.
+	 * <strong>Primitive 40:</strong> {@linkplain ClosureDescriptor Closure}
+	 * evaluation, given a {@linkplain TupleDescriptor tuple} of arguments.
+	 * Check the {@linkplain TypeDescriptor types} dynamically to prevent
+	 * corruption of the type system. Fail if the arguments are not of the
+	 * required types.
 	 */
 	prim40_InvokeWithTuple_block_argTuple(40, 2, Invokes)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject block = args.get(0);
@@ -1273,7 +1268,7 @@ public enum Primitive
 			if (blockType.numArgs() != numArgs)
 			{
 				return interpreter.primitiveFailure(
-					"incorrect number of arguments");
+					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
 			final List<AvailObject> callArgs =
 				new ArrayList<AvailObject>(numArgs);
@@ -1283,7 +1278,7 @@ public enum Primitive
 				if (!anArg.isInstanceOfSubtypeOf(blockType.argTypeAt(i)))
 				{
 					return interpreter.primitiveFailure(
-						"incorrect argument type");
+						E_INCORRECT_ARGUMENT_TYPE);
 				}
 				//  Transfer the argument into callArgs.
 				callArgs.add(anArg);
@@ -1294,7 +1289,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1306,15 +1301,16 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 43:</strong> Invoke either the trueBlock or the
-	 * falseBlock, depending on aBoolean.
+	 * <strong>Primitive 43:</strong> Invoke either the {@link
+	 * ClosureDescriptor trueBlock} or the {@code falseBlock}, depending on
+	 * {@link BooleanDescriptor aBoolean}.
 	 */
 	prim43_IfThenElse_aBoolean_trueBlock_falseBlock(43, 3, Invokes, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject aBoolean = args.get(0);
@@ -1334,7 +1330,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1350,15 +1346,16 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 44:</strong> Invoke the trueBlock if aBoolean is true,
-	 * otherwise just answer void.
+	 * <strong>Primitive 44:</strong> Invoke the {@link ClosureDescriptor
+	 * trueBlock} if {@link BooleanDescriptor aBoolean} is true, otherwise just
+	 * answer {@linkplain VoidDescriptor#voidObject() void}.
 	 */
 	prim44_IfThen_aBoolean_trueBlock(44, 2, Invokes, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject aBoolean = args.get(0);
@@ -1374,7 +1371,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1387,15 +1384,17 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 45:</strong> Run the zero-argument block, ignoring the
-	 * leading boolean argument.  This is used for short-circuit evaluation.
+	 * <strong>Primitive 45:</strong> Run the zero-argument {@linkplain
+	 * ClosureDescriptor closure}, ignoring the leading {@linkplain
+	 * BooleanDescriptor boolean} argument. This is used for short-circuit
+	 * evaluation.
 	 */
 	prim45_ShortCircuitHelper_ignoredBool_block(45, 2, Invokes, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			@SuppressWarnings("unused")
@@ -1408,7 +1407,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1421,16 +1420,17 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 49:</strong> Create a continuation.  Don't allow
-	 * anything about level two to be mentioned.
+	 * <strong>Primitive 49:</strong> Create a {@linkplain
+	 * ContinuationDescriptor continuation}. Will execute as unoptimized code
+	 * via the default Level Two {@linkplain L2ChunkDescriptor chunk}.
 	 */
 	prim49_CreateContinuation_callerHolder_closure_pc_stackp_stack(
 		49, 5, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 5;
 			final AvailObject callerHolder = args.get(0);
@@ -1456,7 +1456,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1470,16 +1470,17 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 50:</strong> Answer the closure type within the given
-	 * continuation type.
+	 * <strong>Primitive 50:</strong> Answer the {@linkplain
+	 * ClosureTypeDescriptor closure type} corresponding to the given
+	 * {@linkplain ContinuationTypeDescriptor continuation type}.
 	 */
 	prim50_ContinuationTypeToClosureType_continuationType(
 		50, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject continuationType = args.get(0);
@@ -1488,7 +1489,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1498,15 +1499,16 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 51:</strong> Answer a continuation type that uses the
-	 * given closure type.
+	 * <strong>Primitive 51:</strong> Answer a {@linkplain
+	 * ContinuationTypeDescriptor continuation type} that uses the
+	 * given {@linkplain ClosureTypeDescriptor closure type}.
 	 */
 	prim51_ClosureTypeToContinuationType_closureType(51, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
@@ -1515,7 +1517,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1525,15 +1527,15 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 52:</strong> Answer the caller of a continuation.  Fail
-	 * if there is no caller.
+	 * <strong>Primitive 52:</strong> Answer the caller of a {@linkplain
+	 * ContinuationDescriptor continuation}. Fail if there is no caller.
 	 */
 	prim52_ContinuationCaller_con(52, 1, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -1541,13 +1543,13 @@ public enum Primitive
 			if (caller.equalsVoid())
 			{
 				return interpreter.primitiveFailure(
-					"continuation has no caller");
+					E_CONTINUATION_HAS_NO_CALLER);
 			}
 			return interpreter.primitiveSuccess(caller);
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1557,14 +1559,15 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 53:</strong> Answer the closure of a continuation.
+	 * <strong>Primitive 53:</strong> Answer the {@linkplain ClosureDescriptor
+	 * closure} of a {@linkplain ContinuationDescriptor continuation}.
 	 */
 	prim53_ContinuationClosure_con(53, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -1572,7 +1575,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1582,16 +1585,18 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 54:</strong> Answer the pc of a continuation.  This is
-	 * the index of the current instruction in the continuation's closure's
-	 * code's tuple of nybblecodes.
+	 * <strong>Primitive 54:</strong> Answer the program counter of a
+	 * {@linkplain ContinuationDescriptor continuation}. This is the index of
+	 * the current instruction in the continuation's {@linkplain
+	 * ClosureDescriptor closure}'s {@linkplain CompiledCodeDescriptor code}'s
+	 * {@linkplain TupleDescriptor tuple} of nybblecodes.
 	 */
 	prim54_ContinuationPC_con(54, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -1600,7 +1605,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1610,18 +1615,19 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 55:</strong> Answer a continuation's stack pointer.
-	 * This is the index of the top-of-stack within the {@link
+	 * <strong>Primitive 55:</strong> Answer a {@linkplain
+	 * ContinuationDescriptor continuation}'s stack pointer. This is the index
+	 * of the top-of-stack within the {@link
 	 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} of the
-	 * continuation.  For an empty stack its value equals the number of frame
+	 * continuation. For an empty stack its value equals the number of frame
 	 * slots plus one.
 	 */
 	prim55_ContinuationStackPointer_con(55, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -1630,7 +1636,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1640,32 +1646,34 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 56:</strong> Restart the given continuation, but
-	 * passing in the given tuple of arguments.  Make sure it's a label-like
-	 * continuation rather than a call-like, because a call-like continuation
-	 * has the expected return type already pushed on the stack, and requires
-	 * the return value, after checking against that type, to overwrite the type
-	 * in the stack (without affecting the stack depth).  Fail if the
-	 * continuation's closure is not capable of accepting the given arguments.
+	 * <strong>Primitive 56:</strong> Restart the given {@linkplain
+	 * ContinuationDescriptor continuation}, but passing in the given
+	 * {@linkplain TupleDescriptor tuple} of arguments. Make sure it's a
+	 * label-like continuation rather than a call-like, because a call-like
+	 * continuation has the expected return type already pushed on the stack,
+	 * and requires the return value, after checking against that type, to
+	 * overwrite the type in the stack (without affecting the stack depth). Fail
+	 * if the continuation's {@linkplain ClosureDescriptor closure} is not
+	 * capable of accepting the given arguments.
 	 */
 	prim56_RestartContinuationWithArguments_con_arguments(
 		56, 2, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject con = args.get(0);
 			final AvailObject code = con.closure().code();
 			final AvailObject arguments = args.get(1);
 			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than "
-				+ "call-continuation";
+				: "Outer continuation should have been a label- rather than "
+					+ "call-continuation";
 			assert con.pc() == 1
-			: "Labels must only occur at the start of a block.  "
-				+ "Only restart that kind of continuation.";
+				: "Labels must only occur at the start of a block.  "
+					+ "Only restart that kind of continuation.";
 			// The arguments will be referenced by the continuation.
 
 			// No need to make it immutable because current continuation's
@@ -1678,12 +1686,12 @@ public enum Primitive
 			if (numArgs != arguments.tupleSize())
 			{
 				return interpreter.primitiveFailure(
-					"incorrect number of arguments");
+					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
 			if (!itsCode.closureType().acceptsTupleOfArguments(arguments))
 			{
 				return interpreter.primitiveFailure(
-					"incorrect types of arguments");
+					E_INCORRECT_ARGUMENT_TYPE);
 			}
 			for (int i = 1; i <= numArgs; i++)
 			{
@@ -1701,7 +1709,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1712,25 +1720,25 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 57:</strong> Exit the given continuation (returning
-	 * result to its caller).
+	 * <strong>Primitive 57:</strong> Exit the given {@linkplain
+	 * ContinuationDescriptor continuation} (returning result to its caller).
 	 */
 	prim57_ExitContinuationWithResult_con_result(57, 2, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject con = args.get(0);
 			final AvailObject result = args.get(1);
 			assert con.stackp() == con.objectSlotsCount() + 1
-			: "Outer continuation should have been a label- rather than "
-				+ "call- continuation";
+				: "Outer continuation should have been a label- rather than "
+					+ "call- continuation";
 			assert con.pc() == 1
-			: "Labels must only occur at the start of a block.  "
-				+ "Only exit that kind of continuation.";
+				: "Labels must only occur at the start of a block.  "
+					+ "Only exit that kind of continuation.";
 			// No need to make it immutable because current continuation's
 			// reference is lost by this.  We go ahead and make a mutable copy
 			// (if necessary) because the interpreter requires the current
@@ -1744,7 +1752,7 @@ public enum Primitive
 			{
 				// Wasn't strong enough to meet the block's declared type.
 				return interpreter.primitiveFailure(
-					"continuation expected a stronger type");
+					E_CONTINUATION_EXPECTED_STRONGER_TYPE);
 			}
 			if (!result.isInstanceOfSubtypeOf(linkStrengthenedType))
 			{
@@ -1752,7 +1760,7 @@ public enum Primitive
 				// A useful distinction when we start to record primitive
 				// failure reason codes.
 				return interpreter.primitiveFailure(
-					"continuation expected a stronger type");
+					E_CONTINUATION_EXPECTED_STRONGER_TYPE);
 			}
 			final AvailObject targetCon = caller.ensureMutable();
 			targetCon.stackAtPut(targetCon.stackp(), result);
@@ -1761,7 +1769,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1772,27 +1780,28 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 58:</strong> Restart the given continuation.  Make sure
-	 * it's a label-like continuation rather than a call-like, because a
-	 * call-like continuation requires a value to be stored on its stack in
-	 * order to resume it, something this primitive does not do.
+	 * <strong>Primitive 58:</strong> Restart the given {@linkplain
+	 * ContinuationDescriptor continuation}. Make sure it's a label-like
+	 * continuation rather than a call-like, because a call-like continuation
+	 * requires a value to be stored on its stack in order to resume it,
+	 * something this primitive does not do.
 	 */
 	prim58_RestartContinuation_con(58, 1, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			final AvailObject code = con.closure().code();
 			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than "
-				+ "call-continuation";
+				: "Outer continuation should have been a label- rather than "
+					+ "call-continuation";
 			assert con.pc() == 1
-			: "Labels must only occur at the start of a block.  "
-				+ "Only restart that kind of continuation.";
+				: "Labels must only occur at the start of a block.  "
+					+ "Only restart that kind of continuation.";
 			// Funny twist - destroy previous continuation in place of one
 			// being restarted
 
@@ -1814,7 +1823,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1824,16 +1833,17 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 59:</strong> Answer a tuple containing the
-	 * continuation's stack data.  Substitute the integer zero for any void
-	 * values.
+	 * <strong>Primitive 59:</strong> Answer a {@linkplain TupleDescriptor
+	 * tuple} containing the {@linkplain ContinuationDescriptor continuation}'s
+	 * stack data. Substitute the integer {@linkplain IntegerDescriptor#zero()
+	 * zero} for any {@linkplain VoidDescriptor#voidObject() void} values.
 	 */
 	prim59_ContinuationStackData_con(59, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
@@ -1854,7 +1864,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1864,15 +1874,15 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 60:</strong> Compare for equality.  Answer an Avail
-	 * boolean.
+	 * <strong>Primitive 60:</strong> Compare for equality. Answer a {@linkplain
+	 * BooleanDescriptor boolean}.
 	 */
 	prim60_Equality_a_b(60, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -1882,7 +1892,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1892,6 +1902,8 @@ public enum Primitive
 		}
 	},
 
+	// TODO: [TLS] Resume rewriting for error codes from here!
+
 	/**
 	 * <strong>Primitive 61:</strong> Convert a map from fields to values into
 	 * an object.
@@ -1899,9 +1911,9 @@ public enum Primitive
 	prim61_MapToObject_map(61, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -1910,7 +1922,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1930,9 +1942,9 @@ public enum Primitive
 	prim62_ObjectToMap_object(62, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject object = args.get(0);
@@ -1940,7 +1952,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1960,9 +1972,9 @@ public enum Primitive
 	prim63_MapToObjectType_map(63, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -1971,7 +1983,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -1993,9 +2005,9 @@ public enum Primitive
 	prim64_ObjectTypeToMap_objectType(64, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectType = args.get(0);
@@ -2003,7 +2015,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2026,9 +2038,9 @@ public enum Primitive
 	prim65_ObjectMetaInstance_objectMeta(65, 1, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectMeta = args.get(0);
@@ -2048,7 +2060,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2073,9 +2085,9 @@ public enum Primitive
 	prim66_CreateObjectMeta_objectType_levels(66, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject objectType = args.get(0);
@@ -2092,7 +2104,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2119,9 +2131,9 @@ public enum Primitive
 	prim67_NameOfPrimitiveType_primType(67, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject primType = args.get(0);
@@ -2129,7 +2141,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2146,7 +2158,7 @@ public enum Primitive
 	prim68_RecordNewTypeName_userType_name(68, 2, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -2163,7 +2175,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2185,7 +2197,7 @@ public enum Primitive
 	prim69_TypeName_userType(69, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -2203,7 +2215,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2223,9 +2235,9 @@ public enum Primitive
 		70, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject numArgs = args.get(0);
@@ -2237,7 +2249,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2260,9 +2272,9 @@ public enum Primitive
 		71, 4, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject argTypes = args.get(0);
@@ -2284,7 +2296,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2306,9 +2318,9 @@ public enum Primitive
 	prim72_CompiledCodeOfClosure_aClosure(72, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
@@ -2316,7 +2328,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2332,9 +2344,9 @@ public enum Primitive
 	prim73_OuterVariables_aClosure(73, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject aClosure = args.get(0);
@@ -2359,7 +2371,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2375,9 +2387,9 @@ public enum Primitive
 	prim74_CreateClosure_compiledCode_outers(74, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject compiledCode = args.get(0);
@@ -2392,7 +2404,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2409,9 +2421,9 @@ public enum Primitive
 	prim80_MapSize_map(80, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -2420,7 +2432,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2438,9 +2450,9 @@ public enum Primitive
 	prim81_MapHasKey_map_key(81, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
@@ -2450,7 +2462,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2470,9 +2482,9 @@ public enum Primitive
 	prim82_MapAtKey_map_key(82, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
@@ -2486,7 +2498,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2507,9 +2519,9 @@ public enum Primitive
 	prim83_MapReplacingKey_map_key_value(83, 3, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject map = args.get(0);
@@ -2522,7 +2534,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2546,9 +2558,9 @@ public enum Primitive
 	prim84_MapWithoutKey_map_key(84, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject map = args.get(0);
@@ -2558,7 +2570,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2580,16 +2592,16 @@ public enum Primitive
 	prim85_CreateEmptyMap(85, 0, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			return interpreter.primitiveSuccess(MapDescriptor.empty());
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
@@ -2607,9 +2619,9 @@ public enum Primitive
 	prim86_MapKeysAsSet_map(86, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -2617,7 +2629,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2638,9 +2650,9 @@ public enum Primitive
 	prim87_CreateMapType_Sizes_keyType_valueType(87, 3, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject sizes = args.get(0);
@@ -2659,7 +2671,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2679,9 +2691,9 @@ public enum Primitive
 	prim88_MapTypeSizes_mapType(88, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
@@ -2689,7 +2701,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2704,9 +2716,9 @@ public enum Primitive
 	prim89_MapTypeKeyType_mapType(89, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
@@ -2714,7 +2726,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2729,9 +2741,9 @@ public enum Primitive
 	prim90_MapTypeValueType_mapType(90, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject mapType = args.get(0);
@@ -2739,7 +2751,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2755,9 +2767,9 @@ public enum Primitive
 	prim91_MapValuesAsTuple_map(91, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject map = args.get(0);
@@ -2765,7 +2777,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2783,9 +2795,9 @@ public enum Primitive
 	prim100_SetSize_set(100, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
@@ -2794,7 +2806,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2812,9 +2824,9 @@ public enum Primitive
 	prim101_SetHasElement_set_element(101, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
@@ -2824,7 +2836,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2842,9 +2854,9 @@ public enum Primitive
 	prim102_SetUnion_set1_set2(102, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
@@ -2854,7 +2866,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2876,9 +2888,9 @@ public enum Primitive
 	prim103_SetIntersection_set1_set2(103, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
@@ -2888,7 +2900,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2911,9 +2923,9 @@ public enum Primitive
 	prim104_SetDifference_set1_set2(104, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
@@ -2923,7 +2935,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2946,9 +2958,9 @@ public enum Primitive
 	prim105_SetWith_set_newElement(105, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
@@ -2958,7 +2970,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -2979,9 +2991,9 @@ public enum Primitive
 	prim106_SetWithout_set_excludedElement(106, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set = args.get(0);
@@ -2991,7 +3003,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3011,9 +3023,9 @@ public enum Primitive
 	prim107_SetIsSubset_set1_set2(107, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject set1 = args.get(0);
@@ -3023,7 +3035,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3043,16 +3055,16 @@ public enum Primitive
 	prim108_CreateEmptySet(108, 0, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			return interpreter.primitiveSuccess(SetDescriptor.empty());
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
@@ -3070,9 +3082,9 @@ public enum Primitive
 	prim109_TupleToSet_tuple(109, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
@@ -3080,7 +3092,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3099,9 +3111,9 @@ public enum Primitive
 	prim110_SetToTuple_set(110, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject set = args.get(0);
@@ -3109,7 +3121,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3126,9 +3138,9 @@ public enum Primitive
 	prim111_CreateSetType_sizeRange_contentType(111, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject sizeRange = args.get(0);
@@ -3145,7 +3157,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3164,9 +3176,9 @@ public enum Primitive
 	prim112_SetTypeSizes_setType(112, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject setType = args.get(0);
@@ -3174,7 +3186,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3189,9 +3201,9 @@ public enum Primitive
 	prim113_SetTypeElementType_setType(113, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject setType = args.get(0);
@@ -3199,7 +3211,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3215,9 +3227,9 @@ public enum Primitive
 	prim120_CreateCyclicType_name(120, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject name = args.get(0);
@@ -3226,7 +3238,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3241,9 +3253,9 @@ public enum Primitive
 	prim121_CyclicTypeName_cyclicType(121, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cyclicType = args.get(0);
@@ -3251,7 +3263,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3266,9 +3278,9 @@ public enum Primitive
 	prim130_TupleSize_tuple(130, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tuple = args.get(0);
@@ -3277,7 +3289,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3292,9 +3304,9 @@ public enum Primitive
 	prim131_TupleAt_tuple_index(131, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject tuple = args.get(0);
@@ -3315,7 +3327,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3332,9 +3344,9 @@ public enum Primitive
 	prim132_TupleReplaceAt_tuple_index_value(132, 3, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tuple = args.get(0);
@@ -3358,7 +3370,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3375,9 +3387,9 @@ public enum Primitive
 	prim133_CreateTupleSizeOne_soleElement(133, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject soleElement = args.get(0);
@@ -3389,7 +3401,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3408,16 +3420,16 @@ public enum Primitive
 	prim134_CreateEmptyTuple(134, 0, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			return interpreter.primitiveSuccess(TupleDescriptor.empty());
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3437,9 +3449,9 @@ public enum Primitive
 	prim135_ExtractSubtuple_tuple_start_end(135, 3, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tuple = args.get(0);
@@ -3468,7 +3480,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3486,9 +3498,9 @@ public enum Primitive
 	prim136_ConcatenateTuples_tuples(136, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tuples = args.get(0);
@@ -3497,7 +3509,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3516,9 +3528,9 @@ public enum Primitive
 	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(137, 3, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject sizeRange = args.get(0);
@@ -3537,7 +3549,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3560,9 +3572,9 @@ public enum Primitive
 	prim138_TupleTypeSizes_tupleType(138, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
@@ -3570,7 +3582,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3586,9 +3598,9 @@ public enum Primitive
 	prim139_TupleTypeLeadingTypes_tupleType(139, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
@@ -3596,7 +3608,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3615,9 +3627,9 @@ public enum Primitive
 	prim140_TupleTypeDefaultType_tupleType(140, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject tupleType = args.get(0);
@@ -3625,7 +3637,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3641,9 +3653,9 @@ public enum Primitive
 	prim141_TupleTypeAt_tupleType_index(141, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject tupleType = args.get(0);
@@ -3658,7 +3670,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3676,9 +3688,9 @@ public enum Primitive
 	prim142_TupleTypeSequenceOfTypes_tupleType_startIndex_endIndex(142, 3, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tupleType = args.get(0);
@@ -3710,7 +3722,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3732,9 +3744,9 @@ public enum Primitive
 	prim143_TupleTypeAtThrough_tupleType_startIndex_endIndex(143, 3, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
 			final AvailObject tupleType = args.get(0);
@@ -3759,7 +3771,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3778,9 +3790,9 @@ public enum Primitive
 	prim144_TupleTypeConcatenate_tupleType1_tupleType2(144, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject tupleType1 = args.get(0);
@@ -3792,7 +3804,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3812,7 +3824,7 @@ public enum Primitive
 	prim160_FileOpenRead_name(160, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -3836,7 +3848,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3855,7 +3867,7 @@ public enum Primitive
 	prim161_FileOpenWrite_name_append(161, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -3888,7 +3900,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3908,7 +3920,7 @@ public enum Primitive
 	prim162_FileOpenReadWrite_name(162, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -3933,7 +3945,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -3952,7 +3964,7 @@ public enum Primitive
 	prim163_FileClose_handle(163, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -3990,7 +4002,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4013,7 +4025,7 @@ public enum Primitive
 	prim164_FileRead_handle_size(164, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4076,7 +4088,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4101,7 +4113,7 @@ public enum Primitive
 	prim165_FileWrite_handle_bytes(165, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4145,7 +4157,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4171,7 +4183,7 @@ public enum Primitive
 	prim166_FileSize_handle(166, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4208,7 +4220,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4228,7 +4240,7 @@ public enum Primitive
 	prim167_FilePosition_handle(167, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4265,7 +4277,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4285,7 +4297,7 @@ public enum Primitive
 	prim168_FileSetPosition_handle_newPosition(168, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4327,7 +4339,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4347,7 +4359,7 @@ public enum Primitive
 	prim169_FileSync_handle(169, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4382,7 +4394,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4398,7 +4410,7 @@ public enum Primitive
 	prim170_FileExists_nameString(170, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4422,7 +4434,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4438,7 +4450,7 @@ public enum Primitive
 	prim171_FileCanRead_nameString(171, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4462,7 +4474,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4478,7 +4490,7 @@ public enum Primitive
 	prim172_FileCanWrite_nameString(172, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4502,7 +4514,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4518,7 +4530,7 @@ public enum Primitive
 	prim173_FileCanExecute_nameString(173, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4542,7 +4554,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4558,7 +4570,7 @@ public enum Primitive
 	prim174_FileRename_sourceString_destinationString(174, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4588,7 +4600,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4605,7 +4617,7 @@ public enum Primitive
 	prim175_FileUnlink_nameString(175, 1, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -4634,7 +4646,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4650,9 +4662,9 @@ public enum Primitive
 	prim180_CompiledCodeNumArgs_cc(180, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4661,7 +4673,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4677,9 +4689,9 @@ public enum Primitive
 	prim181_CompiledCodeNumLocals_cc(181, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4688,7 +4700,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4704,9 +4716,9 @@ public enum Primitive
 	prim182_CompiledCodeNumOuters_cc(182, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4715,7 +4727,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4731,9 +4743,9 @@ public enum Primitive
 	prim183_CompiledCodeNumStackSlots_cc(183, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4742,7 +4754,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4758,9 +4770,9 @@ public enum Primitive
 	prim184_CompiledCodeNybbles_cc(184, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4768,7 +4780,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4787,9 +4799,9 @@ public enum Primitive
 	prim185_CompiledCodeClosureType_cc(185, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4797,7 +4809,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4813,9 +4825,9 @@ public enum Primitive
 	prim186_CompiledCodePrimitiveNumber_cc(186, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4824,7 +4836,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4840,9 +4852,9 @@ public enum Primitive
 	prim187_CompiledCodeLiterals_cc(187, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
@@ -4871,7 +4883,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4890,9 +4902,9 @@ public enum Primitive
 	prim188_CreateCompiledCode(188, 7, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 7;
 			final AvailObject locals = args.get(0);
@@ -4968,7 +4980,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -4994,9 +5006,9 @@ public enum Primitive
 	prim200_CatchException_bodyBlock_handlerBlock(200, 2, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			@SuppressWarnings("unused")
@@ -5007,7 +5019,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5043,9 +5055,9 @@ public enum Primitive
 	prim201_RaiseException_exceptionValue(201, 1, SwitchesContinuation)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject exceptionValue = args.get(0);
@@ -5053,7 +5065,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5071,9 +5083,9 @@ public enum Primitive
 	prim207_CompleteMessages_bundleTree(207, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
@@ -5082,7 +5094,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5103,9 +5115,9 @@ public enum Primitive
 	prim208_IncompleteMessages_bundleTree(208, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundleTree = args.get(0);
@@ -5114,7 +5126,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5135,9 +5147,9 @@ public enum Primitive
 		209, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
@@ -5148,7 +5160,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5169,9 +5181,9 @@ public enum Primitive
 		210, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject leadingPart = args.get(0);
@@ -5182,7 +5194,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5201,9 +5213,9 @@ public enum Primitive
 	prim211_BundleMessage_bundle(211, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -5212,7 +5224,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5228,9 +5240,9 @@ public enum Primitive
 	prim212_BundleMessageParts_bundle(212, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -5239,7 +5251,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5259,9 +5271,9 @@ public enum Primitive
 	prim213_BundleSignatures_bundle(213, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -5279,7 +5291,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5297,9 +5309,9 @@ public enum Primitive
 	prim214_BundleHasRestrictions_bundle(214, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -5309,7 +5321,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5325,9 +5337,9 @@ public enum Primitive
 	prim215_BundleRestrictions_bundle(215, 1, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
@@ -5336,7 +5348,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5357,9 +5369,9 @@ public enum Primitive
 	prim216_SignatureBodyType_sig(216, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
@@ -5368,7 +5380,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5384,9 +5396,9 @@ public enum Primitive
 	prim217_SignatureBodyBlock_methSig(217, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject methSig = args.get(0);
@@ -5395,7 +5407,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5411,9 +5423,9 @@ public enum Primitive
 	prim218_SignatureRequiresBlock_sig(218, 1, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
@@ -5429,7 +5441,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5446,9 +5458,9 @@ public enum Primitive
 	prim219_SignatureReturnsBlock_sig(219, 1, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject sig = args.get(0);
@@ -5464,7 +5476,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5483,9 +5495,9 @@ public enum Primitive
 	prim220_ImplementationSetFromName_name(220, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject aCyclicType = args.get(0);
@@ -5501,7 +5513,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5519,9 +5531,9 @@ public enum Primitive
 	prim221_ImplementationSetName_name(221, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject anImplementationSet = args.get(0);
@@ -5529,7 +5541,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5546,7 +5558,7 @@ public enum Primitive
 	prim240_SpecialObject_index(240, 1, CanFold)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -5580,7 +5592,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5599,7 +5611,7 @@ public enum Primitive
 	prim245_LookupName_name(245, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -5610,7 +5622,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5625,9 +5637,9 @@ public enum Primitive
 	prim249_SimpleMacroDeclaration_string_block(249, 2, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
@@ -5646,7 +5658,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5664,9 +5676,9 @@ public enum Primitive
 	prim250_IsPrimitiveDefined_index(250, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject ordinal = args.get(0);
@@ -5678,7 +5690,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5694,9 +5706,9 @@ public enum Primitive
 	prim251_AbstractMethodDeclaration(251, 4, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject string = args.get(0);
@@ -5714,7 +5726,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5735,9 +5747,9 @@ public enum Primitive
 	prim252_ForwardMethodDeclaration(252, 2, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
@@ -5751,7 +5763,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5768,9 +5780,9 @@ public enum Primitive
 	prim253_SimpleMethodDeclaration(253, 2, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
@@ -5783,7 +5795,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5801,9 +5813,9 @@ public enum Primitive
 	prim254_MethodDeclaration_string_block_requiresBlock_returnsBlock(254, 4, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 4;
 			final AvailObject string = args.get(0);
@@ -5820,7 +5832,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5846,9 +5858,9 @@ public enum Primitive
 	prim255_PrecedenceDeclaration_stringSet_exclusionsTuple(255, 2, Unknown)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject stringSet = args.get(0);
@@ -5882,7 +5894,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5907,7 +5919,7 @@ public enum Primitive
 	prim256_EmergencyExit_value(256, 1, Unknown, CannotFail)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -5922,7 +5934,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5937,9 +5949,9 @@ public enum Primitive
 	prim257_BreakPoint(257, 0, Unknown, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			// Throw and catch a RuntimeException.  A sensibly configured
 			// debugger will pause during the throw.  There are also ample
@@ -5957,7 +5969,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
@@ -5971,7 +5983,7 @@ public enum Primitive
 	prim258_PrintToConsole_value(258, 1, Unknown, CannotFail)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -5983,7 +5995,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -5999,7 +6011,7 @@ public enum Primitive
 	prim259_ToString_value(259, 1, Unknown, CannotFail)
 	{
 		@Override
-		public Result attempt (
+		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
@@ -6011,7 +6023,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6034,9 +6046,9 @@ public enum Primitive
 	prim260_CreateLibrarySpec(260, 0, CanInline)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
@@ -6050,7 +6062,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
@@ -6065,9 +6077,9 @@ public enum Primitive
 	prim261_OpenLibrary_handle_filename(261, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6083,7 +6095,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6111,9 +6123,9 @@ public enum Primitive
 	prim262_ParseDeclarations_libraryHandle_declaration(262, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6132,7 +6144,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6156,9 +6168,9 @@ public enum Primitive
 	prim263_ExtractEntryPoint_handle_functionName(263, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6184,7 +6196,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6201,9 +6213,9 @@ public enum Primitive
 	prim264_EntryPointClosureType_entryPointHandle(264, 1, CanInline)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6214,7 +6226,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6230,9 +6242,9 @@ public enum Primitive
 	prim265_InvokeEntryPoint_arguments(265, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6276,7 +6288,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6293,9 +6305,9 @@ public enum Primitive
 	prim266_IntegralType_from(266, 2, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6307,7 +6319,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6324,9 +6336,9 @@ public enum Primitive
 	prim267_IntegralType_to_write(267, 3, CanInline, HasSideEffect)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
 			/* From Smalltalk:
@@ -6341,7 +6353,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6359,9 +6371,9 @@ public enum Primitive
 	prim268_BigEndian(268, 0, CanInline, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 0;
 			return interpreter.primitiveSuccess(
@@ -6370,7 +6382,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
@@ -6384,9 +6396,9 @@ public enum Primitive
 	prim280_FloatAddition_a_b(280, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6399,7 +6411,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6415,9 +6427,9 @@ public enum Primitive
 	prim281_FloatSubtraction_a_b(281, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6430,7 +6442,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6446,9 +6458,9 @@ public enum Primitive
 	prim282_FloatMultiplication_a_b(282, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6461,7 +6473,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6477,9 +6489,9 @@ public enum Primitive
 	prim283_FloatDivision_a_b(283, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6497,7 +6509,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6514,9 +6526,9 @@ public enum Primitive
 	prim284_FloatLessThan_a_b(284, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6527,7 +6539,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6544,9 +6556,9 @@ public enum Primitive
 	prim285_FloatLessOrEqual_a_b(285, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6557,7 +6569,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6573,9 +6585,9 @@ public enum Primitive
 	prim286_FloatLn_a(286, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -6586,7 +6598,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6602,9 +6614,9 @@ public enum Primitive
 	prim287_FloatExp_a(287, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -6615,7 +6627,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6631,9 +6643,9 @@ public enum Primitive
 	prim288_FloatModulus_a_b(288, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6652,7 +6664,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6669,9 +6681,9 @@ public enum Primitive
 	prim289_FloatTruncatedAsInteger_a(289, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -6707,7 +6719,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6723,9 +6735,9 @@ public enum Primitive
 	prim290_FloatFromInteger_a(290, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -6761,7 +6773,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6777,9 +6789,9 @@ public enum Primitive
 	prim291_FloatTimesTwoPower_a_b(291, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6793,7 +6805,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6809,9 +6821,9 @@ public enum Primitive
 	prim310_DoubleAddition_a_b(310, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6824,7 +6836,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6840,9 +6852,9 @@ public enum Primitive
 	prim311_DoubleSubtraction_a_b(311, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6855,7 +6867,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6871,9 +6883,9 @@ public enum Primitive
 	prim312_DoubleMultiplication_a_b(312, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6886,7 +6898,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6902,9 +6914,9 @@ public enum Primitive
 	prim313_DoubleDivision_a_b(313, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6922,7 +6934,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6939,9 +6951,9 @@ public enum Primitive
 	prim314_DoubleLessThan_a_b(314, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6952,7 +6964,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6969,9 +6981,9 @@ public enum Primitive
 	prim315_DoubleLessOrEqual_a_b(315, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -6982,7 +6994,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -6999,9 +7011,9 @@ public enum Primitive
 	prim316_DoubleLn_a(316, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -7011,7 +7023,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7027,9 +7039,9 @@ public enum Primitive
 	prim317_DoubleExp_a(317, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
@@ -7039,7 +7051,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7055,9 +7067,9 @@ public enum Primitive
 	prim318_DoubleModulus_a_b(318, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -7076,7 +7088,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7093,9 +7105,9 @@ public enum Primitive
 	prim319_DoubleTruncatedAsInteger_a(319, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			final AvailObject a = args.get(0);
 			assert args.size() == 1;
@@ -7131,7 +7143,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7147,9 +7159,9 @@ public enum Primitive
 	prim320_DoubleFromInteger_a(320, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject a = args.get(0).traversed();
@@ -7192,7 +7204,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7208,9 +7220,9 @@ public enum Primitive
 	prim321_DoubleTimesTwoPower_a_b(321, 2, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
@@ -7224,7 +7236,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7241,9 +7253,9 @@ public enum Primitive
 	prim330_CharacterCodePoint_character(330, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject character = args.get(0);
@@ -7253,7 +7265,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7269,9 +7281,9 @@ public enum Primitive
 	prim331_CharacterFromCodePoint_codePoint(331, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject codePoint = args.get(0);
@@ -7281,7 +7293,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7298,16 +7310,16 @@ public enum Primitive
 	prim340_PushConstant_ignoreArgs(340, -1, SpecialReturnConstant, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			return interpreter.primitiveSuccess(
 				interpreter.primitiveCompiledCodeBeingAttempted().literalAt(1));
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			// This primitive is suitable for any block signature.
 			return TERMINATES.o();
@@ -7322,9 +7334,9 @@ public enum Primitive
 	prim350_MacroInnerAssignment_variable_expression(350, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject variable = args.get(0);
@@ -7351,7 +7363,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7375,9 +7387,9 @@ public enum Primitive
 	prim351_ParseNodeExpressionType_parseNode(351, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject parseNode = args.get(0);
@@ -7385,7 +7397,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7401,9 +7413,9 @@ public enum Primitive
 	prim352_RejectParsing_errorString(352, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject parseNode = args.get(0);
@@ -7411,7 +7423,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7429,9 +7441,9 @@ public enum Primitive
 	prim353_MacroAssignmentStatement_variable_expression(353, 2, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
 			final AvailObject variable = args.get(0);
@@ -7471,7 +7483,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7498,9 +7510,9 @@ public enum Primitive
 	prim354_MacroReference_variable(354, 1, CanFold)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject variable = args.get(0);
@@ -7521,7 +7533,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7549,9 +7561,9 @@ public enum Primitive
 	prim355_ExtractObjectTypeFromObjectMeta_objectMeta(355, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectMeta = args.get(0);
@@ -7559,7 +7571,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
@@ -7589,9 +7601,9 @@ public enum Primitive
 	prim356_ExtractLevelsFromObjectMeta_objectMeta(356, 1, CanFold, CannotFail)
 	{
 		@Override
-		public Result attempt (
-			final List<AvailObject> args,
-			final Interpreter interpreter)
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
 			final AvailObject objectMeta = args.get(0);
@@ -7599,7 +7611,7 @@ public enum Primitive
 		}
 
 		@Override
-		protected AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
