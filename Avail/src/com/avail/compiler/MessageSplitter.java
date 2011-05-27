@@ -183,7 +183,7 @@ public class MessageSplitter
 		{
 			return getClass().getSimpleName();
 		}
-	};
+	}
 
 
 	/**

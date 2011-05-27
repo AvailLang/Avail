@@ -33,19 +33,15 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2OperandDescriber;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2RawInstruction;
 
 public class L2RawInstructionDescriber
 {
 	L2OperandDescriber operandDescriber = new L2OperandDescriber();
 
 	public void describe(
-			L2RawInstruction rawInstruction,
-			AvailObject chunk,
-			StringBuilder stream)
+			final L2RawInstruction rawInstruction,
+			final AvailObject chunk,
+			final StringBuilder stream)
 	{
 		L2Operation operation = rawInstruction.operation();
 		String operationName = operation.name();
@@ -67,4 +63,4 @@ public class L2RawInstructionDescriber
 		}
 		stream.append(")");
 	}
-};
+}

@@ -105,7 +105,7 @@ extends Descriptor
 	public static AvailObject objectFrom (final boolean b)
 	{
 		return b ? TrueBooleanObject : FalseBooleanObject;
-	};
+	}
 
 	/**
 	 * Construct a new {@link BooleanDescriptor}.

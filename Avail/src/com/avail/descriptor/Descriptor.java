@@ -154,28 +154,11 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_AcceptsArgumentsFromContinuationStackp (
+	public boolean o_AcceptsArgumentTypesFromContinuation (
 		final AvailObject object,
 		final AvailObject continuation,
-		final int stackp)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param continuation
-	 * @param stackp
-	 * @return
-	 */
-	@Override
-	public boolean o_AcceptsArgumentTypesFromContinuationStackp (
-		final AvailObject object,
-		final AvailObject continuation,
-		final int stackp)
+		final int stackp,
+		final int numArgs)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -189,7 +172,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_AcceptsArrayOfArgTypes (
+	public boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
@@ -205,7 +188,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_AcceptsArrayOfArgValues (
+	public boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<AvailObject> argValues)
 	{
@@ -311,39 +294,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_ArgTypeAt (
-		final AvailObject object,
-		final int index)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	@Override
-	public void o_ArgTypeAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
 	}
 
 	/**
@@ -1719,22 +1669,6 @@ extends AbstractDescriptor
 	public boolean o_IsSupertypeOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	@Override
-	public boolean o_IsSupertypeOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -3791,40 +3725,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @param canDestroy
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType,
-		final boolean canDestroy)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
 	 * @param anIntegerRangeType
 	 * @return
 	 */
@@ -4041,22 +3941,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_TypeUnionOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -6554,19 +6438,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	@Override
-	public boolean o_EqualsGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType)
-	{
-		return false;
-	}
-
-	/**
-	 * @param object
 	 * @param anInfinity
 	 * @return
 	 */
@@ -7523,19 +7394,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argumentsTuple
-	 */
-	@Override
-	public void o_ArgumentsTuple (
-		final AvailObject object,
-		final AvailObject argumentsTuple)
-	{
-		unsupportedOperation();
-	}
-
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	@Override
@@ -7548,19 +7406,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param statementsTuple
-	 */
-	@Override
-	public void o_StatementsTuple (
-		final AvailObject object,
-		final AvailObject statementsTuple)
-	{
-		unsupportedOperation();
-	}
-
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	@Override
@@ -7568,17 +7413,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return null;
-	}
-
-
-	/**
-	 * @param object
-	 * @param resultType
-	 */
-	@Override
-	public void o_ResultType (final AvailObject object, final AvailObject resultType)
-	{
-		unsupportedOperation();
 	}
 
 
@@ -7616,17 +7450,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return null;
-	}
-
-
-	/**
-	 * @param object
-	 * @param primitive
-	 */
-	@Override
-	public void o_Primitive (final AvailObject object, final int primitive)
-	{
-		unsupportedOperation();
 	}
 
 
@@ -8187,5 +8010,22 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return;
+	}
+
+
+	@Override
+	public AvailObject o_ArgsTupleType (final AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+
+	@Override
+	public void o_ArgsTupleType (
+		final AvailObject object,
+		final AvailObject tupleType)
+	{
+		unsupportedOperation();
 	}
 }

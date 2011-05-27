@@ -867,7 +867,7 @@ extends Descriptor
 		for (int i = 1; i <= capacity * 2; i++)
 		{
 			result.dataAtIndexPut(i, VoidDescriptor.voidObject());
-		};
+		}
 		return result;
 	}
 
@@ -879,7 +879,7 @@ extends Descriptor
 	public static AvailObject empty ()
 	{
 		return EmptyMap;
-	};
+	}
 
 	/**
 	 * Construct a new {@link MapDescriptor}.

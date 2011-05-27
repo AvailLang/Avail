@@ -1129,7 +1129,7 @@ extends Descriptor
 	public static AvailObject ellipsisTuple ()
 	{
 		return EllipsisTuple;
-	};
+	}
 
 
 	/**

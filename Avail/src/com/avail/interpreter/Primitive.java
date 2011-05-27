@@ -48,6 +48,7 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
@@ -1093,8 +1094,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 35:</strong> Answer the number of arguments that this
-	 * closureType takes.
+	 * <strong>Primitive 35:</strong> Answer a tuple type describing the
+	 * arguments accepted by the closure type.
 	 */
 	prim35_ClosureTypeNumArgs_closureType(35, 1, CanFold, CannotFail)
 	{
@@ -1106,7 +1107,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject closureType = args.get(0);
 			return interpreter.primitiveSuccess(
-				IntegerDescriptor.fromInt(closureType.numArgs()));
+				closureType.argsTupleType());
 		}
 
 		@Override
@@ -1115,7 +1116,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CLOSURE_TYPE.o()),
-				IntegerRangeTypeDescriptor.wholeNumbers());
+				TUPLE_TYPE.o());
 		}
 	},
 
@@ -1140,12 +1141,9 @@ public enum Primitive
 					E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int index = indexObject.extractInt();
-			if (index > closureType.numArgs())
-			{
-				return interpreter.primitiveFailure(
-					E_SUBSCRIPT_OUT_OF_BOUNDS);
-			}
-			return interpreter.primitiveSuccess(closureType.argTypeAt(index));
+			final AvailObject argumentType =
+				closureType.argsTupleType().typeAtIndex(index);
+			return interpreter.primitiveSuccess(argumentType);
 		}
 
 		@Override
@@ -1180,7 +1178,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					GENERALIZED_CLOSURE_TYPE.o()),
+					CLOSURE_TYPE.o()),
 				TYPE.o());
 		}
 	},
@@ -1199,7 +1197,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject tupleOfTypes = args.get(0);
 			AvailObject unionObject = TERMINATES.o();
-			for (AvailObject aType : tupleOfTypes)
+			for (final AvailObject aType : tupleOfTypes)
 			{
 				unionObject = unionObject.typeUnion(aType);
 			}
@@ -1220,10 +1218,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 39:</strong> Answer a generalized closure type with the
-	 * given return type.
+	 * <strong>Primitive 39:</strong> Answer the most general closure type with
+	 * the given return type.
 	 */
-	prim39_CreateGeneralizedClosureType_returnType(39, 1, CanFold, CannotFail)
+	prim39_CreateGeneralClosureType_returnType(39, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1233,7 +1231,10 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject returnType = args.get(0);
 			return interpreter.primitiveSuccess(
-				GeneralizedClosureTypeDescriptor.forReturnType(returnType));
+				ClosureTypeDescriptor.createWithArgumentTupleType(
+					TERMINATES.o(),
+					returnType,
+					SetDescriptor.empty()));
 		}
 
 		@Override
@@ -1242,7 +1243,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				GENERALIZED_CLOSURE_TYPE.o());
+				CLOSURE_TYPE.o());
 		}
 	},
 
@@ -1265,17 +1266,18 @@ public enum Primitive
 			final AvailObject argTuple = args.get(1);
 			final AvailObject blockType = block.type();
 			final int numArgs = argTuple.tupleSize();
-			if (blockType.numArgs() != numArgs)
+			if (block.code().numArgs() != numArgs)
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
 			final List<AvailObject> callArgs =
 				new ArrayList<AvailObject>(numArgs);
+			final AvailObject tupleType = blockType.argsTupleType();
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final AvailObject anArg = argTuple.tupleAt(i);
-				if (!anArg.isInstanceOfSubtypeOf(blockType.argTypeAt(i)))
+				if (!anArg.isInstanceOfSubtypeOf(tupleType.typeAtIndex(i)))
 				{
 					return interpreter.primitiveFailure(
 						E_INCORRECT_ARGUMENT_TYPE);
@@ -1293,8 +1295,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						VOID_TYPE.o()),
+					ClosureTypeDescriptor.forReturnType(VOID_TYPE.o()),
 					TupleTypeDescriptor.mostGeneralTupleType()),
 				VOID_TYPE.o());
 		}
@@ -1316,17 +1317,17 @@ public enum Primitive
 			final AvailObject aBoolean = args.get(0);
 			final AvailObject trueBlock = args.get(1);
 			final AvailObject falseBlock = args.get(2);
-			assert trueBlock.type().numArgs() == 0;
-			assert falseBlock.type().numArgs() == 0;
+			assert trueBlock.code().numArgs() == 0;
+			assert falseBlock.code().numArgs() == 0;
 			if (aBoolean.extractBoolean())
 			{
 				return interpreter.invokeClosureArguments (
 					trueBlock,
-					args);
+					Collections.<AvailObject>emptyList());
 			}
 			return interpreter.invokeClosureArguments (
 				falseBlock,
-				args);
+				Collections.<AvailObject>emptyList());
 		}
 
 		@Override
@@ -1360,12 +1361,12 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject aBoolean = args.get(0);
 			final AvailObject trueBlock = args.get(1);
-			assert trueBlock.type().numArgs() == 0;
+			assert trueBlock.code().numArgs() == 0;
 			if (aBoolean.extractBoolean())
 			{
 				return interpreter.invokeClosureArguments (
 					trueBlock,
-					args);
+					Collections.<AvailObject>emptyList());
 			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
@@ -1400,10 +1401,10 @@ public enum Primitive
 			@SuppressWarnings("unused")
 			final AvailObject ignoredBool = args.get(0);
 			final AvailObject block = args.get(1);
-			assert block.type().numArgs() == 0;
+			assert block.code().numArgs() == 0;
 			return interpreter.invokeClosureArguments (
 				block,
-				args);
+				Collections.<AvailObject>emptyList());
 		}
 
 		@Override
@@ -1461,7 +1462,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.wrapInnerType(CONTINUATION.o()),
-					CLOSURE.o(),
+					ClosureTypeDescriptor.topInstance(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					TupleTypeDescriptor.mostGeneralTupleType()),
@@ -1580,7 +1581,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTINUATION.o()),
-				CLOSURE.o());
+				ClosureTypeDescriptor.topInstance());
 		}
 	},
 
@@ -2255,8 +2256,10 @@ public enum Primitive
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ALL.o()),
-				GeneralizedClosureTypeDescriptor.forReturnType(
-					ALL.o()));
+				ClosureTypeDescriptor.createWithArgumentTupleType(
+					TERMINATES.o(),
+					ALL.o(),
+					SetDescriptor.empty()));
 		}
 	},
 
@@ -2307,7 +2310,10 @@ public enum Primitive
 					CYCLIC_TYPE.o(),
 					ALL.o(),
 					TYPE.o()),
-				GeneralizedClosureTypeDescriptor.forReturnType(VOID_TYPE.o()));
+				ClosureTypeDescriptor.createWithArgumentTupleType(
+					TERMINATES.o(),
+					VOID_TYPE.o(),
+					SetDescriptor.empty()));
 		}
 	},
 
@@ -2332,7 +2338,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CLOSURE.o()),
+					ClosureTypeDescriptor.topInstance()),
 				COMPILED_CODE.o());
 		}
 	},
@@ -2375,7 +2381,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CLOSURE.o()),
+					ClosureTypeDescriptor.topInstance()),
 				TupleTypeDescriptor.mostGeneralTupleType());
 		}
 	},
@@ -2410,7 +2416,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					COMPILED_CODE.o(),
 					TupleTypeDescriptor.mostGeneralTupleType()),
-				CLOSURE.o());
+				ClosureTypeDescriptor.topInstance());
 		}
 	},
 
@@ -4922,13 +4928,13 @@ public enum Primitive
 
 			if (primitiveInt != 0)
 			{
-				Primitive prim = Primitive.byPrimitiveNumber(primitiveInt);
+				final Primitive prim = Primitive.byPrimitiveNumber(primitiveInt);
 				if (prim == null)
 				{
 					return interpreter.primitiveFailure(
 						"invalid primitive number");
 				}
-				AvailObject restrictionSignature = prim.blockTypeRestriction();
+				final AvailObject restrictionSignature = prim.blockTypeRestriction();
 				if (!restrictionSignature.isSubtypeOf(closureType))
 				{
 					return interpreter.primitiveFailure(
@@ -4999,9 +5005,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 200:</strong> The Avail failure code invokes the
-	 * bodyBlock.  The handlerBlock is only invoked when an exception is raised
-	 * (via primitive 201).
+	 * <strong>Primitive 200:</strong> Always fail.  The Avail failure code
+	 * invokes the bodyBlock.  The handlerBlock is only invoked when an
+	 * exception is raised (via primitive 201).
 	 */
 	prim200_CatchException_bodyBlock_handlerBlock(200, 2, Unknown)
 	{
@@ -5059,9 +5065,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 1;
-			final AvailObject exceptionValue = args.get(0);
-			return interpreter.searchForExceptionHandler(exceptionValue, args);
+			return interpreter.searchForExceptionHandler(args);
 		}
 
 		@Override
@@ -5412,7 +5416,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					METHOD_SIGNATURE.o()),
-				CLOSURE.o());
+				ClosureTypeDescriptor.topInstance());
 		}
 	},
 
@@ -5446,8 +5450,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
-				GeneralizedClosureTypeDescriptor.forReturnType(
-					BOOLEAN_TYPE.o()));
+				ClosureTypeDescriptor.forReturnType(BOOLEAN_TYPE.o()));
 		}
 	},
 
@@ -5481,8 +5484,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
-				GeneralizedClosureTypeDescriptor.forReturnType(
-					TYPE.o()));
+				ClosureTypeDescriptor.forReturnType(TYPE.o()));
 		}
 	},
 
@@ -5645,9 +5647,10 @@ public enum Primitive
 			final AvailObject string = args.get(0);
 			final AvailObject block = args.get(1);
 			final AvailObject blockType = block.type();
-			for (int i = blockType.numArgs(); i >= 1; i--)
+			final AvailObject tupleType = blockType.argsTupleType();
+			for (int i = block.code().numArgs(); i >= 1; i--)
 			{
-				if (!blockType.argTypeAt(i).isSubtypeOf(PARSE_NODE.o()))
+				if (!tupleType.typeAtIndex(i).isSubtypeOf(PARSE_NODE.o()))
 				{
 					return interpreter.primitiveFailure(
 						"macro arguments must be parse nodes");
@@ -5663,8 +5666,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						PARSE_NODE.o())),
+					ClosureTypeDescriptor.forReturnType(PARSE_NODE.o())),
 				VOID_TYPE.o());
 		}
 	},
@@ -5732,10 +5734,8 @@ public enum Primitive
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					CLOSURE_TYPE.o(),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						BOOLEAN_TYPE.o()),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						TYPE.o())),
+					ClosureTypeDescriptor.forReturnType(BOOLEAN_TYPE.o()),
+					ClosureTypeDescriptor.forReturnType(TYPE.o())),
 				VOID_TYPE.o());
 		}
 	},
@@ -5800,8 +5800,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						VOID_TYPE.o())),
+					ClosureTypeDescriptor.forReturnType(VOID_TYPE.o())),
 				VOID_TYPE.o());
 		}
 	},
@@ -5837,12 +5836,9 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						VOID_TYPE.o()),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						BOOLEAN_TYPE.o()),
-					GeneralizedClosureTypeDescriptor.forReturnType(
-						TYPE.o())),
+					ClosureTypeDescriptor.forReturnType(VOID_TYPE.o()),
+					ClosureTypeDescriptor.forReturnType(BOOLEAN_TYPE.o()),
+					ClosureTypeDescriptor.forReturnType(TYPE.o())),
 				VOID_TYPE.o());
 		}
 	},
@@ -5961,7 +5957,7 @@ public enum Primitive
 			{
 				throw new RuntimeException("Breakpoint");
 			}
-			catch (RuntimeException e)
+			catch (final RuntimeException e)
 			{
 				return interpreter.primitiveSuccess(
 					VoidDescriptor.voidObject());
@@ -6050,8 +6046,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| lib handle |
 				lib := Array with: ExternalDictionary new with: nil.
@@ -6081,7 +6076,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| opaqueLib externalLib |
 				opaqueLib := openLibraries at: libraryHandle extractInt.
@@ -6127,7 +6122,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| privateLib externalDictionary |
 				privateLib := openLibraries at: libraryHandle extractInt.
@@ -6172,7 +6167,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| opaqueLibrary externals external argTypes argTypesTuple returnType opaqueEntryPoint |
 				opaqueLibrary := openLibraries at: libraryHandle extractInt.
@@ -6217,7 +6212,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| privateEntryPoint |
 				privateEntryPoint := entryPoints at: entryPointHandle extractInt.
@@ -6246,7 +6241,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| privateEntryPoint external externalType args result proc libraryArray externalLibrary procType resultType |
 				privateEntryPoint := entryPoints at: entryPointHandle extractInt.
@@ -6309,7 +6304,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| byteCount int |
 				byteCount := (intType upperBound highBit + 7) // 8.
@@ -6340,7 +6335,7 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.callBackSmalltalkPrimitive(primitiveNumber, args);
+			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
 			/* From Smalltalk:
 				| byteCount int |
 				byteCount := (intType upperBound highBit + 7) // 8.
@@ -7466,7 +7461,7 @@ public enum Primitive
 				AssignmentNodeDescriptor.mutable().create();
 			assignment.variable(variable);
 			assignment.expression(expression);
-			List<AvailObject> statementsList = new ArrayList<AvailObject>(2);
+			final List<AvailObject> statementsList = new ArrayList<AvailObject>(2);
 			statementsList.add(assignment);
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
@@ -7660,7 +7655,7 @@ public enum Primitive
 		 * should switch processes now.
 		 */
 		SUSPENDED;
-	};
+	}
 
 	/**
 	 * These flags are used by the execution machinery and optimizer to indicate
@@ -7741,16 +7736,18 @@ public enum Primitive
 		 * to fold or inline this primitive.
 		 */
 		Unknown
-	};
+	}
 
 
 	/**
 	 * Attempt this primitive with the given arguments, and the {@link
 	 * Interpreter interpreter} on whose behalf to attempt the primitive.
-	 * If the primitive fails, it should return {@link Result#FAILURE}.
-	 * Otherwise it should set the interpreter's {@link
-	 * Interpreter#primitiveResult(AvailObject)} and answer either {@link
-	 * Result#SUCCESS}.  For unusual primitives that replace the current
+	 * If the primitive fails, it should set the primitive failure code by
+	 * calling {@link Interpreter#primitiveFailure(AvailObject)} and returning
+	 * its result from the primitive.  Otherwise it should set the interpreter's
+	 * primitive result by calling {@link
+	 * Interpreter#primitiveSuccess(AvailObject)} and then return its result
+	 * from the primitive.  For unusual primitives that replace the current
 	 * continuation, {@link Result#CONTINUATION_CHANGED} is more appropriate,
 	 * and the primitiveResult need not be set.  For primitives that need to
 	 * cause a context switch, {@link Result#SUSPENDED} should be returned.
@@ -7809,8 +7806,12 @@ public enum Primitive
 		if (cachedBlockTypeRestriction == null)
 		{
 			cachedBlockTypeRestriction = privateBlockTypeRestriction();
+			final AvailObject argsTupleType =
+				cachedBlockTypeRestriction.argsTupleType();
+			final AvailObject sizeRange = argsTupleType.sizeRange();
 			assert cachedBlockTypeRestriction.equals(TERMINATES.o())
-				|| cachedBlockTypeRestriction.numArgs() == argCount();
+				|| (sizeRange.lowerBound().extractInt() == argCount()
+					&& sizeRange.upperBound().extractInt() == argCount());
 		}
 		return cachedBlockTypeRestriction;
 	}

@@ -254,6 +254,19 @@ extends PrimitiveTypeDescriptor
 		return true;
 	}
 
+	@Override
+	public AvailObject o_ArgsTupleType (
+		final @NotNull AvailObject object)
+	{
+		// Because terminates is a subtype of all other types, it is even
+		// considered a closure type.  In particular, if terminates is viewed
+		// as a closure type, it can take any number of arguments of any type
+		// (since there are no complying closure instances).
+
+		return TupleTypeDescriptor.mostGeneralTupleType();
+	}
+
+
 	// TODO [MvG]: Lots and lots and lots of meta-specific singularities need to
 	// be added here, so that terminates type can sincerely be considered an
 	// instance of every metatype.
@@ -274,7 +287,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link TerminatesTypeDescriptor}.
 	 */
-	private final static TerminatesTypeDescriptor mutable = new TerminatesTypeDescriptor(true);
+	private final static TerminatesTypeDescriptor mutable =
+		new TerminatesTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TerminatesTypeDescriptor}.
@@ -289,7 +303,8 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The immutable {@link TerminatesTypeDescriptor}.
 	 */
-	private final static TerminatesTypeDescriptor immutable = new TerminatesTypeDescriptor(false);
+	private final static TerminatesTypeDescriptor immutable =
+		new TerminatesTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TerminatesTypeDescriptor}.

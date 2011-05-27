@@ -39,4 +39,4 @@ interface L1OperandTypeDispatcher
 	void doLocal();
 	void doOuter();
 	void doExtension();
-};
+}

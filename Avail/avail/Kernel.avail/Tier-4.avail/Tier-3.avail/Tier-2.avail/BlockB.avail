@@ -45,27 +45,24 @@ Names
 Body
 
 
-/* Block evaluation with a tuple of arguments... */
-
+/**
+ * Block evaluation with a (chevron-group) tuple of arguments...
+ */
 Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
 	block apply args;
 ] : void
-requires [blkType : generalizedClosureType, argsType : tupleType |
-	cast blkType into [blkType2 : closureType |
-		if argsType sizes lower bound not = argsType sizes upper bound then [
-			Crash "# of arguments to _(_) can't be verified at call site - maybe use _apply_ ?";
-		];
-		size ::= argsType sizes lower bound;
-		size = ||blkType2||
-			& [
-				1 to size all [i : natural number |
-					argsType[i] <= blkType2[i];];
-			];
-	] otherwise [
-		false;
-	];
+requires [blkType : closureType, argsType : tupleType |
+	/* The arguments are a chevron group, so the exact count is known at the
+	 * call site.
+	 */
+	size ::= argsType sizes lower bound;
+	Assert size = argsType sizes upper bound;
+	if blkType arguments type sizes not = argsType sizes then [
+		Fail parse "Argument count could not be determined statically.";];
+	1 to size all [i : natural number |
+		argsType[i] <= blkType[i];];
 ] : boolean
-returns [blkType : generalizedClosureType, argsType : tupleType |
+returns [blkType : closureType, argsType : tupleType |
 	blkType result;
 ];
 

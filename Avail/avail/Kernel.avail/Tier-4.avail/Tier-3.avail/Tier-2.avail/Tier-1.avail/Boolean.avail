@@ -46,8 +46,7 @@ Names
 	"_|_",
 	"not_",
 	"_xor_",
-	"_not=_",
-	"Assert_"
+	"_not=_"
 Body
 
 
@@ -227,19 +226,6 @@ Method "_not=_" is [a : all, b : all |
 	not a = b;
 ] : boolean;
 
-
-
-/* Runtime assertions... */
-
-Abstract method "Assert_" for [boolean]->void;
-
-Method "Assert_" is [b : trueType |
-	/* Do nothing - the assertion is true. */
-];
-
-Method "Assert_" is [b : falseType |
-	Crash "A runtime assertion has failed";
-];
 
 
 

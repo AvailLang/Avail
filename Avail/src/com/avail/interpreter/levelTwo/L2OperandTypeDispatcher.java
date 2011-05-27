@@ -48,4 +48,4 @@ interface L2OperandTypeDispatcher
 	void doReadVector();
 	void doWriteVector();
 	void doReadWriteVector();
-};
+}

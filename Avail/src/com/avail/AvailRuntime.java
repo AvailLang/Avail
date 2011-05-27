@@ -118,7 +118,7 @@ public final class AvailRuntime
 		specialObjects[1] = ALL.o();
 		specialObjects[2] = BOOLEAN_TYPE.o();
 		specialObjects[3] = CHARACTER.o();
-		specialObjects[4] = CLOSURE.o();
+		specialObjects[4] = ClosureTypeDescriptor.forReturnType(VOID_TYPE.o());
 		specialObjects[5] = CLOSURE_TYPE.o();
 		specialObjects[6] = COMPILED_CODE.o();
 		specialObjects[7] = CONTAINER.o();
@@ -131,7 +131,7 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable();
 		specialObjects[14] = FALSE_TYPE.o();
 		specialObjects[15] = FLOAT.o();
-		specialObjects[16] = GENERALIZED_CLOSURE_TYPE.o();
+		//16
 		specialObjects[17] =
 			IntegerRangeTypeDescriptor.integers().makeImmutable();
 		specialObjects[18] = INTEGER_TYPE.o();

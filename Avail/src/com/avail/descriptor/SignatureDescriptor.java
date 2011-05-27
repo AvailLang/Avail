@@ -144,26 +144,34 @@ extends Descriptor
 	public void o_EnsureMetacovariant (
 		final @NotNull AvailObject object)
 	{
-		//  Make sure my requires clauses and returns clauses are expecting the
-		//  right types, based on the declaration of the body.  Defaulted here, but
-		//  subclasses may need to override.
+		// Make sure my requires clauses and returns clauses are expecting the
+		// right types, based on the declaration of the body.  Defaulted here,
+		// but subclasses may need to override.
 
 		final AvailObject sig = object.bodySignature();
-		final AvailObject req = object.requiresBlock().type();
-		final AvailObject ret = object.returnsBlock().type();
-		assert req.numArgs() == sig.numArgs() : "Wrong number of arguments in requires block";
-		assert ret.numArgs() == sig.numArgs() : "Wrong number of arguments in returns block.";
-		assert req.returnType().isSubtypeOf(BOOLEAN_TYPE.o()) : "Wrong return type in requires block";
-		assert ret.returnType().isSubtypeOf(TYPE.o()) : "Wrong return type in returns block";
-		for (int i = 1, end = sig.numArgs(); i <= end; i++)
+		final AvailObject req = object.requiresBlock();
+		final AvailObject ret = object.returnsBlock();
+		final int numArgs = req.code().numArgs();
+		assert IntegerDescriptor.fromInt(numArgs).type().equals(
+			sig.argsTupleType().sizeRange())
+			: "Wrong number of arguments in requires block";
+		assert ret.code().numArgs() == numArgs
+			: "Wrong number of arguments in returns block.";
+		assert req.type().returnType().isSubtypeOf(BOOLEAN_TYPE.o())
+			: "Wrong return type in requires block";
+		assert ret.type().returnType().isSubtypeOf(TYPE.o())
+			: "Wrong return type in returns block";
+		for (int i = 1, end = numArgs; i <= end; i++)
 		{
-			final AvailObject bodyType = sig.argTypeAt(i);
+			final AvailObject bodyType = sig.argsTupleType().typeAtIndex(i);
 			final AvailObject bodyMeta = bodyType.type();
-			if (!bodyMeta.isSubtypeOf(req.argTypeAt(i)))
+			if (!bodyMeta.isSubtypeOf(
+				req.type().argsTupleType().typeAtIndex(i)))
 			{
 				error("Argument of requires clause was not metacovariant");
 			}
-			if (!bodyMeta.isSubtypeOf(ret.argTypeAt(i)))
+			if (!bodyMeta.isSubtypeOf(
+				ret.type().argsTupleType().typeAtIndex(i)))
 			{
 				error("Argument of returns clause was not metacovariant");
 			}

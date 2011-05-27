@@ -161,9 +161,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject aClosureType)
 	{
 		//  This primitive type is a supertype of aClosureType if and only if this
-		//  primitive type is a supertype of 'closure'.
+		//  primitive type is a supertype of 'all'.
 
-		return CLOSURE.o().isSubtypeOf(object);
+		return ALL.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -194,17 +194,6 @@ extends TypeDescriptor
 		//  Only the primitive type 'cyclicType' and its ancestors are ancestors of a cyclic type.
 
 		return CYCLIC_TYPE.o().isSubtypeOf(object);
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  This primitive type is a supertype of aGeneralizedClosureType if and only if this
-		//  primitive type is a supertype of all, the parent of '[...]->void'.
-
-		return ALL.o().isSubtypeOf(object);
 	}
 
 	@Override

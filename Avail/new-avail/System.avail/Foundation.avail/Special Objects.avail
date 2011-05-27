@@ -127,7 +127,6 @@ privateDouble                     ::= special object 12;
 privateExtendedInteger            ::= special object 13;
 privateFalseType                  ::= special object 14;
 privateFloat                      ::= special object 15;
-privateGeneralizedClosureMetatype ::= special object 16;
 privateInteger                    ::= special object 17;
 privateIntegerMetatype            ::= special object 18;
 privateMapMetatype                ::= special object 19;
@@ -405,16 +404,6 @@ Method "float" is
 [
 	privateFloat;
 ] : privatePrimitiveMetatype;
-
-/**
- * TODO: Really comment this!
- *
- * @returns The type {@code generalized closure metatype}.
- */
-Method "generalized closure metatype" is
-[
-	privateGeneralizedClosureMetatype;
-] : privateMeta;
 
 /**
  * TODO: Really comment this!

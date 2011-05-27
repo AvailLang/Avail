@@ -124,7 +124,12 @@ public enum AvailErrorCode
 	 * {@linkplain ContinuationDescriptor Continuation} expected a stronger
 	 * {@linkplain TypeDescriptor type}.
 	 */
-	E_CONTINUATION_EXPECTED_STRONGER_TYPE (14);
+	E_CONTINUATION_EXPECTED_STRONGER_TYPE (14),
+
+	/**
+	 * The primitive is not currently supported on this platform.
+	 */
+	E_PRIMITIVE_NOT_SUPPORTED (15);
 
 	/** The numeric error code. */
 	private final int code;

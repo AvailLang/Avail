@@ -292,7 +292,7 @@ extends Descriptor
 						bundle,
 						true);
 			}
-		};
+		}
 		filteredBundleTree.allBundles(filteredAllBundles);
 		filteredBundleTree.unclassified(filteredUnclassified);
 	}
@@ -454,7 +454,7 @@ extends Descriptor
 					}
 				}
 			}
-		};
+		}
 		object.unclassified(MapDescriptor.empty());
 		object.lazyComplete(complete);
 		object.lazyIncomplete(incomplete);
@@ -479,7 +479,7 @@ extends Descriptor
 		result.lazySpecialActions(MapDescriptor.empty());
 		result.makeImmutable();
 		return result;
-	};
+	}
 
 
 	/**

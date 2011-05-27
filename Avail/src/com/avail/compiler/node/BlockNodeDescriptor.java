@@ -39,6 +39,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ClosureTypeDescriptor.ObjectSlots;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -77,7 +78,14 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		 * {@linkplain BlockNodeDescriptor block node} has already been
 		 * created.
 		 */
-		NEEDED_VARIABLES
+		NEEDED_VARIABLES,
+
+		/**
+		 * The block's set of exception types that may be raised.  This set
+		 * <em>has not yet been normalized</em> (e.g., removing types that are
+		 * subtypes of types that are also present in the set).
+		 */
+		CHECKED_EXCEPTIONS
 	}
 
 	/**
@@ -96,17 +104,6 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Setter for field argumentsTuple.
-	 */
-	@Override
-	public void o_ArgumentsTuple (
-		final AvailObject object,
-		final AvailObject argumentsTuple)
-	{
-		object.objectSlotPut(ObjectSlots.ARGUMENTS_TUPLE, argumentsTuple);
-	}
-
-	/**
 	 * Getter for field argumentsTuple.
 	 */
 	@Override
@@ -117,17 +114,6 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Setter for field statementsTuple.
-	 */
-	@Override
-	public void o_StatementsTuple (
-		final AvailObject object,
-		final AvailObject statementsTuple)
-	{
-		object.objectSlotPut(ObjectSlots.STATEMENTS_TUPLE, statementsTuple);
-	}
-
-	/**
 	 * Getter for field statementsTuple.
 	 */
 	@Override
@@ -135,17 +121,6 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STATEMENTS_TUPLE);
-	}
-
-	/**
-	 * Setter for field resultType.
-	 */
-	@Override
-	public void o_ResultType (
-		final AvailObject object,
-		final AvailObject resultType)
-	{
-		object.objectSlotPut(ObjectSlots.RESULT_TYPE, resultType);
 	}
 
 	/**
@@ -180,15 +155,15 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Setter for field primitive.
+	 * Getter for field checkedExceptions.
 	 */
 	@Override
-	public void o_Primitive (
-		final AvailObject object,
-		final int primitive)
+	public @NotNull AvailObject o_CheckedExceptions (
+		final @NotNull AvailObject object)
 	{
-		object.integerSlotPut(IntegerSlots.PRIMITIVE, primitive);
+		return object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS);
 	}
+
 
 	/**
 	 * Getter for field primitive.
@@ -376,7 +351,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(arguments.tupleAt(i)),
 				true);
 		}
-		object.argumentsTuple(arguments);
+		object.objectSlotPut(ObjectSlots.ARGUMENTS_TUPLE, arguments);
 		AvailObject statements = object.statementsTuple();
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
@@ -385,7 +360,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(statements.tupleAt(i)),
 				true);
 		}
-		object.statementsTuple(statements);
+		object.objectSlotPut(ObjectSlots.STATEMENTS_TUPLE, statements);
 	}
 
 
@@ -394,11 +369,11 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		for (AvailObject argument : object.argumentsTuple())
+		for (final AvailObject argument : object.argumentsTuple())
 		{
 			aBlock.value(argument);
 		}
-		for (AvailObject statement : object.statementsTuple())
+		for (final AvailObject statement : object.statementsTuple())
 		{
 			aBlock.value(statement);
 		}
@@ -439,7 +414,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			locals(object),
 			labels(object),
 			object.neededVariables(),
-			object.resultType());
+			object.resultType(),
+			object.checkedExceptions());
 		codeGenerator.stackShouldBeEmpty();
 		codeGenerator.primitive(object.primitive());
 		codeGenerator.stackShouldBeEmpty();
@@ -481,27 +457,33 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * Construct a {@linkplain BlockNodeDescriptor block node}.
 	 *
 	 * @param argumentsList
-	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *        DeclarationNodeDescriptor argument declarations}.
+	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *            DeclarationNodeDescriptor argument declarations}.
 	 * @param primitive
-	 *        The index of the primitive that the resulting block will invoke.
+	 *            The index of the primitive that the resulting block will
+	 *            invoke.
 	 * @param statementsList
-	 *        The {@linkplain TupleDescriptor tuple} of statement {@linkplain
-	 *        ParseNodeDescriptor nodes}.
+	 *            The {@linkplain TupleDescriptor tuple} of statement
+	 *            {@linkplain ParseNodeDescriptor nodes}.
 	 * @param resultType
-	 *        The {@linkplain TypeDescriptor type} that will be returned by the
-	 *        block.
-	 * @return A block node.
+	 *            The {@linkplain TypeDescriptor type} that will be returned by
+	 *            the block.
+	 * @param checkedExceptions
+	 *            The {@linkplain SetDescriptor set} of exception types that may
+	 *            be raised by this block.  <em>This is not yet normalized.</em>
+	 * @return
+	 *            A block node.
 	 */
 	public static AvailObject newBlockNode (
 		final List<AvailObject> argumentsList,
 		final int primitive,
 		final List<AvailObject> statementsList,
-		final AvailObject resultType)
+		final AvailObject resultType,
+		final AvailObject checkedExceptions)
 	{
 		final List<AvailObject> flattenedStatements =
 			new ArrayList<AvailObject>(statementsList.size() + 3);
-		for (AvailObject statement : statementsList)
+		for (final AvailObject statement : statementsList)
 		{
 			statement.flattenStatementsInto(flattenedStatements);
 		}
@@ -516,11 +498,24 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 		}
 		final AvailObject block = mutable().create();
-		block.argumentsTuple(TupleDescriptor.fromList(argumentsList));
-		block.primitive(primitive);
-		block.statementsTuple(TupleDescriptor.fromList(flattenedStatements));
-		block.resultType(resultType);
-		block.neededVariables(VoidDescriptor.voidObject());
+		block.objectSlotPut(
+			ObjectSlots.ARGUMENTS_TUPLE,
+			TupleDescriptor.fromList(argumentsList));
+		block.integerSlotPut(
+			IntegerSlots.PRIMITIVE,
+			primitive);
+		block.objectSlotPut(
+			ObjectSlots.STATEMENTS_TUPLE,
+			TupleDescriptor.fromList(flattenedStatements));
+		block.objectSlotPut(
+			ObjectSlots.RESULT_TYPE,
+			resultType);
+		block.objectSlotPut(
+			ObjectSlots.NEEDED_VARIABLES,
+			VoidDescriptor.voidObject());
+		block.objectSlotPut(
+			ObjectSlots.CHECKED_EXCEPTIONS,
+			checkedExceptions);
 		block.makeImmutable();
 		return block;
 

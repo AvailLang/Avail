@@ -54,24 +54,27 @@ Body
 
 
 
-/* Private utility methods for type extraction.  It will be defined in all its glory
-   later, using the method-defining methods defined in this module. */
-
+/**
+ * Private utility methods for type extraction.  It will be defined in all its
+ * glory later, using the method-defining methods defined in this module.
+ */
 Method "_basicType" is [a : all |
 	Primitive 30;
 ] : type;
 
 
-/* Private utility methods for type extraction.  This allows us to avoid a
-   supercast in the "_basicType" for closures that we haven't defined yet. */
-
+/**
+ * Private utility methods for type extraction.  This allows us to avoid a
+ * supercast in the "_basicType" for closures that we haven't defined yet.
+ */
 Method "_basicBasicType" is [a : all |
 	Primitive 30;
 ] : type;
 
 
-/* Private - override to support metacovariance in closure types... */
-
+/**
+ * Private - override to support metacovariance in closure types...
+ */
 Method "_basicType" is [c : [...]-> void |
 	weak ::= c basicBasicType;
 	strong : closureType;
@@ -158,7 +161,7 @@ is [
 	Method name
 	is body
 	requires requires
-	returns stub for ||body basicType|| arguments
+	returns stub for body argument count arguments
 		returning type (body basicType result);
 ];
 
@@ -169,7 +172,7 @@ is [
 		returns : [...]-> type |
 	Method name
 	is body
-	requires stub for ||body basicType|| arguments returning true
+	requires stub for body argument count arguments returning true
 	returns returns;
 ];
 
@@ -209,8 +212,8 @@ Method "Abstract method_for_returns_requires_" is [
 		requires : [...]-> boolean |
 	/* Switch the returns and requires clause order for convenience. */
 	Abstract method name for bodyType
-		requires stub for ||bodyType|| arguments returning true
-		returns stub for ||bodyType|| arguments returning type (bodyType result);
+		requires stub for bodyType argument count arguments returning true
+		returns stub for bodyType argument count arguments returning type (bodyType result);
 ] : void;
 
 Method "Abstract method_for_returns_" is [
@@ -219,7 +222,7 @@ Method "Abstract method_for_returns_" is [
 		returns : [...]-> type |
 	/* Allow returns clause to be specified while omitting the requires clause. */
 	Abstract method name for bodyType
-		requires stub for ||bodyType|| arguments returning true
+		requires stub for bodyType argument count arguments returning true
 		returns returns;
 ] : void;
 
@@ -230,7 +233,7 @@ Method "Abstract method_for_requires_" is [
 	/* Allow requires clause to be specified while omitting the returns clause. */
 	Abstract method name for bodyType
 		requires requires
-		returns stub for ||bodyType|| arguments returning type (bodyType result);
+		returns stub for bodyType argument count arguments returning type (bodyType result);
 ] : void;
 
 Method "Abstract method_for_" is [
@@ -238,8 +241,8 @@ Method "Abstract method_for_" is [
 		bodyType : closureType |
 	/* Declare an abstract method with no specified returns clause or requires clause. */
 	Abstract method name for bodyType
-		requires stub for ||bodyType|| arguments returning true
-		returns stub for ||bodyType|| arguments returning type (bodyType result);
+		requires stub for bodyType argument count arguments returning true
+		returns stub for bodyType argument count arguments returning type (bodyType result);
 ] : void;
 
 

@@ -59,7 +59,7 @@ returns [aT : type |
 Method "_type" is [c : closure |
 	Primitive 30;
 ] : type
-returns [cT : closure type |
+returns [cT : closureType |
 	/* Even with metacovariance, we have to specialize to express the fact
 	   that every closure has an instance of closureType as its type. */
 	closureType;

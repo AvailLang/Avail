@@ -36,7 +36,7 @@ Uses
 	"Tier-0",
 	"Integer"
 Names
-	"||_||",
+	"_arguments type",
 	"_[_]",
 	"_result",
 	"block type taking_and returning_",
@@ -45,20 +45,19 @@ Names
 	"stub block taking_arguments and returning_",
 	"_compiledCode",
 	"_outerVars",
+	"_argument count",
 	"closure from_outer variables_"
 Body
 
 
 
 /**
- * Answer a generalized closure type.  It will be a supertype of []->result,
- * [terminates]->result, [terminates, terminates]->result, etc.  It will also be
- * a subtype of generalizedClosure, but not a subtype of closure.  Its type will
- * be generalizedClosureType.
+ * Answer a closure type that includes as instances all closures that have the
+ * specified return type.
  */
 Method "[...]->_" is [result : type |
 	Primitive 39;
-] : generalizedClosureType;
+] : closureType;
 
 /**
  * Private method declaration helper (bootstrapping workaround).
@@ -89,9 +88,9 @@ returns [tt : tupleType |
 
 /* Block type constructors / extractors... */
 
-Method "||_||" is [ct : closureType |
+Method "_arguments type" is [ct : closureType |
 	Primitive 35;
-] : whole number;
+] : tupleType;
 
 Method "_[_]" is [ct : closureType, index : natural number |
 	Primitive 36 (failureCode : natural number);
@@ -100,9 +99,9 @@ Method "_[_]" is [ct : closureType, index : natural number |
 
 
 /**
- * Answer the return result type for this generalized closure type.
+ * Answer the return result type for this closure type.
  */
-Method "_result" is [ct : generalizedClosureType |
+Method "_result" is [ct : closureType |
 	Primitive 37;
 ] : type;
 
@@ -134,6 +133,41 @@ Method "stub block taking_arguments and returning_" is [
 Method "_compiledCode" is [c : closure |
 	Primitive 72;
 ] : compiledCode;
+
+Method "_privateNumArgs" is [c : compiledCode |
+	Primitive 180;
+] : whole number;
+
+Method "_argument count" is [c : closure |
+	c compiledCode privateNumArgs;
+] : whole number;
+
+Method "_privateSizes" is [tt : tupleType |
+	Primitive 138;
+] : integerType;
+
+Method "_privateLowerBound" is [range : integerType |
+	Primitive 8;
+] : extended integer;
+
+Method "_privateUpperBound" is [range : integerType |
+	Primitive 9;
+] : extended integer;
+
+/* Here's the implementation of the conditional downcast */
+Method "Private*_?:=_" is [var : container, arg : all |
+	Primitive 11 (failureCode : natural number);
+	Failed;
+] : void;
+
+Method "_argument count" is [c : closureType |
+	argTypes ::= c arguments type;
+	sizes ::= argTypes privateSizes;
+	Assert sizes privateLowerBound = sizes privateUpperBound;
+	result : whole number;
+	Private *&result ?:= sizes privateLowerBound;
+	result;
+] : whole number;
 
 Method "_outerVars" is [c : closure |
 	Primitive 73;

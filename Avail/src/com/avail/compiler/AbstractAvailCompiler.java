@@ -162,6 +162,7 @@ public abstract class AbstractAvailCompiler
 		OPEN_SQUARE("[", OPERATOR),
 		CLOSE_SQUARE("]", OPERATOR),
 		VERTICAL_BAR("|", OPERATOR),
+		CARET("^", OPERATOR),
 
 		OPEN_PARENTHESIS("(", OPERATOR),
 		CLOSE_PARENTHESIS(")", OPERATOR),
@@ -202,7 +203,7 @@ public abstract class AbstractAvailCompiler
 		final @NotNull L2Interpreter interpreter,
 		final boolean stopAfterNamesToken)
 	{
-		AvailRuntime runtime = interpreter.runtime();
+		final AvailRuntime runtime = interpreter.runtime();
 		final ResolvedModuleName resolvedName =
 			runtime.moduleNameResolver().resolve(qualifiedName);
 		final String source = extractSource(qualifiedName, resolvedName);
@@ -1111,7 +1112,8 @@ public abstract class AbstractAvailCompiler
 			Collections.<AvailObject>emptyList(),
 			(short) 0,
 			Collections.singletonList(expressionNode),
-			VOID_TYPE.o());
+			VOID_TYPE.o(),
+			SetDescriptor.empty());
 		validate(block);
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = block.generate(codeGenerator);

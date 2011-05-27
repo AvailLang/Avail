@@ -94,72 +94,115 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Check if object and another are equal.  Since object is an {@linkplain
+	 * ApproximateTypeDescriptor approximate type}, there are two choices for
+	 * how to proceed.  If the object's {@linkplain ObjectSlots#INSTANCE
+	 * instance} claims it {@linkplain AvailObject#canComputeHashOfType() can
+	 * safely compute the hash of the type}, then it must also support the
+	 * {@link AvailObject#hashOfType()} and {@link
+	 * AvailObject#typeEquals(AvailObject)} messages without creating any
+	 * instances.  Otherwise, I must create the exact type and let it do the
+	 * equality check.
+	 * </p>
+	 */
 	@Override
 	public boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Check if object and another are equal.  Since I'm an ApproximateType, I have two
-		//  choices for how to proceed.  If my instance claims it canComputeHashOfType, then
-		//  it must also support the hashOfType: and typeEquals: messages without creating
-		//  any instances.  Otherwise, I must create the exact type and let it do the equality
-		//  check.
-
 		final AvailObject inst = object.instance();
-		return inst.canComputeHashOfType() ? inst.typeEquals(another) : object.becomeExactType().equals(another);
+		return inst.canComputeHashOfType()
+			? inst.typeEquals(another)
+			: object.becomeExactType().equals(another);
 	}
 
+	/**
+	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined
+	 * object}.  See if it is an instance of the object.
+	 */
 	@Override
 	public boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance)
 	{
-		//  The potentialInstance is a user-defined object.  See if it is an instance of me.
-
 		return object.becomeExactType().hasObjectInstance(potentialInstance);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Given two objects that are known to be equal, is the first one in a
+	 * better form (more compact, more efficient, older generation) than the
+	 * second one?
+	 *</p>
+	 *
+	 * <p>
+	 * This representation is quick for some things, but if a more 'solid' form
+	 * exists, use it.
+	 * </p>
+	 */
 	@Override
 	public boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
-		//  Given two objects that are known to be equal, is the first one in a better form (more
-		//  compact, more efficient, older generation) than the second one?
-
-		//  I'm quick for some things, but if a more 'solid' object exists, use it.
 		return false;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Given two objects that are known to be equal, the second of which is in
+	 * the form of a tuple type, is the first one in a better form than the
+	 * second one?
+	 * </p>
+	 *
+	 * <p>
+	 * This representation isn't a very efficient alternative representation of
+	 * a tuple type.
+	 * </p>
+	 */
 	@Override
 	public boolean o_IsBetterRepresentationThanTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Given two objects that are known to be equal, the second of which is in the form of
-		//  a tuple type, is the first one in a better form than the second one?
-
-		//  I'm not a very efficient alternative representation of a tuple type.
 		return false;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Transform the object into an indirection to its exact equivalent.
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_BecomeExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Transform object into an indirection to its exact equivalent.
-
 		final AvailObject exact = object.instance().exactType();
 		object.becomeIndirectionTo(exact);
 		return exact;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer this object's exact type, which will be a meta.
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_ExactType (
 		final @NotNull AvailObject object)
 	{
-		//  Answer this object's type (which will be a meta).
-
 		return object.becomeExactType().exactType();
 	}
 
@@ -167,32 +210,41 @@ extends TypeDescriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit hash value that is always the same for equal objects, but
-		//  statistically different for different objects.
-
 		final AvailObject inst = object.instance();
-		return inst.canComputeHashOfType() ? inst.hashOfType() : object.becomeExactType().hash();
+		return inst.canComputeHashOfType()
+			? inst.hashOfType()
+				: object.becomeExactType().hash();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer whether this object's hash value can be computed without creating
+	 * new objects.  This method is used by the garbage collector to decide
+	 * which objects to attempt to coalesce.  The garbage collector uses the
+	 * hash values to find objects that it is likely can be coalesced together.
+	 * We ask our instance if it can compute #hashOfType or not.
+	 * </p>
+	 */
 	@Override
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.  We ask our instance
-		//  if it can compute #hashOfType or not.
-
 		return object.instance().canComputeHashOfType();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer this object's type, which will be a meta.
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer this object's type (which will be a meta).
-
 		return object.becomeExactType().type();
 	}
 
@@ -203,7 +255,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aClosureType) : object.becomeExactType().equalsClosureType(aClosureType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(aClosureType)
+			: object.becomeExactType().equalsClosureType(aClosureType);
 	}
 
 	@Override
@@ -211,7 +265,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aContainerType) : object.becomeExactType().equalsContainerType(aContainerType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(aContainerType)
+			: object.becomeExactType().equalsContainerType(aContainerType);
 	}
 
 	@Override
@@ -219,8 +275,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Continuation types compare for equality by comparing their closureTypes.
-
 		if (object.sameAddressAs(aType))
 		{
 			return true;
@@ -229,21 +283,14 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_EqualsGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  This is always false here, but we can leave that to the type propagating Java VM generator to deduce.
-
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aGeneralizedClosureType) : object.becomeExactType().equalsGeneralizedClosureType(aGeneralizedClosureType);
-	}
-
-	@Override
 	public boolean o_EqualsIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(anIntegerRangeType) : object.becomeExactType().equalsIntegerRangeType(anIntegerRangeType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(anIntegerRangeType)
+			: object.becomeExactType().equalsIntegerRangeType(
+				anIntegerRangeType);
 	}
 
 	@Override
@@ -251,7 +298,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aMapType) : object.becomeExactType().equalsMapType(aMapType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(aMapType)
+			: object.becomeExactType().equalsMapType(aMapType);
 	}
 
 	@Override
@@ -259,7 +308,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aPrimitiveType) : object.becomeExactType().equalsPrimitiveType(aPrimitiveType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(aPrimitiveType)
+			: object.becomeExactType().equalsPrimitiveType(aPrimitiveType);
 	}
 
 	@Override
@@ -267,7 +318,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aSetType) : object.becomeExactType().equalsSetType(aSetType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(aSetType)
+			: object.becomeExactType().equalsSetType(aSetType);
 	}
 
 	@Override
@@ -275,7 +328,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		return object.instance().canComputeHashOfType() ? object.instance().typeEquals(aTupleType) : object.becomeExactType().equalsTupleType(aTupleType);
+		return object.instance().canComputeHashOfType()
+			? object.instance().typeEquals(aTupleType)
+			: object.becomeExactType().equalsTupleType(aTupleType);
 	}
 
 	@Override
@@ -283,8 +338,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfClosureType(aClosureType);
 	}
 
@@ -293,9 +347,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
-		return object.becomeExactType().isSupertypeOfContainerType(aContainerType);
+		// Redirect it to the exact type to be more precise.
+		return object.becomeExactType().isSupertypeOfContainerType(
+			aContainerType);
 	}
 
 	@Override
@@ -303,19 +357,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCyclicType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfCyclicType(aCyclicType);
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Redirect it to the exact type to be more precise.
-
-		return object.becomeExactType().isSupertypeOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
 	@Override
@@ -323,13 +366,14 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		if (object.instance().isExtendedInteger())
 		{
-			return anIntegerRangeType.lowerBound().equals(object.instance()) && anIntegerRangeType.upperBound().equals(object.instance());
+			return anIntegerRangeType.lowerBound().equals(object.instance())
+				&& anIntegerRangeType.upperBound().equals(object.instance());
 		}
-		return object.becomeExactType().isSupertypeOfIntegerRangeType(anIntegerRangeType);
+		return object.becomeExactType().isSupertypeOfIntegerRangeType(
+			anIntegerRangeType);
 	}
 
 	@Override
@@ -337,8 +381,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfMapType(aMapType);
 	}
 
@@ -347,8 +390,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectMeta)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfObjectMeta(anObjectMeta);
 	}
 
@@ -357,8 +399,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfObjectType(anObjectType);
 	}
 
@@ -367,9 +408,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
-		return object.becomeExactType().isSupertypeOfPrimitiveType(aPrimitiveType);
+		// Redirect it to the exact type to be more precise.
+		return object.becomeExactType().isSupertypeOfPrimitiveType(
+			aPrimitiveType);
 	}
 
 	@Override
@@ -377,8 +418,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfSetType(aSetType);
 	}
 
@@ -387,8 +427,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Redirect it to the exact type to be more precise.
-
+		// Redirect it to the exact type to be more precise.
 		return object.becomeExactType().isSupertypeOfTupleType(aTupleType);
 	}
 
@@ -397,8 +436,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
 		return object.becomeExactType().typeIntersection(another);
 	}
 
@@ -407,9 +446,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfClosureType(aClosureType);
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return object.becomeExactType().typeIntersectionOfClosureType(
+			aClosureType);
 	}
 
 	@Override
@@ -417,9 +457,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfContainerType(aContainerType);
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return object.becomeExactType().typeIntersectionOfContainerType(
+			aContainerType);
 	}
 
 	@Override
@@ -427,19 +468,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCyclicType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfCyclicType(aCyclicType);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfGeneralizedClosureType(aGeneralizedClosureType);
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return object.becomeExactType().typeIntersectionOfCyclicType(
+			aCyclicType);
 	}
 
 	@Override
@@ -447,9 +479,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfIntegerRangeType(anIntegerRangeType);
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return object.becomeExactType()
+			.typeIntersectionOfIntegerRangeType(anIntegerRangeType);
 	}
 
 	@Override
@@ -457,8 +490,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
 		return object.becomeExactType().typeIntersectionOfMapType(aMapType);
 	}
 
@@ -467,10 +500,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject someMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-		//  Since metas intersect at terminatesType rather than terminates, we must
-		//  be very careful to override this properly.
-
+		// Answer the most general type that is still at least as specific as
+		// these.  Since metas intersect at terminatesType rather than
+		// terminates, we must be very careful to override this properly.
 		return object.becomeExactType().typeIntersectionOfMeta(someMeta);
 	}
 
@@ -479,9 +511,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectMeta)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfObjectMeta(anObjectMeta);
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return object.becomeExactType().typeIntersectionOfObjectMeta(
+			anObjectMeta);
 	}
 
 	@Override
@@ -489,9 +522,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
-		return object.becomeExactType().typeIntersectionOfObjectType(anObjectType);
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return object.becomeExactType().typeIntersectionOfObjectType(
+			anObjectType);
 	}
 
 	@Override
@@ -499,8 +533,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
 		return object.becomeExactType().typeIntersectionOfSetType(aSetType);
 	}
 
@@ -509,8 +543,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Answer the most general type that is still at least as specific as these.  Make it exact first.
-
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
 		return object.becomeExactType().typeIntersectionOfTupleType(aTupleType);
 	}
 
@@ -519,8 +553,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that still includes both of these.  Make it exact first.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnion(another);
 	}
 
@@ -529,8 +563,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfClosureType(aClosureType);
 	}
 
@@ -539,9 +573,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		return object.becomeExactType().typeUnionOfContainerType(aContainerType);
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
+		return object.becomeExactType().typeUnionOfContainerType(
+			aContainerType);
 	}
 
 	@Override
@@ -549,19 +584,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCyclicType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfCyclicType(aCyclicType);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		return object.becomeExactType().typeUnionOfGeneralizedClosureType(aGeneralizedClosureType);
 	}
 
 	@Override
@@ -569,9 +594,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		return object.becomeExactType().typeUnionOfIntegerRangeType(anIntegerRangeType);
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
+		return object.becomeExactType().typeUnionOfIntegerRangeType(
+			anIntegerRangeType);
 	}
 
 	@Override
@@ -579,8 +605,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfMapType(aMapType);
 	}
 
@@ -589,8 +615,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectMeta)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfObjectMeta(anObjectMeta);
 	}
 
@@ -599,8 +625,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfObjectType(anObjectType);
 	}
 
@@ -609,8 +635,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfSetType(aSetType);
 	}
 
@@ -619,8 +645,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
+		// Answer the most specific type that still includes both of these.
+		// Make it exact first.
 		return object.becomeExactType().typeUnionOfTupleType(aTupleType);
 	}
 
@@ -631,7 +657,6 @@ extends TypeDescriptor
 		return object.becomeExactType().fieldTypeMap();
 	}
 
-	// operations-integer range
 
 	@Override
 	public @NotNull AvailObject o_LowerBound (
@@ -677,18 +702,15 @@ extends TypeDescriptor
 		return object.becomeExactType().upperInclusive();
 	}
 
-	// operations-tupleType
 
 	@Override
 	public @NotNull AvailObject o_TypeAtIndex (
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  This is only intended for a TupleType stand-in.
-		//
-		//  Answer what type the given index would have in an object instance of me.  Answer
-		//  terminates if the index is out of bounds.
-
+		// This is only intended for a TupleType stand-in.  Answer what type the
+		// given index would have in an object instance of me.  Answer
+		// terminates if the index is out of bounds.
 		if (!object.isTupleType())
 		{
 			error("Don't send typeAtIndex: to a non-tupleType", object);
@@ -707,10 +729,10 @@ extends TypeDescriptor
 		final int startIndex,
 		final int endIndex)
 	{
-		//  Answer the union of the types that object's instances could have in the
-		//  given range of indices.  Out-of-range indices are treated as terminates,
-		//  which don't affect the union (unless all indices are out of range).
-
+		// Answer the union of the types that object's instances could have in
+		// the given range of indices.  Out-of-range indices are treated as
+		// terminates, which don't affect the union (unless all indices are out
+		// of range).
 		assert startIndex <= endIndex;
 		assert object.isTupleType();
 		if (startIndex == endIndex)
@@ -770,9 +792,8 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_TypeTuple (
 		final @NotNull AvailObject object)
 	{
-		//  I can't keep pretending forever.  The encapsulation of tupleType has leaked enough
-		//  already.  Fault in the real type.
-
+		// I can't keep pretending forever.  The encapsulation of tupleType has
+		// leaked enough already.  Fault in the real type.
 		return object.becomeExactType().typeTuple();
 	}
 
@@ -783,8 +804,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
+		// Check if object (a type) is a subtype of aType (should also be a
+		// type).
 		return object.instance().isInstanceOfSubtypeOf(aType);
 	}
 
@@ -825,10 +846,10 @@ extends TypeDescriptor
 	 */
 	static AvailObject withInstance (final AvailObject instance)
 	{
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.instance(instance.makeImmutable());
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ApproximateTypeDescriptor}.
@@ -845,7 +866,8 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link ApproximateTypeDescriptor}.
 	 */
-	private final static ApproximateTypeDescriptor mutable = new ApproximateTypeDescriptor(true);
+	private final static ApproximateTypeDescriptor mutable =
+		new ApproximateTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ApproximateTypeDescriptor}.
@@ -860,7 +882,8 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link ApproximateTypeDescriptor}.
 	 */
-	private final static ApproximateTypeDescriptor immutable = new ApproximateTypeDescriptor(false);
+	private final static ApproximateTypeDescriptor immutable =
+		new ApproximateTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ApproximateTypeDescriptor}.

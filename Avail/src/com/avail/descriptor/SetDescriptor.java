@@ -512,7 +512,7 @@ public class SetDescriptor extends Descriptor
 		{
 			throw new UnsupportedOperationException();
 		}
-	};
+	}
 
 	/**
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -575,7 +575,7 @@ public class SetDescriptor extends Descriptor
 	public static AvailObject empty ()
 	{
 		return EmptySet;
-	};
+	}
 
 	/**
 	 * Construct a new {@link ObjectMetaMetaDescriptor}.

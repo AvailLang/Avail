@@ -296,7 +296,7 @@ extends Descriptor
 				aStream.appendCodePoint(codePoint);
 				aStream.append('\'');
 		}
-	};
+	}
 
 	/**
 	 * Construct a new {@link CharacterDescriptor}.

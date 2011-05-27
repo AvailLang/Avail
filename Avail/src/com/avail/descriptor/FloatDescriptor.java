@@ -132,7 +132,7 @@ extends Descriptor
 			IntegerSlots.RAW_INT,
 			Float.floatToRawIntBits(aFloat));;
 		return result;
-	};
+	}
 
 	/**
 	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
@@ -162,7 +162,7 @@ extends Descriptor
 			IntegerSlots.RAW_INT,
 			Float.floatToRawIntBits(aFloat));
 		return result;
-	};
+	}
 
 	/**
 	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
@@ -199,7 +199,7 @@ extends Descriptor
 			IntegerSlots.RAW_INT,
 			Float.floatToRawIntBits(aFloat));
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link FloatDescriptor}.

@@ -56,7 +56,7 @@ Method "_curry_" is [block : closure, arg : all |
 		to [args : tuple | block2 apply <arg> then args;]
 		and argument tuple returning (bt result);
 ] : closure
-requires [cT : closure type, aT : type |
+requires [cT : closureType, aT : type |
 	/* Requires block to take one or more arguments, and for first argument
 	   type to agree with the passed argument.  */
 	cast cT into [cT2 : closureType |
@@ -65,7 +65,7 @@ requires [cT : closure type, aT : type |
 		false;
 	];
 ]
-returns [cT : closure type, aT : type |
+returns [cT : closureType, aT : type |
 	cast cT into [cT2 : closureType |
 		block type taking 2 to ||cT2|| collect [i : natural number | cT2[i];]
 			and returning (cT2 result);
@@ -90,7 +90,7 @@ Method "_taking arguments tupled" is [block : closure |
 		] and argument tuple returning block type result;
 	cast result into [x : [terminates]->void | x;];
 ] : [terminates]->void
-returns [ct : closure type |
+returns [ct : closureType |
 	cast ct into [ct2 : closureType |
 		block type taking
 			<tuple like 1 to ||ct2|| collect [i : natural number | ct2[i];]>
@@ -198,7 +198,7 @@ Method "_curried" is [blk : closure |
 	blkTupled ::= blk taking arguments tupled;
 	blkTupled curry of tupled block;
 ] : [terminates]->void
-requires [ct : closure type |
+requires [ct : closureType |
 	/* Require static knowledge of the block's type, to statically prevent the
 	   use of a 0-argument block. */
 	cast ct into [ct2 : closureType |
@@ -208,7 +208,7 @@ requires [ct : closure type |
 		false;
 	];
 ]
-returns [ct : closure type |
+returns [ct : closureType |
 	cast ct into [ct2 : closureType |
 		blkType : type := ct2 result;
 		count : integer := ||ct2||;

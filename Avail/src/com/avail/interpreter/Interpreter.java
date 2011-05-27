@@ -193,15 +193,8 @@ public abstract class Interpreter
 		{
 			final AvailObject existingType =
 				impsTuple.tupleAt(i).bodySignature();
-			boolean same = true;
-			for (int k = 1, end2 = bodySignature.numArgs(); k <= end2; k++)
-			{
-				if (!existingType.argTypeAt(k).equals(
-					bodySignature.argTypeAt(k)))
-				{
-					same = false;
-				}
-			}
+			final boolean same = existingType.argsTupleType().equals(
+				bodySignature.argsTupleType());
 			if (same)
 			{
 				error(
@@ -248,7 +241,7 @@ public abstract class Interpreter
 		final AvailObject methodName,
 		final AvailObject method)
 	{
-		final int numArgs = method.type().numArgs();
+		final int numArgs = method.code().numArgs();
 		final AvailObject returnsBlock =
 			ClosureDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
@@ -284,7 +277,7 @@ public abstract class Interpreter
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
-		assert macroBody.type().numArgs() == numArgs
+		assert macroBody.code().numArgs() == numArgs
 		: "Wrong number of arguments in macro definition";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
@@ -296,18 +289,11 @@ public abstract class Interpreter
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		final AvailObject macroBodyType = macroBody.type();
-		for (AvailObject existingImp : imps.implementationsTuple())
+		for (final AvailObject existingImp : imps.implementationsTuple())
 		{
 			final AvailObject existingType = existingImp.bodySignature();
-			boolean same = true;
-			for (int k = 1, end = macroBodyType.numArgs(); k <= end; k++)
-			{
-				if (!existingType.argTypeAt(k).equals(
-					macroBodyType.argTypeAt(k)))
-				{
-					same = false;
-				}
-			}
+			final boolean same = existingType.argsTupleType().equals(
+				macroBodyType.argsTupleType());
 			if (same)
 			{
 				error("Attempted to redefine macro with same argument types");
@@ -386,15 +372,8 @@ public abstract class Interpreter
 		for (final AvailObject existingImp : impsTuple)
 		{
 			final AvailObject existingType = existingImp.bodySignature();
-			boolean same = true;
-			for (int k = 1, end = bodySignature.numArgs(); k <= end; k++)
-			{
-				if (!existingType.argTypeAt(k).equals(
-					bodySignature.argTypeAt(k)))
-				{
-					same = false;
-				}
-			}
+			final boolean same = existingType.argsTupleType().equals(
+				bodySignature.argsTupleType());
 			if (same)
 			{
 				if (existingImp.isForward())
@@ -463,7 +442,13 @@ public abstract class Interpreter
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
-		assert bodySignature.numArgs() == numArgs
+		final AvailObject bodyArgsSizes =
+			bodySignature.argsTupleType().sizeRange();
+		assert bodyArgsSizes.lowerBound().equals(
+			IntegerDescriptor.fromInt(numArgs))
+		: "Wrong number of arguments in abstract method signature";
+		assert bodyArgsSizes.upperBound().equals(
+			IntegerDescriptor.fromInt(numArgs))
 		: "Wrong number of arguments in abstract method signature";
 		assert requiresBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in abstract method type verifier";
@@ -485,18 +470,11 @@ public abstract class Interpreter
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		AvailObject forward = null;
-		for (AvailObject existingImp : imps.implementationsTuple())
+		for (final AvailObject existingImp : imps.implementationsTuple())
 		{
 			final AvailObject existingType = existingImp.bodySignature();
-			boolean same = true;
-			for (int k = 1, end = bodySignature.numArgs(); k <= end; k++)
-			{
-				if (!existingType.argTypeAt(k).equals(
-					bodySignature.argTypeAt(k)))
-				{
-					same = false;
-				}
-			}
+			final boolean same = existingType.argsTupleType().equals(
+				bodySignature.argsTupleType());
 			if (same)
 			{
 				if (existingImp.isForward())
@@ -588,7 +566,7 @@ public abstract class Interpreter
 				writer.addLiteral(VoidDescriptor.voidObject())));
 		writer.argumentTypes(
 			TupleTypeDescriptor.stringTupleType(),
-			GeneralizedClosureTypeDescriptor.forReturnType(VOID_TYPE.o()));
+			ClosureTypeDescriptor.topInstance());
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
 		writer.returnType(VOID_TYPE.o());
@@ -863,9 +841,9 @@ public abstract class Interpreter
 						+ " to pass its requires clause";
 				}
 			}
-			catch (AvailRejectedParseException e)
+			catch (final AvailRejectedParseException e)
 			{
-				AvailObject problem = e.rejectionString();
+				final AvailObject problem = e.rejectionString();
 				return
 					problem.asNativeString()
 					+ " (while parsing send of "
@@ -1031,7 +1009,7 @@ public abstract class Interpreter
 		final @NotNull AvailObject compiledCode,
 		final List<AvailObject> args)
 	{
-		Primitive primitive = Primitive.byPrimitiveNumber(primitiveNumber);
+		final Primitive primitive = Primitive.byPrimitiveNumber(primitiveNumber);
 		if (logger.isLoggable(Level.FINER))
 		{
 			logger.finer(String.format(
@@ -1042,7 +1020,7 @@ public abstract class Interpreter
 
 		primitiveResult = null;
 		primitiveCompiledCodeBeingAttempted = compiledCode;
-		Result success = primitive.attempt(args, this);
+		final Result success = primitive.attempt(args, this);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
 		primitiveCompiledCodeBeingAttempted = null;
 		if (logger.isLoggable(Level.FINER))
@@ -1071,7 +1049,6 @@ public abstract class Interpreter
 		AvailObject continuation);
 
 	public abstract Result searchForExceptionHandler (
-		AvailObject exceptionValue,
 		List<AvailObject> args);
 
 	public abstract void invokeWithoutPrimitiveClosureArguments (
@@ -1089,14 +1066,4 @@ public abstract class Interpreter
 	public abstract AvailObject runClosureArguments (
 		AvailObject aClosure,
 		List<AvailObject> arguments);
-
-	@Deprecated
-	Result callBackSmalltalkPrimitive (
-		final int primitiveNumber,
-		final List<AvailObject> args)
-	{
-		//TODO: [MvG] Phase this out without ever implementing it.
-		error("Can't call back to Smalltalk -- not supported.");
-		return FAILURE;
-	}
 }

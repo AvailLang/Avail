@@ -162,13 +162,9 @@ Method "catch«_‡,»in_" is [
 		body : []->void |
 	handleTuple handlers do body;
 ] : void
-returns [handlersT : tupleType, bodyT : closure type |
-	merge : type := cast bodyT into [bt2 : closureType |
-		bt2 result;
-	] otherwise [
-		void;
-	];
-	merge := type union of merge and
+returns [handlersT : tupleType, bodyT : closureType |
+	merge : type := bodyT result;
+	merge := type union of bodyT result and
 		cast handlersT default type into [handlerT : closureType |
 			handlerT;
 		] otherwise [
@@ -184,7 +180,7 @@ returns [handlersT : tupleType, bodyT : closure type |
 	];
 	merge;
 ]
-requires [handlersT : tupleType, bodyT : closure type |
+requires [handlersT : tupleType, bodyT : closureType |
 	/* We require each exception handler to accept some subtype of
 	   Exception.  Only some handlers are applicable, therefore, based
 	   on the Exception subtype, so a dynamic check determines which

@@ -57,7 +57,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doConstant();
-		};
+		}
 	},
 
 	/**
@@ -69,7 +69,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doImmediate();
-		};
+		}
 	},
 
 	/**
@@ -82,7 +82,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doPC();
-		};
+		}
 	},
 
 	/**
@@ -96,7 +96,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doPrimitive();
-		};
+		}
 	},
 
 	/**
@@ -113,7 +113,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doSelector();
-		};
+		}
 	},
 
 	/**
@@ -127,7 +127,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadPointer();
-		};
+		}
 	},
 
 	/**
@@ -144,7 +144,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWritePointer();
-		};
+		}
 	},
 
 	/**
@@ -163,7 +163,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadWritePointer();
-		};
+		}
 	},
 
 	/**
@@ -178,7 +178,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadInt();
-		};
+		}
 	},
 
 	/**
@@ -196,7 +196,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWriteInt();
-		};
+		}
 	},
 
 	/**
@@ -216,7 +216,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadWriteInt();
-		};
+		}
 	},
 
 	/**
@@ -233,7 +233,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadVector();
-		};
+		}
 	},
 
 	/**
@@ -250,7 +250,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWriteVector();
-		};
+		}
 	},
 
 	/**
@@ -267,7 +267,7 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doReadWriteVector();
-		};
+		}
 	};
 
 	/**
@@ -307,4 +307,4 @@ public enum L2OperandType
 		this.isSource = isSource;
 		this.isDestination = isDestination;
 	}
-};
+}

@@ -38,6 +38,22 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 
+/**
+ * A tuple type can be the {@linkplain AvailObject#type() type} of a {@linkplain
+ * TupleDescriptor tuple}, or something more general.  It has a canonical form
+ * consisting of three pieces of information:
+ * <ul>
+ * <li>the {@linkplain ObjectSlots#SIZE_RANGE size range}, an {@linkplain
+ * IntegerRangeTypeDescriptor integer range type} that a conforming tuple's
+ * size must be an instance of,</li>
+ * <li>a {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types}
+ * corresponding with the initial elements of the tuple, and</li>
+ * <li>a {@linkplain ObjectSlots#DEFAULT_TYPE default type} for all elements
+ * beyond the tuple of types to conform to.</li>
+ * </ul>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class TupleTypeDescriptor
 extends TypeDescriptor
 {
@@ -47,8 +63,28 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} that
+		 * contains all allowed {@linkplain
+		 * TupleDescriptor#o_TupleSize(AvailObject) tuple sizes} for instances
+		 * of this type.
+		 */
 		SIZE_RANGE,
+
+		/**
+		 * The types of the leading elements of tuples that conform to this
+		 * type.  This is reduced at construction time to the minimum size of
+		 * tuple that covers the same range.  For example, if the last element
+		 * of this tuple equals the {@link #DEFAULT_TYPE} then this tuple will
+		 * be shortened by one.
+		 *
+		 */
 		TYPE_TUPLE,
+
+		/**
+		 * The type for all subsequent elements of the tuples that conform to
+		 * this type.
+		 */
 		DEFAULT_TYPE
 	}
 
@@ -108,7 +144,8 @@ extends TypeDescriptor
 
 		if (object.typeTuple().tupleSize() == 0)
 		{
-			if (object.sizeRange().equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+			if (object.sizeRange().equals(
+				IntegerRangeTypeDescriptor.wholeNumbers()))
 			{
 				if (object.defaultType().equals(ALL.o()))
 				{
@@ -137,7 +174,9 @@ extends TypeDescriptor
 			{
 				aStream.append("tuple like <");
 				for (
-						int i = 1, end = object.sizeRange().upperBound().extractInt();
+						int
+							i = 1,
+							end = object.sizeRange().upperBound().extractInt();
 						i <= end;
 						i++)
 				{
@@ -181,13 +220,19 @@ extends TypeDescriptor
 		return another.equalsTupleType(object);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Tuple types are equal if and only if their sizeRange, typeTuple, and
+	 * defaultType match.
+	 * </p>
+	 */
 	@Override
 	public boolean o_EqualsTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Tuple types are equal iff their sizeRange, typeTuple, and defaultType match.
-
 		if (object.sameAddressAs(aTupleType))
 		{
 			return true;
@@ -208,9 +253,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
-		//  Given two objects that are known to be equal, is the first one in a better form (more
-		//  compact, more efficient, older generation) than the second one?
-
 		return !anotherObject.isBetterRepresentationThanTupleType(object);
 	}
 
@@ -219,10 +261,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Given two objects that are known to be equal, the second of which is in the form of
-		//  a tuple type, is the first one in a better form than the second one?
-
-		//  I'm a pretty good representation
 		return true;
 	}
 
@@ -239,24 +277,17 @@ extends TypeDescriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit integer that is always the same for equal objects, but
-		//  statistically different for different objects.
-
-		return TupleTypeDescriptor.hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
-			object.sizeRange().hash(),
-			object.typeTuple().hash(),
-			object.defaultType().hash());
+		return TupleTypeDescriptor
+			.hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
+				object.sizeRange().hash(),
+				object.typeTuple().hash(),
+				object.defaultType().hash());
 	}
 
 	@Override
 	public boolean o_IsHashAvailable (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
 		if (!object.sizeRange().isHashAvailable())
 		{
 			return false;
@@ -276,8 +307,6 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_Type (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return TUPLE_TYPE.o();
 	}
 
@@ -305,16 +334,21 @@ extends TypeDescriptor
 		return object.defaultType();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Answer the union of the types that object's instances could have in the
+	 * given range of indices.  Out-of-range indices are treated as terminates,
+	 * which don't affect the union (unless all indices are out of range).
+	 * </p>
+	 */
 	@Override
 	public @NotNull AvailObject o_UnionOfTypesAtThrough (
 		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
-		//  Answer the union of the types that object's instances could have in the
-		//  given range of indices.  Out-of-range indices are treated as terminates,
-		//  which don't affect the union (unless all indices are out of range).
-
 		assert startIndex <= endIndex;
 		if (startIndex == endIndex)
 		{
@@ -346,20 +380,23 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
 		return aType.isSupertypeOfTupleType(object);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Tuple type A is a supertype of tuple type B iff all the <em>possible
+	 * instances</em> of B would also be instances of A.  Types that are
+	 * indistinguishable under this condition are considered the same type.
+	 * </p>
+	 */
 	@Override
 	public boolean o_IsSupertypeOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Tuple type A is a supertype of tuple type B iff all the *possible
-		//  instances* of B would also be instances of A.  Types indistinguishable
-		//  under these conditions are considered the same type.
-
 		if (object.equals(aTupleType))
 		{
 			return true;
@@ -374,7 +411,10 @@ extends TypeDescriptor
 		}
 		final AvailObject subTuple = aTupleType.typeTuple();
 		final AvailObject superTuple = object.typeTuple();
-		for (int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize()); i <= end; i++)
+		for (
+			int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize());
+			i <= end;
+			i++)
 		{
 			AvailObject subType;
 			if (i <= subTuple.tupleSize())
@@ -407,8 +447,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -425,9 +463,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
-		AvailObject newSizesObject = object.sizeRange().typeIntersection(aTupleType.sizeRange());
+		AvailObject newSizesObject =
+			object.sizeRange().typeIntersection(aTupleType.sizeRange());
 		final AvailObject lead1 = object.typeTuple();
 		final AvailObject lead2 = aTupleType.typeTuple();
 		AvailObject newLeading;
@@ -444,7 +481,9 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject intersectionObject = object.typeAtIndex(i).typeIntersection(aTupleType.typeAtIndex(i));
+			final AvailObject intersectionObject =
+				object.typeAtIndex(i).typeIntersection(
+					aTupleType.typeAtIndex(i));
 			if (intersectionObject.equals(TERMINATES.o()))
 			{
 				return TERMINATES.o();
@@ -454,13 +493,16 @@ extends TypeDescriptor
 				intersectionObject,
 				true);
 		}
-		//  Make sure entries in newLeading are immutable, as typeIntersection: can answer one
-		//  of its arguments.
+		// Make sure entries in newLeading are immutable, as
+		// typeIntersection(...)can answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault = object.typeAtIndex(newLeadingSize + 1).typeIntersection(aTupleType.typeAtIndex(newLeadingSize + 1));
+		final AvailObject newDefault =
+			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
+				aTupleType.typeAtIndex(newLeadingSize + 1));
 		if (newDefault.equals(TERMINATES.o()))
 		{
-			final AvailObject newLeadingSizeObject = IntegerDescriptor.fromInt(newLeadingSize);
+			final AvailObject newLeadingSizeObject =
+				IntegerDescriptor.fromInt(newLeadingSize);
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
 				return TERMINATES.o();
@@ -486,8 +528,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -504,9 +544,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		final AvailObject newSizesObject = object.sizeRange().typeUnion(aTupleType.sizeRange());
+		final AvailObject newSizesObject =
+			object.sizeRange().typeUnion(aTupleType.sizeRange());
 		final AvailObject lead1 = object.typeTuple();
 		final AvailObject lead2 = aTupleType.typeTuple();
 		AvailObject newLeading;
@@ -523,21 +562,25 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject unionObject = object.typeAtIndex(i).typeUnion(aTupleType.typeAtIndex(i));
+			final AvailObject unionObject =
+				object.typeAtIndex(i).typeUnion(aTupleType.typeAtIndex(i));
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
 				unionObject,
 				true);
 		}
-		//  Make sure entries in newLeading are immutable, as typeUnion: can answer one
-		//  of its arguments.
+		// Make sure entries in newLeading are immutable, as typeUnion(...) can
+		// answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault = object.typeAtIndex(newLeadingSize + 1).typeUnion(aTupleType.typeAtIndex(newLeadingSize + 1));
-		//  safety until all primitives are destructive
+		final AvailObject newDefault =
+			object.typeAtIndex(newLeadingSize + 1).typeUnion(
+				aTupleType.typeAtIndex(newLeadingSize + 1));
+		// Safety until all primitives are destructive
+		newDefault.makeImmutable();
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			newSizesObject,
 			newLeading,
-			newDefault.makeImmutable());
+			newDefault);
 	}
 
 	@Override
@@ -549,8 +592,25 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/* Descriptor lookup */
-	public static AvailObject tupleTypeForSizesTypesDefaultType(
+
+	/**
+	 * Create the tuple type specified by the arguments.  The size range
+	 * indicates the allowable tuple sizes for conforming tuples, the type tuple
+	 * indicates the types of leading elements (if a conforming tuple is long
+	 * enough to include those indices), and the default type is the type of the
+	 * remaining elements.  Canonize the tuple type to the simplest
+	 * representation that includes exactly those tuples that a naive tuple type
+	 * constructed from these parameters would include.  In particular, if no
+	 * tuples are possible then answer terminates, otherwise remove any final
+	 * occurrences of the default from the end of the type tuple, trimming it to
+	 * no more than the maximum size in the range.
+	 *
+	 * @param sizeRange The allowed sizes of conforming tuples.
+	 * @param typeTuple The types of the initial elements of conforming tuples.
+	 * @param defaultType The types of remaining elements of conforming tuples.
+	 * @return A canonized tuple type with the specified properties.
+	 */
+	public static AvailObject tupleTypeForSizesTypesDefaultType (
 		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject typeTuple,
 		final @NotNull AvailObject defaultType)
@@ -561,7 +621,8 @@ extends TypeDescriptor
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
-		assert IntegerDescriptor.fromInt(typeTuple.tupleSize()).lessOrEqual(sizeRange.upperBound());
+		assert IntegerDescriptor.fromInt(typeTuple.tupleSize())
+			.lessOrEqual(sizeRange.upperBound());
 		if (sizeRange.lowerBound().equals(IntegerDescriptor.zero())
 				&& sizeRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
@@ -572,12 +633,16 @@ extends TypeDescriptor
 		if (sizeRange.upperInclusive()
 				&& sizeRange.upperBound().extractInt() == typeTuple.tupleSize())
 		{
-			//  The (nonempty) tuple hits the end of the range- disregard the passed defaultType and
-			//  use the final element of the tuple as the defaultType, while removing it from the tuple.
-			//  Recurse for further reductions.
+			// The (nonempty) tuple hits the end of the range – disregard the
+			// passed defaultType and use the final element of the tuple as the
+			// defaultType, while removing it from the tuple.  Recurse for
+			// further reductions.
 			return tupleTypeForSizesTypesDefaultType(
 				sizeRange,
-				typeTuple.copyTupleFromToCanDestroy(1, typeTuple.tupleSize() - 1, false),
+				typeTuple.copyTupleFromToCanDestroy(
+					1,
+					typeTuple.tupleSize() - 1,
+					false),
 				typeTuple.tupleAt(typeTuple.tupleSize()).makeImmutable());
 		}
 		if (typeTuple.tupleSize() > 0
@@ -593,11 +658,20 @@ extends TypeDescriptor
 				sizeRange,
 				typeTuple.copyTupleFromToCanDestroy(1, index, false),
 				defaultType);
-		};
+		}
 		return privateTupleTypeForSizesTypesDefaultType(
 			sizeRange, typeTuple, defaultType);
-	};
+	}
 
+	/**
+	 * Create a {@linkplain TupleTypeDescriptor tuple type} with the specified
+	 * parameters.  These must already have been canonized by the caller.
+	 *
+	 * @param sizeRange The allowed sizes of conforming tuples.
+	 * @param typeTuple The types of the initial elements of conforming tuples.
+	 * @param defaultType The types of remaining elements of conforming tuples.
+	 * @return A tuple type with the specified properties.
+	 */
 	static AvailObject privateTupleTypeForSizesTypesDefaultType (
 		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject typeTuple,
@@ -606,30 +680,26 @@ extends TypeDescriptor
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 		assert sizeRange.lowerBound().extractInt() >= 0;
-		if (sizeRange.lowerBound().extractInt() > typeTuple.tupleSize())
-		{
-			if (defaultType.equals(TERMINATES.o()))
-			{
-				error("Illegal tuple type construction (the defaultType)");
-			}
-		}
 		final int limit = min(
 			sizeRange.lowerBound().extractInt(),
 			typeTuple.tupleSize());
 		for (int i = 1; i <= limit; i++)
 		{
-			if (typeTuple.tupleAt(i).equals(TERMINATES.o()))
-			{
-				error("Illegal tuple type construction (some element type)");
-			}
+			assert typeTuple.tupleAt(i).isInstanceOfSubtypeOf(TYPE.o());
 		}
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.sizeRange(sizeRange);
 		result.typeTuple(typeTuple);
 		result.defaultType(defaultType);
 		return result;
-	};
+	}
 
+	/**
+	 * Answer the most general tuple type.  This is the supertype of all other
+	 * tuple types.
+	 *
+	 * @return The most general tuple type.
+	 */
 	public static AvailObject mostGeneralTupleType ()
 	{
 		return tupleTypeForSizesTypesDefaultType(
@@ -640,9 +710,14 @@ extends TypeDescriptor
 				false),
 			TupleDescriptor.empty(),
 			ALL.o());
-		// Note that non-all elements (i.e., lists) are not allowed inside a tuple.
 	}
 
+	/**
+	 * Answer the most general string type.  This type subsumes strings of any
+	 * size.
+	 *
+	 * @return The string type.
+	 */
 	public static AvailObject stringTupleType ()
 	{
 		return tupleTypeForSizesTypesDefaultType(
@@ -655,6 +730,25 @@ extends TypeDescriptor
 			CHARACTER.o());
 	}
 
+	/**
+	 * Answer the hash of the tuple type whose canonized parameters have the
+	 * specified hash values.
+	 *
+	 * @param sizesHash
+	 *            The hash of the {@linkplain IntegerRangeTypeDescriptor integer
+	 *            range type} that is the size range for some {@linkplain
+	 *            TupleTypeDescriptor tuple type} being hashed.
+	 * @param typeTupleHash
+	 *            The hash of the tuple of types of the leading arguments of
+	 *            tuples that conform to some {@linkplain TupleTypeDescriptor
+	 *            tuple type} being hashed.
+	 * @param defaultTypeHash
+	 *            The hash of the type that remaining elements of conforming
+	 *            types must have.
+	 * @return
+	 *            The hash of the {@linkplain TupleTypeDescriptor tuple type}
+	 *            whose component hash values were provided.
+	 */
 	static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (
 		final int sizesHash,
 		final int typeTupleHash,
@@ -678,7 +772,8 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link TupleTypeDescriptor}.
 	 */
-	private final static TupleTypeDescriptor mutable = new TupleTypeDescriptor(true);
+	private final static TupleTypeDescriptor mutable =
+		new TupleTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TupleTypeDescriptor}.
@@ -693,7 +788,8 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link TupleTypeDescriptor}.
 	 */
-	private final static TupleTypeDescriptor immutable = new TupleTypeDescriptor(false);
+	private final static TupleTypeDescriptor immutable =
+		new TupleTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TupleTypeDescriptor}.

@@ -51,25 +51,12 @@ Names
 	"compiled code",
 	"continuation",
 	"continuation type",
-	"generalized closure type",
 	"process",
 	"type of_",
 	"Expect_is_",
 	"Method_is_requires_returns_",
 	"[«_‡,»]->_"
 Body
-
-/** The compiler needs this in order to specify "generalized closure type". */
-privateGeneralizedClosureType ::= Special Object 16;
-
-/**
- * @returns The type of a closure with unspecified arguments and covariant
- *          return type.
- */
-Method "generalized closure type" is
-[
-	privateGeneralizedClosureType;
-] : meta;
 
 /** The compiler needs this in order to specify "closure type". */
 privateClosureType ::= Special Object 5;

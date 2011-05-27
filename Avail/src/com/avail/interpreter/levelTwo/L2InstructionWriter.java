@@ -59,7 +59,7 @@ public class L2InstructionWriter
 		assert operand == (operand & 0xFFFF);
 		stream.write(operand >>> 8);
 		stream.write(operand & 0xFF);
-	};
+	}
 
 	/**
 	 * Write the given {@link L2RawInstruction}, including the operation code
@@ -78,7 +78,7 @@ public class L2InstructionWriter
 		{
 			writeOperand(operand);
 		}
-	};
+	}
 
 	/**
 	 * Extract the previously {@linkplain
@@ -130,5 +130,5 @@ public class L2InstructionWriter
 		words.hashOrZero(0);
 		words.makeImmutable();
 		return words;
-	};
+	}
 }

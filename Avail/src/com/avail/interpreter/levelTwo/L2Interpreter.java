@@ -656,7 +656,7 @@ implements L2OperationDispatcher
 			{
 				locals.add(pointerAt(argumentRegister(numArgs + i)));
 			}
-			AvailObject newContinuation = ContinuationDescriptor.create(
+			final AvailObject newContinuation = ContinuationDescriptor.create(
 				closure,
 				pointerAt(callerRegister()),
 				chunk(),
@@ -823,7 +823,7 @@ implements L2OperationDispatcher
 		@Override
 		public void L1Implied_doReturn ()
 		{
-			AvailObject caller = pointerAt(callerRegister());
+			final AvailObject caller = pointerAt(callerRegister());
 			final AvailObject value = pop();
 			final AvailObject closure = pointerAt(closureRegister());
 			assert value.isInstanceOfSubtypeOf(
@@ -1202,34 +1202,44 @@ implements L2OperationDispatcher
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
 	 * Raise an exception. Scan the stack of continuations until one is found
-	 * for a closure whose code is the primitive 200. Get that continuation's
-	 * second argument (a handler block of one argument), and check if that
-	 * handler block will accept the exceptionValue. If not, keep looking. If it
-	 * will accept it, unwind the stack so that the primitive 200 method is the
-	 * top entry, and invoke the handler block with exceptionValue. If there is
-	 * no suitable handler block, fail the primitive.
+	 * for a closure whose code specifies {@linkplain
+	 * Primitive#prim200_CatchException_bodyBlock_handlerBlock primitive 200}.
+	 * Get that continuation's second argument (a handler block of one
+	 * argument), and check if that handler block will accept the
+	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
+	 * stack so that the primitive 200 method is the top entry, and invoke the
+	 * handler block with exceptionValue. If there is no suitable handler block,
+	 * fail the primitive.
+	 * </p>
 	 */
 	@Override
 	public Result searchForExceptionHandler (
-		final AvailObject exceptionValue,
-		final List<AvailObject> args)
+		final List<AvailObject> arguments)
 	{
+		assert arguments.size() == 1;
 
-		AvailObject cont = pointerAt(callerRegister());
-		AvailObject handler = VoidDescriptor.voidObject();
-		while (!cont.equalsVoid())
+		final AvailObject exceptionValue = arguments.get(0);
+		AvailObject continuation = pointerAt(callerRegister());
+		while (!continuation.equalsVoid())
 		{
-			if (cont.closure().code().primitiveNumber() == 200
-					&& exceptionValue.isInstanceOfSubtypeOf(
-						cont.argOrLocalOrStackAt(2).type().argTypeAt(1)))
+			if (continuation.closure().code().primitiveNumber() == 200)
 			{
-				handler = cont.argOrLocalOrStackAt(2);
-				assert !handler.equalsVoid();
-				prepareToExecuteContinuation(cont);
-				return invokeClosureArguments(handler, args);
+				final AvailObject handler = continuation.argOrLocalOrStackAt(2);
+				if (exceptionValue.isInstanceOfSubtypeOf(
+					handler.type().argsTupleType().typeAtIndex(1)))
+				{
+					assert !handler.equalsVoid();
+					prepareToExecuteContinuation(continuation);
+					return invokeClosureArguments(
+						handler,
+						Collections.singletonList(exceptionValue));
+				}
 			}
-			cont = cont.caller();
+			continuation = continuation.caller();
 		}
 		return primitiveFailure("exception handler not found");
 	}
@@ -1250,6 +1260,7 @@ implements L2OperationDispatcher
 		final List<AvailObject> args)
 	{
 		final AvailObject code = aClosure.code();
+		assert code.numArgs() == args.size();
 		final int primNum = code.primitiveNumber();
 		if (primNum != 0)
 		{
@@ -1392,7 +1403,7 @@ implements L2OperationDispatcher
 		// Keep the process's current continuation void during execution.
 		process.continuation(VoidDescriptor.voidObject());
 
-		Result result = invokeClosureArguments(closure, arguments);
+		final Result result = invokeClosureArguments(closure, arguments);
 		if (result == SUCCESS)
 		{
 			// Outermost call was a primitive invocation.
@@ -1477,7 +1488,7 @@ implements L2OperationDispatcher
 		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
 		integerAtPut(pcRegister(), pc + 1);
 
-		L1Operation operation = L1Operation.values()[nybble];
+		final L1Operation operation = L1Operation.values()[nybble];
 		if (logger.isLoggable(Level.FINEST))
 		{
 			logger.finest(String.format(
@@ -2501,7 +2512,7 @@ implements L2OperationDispatcher
 		assert continuationIndex == callerRegister();
 
 		final AvailObject valueObject = pointerAt(valueIndex);
-		AvailObject caller = pointerAt(continuationIndex);
+		final AvailObject caller = pointerAt(continuationIndex);
 		if (caller.equalsVoid())
 		{
 			exitProcessWith(valueObject);

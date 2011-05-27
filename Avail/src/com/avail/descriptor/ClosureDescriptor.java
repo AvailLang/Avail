@@ -291,7 +291,7 @@ extends Descriptor
 				TupleDescriptor.empty());
 		closure.makeImmutable();
 		return closure;
-	};
+	}
 
 	/**
 	 * Create a closure that takes arguments of the specified types, then turns

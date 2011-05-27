@@ -361,6 +361,11 @@ extends Descriptor
 	{
 		//  Print this chunk on the given stream.
 
+		if (object.index() == 0)
+		{
+			aStream.append("Default chunk #0");
+			return;
+		}
 		aStream.append("Chunk #");
 		aStream.append(object.index());
 		aStream.append("\n");
@@ -716,7 +721,7 @@ extends Descriptor
 			// clean it up if necessary.
 			final WeakChunkReference oldReference =
 				(WeakChunkReference)weaklyTypedRecycledReference;
-			for (AvailObject impSet : oldReference.contingentImplementationSets)
+			for (final AvailObject impSet : oldReference.contingentImplementationSets)
 			{
 				impSet.removeDependentChunkIndex(oldReference.index);
 			}
@@ -746,7 +751,7 @@ extends Descriptor
 			code.invocationCount(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 		}
-		for (AvailObject impSet : contingentSets)
+		for (final AvailObject impSet : contingentSets)
 		{
 			impSet.addDependentChunkIndex(index);
 		}
@@ -775,9 +780,9 @@ extends Descriptor
 	public static void invalidateChunkAtIndex (
 		final int chunkIndex)
 	{
-		WeakChunkReference ref = AllChunksWeakly.get(chunkIndex);
+		final WeakChunkReference ref = AllChunksWeakly.get(chunkIndex);
 		assert ref.index == chunkIndex;
-		AvailObject chunk = ref.get();
+		final AvailObject chunk = ref.get();
 		if (chunk != null)
 		{
 			chunk.isValid(false);
@@ -789,7 +794,7 @@ extends Descriptor
 			}
 		}
 		final Set<AvailObject> impSets = ref.contingentImplementationSets;
-		for (AvailObject impSet : impSets)
+		for (final AvailObject impSet : impSets)
 		{
 			impSet.removeDependentChunkIndex(chunkIndex);
 		}

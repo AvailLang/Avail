@@ -40,19 +40,19 @@ public class L2RawInstruction
 	public L2Operation operation ()
 	{
 		return operation;
-	};
+	}
 
 	public int [] operands ()
 	{
 		return operands;
-	};
+	}
 
 	// Constructor
-	public L2RawInstruction (L2Operation operation, int ... operands)
+	public L2RawInstruction (final L2Operation operation, final int ... operands)
 	{
 		assert operation.operandTypes().length == operands.length;
 
 		this.operation = operation;
 		this.operands = operands;
-	};
+	}
 }

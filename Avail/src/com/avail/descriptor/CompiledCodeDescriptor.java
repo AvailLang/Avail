@@ -553,13 +553,16 @@ extends Descriptor
 			// Sanity check for primitive blocks.  Use this to hunt incorrectly
 			// specified primitive signatures.
 			assert primitive == (primitive & 0xFFFF);
-			Primitive prim = Primitive.byPrimitiveNumber(primitive);
-			AvailObject restrictionSignature = prim.blockTypeRestriction();
+			final Primitive prim = Primitive.byPrimitiveNumber(primitive);
+			final AvailObject restrictionSignature =
+				prim.blockTypeRestriction();
 			assert restrictionSignature.isSubtypeOf(closureType);
 		}
 
 		assert localTypes.tupleSize() == locals;
-		final int numArgs = closureType.numArgs();
+		final AvailObject argCounts = closureType.argsTupleType().sizeRange();
+		final int numArgs = argCounts.lowerBound().extractInt();
+		assert argCounts.upperBound().extractInt() == numArgs;
 		final int literalsSize = literals.tupleSize();
 		final int outersSize = outerTypes.tupleSize();
 		final AvailObject code = mutable().create(
@@ -629,7 +632,7 @@ extends Descriptor
 		CanAllocateObjects(true);
 
 		return code;
-	};
+	}
 
 	/**
 	 * Construct a new {@link CompiledCodeDescriptor}.

@@ -491,12 +491,12 @@ public abstract class AbstractDescriptor
 						{
 							builder.append(", ");
 						}
-						Field subfield = allSubfields[subfieldIndex];
+						final Field subfield = allSubfields[subfieldIndex];
 						builder.append(subfield.getName());
 						builder.append("=");
 						BitField bitField;
 						bitField = (BitField)subfield.get(null);
-						int subfieldValue = object.bitSlot(slot, bitField);
+						final int subfieldValue = object.bitSlot(slot, bitField);
 						builder.append(subfieldValue);
 					}
 					builder.append(")");
@@ -589,10 +589,10 @@ public abstract class AbstractDescriptor
 		BitField bitField;
 		try
 		{
-			Field field = theClass.getDeclaredField(fieldName);
+			final Field field = theClass.getDeclaredField(fieldName);
 			bitField = field.getAnnotation(BitField.class);
 		}
-		catch (NoSuchFieldException e)
+		catch (final NoSuchFieldException e)
 		{
 			throw new RuntimeException(e);
 		}
@@ -618,30 +618,21 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param continuation
 	 * @param stackp
+	 * @param numArgs
 	 * @return
 	 */
-	public abstract boolean o_AcceptsArgumentsFromContinuationStackp (
+	public abstract boolean o_AcceptsArgumentTypesFromContinuation (
 		final AvailObject object,
 		final AvailObject continuation,
-		final int stackp);
-
-	/**
-	 * @param object
-	 * @param continuation
-	 * @param stackp
-	 * @return
-	 */
-	public abstract boolean o_AcceptsArgumentTypesFromContinuationStackp (
-		final AvailObject object,
-		final AvailObject continuation,
-		final int stackp);
+		final int stackp,
+		final int numArgs);
 
 	/**
 	 * @param object
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract boolean o_AcceptsArrayOfArgTypes (
+	public abstract boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<AvailObject> argTypes);
 
@@ -650,7 +641,7 @@ public abstract class AbstractDescriptor
 	 * @param argValues
 	 * @return
 	 */
-	public abstract boolean o_AcceptsArrayOfArgValues (
+	public abstract boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<AvailObject> argValues);
 
@@ -745,25 +736,6 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anInteger,
 		final boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
-	public abstract AvailObject o_ArgTypeAt (
-		final AvailObject object,
-		final int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	public abstract void o_ArgTypeAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -1232,7 +1204,7 @@ public abstract class AbstractDescriptor
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject divisor} was {@linkplain
@@ -1259,7 +1231,7 @@ public abstract class AbstractDescriptor
 	 *        The dividend, an {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject divisor} was {@linkplain
@@ -1286,7 +1258,7 @@ public abstract class AbstractDescriptor
 	 *        The dividend, an {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject divisor} was {@linkplain
@@ -1629,15 +1601,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	public abstract boolean o_IsSupertypeOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType);
-
-	/**
-	 * @param object
 	 * @param anIntegerRangeType
 	 * @return
 	 */
@@ -1964,7 +1927,7 @@ public abstract class AbstractDescriptor
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -2200,7 +2163,7 @@ public abstract class AbstractDescriptor
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -2705,7 +2668,7 @@ public abstract class AbstractDescriptor
 	 *        An {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -2735,7 +2698,7 @@ public abstract class AbstractDescriptor
 	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
@@ -2770,7 +2733,7 @@ public abstract class AbstractDescriptor
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -2936,26 +2899,6 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aCyclicType);
 
-	/**
-	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	public abstract AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType);
-
-	/**
-	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @param canDestroy
-	 * @return
-	 */
-	public abstract AvailObject
-		o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
-			final AvailObject object,
-			final AvailObject aGeneralizedClosureType,
-			final boolean canDestroy);
 
 	/**
 	 * @param object
@@ -3083,15 +3026,6 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_TypeUnionOfCyclicType (
 		final AvailObject object,
 		final AvailObject aCyclicType);
-
-	/**
-	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	public abstract AvailObject o_TypeUnionOfGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType);
 
 	/**
 	 * @param object
@@ -4267,15 +4201,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aGeneralizedClosureType
-	 * @return
-	 */
-	public abstract boolean o_EqualsGeneralizedClosureType (
-		final AvailObject object,
-		final AvailObject aGeneralizedClosureType);
-
-	/**
-	 * @param object
 	 * @param anInfinity
 	 * @return
 	 */
@@ -4803,39 +4728,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argumentsTuple
-	 */
-	public abstract void o_ArgumentsTuple (
-		AvailObject object,
-		AvailObject argumentsTuple);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	public abstract AvailObject o_ArgumentsTuple (AvailObject object);
 
 	/**
 	 * @param object
-	 * @param statementsTuple
-	 */
-	public abstract void o_StatementsTuple (
-		AvailObject object,
-		AvailObject statementsTuple);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	public abstract AvailObject o_StatementsTuple (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param resultType
-	 */
-	public abstract void o_ResultType (
-		AvailObject object,
-		AvailObject resultType);
 
 	/**
 	 * @param object
@@ -4856,12 +4757,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_NeededVariables (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param primitive
-	 */
-	public abstract void o_Primitive (AvailObject object, int primitive);
 
 	/**
 	 * @param object
@@ -5324,4 +5219,19 @@ public abstract class AbstractDescriptor
 	public abstract void o_UpperInclusive (
 		final AvailObject object,
 		final boolean upperInclusive);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_ArgsTupleType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param tupleType
+	 * @return
+	 */
+	public abstract void o_ArgsTupleType (
+		AvailObject object,
+		AvailObject tupleType);
 }

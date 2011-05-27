@@ -351,7 +351,7 @@ public enum L1Operation
 	public L1OperandType [] operandTypes ()
 	{
 		return operandTypes;
-	};
+	}
 
 
 	/**
@@ -370,7 +370,7 @@ public enum L1Operation
 	{
 		assert ordinalCheck == ordinal();
 		this.operandTypes = operandTypes;
-	};
+	}
 
 	/**
 	 * Dispatch this operation through an {@link L1OperationDispatcher}.
@@ -401,4 +401,4 @@ public enum L1Operation
 			stream.write(nybble - 16);
 		}
 	}
-};
+}

@@ -296,9 +296,9 @@ extends TypeDescriptor
 		{
 			result.sizeRange(sizeRange);
 			result.contentType(contentType);
-		};
+		}
 		return result;
-	};
+	}
 
 	/**
 	 * Construct a new {@link SetTypeDescriptor}.

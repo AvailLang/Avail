@@ -124,7 +124,7 @@ implements Iterable<AvailObject>
 			e.printStackTrace(outer);
 			builder.append(inner);
 		}
-		catch (AssertionError e)
+		catch (final AssertionError e)
 		{
 			e.printStackTrace();
 			throw e;
@@ -560,6 +560,7 @@ implements Iterable<AvailObject>
 		InfinityDescriptor.clearWellKnownObjects();
 		IntegerDescriptor.clearWellKnownObjects();
 		IntegerRangeTypeDescriptor.clearWellKnownObjects();
+		ClosureTypeDescriptor.clearWellKnownObjects();
 		L2ChunkDescriptor.clearWellKnownObjects();
 	}
 
@@ -576,6 +577,7 @@ implements Iterable<AvailObject>
 		InfinityDescriptor.createWellKnownObjects();
 		IntegerDescriptor.createWellKnownObjects();
 		IntegerRangeTypeDescriptor.createWellKnownObjects();
+		ClosureTypeDescriptor.createWellKnownObjects();
 		L2ChunkDescriptor.createWellKnownObjects();
 	}
 
@@ -591,14 +593,14 @@ implements Iterable<AvailObject>
 	public static void error(final Object... args)
 	{
 		throw new RuntimeException((String)args[0]);
-	};
+	}
 
 	public static AvailObject newIndexedDescriptor(
 		final int size,
 		final AbstractDescriptor descriptor)
 	{
 		return AvailObjectUsingArrays.newIndexedDescriptor(size, descriptor);
-	};
+	}
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
 		final int variableObjectSlots,
@@ -609,14 +611,7 @@ implements Iterable<AvailObject>
 			variableObjectSlots,
 			variableIntegerSlots,
 			descriptor);
-	};
-
-	@Deprecated
-	static int scanAnObject()
-	{
-		// Scan the next object, saving its subobjects and removing its barrier.
-		return 0;   // AvailObjectUsingArrays.scanAnObject();
-	};
+	}
 
 
 	/* Synchronization with GC.  Locked objects can be moved, but not coalesced. */
@@ -627,14 +622,16 @@ implements Iterable<AvailObject>
 	public static void lock (final AvailObject obj)
 	{
 		LockedObjects.add(obj);
-	};
+	}
+
 	public static void unlock (final AvailObject obj)
 	{
 		final AvailObject popped = LockedObjects.remove(LockedObjects.size() - 1);
 		assert popped == obj;
-	};
+	}
 
 	private static boolean CanAllocateObjects = true;
+
 	private static boolean CanDestroyObjects = true;
 
 	public static void CanAllocateObjects (final boolean flag)
@@ -671,45 +668,34 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean acceptsArgumentsFromContinuationStackp (
+	public boolean acceptsArgumentTypesFromContinuation (
 		final AvailObject continuation,
-		final int stackp)
+		final int stackp,
+		final int numArgs)
 	{
-		return descriptor().o_AcceptsArgumentsFromContinuationStackp(
+		return descriptor().o_AcceptsArgumentTypesFromContinuation(
 			this,
 			continuation,
-			stackp);
+			stackp,
+			numArgs);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean acceptsArgumentTypesFromContinuationStackp (
-		final AvailObject continuation,
-		final int stackp)
-	{
-		return descriptor().o_AcceptsArgumentTypesFromContinuationStackp(
-			this,
-			continuation,
-			stackp);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean acceptsArrayOfArgTypes (
+	public boolean acceptsListOfArgTypes (
 		final List<AvailObject> argTypes)
 	{
-		return descriptor().o_AcceptsArrayOfArgTypes(this, argTypes);
+		return descriptor().o_AcceptsListOfArgTypes(this, argTypes);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean acceptsArrayOfArgValues (
+	public boolean acceptsListOfArgValues (
 		final List<AvailObject> argValues)
 	{
-		return descriptor().o_AcceptsArrayOfArgValues(this, argValues);
+		return descriptor().o_AcceptsListOfArgValues(this, argValues);
 	}
 
 	/**
@@ -813,28 +799,6 @@ implements Iterable<AvailObject>
 			this,
 			anInteger,
 			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject argTypeAt (
-		final int index)
-	{
-		return descriptor().o_ArgTypeAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void argTypeAtPut (
-		final int index,
-		final AvailObject value)
-	{
-		descriptor().o_ArgTypeAtPut(
-			this,
-			index,
-			value);
 	}
 
 	/**
@@ -1713,7 +1677,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject divisor} was {@linkplain
@@ -1742,7 +1706,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
@@ -1781,7 +1745,7 @@ implements Iterable<AvailObject>
 	 *        An {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject dividend} was {@linkplain
@@ -1813,7 +1777,7 @@ implements Iterable<AvailObject>
 	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject divisor} was {@linkplain
@@ -2051,15 +2015,6 @@ implements Iterable<AvailObject>
 		final AvailObject aFloatObject)
 	{
 		return descriptor().o_EqualsFloat(this, aFloatObject);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean equalsGeneralizedClosureType (
-		final AvailObject aType)
-	{
-		return descriptor().o_EqualsGeneralizedClosureType(this, aType);
 	}
 
 	/**
@@ -2957,15 +2912,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfGeneralizedClosureType (
-		final AvailObject aGeneralizedClosureType)
-	{
-		return descriptor().o_IsSupertypeOfGeneralizedClosureType(this, aGeneralizedClosureType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public boolean isSupertypeOfIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
@@ -3500,7 +3446,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -3529,7 +3475,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -3966,7 +3912,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -3995,7 +3941,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -4883,7 +4829,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
 	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
@@ -4914,7 +4860,7 @@ implements Iterable<AvailObject>
 	 *        An integral numeric.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
-	 *        Avail operand}, {@code false} otherwise.
+	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
@@ -5155,28 +5101,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeIntersectionOfGeneralizedClosureType (
-		final AvailObject aGeneralizedClosureType)
-	{
-		return descriptor().o_TypeIntersectionOfGeneralizedClosureType(this, aGeneralizedClosureType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject typeIntersectionOfGeneralizedClosureTypeCanDestroy (
-		final AvailObject aGeneralizedClosureType,
-		final boolean canDestroy)
-	{
-		return descriptor().o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy(
-			this,
-			aGeneralizedClosureType,
-			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject typeIntersectionOfIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
@@ -5310,15 +5234,6 @@ implements Iterable<AvailObject>
 		final AvailObject aCyclicType)
 	{
 		return descriptor().o_TypeUnionOfCyclicType(this, aCyclicType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject typeUnionOfGeneralizedClosureType (
-		final AvailObject aGeneralizedClosureType)
-	{
-		return descriptor().o_TypeUnionOfGeneralizedClosureType(this, aGeneralizedClosureType);
 	}
 
 	/**
@@ -5692,15 +5607,6 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param argumentsTuple
-	 */
-	public void argumentsTuple (final AvailObject argumentsTuple)
-	{
-		descriptor().o_ArgumentsTuple(this, argumentsTuple);
-	}
-
-
-	/**
 	 * @return
 	 */
 	public AvailObject argumentsTuple ()
@@ -5710,29 +5616,11 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param statementsTuple
-	 */
-	public void statementsTuple (final AvailObject statementsTuple)
-	{
-		descriptor().o_StatementsTuple(this, statementsTuple);
-	}
-
-
-	/**
 	 * @return
 	 */
 	public AvailObject statementsTuple ()
 	{
 		return descriptor().o_StatementsTuple(this);
-	}
-
-
-	/**
-	 * @param resultType
-	 */
-	public void resultType (final AvailObject resultType)
-	{
-		descriptor().o_ResultType(this, resultType);
 	}
 
 
@@ -5760,15 +5648,6 @@ implements Iterable<AvailObject>
 	public AvailObject neededVariables ()
 	{
 		return descriptor().o_NeededVariables(this);
-	}
-
-
-	/**
-	 * @param primitive
-	 */
-	public void primitive (final int primitive)
-	{
-		descriptor().o_Primitive(this, primitive);
 	}
 
 
@@ -6354,6 +6233,7 @@ implements Iterable<AvailObject>
 		return descriptor().o_IsLong(this);
 	}
 
+
 	/**
 	 * @param lowerInc
 	 */
@@ -6365,6 +6245,7 @@ implements Iterable<AvailObject>
 			lowerInc);
 	}
 
+
 	/**
 	 * @param upperInc
 	 */
@@ -6374,5 +6255,21 @@ implements Iterable<AvailObject>
 		descriptor().o_UpperInclusive(
 			this,
 			upperInc);
+	}
+
+
+	/**
+	 */
+	public AvailObject argsTupleType ()
+	{
+		return descriptor().o_ArgsTupleType(this);
+	}
+
+
+	/**
+	 */
+	public void argsTupleType (final @NotNull AvailObject tupleType)
+	{
+		descriptor().o_ArgsTupleType(this, tupleType);
 	}
 }

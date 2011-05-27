@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.interpreter.levelOne.L1OperandTypeDispatcher;
 
 
 enum L1OperandType
@@ -40,44 +39,44 @@ enum L1OperandType
 	IMMEDIATE()
 	{
 		@Override
-		void dispatch(L1OperandTypeDispatcher dispatcher)
+		void dispatch(final L1OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doImmediate();
-		};
+		}
 	},
 	LITERAL()
 	{
 		@Override
-		void dispatch(L1OperandTypeDispatcher dispatcher)
+		void dispatch(final L1OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doLiteral();
-		};
+		}
 	},
 	LOCAL()
 	{
 		@Override
-		void dispatch(L1OperandTypeDispatcher dispatcher)
+		void dispatch(final L1OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doLocal();
-		};
+		}
 	},
 	OUTER()
 	{
 		@Override
-		void dispatch(L1OperandTypeDispatcher dispatcher)
+		void dispatch(final L1OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doOuter();
-		};
+		}
 	},
 	EXTENSION()
 	{
 		@Override
-		void dispatch(L1OperandTypeDispatcher dispatcher)
+		void dispatch(final L1OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doExtension();
-		};
+		}
 	};
 
 	abstract void dispatch(L1OperandTypeDispatcher dispatcher);
 
-};
+}

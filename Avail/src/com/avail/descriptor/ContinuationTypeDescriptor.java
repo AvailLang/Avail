@@ -202,15 +202,8 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return false;
 		}
-		for (int i = 1, end = subClosureType.numArgs(); i <= end; i++)
-		{
-			if (!superClosureType.argTypeAt(i).isSubtypeOf(
-				subClosureType.argTypeAt(i)))
-			{
-				return false;
-			}
-		}
-		return true;
+		return superClosureType.argsTupleType().isSubtypeOf(
+			subClosureType.argsTupleType());
 	}
 
 	@Override
@@ -244,19 +237,10 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return Types.TERMINATES.o();
 		}
-		final AvailObject intersection = ClosureTypeDescriptor.mutable().create(
-			closType1.numArgs());
-		AvailObject.lock(intersection);
-		intersection.returnType(
+		final AvailObject intersection = ClosureTypeDescriptor.create(
+			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
 			closType1.returnType().typeUnion(closType2.returnType()));
-		for (int i = 1, end = closType1.numArgs(); i <= end; i++)
-		{
-			intersection.argTypeAtPut(i, closType1.argTypeAt(i).typeUnion(
-				closType2.argTypeAt(i)));
-		}
-		intersection.hashOrZero(0);
-		AvailObject.unlock(intersection);
-		return ContinuationTypeDescriptor.forClosureType(intersection);
+		return forClosureType(intersection);
 	}
 
 	@Override
@@ -290,23 +274,25 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		{
 			return Types.CONTINUATION.o();
 		}
-		final AvailObject closureUnion = ClosureTypeDescriptor.mutable().create(
-			closType1.numArgs());
-		AvailObject.lock(closureUnion);
-		closureUnion.returnType(
+		final AvailObject union = ClosureTypeDescriptor.create(
+			closType1.argsTupleType().typeIntersection(
+				closType2.argsTupleType()),
 			closType1.returnType().typeIntersection(closType2.returnType()));
-		for (int i = 1, end = closType1.numArgs(); i <= end; i++)
-		{
-			closureUnion.argTypeAtPut(
-				i,
-				closType1.argTypeAt(i).typeIntersection(
-					closType2.argTypeAt(i)));
-		}
-		closureUnion.hashOrZero(0);
-		AvailObject.unlock(closureUnion);
-		return ContinuationTypeDescriptor.forClosureType(closureUnion);
+		return forClosureType(union);
 	}
 
+	/**
+	 * Create a {@linkplain ContinuationTypeDescriptor continuation type} based
+	 * on the passed {@linkplain ClosureTypeDescriptor closure type}.  Ignore
+	 * the closure type's exception set.
+	 *
+	 * @param closureType
+	 *            A {@linkplain ClosureTypeDescriptor closure type} on which to
+	 *            base the new {@linkplain ContinuationTypeDescriptor
+	 *            continuation type}.
+	 * @return
+	 *            A new {@linkplain ContinuationTypeDescriptor}.
+	 */
 	public static @NotNull AvailObject forClosureType (
 		final @NotNull AvailObject closureType)
 	{

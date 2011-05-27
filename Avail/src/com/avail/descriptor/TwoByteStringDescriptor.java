@@ -474,7 +474,7 @@ extends TupleDescriptor
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors [delta + (size & 1) * 2];
-	};
+	}
 
 	/**
 	 * Create a mutable {@link TwoByteStringDescriptor two-byte string} with the

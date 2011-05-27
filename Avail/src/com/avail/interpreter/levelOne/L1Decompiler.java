@@ -151,7 +151,8 @@ public class L1Decompiler implements L1OperationDispatcher
 			args,
 			code.primitiveNumber(),
 			statements,
-			aCodeObject.closureType().returnType());
+			aCodeObject.closureType().returnType(),
+			aCodeObject.closureType().checkedExceptions());
 	}
 
 
@@ -383,7 +384,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPushLiteral ()
 	{
 		final AvailObject value = code.literalAt(getInteger());
-		if (value.isInstanceOfSubtypeOf(CLOSURE.o()))
+		if (value.isInstanceOfSubtypeOf(ClosureTypeDescriptor.topInstance()))
 		{
 			final List<AvailObject> closureOuters =
 				new ArrayList<AvailObject>(value.numOuterVars());
@@ -492,8 +493,8 @@ public class L1Decompiler implements L1OperationDispatcher
 		{
 			// Writing into a synthetic literal (a byproduct of decompiling a
 			// block without decompiling its outer scopes).
-			AvailObject token = outerExpr.token();
-			AvailObject variableObject = token.literal();
+			final AvailObject token = outerExpr.token();
+			final AvailObject variableObject = token.literal();
 			assert variableObject.isInstanceOfSubtypeOf(CONTAINER.o());
 			outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 				token,
@@ -722,6 +723,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		args = new ArrayList<AvailObject>(code.numArgs());
 		locals = new ArrayList<AvailObject>(code.numLocals());
+		final AvailObject tupleType = code.closureType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final String argName = tempGenerator.value("arg");
@@ -731,7 +733,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			token.start(0);
 			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
 				token,
-				code.closureType().argTypeAt(i));
+				tupleType.typeAtIndex(i));
 			args.add(decl);
 		}
 		for (int i = 1, end = code.numLocals(); i <= end; i++)

@@ -253,7 +253,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject implementation)
 	{
-		AvailObject oldTuple = object.implementationsTuple();
+		final AvailObject oldTuple = object.implementationsTuple();
 		if (oldTuple.tupleSize() > 0)
 		{
 			// Ensure that we're not mixing macro and non-macro signatures.
@@ -298,8 +298,10 @@ extends Descriptor
 				boolean all = true;
 				for (final AvailObject index2 : positiveTuple)
 				{
-					all = all && imps.tupleAt(index2.extractInt())
-						.bodySignature().acceptsArgTypesFromClosureType(
+					all = all && imps
+						.tupleAt(index2.extractInt())
+						.bodySignature()
+						.acceptsArgTypesFromClosureType(
 							imps.tupleAt(index1.extractInt()).bodySignature());
 				}
 				if (all)
@@ -427,19 +429,13 @@ extends Descriptor
 				final AvailObject sig1 = possibility.bodySignature();
 				final AvailObject sig2 =
 					imps.tupleAt(bestIndex).bodySignature();
-				for (
-						int argIndex = 1, end = sig1.numArgs();
-						argIndex <= end;
-						argIndex++)
+				final AvailObject intersection =
+					sig1.argsTupleType().typeIntersection(sig2.argsTupleType());
+				if (intersection.equals(TERMINATES.o()))
 				{
-					if (sig1.argTypeAt(argIndex)
-							.typeIntersection(sig2.argTypeAt(argIndex))
-						.equals(TERMINATES.o()))
-					{
-						newPossible = newPossible.setWithoutElementCanDestroy(
-							index1,
-							true);
-					}
+					newPossible = newPossible.setWithoutElementCanDestroy(
+						index1,
+						true);
 				}
 			}
 		}
@@ -511,7 +507,7 @@ extends Descriptor
 		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
 			final AvailObject imp = impsTuple.tupleAt(i);
-			if (imp.bodySignature().acceptsArrayOfArgTypes(argTypes))
+			if (imp.bodySignature().acceptsListOfArgTypes(argTypes))
 			{
 				result.add(imp);
 			}
@@ -594,7 +590,7 @@ extends Descriptor
 					? VoidDescriptor.voidObject()
 					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature().acceptsArrayOfArgTypes(
+			if (impsTuple.tupleAt(test).bodySignature().acceptsListOfArgTypes(
 				argumentTypeList))
 			{
 				index += 2;
@@ -620,10 +616,12 @@ extends Descriptor
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
+		final int numArgs = impsTuple.tupleAt(1).numArgs();
 		int index = 1;
-		while (true) {
+		while (true)
+		{
 			int test = tree.tupleAt(index).extractInt();
-		final int lowBit = test & 1;
+			final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
 			{
@@ -631,10 +629,12 @@ extends Descriptor
 					? VoidDescriptor.voidObject()
 					: impsTuple.tupleAt(test);
 			}
-			if (impsTuple.tupleAt(test).bodySignature()
-				.acceptsArgumentTypesFromContinuationStackp(
-					continuation,
-					stackp))
+			final AvailObject closureType =
+				impsTuple.tupleAt(test).bodySignature();
+			if (closureType.acceptsArgumentTypesFromContinuation(
+				continuation,
+				stackp,
+				numArgs))
 			{
 				index += 2;
 			}
@@ -705,7 +705,7 @@ extends Descriptor
 					: impsTuple.tupleAt(test);
 			}
 			if (impsTuple.tupleAt(test).bodySignature()
-					.acceptsArrayOfArgValues(argumentList))
+					.acceptsListOfArgValues(argumentList))
 			{
 				index += 2;
 			}
@@ -837,15 +837,9 @@ extends Descriptor
 					if (isBest && !imp.equals(other))
 					{
 						final AvailObject otherType = other.bodySignature();
-						for (
-								int argIndex = impType.numArgs();
-								argIndex >= 1;
-								argIndex--)
-						{
-							isBest = isBest
-								&& impType.argTypeAt(argIndex).isSubtypeOf(
-									otherType.argTypeAt(argIndex));
-						}
+						isBest = isBest
+							&& otherType.acceptsArgTypesFromClosureType(
+								impType);
 					}
 				}
 				if (isBest)
@@ -882,7 +876,9 @@ extends Descriptor
 								if (!any)
 								{
 									if (argTypes.get(index - 1).isSubtypeOf(
-										signature.argTypeAt(index)))
+										signature
+											.argsTupleType()
+											.typeAtIndex(index)))
 									{
 										any = true;
 									}
@@ -942,7 +938,8 @@ extends Descriptor
 	{
 		assert object.implementationsTuple().tupleSize() >= 1;
 		final AvailObject first = object.implementationsTuple().tupleAt(1);
-		return first.bodySignature().numArgs();
+		return first.bodySignature().argsTupleType()
+			.sizeRange().lowerBound().extractInt();
 	}
 
 	/**
@@ -1008,7 +1005,7 @@ extends Descriptor
 		result.name(messageName);
 		result.makeImmutable();
 		return result;
-	};
+	}
 
 	/**
 	 * The membership of this {@linkplain ImplementationSetDescriptor
@@ -1026,7 +1023,7 @@ extends Descriptor
 		final AvailObject chunkIndices = object.dependentChunkIndices();
 		if (chunkIndices.setSize() > 0)
 		{
-			for (AvailObject chunkIndex : chunkIndices.asTuple())
+			for (final AvailObject chunkIndex : chunkIndices.asTuple())
 			{
 				L2ChunkDescriptor.invalidateChunkAtIndex(
 					chunkIndex.extractInt());

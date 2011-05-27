@@ -335,7 +335,7 @@ extends TypeDescriptor
 			result.sizeRange(sizes);
 			result.keyType(keyType);
 			result.valueType(valueType);
-		};
+		}
 		return result;
 	}
 

@@ -82,12 +82,10 @@ extends TypeDescriptor
 		RETURN_TYPE,
 
 		/**
-		 * A vector of the most general {@linkplain TypeDescriptor types} of
-		 * {@linkplain AvailObject arguments}, in left-to-right order, that may
-		 * be accepted by a {@linkplain ClosureDescriptor closure} described by
-		 * this {@linkplain ClosureTypeDescriptor closure type}.
+		 * A tuple type indicating what kinds of arguments this type's instances
+		 * will accept.
 		 */
-		ARG_TYPE_AT_
+		ARGS_TUPLE_TYPE
 	}
 
 	@Override
@@ -136,20 +134,18 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ArgTypeAt (
-		final @NotNull AvailObject object,
-		final int subscript)
+	public @NotNull AvailObject o_ArgsTupleType (
+		final @NotNull AvailObject object)
 	{
-		return object.objectSlotAt(ObjectSlots.ARG_TYPE_AT_, subscript);
+		return object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE);
 	}
 
 	@Override
-	public void o_ArgTypeAtPut (
+	public void o_ArgsTupleType (
 		final @NotNull AvailObject object,
-		final int subscript,
-		final @NotNull AvailObject value)
+		final @NotNull AvailObject tupleType)
 	{
-		object.objectSlotAtPut(ObjectSlots.ARG_TYPE_AT_, subscript, value);
+		object.objectSlotPut(ObjectSlots.ARGS_TUPLE_TYPE, tupleType);
 	}
 
 	@Override
@@ -181,7 +177,7 @@ extends TypeDescriptor
 		tempStrings = new ArrayList<String>(objectCount);
 		for (final AvailObject elem : objects)
 		{
-			final String str = elem.toString();
+			final String str = elem != null ? elem.toString() : "…";
 			tempStrings.add(str);
 			if (str.indexOf('\n') > -1)
 			{
@@ -201,10 +197,18 @@ extends TypeDescriptor
 				{
 					aStream.append('\t');
 				}
-				objects.get(i).printOnAvoidingIndent(
-					aStream,
-					recursionList,
-					(indent + 1));
+				final AvailObject item = objects.get(i);
+				if (item != null)
+				{
+					item.printOnAvoidingIndent(
+						aStream,
+						recursionList,
+						indent + 1);
+				}
+				else
+				{
+					aStream.append("…");
+				}
 			}
 		}
 		else
@@ -228,26 +232,62 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append('[');
-		List<AvailObject> list =
-			new ArrayList<AvailObject>(object.numArgs());
-		for (int i = 1; i <= object.numArgs(); i++)
+		final List<AvailObject> list = new ArrayList<AvailObject>();
+		final AvailObject tupleType = object.argsTupleType();
+		if (tupleType.equals(TERMINATES.o()))
 		{
-			list.add(object.argTypeAt(i));
+			aStream.append("...");
 		}
-		printListOnAvoidingIndent(list, aStream, recursionList, indent);
+		else
+		{
+			final AvailObject minObject = tupleType.sizeRange().lowerBound();
+			final AvailObject maxObject = tupleType.sizeRange().upperBound();
+			if (minObject.isInt())
+			{
+				final int min = minObject.extractInt();
+				for (int i = 1; i <= min; i++)
+				{
+					list.add(tupleType.typeAtIndex(i));
+				}
+				if (!minObject.equals(maxObject))
+				{
+					// Add "..., opt1, opt2" etc. to show the optional arguments.
+					list.add(null);
+					int max = tupleType.typeTuple().tupleSize() + 1;
+					max = Math.max(max, min + 1);
+					for (int i = min + 1; i <= max; i++)
+					{
+						list.add(tupleType.typeAtIndex(i));
+					}
+					if (!maxObject.equals(IntegerDescriptor.fromInt(max)))
+					{
+						// Add "..., 5" or whatever the max size is (or infinity).
+						list.add(null);
+						list.add(maxObject);
+					}
+				}
+				printListOnAvoidingIndent(list, aStream, recursionList, indent);
+			}
+			else
+			{
+				aStream.append("?");
+			}
+		}
 		aStream.append("]->");
 		object.returnType().printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
-		aStream.append(" raises {");
-		list = new ArrayList<AvailObject>(object.checkedExceptions().setSize());
-		for (final AvailObject elem : object.checkedExceptions())
+		if (object.checkedExceptions().setSize() > 0)
 		{
-			list.add(elem);
+			aStream.append("^");
+			list.clear();
+			for (final AvailObject elem : object.checkedExceptions())
+			{
+				list.add(elem);
+			}
+			printListOnAvoidingIndent(list, aStream, recursionList, indent);
 		}
-		printListOnAvoidingIndent(list, aStream, recursionList, indent);
-		aStream.append('}');
 	}
 
 	@Override
@@ -265,9 +305,7 @@ extends TypeDescriptor
 	 * AvailObject#equals(AvailObject) equal} IFF:</p>
 	 *
 	 * <p><ul>
-	 * <li>They have the same {@linkplain AvailObject#numArgs() number of
-	 * arguments},</li>
-	 * <li>The {@linkplain AvailObject#argTypeAt(int) argument types}
+	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
 	 * correspond,</li>
 	 * <li>The {@linkplain AvailObject#returnType() return types}
 	 * correspond, and</li>
@@ -288,17 +326,9 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		final int num = object.numArgs();
-		if (num != aType.numArgs())
+		if (!object.argsTupleType().equals(aType.argsTupleType()))
 		{
 			return false;
-		}
-		for (int i = 1; i <= num; i++)
-		{
-			if (!object.argTypeAt(i).equals(aType.argTypeAt(i)))
-			{
-				return false;
-			}
 		}
 		if (!object.returnType().equals(aType.returnType()))
 		{
@@ -339,11 +369,7 @@ extends TypeDescriptor
 			hash = 0x63FC934;
 			hash ^= object.returnType().hash();
 			hash = hash * 23 ^ object.checkedExceptions().hash();
-			for (int i = 1, end = object.numArgs(); i <= end; i++)
-			{
-				final AvailObject argTypeObject = object.argTypeAt(i);
-				hash = hash * 23 ^ argTypeObject.hash();
-			}
+			hash = hash * 29 ^ object.argsTupleType().hash();
 			object.hashOrZero(hash);
 		}
 		return hash;
@@ -354,17 +380,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return CLOSURE_TYPE.o();
-	}
-
-	/**
-	 * Answer the number of arguments expected by instances of the specified
-	 * {@linkplain ClosureTypeDescriptor object}.
-	 */
-	@Override
-	public int o_NumArgs (
-		final @NotNull AvailObject object)
-	{
-		return object.variableObjectSlotsCount();
 	}
 
 	/**
@@ -380,85 +395,50 @@ extends TypeDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final AvailObject clone = mutable().create(
-			object.numArgs());
-		clone.checkedExceptions(object.checkedExceptions());
-		clone.returnType(object.returnType());
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
-		{
-			clone.argTypeAtPut(i, object.argTypeAt(i));
-		}
+		final AvailObject clone = mutable().create();
+		clone.objectSlotPut(ObjectSlots.ARGS_TUPLE_TYPE,
+			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+		clone.objectSlotPut(ObjectSlots.CHECKED_EXCEPTIONS,
+			object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS));
+		clone.objectSlotPut(ObjectSlots.RETURN_TYPE,
+			object.objectSlot(ObjectSlots.RETURN_TYPE));
 		clone.hashOrZero(object.hashOrZero());
 		return clone;
 	}
 
 	/**
-	 * Answer whether the {@linkplain AvailObject#argTypeAt(int) argument types}
-	 * supported by the specified {@linkplain ClosureTypeDescriptor closure
-	 * type} are acceptable argument types for invoking a {@linkplain
-	 * ClosureDescriptor closure} that is an instance of {@code object}.
+	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
+	 * types} supported by the specified {@linkplain ClosureTypeDescriptor
+	 * closure type} are acceptable argument types for invoking a {@linkplain
+	 * ClosureDescriptor closure} whose type is the {@code object}.
 	 */
 	@Override
 	public boolean o_AcceptsArgTypesFromClosureType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject closureType)
 	{
-		if (closureType.numArgs() != object.numArgs())
-		{
-			return false;
-		}
-		for (int i = 1, end = closureType.numArgs(); i <= end; i++)
-		{
-			if (!closureType.argTypeAt(i).isSubtypeOf(object.argTypeAt(i)))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * The arguments have been pushed onto the specified {@linkplain
-	 * ContinuationDescriptor continuation}'s stack. Answer whether these
-	 * arguments are acceptable for invoking a {@linkplain ClosureDescriptor
-	 * closure} that is an instance of {@code object}.
-	 */
-	@Override
-	public boolean o_AcceptsArgumentsFromContinuationStackp (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp)
-	{
-		final int numArgs = object.numArgs();
-		for (int i = 1; i <= numArgs; i++)
-		{
-			final AvailObject arg = continuation.stackAt(stackp + numArgs - i);
-			if (!arg.isInstanceOfSubtypeOf(object.argTypeAt(i)))
-			{
-				return false;
-			}
-		}
-		return true;
+		return closureType.argsTupleType().isSubtypeOf(object.argsTupleType());
 	}
 
 	/**
 	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
 	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
 	 * Answer whether these arguments are acceptable for invoking a {@linkplain
-	 * ClosureDescriptor closure} that is an instance of {@code object}.
+	 * ClosureDescriptor closure} whose type is the {@code object}.
 	 */
 	@Override
-	public boolean o_AcceptsArgumentTypesFromContinuationStackp (
+	public boolean o_AcceptsArgumentTypesFromContinuation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject continuation,
-		final int stackp)
+		final int stackp,
+		final int numArgs)
 	{
-		final int numArgs = object.numArgs();
+		final AvailObject tupleType = object.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject argType =
 				continuation.stackAt(stackp + numArgs - i);
-			if (!argType.isSubtypeOf(object.argTypeAt(i)))
+			if (!argType.isSubtypeOf(tupleType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -468,17 +448,18 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain ClosureDescriptor closure} that is an
-	 * instance of {@code object}.
+	 * types} for invoking a {@linkplain ClosureDescriptor closure} whose type
+	 * is the {@code object}.
 	 */
 	@Override
-	public boolean o_AcceptsArrayOfArgTypes (
+	public boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
+		final AvailObject tupleType = object.argsTupleType();
+		for (int i = 1, end = argTypes.size(); i <= end; i++)
 		{
-			if (!argTypes.get(i - 1).isSubtypeOf(object.argTypeAt(i)))
+			if (!argTypes.get(i - 1).isSubtypeOf(tupleType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -488,17 +469,18 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * ClosureDescriptor closure} that is an instance of {@code object}.
+	 * ClosureDescriptor closure} whose type is the {@code object}.
 	 */
 	@Override
-	public boolean o_AcceptsArrayOfArgValues (
+	public boolean o_AcceptsListOfArgValues (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argValues)
 	{
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
+		final AvailObject tupleType = object.argsTupleType();
+		for (int i = 1, end = argValues.size(); i <= end; i++)
 		{
 			final AvailObject arg = argValues.get(i - 1);
-			if (!arg.isInstanceOfSubtypeOf(object.argTypeAt(i)))
+			if (!arg.isInstanceOfSubtypeOf(tupleType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -518,9 +500,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject argTypes)
 	{
+		final AvailObject tupleType = object.argsTupleType();
 		for (int i = 1, end = object.numArgs(); i <= end; i++)
 		{
-			if (!argTypes.tupleAt(i).isSubtypeOf(object.argTypeAt(i)))
+			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -539,15 +522,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject arguments)
 	{
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
-		{
-			if (!arguments.tupleAt(i).isInstanceOfSubtypeOf(
-				object.argTypeAt(i)))
-			{
-				return false;
-			}
-		}
-		return true;
+		return arguments.isInstanceOfSubtypeOf(object.argsTupleType());
 	}
 
 	/**
@@ -564,9 +539,10 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
+		final AvailObject tupleType = object.argsTupleType();
+		for (int i = 1, end = argTypes.size(); i <= end; i++)
 		{
-			final AvailObject argType = object.argTypeAt(i);
+			final AvailObject argType = tupleType.typeAtIndex(i);
 			final AvailObject actualType = argTypes.get(i - 1);
 			final AvailObject intersection =
 				argType.typeIntersection(actualType);
@@ -590,7 +566,7 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * {@linkplain ClosureTypeDescriptor Closure types} are contravariant by
-	 * {@linkplain AvailObject#argTypeAt(int) argument types}, covariant by
+	 * {@linkplain AvailObject#argsTupleType() argument types}, covariant by
 	 * {@linkplain AvailObject#returnType() return type}, and covariant by
 	 * normalized {@linkplain AvailObject#checkedExceptions() raise types}. If
 	 * {@linkplain AvailObject#numArgs() argument count} differs, they are
@@ -604,10 +580,6 @@ extends TypeDescriptor
 		if (object.equals(aClosureType))
 		{
 			return true;
-		}
-		if (object.numArgs() != aClosureType.numArgs())
-		{
-			return false;
 		}
 		if (!aClosureType.returnType().isSubtypeOf(object.returnType()))
 		{
@@ -629,28 +601,7 @@ extends TypeDescriptor
 				return false;
 			}
 		}
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
-		{
-			if (!object.argTypeAt(i).isSubtypeOf(aClosureType.argTypeAt(i)))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	// TODO: [TLS] Eliminate generalized closure type after refactoring closure
-	// type to specify a tuple type of argument types (not varargs).
-	@Override
-	public boolean o_IsSupertypeOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Closure types are contravariant by arguments and covariant by return type.  Since
-		//  no closure types are supertypes of generalized closure types, answer false.
-
-		//  Same as for superclass, but pretend it's a special case for symmetry.
-		return false;
+		return object.argsTupleType().isSubtypeOf(aClosureType.argsTupleType());
 	}
 
 	@Override
@@ -676,6 +627,92 @@ extends TypeDescriptor
 	{
 		return object.typeIntersectionOfClosureTypeCanDestroy(
 			aClosureType, false);
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType,
+		final boolean canDestroy)
+	{
+		if (!canDestroy || !isMutable)
+		{
+			return object.copyMutable().typeIntersectionOfClosureTypeCanDestroy(
+				aClosureType, true);
+		}
+
+		final AvailObject tupleTypeUnion =
+			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
+				aClosureType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+		final AvailObject returnType =
+			object.returnType().typeIntersection(aClosureType.returnType());
+		AvailObject exceptions = SetDescriptor.empty();
+		for (final AvailObject outer : object.checkedExceptions())
+		{
+			for (final AvailObject inner : aClosureType.checkedExceptions())
+			{
+				exceptions = exceptions.setWithElementCanDestroy(
+					outer.typeIntersection(inner),
+					true);
+			}
+		}
+		exceptions = normalizeExceptionSet(exceptions);
+		object.argsTupleType(tupleTypeUnion);
+		object.checkedExceptions(exceptions);
+		object.returnType(returnType);
+		object.hashOrZero(0);
+		return object;
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeUnion (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		if (object.isSubtypeOf(another))
+		{
+			return another;
+		}
+		if (another.isSubtypeOf(object))
+		{
+			return object;
+		}
+		return another.typeUnionOfClosureType(object);
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType)
+	{
+		return object.typeUnionOfClosureTypeCanDestroy(aClosureType, false);
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfClosureTypeCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aClosureType,
+		final boolean canDestroy)
+	{
+		if (!canDestroy || !isMutable)
+		{
+			return object.copyMutable().typeUnionOfClosureTypeCanDestroy(
+				aClosureType, true);
+		}
+
+		final AvailObject tupleTypeIntersection =
+			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
+				aClosureType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+		final AvailObject returnType =
+			object.returnType().typeUnion(aClosureType.returnType());
+		final AvailObject exceptions = normalizeExceptionSet(
+			object.checkedExceptions().setUnionCanDestroy(
+				aClosureType.checkedExceptions(), true));
+		object.argsTupleType(tupleTypeIntersection);
+		object.checkedExceptions(exceptions);
+		object.returnType(returnType);
+		object.hashOrZero(0);
+		return object;
 	}
 
 	/**
@@ -728,7 +765,8 @@ extends TypeDescriptor
 				if (!subsumed)
 				{
 					normalizedSet = normalizedSet.setWithElementCanDestroy(
-						outer, true);
+						outer,
+						true);
 				}
 			}
 		}
@@ -736,190 +774,39 @@ extends TypeDescriptor
 		return normalizedSet;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType,
-		final boolean canDestroy)
-	{
-		// TODO: [TLS] Update this when argument types are a tuple type.
-		if (object.numArgs() != aClosureType.numArgs())
-		{
-			return TERMINATES.o();
-		}
-		if (!canDestroy || !isMutable)
-		{
-			return object.copyMutable().typeIntersectionOfClosureTypeCanDestroy(
-				aClosureType, true);
-		}
-
-		// It's mutable at this point. Lock it to make sure a GC doesn't merge
-		// it back with an immutable...
-		AvailObject.lock(object);
-		AvailObject set = SetDescriptor.empty();
-		for (final AvailObject outer : object.checkedExceptions())
-		{
-			for (final AvailObject inner : aClosureType.checkedExceptions())
-			{
-				set = set.setWithElementCanDestroy(
-					outer.typeIntersection(inner), true);
-			}
-		}
-		object.checkedExceptions(normalizeExceptionSet(set));
-		object.returnType(
-			object.returnType().typeIntersection(aClosureType.returnType()));
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
-		{
-			object.argTypeAtPut(
-				i, object.argTypeAt(i).typeUnion(aClosureType.argTypeAt(i)));
-		}
-		object.hashOrZero(0);
-		AvailObject.unlock(object);
-		return object;
-	}
-
-	// TODO: [TLS] Eliminate generalized closure type after refactoring closure
-	// type to specify a tuple type of argument types (not varargs).
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Answer the most general type that is still at least as specific as these.  The intersection
-		//  of a closure type and a generalized closure type is always a closure type, so simply
-		//  intersect the return types, and use the argument types verbatim.
-
-		return object.typeIntersectionOfGeneralizedClosureTypeCanDestroy(aGeneralizedClosureType, false);
-	}
-
-	// TODO: [TLS] Eliminate generalized closure type after refactoring closure
-	// type to specify a tuple type of argument types (not varargs).
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureTypeCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType,
-		final boolean canDestroy)
-	{
-		//  Answer the most general type that is still at least as specific as these.  The intersection
-		//  of a closure type and a generalized closure type is always a closure type, so simply
-		//  intersect the return types, and use the argument types verbatim.
-
-		if (!canDestroy || !isMutable)
-		{
-			return object.copyMutable().typeIntersectionOfGeneralizedClosureTypeCanDestroy(aGeneralizedClosureType, true);
-		}
-		//  It's mutable at this point.  Lock it to make sure a GC doesn't merge it back with an immutable...
-		AvailObject.lock(object);
-		object.returnType(object.returnType().typeIntersection(aGeneralizedClosureType.returnType()));
-		object.hashOrZero(0);
-		AvailObject.unlock(object);
-		return object;
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfClosureType(object);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
-	{
-		return object.typeUnionOfClosureTypeCanDestroy(aClosureType, false);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureTypeCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType,
-		final boolean canDestroy)
-	{
-		// TODO: [TLS] Update this when argument types are a tuple type.
-		if (object.numArgs() != aClosureType.numArgs())
-		{
-			return GeneralizedClosureTypeDescriptor.forReturnType(
-				object.returnType().typeUnion(aClosureType.returnType()));
-		}
-
-		if (!canDestroy || !isMutable)
-		{
-			return object.copyMutable().typeUnionOfClosureTypeCanDestroy(
-				aClosureType, true);
-		}
-
-		// It's mutable at this point. Lock it to make sure a GC doesn't merge
-		// it back with an immutable...
-		AvailObject.lock(object);
-		object.checkedExceptions(normalizeExceptionSet(
-			object.checkedExceptions().setUnionCanDestroy(
-				aClosureType.checkedExceptions(), false)));
-		object.returnType(
-			object.returnType().typeUnion(aClosureType.returnType()));
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
-		{
-			object.argTypeAtPut(
-				i,
-				object.argTypeAt(i).typeIntersection(
-					aClosureType.argTypeAt(i)));
-		}
-		object.hashOrZero(0);
-		AvailObject.unlock(object);
-		return object;
-	}
-
-	// TODO: [TLS] Eliminate generalized closure type after refactoring closure
-	// type to specify a tuple type of argument types (not varargs).
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Answer the most specific type that is still at least as general as these.  Respect
-		//  the covariance of the return types.  Discard the argument information, because
-		//  the union of a generalized closure type and a closure type is always a generalized
-		//  closure type.
-
-		return GeneralizedClosureTypeDescriptor.forReturnType(object.returnType().typeUnion(aGeneralizedClosureType.returnType()));
-	}
-
 	/**
 	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
-	 * instances accept arguments of the specified {@linkplain TypeDescriptor
-	 * types} and produce {@linkplain AvailObject values} that conform to the
-	 * return type.
+	 * instances accept arguments which, if collected in a tuple, match the
+	 * specified {@linkplain TupleTypeDescriptor tuple type}.  The instances of
+	 * this closure type should also produce {@linkplain AvailObject values}
+	 * that conform to the return type, and may only raise checked exceptions
+	 * whose instances are subtypes of one or more members of the supplied
+	 * exception set.
 	 *
-	 * @param argTypes
-	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
-	 *        types} of the arguments that instances should accept.
+	 * @param argsTupleType
+	 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
+	 *        {@linkplain TypeDescriptor types} of the arguments that instances
+	 *        should accept.
 	 * @param returnType
 	 *        The {@linkplain TypeDescriptor type} of value that an instance
 	 *        should produce.
+	 * @param exceptionSet
+	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
+	 *        ObjectTypeDescriptor exception types} that an instance may raise.
 	 * @return A {@linkplain ClosureTypeDescriptor closure type}.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject argTypes,
-		final @NotNull AvailObject returnType)
+	public static @NotNull AvailObject createWithArgumentTupleType (
+		final @NotNull AvailObject argsTupleType,
+		final @NotNull AvailObject returnType,
+		final @NotNull AvailObject exceptionSet)
 	{
-		final AvailObject type = mutable().create(
-			argTypes.tupleSize());
-		type.checkedExceptions(SetDescriptor.empty());
-		type.returnType(returnType);
-		for (int i = argTypes.tupleSize(); i >= 1; -- i)
-		{
-			type.argTypeAtPut(i, argTypes.tupleAt(i));
-		}
+		assert argsTupleType.isInstanceOfSubtypeOf(TUPLE_TYPE.o());
+		final AvailObject exceptionsReduced =
+			normalizeExceptionSet(exceptionSet);
+		final AvailObject type = mutable().create();
+		type.objectSlotPut(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType);
+		type.objectSlotPut(ObjectSlots.CHECKED_EXCEPTIONS, exceptionsReduced);
+		type.objectSlotPut(ObjectSlots.RETURN_TYPE, returnType);
 		type.hashOrZero(0);
 		type.makeImmutable();
 		return type;
@@ -948,18 +835,92 @@ extends TypeDescriptor
 		final @NotNull AvailObject returnType,
 		final @NotNull AvailObject exceptionSet)
 	{
-		final AvailObject type = mutable().create(
-			argTypes.tupleSize());
-		type.checkedExceptions(normalizeExceptionSet(exceptionSet));
-		type.returnType(returnType);
-		for (int i = argTypes.tupleSize(); i >= 1; -- i)
-		{
-			type.argTypeAtPut(i, argTypes.tupleAt(i));
-		}
-		type.hashOrZero(0);
-		type.makeImmutable();
-		return type;
+		final AvailObject tupleType =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.singleInteger(
+					IntegerDescriptor.fromInt(argTypes.tupleSize())),
+				argTypes,
+				TERMINATES.o());
+		return createWithArgumentTupleType(tupleType, returnType, exceptionSet);
 	}
+
+	/**
+	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
+	 * instances accept arguments of the specified {@linkplain TypeDescriptor
+	 * types}, produce {@linkplain AvailObject values} that conform to the
+	 * return type, and raise <em>no</em> checked exceptions.
+	 *
+	 * @param argTypes
+	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
+	 *        types} of the arguments that instances should accept.
+	 * @param returnType
+	 *        The {@linkplain TypeDescriptor type} of value that an instance
+	 *        should produce.
+	 * @return A {@linkplain ClosureTypeDescriptor closure type}.
+	 */
+	public static @NotNull AvailObject create (
+		final @NotNull AvailObject argTypes,
+		final @NotNull AvailObject returnType)
+	{
+		return create(
+			argTypes,
+			returnType,
+			SetDescriptor.empty());
+	}
+
+	/**
+	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
+	 * instances can't be invoked because they have an impossible number of
+	 * arguments specified.
+	 *
+	 * @param returnType
+	 *            The type of object returned by a closure that conforms to the
+	 *            {@linkplain ClosureTypeDescriptor closure type} being defined.
+	 * @return
+	 *            A {@linkplain ClosureTypeDescriptor closure type} that contains
+	 */
+	public static @NotNull AvailObject forReturnType (
+		final @NotNull AvailObject returnType)
+	{
+		return createWithArgumentTupleType(
+			TERMINATES.o(),
+			returnType,
+			SetDescriptor.empty());//TODO: Probably should allow any exception.
+	}
+
+	/**
+	 * The most general {@linkplain ClosureTypeDescriptor closure type}.
+	 */
+	private static AvailObject TopInstance;
+
+	/**
+	 * Create the top (i.e., most general) {@linkplain ClosureTypeDescriptor
+	 * closure type}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		TopInstance = forReturnType(VOID_TYPE.o());
+	}
+
+	/**
+	 * Clear any static references to publicly accessible objects.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		TopInstance = null;
+	}
+
+	/**
+	 * Answer the top (i.e., most general) {@linkplain ClosureTypeDescriptor
+	 * closure type}.
+	 *
+	 * @return The closure type "[...]->void".
+	 */
+	public static AvailObject topInstance ()
+	{
+		return TopInstance;
+	}
+
 
 	/**
 	 * Construct a new {@link ClosureTypeDescriptor}.

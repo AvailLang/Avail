@@ -111,16 +111,6 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		//  Redefined for subclasses.
-
-		return false;
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
@@ -261,18 +251,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
-	}
-
-	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
@@ -378,7 +356,7 @@ extends Descriptor
 		 * these.
 		 */
 
-		return object.typeUnion(CLOSURE.o());
+		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -415,18 +393,6 @@ extends Descriptor
 		 */
 
 		return object.typeUnion(CYCLIC_TYPE.o());
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfGeneralizedClosureType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aGeneralizedClosureType)
-	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.  "all" is the nearest supertype of [...]->void.
-		 */
-
-		return object.typeUnion(ALL.o());
 	}
 
 	@Override
@@ -543,7 +509,6 @@ extends Descriptor
 		TRUE_TYPE(BOOLEAN_TYPE),
 		FALSE_TYPE(BOOLEAN_TYPE),
 		CHARACTER(ALL),
-		CLOSURE(ALL),
 		COMPILED_CODE(ALL),
 		CONTAINER(ALL, "CONTAINER_TYPE"),
 		CONTINUATION(ALL),
@@ -591,8 +556,7 @@ extends Descriptor
 		CONTAINER_TYPE(TYPE, "META"),
 		CONTINUATION_TYPE(TYPE, "META"),
 		PRIMITIVE_TYPE(TYPE, "META"),
-		GENERALIZED_CLOSURE_TYPE(PRIMITIVE_TYPE, "META"),
-		CLOSURE_TYPE(GENERALIZED_CLOSURE_TYPE, "META"),
+		CLOSURE_TYPE(PRIMITIVE_TYPE, "META"),
 		SET_TYPE(TYPE, "META"),
 		TUPLE_TYPE(TYPE, "META"),
 		TERMINATES_TYPE(
@@ -642,7 +606,7 @@ extends Descriptor
 		{
 			this.o = object;
 		}
-	};
+	}
 
 	static void createWellKnownObjects ()
 	{

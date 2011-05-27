@@ -36,7 +36,7 @@ import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
@@ -764,7 +764,7 @@ extends AbstractAvailCompiler
 							final ParserState afterOptionalPrimitive,
 							final Integer primitive)
 						{
-							Primitive thePrimitive =
+							final Primitive thePrimitive =
 								Primitive.byPrimitiveNumber(primitive);
 							if (thePrimitive != null
 								&& thePrimitive.hasFlag(Flag.CannotFail))
@@ -825,7 +825,7 @@ extends AbstractAvailCompiler
 	 * @param continuation
 	 *            What to do with the {@link BlockNodeDescriptor block}.
 	 */
-	void finishBlockThen (
+	@InnerAccess void finishBlockThen (
 		final ParserState afterStatements,
 		final List<AvailObject> arguments,
 		final int primitiveNumber,
@@ -878,14 +878,10 @@ extends AbstractAvailCompiler
 
 		final List<AvailObject> argumentTypesList =
 			new ArrayList<AvailObject>(arguments.size());
-		for (AvailObject argument : arguments)
+		for (final AvailObject argument : arguments)
 		{
 			argumentTypesList.add(argument.declaredType());
 		}
-		final AvailObject implicitBlockType =
-			ClosureTypeDescriptor.create(
-				TupleDescriptor.fromList(argumentTypesList),
-				lastStatementType.value);
 		boolean blockTypeGood = true;
 		if (statements.size() > 0
 				&& statements.get(0).isInstanceOfSubtypeOf(LABEL_NODE.o()))
@@ -893,23 +889,41 @@ extends AbstractAvailCompiler
 			final AvailObject labelNode = statements.get(0);
 			final AvailObject labelClosureType =
 				labelNode.declaredType().closureType();
+			final AvailObject implicitBlockType =
+				ClosureTypeDescriptor.create(
+					TupleDescriptor.fromList(argumentTypesList),
+					lastStatementType.value,
+					SetDescriptor.empty());
 			blockTypeGood = labelClosureType.equals(implicitBlockType);
 		}
 
 		if (!blockTypeGood)
 		{
-			afterClose.expected(
+			stateOutsideBlock.expected(
 				"label's declared type to exactly match "
-				+ "enclosing block's type");
+				+ "enclosing block's basic type");
 		}
 		else if (thePrimitive == null)
 		{
-			final AvailObject blockNode = BlockNodeDescriptor.newBlockNode(
-				arguments,
-				primitiveNumber,
-				statements,
-				lastStatementType.value);
-			attempt(stateOutsideBlock, continuation, blockNode);
+			parseOptionalBlockExceptionsClauseThen(
+				stateOutsideBlock,
+				new Con<AvailObject>("Block checked exceptions")
+				{
+					@Override
+					public void value(
+						final ParserState state,
+						final AvailObject checkedExceptions)
+					{
+						final AvailObject blockNode =
+							BlockNodeDescriptor.newBlockNode(
+								arguments,
+								primitiveNumber,
+								statements,
+								lastStatementType.value,
+								checkedExceptions);
+						attempt(stateOutsideBlock, continuation, blockNode);
+					};
+				});
 		}
 
 		if (!stateOutsideBlock.peekToken(
@@ -931,8 +945,8 @@ extends AbstractAvailCompiler
 					final ParserState afterReturnType,
 					final AvailObject returnType)
 				{
-					final AvailObject explicitBlockType = ClosureTypeDescriptor
-						.create(
+					final AvailObject explicitBlockType =
+						ClosureTypeDescriptor.create(
 							TupleDescriptor.fromList(argumentTypesList),
 							returnType);
 					if (thePrimitive != null)
@@ -992,19 +1006,107 @@ extends AbstractAvailCompiler
 					}
 					if (blockTypeGood2)
 					{
-						final AvailObject blockNode =
-							BlockNodeDescriptor.newBlockNode(
-								arguments,
-								primitiveNumber,
-								statements,
-								returnType);
-						attempt(afterReturnType, continuation, blockNode);
+						parseOptionalBlockExceptionsClauseThen(
+							afterReturnType,
+							new Con<AvailObject>(
+								"Block checked exceptions")
+							{
+								@Override
+								public void value(
+									final ParserState afterExceptions,
+									final AvailObject checkedExceptions)
+								{
+									final AvailObject blockNode =
+										BlockNodeDescriptor.newBlockNode(
+											arguments,
+											primitiveNumber,
+											statements,
+											returnType,
+											checkedExceptions);
+									attempt(
+										afterExceptions,
+										continuation,
+										blockNode);
+								};
+							});
 					}
 					else
 					{
 						stateOutsideBlock.expected(
 							"label's declared type to exactly match "
 							+ "enclosing block's declared type");
+					}
+				}
+			});
+	}
+
+	/**
+	 * Parse the optional declaration of exceptions after a block.  This is a
+	 * caret (^) followed by a comma-separated list of expressions that yield
+	 * exception types.
+	 *
+	 * @param start Where to start parsing.
+	 * @param continuation What to do with the resulting exception set.
+	 */
+	@InnerAccess void parseOptionalBlockExceptionsClauseThen (
+		final ParserState start,
+		final Con<AvailObject> continuation)
+	{
+		attempt(start, continuation, SetDescriptor.empty());
+
+		if (!start.peekToken(
+			CARET,
+			"optional block exceptions declaration"))
+		{
+			return;
+		}
+		final ParserState afterColon = start.afterToken();
+		parseMoreExceptionClausesThen (
+			afterColon,
+			SetDescriptor.empty(),
+			continuation);
+	}
+
+	/**
+	 * Parse at least one more exception clause, trying the continuation with
+	 * each potential set of exceptions that are parsed.
+	 *
+	 * @param atNextException Where to start parsing the next exception.
+	 * @param exceptionsAlready The exception set that has been parsed so far.
+	 * @param continuation What to do with the extended exception set.
+	 */
+	@InnerAccess void parseMoreExceptionClausesThen (
+		final ParserState atNextException,
+		final AvailObject exceptionsAlready,
+		final Con<AvailObject> continuation)
+	{
+		parseAndEvaluateExpressionYieldingInstanceOfThen(
+			atNextException,
+			ObjectDescriptor.objectFromMap(MapDescriptor.empty()),
+			new Con<AvailObject>("Exception declaration entry for block")
+			{
+				@Override
+				public void value (
+					final ParserState afterException,
+					final AvailObject exceptionType)
+				{
+					final AvailObject newExceptionSet =
+						exceptionsAlready.setWithElementCanDestroy(
+							exceptionType,
+							false);
+					newExceptionSet.makeImmutable();
+					attempt(
+						afterException,
+						continuation,
+						newExceptionSet);
+					if (afterException.peekToken(
+						COMMA,
+						"Comma in exception declarations"))
+					{
+						parseMoreExceptionClausesThen(
+							afterException.afterToken(),
+							newExceptionSet,
+							continuation);
 					}
 				}
 			});
@@ -1476,7 +1578,7 @@ extends AbstractAvailCompiler
 						// one from that to make it a List index.
 						assert successorTrees.tupleSize() == 1;
 						final int position = (instruction - 3 >> 3) - 1;
-						List<List<AvailObject>> newInnerArgs =
+						final List<List<AvailObject>> newInnerArgs =
 							new ArrayList<List<AvailObject>>(innerArgsSoFar);
 						while (position >= newInnerArgs.size())
 						{
@@ -1548,10 +1650,10 @@ extends AbstractAvailCompiler
 		final Con<AvailObject> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-		AvailObject message = bundle.message();
+		final AvailObject message = bundle.message();
 		final AvailObject impSet = interpreter.runtime().methodsAt(message);
 		assert !impSet.equalsVoid();
-		AvailObject implementationsTuple = impSet.implementationsTuple();
+		final AvailObject implementationsTuple = impSet.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
 
 		if (implementationsTuple.tupleAt(1).isMacro())
@@ -1571,7 +1673,7 @@ extends AbstractAvailCompiler
 		}
 
 		// It invokes a method (not a macro).
-		for (AvailObject arg : argumentExpressions)
+		for (final AvailObject arg : argumentExpressions)
 		{
 			if (arg.expressionType().equals(TERMINATES.o()))
 			{
@@ -1661,8 +1763,8 @@ extends AbstractAvailCompiler
 	{
 		for (int i = 1; i <= innerArguments.size(); i++)
 		{
-			List<AvailObject> argumentOccurrences = innerArguments.get(i - 1);
-			for (AvailObject argument : argumentOccurrences)
+			final List<AvailObject> argumentOccurrences = innerArguments.get(i - 1);
+			for (final AvailObject argument : argumentOccurrences)
 			{
 				final AvailObject argumentSendName =
 					argument.apparentSendName();
@@ -1713,7 +1815,7 @@ extends AbstractAvailCompiler
 				builder.append("one of the following internal keywords:");
 				final List<String> sorted =
 					new ArrayList<String>(incomplete.mapSize());
-				for (MapDescriptor.Entry entry : incomplete.mapIterable())
+				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
 					sorted.add(entry.key.asNativeString());
 				}

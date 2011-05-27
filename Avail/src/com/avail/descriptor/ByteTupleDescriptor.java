@@ -443,7 +443,7 @@ extends TupleDescriptor
 	{
 		final int delta = flag ? 0 : 1;
 		return descriptors[delta + (size & 3) * 2];
-	};
+	}
 
 	/**
 	 * Construct a new {@link ByteTupleDescriptor}.

@@ -463,7 +463,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			objectSlotCount,
 			integerSlotCount);
 		return object;
-	};
+	}
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
 			final int variableObjectSlots,
@@ -479,6 +479,5 @@ final public class AvailObjectUsingArrays extends AvailObject
 			descriptor.numberOfFixedObjectSlots() + variableObjectSlots,
 			descriptor.numberOfFixedIntegerSlots() + variableIntegerSlots);
 		return object;
-	};
-
+	}
 }

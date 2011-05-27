@@ -852,4 +852,4 @@ public enum L2Operation
 	 */
 	abstract void dispatch (
 		final @NotNull L2OperationDispatcher operationDispatcher);
-};
+}
