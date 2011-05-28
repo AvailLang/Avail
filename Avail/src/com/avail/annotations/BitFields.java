@@ -37,16 +37,14 @@ import com.avail.descriptor.*;
 
 /**
  * The {@code BitFields} annotation is used to indicate the presence of a
- * set of {@linkplain BitField bit field}s within an {@linkplain
+ * set of {@linkplain BitField bit fields} within an {@linkplain
  * AvailObjectUsingArrays#integerSlot(Enum) integer slot} that has this
  * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-	ElementType.FIELD,
-})
+@Target({ElementType.FIELD})
 public @interface BitFields
 {
 	/**

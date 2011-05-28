@@ -44,9 +44,7 @@ import com.avail.descriptor.*;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-	ElementType.FIELD,
-})
+@Target({ElementType.FIELD})
 public @interface EnumField
 {
 	/**

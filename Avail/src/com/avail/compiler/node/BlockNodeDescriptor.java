@@ -39,7 +39,6 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ClosureTypeDescriptor.ObjectSlots;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
