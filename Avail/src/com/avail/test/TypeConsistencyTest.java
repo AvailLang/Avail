@@ -187,8 +187,82 @@ public class TypeConsistencyTest
 			}
 		},
 
+		/** The type of all {@code type}s */
+		TYPE (ALL)
+		{
+			@Override AvailObject get ()
+			{
+				return Types.TYPE.o();
+			}
+		},
+
+		/** The primitive type representing the extended integers [-∞..∞]. */
+		EXTENDED_INTEGER (ALL)
+		{
+			@Override AvailObject get ()
+			{
+				return IntegerRangeTypeDescriptor.extendedIntegers();
+			}
+		},
+
+		/** The primitive type representing whole numbers [0..∞). */
+		WHOLE_NUMBER (EXTENDED_INTEGER)
+		{
+			@Override AvailObject get ()
+			{
+				return IntegerRangeTypeDescriptor.wholeNumbers();
+			}
+		},
+
+		/** The type of all {@code type}s' types. */
+		META (TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return Types.META.o();
+			}
+		},
+
+		/** The primitive cyclic type. */
+		CYCLIC_TYPE (META)
+		{
+			@Override AvailObject get ()
+			{
+				return Types.CYCLIC_TYPE.o();
+			}
+		},
+
+		/** A generated cyclic type. */
+		SOME_CYCLIC_TYPE (CYCLIC_TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return CyclicTypeDescriptor.create(
+					ByteStringDescriptor.from("something"));
+			}
+		},
+
+		/** A generated cyclic type distinct from {@link #SOME_CYCLIC_TYPE}. */
+		ANOTHER_CYCLIC_TYPE (CYCLIC_TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return CyclicTypeDescriptor.create(
+					ByteStringDescriptor.from("another"));
+			}
+		},
+
+		/** The type of {@code terminates}.  This is the most specific meta. */
+		TERMINATES_TYPE (META, SOME_CYCLIC_TYPE, ANOTHER_CYCLIC_TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return Types.TERMINATES_TYPE.o();
+			}
+		},
+
 		/** The type {@code terminates} */
-		TERMINATES (SET, EMPTY_TUPLE, UNIT_STRING)
+		TERMINATES (SET, EMPTY_TUPLE, UNIT_STRING, TERMINATES_TYPE, WHOLE_NUMBER)
 		{
 			@Override AvailObject get ()
 			{

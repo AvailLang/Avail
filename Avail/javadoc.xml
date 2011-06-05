@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="C:\Program Files (x86)\Java\jdk1.6.0_20\bin\javadoc">
+    <target name="C:\Program Files (x86)\Java\jdk1.6.0_20\bin\javadoc">
+        <javadoc
+        		access="public"
+        		author="true"
+        		classpath="C:\eclipse\plugins\org.hamcrest.core_1.1.0.v20090501071000.jar;C:\eclipse\plugins\org.junit_4.8.1.v4_8_1_v20100427-1100\junit.jar"
+        		destdir="../JavaDoc"
+        		nodeprecated="false"
+        		nodeprecatedlist="false"
+        		noindex="false"
+        		nonavbar="false"
+        		notree="false"
+        		encoding="utf8"
+        		packagenames="com.avail.compiler.scanning,com.avail,com.avail.interpreter.levelOne,com.avail.descriptor,com.avail.interpreter,com.avail.annotations,com.avail.interpreter.levelTwo.register,com.avail.interpreter.levelTwo,com.avail.interpreter.levelTwo.instruction,com.avail.exceptions,com.avail.test,com.avail.utility,com.avail.compiler.instruction,com.avail.compiler,com.avail.compiler.node,com.avail.visitor"
+        		source="1.6"
+        		sourcepath="src"
+        		splitindex="true"
+        		use="true"
+        		version="true">
+            <link href="file:/C:/Users/Avail/workspace/Avail/JavaDoc/"/>
+        </javadoc>
+    </target>
+</project>
