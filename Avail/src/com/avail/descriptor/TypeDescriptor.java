@@ -505,9 +505,9 @@ extends Descriptor
 	{
 		VOID_TYPE(null, "TYPE", VoidTypeDescriptor.mutable()),
 		ALL(VOID_TYPE, "TYPE"),
-		BOOLEAN_TYPE(ALL),
-		TRUE_TYPE(BOOLEAN_TYPE),
-		FALSE_TYPE(BOOLEAN_TYPE),
+		BOOLEAN(ALL),
+		TRUE_TYPE(BOOLEAN),
+		FALSE_TYPE(BOOLEAN),
 		CHARACTER(ALL),
 		COMPILED_CODE(ALL),
 		CONTAINER(ALL, "CONTAINER_TYPE"),
@@ -568,7 +568,7 @@ extends Descriptor
 			"TERMINATES_TYPE",
 			TerminatesTypeDescriptor.mutable());
 
-		protected final Types parent;
+		public final Types parent;
 		protected final String myTypeName;
 		protected final AbstractDescriptor descriptor;
 		private AvailObject o;

@@ -111,73 +111,121 @@ import com.avail.descriptor.*;
 public class TypeConsistencyTest
 {
 	/**
-	 * This is an {@code enum} whose elements hold a sampling of types.  They
-	 * are assembled into a graph, the transitive closure is computed, and this
-	 * transitively closed graph is compared, node-pair-wise, to the actual
-	 * subtype relation between the types residing in the nodes.  Then other
-	 * tests check various properties of the types.
+	 * {@code Node} records its instances upon creation.  They must be created
+	 * in top-down order (i.e., supertypes before subtypes), as the {@link
+	 * Node#Node(String, Node...) constructor} takes a variable number of
+	 * supertype nodes.  The node supertype declarations are checked against the
+	 * actual properties of the underlying types as one of the fundamental
+	 * {@linkplain TypeConsistencyTest consistency checks}.
+	 *
+	 * <p>
+	 * All {@link TypeDescriptor.Types} are included, as well as a few
+	 * simple representative samples, such as the one-element string type and
+	 * the type of whole numbers.
+	 * </p>
 	 */
-	public enum Node
+	public abstract static class Node
 	{
-		/** The type {@code void} */
-		VOID ()
-		{
-			@Override AvailObject get ()
-			{
-				return Types.VOID_TYPE.o();
-			}
-		},
+		/**
+		 * The list of all currently defined {@linkplain Node type nodes}.
+		 */
+		private static final List<Node> values = new ArrayList<Node>();
 
-		/** The type {@code all} */
-		ALL (VOID)
+		/**
+		 * Return the list of all currently defined {@linkplain Node type
+		 * nodes}.
+		 *
+		 * @return Every {@link Node} that has been defined thus far.
+		 */
+		static List<Node> values ()
 		{
-			@Override AvailObject get ()
+			return values;
+		}
+
+
+		/**
+		 * A mapping from {@link TypeDescriptor.Types} to their corresponding
+		 * {@link Node}s.
+		 */
+		private final static EnumMap<Types, Node> primitiveTypes =
+			new EnumMap<Types, Node>(Types.class);
+
+		static
+		{
+			// Include all primitive types except TERMINATES_TYPE and
+			// TERMINATES, which will be added specially at the end.
+			primitiveTypes.put(Types.TERMINATES_TYPE, null);
+			primitiveTypes.put(Types.TERMINATES, null);
+			for (final Types type : Types.values())
 			{
-				return Types.ALL.o();
+				if (!primitiveTypes.containsKey(type))
+				{
+					final Types typeParent = type.parent;
+					final Node [] parents =
+						new Node[typeParent == null ? 0 : 1];
+					if (typeParent != null)
+					{
+						parents[0] = primitiveTypes.get(typeParent);
+					}
+					final Node node = new Node(type.name(), parents)
+					{
+						@Override AvailObject get ()
+						{
+							return type.o();
+						}
+					};
+					primitiveTypes.put(type, node);
+				}
 			}
-		},
+		}
+
+
 
 		/** The type {@code tuple} */
-		TUPLE (ALL)
+		final static Node TUPLE = new Node(
+			"TUPLE",
+			primitiveTypes.get(Types.ALL))
 		{
 			@Override AvailObject get ()
 			{
 				return TupleTypeDescriptor.mostGeneralTupleType();
 			}
-		},
+		};
 
 		/**
 		 * The type {@code string}, which is the same as {@code tuple of
 		 * character}
 		 */
-		STRING (TUPLE)
+		final static Node STRING = new Node("STRING", TUPLE)
 		{
 			@Override AvailObject get ()
 			{
 				return TupleTypeDescriptor.stringTupleType();
 			}
-		},
+		};
 
 		/** The type {@code tuple [1..1] of character} */
-		UNIT_STRING (STRING)
+		final static Node UNIT_STRING = new Node("UNIT_STRING", STRING)
 		{
 			@Override AvailObject get ()
 			{
 				return ByteStringDescriptor.from("x").type();
 			}
-		},
+		};
 
 		/** The type {@code type of <>} */
-		EMPTY_TUPLE (TUPLE, STRING)
+		final static Node EMPTY_TUPLE = new Node("EMPTY_TUPLE", TUPLE, STRING)
 		{
 			@Override AvailObject get ()
 			{
 				return TupleDescriptor.empty().type();
 			}
-		},
+		};
 
 		/** The type {@code set} */
-		SET (ALL)
+		final static Node SET = new Node(
+			"SET",
+			primitiveTypes.get(Types.ALL))
 		{
 			@Override AvailObject get ()
 			{
@@ -185,84 +233,167 @@ public class TypeConsistencyTest
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					Types.ALL.o());
 			}
-		},
+		};
 
-		/** The type of all {@code type}s */
-		TYPE (ALL)
+		/** The most general closure type. */
+		final static Node MOST_GENERAL_CLOSURE = new Node(
+			"MOST_GENERAL_CLOSURE",
+			primitiveTypes.get(Types.ALL))
 		{
 			@Override AvailObject get ()
 			{
-				return Types.TYPE.o();
+				return ClosureTypeDescriptor.forReturnType(Types.VOID_TYPE.o());
 			}
-		},
+		};
+
+		/**
+		 * The type for closures that accept no arguments and return an integer.
+		 */
+		final static Node NOTHING_TO_INT_CLOSURE = new Node(
+			"NOTHING_TO_INT_CLOSURE",
+			MOST_GENERAL_CLOSURE)
+		{
+			@Override AvailObject get ()
+			{
+				return ClosureTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					IntegerRangeTypeDescriptor.integers());
+			}
+		};
+
+		/**
+		 * The type for closures that accept an integer and return an integer.
+		 */
+		final static Node INT_TO_INT_CLOSURE = new Node(
+			"INT_TO_INT_CLOSURE",
+			MOST_GENERAL_CLOSURE)
+		{
+			@Override AvailObject get ()
+			{
+				return ClosureTypeDescriptor.create(
+					TupleDescriptor.from(IntegerRangeTypeDescriptor.integers()),
+					IntegerRangeTypeDescriptor.integers());
+			}
+		};
+
+		/**
+		 * The type for closures that accept two integers and return an integer.
+		 */
+		final static Node INTS_TO_INT_CLOSURE = new Node(
+			"INTS_TO_INT_CLOSURE",
+			MOST_GENERAL_CLOSURE)
+		{
+			@Override AvailObject get ()
+			{
+				return ClosureTypeDescriptor.create(
+					TupleDescriptor.from(
+						IntegerRangeTypeDescriptor.integers(),
+						IntegerRangeTypeDescriptor.integers()),
+					IntegerRangeTypeDescriptor.integers());
+			}
+		};
+
+		/** The most specific closure type, other than terminates. */
+		final static Node MOST_SPECIFIC_CLOSURE = new Node(
+			"MOST_SPECIFIC_CLOSURE",
+			NOTHING_TO_INT_CLOSURE,
+			INT_TO_INT_CLOSURE,
+			INTS_TO_INT_CLOSURE)
+		{
+			@Override AvailObject get ()
+			{
+				return ClosureTypeDescriptor.createWithArgumentTupleType(
+					TupleTypeDescriptor.mostGeneralTupleType(),
+					Types.TERMINATES.o(),
+					SetDescriptor.empty());
+			}
+		};
 
 		/** The primitive type representing the extended integers [-∞..∞]. */
-		EXTENDED_INTEGER (ALL)
+		final static Node EXTENDED_INTEGER = new Node(
+			"EXTENDED_INTEGER",
+			primitiveTypes.get(Types.ALL))
 		{
 			@Override AvailObject get ()
 			{
 				return IntegerRangeTypeDescriptor.extendedIntegers();
 			}
-		},
+		};
 
 		/** The primitive type representing whole numbers [0..∞). */
-		WHOLE_NUMBER (EXTENDED_INTEGER)
+		final static Node WHOLE_NUMBER = new Node(
+			"WHOLE_NUMBER",
+			EXTENDED_INTEGER)
 		{
 			@Override AvailObject get ()
 			{
 				return IntegerRangeTypeDescriptor.wholeNumbers();
 			}
-		},
-
-		/** The type of all {@code type}s' types. */
-		META (TYPE)
-		{
-			@Override AvailObject get ()
-			{
-				return Types.META.o();
-			}
-		},
-
-		/** The primitive cyclic type. */
-		CYCLIC_TYPE (META)
-		{
-			@Override AvailObject get ()
-			{
-				return Types.CYCLIC_TYPE.o();
-			}
-		},
+		};
 
 		/** A generated cyclic type. */
-		SOME_CYCLIC_TYPE (CYCLIC_TYPE)
+		final static Node SOME_CYCLIC_TYPE = new Node(
+			"SOME_CYCLIC_TYPE",
+			primitiveTypes.get(Types.CYCLIC_TYPE))
 		{
 			@Override AvailObject get ()
 			{
 				return CyclicTypeDescriptor.create(
 					ByteStringDescriptor.from("something"));
 			}
-		},
+		};
 
 		/** A generated cyclic type distinct from {@link #SOME_CYCLIC_TYPE}. */
-		ANOTHER_CYCLIC_TYPE (CYCLIC_TYPE)
+		final static Node ANOTHER_CYCLIC_TYPE = new Node(
+			"ANOTHER_CYCLIC_TYPE",
+			primitiveTypes.get(Types.CYCLIC_TYPE))
 		{
 			@Override AvailObject get ()
 			{
 				return CyclicTypeDescriptor.create(
 					ByteStringDescriptor.from("another"));
 			}
-		},
+		};
+
 
 		/** The type of {@code terminates}.  This is the most specific meta. */
-		TERMINATES_TYPE (META, SOME_CYCLIC_TYPE, ANOTHER_CYCLIC_TYPE)
+		final static Node TERMINATES_TYPE = new Node(
+			"TERMINATES_TYPE",
+			primitiveTypes.get(Types.CLOSURE_TYPE),
+			primitiveTypes.get(Types.CONTAINER_TYPE),
+			primitiveTypes.get(Types.CONTINUATION_TYPE),
+			primitiveTypes.get(Types.INTEGER_TYPE),
+			primitiveTypes.get(Types.MAP_TYPE),
+			primitiveTypes.get(Types.SET_TYPE),
+			primitiveTypes.get(Types.TUPLE_TYPE),
+			primitiveTypes.get(Types.META),
+			SOME_CYCLIC_TYPE,
+			ANOTHER_CYCLIC_TYPE)
 		{
 			@Override AvailObject get ()
 			{
 				return Types.TERMINATES_TYPE.o();
 			}
-		},
+		};
+
+		/**
+		 * The list of all {@link Node}s except TERMINATES.
+		 */
+		private final static List<Node> nonTerminatesTypes =
+			new ArrayList<Node>();
+
+		static
+		{
+			for (final Node existingType : values())
+			{
+				nonTerminatesTypes.add(existingType);
+			}
+		}
 
 		/** The type {@code terminates} */
-		TERMINATES (SET, EMPTY_TUPLE, UNIT_STRING, TERMINATES_TYPE, WHOLE_NUMBER)
+		final static Node TERMINATES = new Node(
+			"TERMINATES",
+			nonTerminatesTypes.toArray(new Node[0]))
 		{
 			@Override AvailObject get ()
 			{
@@ -272,7 +403,11 @@ public class TypeConsistencyTest
 
 
 
-		/** The Avail {@link TypeDescriptor type} I represent in the graph */
+
+		/** The name of this type node, used for error diagnostics. */
+		final String name;
+
+		/** The Avail {@link TypeDescriptor type} I represent in the graph. */
 		AvailObject t;
 
 
@@ -281,25 +416,28 @@ public class TypeConsistencyTest
 
 
 		/** The subnodes in the graph, as an {@link EnumSet}. */
-		EnumSet<Node> subnodes;
+		Set<Node> subnodes;
 
 
 		/** Every node descended from this on, as an {@link EnumSet}. */
-		EnumSet<Node> allDescendants;
-
+		Set<Node> allDescendants;
 
 		/**
 		 * Construct a new {@link Node}, capturing a varargs list of known
 		 * supertypes.
 		 *
+		 * @param name
+		 *            The printable name of this {@link Node}.
 		 * @param supernodes
 		 *            The array of {@linkplain Node nodes} that this node is
-		 *            asserted to descend from.  Transitive ancestors can be
+		 *            asserted to descend from.  Transitive ancestors may be
 		 *            elided.
 		 */
-		Node (final Node... supernodes)
+		Node (final String name, final Node... supernodes)
 		{
+			this.name = name;
 			this.supernodes = supernodes;
+			values.add(this);
 		}
 
 
@@ -317,8 +455,8 @@ public class TypeConsistencyTest
 		{
 			for (final Node node : values())
 			{
-				node.subnodes = EnumSet.<Node>noneOf(Node.class);
-				node.allDescendants = EnumSet.<Node>noneOf(Node.class);
+				node.subnodes = new HashSet<Node>();
+				node.allDescendants = new HashSet<Node>();
 			}
 			for (final Node node : values())
 			{
@@ -359,6 +497,13 @@ public class TypeConsistencyTest
 		 */
 		abstract AvailObject get ();
 
+
+		@Override
+		public String toString()
+		{
+			return name;
+		};
+
 		/**
 		 * Record the actual type information into the graph.
 		 */
@@ -393,6 +538,7 @@ public class TypeConsistencyTest
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
 		Node.createTypes();
+		System.out.format("Checking %d types%n", Node.values().size());
 	}
 
 
@@ -751,22 +897,26 @@ public class TypeConsistencyTest
 		}
 	}
 
-//	/**
-//	 * Check that a type and a proper subtype are distinct after transformation
-//	 * through the "type-of" mapping.
-//	 * <span style="border-width:thin; border-style:solid"><nobr>
-//	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &equiv; T(x)&ne;T(y))
-//	 * </nobr></span>
-//	 */
-//	@Test
-//	public void testMetavariance ()
-//	{
-//		for (final Node x : Node.values())
-//		{
-//			for (final Node y : Node.values())
-//			{
-//				//TODO Complete this when meta smears are generalized to all metas.
-//			}
-//		}
-//	}
+	/**
+	 * Check that a type and a proper subtype are distinct after transformation
+	 * through the "type-of" mapping.
+	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &equiv; T(x)&ne;T(y))
+	 * </nobr></span>
+	 */
+	//TODO Enable this when meta smears are generalized to all metas.
+	//@Test
+	public void testMetavariance ()
+	{
+		for (final Node x : Node.values())
+		{
+			for (final Node y : Node.values())
+			{
+				final AvailObject Tx = x.t.type();
+				final AvailObject Ty = y.t.type();
+				assert x.t.equals(y.t) == Tx.equals(Ty)
+				: "metavariance: " + x + ", " + y;
+			}
+		}
+	}
 }

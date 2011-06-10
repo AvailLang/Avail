@@ -304,6 +304,18 @@ extends TypeDescriptor
 	}
 
 	@Override
+	public AvailObject o_TypeIntersectionOfMeta (
+		final AvailObject object,
+		final AvailObject someMeta)
+	{
+		if (object.isSubtypeOf(TYPE.o()))
+		{
+			return TERMINATES_TYPE.o();
+		}
+		return super.o_TypeIntersectionOfMeta(object, someMeta);
+	}
+
+	@Override
 	public @NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)

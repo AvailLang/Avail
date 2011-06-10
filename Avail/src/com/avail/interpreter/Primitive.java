@@ -237,7 +237,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -267,7 +267,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -305,9 +305,9 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
-					BOOLEAN_TYPE.o(),
+					BOOLEAN.o(),
 					IntegerRangeTypeDescriptor.extendedIntegers(),
-					BOOLEAN_TYPE.o()),
+					BOOLEAN.o()),
 				INTEGER_TYPE.o());
 		}
 	},
@@ -610,7 +610,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					CONTAINER.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -1054,7 +1054,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -1334,7 +1334,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					BOOLEAN_TYPE.o(),
+					BOOLEAN.o(),
 					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						VOID_TYPE.o()),
@@ -1375,7 +1375,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					BOOLEAN_TYPE.o(),
+					BOOLEAN.o(),
 					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
 						VOID_TYPE.o())),
@@ -1411,11 +1411,11 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					BOOLEAN_TYPE.o(),
+					BOOLEAN.o(),
 					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(),
-						BOOLEAN_TYPE.o())),
-				BOOLEAN_TYPE.o());
+						BOOLEAN.o())),
+				BOOLEAN.o());
 		}
 	},
 
@@ -1898,7 +1898,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					ALL.o(),
 					ALL.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -2476,7 +2476,7 @@ public enum Primitive
 						ALL.o(),
 						ALL.o()),
 					ALL.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -2849,7 +2849,7 @@ public enum Primitive
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						ALL.o()),
 					ALL.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -3050,7 +3050,7 @@ public enum Primitive
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						ALL.o())),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -3910,7 +3910,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					BOOLEAN_TYPE.o()),
+					BOOLEAN.o()),
 				CYCLIC_TYPE.o());
 		}
 	},
@@ -4444,7 +4444,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -4484,7 +4484,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -4524,7 +4524,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -4564,7 +4564,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -5329,7 +5329,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -5449,7 +5449,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
-				ClosureTypeDescriptor.forReturnType(BOOLEAN_TYPE.o()));
+				ClosureTypeDescriptor.forReturnType(BOOLEAN.o()));
 		}
 	},
 
@@ -5696,7 +5696,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.unsignedShorts()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -5733,7 +5733,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					CLOSURE_TYPE.o(),
-					ClosureTypeDescriptor.forReturnType(BOOLEAN_TYPE.o()),
+					ClosureTypeDescriptor.forReturnType(BOOLEAN.o()),
 					ClosureTypeDescriptor.forReturnType(TYPE.o())),
 				VOID_TYPE.o());
 		}
@@ -5836,7 +5836,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					ClosureTypeDescriptor.forReturnType(VOID_TYPE.o()),
-					ClosureTypeDescriptor.forReturnType(BOOLEAN_TYPE.o()),
+					ClosureTypeDescriptor.forReturnType(BOOLEAN.o()),
 					ClosureTypeDescriptor.forReturnType(TYPE.o())),
 				VOID_TYPE.o());
 		}
@@ -6380,7 +6380,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -6539,7 +6539,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -6569,7 +6569,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -6964,7 +6964,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 
@@ -6994,7 +6994,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
-				BOOLEAN_TYPE.o());
+				BOOLEAN.o());
 		}
 	},
 

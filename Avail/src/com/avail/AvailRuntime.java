@@ -116,7 +116,7 @@ public final class AvailRuntime
 	{
 		// Basic types
 		specialObjects[1] = ALL.o();
-		specialObjects[2] = BOOLEAN_TYPE.o();
+		specialObjects[2] = BOOLEAN.o();
 		specialObjects[3] = CHARACTER.o();
 		specialObjects[4] = ClosureTypeDescriptor.forReturnType(VOID_TYPE.o());
 		specialObjects[5] = CLOSURE_TYPE.o();

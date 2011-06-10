@@ -157,7 +157,7 @@ extends Descriptor
 			: "Wrong number of arguments in requires block";
 		assert ret.code().numArgs() == numArgs
 			: "Wrong number of arguments in returns block.";
-		assert req.type().returnType().isSubtypeOf(BOOLEAN_TYPE.o())
+		assert req.type().returnType().isSubtypeOf(BOOLEAN.o())
 			: "Wrong return type in requires block";
 		assert ret.type().returnType().isSubtypeOf(TYPE.o())
 			: "Wrong return type in returns block";
