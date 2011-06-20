@@ -85,7 +85,11 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aDoubleObject)
 	{
-		if (object.extractDouble() != aDoubleObject.extractDouble())
+		// Java double equality is irreflexive, and therefore useless to us,
+		// since Avail sets (at least) require reflexive equality.  Compare the
+		// exact bits instead.
+		if (Double.doubleToRawLongBits(object.extractDouble())
+			!= Double.doubleToRawLongBits(aDoubleObject.extractDouble()))
 		{
 			return false;
 		}
@@ -104,8 +108,8 @@ extends Descriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		int low = object.integerSlot(IntegerSlots.LOW_INT);
-		int high = object.integerSlot(IntegerSlots.HIGH_INT);
+		final int low = object.integerSlot(IntegerSlots.LOW_INT);
+		final int high = object.integerSlot(IntegerSlots.HIGH_INT);
 		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
 	}
 
@@ -120,9 +124,9 @@ extends Descriptor
 	public double o_ExtractDouble (
 		final @NotNull AvailObject object)
 	{
-		int low = object.integerSlot(IntegerSlots.LOW_INT);
-		int high = object.integerSlot(IntegerSlots.HIGH_INT);
-		long castAsLong = (low & 0xFFFFFFFFL) + (high << 32);
+		final int low = object.integerSlot(IntegerSlots.LOW_INT);
+		final int high = object.integerSlot(IntegerSlots.HIGH_INT);
+		final long castAsLong = (low & 0xFFFFFFFFL) + (high << 32L);
 		return Double.longBitsToDouble(castAsLong);
 	}
 
@@ -139,8 +143,8 @@ extends Descriptor
 	public static AvailObject objectFromDouble (
 		final double aDouble)
 	{
-		AvailObject result = mutable().create();
-		long castAsLong = Double.doubleToRawLongBits(aDouble);
+		final AvailObject result = mutable().create();
+		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.integerSlotPut(
 			IntegerSlots.LOW_INT,
 			(int)castAsLong);
@@ -176,7 +180,7 @@ extends Descriptor
 		{
 			result = mutable().create();
 		}
-		long castAsLong = Double.doubleToRawLongBits(aDouble);
+		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.integerSlotPut(
 			IntegerSlots.LOW_INT,
 			(int)castAsLong);
@@ -220,7 +224,7 @@ extends Descriptor
 		{
 			result = mutable().create();
 		}
-		long castAsLong = Double.doubleToRawLongBits(aDouble);
+		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.integerSlotPut(
 			IntegerSlots.LOW_INT,
 			(int)castAsLong);

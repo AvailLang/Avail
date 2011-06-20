@@ -79,7 +79,11 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFloatObject)
 	{
-		if (object.extractFloat() != aFloatObject.extractFloat())
+		// Java float equality is irreflexive, and therefore useless to us,
+		// since Avail sets (at least) require reflexive equality.  Compare the
+		// exact bits instead.
+		if (Float.floatToRawIntBits(object.extractFloat())
+			!= Float.floatToRawIntBits(aFloatObject.extractFloat()))
 		{
 			return false;
 		}
@@ -114,7 +118,7 @@ extends Descriptor
 	{
 		//  Extract a Smalltalk Float from object.
 
-		int castAsInt = object.integerSlot(IntegerSlots.RAW_INT);
+		final int castAsInt = object.integerSlot(IntegerSlots.RAW_INT);
 		return Float.intBitsToFloat(castAsInt);
 	}
 
@@ -127,7 +131,7 @@ extends Descriptor
 	 */
 	public static AvailObject objectFromFloat (final float aFloat)
 	{
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.integerSlotPut(
 			IntegerSlots.RAW_INT,
 			Float.floatToRawIntBits(aFloat));;
