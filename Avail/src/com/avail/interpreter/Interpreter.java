@@ -489,6 +489,8 @@ public abstract class Interpreter
 					return;
 				}
 			}
+			// TODO: [MvG] Allow the definitions to appear bottom up while still
+			// preserving covariance.
 			if (existingImp.bodySignature().acceptsArgTypesFromClosureType(
 				bodySignature))
 			{
@@ -698,9 +700,12 @@ public abstract class Interpreter
 	 *
 	 * @param stringName An Avail {@linkplain TupleDescriptor string}.
 	 * @return A {@linkplain CyclicTypeDescriptor true name}.
+	 * @throws AmbiguousNameException
+	 *         If the string could represent several different true names.
 	 */
 	public @NotNull AvailObject lookupName (
-		final @NotNull AvailObject stringName)
+			final @NotNull AvailObject stringName)
+		throws AmbiguousNameException
 	{
 		assert stringName.isString();
 		//  Check if it's already defined somewhere...
@@ -717,10 +722,7 @@ public abstract class Interpreter
 		{
 			return who.asTuple().tupleAt(1);
 		}
-		error(
-			"There are multiple true method names that this name could "
-			+ "represent.");
-		return VoidDescriptor.voidObject();
+		throw new AmbiguousNameException();
 	}
 
 	/**

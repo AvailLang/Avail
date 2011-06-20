@@ -40,6 +40,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import static com.avail.exceptions.AvailErrorCode.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
@@ -1241,7 +1242,7 @@ implements L2OperationDispatcher
 			}
 			continuation = continuation.caller();
 		}
-		return primitiveFailure("exception handler not found");
+		return primitiveFailure(E_UNHANDLED_EXCEPTION);
 	}
 
 	/**

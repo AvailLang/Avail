@@ -32,7 +32,10 @@
 
 package com.avail.exceptions;
 
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.compiler.node.*;
 import com.avail.descriptor.*;
 
 /**
@@ -43,7 +46,9 @@ import com.avail.descriptor.*;
  */
 public enum AvailErrorCode
 {
-	/** Operation is required to fail. */
+	/**
+	 * Operation is required to fail.
+	 */
 	E_REQUIRED_FAILURE (0),
 
 	/**
@@ -129,7 +134,133 @@ public enum AvailErrorCode
 	/**
 	 * The primitive is not currently supported on this platform.
 	 */
-	E_PRIMITIVE_NOT_SUPPORTED (15);
+	E_PRIMITIVE_NOT_SUPPORTED (15),
+
+	/**
+	 * Cannot uniquely determine instance of metatype smear that includes first
+	 * level metatype.
+	 */
+	E_AMBIGUOUS_INSTANCE_OF_METATYPE_SMEAR (16),
+
+	/**
+	 * Metatypes must only have positive levels (>=1).
+	 */
+	E_NONPOSITIVE_METATYPE_LEVEL (17),
+
+	/**
+	 * A user-defined {@linkplain ObjectTypeDescriptor object type} has no
+	 * assigned name.
+	 */
+	E_OBJECT_TYPE_HAS_NO_USER_DEFINED_NAME (18),
+
+	/**
+	 * No {@linkplain ImplementationSetDescriptor implementation set} exists
+	 * for the specified {@linkplain CyclicTypeDescriptor name}.
+	 */
+	E_NO_IMPLEMENTATION_SET (19),
+
+	/**
+	 * The wrong number of outers were specified for creation of a {@linkplain
+	 * ClosureDescriptor closure} from {@linkplain CompiledCodeDescriptor
+	 * compiled code}.
+	 */
+	E_WRONG_NUMBER_OF_OUTERS (20),
+
+	/**
+	 * A key was not present in a {@linkplain MapDescriptor map}.
+	 */
+	E_KEY_NOT_FOUND (21),
+
+	/**
+	 * A size {@linkplain IntegerRangeTypeDescriptor range}'s lower bound must
+	 * be nonnegative (>=0).
+	 */
+	E_NEGATIVE_SIZE (22),
+
+	/**
+	 * An I/O error has occurred.
+	 */
+	E_IO_ERROR (23),
+
+	/**
+	 * The operation was forbidden by the platform or the Java {@linkplain
+	 * SecurityManager security manager} because of insufficient user privilege.
+	 */
+	E_PERMISSION_DENIED (24),
+
+	/**
+	 * A resource handle was invalid for some particular use.
+	 */
+	E_INVALID_HANDLE (25),
+
+	/**
+	 * A primitive number is invalid.
+	 */
+	E_INVALID_PRIMITIVE_NUMBER (26),
+
+	/**
+	 * A primitive {@linkplain ClosureTypeDescriptor closure type} disagrees
+	 * with the primitive's {@linkplain ClosureDescriptor restriction closure}.
+	 */
+	E_CLOSURE_DISAGREES_WITH_PRIMITIVE_RESTRICTION (27),
+
+	/**
+	 * A local type literal is not actually a {@linkplain TypeDescriptor type}.
+	 */
+	E_LOCAL_TYPE_LITERAL_IS_NOT_A_TYPE (28),
+
+	/**
+	 * An outer type literal is not actually a {@linkplain TypeDescriptor type}.
+	 */
+	E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE (29),
+
+	/**
+	 * Unhandled exception, i.e. no handler was found to accept a raised
+	 * exception.
+	 */
+	E_UNHANDLED_EXCEPTION (30),
+
+	/**
+	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
+	 * support a {@linkplain ClosureDescriptor requires closure}.
+	 */
+	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_CLOSURE (31),
+
+	/**
+	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
+	 * support a {@linkplain ClosureDescriptor returns closure}.
+	 */
+	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_CLOSURE (32),
+
+	/**
+	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
+	 * invalid.
+	 */
+	E_INVALID_SPECIAL_OBJECT_NUMBER (33),
+
+	/**
+	 * A {@linkplain MacroSignatureDescriptor macro} {@linkplain
+	 * ClosureDescriptor body} must restrict each parameter to be at least as
+	 * specific as a {@linkplain ParseNodeDescriptor parse node}.
+	 */
+	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE (34),
+
+	/**
+	 * There are multiple {@linkplain CyclicTypeDescriptor true names}
+	 * associated with the string.
+	 */
+	E_AMBIGUOUS_NAME (35),
+
+	/**
+	 * Cannot assign to this {@linkplain DeclarationKind kind of declaration}.
+	 */
+	E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT (36),
+
+	/**
+	 * Cannot take a {@linkplain ReferenceNodeDescriptor reference} to this
+	 * {@linkplain DeclarationKind kind of declaration}.
+	 */
+	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37);
 
 	/** The numeric error code. */
 	private final int code;

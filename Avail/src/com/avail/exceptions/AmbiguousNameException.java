@@ -1,6 +1,6 @@
 /**
- * Kernel/Syntax.avail
- * Copyright (c) 2010, Mark van Gulik.
+ * com.avail.exceptions/AmbiguousNameException.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,61 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
-System Module "Syntax"
-Extends
-	"Tier-4"
-Uses
-Names
-	"Macro_is_",
-	"make assignment variable_expression_",
-	"_expression type",
-	"_:=_",
-	"(_:=_)",
-	"&_",
-	"…:_",
-	"…::=_",
-	"…:_:=_",
-	"$…:_",
-	"…",
-	"[««…:_‡,»|»«$…:_;»«_;»]«:_»"
-Body
 
+package com.avail.exceptions;
 
+import com.avail.descriptor.CyclicTypeDescriptor;
 
+/**
+ * An {@code AmbiguousNameException} is thrown when a simple string name could
+ * represent multiple {@linkplain CyclicTypeDescriptor true names}.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class AmbiguousNameException
+extends AvailException
+{
+	/** The serial version identifier. */
+	private static final long serialVersionUID = 6382035912230769886L;
 
-Method "Macro_is_" is [name : string, block : [...]-> parseNode |
-	Primitive 249 (failureCode : natural number);
-	Failed;
-] : void;
-
-
-Method "make assignment variable_expression_" is [
-		v : variableUseNode,
-		e : parseNode |
-	Primitive 353 (failureCode : natural number);
-	Crash "Failed to create assignment";
-] : parseNode;
-
-
-Method "_expression type" is [
-		e : parseNode |
-	Primitive 351;
-] : type;
-
-
-Macro "_:=_" is [v : variableUseNode, e : parseNode |
-	Primitive 353 (failureCode : natural number);
-	Failed;
-] : parseNode;
-
-
-Macro "(_:=_)" is [v : variableUseNode, e : parseNode |
-	Primitive 350 (failureCode : natural number);
-	Failed;
-] : parseNode;
-
-Macro "&_" is [v : variableUseNode |
-	Primitive 354 (failureCode : natural number);
-	Failed;
-] : parseNode;
+	/**
+	 * Construct a new {@link AmbiguousNameException}.
+	 */
+	public AmbiguousNameException ()
+	{
+		super(AvailErrorCode.E_AMBIGUOUS_NAME);
+	}
+}

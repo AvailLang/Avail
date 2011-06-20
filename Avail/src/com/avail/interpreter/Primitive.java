@@ -48,6 +48,7 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
@@ -1902,11 +1903,9 @@ public enum Primitive
 		}
 	},
 
-	// TODO: [TLS] Resume rewriting for error codes from here!
-
 	/**
-	 * <strong>Primitive 61:</strong> Convert a map from fields to values into
-	 * an object.
+	 * <strong>Primitive 61:</strong> Convert a {@linkplain MapDescriptor map}
+	 * from fields to values into an {@linkplain ObjectDescriptor object}.
 	 */
 	prim61_MapToObject_map(61, 1, CanFold, CannotFail)
 	{
@@ -1936,8 +1935,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 62:</strong> Convert an object into a map from fields
-	 * to values.
+	 * <strong>Primitive 62:</strong> Convert an {@linkplain ObjectDescriptor
+	 * object} into a {@linkplain MapDescriptor map} from fields to values.
 	 */
 	prim62_ObjectToMap_object(62, 1, CanFold, CannotFail)
 	{
@@ -1966,8 +1965,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 63:</strong> Convert a map from fields to types into an
-	 * object type.
+	 * <strong>Primitive 63:</strong> Convert a {@linkplain MapDescriptor map}
+	 * from fields to {@linkplain TypeDescriptor types} into an {@linkplain
+	 * ObjectTypeDescriptor object type}.
 	 */
 	prim63_MapToObjectType_map(63, 1, CanFold, CannotFail)
 	{
@@ -1999,8 +1999,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 64:</strong> Convert an object type into a map from
-	 * fields to types.
+	 * <strong>Primitive 64:</strong> Convert an {@linkplain
+	 * ObjectTypeDescriptor object type} into a {@linkplain MapDescriptor map}
+	 * from fields to types.
 	 */
 	prim64_ObjectTypeToMap_objectType(64, 1, CanFold, CannotFail)
 	{
@@ -2051,8 +2052,7 @@ public enum Primitive
 					IntegerDescriptor.one()))
 				{
 					return interpreter.primitiveFailure(
-						"cannot uniquely determine instance of metatype smear "
-						+ "that includes first level object metatype");
+						E_AMBIGUOUS_INSTANCE_OF_METATYPE_SMEAR);
 				}
 			}
 
@@ -2095,7 +2095,7 @@ public enum Primitive
 			if (levels.lowerBound().lessThan(IntegerDescriptor.one()))
 			{
 				return interpreter.primitiveFailure(
-					"Object metatypes must only have positive levels (>=1)");
+					E_NONPOSITIVE_METATYPE_LEVEL);
 			}
 			return interpreter.primitiveSuccess(
 				ObjectMetaDescriptor.fromObjectTypeAndLevel(
@@ -2126,7 +2126,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 67:</strong> Answer the name of a primitive type.
+	 * <strong>Primitive 67:</strong> Answer the name of a {@linkplain
+	 * PrimitiveTypeDescriptor primitive type}.
 	 */
 	prim67_NameOfPrimitiveType_primType(67, 1, CanFold, CannotFail)
 	{
@@ -2191,8 +2192,6 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 69:</strong> Answer the user-assigned name of the
 	 * specified {@linkplain ObjectTypeDescriptor user-defined object type}.
-	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim69_TypeName_userType(69, 1, CanInline)
 	{
@@ -2209,7 +2208,7 @@ public enum Primitive
 			if (name == null)
 			{
 				return interpreter.primitiveFailure(
-					"that user-defined type has no name");
+					E_OBJECT_TYPE_HAS_NO_USER_DEFINED_NAME);
 			}
 			return interpreter.primitiveSuccess(name);
 		}
@@ -2228,8 +2227,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 70:</strong> Construct a block taking numArgs arguments
-	 * (each of type all) and returning constantResult.
+	 * <strong>Primitive 70:</strong> Construct a {@linkplain ClosureDescriptor
+	 * closure} accepting {@code numArgs} arguments (each of type {@link
+	 * PrimitiveTypeDescriptor all}) and returning {@code constantResult}.
 	 */
 	prim70_CreateConstantBlock_numArgs_constantResult(
 		70, 2, CanFold, CannotFail)
@@ -2263,12 +2263,14 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 71:</strong> Construct a block that takes arguments
-	 * whose types are specified in argTypes, and returns the result of invoking
-	 * the given message with firstArg as the first argument and the tuple of
-	 * arguments as the second argument.  Assume the argument types have already
-	 * been tried in each applicable requiresBlock, and that the result type
-	 * agrees with each returnsBlock.
+	 * <strong>Primitive 71:</strong> Construct a {@linkplain ClosureDescriptor
+	 * closure} that takes arguments whose {@linkplain TypeDescriptor types} are
+	 * specified in {@code argTypes}, and returns the result of invoking the
+	 * given {@linkplain CyclicTypeDescriptor message} with {@code firstArg} as
+	 * the first argument and the {@linkplain TupleDescriptor tuple} of
+	 * arguments as the second argument. Assume the argument types have already
+	 * been tried in each applicable {@code requiresBlock}, and that the result
+	 * type agrees with each {@code returnsBlock}.
 	 */
 	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple_argTypes_message_firstArg_resultType(
 		71, 4, CanFold)
@@ -2287,7 +2289,7 @@ public enum Primitive
 			if (impSet.equalsVoid())
 			{
 				return interpreter.primitiveFailure(
-					"no implementation set with that name");
+					E_NO_IMPLEMENTATION_SET);
 			}
 			return interpreter.primitiveSuccess(
 				ClosureDescriptor.createStubWithArgTypes(
@@ -2317,8 +2319,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 72:</strong> Answer the compiledCode within this
-	 * closure.
+	 * <strong>Primitive 72:</strong> Answer the {@linkplain
+	 * CompiledCodeDescriptor compiled code} within this {@linkplain
+	 * ClosureDescriptor closure}.
 	 */
 	prim72_CompiledCodeOfClosure_aClosure(72, 1, CanFold, CannotFail)
 	{
@@ -2343,8 +2346,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 73:</strong> Answer the tuple of outer variables
-	 * captured by this closure.
+	 * <strong>Primitive 73:</strong> Answer the {@linkplain TupleDescriptor
+	 * tuple} of outer variables captured by this {@linkplain ClosureDescriptor
+	 * closure}.
 	 */
 	prim73_OuterVariables_aClosure(73, 1, CanFold, CannotFail)
 	{
@@ -2386,8 +2390,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 74:</strong> Answer a closure built from the
-	 * compiledCode and the outer variables.
+	 * <strong>Primitive 74:</strong> Answer a {@linkplain ClosureDescriptor
+	 * closure} built from the {@linkplain CompiledCodeDescriptor compiled code}
+	 * and the outer variables.
 	 */
 	prim74_CreateClosure_compiledCode_outers(74, 2, CanFold)
 	{
@@ -2402,7 +2407,7 @@ public enum Primitive
 			if (outers.tupleSize() != compiledCode.numOuters())
 			{
 				return interpreter.primitiveFailure(
-					"wrong number of outer variables");
+					E_WRONG_NUMBER_OF_OUTERS);
 			}
 			return interpreter.primitiveSuccess(
 				ClosureDescriptor.create(compiledCode, outers));
@@ -2420,8 +2425,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 80:</strong> Answer the size of the map.  This is the
-	 * number of entries, which is also the number of keys.
+	 * <strong>Primitive 80:</strong> Answer the size of the {@linkplain
+	 * MapDescriptor map}. This is the number of entries, which is also the
+	 * number of keys.
 	 */
 	prim80_MapSize_map(80, 1, CanFold, CannotFail)
 	{
@@ -2450,7 +2456,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 81:</strong> Check if the key is present in the map.
+	 * <strong>Primitive 81:</strong> Check if the key is present in the
+	 * {@linkplain MapDescriptor map}.
 	 */
 	prim81_MapHasKey_map_key(81, 2, CanFold, CannotFail)
 	{
@@ -2481,8 +2488,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 82:</strong> Look up the key in the map, answering the
-	 * corresponding value.
+	 * <strong>Primitive 82:</strong> Look up the key in the {@linkplain
+	 * MapDescriptor map}, answering the corresponding value.
 	 */
 	prim82_MapAtKey_map_key(82, 2, CanFold)
 	{
@@ -2496,8 +2503,7 @@ public enum Primitive
 			final AvailObject key = args.get(1);
 			if (!map.hasKey(key))
 			{
-				return interpreter.primitiveFailure(
-					"map does not contain this key");
+				return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
 			}
 			return interpreter.primitiveSuccess(map.mapAt(key));
 		}
@@ -2517,8 +2523,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 83:</strong> Answer a new map like the given map, but
-	 * with key -> value in it.  Overwrite any existing value if the key is
+	 * <strong>Primitive 83:</strong> Answer a new {@linkplain MapDescriptor
+	 * map} like the given map, but also including the binding between {@code
+	 * key} and {@code value}. Overwrite any existing value if the key is
 	 * already present.
 	 */
 	prim83_MapReplacingKey_map_key_value(83, 3, CanFold, CannotFail)
@@ -2557,8 +2564,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 84:</strong> Answer a new map, but without the given
-	 * key.  Answer the original map if the key does not occur in it.
+	 * <strong>Primitive 84:</strong> Answer a new {@linkplain MapDescriptor
+	 * map}, but without the given key. Answer the original map if the key does
+	 * not occur in it.
 	 */
 	prim84_MapWithoutKey_map_key(84, 2, CanFold, CannotFail)
 	{
@@ -2592,7 +2600,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 85:</strong> Answer an empty map.
+	 * <strong>Primitive 85:</strong> Answer an empty {@linkplain MapDescriptor
+	 * map}.
 	 */
 	prim85_CreateEmptyMap(85, 0, CanFold, CannotFail)
 	{
@@ -2619,7 +2628,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 86:</strong> Answer the keys of this map as a set.
+	 * <strong>Primitive 86:</strong> Answer the keys of this {@linkplain
+	 * MapDescriptor map} as a {@linkplain SetDescriptor set}.
 	 */
 	prim86_MapKeysAsSet_map(86, 1, CanFold, CannotFail)
 	{
@@ -2649,8 +2659,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 87:</strong> Answer a map type with the given type
-	 * constraints.
+	 * <strong>Primitive 87:</strong> Answer a {@linkplain MapTypeDescriptor map
+	 * type} with the given type constraints.
 	 */
 	prim87_CreateMapType_Sizes_keyType_valueType(87, 3, CanFold)
 	{
@@ -2666,7 +2676,7 @@ public enum Primitive
 			if (sizes.lowerBound().lessThan(IntegerDescriptor.zero()))
 			{
 				return interpreter.primitiveFailure(
-					"map type's size cannot be negative");
+					E_NEGATIVE_SIZE);
 			}
 			return interpreter.primitiveSuccess(
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -2688,10 +2698,12 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 88:</strong> Answer the size range of a map type.  This
-	 * specifies the range of sizes a map can have while being considered an
-	 * instance of this map type, assuming the keys' types and values' types
-	 * also agree with those specified in the map type.
+	 * <strong>Primitive 88:</strong> Answer the {@linkplain
+	 * IntegerRangeTypeDescriptor size range} of a {@linkplain MapTypeDescriptor
+	 * map type}. This specifies the range of sizes a {@linkplain MapDescriptor
+	 * map} can have while being considered an instance of this map type,
+	 * assuming the keys' types and values' types also agree with those
+	 * specified in the map type.
 	 */
 	prim88_MapTypeSizes_mapType(88, 1, CanFold, CannotFail)
 	{
@@ -2716,7 +2728,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 89:</strong> Answer the key type of a map type.
+	 * <strong>Primitive 89:</strong> Answer the key {@linkplain TypeDescriptor
+	 * type} of a {@linkplain MapTypeDescriptor map type}.
 	 */
 	prim89_MapTypeKeyType_mapType(89, 1, CanFold, CannotFail)
 	{
@@ -2741,7 +2754,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 90:</strong> Answer the value type of a map type.
+	 * <strong>Primitive 90:</strong> Answer the value {@linkplain
+	 * TypeDescriptor type} of a {@linkplain MapTypeDescriptor map type}.
 	 */
 	prim90_MapTypeValueType_mapType(90, 1, CanFold, CannotFail)
 	{
@@ -2766,8 +2780,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 91:</strong> Answer the values of this map as a tuple,
-	 * arbitrarily ordered.
+	 * <strong>Primitive 91:</strong> Answer the values of this {@linkplain
+	 * MapDescriptor map} as a {@linkplain TupleDescriptor tuple}, arbitrarily
+	 * ordered.
 	 */
 	prim91_MapValuesAsTuple_map(91, 1, CanFold, CannotFail)
 	{
@@ -2795,7 +2810,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 100:</strong> Answer the size of the set.
+	 * <strong>Primitive 100:</strong> Answer the size of the {@linkplain
+	 * SetDescriptor set}.
 	 */
 	prim100_SetSize_set(100, 1, CanFold, CannotFail)
 	{
@@ -2823,8 +2839,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 101:</strong> Check if the object is an element of the
-	 * set.
+	 * <strong>Primitive 101:</strong> Check if the {@linkplain AvailObject
+	 * object} is an element of the {@linkplain SetDescriptor set}.
 	 */
 	prim101_SetHasElement_set_element(101, 2, CanFold, CannotFail)
 	{
@@ -2854,7 +2870,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 102:</strong> Answer the union of two sets.
+	 * <strong>Primitive 102:</strong> Answer the union of two {@linkplain
+	 * SetDescriptor sets}.
 	 */
 	prim102_SetUnion_set1_set2(102, 2, CanFold, CannotFail)
 	{
@@ -2888,7 +2905,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 103:</strong> Answer the intersection of two sets.
+	 * <strong>Primitive 103:</strong> Answer the intersection of two
+	 * {@linkplain SetDescriptor sets}.
 	 */
 	prim103_SetIntersection_set1_set2(103, 2, CanFold, CannotFail)
 	{
@@ -2922,8 +2940,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 104:</strong> Answer the difference between two sets
-	 * ({@code set1 - set2}).
+	 * <strong>Primitive 104:</strong> Answer the difference between two
+	 * {@linkplain SetDescriptor sets} ({@code set1 - set2}).
 	 */
 	prim104_SetDifference_set1_set2(104, 2, CanFold, CannotFail)
 	{
@@ -2957,8 +2975,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 105:</strong> Answer a new set but with newElement in
-	 * it.  If it was already present, answer the original set.
+	 * <strong>Primitive 105:</strong> Answer a new {@linkplain SetDescriptor
+	 * set} like the argument but including the new {@linkplain AvailObject
+	 * element}. If it was already present, answer the original set.
 	 */
 	prim105_SetWith_set_newElement(105, 2, CanFold, CannotFail)
 	{
@@ -2990,8 +3009,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 106:</strong> Answer a new set but without
-	 * excludeElement in it.  If it was alreay absent, answer the original set.
+	 * <strong>Primitive 106:</strong> Answer a new {@linkplain SetDescriptor
+	 * set} like the argument but without the excluded {@linkplain AvailObject
+	 * element}. If it was already absent, answer the original set.
 	 */
 	prim106_SetWithout_set_excludedElement(106, 2, CanFold, CannotFail)
 	{
@@ -3023,7 +3043,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 107:</strong> Check if set1 is a subset of set2.
+	 * <strong>Primitive 107:</strong> Check if {@link SetDescriptor set1} is a
+	 * subset of {@code set2}.
 	 */
 	prim107_SetIsSubset_set1_set2(107, 2, CanFold, CannotFail)
 	{
@@ -3055,7 +3076,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 108:</strong> Answer the empty set.
+	 * <strong>Primitive 108:</strong> Answer the empty {@linkplain
+	 * SetDescriptor set}.
 	 */
 	prim108_CreateEmptySet(108, 0, CanFold, CannotFail)
 	{
@@ -3081,8 +3103,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 109:</strong> Convert a tuple into a set.  Clear from
-	 * args to avoid having to make elements immutable.
+	 * <strong>Primitive 109:</strong> Convert a {@linkplain TupleDescriptor
+	 * tuple} into a {@linkplain SetDescriptor set}.
 	 */
 	prim109_TupleToSet_tuple(109, 1, CanFold, CannotFail)
 	{
@@ -3109,9 +3131,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 110:</strong> Convert a set into an arbitrarily ordered
-	 * tuple.  The conversion is unstable (two calls may produce different
-	 * orderings).  Clear from args to avoid having to make elements immutable.
+	 * <strong>Primitive 110:</strong> Convert a {@linkplain SetDescriptor set}
+	 * into an arbitrarily ordered {@linkplain TupleDescriptor tuple}. The
+	 * conversion is unstable (two calls may produce different orderings).
 	 */
 	prim110_SetToTuple_set(110, 1, CanFold, CannotFail)
 	{
@@ -3138,7 +3160,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 111:</strong> Create a set type.
+	 * <strong>Primitive 111:</strong> Create a {@linkplain SetTypeDescriptor
+	 * set type}.
 	 */
 	prim111_CreateSetType_sizeRange_contentType(111, 2, CanFold)
 	{
@@ -3173,10 +3196,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 112:</strong> Extract a set type's range of sizes.
-	 * This is the range of sizes that a set must fall in to be considered a
-	 * member of the set type, assuming the elements all satisfy the set type's
-	 * element type.
+	 * <strong>Primitive 112:</strong> Extract a {@linkplain SetTypeDescriptor
+	 * set type}'s {@linkplain IntegerRangeTypeDescriptor range} of sizes. This
+	 * is the range of sizes that a {@linkplain SetDescriptor set} must fall in
+	 * to be considered a member of the set type, assuming the elements all
+	 * satisfy the set type's element {@linkplain TypeDescriptor type}.
 	 */
 	prim112_SetTypeSizes_setType(112, 1, CanFold, CannotFail)
 	{
@@ -3201,7 +3225,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 113:</strong> Extract a set type's content type.
+	 * <strong>Primitive 113:</strong> Extract a {@linkplain SetTypeDescriptor
+	 * set type}'s element {@linkplain TypeDescriptor type}.
 	 */
 	prim113_SetTypeElementType_setType(113, 1, CanFold, CannotFail)
 	{
@@ -3226,8 +3251,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 120:</strong> Create a new cyclic type with the given
-	 * name.
+	 * <strong>Primitive 120:</strong> Create a new {@linkplain
+	 * CyclicTypeDescriptor cyclic type} with the given name.
 	 */
 	prim120_CreateCyclicType_name(120, 1, CanInline, CannotFail)
 	{
@@ -3253,7 +3278,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 121:</strong> Answer the name of a cyclicType.
+	 * <strong>Primitive 121:</strong> Answer the name of a {@linkplain
+	 * CyclicTypeDescriptor cyclic type}.
 	 */
 	prim121_CyclicTypeName_cyclicType(121, 1, CanFold, CannotFail)
 	{
@@ -3278,7 +3304,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 130:</strong> Answer the size of the tuple.
+	 * <strong>Primitive 130:</strong> Answer the size of the {@linkplain
+	 * TupleDescriptor tuple}.
 	 */
 	prim130_TupleSize_tuple(130, 1, CanFold, CannotFail)
 	{
@@ -3304,7 +3331,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 131:</strong> Look up an element in the tuple.
+	 * <strong>Primitive 131:</strong> Look up an element in the {@linkplain
+	 * TupleDescriptor tuple}.
 	 */
 	prim131_TupleAt_tuple_index(131, 2, CanFold)
 	{
@@ -3318,14 +3346,12 @@ public enum Primitive
 			final AvailObject indexObject = args.get(1);
 			if (!indexObject.isInt())
 			{
-				return interpreter.primitiveFailure(
-					"subscript out of bounds");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int index = indexObject.extractInt();
 			if (index > tuple.tupleSize())
 			{
-				return interpreter.primitiveFailure(
-					"subscript out of bounds");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			return interpreter.primitiveSuccess(
 				tuple.tupleAt(index));
@@ -3343,8 +3369,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 132:</strong> Answer a tuple like the given one, but
-	 * with an element changed as indicated.
+	 * <strong>Primitive 132:</strong> Answer a {@linkplain TupleDescriptor
+	 * tuple} like the given one, but with an element changed as indicated.
 	 */
 	prim132_TupleReplaceAt_tuple_index_value(132, 3, CanFold)
 	{
@@ -3359,14 +3385,12 @@ public enum Primitive
 			final AvailObject value = args.get(2);
 			if (!indexObject.isInt())
 			{
-				return interpreter.primitiveFailure(
-					"subscript out of bounds");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int index = indexObject.extractInt();
 			if (index > tuple.tupleSize())
 			{
-				return interpreter.primitiveFailure(
-					"subscript out of bounds");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			return interpreter.primitiveSuccess(tuple.tupleAtPuttingCanDestroy(
 				index,
@@ -3387,7 +3411,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 133:</strong> Build a tuple with one element.
+	 * <strong>Primitive 133:</strong> Build a {@linkplain TupleDescriptor
+	 * tuple} with one element.
 	 */
 	prim133_CreateTupleSizeOne_soleElement(133, 1, CanFold, CannotFail)
 	{
@@ -3420,7 +3445,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 134:</strong> Answer the tuple with no elements.
+	 * <strong>Primitive 134:</strong> Answer the empty {@linkplain
+	 * TupleDescriptor tuple}.
 	 */
 	prim134_CreateEmptyTuple(134, 0, CanFold, CannotFail)
 	{
@@ -3448,8 +3474,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 135:</strong> Extract a subtuple with the given range
-	 * of elements.
+	 * <strong>Primitive 135:</strong> Extract a {@linkplain TupleDescriptor
+	 * subtuple} with the given range of elements.
 	 */
 	prim135_ExtractSubtuple_tuple_start_end(135, 3, CanFold)
 	{
@@ -3497,8 +3523,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 136:</strong> Concatenate a tuple of tuples together
-	 * into a single tuple.
+	 * <strong>Primitive 136:</strong> Concatenate a {@linkplain TupleDescriptor
+	 * tuple} of tuples together into a single tuple.
 	 */
 	prim136_ConcatenateTuples_tuples(136, 1, CanFold, CannotFail)
 	{
@@ -3527,8 +3553,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 137:</strong> Construct a tuple type with the given
-	 * parameters.  Canonize the data if necessary.
+	 * <strong>Primitive 137:</strong> Construct a {@linkplain
+	 * TupleTypeDescriptor tuple type} with the given parameters. Canonize the
+	 * data if necessary.
 	 */
 	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(137, 3, CanFold)
 	{
@@ -3543,8 +3570,7 @@ public enum Primitive
 			final AvailObject defaultType = args.get(2);
 			if (sizeRange.lowerBound().lessThan(IntegerDescriptor.zero()))
 			{
-				interpreter.primitiveFailure(
-					"size range must be positive");
+				interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 			}
 			return interpreter.primitiveSuccess(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3569,9 +3595,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 138:</strong> Answer the allowed tuple sizes for this
-	 * tupleType.  These are the sizes that a tuple may be and still be
-	 * considered instances of the tuple type, assuming the element types are
+	 * <strong>Primitive 138:</strong> Answer the allowed size {@linkplain
+	 * IntegerRangeTypeDescriptor ranges} for this {@linkplain
+	 * TupleTypeDescriptor tuple type}. These are the sizes that a {@linkplain
+	 * TupleDescriptor tuple} may be and still be considered instances of the
+	 * tuple type, assuming the element {@linkplain TypeDescriptor types} are
 	 * consistent with those specified by the tuple type.
 	 */
 	prim138_TupleTypeSizes_tupleType(138, 1, CanFold, CannotFail)
@@ -3597,8 +3625,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 139:</strong> Answer the tuple of leading types that
-	 * constrain this tupleType.
+	 * <strong>Primitive 139:</strong> Answer the {@linkplain TupleDescriptor
+	 * tuple} of leading {@linkplain TypeDescriptor types} that constrain this
+	 * {@linkplain TupleTypeDescriptor tuple type}.
 	 */
 	prim139_TupleTypeLeadingTypes_tupleType(139, 1, CanFold, CannotFail)
 	{
@@ -3626,8 +3655,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 140:</strong> Answer the default type for elements past
-	 * the leading types.
+	 * <strong>Primitive 140:</strong> Answer the default {@linkplain
+	 * TypeDescriptor type} for elements past the leading types.
 	 */
 	prim140_TupleTypeDefaultType_tupleType(140, 1, CanFold, CannotFail)
 	{
@@ -3652,8 +3681,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 141:</strong> Answer the type for the given element of
-	 * instances of the given tuple type.  Answer terminates if out of range.
+	 * <strong>Primitive 141:</strong> Answer the {@linkplain TypeDescriptor
+	 * type} for the given element of {@linkplain TupleDescriptor instances} of
+	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer
+	 * {@link TerminatesTypeDescriptor terminates} if out of range.
 	 */
 	prim141_TupleTypeAt_tupleType_index(141, 2, CanFold, CannotFail)
 	{
@@ -3686,9 +3717,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 142:</strong> Answer a tuple of types representing the
-	 * types of the given range of indices within the tupleType.  Use terminates
-	 * for indices out of range.
+	 * <strong>Primitive 142:</strong> Answer a {@linkplain TupleDescriptor
+	 * tuple} of {@linkplain TypeDescriptor types} representing the types of the
+	 * given range of indices within the {@linkplain TupleTypeDescriptor tuple
+	 * type}. Use {@link TerminatesTypeDescriptor terminates} for indices out of
+	 * range.
 	 */
 	prim142_TupleTypeSequenceOfTypes_tupleType_startIndex_endIndex(142, 3, CanFold)
 	{
@@ -3703,12 +3736,15 @@ public enum Primitive
 			final AvailObject endIndex = args.get(2);
 			if (!startIndex.isInt() || !endIndex.isInt())
 			{
-				return interpreter.primitiveFailure(
-					"subscript is out of range");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int startInt = startIndex.extractInt();
 			final int endInt = endIndex.extractInt();
 			final int tupleSize = endInt - startInt + 1;
+			if (tupleSize < 0)
+			{
+				return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
+			}
 			AvailObject tupleObject =
 				ObjectTupleDescriptor.mutable().create(tupleSize);
 			tupleObject.hashOrZero(0);
@@ -3742,9 +3778,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 143:</strong> Answer the type that is the union of the
-	 * types within the given range of indices of the given tupleType.  Answer
-	 * terminates if all the indices are out of range.
+	 * <strong>Primitive 143:</strong> Answer the {@linkplain TypeDescriptor
+	 * type} that is the union of the types within the given range of indices of
+	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer {@link
+	 * TerminatesTypeDescriptor terminates} if all the indices are out of range.
 	 */
 	prim143_TupleTypeAtThrough_tupleType_startIndex_endIndex(143, 3, CanFold)
 	{
@@ -3759,15 +3796,13 @@ public enum Primitive
 			final AvailObject endIndex = args.get(2);
 			if (!startIndex.isInt() || !endIndex.isInt())
 			{
-				return interpreter.primitiveFailure(
-					"subscript is out of range");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int startInt = startIndex.extractInt();
 			final int endInt = endIndex.extractInt();
 			if (startInt > endInt)
 			{
-				return interpreter.primitiveFailure(
-					"subscript range is empty");
+				return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 			}
 			return interpreter.primitiveSuccess(
 				tupleType.unionOfTypesAtThrough(
@@ -3788,9 +3823,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 144:</strong> Answer the type that is the type of all
-	 * possible concatenations of instances of the given tupleTypes.  This is
-	 * basically the returns clause of the two-argument concatenation operation.
+	 * <strong>Primitive 144:</strong> Answer the {@linkplain TypeDescriptor
+	 * type} that is the type of all possible concatenations of instances of the
+	 * given {@linkplain TupleTypeDescriptor tuple types}. This is basically the
+	 * returns clause of the two-argument concatenation operation.
 	 */
 	prim144_TupleTypeConcatenate_tupleType1_tupleType2(144, 2, CanFold, CannotFail)
 	{
@@ -3846,8 +3882,11 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
+			}
+			catch (final SecurityException e)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 			return interpreter.primitiveSuccess(handle);
 		}
@@ -3898,8 +3937,11 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
+			}
+			catch (final SecurityException e)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 			return interpreter.primitiveSuccess(handle);
 		}
@@ -3943,8 +3985,11 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
+			}
+			catch (final SecurityException e)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 			return interpreter.primitiveSuccess(handle);
 		}
@@ -3978,16 +4023,14 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			try
@@ -4040,16 +4083,14 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final byte[] buffer;
@@ -4071,8 +4112,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			final AvailObject tuple;
@@ -4128,16 +4168,14 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final byte[] buffer = new byte[bytes.tupleSize()];
@@ -4152,8 +4190,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			// Always return an empty tuple since RandomAccessFile writes its
@@ -4197,16 +4234,14 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getOpenFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final long fileSize;
@@ -4216,8 +4251,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4254,16 +4288,14 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid hanile");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final long filePosition;
@@ -4273,8 +4305,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4312,22 +4343,19 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getReadableFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			if (!filePosition.isLong())
 			{
-				return interpreter.primitiveFailure(
-					"file position out of bounds");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 
 			try
@@ -4336,8 +4364,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4373,16 +4400,14 @@ public enum Primitive
 
 			if (!handle.isCyclicType())
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			final RandomAccessFile file =
 				interpreter.runtime().getWritableFile(handle);
 			if (file == null)
 			{
-				return interpreter.primitiveFailure(
-					"not a valid handle");
+				return interpreter.primitiveFailure(E_INVALID_HANDLE);
 			}
 
 			try
@@ -4391,8 +4416,7 @@ public enum Primitive
 			}
 			catch (final IOException e)
 			{
-				return interpreter.primitiveFailure(
-					"I/O error");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4430,8 +4454,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return interpreter.primitiveFailure(
-					"security exception");
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4470,8 +4493,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return interpreter.primitiveFailure(
-					"security exception");
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4510,8 +4532,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return interpreter.primitiveFailure(
-					"security exception");
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4550,8 +4571,7 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return interpreter.primitiveFailure(
-					"security exception");
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 
 			return interpreter.primitiveSuccess(
@@ -4591,14 +4611,12 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return interpreter.primitiveFailure(
-					"security exception");
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 
 			if (!renamed)
 			{
-				return interpreter.primitiveFailure(
-					"could not rename file");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4637,14 +4655,12 @@ public enum Primitive
 			}
 			catch (final SecurityException e)
 			{
-				return interpreter.primitiveFailure(
-					"security exception");
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 			}
 
 			if (!deleted)
 			{
-				return interpreter.primitiveFailure(
-					"could not delete file");
+				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
@@ -4662,7 +4678,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 180:</strong> Answer the number of arguments expected
-	 * by the compiledCode.
+	 * by the {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
 	prim180_CompiledCodeNumArgs_cc(180, 1, CanFold, CannotFail)
 	{
@@ -4689,7 +4705,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 181:</strong> Answer the number of locals created by
-	 * the compiledCode.
+	 * the {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
 	prim181_CompiledCodeNumLocals_cc(181, 1, CanFold, CannotFail)
 	{
@@ -4716,7 +4732,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 182:</strong> Answer the number of outer variables in
-	 * closures derived from this compiledCode.
+	 * {@linkplain ClosureDescriptor closures} derived from this {@linkplain
+	 * CompiledCodeDescriptor compiled code}.
 	 */
 	prim182_CompiledCodeNumOuters_cc(182, 1, CanFold, CannotFail)
 	{
@@ -4743,7 +4760,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 183:</strong> Answer the number of stack slots (not
-	 * counting arguments and locals) created for the compiledCode.
+	 * counting arguments and locals) created for the {@linkplain
+	 * CompiledCodeDescriptor compiled code}.
 	 */
 	prim183_CompiledCodeNumStackSlots_cc(183, 1, CanFold, CannotFail)
 	{
@@ -4769,8 +4787,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 184:</strong> Answer the nybblecodes of the
-	 * compiledCode.
+	 * <strong>Primitive 184:</strong> Answer the {@linkplain TupleDescriptor
+	 * nybblecodes} of the {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
 	prim184_CompiledCodeNybbles_cc(184, 1, CanFold, CannotFail)
 	{
@@ -4798,8 +4816,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 185:</strong> Answer the type of closure this
-	 * compiledCode will be closed into.
+	 * <strong>Primitive 185:</strong> Answer the {@linkplain
+	 * ClosureTypeDescriptor type of closure} this {@linkplain
+	 * CompiledCodeDescriptor compiled code} will be closed into.
 	 */
 	prim185_CompiledCodeClosureType_cc(185, 1, CanFold, CannotFail)
 	{
@@ -4825,7 +4844,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 186:</strong> Answer the primitive number of this
-	 * compiledCode.
+	 * {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
 	prim186_CompiledCodePrimitiveNumber_cc(186, 1, CanFold, CannotFail)
 	{
@@ -4851,8 +4870,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 187:</strong> Answer a tuple with the literals from
-	 * this compiledCode.
+	 * <strong>Primitive 187:</strong> Answer a {@linkplain TupleDescriptor
+	 * tuple} with the literals from this {@linkplain CompiledCodeDescriptor
+	 * compiled code}.
 	 */
 	prim187_CompiledCodeLiterals_cc(187, 1, CanFold, CannotFail)
 	{
@@ -4901,8 +4921,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 188:</strong> Answer a compiledCode with the given
-	 * data.
+	 * <strong>Primitive 188:</strong> Answer a {@linkplain
+	 * CompiledCodeDescriptor compiled code} with the given data.
 	 */
 	prim188_CreateCompiledCode(188, 7, CanFold)
 	{
@@ -4931,13 +4951,14 @@ public enum Primitive
 				if (prim == null)
 				{
 					return interpreter.primitiveFailure(
-						"invalid primitive number");
+						E_INVALID_PRIMITIVE_NUMBER);
 				}
-				final AvailObject restrictionSignature = prim.blockTypeRestriction();
+				final AvailObject restrictionSignature =
+					prim.blockTypeRestriction();
 				if (!restrictionSignature.isSubtypeOf(closureType))
 				{
 					return interpreter.primitiveFailure(
-						"closure type disagrees with primitive restriction");
+						E_CLOSURE_DISAGREES_WITH_PRIMITIVE_RESTRICTION);
 				}
 			}
 
@@ -4951,7 +4972,7 @@ public enum Primitive
 				if (!localTypes.tupleAt(i).isInstanceOfSubtypeOf(TYPE.o()))
 				{
 					return interpreter.primitiveFailure(
-						"local type literals are incorrectly specified");
+						E_LOCAL_TYPE_LITERAL_IS_NOT_A_TYPE);
 				}
 			}
 
@@ -4965,7 +4986,7 @@ public enum Primitive
 				if (!outerTypes.tupleAt(i).isInstanceOfSubtypeOf(TYPE.o()))
 				{
 					return interpreter.primitiveFailure(
-						"outer type literals are incorrectly specified");
+						E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE);
 				}
 			}
 
@@ -5004,9 +5025,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 200:</strong> Always fail.  The Avail failure code
-	 * invokes the bodyBlock.  The handlerBlock is only invoked when an
-	 * exception is raised (via primitive 201).
+	 * <strong>Primitive 200:</strong> Always fail. The Avail failure code
+	 * invokes the {@linkplain ClosureDescriptor body block}. The handler block
+	 * is only invoked when an exception is raised.
 	 */
 	prim200_CatchException_bodyBlock_handlerBlock(200, 2, Unknown)
 	{
@@ -5020,7 +5041,7 @@ public enum Primitive
 			final AvailObject bodyBlock = args.get(0);
 			@SuppressWarnings("unused")
 			final AvailObject handlerBlock = args.get(1);
-			return interpreter.primitiveFailure(IntegerDescriptor.zero());
+			return interpreter.primitiveFailure(E_REQUIRED_FAILURE);
 		}
 
 		@Override
@@ -5047,15 +5068,17 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 201:</strong> Raise an exception.  Scan the stack of
-	 * continuations until one is found for a closure whose code is the
-	 * {@link #prim200_CatchException_bodyBlock_handlerBlock primitive 200}.
+	 * <strong>Primitive 201:</strong> Raise an exception. Scan the stack of
+	 * {@linkplain ContinuationDescriptor continuations} until one is found for
+	 * a {@linkplain ClosureDescriptor closure} whose {@linkplain
+	 * CompiledCodeDescriptor code} is {@linkplain
+	 * #prim200_CatchException_bodyBlock_handlerBlock primitive 200}.
 	 * Get that continuation's second argument (a handler block of one
-	 * argument), and check if that handler block will accept the
-	 * exceptionValue.  If not, keep looking.  If it will accept it, unwind the
-	 * stack so that the primitive 200 method is the top entry, and invoke the
-	 * handler block with exceptionValue.  If there is no suitable handler
-	 * block, fail this primitive.
+	 * argument), and check if that handler block will accept {@code
+	 * exceptionValue}. If not, keep looking. If it will accept it, unwind the
+	 * stack so that the primitive 200 continuation is the top entry, and invoke
+	 * the handler block with {@code exceptionValue}. If there is no suitable
+	 * handler block, then fail this primitive.
 	 */
 	prim201_RaiseException_exceptionValue(201, 1, SwitchesContinuation)
 	{
@@ -5079,8 +5102,10 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 207:</strong> Answer a collection of all visible
-	 * messages inside the current tree that expect no more parts than those
-	 * already encountered.  Answer it as a map from cyclicType to messageBundle
+	 * {@linkplain MessageBundleDescriptor messages} inside the current
+	 * {@linkplain MessageBundleTreeDescriptor tree} that expect no more parts
+	 * than those already encountered. Answer it as a {@linkplain MapDescriptor
+	 * map} from {@linkplain CyclicTypeDescriptor cyclic type} to message bundle
 	 * (typically only zero or one entry).
 	 */
 	prim207_CompleteMessages_bundleTree(207, 1, CanInline, CannotFail)
@@ -5111,9 +5136,10 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 208:</strong> Answer a collection of all visible
-	 * messages inside the current tree that expect more parts than those
-	 * already encountered.  Answer it as a map from string to
-	 * messageBundleTree.
+	 * {@linkplain MessageBundleDescriptor messages} inside the current
+	 * {@linkplain MessageBundleTreeDescriptor tree} that expect more parts than
+	 * those already encountered. Answer it as a {@linkplain MapDescriptor map}
+	 * from string to message bundle tree.
 	 */
 	prim208_IncompleteMessages_bundleTree(208, 1, CanInline, CannotFail)
 	{
@@ -5143,8 +5169,9 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 209:</strong> Answer a collection of all visible
-	 * methods that start with the given string, and have only one part.  Answer
-	 * a map from cyclicType to messageBundle.
+	 * {@linkplain MessageBundleDescriptor messages} that start with the given
+	 * string, and have only one part. Answer a {@linkplain MapDescriptor map}
+	 * from {@linkplain CyclicTypeDescriptor cyclic type} to message bundle.
 	 */
 	prim209_CompleteMessagesStartingWith_leadingPart(
 		209, 1, CanInline, CannotFail)
@@ -5177,8 +5204,9 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 210:</strong> Produce a collection of all visible
-	 * methods that start with the given string, and have more than one part.
-	 * Answer a map from second part (string) to messageBundleTree.
+	 * {@linkplain MessageBundleDescriptor messages} that start with the given
+	 * string, and have more than one part. Answer a {@linkplain MapDescriptor
+	 * map} from second part (string) to message bundle tree.
 	 */
 	prim210_IncompleteMessagesStartingWith_leadingPart(
 		210, 1, CanInline, CannotFail)
@@ -5210,8 +5238,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 211:</strong> Answer a message bundle's message (a
-	 * {@link CyclicTypeDescriptor cyclicType}).
+	 * <strong>Primitive 211:</strong> Answer a {@linkplain
+	 * MessageBundleDescriptor message bundle}'s message (a
+	 * {@linkplain CyclicTypeDescriptor cyclic type}).
 	 */
 	prim211_BundleMessage_bundle(211, 1, CanFold, CannotFail)
 	{
@@ -5237,8 +5266,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 212:</strong> Answer a message bundle's messageParts (a
-	 * tuple of strings).
+	 * <strong>Primitive 212:</strong> Answer a {@linkplain
+	 * MessageBundleDescriptor message bundle}'s message parts (a {@linkplain
+	 * TupleDescriptor tuple} of strings).
 	 */
 	prim212_BundleMessageParts_bundle(212, 1, CanFold, CannotFail)
 	{
@@ -5267,9 +5297,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 213:</strong> Answer a set of all currently defined
-	 * signatures for the message represented by bundle.  This includes abstract
-	 * signatures and forward signatures.
+	 * <strong>Primitive 213:</strong> Answer a {@linkplain SetDescriptor set}
+	 * of all currently defined {@linkplain SignatureDescriptor signatures} for
+	 * the {@linkplain CyclicTypeDescriptor message} represented by {@linkplain
+	 * MessageBundleDescriptor bundle}. This includes abstract signatures and
+	 * forward signatures.
 	 */
 	prim213_BundleSignatures_bundle(213, 1, CanInline)
 	{
@@ -5284,8 +5316,7 @@ public enum Primitive
 				interpreter.runtime().methodsAt(bundle.message());
 			if (implementationSet.equalsVoid())
 			{
-				return interpreter.primitiveFailure(
-					"no methods with that name");
+				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
 			}
 			final AvailObject implementations =
 				implementationSet.implementationsTuple().asSet();
@@ -5307,7 +5338,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 214:</strong> Answer whether precedence restrictions
-	 * have been defined (yet) for this bundle.
+	 * have been defined (yet) for this {@linkplain MessageBundleDescriptor
+	 * bundle}.
 	 */
 	prim214_BundleHasRestrictions_bundle(214, 1, CanInline, CannotFail)
 	{
@@ -5335,7 +5367,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 215:</strong> Answer the current precedence
-	 * restrictions for this bundle.
+	 * restrictions for this {@linkplain MessageBundleDescriptor bundle}.
 	 */
 	prim215_BundleRestrictions_bundle(215, 1, CanInline, CannotFail)
 	{
@@ -5366,8 +5398,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 216:</strong> Answer this signature's body's type (a
-	 * {@link ClosureTypeDescriptor closureType}).
+	 * <strong>Primitive 216:</strong> Answer this {@linkplain
+	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor body}'s
+	 * {@linkplain ClosureTypeDescriptor type}.
 	 */
 	prim216_SignatureBodyType_sig(216, 1, CanFold, CannotFail)
 	{
@@ -5393,8 +5426,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 217:</strong> Answer this methodSignature's bodyBlock
-	 * (a {@link ClosureDescriptor closure}).
+	 * <strong>Primitive 217:</strong> Answer this {@linkplain
+	 * MethodSignatureDescriptor method signature}'s {@linkplain
+	 * ClosureDescriptor body}.
 	 */
 	prim217_SignatureBodyBlock_methSig(217, 1, CanFold, CannotFail)
 	{
@@ -5420,8 +5454,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 218:</strong> Answer this signature's requiresBlock (a
-	 * {@link ClosureDescriptor closure}).
+	 * <strong>Primitive 218:</strong> Answer this {@linkplain
+	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor requires
+	 * closure}.
 	 */
 	prim218_SignatureRequiresBlock_sig(218, 1, CanFold)
 	{
@@ -5440,7 +5475,7 @@ public enum Primitive
 					sig.requiresBlock().makeImmutable());
 			}
 			return interpreter.primitiveFailure(
-				"that kind of signature doesn't have a requires block");
+				E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_CLOSURE);
 		}
 
 		@Override
@@ -5454,8 +5489,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 219:</strong> Answer this signature's returnsBlock, a
-	 * closure.
+	 * <strong>Primitive 219:</strong> Answer this {@linkplain
+	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor returns
+	 * closure}.
 	 */
 	prim219_SignatureReturnsBlock_sig(219, 1, CanFold)
 	{
@@ -5474,7 +5510,7 @@ public enum Primitive
 					sig.returnsBlock().makeImmutable());
 			}
 			return interpreter.primitiveFailure(
-				"that kind of signature doesn't have a returns block");
+				E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_CLOSURE);
 		}
 
 		@Override
@@ -5488,10 +5524,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 220:</strong> Answer the implementationSet (see
-	 * {@link ImplementationSetDescriptor}) associated with the given
-	 * cyclicType.  This is generally only used when Avail code is constructing
-	 * Avail code in the metacircular compiler.
+	 * <strong>Primitive 220:</strong> Answer the {@linkplain
+	 * ImplementationSetDescriptor implementation set} associated with the given
+	 * {@linkplain CyclicTypeDescriptor cyclic type}. This is generally only
+	 * used when Avail code is constructing Avail code in the metacircular
+	 * compiler.
 	 */
 	prim220_ImplementationSetFromName_name(220, 1, CanInline)
 	{
@@ -5506,8 +5543,7 @@ public enum Primitive
 				interpreter.runtime().methodsAt(aCyclicType);
 			if (impSet.equalsVoid())
 			{
-				return interpreter.primitiveFailure(
-					"there is no implementation set with that name");
+				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
 			}
 			impSet.makeImmutable();
 			return interpreter.primitiveSuccess(impSet);
@@ -5524,10 +5560,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 221:</strong> Answer the cyclicType associated with the
-	 * given implementationSet (see ImplementationSetDescriptor).  This is
-	 * generally only used when Avail code is saving or loading Avail code in
-	 * the object dumper / loader.
+	 * <strong>Primitive 221:</strong> Answer the {@linkplain
+	 * CyclicTypeDescriptor cyclic type} associated with the given {@linkplain
+	 * ImplementationSetDescriptor implementation set}. This is generally only
+	 * used when Avail code is saving or loading Avail code in the object dumper
+	 * / loader.
 	 */
 	prim221_ImplementationSetName_name(221, 1, CanFold, CannotFail)
 	{
@@ -5568,7 +5605,7 @@ public enum Primitive
 			if (!ordinal.isInt())
 			{
 				return interpreter.primitiveFailure(
-					"invalid special object number");
+					E_INVALID_SPECIAL_OBJECT_NUMBER);
 			}
 			final int i = ordinal.extractInt();
 
@@ -5580,13 +5617,13 @@ public enum Primitive
 			catch (final ArrayIndexOutOfBoundsException e)
 			{
 				return interpreter.primitiveFailure(
-					"invalid special object number");
+					E_INVALID_SPECIAL_OBJECT_NUMBER);
 			}
 
 			if (result == null)
 			{
 				return interpreter.primitiveFailure(
-					"invalid special object number");
+					E_INVALID_SPECIAL_OBJECT_NUMBER);
 			}
 
 			return interpreter.primitiveSuccess(result);
@@ -5618,8 +5655,15 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject name = args.get(0);
-			//TODO: Deal with errors more appropriately in lookupName(...).
-			return interpreter.primitiveSuccess(interpreter.lookupName(name));
+			try
+			{
+				return interpreter.primitiveSuccess(
+					interpreter.lookupName(name));
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 		}
 
 		@Override
@@ -5652,10 +5696,18 @@ public enum Primitive
 				if (!tupleType.typeAtIndex(i).isSubtypeOf(PARSE_NODE.o()))
 				{
 					return interpreter.primitiveFailure(
-						"macro arguments must be parse nodes");
+						E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
 				}
 			}
-			interpreter.atAddMacroBody(interpreter.lookupName(string), block);
+			try
+			{
+				interpreter.atAddMacroBody(
+					interpreter.lookupName(string), block);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
@@ -5701,8 +5753,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 251:</strong> Declare method as abstract.  This
-	 * identifies responsibility for subclasses that want to be concrete.
+	 * <strong>Primitive 251:</strong> Declare method as {@linkplain
+	 * AbstractSignatureDescriptor abstract}. This identifies responsibility for
+	 * subclasses that want to be concrete.
 	 */
 	prim251_AbstractMethodDeclaration(251, 4, Unknown)
 	{
@@ -5717,12 +5770,20 @@ public enum Primitive
 			final AvailObject requiresBlock = args.get(2);
 			final AvailObject returnsBlock = args.get(3);
 
-			//TODO: Check signature compatibility.
-			interpreter.atDeclareAbstractSignatureRequiresBlockReturnsBlock(
-				interpreter.lookupName(string),
-				blockSignature,
-				requiresBlock,
-				returnsBlock);
+			// TODO: [MvG] Check signature compatibility with requires and
+			// returns closures.
+			try
+			{
+				interpreter.atDeclareAbstractSignatureRequiresBlockReturnsBlock(
+					interpreter.lookupName(string),
+					blockSignature,
+					requiresBlock,
+					returnsBlock);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
@@ -5740,8 +5801,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 252:</strong> Declare method without body (for
-	 * recursion or mutual recursion).
+	 * <strong>Primitive 252:</strong> Forward declare a method (for recursion
+	 * or mutual recursion).
 	 */
 	prim252_ForwardMethodDeclaration(252, 2, Unknown)
 	{
@@ -5754,10 +5815,18 @@ public enum Primitive
 			final AvailObject string = args.get(0);
 			final AvailObject blockSignature = args.get(1);
 
-			//TODO: Deal with errors more appropriately in atAddForwardStubFor(...).
-			interpreter.atAddForwardStubFor(
-				interpreter.lookupName(string),
-				blockSignature);
+			// TODO: [MvG] Deal with errors more appropriately in
+			// atAddForwardStubFor(...).
+			try
+			{
+				interpreter.atAddForwardStubFor(
+					interpreter.lookupName(string),
+					blockSignature);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
@@ -5787,9 +5856,17 @@ public enum Primitive
 			final AvailObject string = args.get(0);
 			final AvailObject block = args.get(1);
 
-			//TODO: Deal with errors more appropriately in lookupName(...)
-			//and atAddMethodBody(...).
-			interpreter.atAddMethodBody(interpreter.lookupName(string), block);
+			// TODO:[MvG] Deal with errors more appropriately in lookupName(...)
+			// and atAddMethodBody(...).
+			try
+			{
+				interpreter.atAddMethodBody(
+					interpreter.lookupName(string), block);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
@@ -5820,12 +5897,19 @@ public enum Primitive
 			final AvailObject block = args.get(1);
 			final AvailObject requiresBlock = args.get(2);
 			final AvailObject returnsBlock = args.get(3);
-			//TODO: Deal with errors more appropriately
-			interpreter.atAddMethodBodyRequiresBlockReturnsBlock(
-				interpreter.lookupName(string),
-				block,
-				requiresBlock,
-				returnsBlock);
+			// TODO: [MvG] Deal with errors more appropriately
+			try
+			{
+				interpreter.atAddMethodBodyRequiresBlockReturnsBlock(
+					interpreter.lookupName(string),
+					block,
+					requiresBlock,
+					returnsBlock);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
 
@@ -5843,10 +5927,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 255:</strong> Message precedence declaration with tuple
-	 * of sets of messages to exclude for each argument position.  Note that the
-	 * tuple's elements should correspond with occurrences of underscore in the
-	 * method names, *not* with the (top-level) arguments of the method.  This
+	 * <strong>Primitive 255:</strong> Message precedence declaration with
+	 * {@linkplain TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of
+	 * messages to exclude for each argument position. Note that the tuple's
+	 * elements should correspond with occurrences of underscore in the method
+	 * names, *not* with the (top-level) arguments of the method. This
 	 * distinction is only apparent when chevron notation is used to accept
 	 * tuples of arguments.
 	 */
@@ -5860,30 +5945,36 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject stringSet = args.get(0);
 			final AvailObject exclusionsTuple = args.get(1);
-			AvailObject disallowed = exclusionsTuple;
-			for (int i = disallowed.tupleSize(); i >= 1; i--)
+			try
 			{
-				AvailObject setOfCyclics = SetDescriptor.empty();
-				for (final AvailObject string : exclusionsTuple.tupleAt(i))
+				AvailObject disallowed = exclusionsTuple;
+				for (int i = disallowed.tupleSize(); i >= 1; i--)
 				{
-					//TODO: Deal with errors more appropriately
-					setOfCyclics = setOfCyclics.setWithElementCanDestroy(
-						interpreter.lookupName(string),
+					AvailObject setOfCyclics = SetDescriptor.empty();
+					for (final AvailObject string : exclusionsTuple.tupleAt(i))
+					{
+						setOfCyclics = setOfCyclics.setWithElementCanDestroy(
+							interpreter.lookupName(string),
+							true);
+					}
+					disallowed = disallowed.tupleAtPuttingCanDestroy(
+						i,
+						setOfCyclics,
 						true);
 				}
-				disallowed = disallowed.tupleAtPuttingCanDestroy(
-					i,
-					setOfCyclics,
-					true);
+				disallowed.makeImmutable();
+				final AvailObject stringSetAsTuple = stringSet.asTuple();
+				for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
+				{
+					final AvailObject string = stringSetAsTuple.tupleAt(i);
+					interpreter.atDisallowArgumentMessages(
+						interpreter.lookupName(string),
+						disallowed);
+				}
 			}
-			disallowed.makeImmutable();
-			final AvailObject stringSetAsTuple = stringSet.asTuple();
-			for (int i = stringSetAsTuple.tupleSize(); i >= 1; i--)
+			catch (final AmbiguousNameException e)
 			{
-				final AvailObject string = stringSetAsTuple.tupleAt(i);
-				interpreter.atDisallowArgumentMessages(
-					interpreter.lookupName(string),
-					disallowed);
+				return interpreter.primitiveFailure(e);
 			}
 			return interpreter.primitiveSuccess(VoidDescriptor.voidObject());
 		}
@@ -5907,9 +5998,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 256:</strong> Exit the current process. The specified
-	 * argument will be converted internally into a {@code string} and used to
-	 * report an error message.
+	 * <strong>Primitive 256:</strong> Exit the current {@linkplain
+	 * ProcessDescriptor process}. The specified argument will be converted
+	 * internally into a {@code string} and used to report an error message.
 	 */
 	prim256_EmergencyExit_value(256, 1, Unknown, CannotFail)
 	{
@@ -5949,7 +6040,7 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			// Throw and catch a RuntimeException.  A sensibly configured
-			// debugger will pause during the throw.  There are also ample
+			// debugger will pause during the throw. There are also ample
 			// locations here to insert an explicit breakpoint if you don't want
 			// to pause on caught RuntimeExceptions.
 			try
@@ -5973,7 +6064,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 258:</strong> Print an object to System.out.
+	 * <strong>Primitive 258:</strong> Print an {@linkplain AvailObject object}
+	 * to standard output.
 	 */
 	prim258_PrintToConsole_value(258, 1, Unknown, CannotFail)
 	{
@@ -6385,7 +6477,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 280:</strong> Add two floats.
+	 * <strong>Primitive 280:</strong> Add two {@linkplain FloatDescriptor
+	 * floats}.
 	 */
 	prim280_FloatAddition_a_b(280, 2, CanFold, CannotFail)
 	{
@@ -6399,7 +6492,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
-					(a.extractFloat() + b.extractFloat()),
+					a.extractFloat() + b.extractFloat(),
 					a,
 					b));
 		}
@@ -6416,7 +6509,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 281:</strong> Subtract float b from float a.
+	 * <strong>Primitive 281:</strong> Subtract {@linkplain FloatDescriptor
+	 * float} {@code b} from float {@code a}.
 	 */
 	prim281_FloatSubtraction_a_b(281, 2, CanFold, CannotFail)
 	{
@@ -6430,7 +6524,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
-					(a.extractFloat() - b.extractFloat()),
+					a.extractFloat() - b.extractFloat(),
 					a,
 					b));
 		}
@@ -6447,7 +6541,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 282:</strong> Multiply float a and float b.
+	 * <strong>Primitive 282:</strong> Multiply {@linkplain FloatDescriptor
+	 * float} {@code a} and float {@code b}.
 	 */
 	prim282_FloatMultiplication_a_b(282, 2, CanFold, CannotFail)
 	{
@@ -6461,7 +6556,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
-					(a.extractFloat() * b.extractFloat()),
+					a.extractFloat() * b.extractFloat(),
 					a,
 					b));
 		}
@@ -6478,9 +6573,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 283:</strong> Divide float a by float b.
+	 * <strong>Primitive 283:</strong> Divide {@linkplain FloatDescriptor float}
+	 * {@code a} by float {@code b}.
 	 */
-	prim283_FloatDivision_a_b(283, 2, CanFold, CannotFail)
+	prim283_FloatDivision_a_b(283, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6492,12 +6588,11 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			if (b.extractFloat() == 0.0)
 			{
-				return interpreter.primitiveFailure(
-					"division by zero");
+				return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
 			}
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
-					(a.extractFloat() / b.extractFloat()),
+					a.extractFloat() / b.extractFloat(),
 					a,
 					b));
 		}
@@ -6514,8 +6609,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 284:</strong> Compare float a < float b.  Answers an
-	 * Avail boolean.
+	 * <strong>Primitive 284:</strong> Compare {@linkplain FloatDescriptor
+	 * float} {@code a} < float {@code b}. Answers a {@linkplain
+	 * BooleanDescriptor boolean}.
 	 */
 	prim284_FloatLessThan_a_b(284, 2, CanFold, CannotFail)
 	{
@@ -6544,8 +6640,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 285:</strong> Compare float a <= float b.  Answers an
-	 * Avail boolean.
+	 * <strong>Primitive 285:</strong> Compare {@linkplain FloatDescriptor
+	 * float} {@code a} <= float {@code b}. Answers a {@linkplain
+	 * BooleanDescriptor boolean}.
 	 */
 	prim285_FloatLessOrEqual_a_b(285, 2, CanFold, CannotFail)
 	{
@@ -6574,7 +6671,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 286:</strong> Compute the natural logarithm of float a.
+	 * <strong>Primitive 286:</strong> Compute the natural logarithm of
+	 * {@linkplain FloatDescriptor float} {@code a}.
 	 */
 	prim286_FloatLn_a(286, 1, CanFold, CannotFail)
 	{
@@ -6587,7 +6685,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
-					(float)log(a.extractFloat()),
+					(float) log(a.extractFloat()),
 					a));
 		}
 
@@ -6602,8 +6700,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 287:</strong> Compute e^a, the natural exponential of
-	 * the float a.
+	 * <strong>Primitive 287:</strong> Compute {@code e^a}, the natural
+	 * exponential of the {@linkplain FloatDescriptor float} {@code a}.
 	 */
 	prim287_FloatExp_a(287, 1, CanFold, CannotFail)
 	{
@@ -6616,7 +6714,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
-					(float)exp(a.extractFloat()),
+					(float) exp(a.extractFloat()),
 					a));
 		}
 
@@ -6631,8 +6729,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 288:</strong> Divide float a by float b, but answer
-	 * the remainder.
+	 * <strong>Primitive 288:</strong> Divide {@linkplain FloatDescriptor float}
+	 * {@code a} by float {@code b}, but answer the remainder.
 	 */
 	prim288_FloatModulus_a_b(288, 2, CanFold)
 	{
@@ -6648,8 +6746,7 @@ public enum Primitive
 			final float fb = b.extractFloat();
 			if (fb == 0.0f)
 			{
-				return interpreter.primitiveFailure(
-					"division by zero");
+				return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
 			}
 			final float div = fa / fb;
 			final float mod = fa - (float)floor(div) * fb;
@@ -6669,8 +6766,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 289:</strong> Convert a float to an integer, rounding
-	 * towards zero.
+	 * <strong>Primitive 289:</strong> Convert a {@linkplain FloatDescriptor
+	 * float} to an {@linkplain IntegerDescriptor integer}, rounding towards
+	 * zero.
 	 */
 	prim289_FloatTruncatedAsInteger_a(289, 1, CanFold, CannotFail)
 	{
@@ -6723,8 +6821,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 290:</strong> Convert an integer to a float, failing
-	 * if out of range.
+	 * <strong>Primitive 290:</strong> Convert an {@linkplain IntegerDescriptor
+	 * integer} to a {@linkplain FloatDescriptor float}, failing if out of
+	 * range.
 	 */
 	prim290_FloatFromInteger_a(290, 1, CanFold, CannotFail)
 	{
@@ -6777,8 +6876,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 291:</strong> Compute a*(2**b) without intermediate
-	 * overflow or any precision loss.
+	 * <strong>Primitive 291:</strong> Compute {@linkplain FloatDescriptor
+	 * float} {@code a*(2**b)} without intermediate overflow or any precision
+	 * loss.
 	 */
 	prim291_FloatTimesTwoPower_a_b(291, 2, CanFold, CannotFail)
 	{
@@ -6810,7 +6910,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 310:</strong> Add two doubles.
+	 * <strong>Primitive 310:</strong> Add two {@linkplain DoubleDescriptor
+	 * doubles}.
 	 */
 	prim310_DoubleAddition_a_b(310, 2, CanFold, CannotFail)
 	{
@@ -6841,7 +6942,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 311:</strong> Subtract double b from double a.
+	 * <strong>Primitive 311:</strong> Subtract {@linkplain DoubleDescriptor
+	 * double} {@code b} from double {@code a}.
 	 */
 	prim311_DoubleSubtraction_a_b(311, 2, CanFold, CannotFail)
 	{
@@ -6872,7 +6974,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 312:</strong> Multiply double a and double b.
+	 * <strong>Primitive 312:</strong> Multiply {@linkplain DoubleDescriptor
+	 * double} {@code a} and double {@code b}.
 	 */
 	prim312_DoubleMultiplication_a_b(312, 2, CanFold, CannotFail)
 	{
@@ -6903,7 +7006,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 313:</strong> Divide double a by double b.
+	 * <strong>Primitive 313:</strong> Divide {@linkplain DoubleDescriptor
+	 * double} {@code a} by double {@code b}.
 	 */
 	prim313_DoubleDivision_a_b(313, 2, CanFold)
 	{
@@ -6917,8 +7021,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			if (b.extractDouble() == 0.0d)
 			{
-				return interpreter.primitiveFailure(
-					"division by zero");
+				return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
 			}
 			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecycling(
@@ -6939,8 +7042,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 314:</strong> Compare double a < double b.  Answers an
-	 * Avail boolean.
+	 * <strong>Primitive 314:</strong> Compare {@linkplain DoubleDescriptor
+	 * double} {@code a < b}. Answers a {@linkplain BooleanDescriptor boolean}.
 	 */
 	prim314_DoubleLessThan_a_b(314, 2, CanFold, CannotFail)
 	{
@@ -6954,7 +7057,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(
-					(a.extractDouble() < b.extractDouble())));
+					a.extractDouble() < b.extractDouble()));
 		}
 
 		@Override
@@ -6969,8 +7072,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 315:</strong> Compare double a <= double b.  Answers an
-	 * Avail boolean.
+	 * <strong>Primitive 315:</strong> Compare {@linkplain DoubleDescriptor
+	 * double} {@code a <= b}. Answers a {@linkplain BooleanDescriptor boolean}.
 	 */
 	prim315_DoubleLessOrEqual_a_b(315, 2, CanFold, CannotFail)
 	{
@@ -6984,7 +7087,7 @@ public enum Primitive
 			final AvailObject b = args.get(1);
 			return interpreter.primitiveSuccess(
 				BooleanDescriptor.objectFrom(
-					(a.extractDouble() <= b.extractDouble())));
+					a.extractDouble() <= b.extractDouble()));
 		}
 
 		@Override
@@ -7000,7 +7103,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 316:</strong> Compute the natural logarithm of the
-	 * double a.
+	 * {@linkplain DoubleDescriptor double} {@code a}.
 	 */
 	prim316_DoubleLn_a(316, 1, CanFold, CannotFail)
 	{
@@ -7027,8 +7130,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 317:</strong> Compute e^a, the natural exponential of
-	 * the double a.
+	 * <strong>Primitive 317:</strong> Compute {@code e^a}, the natural
+	 * exponential of the {@linkplain DoubleDescriptor double} {@code a}.
 	 */
 	prim317_DoubleExp_a(317, 1, CanFold, CannotFail)
 	{
@@ -7055,8 +7158,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 318:</strong> Divide double a by double b, but answer
-	 * the remainder.
+	 * <strong>Primitive 318:</strong> Divide {@linkplain DoubleDescriptor
+	 * double} {@code a} by double {@code b}, but answer the remainder.
 	 */
 	prim318_DoubleModulus_a_b(318, 2, CanFold)
 	{
@@ -7072,8 +7175,7 @@ public enum Primitive
 			final double db = b.extractDouble();
 			if (db == 0.0d)
 			{
-				return interpreter.primitiveFailure(
-					"division by zero");
+				return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
 			}
 			final double div = da / db;
 			final double mod = da - floor(div) * db;
@@ -7093,8 +7195,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 319:</strong> Convert a double to an integer, rounding
-	 * towards zero.
+	 * <strong>Primitive 319:</strong> Convert a {@linkplain DoubleDescriptor
+	 * double} to an {@linkplain IntegerDescriptor integer}, rounding towards
+	 * zero.
 	 */
 	prim319_DoubleTruncatedAsInteger_a(319, 1, CanFold, CannotFail)
 	{
@@ -7147,8 +7250,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 320:</strong> Convert an integer to a double, failing
-	 * if out of range.
+	 * <strong>Primitive 320:</strong> Convert an {@linkplain IntegerDescriptor
+	 * integer} to a {@linkplain DoubleDescriptor double}, failing if out of
+	 * range.
 	 */
 	prim320_DoubleFromInteger_a(320, 1, CanFold, CannotFail)
 	{
@@ -7208,8 +7312,9 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 321:</strong> Compute the double a*(2**b) without
-	 * intermediate overflow or any precision loss.
+	 * <strong>Primitive 321:</strong> Compute the {@linkplain DoubleDescriptor
+	 * double} {@code a*(2**b)} without intermediate overflow or any precision
+	 * loss.
 	 */
 	prim321_DoubleTimesTwoPower_a_b(321, 2, CanFold, CannotFail)
 	{
@@ -7241,8 +7346,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 330:</strong> Extract the code point (integer) from a
-	 * character.
+	 * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor
+	 * code point} from a {@linkplain CharacterDescriptor character}.
 	 */
 	prim330_CharacterCodePoint_character(330, 1, CanFold, CannotFail)
 	{
@@ -7269,8 +7374,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 331:</strong> Convert a code point (integer) into a
-	 * character.
+	 * <strong>Primitive 331:</strong> Convert a {@linkplain IntegerDescriptor
+	 * code point} into a {@linkplain CharacterDescriptor character}.
 	 */
 	prim331_CharacterFromCodePoint_codePoint(331, 1, CanFold, CannotFail)
 	{
@@ -7298,8 +7403,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 340:</strong> The first literal is being returned.
-	 * Extract the first literal from the compiled code that the interpreter has
-	 * squirreled away for this purpose.
+	 * Extract the first literal from the {@linkplain CompiledCodeDescriptor
+	 * compiled code} that the interpreter has squirreled away for this purpose.
 	 */
 	prim340_PushConstant_ignoreArgs(340, -1, SpecialReturnConstant, CannotFail)
 	{
@@ -7321,9 +7426,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 350:</strong>  Transform a variable reference and an
-	 * expression into an inner assignment node.  Such a node also produces the
-	 * assigned value as its result, so it can be embedded as a subexpression.
+	 * <strong>Primitive 350:</strong> Transform a variable reference and an
+	 * expression into an inner {@linkplain AssignmentNodeDescriptor assignment
+	 * node}. Such a node also produces the assigned value as its result, so it
+	 * can be embedded as a subexpression.
 	 */
 	prim350_MacroInnerAssignment_variable_expression(350, 2, CanFold)
 	{
@@ -7341,13 +7447,13 @@ public enum Primitive
 				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
 				return interpreter.primitiveFailure(
-					"can only assign to module variables and local variables");
+					E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
 			}
 			if (!expression.expressionType().isSubtypeOf(
 				variable.expressionType()))
 			{
 				return interpreter.primitiveFailure(
-					"invalid type for assignment");
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
 			}
 			final AvailObject assignment =
 				AssignmentNodeDescriptor.mutable().create();
@@ -7365,18 +7471,11 @@ public enum Primitive
 					PARSE_NODE.o()),
 				ASSIGNMENT_NODE.o());
 		}
-
-		@Override
-		protected AvailObject privateFailureVariableType ()
-		{
-			// TODO: [TLS] This should really use a handful of special
-			// AvailErrorCodes rather than Strings, but I just want to test!
-			return TupleTypeDescriptor.stringTupleType();
-		}
 	},
 
 	/**
-	 * <strong>Primitive 351:</strong>  Extract the result type of a parse node.
+	 * <strong>Primitive 351:</strong> Extract the result {@linkplain
+	 * TypeDescriptor type} of a {@linkplain ParseNodeDescriptor parse node}.
 	 */
 	prim351_ParseNodeExpressionType_parseNode(351, 1, CanFold, CannotFail)
 	{
@@ -7401,7 +7500,7 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 352:</strong>  Reject current macro substitution with
+	 * <strong>Primitive 352:</strong> Reject current macro substitution with
 	 * the specified error string.
 	 */
 	prim352_RejectParsing_errorString(352, 1, CanFold, CannotFail)
@@ -7427,10 +7526,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 353:</strong>  Transform a variable reference and an
-	 * expression into an assignment statement.  Such a node has type {@link
-	 * TypeDescriptor.Types#VOID_TYPE void} and cannot be embedded as a
-	 * subexpression.
+	 * <strong>Primitive 353:</strong> Transform a variable reference and an
+	 * expression into an {@linkplain AssignmentNodeDescriptor assignment}
+	 * statement. Such a node has type {@link TypeDescriptor.Types#VOID_TYPE
+	 * void} and cannot be embedded as a subexpression.
 	 */
 	prim353_MacroAssignmentStatement_variable_expression(353, 2, CanFold)
 	{
@@ -7448,19 +7547,20 @@ public enum Primitive
 				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
 				return interpreter.primitiveFailure(
-					"can only assign to module variables and local variables");
+					E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
 			}
 			if (!expression.expressionType().isSubtypeOf(
 				variable.expressionType()))
 			{
 				return interpreter.primitiveFailure(
-					"invalid type for assignment");
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
 			}
 			final AvailObject assignment =
 				AssignmentNodeDescriptor.mutable().create();
 			assignment.variable(variable);
 			assignment.expression(expression);
-			final List<AvailObject> statementsList = new ArrayList<AvailObject>(2);
+			final List<AvailObject> statementsList =
+				new ArrayList<AvailObject>(2);
 			statementsList.add(assignment);
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
@@ -7485,19 +7585,12 @@ public enum Primitive
 					PARSE_NODE.o()),
 				PARSE_NODE.o());
 		}
-
-		@Override
-		protected AvailObject privateFailureVariableType ()
-		{
-			// TODO: [TLS] This should really use a handful of special
-			// AvailErrorCodes rather than Strings, but I just want to test!
-			return TupleTypeDescriptor.stringTupleType();
-		}
 	},
 
 	/**
-	 * <strong>Primitive 354:</strong>  Transform a variable use into a
-	 * {@linkplain ReferenceNodeDescriptor reference}.
+	 * <strong>Primitive 354:</strong> Transform a {@linkplain
+	 * VariableUseNodeDescriptor variable use} into a {@linkplain
+	 * ReferenceNodeDescriptor reference}.
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
@@ -7517,8 +7610,7 @@ public enum Primitive
 				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
 			{
 				return interpreter.primitiveFailure(
-					"can only take a reference to module variables"
-					+ " and local variables");
+					E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
 			}
 			final AvailObject reference =
 				ReferenceNodeDescriptor.mutable().create();
@@ -7534,18 +7626,10 @@ public enum Primitive
 					VARIABLE_USE_NODE.o()),
 				REFERENCE_NODE.o());
 		}
-
-		@Override
-		protected AvailObject privateFailureVariableType ()
-		{
-			// TODO: [TLS] This should really use a handful of special
-			// AvailErrorCodes rather than Strings, but I just want to test!
-			return TupleTypeDescriptor.stringTupleType();
-		}
 	},
 
 	/**
-	 * <strong>Primitive 355:</strong>  Extract the base {@linkplain
+	 * <strong>Primitive 355:</strong> Extract the base {@linkplain
 	 * ObjectTypeDescriptor objectType} from an arbitrary-depth {@linkplain
 	 * ObjectMetaDescriptor objectMeta*}.
 	 *
@@ -7585,7 +7669,7 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 356:</strong>  Extract the {@linkplain
+	 * <strong>Primitive 356:</strong> Extract the {@linkplain
 	 * IntegerRangeTypeDescriptor level range} from an arbitrary-depth
 	 * {@linkplain ObjectMetaDescriptor objectMeta*}.
 	 *
