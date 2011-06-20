@@ -1208,7 +1208,7 @@ implements L2OperationDispatcher
 	 * <p>
 	 * Raise an exception. Scan the stack of continuations until one is found
 	 * for a closure whose code specifies {@linkplain
-	 * Primitive#prim200_CatchException_bodyBlock_handlerBlock primitive 200}.
+	 * Primitive#prim200_CatchException primitive 200}.
 	 * Get that continuation's second argument (a handler block of one
 	 * argument), and check if that handler block will accept the
 	 * exceptionValue. If not, keep looking. If it will accept it, unwind the

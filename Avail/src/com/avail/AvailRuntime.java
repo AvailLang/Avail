@@ -635,7 +635,7 @@ public final class AvailRuntime
 	 * @return The name of the {@linkplain ObjectTypeDescriptor user-defined
 	 *         object type}, or {@code null} if the user-defined object type
 	 *         has not been assigned a name via {@linkplain
-	 *         Primitive#prim68_RecordNewTypeName_userType_name primitive 68}.
+	 *         Primitive#prim68_RecordNewTypeName primitive 68}.
 	 */
 	public AvailObject nameForType (final @NotNull AvailObject anObjectType)
 	{

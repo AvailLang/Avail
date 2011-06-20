@@ -49,8 +49,8 @@ import java.util.List;
  * stack slots, and creating new local variables.
  * <p>
  * The new continuation can subsequently be {@link
- * Primitive#prim56_RestartContinuationWithArguments_con_arguments restarted} or
- * {@link Primitive#prim57_ExitContinuationWithResult_con_result exited}.
+ * Primitive#prim56_RestartContinuationWithArguments restarted} or
+ * {@link Primitive#prim57_ExitContinuationWithResult exited}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

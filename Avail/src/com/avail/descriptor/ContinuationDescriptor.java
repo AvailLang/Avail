@@ -47,13 +47,13 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
  *
  * <p>
  * A continuation can be {@linkplain
- * Primitive#prim57_ExitContinuationWithResult_con_result exited}, which causes
+ * Primitive#prim57_ExitContinuationWithResult exited}, which causes
  * the current process's continuation to be replaced by the specified
  * continuation's caller.  A return value is supplied to this caller.  A
  * continuation can also be {@linkplain
- * Primitive#prim56_RestartContinuationWithArguments_con_arguments restarted},
+ * Primitive#prim56_RestartContinuationWithArguments restarted},
  * either with a specified tuple of arguments or {@linkplain
- * Primitive#prim58_RestartContinuation_con with the original arguments}.
+ * Primitive#prim58_RestartContinuation with the original arguments}.
  * </p>
  *
  * <p>

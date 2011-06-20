@@ -116,7 +116,7 @@ public abstract class Interpreter
 	/**
 	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
 	 * compiled code} being attempted.  That allows {@linkplain
-	 * Primitive#prim340_PushConstant_ignoreArgs} to get to the first literal
+	 * Primitive#prim340_PushConstant} to get to the first literal
 	 * in order to return it from the primitive.
 	 */
 	private AvailObject primitiveCompiledCodeBeingAttempted;
@@ -124,7 +124,7 @@ public abstract class Interpreter
 	/**
 	 * Answer the primitive {@linkplain CompiledCodeDescriptor compiled code}
 	 * that is currently being attempted.  That allows {@linkplain
-	 * Primitive#prim340_PushConstant_ignoreArgs} to get to the first literal
+	 * Primitive#prim340_PushConstant} to get to the first literal
 	 * in order to return it from the primitive.
 	 *
 	 * @return
@@ -612,7 +612,7 @@ public abstract class Interpreter
 				writer.addLiteral(VoidDescriptor.voidObject())));
 		writer.argumentTypes(naturalNumbers);
 		writer.primitiveNumber(
-			Primitive.prim240_SpecialObject_index.primitiveNumber);
+			Primitive.prim240_SpecialObject.primitiveNumber);
 		writer.returnType(ALL.o());
 		final AvailObject newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),

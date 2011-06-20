@@ -75,7 +75,7 @@ public enum Primitive
 	 * <strong>Primitive 1:</strong> Add two {@linkplain
 	 * ExtendedNumberDescriptor extended integers}.
 	 */
-	prim1_Addition_a_b(1, 2, CanFold)
+	prim1_Addition(1, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -110,7 +110,7 @@ public enum Primitive
 	 * <strong>Primitive 2:</strong> Subtract {@linkplain
 	 * ExtendedNumberDescriptor extended integer} b from a.
 	 */
-	prim2_Subtraction_a_b(2, 2, CanFold)
+	prim2_Subtraction(2, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -145,7 +145,7 @@ public enum Primitive
 	 * <strong>Primitive 3:</strong> Multiply {@linkplain
 	 * ExtendedNumberDescriptor extended integers} a and b.
 	 */
-	prim3_Multiplication_a_b(3, 2, CanFold)
+	prim3_Multiplication(3, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -180,7 +180,7 @@ public enum Primitive
 	 * <strong>Primitive 4:</strong> Compute {@linkplain
 	 * ExtendedNumberDescriptor extended integer} a divided by b.
 	 */
-	prim4_Division_a_b(4, 2, CanFold)
+	prim4_Division(4, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -217,7 +217,7 @@ public enum Primitive
 	 * ExtendedNumberDescriptor extended integers} {@code a < b}. Answer
 	 * a {@linkplain BooleanDescriptor boolean}.
 	 */
-	prim5_LessThan_a_b(5, 2, CanFold, CannotFail)
+	prim5_LessThan(5, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -247,7 +247,7 @@ public enum Primitive
 	 * ExtendedNumberDescriptor extended integers} {@code a <= b}. Answer
 	 * a {@linkplain BooleanDescriptor boolean}.
 	 */
-	prim6_LessOrEqual_a_b(6, 2, CanFold, CannotFail)
+	prim6_LessOrEqual(6, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -280,7 +280,7 @@ public enum Primitive
 	 * corresponding bounds are inclusive ({@code true}) or exclusive
 	 * ({@code false}).
 	 */
-	prim7_CreateIntegerRange_min_minInc_max_maxInc(7, 4, CanFold, CannotFail)
+	prim7_CreateIntegerRange(7, 4, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -319,7 +319,7 @@ public enum Primitive
 	 * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
 	 * answer to determine whether it is inclusive or exclusive.
 	 */
-	prim8_LowerBound_range(8, 1, CanFold, CannotFail)
+	prim8_LowerBound(8, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -347,7 +347,7 @@ public enum Primitive
 	 * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
 	 * answer to determine whether it is inclusive or exclusive.
 	 */
-	prim9_UpperBound_range(9, 1, CanFold, CannotFail)
+	prim9_UpperBound(9, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -378,7 +378,7 @@ public enum Primitive
 	 * going to erase it if it's mutable anyhow, only the second case requires
 	 * any real work.
 	 */
-	prim10_GetValue_var(10, 1, CanInline)
+	prim10_GetValue(10, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -413,7 +413,7 @@ public enum Primitive
 	 * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
 	 * to the {@linkplain ContainerDescriptor variable}.
 	 */
-	prim11_SetValue_var_value(11, 2, CanInline, HasSideEffect)
+	prim11_SetValue(11, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -447,7 +447,7 @@ public enum Primitive
 	 * <strong>Primitive 12:</strong> Clear the {@linkplain ContainerDescriptor
 	 * variable}.
 	 */
-	prim12_ClearValue_var(12, 1, CanInline, HasSideEffect, CannotFail)
+	prim12_ClearValue(12, 1, CanInline, HasSideEffect, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -473,7 +473,7 @@ public enum Primitive
 	 * <strong>Primitive 13:</strong> Create a {@linkplain
 	 * ContainerTypeDescriptor variable type} using the given inner type.
 	 */
-	prim13_CreateContainerType_type(13, 1, CanFold, CannotFail)
+	prim13_CreateContainerType(13, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -500,7 +500,7 @@ public enum Primitive
 	 * <strong>Primitive 14:</strong> Extract the inner type of a {@linkplain
 	 * ContainerTypeDescriptor variable type}.
 	 */
-	prim14_InnerType_type(14, 1, CanFold, CannotFail)
+	prim14_InnerType(14, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -526,7 +526,7 @@ public enum Primitive
 	 * <strong>Primitive 15:</strong> Swap the contents of two {@linkplain
 	 * ContainerDescriptor variables}.
 	 */
-	prim15_Swap_var1_var2(15, 2, CanInline, HasSideEffect)
+	prim15_Swap(15, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -564,7 +564,7 @@ public enum Primitive
 	 * ContainerDescriptor variable} with the given inner
 	 * type.
 	 */
-	prim16_CreateContainer_innerType(16, 1, CanInline, CannotFail)
+	prim16_CreateContainer(16, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -592,7 +592,7 @@ public enum Primitive
 	 * the {@linkplain ContainerDescriptor variable} is unassigned (has no
 	 * value).
 	 */
-	prim17_HasNoValue_var(17, 1, CanInline, CannotFail)
+	prim17_HasNoValue(17, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -622,7 +622,7 @@ public enum Primitive
 	 * allows store-back patterns to be efficiently implemented in Level One
 	 * code while keeping the interpreter itself thread-safe and debugger-safe.
 	 */
-	prim18_GetClearing_var(18, 1, CanInline, HasSideEffect)
+	prim18_GetClearing(18, 1, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -657,7 +657,7 @@ public enum Primitive
 	 * <strong>Primitive 20:</strong> Get the priority of the given {@linkplain
 	 * ProcessDescriptor process}.
 	 */
-	prim20_GetPriority_processObject(20, 1, CanInline, CannotFail)
+	prim20_GetPriority(20, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -684,7 +684,7 @@ public enum Primitive
 	 * <strong>Primitive 21:</strong> Set the priority of the given {@linkplain
 	 * ProcessDescriptor process}.
 	 */
-	prim21_SetPriority_processObject_newPriority(21, 2, Unknown, CannotFail)
+	prim21_SetPriority(21, 2, Unknown, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -713,7 +713,7 @@ public enum Primitive
 	 * <strong>Primitive 22:</strong> Suspend the given {@linkplain
 	 * ProcessDescriptor process}. Ignore if the process is already suspended.
 	 */
-	prim22_Suspend_processObject(22, 1, Unknown)
+	prim22_Suspend(22, 1, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -741,7 +741,7 @@ public enum Primitive
 	 * <strong>Primitive 23:</strong> Resume the given {@linkplain
 	 * ProcessDescriptor process}. Ignore if the process is already running.
 	 */
-	prim23_Resume_processObject(23, 1, Unknown)
+	prim23_Resume(23, 1, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -769,7 +769,7 @@ public enum Primitive
 	 * <strong>Primitive 24:</strong> Terminate the given {@linkplain
 	 * ProcessDescriptor process}. Ignore if the process is already terminated.
 	 */
-	prim24_Terminate_processObject(24, 1, Unknown)
+	prim24_Terminate(24, 1, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -823,7 +823,7 @@ public enum Primitive
 	 * CyclicTypeDescriptor name} (key) in the variables of the given
 	 * {@linkplain ProcessDescriptor process}.
 	 */
-	prim26_LookupProcessVariable_processObject_key(26, 2, CanInline)
+	prim26_LookupProcessVariable(26, 2, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -859,7 +859,7 @@ public enum Primitive
 	 * {@linkplain CyclicTypeDescriptor name} (key) in the variables of the
 	 * given {@linkplain ProcessDescriptor process}.
 	 */
-	prim27_SetProcessVariable_processObject_key_value(
+	prim27_SetProcessVariable(
 		27, 3, CanInline, HasSideEffect, CannotFail)
 	{
 		@Override
@@ -894,7 +894,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 28:</strong> Wait for the given semaphore.
 	 */
-	prim28_SemaphoreWait_semaphore(28, 1, Unknown)
+	prim28_SemaphoreWait(28, 1, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -922,7 +922,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 29:</strong> Signal the given semaphore.
 	 */
-	prim29_SemaphoreSignal_semaphore(29, 1, Unknown)
+	prim29_SemaphoreSignal(29, 1, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -950,7 +950,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 30:</strong> Answer the type of the given object.
 	 */
-	prim30_Type_value(30, 1, CanFold, CannotFail)
+	prim30_Type(30, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -976,7 +976,7 @@ public enum Primitive
 	 * <strong>Primitive 31:</strong> Answer the type union of the specified
 	 * {@linkplain TypeDescriptor types}.
 	 */
-	prim31_TypeUnion_type1_type2(31, 2, CanFold, CannotFail)
+	prim31_TypeUnion(31, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1005,7 +1005,7 @@ public enum Primitive
 	 * <strong>Primitive 32:</strong> Answer the type intersection of the
 	 * specified {@linkplain TypeDescriptor types}.
 	 */
-	prim32_TypeIntersection_type1_type2(32, 2, CanFold, CannotFail)
+	prim32_TypeIntersection(32, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1034,7 +1034,7 @@ public enum Primitive
 	 * <strong>Primitive 33:</strong> Answer whether type1 is a subtype of type2
 	 * (or equal).
 	 */
-	prim33_IsSubtypeOf_type1_type2(33, 2, CanFold, CannotFail)
+	prim33_IsSubtypeOf(33, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1063,7 +1063,7 @@ public enum Primitive
 	 * <strong>Primitive 34:</strong> Create a closure type from a tuple of
 	 * argument types and a return type.
 	 */
-	prim34_CreateClosureType_argTypes_returnType(34, 2, CanFold, CannotFail)
+	prim34_CreateClosureType(34, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1097,7 +1097,7 @@ public enum Primitive
 	 * <strong>Primitive 35:</strong> Answer a tuple type describing the
 	 * arguments accepted by the closure type.
 	 */
-	prim35_ClosureTypeNumArgs_closureType(35, 1, CanFold, CannotFail)
+	prim35_ClosureTypeNumArgs(35, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1124,7 +1124,7 @@ public enum Primitive
 	 * <strong>Primitive 36:</strong> Answer the type of the argument at the
 	 * given index within the given closureType.
 	 */
-	prim36_ArgTypeAt_closureType_index(36, 2, CanFold)
+	prim36_ArgTypeAt(36, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1161,7 +1161,7 @@ public enum Primitive
 	 * <strong>Primitive 37:</strong> Answer the return type of the given
 	 * closureType.
 	 */
-	prim37_ReturnType_closureType(37, 1, CanFold, CannotFail)
+	prim37_ReturnType(37, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1187,7 +1187,7 @@ public enum Primitive
 	 * <strong>Primitive 38:</strong> Answer the union of the types in the given
 	 * tuple of types.
 	 */
-	prim38_UnionOfTupleOfTypes_tupleOfTypes(38, 1, CanFold, CannotFail)
+	prim38_UnionOfTupleOfTypes(38, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1221,7 +1221,7 @@ public enum Primitive
 	 * <strong>Primitive 39:</strong> Answer the most general closure type with
 	 * the given return type.
 	 */
-	prim39_CreateGeneralClosureType_returnType(39, 1, CanFold, CannotFail)
+	prim39_CreateGeneralClosureType(39, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1254,7 +1254,7 @@ public enum Primitive
 	 * corruption of the type system. Fail if the arguments are not of the
 	 * required types.
 	 */
-	prim40_InvokeWithTuple_block_argTuple(40, 2, Invokes)
+	prim40_InvokeWithTuple(40, 2, Invokes)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1306,7 +1306,7 @@ public enum Primitive
 	 * ClosureDescriptor trueBlock} or the {@code falseBlock}, depending on
 	 * {@link BooleanDescriptor aBoolean}.
 	 */
-	prim43_IfThenElse_aBoolean_trueBlock_falseBlock(43, 3, Invokes, CannotFail)
+	prim43_IfThenElse(43, 3, Invokes, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1351,7 +1351,7 @@ public enum Primitive
 	 * trueBlock} if {@link BooleanDescriptor aBoolean} is true, otherwise just
 	 * answer {@linkplain VoidDescriptor#voidObject() void}.
 	 */
-	prim44_IfThen_aBoolean_trueBlock(44, 2, Invokes, CannotFail)
+	prim44_IfThen(44, 2, Invokes, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1390,7 +1390,7 @@ public enum Primitive
 	 * BooleanDescriptor boolean} argument. This is used for short-circuit
 	 * evaluation.
 	 */
-	prim45_ShortCircuitHelper_ignoredBool_block(45, 2, Invokes, CannotFail)
+	prim45_ShortCircuitHelper(45, 2, Invokes, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1425,7 +1425,7 @@ public enum Primitive
 	 * ContinuationDescriptor continuation}. Will execute as unoptimized code
 	 * via the default Level Two {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	prim49_CreateContinuation_callerHolder_closure_pc_stackp_stack(
+	prim49_CreateContinuation(
 		49, 5, CanFold, CannotFail)
 	{
 		@Override
@@ -1475,7 +1475,7 @@ public enum Primitive
 	 * ClosureTypeDescriptor closure type} corresponding to the given
 	 * {@linkplain ContinuationTypeDescriptor continuation type}.
 	 */
-	prim50_ContinuationTypeToClosureType_continuationType(
+	prim50_ContinuationTypeToClosureType(
 		50, 1, CanFold, CannotFail)
 	{
 		@Override
@@ -1504,7 +1504,7 @@ public enum Primitive
 	 * ContinuationTypeDescriptor continuation type} that uses the
 	 * given {@linkplain ClosureTypeDescriptor closure type}.
 	 */
-	prim51_ClosureTypeToContinuationType_closureType(51, 1, CanFold, CannotFail)
+	prim51_ClosureTypeToContinuationType(51, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1531,7 +1531,7 @@ public enum Primitive
 	 * <strong>Primitive 52:</strong> Answer the caller of a {@linkplain
 	 * ContinuationDescriptor continuation}. Fail if there is no caller.
 	 */
-	prim52_ContinuationCaller_con(52, 1, CanFold)
+	prim52_ContinuationCaller(52, 1, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1563,7 +1563,7 @@ public enum Primitive
 	 * <strong>Primitive 53:</strong> Answer the {@linkplain ClosureDescriptor
 	 * closure} of a {@linkplain ContinuationDescriptor continuation}.
 	 */
-	prim53_ContinuationClosure_con(53, 1, CanFold, CannotFail)
+	prim53_ContinuationClosure(53, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1592,7 +1592,7 @@ public enum Primitive
 	 * ClosureDescriptor closure}'s {@linkplain CompiledCodeDescriptor code}'s
 	 * {@linkplain TupleDescriptor tuple} of nybblecodes.
 	 */
-	prim54_ContinuationPC_con(54, 1, CanFold, CannotFail)
+	prim54_ContinuationPC(54, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1623,7 +1623,7 @@ public enum Primitive
 	 * continuation. For an empty stack its value equals the number of frame
 	 * slots plus one.
 	 */
-	prim55_ContinuationStackPointer_con(55, 1, CanFold, CannotFail)
+	prim55_ContinuationStackPointer(55, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1657,7 +1657,7 @@ public enum Primitive
 	 * if the continuation's {@linkplain ClosureDescriptor closure} is not
 	 * capable of accepting the given arguments.
 	 */
-	prim56_RestartContinuationWithArguments_con_arguments(
+	prim56_RestartContinuationWithArguments(
 		56, 2, SwitchesContinuation)
 	{
 		@Override
@@ -1724,7 +1724,7 @@ public enum Primitive
 	 * <strong>Primitive 57:</strong> Exit the given {@linkplain
 	 * ContinuationDescriptor continuation} (returning result to its caller).
 	 */
-	prim57_ExitContinuationWithResult_con_result(57, 2, SwitchesContinuation)
+	prim57_ExitContinuationWithResult(57, 2, SwitchesContinuation)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1787,7 +1787,7 @@ public enum Primitive
 	 * requires a value to be stored on its stack in order to resume it,
 	 * something this primitive does not do.
 	 */
-	prim58_RestartContinuation_con(58, 1, SwitchesContinuation)
+	prim58_RestartContinuation(58, 1, SwitchesContinuation)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1839,7 +1839,7 @@ public enum Primitive
 	 * stack data. Substitute the integer {@linkplain IntegerDescriptor#zero()
 	 * zero} for any {@linkplain VoidDescriptor#voidObject() void} values.
 	 */
-	prim59_ContinuationStackData_con(59, 1, CanFold, CannotFail)
+	prim59_ContinuationStackData(59, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1878,7 +1878,7 @@ public enum Primitive
 	 * <strong>Primitive 60:</strong> Compare for equality. Answer a {@linkplain
 	 * BooleanDescriptor boolean}.
 	 */
-	prim60_Equality_a_b(60, 2, CanFold, CannotFail)
+	prim60_Equality(60, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1907,7 +1907,7 @@ public enum Primitive
 	 * <strong>Primitive 61:</strong> Convert a {@linkplain MapDescriptor map}
 	 * from fields to values into an {@linkplain ObjectDescriptor object}.
 	 */
-	prim61_MapToObject_map(61, 1, CanFold, CannotFail)
+	prim61_MapToObject(61, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1938,7 +1938,7 @@ public enum Primitive
 	 * <strong>Primitive 62:</strong> Convert an {@linkplain ObjectDescriptor
 	 * object} into a {@linkplain MapDescriptor map} from fields to values.
 	 */
-	prim62_ObjectToMap_object(62, 1, CanFold, CannotFail)
+	prim62_ObjectToMap(62, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1969,7 +1969,7 @@ public enum Primitive
 	 * from fields to {@linkplain TypeDescriptor types} into an {@linkplain
 	 * ObjectTypeDescriptor object type}.
 	 */
-	prim63_MapToObjectType_map(63, 1, CanFold, CannotFail)
+	prim63_MapToObjectType(63, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2003,7 +2003,7 @@ public enum Primitive
 	 * ObjectTypeDescriptor object type} into a {@linkplain MapDescriptor map}
 	 * from fields to types.
 	 */
-	prim64_ObjectTypeToMap_objectType(64, 1, CanFold, CannotFail)
+	prim64_ObjectTypeToMap(64, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2036,7 +2036,7 @@ public enum Primitive
 	 * instance} of the specified {@linkplain ObjectMetaDescriptor object
 	 * metatype}.
 	 */
-	prim65_ObjectMetaInstance_objectMeta(65, 1, CanFold)
+	prim65_ObjectMetaInstance(65, 1, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2082,7 +2082,7 @@ public enum Primitive
 	 * ObjectTypeDescriptor object type} and {@linkplain
 	 * IntegerRangeTypeDescriptor range} of levels.
 	 */
-	prim66_CreateObjectMeta_objectType_levels(66, 2, CanFold)
+	prim66_CreateObjectMeta(66, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2129,7 +2129,7 @@ public enum Primitive
 	 * <strong>Primitive 67:</strong> Answer the name of a {@linkplain
 	 * PrimitiveTypeDescriptor primitive type}.
 	 */
-	prim67_NameOfPrimitiveType_primType(67, 1, CanFold, CannotFail)
+	prim67_NameOfPrimitiveType(67, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2156,7 +2156,7 @@ public enum Primitive
 	 * ObjectTypeDescriptor user-defined object type}. This can be useful for
 	 * debugging.
 	 */
-	prim68_RecordNewTypeName_userType_name(68, 2, CanInline, CannotFail)
+	prim68_RecordNewTypeName(68, 2, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2193,7 +2193,7 @@ public enum Primitive
 	 * <strong>Primitive 69:</strong> Answer the user-assigned name of the
 	 * specified {@linkplain ObjectTypeDescriptor user-defined object type}.
 	 */
-	prim69_TypeName_userType(69, 1, CanInline)
+	prim69_TypeName(69, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2231,7 +2231,7 @@ public enum Primitive
 	 * closure} accepting {@code numArgs} arguments (each of type {@link
 	 * PrimitiveTypeDescriptor all}) and returning {@code constantResult}.
 	 */
-	prim70_CreateConstantBlock_numArgs_constantResult(
+	prim70_CreateConstantBlock(
 		70, 2, CanFold, CannotFail)
 	{
 		@Override
@@ -2272,7 +2272,7 @@ public enum Primitive
 	 * been tried in each applicable {@code requiresBlock}, and that the result
 	 * type agrees with each {@code returnsBlock}.
 	 */
-	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple_argTypes_message_firstArg_resultType(
+	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple(
 		71, 4, CanFold)
 	{
 		@Override
@@ -2323,7 +2323,7 @@ public enum Primitive
 	 * CompiledCodeDescriptor compiled code} within this {@linkplain
 	 * ClosureDescriptor closure}.
 	 */
-	prim72_CompiledCodeOfClosure_aClosure(72, 1, CanFold, CannotFail)
+	prim72_CompiledCodeOfClosure(72, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2350,7 +2350,7 @@ public enum Primitive
 	 * tuple} of outer variables captured by this {@linkplain ClosureDescriptor
 	 * closure}.
 	 */
-	prim73_OuterVariables_aClosure(73, 1, CanFold, CannotFail)
+	prim73_OuterVariables(73, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2394,7 +2394,7 @@ public enum Primitive
 	 * closure} built from the {@linkplain CompiledCodeDescriptor compiled code}
 	 * and the outer variables.
 	 */
-	prim74_CreateClosure_compiledCode_outers(74, 2, CanFold)
+	prim74_CreateClosure(74, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2429,7 +2429,7 @@ public enum Primitive
 	 * MapDescriptor map}. This is the number of entries, which is also the
 	 * number of keys.
 	 */
-	prim80_MapSize_map(80, 1, CanFold, CannotFail)
+	prim80_MapSize(80, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2459,7 +2459,7 @@ public enum Primitive
 	 * <strong>Primitive 81:</strong> Check if the key is present in the
 	 * {@linkplain MapDescriptor map}.
 	 */
-	prim81_MapHasKey_map_key(81, 2, CanFold, CannotFail)
+	prim81_MapHasKey(81, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2491,7 +2491,7 @@ public enum Primitive
 	 * <strong>Primitive 82:</strong> Look up the key in the {@linkplain
 	 * MapDescriptor map}, answering the corresponding value.
 	 */
-	prim82_MapAtKey_map_key(82, 2, CanFold)
+	prim82_MapAtKey(82, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2528,7 +2528,7 @@ public enum Primitive
 	 * key} and {@code value}. Overwrite any existing value if the key is
 	 * already present.
 	 */
-	prim83_MapReplacingKey_map_key_value(83, 3, CanFold, CannotFail)
+	prim83_MapReplacingKey(83, 3, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2568,7 +2568,7 @@ public enum Primitive
 	 * map}, but without the given key. Answer the original map if the key does
 	 * not occur in it.
 	 */
-	prim84_MapWithoutKey_map_key(84, 2, CanFold, CannotFail)
+	prim84_MapWithoutKey(84, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2631,7 +2631,7 @@ public enum Primitive
 	 * <strong>Primitive 86:</strong> Answer the keys of this {@linkplain
 	 * MapDescriptor map} as a {@linkplain SetDescriptor set}.
 	 */
-	prim86_MapKeysAsSet_map(86, 1, CanFold, CannotFail)
+	prim86_MapKeysAsSet(86, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2662,7 +2662,7 @@ public enum Primitive
 	 * <strong>Primitive 87:</strong> Answer a {@linkplain MapTypeDescriptor map
 	 * type} with the given type constraints.
 	 */
-	prim87_CreateMapType_Sizes_keyType_valueType(87, 3, CanFold)
+	prim87_CreateMapType(87, 3, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2705,7 +2705,7 @@ public enum Primitive
 	 * assuming the keys' types and values' types also agree with those
 	 * specified in the map type.
 	 */
-	prim88_MapTypeSizes_mapType(88, 1, CanFold, CannotFail)
+	prim88_MapTypeSizes(88, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2731,7 +2731,7 @@ public enum Primitive
 	 * <strong>Primitive 89:</strong> Answer the key {@linkplain TypeDescriptor
 	 * type} of a {@linkplain MapTypeDescriptor map type}.
 	 */
-	prim89_MapTypeKeyType_mapType(89, 1, CanFold, CannotFail)
+	prim89_MapTypeKeyType(89, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2757,7 +2757,7 @@ public enum Primitive
 	 * <strong>Primitive 90:</strong> Answer the value {@linkplain
 	 * TypeDescriptor type} of a {@linkplain MapTypeDescriptor map type}.
 	 */
-	prim90_MapTypeValueType_mapType(90, 1, CanFold, CannotFail)
+	prim90_MapTypeValueType(90, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2784,7 +2784,7 @@ public enum Primitive
 	 * MapDescriptor map} as a {@linkplain TupleDescriptor tuple}, arbitrarily
 	 * ordered.
 	 */
-	prim91_MapValuesAsTuple_map(91, 1, CanFold, CannotFail)
+	prim91_MapValuesAsTuple(91, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2813,7 +2813,7 @@ public enum Primitive
 	 * <strong>Primitive 100:</strong> Answer the size of the {@linkplain
 	 * SetDescriptor set}.
 	 */
-	prim100_SetSize_set(100, 1, CanFold, CannotFail)
+	prim100_SetSize(100, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2842,7 +2842,7 @@ public enum Primitive
 	 * <strong>Primitive 101:</strong> Check if the {@linkplain AvailObject
 	 * object} is an element of the {@linkplain SetDescriptor set}.
 	 */
-	prim101_SetHasElement_set_element(101, 2, CanFold, CannotFail)
+	prim101_SetHasElement(101, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2873,7 +2873,7 @@ public enum Primitive
 	 * <strong>Primitive 102:</strong> Answer the union of two {@linkplain
 	 * SetDescriptor sets}.
 	 */
-	prim102_SetUnion_set1_set2(102, 2, CanFold, CannotFail)
+	prim102_SetUnion(102, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2908,7 +2908,7 @@ public enum Primitive
 	 * <strong>Primitive 103:</strong> Answer the intersection of two
 	 * {@linkplain SetDescriptor sets}.
 	 */
-	prim103_SetIntersection_set1_set2(103, 2, CanFold, CannotFail)
+	prim103_SetIntersection(103, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2943,7 +2943,7 @@ public enum Primitive
 	 * <strong>Primitive 104:</strong> Answer the difference between two
 	 * {@linkplain SetDescriptor sets} ({@code set1 - set2}).
 	 */
-	prim104_SetDifference_set1_set2(104, 2, CanFold, CannotFail)
+	prim104_SetDifference(104, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2979,7 +2979,7 @@ public enum Primitive
 	 * set} like the argument but including the new {@linkplain AvailObject
 	 * element}. If it was already present, answer the original set.
 	 */
-	prim105_SetWith_set_newElement(105, 2, CanFold, CannotFail)
+	prim105_SetWith(105, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3013,7 +3013,7 @@ public enum Primitive
 	 * set} like the argument but without the excluded {@linkplain AvailObject
 	 * element}. If it was already absent, answer the original set.
 	 */
-	prim106_SetWithout_set_excludedElement(106, 2, CanFold, CannotFail)
+	prim106_SetWithout(106, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3046,7 +3046,7 @@ public enum Primitive
 	 * <strong>Primitive 107:</strong> Check if {@link SetDescriptor set1} is a
 	 * subset of {@code set2}.
 	 */
-	prim107_SetIsSubset_set1_set2(107, 2, CanFold, CannotFail)
+	prim107_SetIsSubset(107, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3106,7 +3106,7 @@ public enum Primitive
 	 * <strong>Primitive 109:</strong> Convert a {@linkplain TupleDescriptor
 	 * tuple} into a {@linkplain SetDescriptor set}.
 	 */
-	prim109_TupleToSet_tuple(109, 1, CanFold, CannotFail)
+	prim109_TupleToSet(109, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3135,7 +3135,7 @@ public enum Primitive
 	 * into an arbitrarily ordered {@linkplain TupleDescriptor tuple}. The
 	 * conversion is unstable (two calls may produce different orderings).
 	 */
-	prim110_SetToTuple_set(110, 1, CanFold, CannotFail)
+	prim110_SetToTuple(110, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3163,7 +3163,7 @@ public enum Primitive
 	 * <strong>Primitive 111:</strong> Create a {@linkplain SetTypeDescriptor
 	 * set type}.
 	 */
-	prim111_CreateSetType_sizeRange_contentType(111, 2, CanFold)
+	prim111_CreateSetType(111, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3202,7 +3202,7 @@ public enum Primitive
 	 * to be considered a member of the set type, assuming the elements all
 	 * satisfy the set type's element {@linkplain TypeDescriptor type}.
 	 */
-	prim112_SetTypeSizes_setType(112, 1, CanFold, CannotFail)
+	prim112_SetTypeSizes(112, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3228,7 +3228,7 @@ public enum Primitive
 	 * <strong>Primitive 113:</strong> Extract a {@linkplain SetTypeDescriptor
 	 * set type}'s element {@linkplain TypeDescriptor type}.
 	 */
-	prim113_SetTypeElementType_setType(113, 1, CanFold, CannotFail)
+	prim113_SetTypeElementType(113, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3254,7 +3254,7 @@ public enum Primitive
 	 * <strong>Primitive 120:</strong> Create a new {@linkplain
 	 * CyclicTypeDescriptor cyclic type} with the given name.
 	 */
-	prim120_CreateCyclicType_name(120, 1, CanInline, CannotFail)
+	prim120_CreateCyclicType(120, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3281,7 +3281,7 @@ public enum Primitive
 	 * <strong>Primitive 121:</strong> Answer the name of a {@linkplain
 	 * CyclicTypeDescriptor cyclic type}.
 	 */
-	prim121_CyclicTypeName_cyclicType(121, 1, CanFold, CannotFail)
+	prim121_CyclicTypeName(121, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3307,7 +3307,7 @@ public enum Primitive
 	 * <strong>Primitive 130:</strong> Answer the size of the {@linkplain
 	 * TupleDescriptor tuple}.
 	 */
-	prim130_TupleSize_tuple(130, 1, CanFold, CannotFail)
+	prim130_TupleSize(130, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3334,7 +3334,7 @@ public enum Primitive
 	 * <strong>Primitive 131:</strong> Look up an element in the {@linkplain
 	 * TupleDescriptor tuple}.
 	 */
-	prim131_TupleAt_tuple_index(131, 2, CanFold)
+	prim131_TupleAt(131, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3372,7 +3372,7 @@ public enum Primitive
 	 * <strong>Primitive 132:</strong> Answer a {@linkplain TupleDescriptor
 	 * tuple} like the given one, but with an element changed as indicated.
 	 */
-	prim132_TupleReplaceAt_tuple_index_value(132, 3, CanFold)
+	prim132_TupleReplaceAt(132, 3, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3414,7 +3414,7 @@ public enum Primitive
 	 * <strong>Primitive 133:</strong> Build a {@linkplain TupleDescriptor
 	 * tuple} with one element.
 	 */
-	prim133_CreateTupleSizeOne_soleElement(133, 1, CanFold, CannotFail)
+	prim133_CreateTupleSizeOne(133, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3477,7 +3477,7 @@ public enum Primitive
 	 * <strong>Primitive 135:</strong> Extract a {@linkplain TupleDescriptor
 	 * subtuple} with the given range of elements.
 	 */
-	prim135_ExtractSubtuple_tuple_start_end(135, 3, CanFold)
+	prim135_ExtractSubtuple(135, 3, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3526,7 +3526,7 @@ public enum Primitive
 	 * <strong>Primitive 136:</strong> Concatenate a {@linkplain TupleDescriptor
 	 * tuple} of tuples together into a single tuple.
 	 */
-	prim136_ConcatenateTuples_tuples(136, 1, CanFold, CannotFail)
+	prim136_ConcatenateTuples(136, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3557,7 +3557,7 @@ public enum Primitive
 	 * TupleTypeDescriptor tuple type} with the given parameters. Canonize the
 	 * data if necessary.
 	 */
-	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(137, 3, CanFold)
+	prim137_CreateTupleType(137, 3, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3602,7 +3602,7 @@ public enum Primitive
 	 * tuple type, assuming the element {@linkplain TypeDescriptor types} are
 	 * consistent with those specified by the tuple type.
 	 */
-	prim138_TupleTypeSizes_tupleType(138, 1, CanFold, CannotFail)
+	prim138_TupleTypeSizes(138, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3629,7 +3629,7 @@ public enum Primitive
 	 * tuple} of leading {@linkplain TypeDescriptor types} that constrain this
 	 * {@linkplain TupleTypeDescriptor tuple type}.
 	 */
-	prim139_TupleTypeLeadingTypes_tupleType(139, 1, CanFold, CannotFail)
+	prim139_TupleTypeLeadingTypes(139, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3658,7 +3658,7 @@ public enum Primitive
 	 * <strong>Primitive 140:</strong> Answer the default {@linkplain
 	 * TypeDescriptor type} for elements past the leading types.
 	 */
-	prim140_TupleTypeDefaultType_tupleType(140, 1, CanFold, CannotFail)
+	prim140_TupleTypeDefaultType(140, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3686,7 +3686,7 @@ public enum Primitive
 	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer
 	 * {@link TerminatesTypeDescriptor terminates} if out of range.
 	 */
-	prim141_TupleTypeAt_tupleType_index(141, 2, CanFold, CannotFail)
+	prim141_TupleTypeAt(141, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3723,7 +3723,7 @@ public enum Primitive
 	 * type}. Use {@link TerminatesTypeDescriptor terminates} for indices out of
 	 * range.
 	 */
-	prim142_TupleTypeSequenceOfTypes_tupleType_startIndex_endIndex(142, 3, CanFold)
+	prim142_TupleTypeSequenceOfTypes(142, 3, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3783,7 +3783,7 @@ public enum Primitive
 	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer {@link
 	 * TerminatesTypeDescriptor terminates} if all the indices are out of range.
 	 */
-	prim143_TupleTypeAtThrough_tupleType_startIndex_endIndex(143, 3, CanFold)
+	prim143_TupleTypeAtThrough(143, 3, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3828,7 +3828,7 @@ public enum Primitive
 	 * given {@linkplain TupleTypeDescriptor tuple types}. This is basically the
 	 * returns clause of the two-argument concatenation operation.
 	 */
-	prim144_TupleTypeConcatenate_tupleType1_tupleType2(144, 2, CanFold, CannotFail)
+	prim144_TupleTypeConcatenate(144, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3862,7 +3862,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim160_FileOpenRead_name(160, 1, CanInline, HasSideEffect)
+	prim160_FileOpenRead(160, 1, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3908,7 +3908,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim161_FileOpenWrite_name_append(161, 2, CanInline, HasSideEffect)
+	prim161_FileOpenWrite(161, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3964,7 +3964,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim162_FileOpenReadWrite_name(162, 1, CanInline, HasSideEffect)
+	prim162_FileOpenReadWrite(162, 1, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4011,7 +4011,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim163_FileClose_handle(163, 1, CanInline, HasSideEffect)
+	prim163_FileClose(163, 1, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4070,7 +4070,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim164_FileRead_handle_size(164, 2, CanInline, HasSideEffect)
+	prim164_FileRead(164, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4155,7 +4155,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim165_FileWrite_handle_bytes(165, 2, CanInline, HasSideEffect)
+	prim165_FileWrite(165, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4222,7 +4222,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim166_FileSize_handle(166, 1, CanInline)
+	prim166_FileSize(166, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4276,7 +4276,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim167_FilePosition_handle(167, 1, CanInline)
+	prim167_FilePosition(167, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4330,7 +4330,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim168_FileSetPosition_handle_newPosition(168, 2, CanInline, HasSideEffect)
+	prim168_FileSetPosition(168, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4388,7 +4388,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim169_FileSync_handle(169, 1, CanInline, HasSideEffect)
+	prim169_FileSync(169, 1, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4436,7 +4436,7 @@ public enum Primitive
 	 * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
 	 * the specified filename?
 	 */
-	prim170_FileExists_nameString(170, 1, CanInline)
+	prim170_FileExists(170, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4475,7 +4475,7 @@ public enum Primitive
 	 * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
 	 * specified filename readable by the OS process?
 	 */
-	prim171_FileCanRead_nameString(171, 1, CanInline)
+	prim171_FileCanRead(171, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4514,7 +4514,7 @@ public enum Primitive
 	 * <strong>Primitive 172:</strong> Is the {@linkplain File file} with the
 	 * specified filename writable by the OS process?
 	 */
-	prim172_FileCanWrite_nameString(172, 1, CanInline)
+	prim172_FileCanWrite(172, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4553,7 +4553,7 @@ public enum Primitive
 	 * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
 	 * specified filename executable by the OS process?
 	 */
-	prim173_FileCanExecute_nameString(173, 1, CanInline)
+	prim173_FileCanExecute(173, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4592,7 +4592,7 @@ public enum Primitive
 	 * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
 	 * the specified source filename.
 	 */
-	prim174_FileRename_sourceString_destinationString(174, 2, CanInline, HasSideEffect)
+	prim174_FileRename(174, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4637,7 +4637,7 @@ public enum Primitive
 	 * <strong>Primitive 175:</strong> Unlink the {@linkplain File file} with
 	 * the specified filename from the filesystem.
 	 */
-	prim175_FileUnlink_nameString(175, 1, CanInline, HasSideEffect)
+	prim175_FileUnlink(175, 1, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4680,7 +4680,7 @@ public enum Primitive
 	 * <strong>Primitive 180:</strong> Answer the number of arguments expected
 	 * by the {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	prim180_CompiledCodeNumArgs_cc(180, 1, CanFold, CannotFail)
+	prim180_CompiledCodeNumArgs(180, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4707,7 +4707,7 @@ public enum Primitive
 	 * <strong>Primitive 181:</strong> Answer the number of locals created by
 	 * the {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	prim181_CompiledCodeNumLocals_cc(181, 1, CanFold, CannotFail)
+	prim181_CompiledCodeNumLocals(181, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4735,7 +4735,7 @@ public enum Primitive
 	 * {@linkplain ClosureDescriptor closures} derived from this {@linkplain
 	 * CompiledCodeDescriptor compiled code}.
 	 */
-	prim182_CompiledCodeNumOuters_cc(182, 1, CanFold, CannotFail)
+	prim182_CompiledCodeNumOuters(182, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4763,7 +4763,7 @@ public enum Primitive
 	 * counting arguments and locals) created for the {@linkplain
 	 * CompiledCodeDescriptor compiled code}.
 	 */
-	prim183_CompiledCodeNumStackSlots_cc(183, 1, CanFold, CannotFail)
+	prim183_CompiledCodeNumStackSlots(183, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4790,7 +4790,7 @@ public enum Primitive
 	 * <strong>Primitive 184:</strong> Answer the {@linkplain TupleDescriptor
 	 * nybblecodes} of the {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	prim184_CompiledCodeNybbles_cc(184, 1, CanFold, CannotFail)
+	prim184_CompiledCodeNybbles(184, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4820,7 +4820,7 @@ public enum Primitive
 	 * ClosureTypeDescriptor type of closure} this {@linkplain
 	 * CompiledCodeDescriptor compiled code} will be closed into.
 	 */
-	prim185_CompiledCodeClosureType_cc(185, 1, CanFold, CannotFail)
+	prim185_CompiledCodeClosureType(185, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4846,7 +4846,7 @@ public enum Primitive
 	 * <strong>Primitive 186:</strong> Answer the primitive number of this
 	 * {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	prim186_CompiledCodePrimitiveNumber_cc(186, 1, CanFold, CannotFail)
+	prim186_CompiledCodePrimitiveNumber(186, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4874,7 +4874,7 @@ public enum Primitive
 	 * tuple} with the literals from this {@linkplain CompiledCodeDescriptor
 	 * compiled code}.
 	 */
-	prim187_CompiledCodeLiterals_cc(187, 1, CanFold, CannotFail)
+	prim187_CompiledCodeLiterals(187, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5029,7 +5029,7 @@ public enum Primitive
 	 * invokes the {@linkplain ClosureDescriptor body block}. The handler block
 	 * is only invoked when an exception is raised.
 	 */
-	prim200_CatchException_bodyBlock_handlerBlock(200, 2, Unknown)
+	prim200_CatchException(200, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5072,7 +5072,7 @@ public enum Primitive
 	 * {@linkplain ContinuationDescriptor continuations} until one is found for
 	 * a {@linkplain ClosureDescriptor closure} whose {@linkplain
 	 * CompiledCodeDescriptor code} is {@linkplain
-	 * #prim200_CatchException_bodyBlock_handlerBlock primitive 200}.
+	 * #prim200_CatchException primitive 200}.
 	 * Get that continuation's second argument (a handler block of one
 	 * argument), and check if that handler block will accept {@code
 	 * exceptionValue}. If not, keep looking. If it will accept it, unwind the
@@ -5080,7 +5080,7 @@ public enum Primitive
 	 * the handler block with {@code exceptionValue}. If there is no suitable
 	 * handler block, then fail this primitive.
 	 */
-	prim201_RaiseException_exceptionValue(201, 1, SwitchesContinuation)
+	prim201_RaiseException(201, 1, SwitchesContinuation)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5108,7 +5108,7 @@ public enum Primitive
 	 * map} from {@linkplain CyclicTypeDescriptor cyclic type} to message bundle
 	 * (typically only zero or one entry).
 	 */
-	prim207_CompleteMessages_bundleTree(207, 1, CanInline, CannotFail)
+	prim207_CompleteMessages(207, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5141,7 +5141,7 @@ public enum Primitive
 	 * those already encountered. Answer it as a {@linkplain MapDescriptor map}
 	 * from string to message bundle tree.
 	 */
-	prim208_IncompleteMessages_bundleTree(208, 1, CanInline, CannotFail)
+	prim208_IncompleteMessages(208, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5173,7 +5173,7 @@ public enum Primitive
 	 * string, and have only one part. Answer a {@linkplain MapDescriptor map}
 	 * from {@linkplain CyclicTypeDescriptor cyclic type} to message bundle.
 	 */
-	prim209_CompleteMessagesStartingWith_leadingPart(
+	prim209_CompleteMessagesStartingWith(
 		209, 1, CanInline, CannotFail)
 	{
 		@Override
@@ -5208,7 +5208,7 @@ public enum Primitive
 	 * string, and have more than one part. Answer a {@linkplain MapDescriptor
 	 * map} from second part (string) to message bundle tree.
 	 */
-	prim210_IncompleteMessagesStartingWith_leadingPart(
+	prim210_IncompleteMessagesStartingWith(
 		210, 1, CanInline, CannotFail)
 	{
 		@Override
@@ -5242,7 +5242,7 @@ public enum Primitive
 	 * MessageBundleDescriptor message bundle}'s message (a
 	 * {@linkplain CyclicTypeDescriptor cyclic type}).
 	 */
-	prim211_BundleMessage_bundle(211, 1, CanFold, CannotFail)
+	prim211_BundleMessage(211, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5270,7 +5270,7 @@ public enum Primitive
 	 * MessageBundleDescriptor message bundle}'s message parts (a {@linkplain
 	 * TupleDescriptor tuple} of strings).
 	 */
-	prim212_BundleMessageParts_bundle(212, 1, CanFold, CannotFail)
+	prim212_BundleMessageParts(212, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5303,7 +5303,7 @@ public enum Primitive
 	 * MessageBundleDescriptor bundle}. This includes abstract signatures and
 	 * forward signatures.
 	 */
-	prim213_BundleSignatures_bundle(213, 1, CanInline)
+	prim213_BundleSignatures(213, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5341,7 +5341,7 @@ public enum Primitive
 	 * have been defined (yet) for this {@linkplain MessageBundleDescriptor
 	 * bundle}.
 	 */
-	prim214_BundleHasRestrictions_bundle(214, 1, CanInline, CannotFail)
+	prim214_BundleHasRestrictions(214, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5369,7 +5369,7 @@ public enum Primitive
 	 * <strong>Primitive 215:</strong> Answer the current precedence
 	 * restrictions for this {@linkplain MessageBundleDescriptor bundle}.
 	 */
-	prim215_BundleRestrictions_bundle(215, 1, CanInline, CannotFail)
+	prim215_BundleRestrictions(215, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5402,7 +5402,7 @@ public enum Primitive
 	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor body}'s
 	 * {@linkplain ClosureTypeDescriptor type}.
 	 */
-	prim216_SignatureBodyType_sig(216, 1, CanFold, CannotFail)
+	prim216_SignatureBodyType(216, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5430,7 +5430,7 @@ public enum Primitive
 	 * MethodSignatureDescriptor method signature}'s {@linkplain
 	 * ClosureDescriptor body}.
 	 */
-	prim217_SignatureBodyBlock_methSig(217, 1, CanFold, CannotFail)
+	prim217_SignatureBodyBlock(217, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5458,7 +5458,7 @@ public enum Primitive
 	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor requires
 	 * closure}.
 	 */
-	prim218_SignatureRequiresBlock_sig(218, 1, CanFold)
+	prim218_SignatureRequiresBlock(218, 1, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5493,7 +5493,7 @@ public enum Primitive
 	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor returns
 	 * closure}.
 	 */
-	prim219_SignatureReturnsBlock_sig(219, 1, CanFold)
+	prim219_SignatureReturnsBlock(219, 1, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5530,7 +5530,7 @@ public enum Primitive
 	 * used when Avail code is constructing Avail code in the metacircular
 	 * compiler.
 	 */
-	prim220_ImplementationSetFromName_name(220, 1, CanInline)
+	prim220_ImplementationSetFromName(220, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5566,7 +5566,7 @@ public enum Primitive
 	 * used when Avail code is saving or loading Avail code in the object dumper
 	 * / loader.
 	 */
-	prim221_ImplementationSetName_name(221, 1, CanFold, CannotFail)
+	prim221_ImplementationSetName(221, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5593,7 +5593,7 @@ public enum Primitive
 	 * AvailRuntime#specialObject(int) special object} with the specified
 	 * ordinal.
 	 */
-	prim240_SpecialObject_index(240, 1, CanFold)
+	prim240_SpecialObject(240, 1, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5646,7 +5646,7 @@ public enum Primitive
 	 * currently under {@linkplain AvailCompiler compilation}, creating the
 	 * true name if necessary.
 	 */
-	prim245_LookupName_name(245, 1, CanInline)
+	prim245_LookupName(245, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5679,7 +5679,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 249:</strong> Simple macro definition.
 	 */
-	prim249_SimpleMacroDeclaration_string_block(249, 2, Unknown)
+	prim249_SimpleMacroDeclaration(249, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5726,7 +5726,7 @@ public enum Primitive
 	 * <strong>Primitive 250:</strong> Is there a {@linkplain Primitive
 	 * primitive} with the specified ordinal?
 	 */
-	prim250_IsPrimitiveDefined_index(250, 1, CanFold, CannotFail)
+	prim250_IsPrimitiveDefined(250, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5885,7 +5885,7 @@ public enum Primitive
 	 * <strong>Primitive 254:</strong> Method definition with type constraint
 	 * and result type calculation.
 	 */
-	prim254_MethodDeclaration_string_block_requiresBlock_returnsBlock(254, 4, Unknown)
+	prim254_MethodDeclaration(254, 4, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5935,7 +5935,7 @@ public enum Primitive
 	 * distinction is only apparent when chevron notation is used to accept
 	 * tuples of arguments.
 	 */
-	prim255_PrecedenceDeclaration_stringSet_exclusionsTuple(255, 2, Unknown)
+	prim255_PrecedenceDeclaration(255, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6002,7 +6002,7 @@ public enum Primitive
 	 * ProcessDescriptor process}. The specified argument will be converted
 	 * internally into a {@code string} and used to report an error message.
 	 */
-	prim256_EmergencyExit_value(256, 1, Unknown, CannotFail)
+	prim256_EmergencyExit(256, 1, Unknown, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6067,7 +6067,7 @@ public enum Primitive
 	 * <strong>Primitive 258:</strong> Print an {@linkplain AvailObject object}
 	 * to standard output.
 	 */
-	prim258_PrintToConsole_value(258, 1, Unknown, CannotFail)
+	prim258_PrintToConsole(258, 1, Unknown, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6095,7 +6095,7 @@ public enum Primitive
 	 * <strong>Primitive 259:</strong> Produce a {@linkplain
 	 * ByteStringDescriptor string} description of the sole argument.
 	 */
-	prim259_ToString_value(259, 1, Unknown, CannotFail)
+	prim259_ToString(259, 1, Unknown, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6122,7 +6122,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 260:</strong> Create an opaque library object into
 	 * which we can load declarations.  We may also open it later (load the
-	 * actual DLL) via {@link #prim261_OpenLibrary_handle_filename primitive
+	 * actual DLL) via {@link #prim261_OpenLibrary primitive
 	 * 261}.  Answer the handle (an integer).  Associated with the handle is:
 	 * <ol>
 	 * <li>an ExternalDictionary for accumulating declarations,</li>
@@ -6160,7 +6160,7 @@ public enum Primitive
 	 * <strong>Primitive 261:</strong> Open a previously constructed library.
 	 * Its handle (into openLibraries) is passed.
 	 */
-	prim261_OpenLibrary_handle_filename(261, 2, CanInline, HasSideEffect)
+	prim261_OpenLibrary(261, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6194,7 +6194,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 262:</strong> Declare a function for the given library.
 	 * Don't look for the entry point yet, that's actually the job of {@link
-	 * #prim263_ExtractEntryPoint_handle_functionName primitive 263}.
+	 * #prim263_ExtractEntryPoint primitive 263}.
 	 * Instead, parse the declaration to produce an ExternalMethod.  Create an
 	 * opaque handle that secretly contains:
 	 * <ol>
@@ -6206,7 +6206,7 @@ public enum Primitive
 	 * the underlying C function.</li>
 	 * </ol>
 	 */
-	prim262_ParseDeclarations_libraryHandle_declaration(262, 2, CanInline, HasSideEffect)
+	prim262_ParseDeclarations(262, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6251,7 +6251,7 @@ public enum Primitive
 	 * <li>the construct that encapsulates the library handle.</li>
 	 * </ol>
 	 */
-	prim263_ExtractEntryPoint_handle_functionName(263, 2, CanInline, HasSideEffect)
+	prim263_ExtractEntryPoint(263, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6296,7 +6296,7 @@ public enum Primitive
 	 * <strong>Primitive 264:</strong> Answer the closure type associated with
 	 * the given entry point.
 	 */
-	prim264_EntryPointClosureType_entryPointHandle(264, 1, CanInline)
+	prim264_EntryPointClosureType(264, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6325,7 +6325,7 @@ public enum Primitive
 	 * <strong>Primitive 265:</strong> Invoke the entry point associated with
 	 * the given handle, using the specified arguments.
 	 */
-	prim265_InvokeEntryPoint_arguments(265, 2, CanInline, HasSideEffect)
+	prim265_InvokeEntryPoint(265, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6388,7 +6388,7 @@ public enum Primitive
 	 * <strong>Primitive 266:</strong> Read an integer of the specified type
 	 * from the memory location specified as an integer.
 	 */
-	prim266_IntegralType_from(266, 2, CanInline, HasSideEffect)
+	prim266_IntegralType(266, 2, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6419,7 +6419,7 @@ public enum Primitive
 	 * <strong>Primitive 267:</strong> Write an integer of the specified type to
 	 * the memory location specified as an integer.
 	 */
-	prim267_IntegralType_to_write(267, 3, CanInline, HasSideEffect)
+	prim267_IntegralType(267, 3, CanInline, HasSideEffect)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6480,7 +6480,7 @@ public enum Primitive
 	 * <strong>Primitive 280:</strong> Add two {@linkplain FloatDescriptor
 	 * floats}.
 	 */
-	prim280_FloatAddition_a_b(280, 2, CanFold, CannotFail)
+	prim280_FloatAddition(280, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6512,7 +6512,7 @@ public enum Primitive
 	 * <strong>Primitive 281:</strong> Subtract {@linkplain FloatDescriptor
 	 * float} {@code b} from float {@code a}.
 	 */
-	prim281_FloatSubtraction_a_b(281, 2, CanFold, CannotFail)
+	prim281_FloatSubtraction(281, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6544,7 +6544,7 @@ public enum Primitive
 	 * <strong>Primitive 282:</strong> Multiply {@linkplain FloatDescriptor
 	 * float} {@code a} and float {@code b}.
 	 */
-	prim282_FloatMultiplication_a_b(282, 2, CanFold, CannotFail)
+	prim282_FloatMultiplication(282, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6576,7 +6576,7 @@ public enum Primitive
 	 * <strong>Primitive 283:</strong> Divide {@linkplain FloatDescriptor float}
 	 * {@code a} by float {@code b}.
 	 */
-	prim283_FloatDivision_a_b(283, 2, CanFold)
+	prim283_FloatDivision(283, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6613,7 +6613,7 @@ public enum Primitive
 	 * float} {@code a} < float {@code b}. Answers a {@linkplain
 	 * BooleanDescriptor boolean}.
 	 */
-	prim284_FloatLessThan_a_b(284, 2, CanFold, CannotFail)
+	prim284_FloatLessThan(284, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6644,7 +6644,7 @@ public enum Primitive
 	 * float} {@code a} <= float {@code b}. Answers a {@linkplain
 	 * BooleanDescriptor boolean}.
 	 */
-	prim285_FloatLessOrEqual_a_b(285, 2, CanFold, CannotFail)
+	prim285_FloatLessOrEqual(285, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6674,7 +6674,7 @@ public enum Primitive
 	 * <strong>Primitive 286:</strong> Compute the natural logarithm of
 	 * {@linkplain FloatDescriptor float} {@code a}.
 	 */
-	prim286_FloatLn_a(286, 1, CanFold, CannotFail)
+	prim286_FloatLn(286, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6703,7 +6703,7 @@ public enum Primitive
 	 * <strong>Primitive 287:</strong> Compute {@code e^a}, the natural
 	 * exponential of the {@linkplain FloatDescriptor float} {@code a}.
 	 */
-	prim287_FloatExp_a(287, 1, CanFold, CannotFail)
+	prim287_FloatExp(287, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6732,7 +6732,7 @@ public enum Primitive
 	 * <strong>Primitive 288:</strong> Divide {@linkplain FloatDescriptor float}
 	 * {@code a} by float {@code b}, but answer the remainder.
 	 */
-	prim288_FloatModulus_a_b(288, 2, CanFold)
+	prim288_FloatModulus(288, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6770,7 +6770,7 @@ public enum Primitive
 	 * float} to an {@linkplain IntegerDescriptor integer}, rounding towards
 	 * zero.
 	 */
-	prim289_FloatTruncatedAsInteger_a(289, 1, CanFold, CannotFail)
+	prim289_FloatTruncatedAsInteger(289, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6825,7 +6825,7 @@ public enum Primitive
 	 * integer} to a {@linkplain FloatDescriptor float}, failing if out of
 	 * range.
 	 */
-	prim290_FloatFromInteger_a(290, 1, CanFold, CannotFail)
+	prim290_FloatFromInteger(290, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6880,7 +6880,7 @@ public enum Primitive
 	 * float} {@code a*(2**b)} without intermediate overflow or any precision
 	 * loss.
 	 */
-	prim291_FloatTimesTwoPower_a_b(291, 2, CanFold, CannotFail)
+	prim291_FloatTimesTwoPower(291, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6913,7 +6913,7 @@ public enum Primitive
 	 * <strong>Primitive 310:</strong> Add two {@linkplain DoubleDescriptor
 	 * doubles}.
 	 */
-	prim310_DoubleAddition_a_b(310, 2, CanFold, CannotFail)
+	prim310_DoubleAddition(310, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6945,7 +6945,7 @@ public enum Primitive
 	 * <strong>Primitive 311:</strong> Subtract {@linkplain DoubleDescriptor
 	 * double} {@code b} from double {@code a}.
 	 */
-	prim311_DoubleSubtraction_a_b(311, 2, CanFold, CannotFail)
+	prim311_DoubleSubtraction(311, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6977,7 +6977,7 @@ public enum Primitive
 	 * <strong>Primitive 312:</strong> Multiply {@linkplain DoubleDescriptor
 	 * double} {@code a} and double {@code b}.
 	 */
-	prim312_DoubleMultiplication_a_b(312, 2, CanFold, CannotFail)
+	prim312_DoubleMultiplication(312, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7009,7 +7009,7 @@ public enum Primitive
 	 * <strong>Primitive 313:</strong> Divide {@linkplain DoubleDescriptor
 	 * double} {@code a} by double {@code b}.
 	 */
-	prim313_DoubleDivision_a_b(313, 2, CanFold)
+	prim313_DoubleDivision(313, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7045,7 +7045,7 @@ public enum Primitive
 	 * <strong>Primitive 314:</strong> Compare {@linkplain DoubleDescriptor
 	 * double} {@code a < b}. Answers a {@linkplain BooleanDescriptor boolean}.
 	 */
-	prim314_DoubleLessThan_a_b(314, 2, CanFold, CannotFail)
+	prim314_DoubleLessThan(314, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7075,7 +7075,7 @@ public enum Primitive
 	 * <strong>Primitive 315:</strong> Compare {@linkplain DoubleDescriptor
 	 * double} {@code a <= b}. Answers a {@linkplain BooleanDescriptor boolean}.
 	 */
-	prim315_DoubleLessOrEqual_a_b(315, 2, CanFold, CannotFail)
+	prim315_DoubleLessOrEqual(315, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7105,7 +7105,7 @@ public enum Primitive
 	 * <strong>Primitive 316:</strong> Compute the natural logarithm of the
 	 * {@linkplain DoubleDescriptor double} {@code a}.
 	 */
-	prim316_DoubleLn_a(316, 1, CanFold, CannotFail)
+	prim316_DoubleLn(316, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7133,7 +7133,7 @@ public enum Primitive
 	 * <strong>Primitive 317:</strong> Compute {@code e^a}, the natural
 	 * exponential of the {@linkplain DoubleDescriptor double} {@code a}.
 	 */
-	prim317_DoubleExp_a(317, 1, CanFold, CannotFail)
+	prim317_DoubleExp(317, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7161,7 +7161,7 @@ public enum Primitive
 	 * <strong>Primitive 318:</strong> Divide {@linkplain DoubleDescriptor
 	 * double} {@code a} by double {@code b}, but answer the remainder.
 	 */
-	prim318_DoubleModulus_a_b(318, 2, CanFold)
+	prim318_DoubleModulus(318, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7199,7 +7199,7 @@ public enum Primitive
 	 * double} to an {@linkplain IntegerDescriptor integer}, rounding towards
 	 * zero.
 	 */
-	prim319_DoubleTruncatedAsInteger_a(319, 1, CanFold, CannotFail)
+	prim319_DoubleTruncatedAsInteger(319, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7254,7 +7254,7 @@ public enum Primitive
 	 * integer} to a {@linkplain DoubleDescriptor double}, failing if out of
 	 * range.
 	 */
-	prim320_DoubleFromInteger_a(320, 1, CanFold, CannotFail)
+	prim320_DoubleFromInteger(320, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7316,7 +7316,7 @@ public enum Primitive
 	 * double} {@code a*(2**b)} without intermediate overflow or any precision
 	 * loss.
 	 */
-	prim321_DoubleTimesTwoPower_a_b(321, 2, CanFold, CannotFail)
+	prim321_DoubleTimesTwoPower(321, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7349,7 +7349,7 @@ public enum Primitive
 	 * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor
 	 * code point} from a {@linkplain CharacterDescriptor character}.
 	 */
-	prim330_CharacterCodePoint_character(330, 1, CanFold, CannotFail)
+	prim330_CharacterCodePoint(330, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7377,7 +7377,7 @@ public enum Primitive
 	 * <strong>Primitive 331:</strong> Convert a {@linkplain IntegerDescriptor
 	 * code point} into a {@linkplain CharacterDescriptor character}.
 	 */
-	prim331_CharacterFromCodePoint_codePoint(331, 1, CanFold, CannotFail)
+	prim331_CharacterFromCodePoint(331, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7406,7 +7406,7 @@ public enum Primitive
 	 * Extract the first literal from the {@linkplain CompiledCodeDescriptor
 	 * compiled code} that the interpreter has squirreled away for this purpose.
 	 */
-	prim340_PushConstant_ignoreArgs(340, -1, SpecialReturnConstant, CannotFail)
+	prim340_PushConstant(340, -1, SpecialReturnConstant, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7431,7 +7431,7 @@ public enum Primitive
 	 * node}. Such a node also produces the assigned value as its result, so it
 	 * can be embedded as a subexpression.
 	 */
-	prim350_MacroInnerAssignment_variable_expression(350, 2, CanFold)
+	prim350_MacroInnerAssignment(350, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7477,7 +7477,7 @@ public enum Primitive
 	 * <strong>Primitive 351:</strong> Extract the result {@linkplain
 	 * TypeDescriptor type} of a {@linkplain ParseNodeDescriptor parse node}.
 	 */
-	prim351_ParseNodeExpressionType_parseNode(351, 1, CanFold, CannotFail)
+	prim351_ParseNodeExpressionType(351, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7503,7 +7503,7 @@ public enum Primitive
 	 * <strong>Primitive 352:</strong> Reject current macro substitution with
 	 * the specified error string.
 	 */
-	prim352_RejectParsing_errorString(352, 1, CanFold, CannotFail)
+	prim352_RejectParsing(352, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7531,7 +7531,7 @@ public enum Primitive
 	 * statement. Such a node has type {@link TypeDescriptor.Types#VOID_TYPE
 	 * void} and cannot be embedded as a subexpression.
 	 */
-	prim353_MacroAssignmentStatement_variable_expression(353, 2, CanFold)
+	prim353_MacroAssignmentStatement(353, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7594,7 +7594,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim354_MacroReference_variable(354, 1, CanFold)
+	prim354_MacroReference(354, 1, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7636,7 +7636,7 @@ public enum Primitive
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim355_ExtractObjectTypeFromObjectMeta_objectMeta(355, 1, CanFold, CannotFail)
+	prim355_ExtractObjectTypeFromObjectMeta(355, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7676,7 +7676,7 @@ public enum Primitive
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim356_ExtractLevelsFromObjectMeta_objectMeta(356, 1, CanFold, CannotFail)
+	prim356_ExtractLevelsFromObjectMeta(356, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7799,7 +7799,7 @@ public enum Primitive
 
 		/**
 		 * The primitive returns some constant.  Currently this is only used for
-		 * {@link Primitive#prim340_PushConstant_ignoreArgs primitive 340},
+		 * {@link Primitive#prim340_PushConstant primitive 340},
 		 * which always returns the first literal of the {@link
 		 * CompiledCodeDescriptor compiled code}.
 		 */

@@ -255,7 +255,7 @@ public enum AvailErrorCode
 	 * Cannot assign to this {@linkplain DeclarationKind kind of declaration}.
 	 */
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT (36),
-
+	
 	/**
 	 * Cannot take a {@linkplain ReferenceNodeDescriptor reference} to this
 	 * {@linkplain DeclarationKind kind of declaration}.

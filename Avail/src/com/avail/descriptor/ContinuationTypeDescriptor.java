@@ -44,12 +44,12 @@ import com.avail.interpreter.Primitive;
  *
  * <p>
  * Continuations can be {@linkplain
- * Primitive#prim56_RestartContinuationWithArguments_con_arguments restarted}
+ * Primitive#prim56_RestartContinuationWithArguments restarted}
  * with a new set of arguments, so continuation types are contravariant with
  * respect to their closure types' argument types.  Surprisingly, continuation
  * types are also contravariant with respect to their closure types' return
  * types.  This is due to the capability to {@linkplain
- * Primitive#prim57_ExitContinuationWithResult_con_result exit} a continuation
+ * Primitive#prim57_ExitContinuationWithResult exit} a continuation
  * with a specific value.
  * </p>
  *

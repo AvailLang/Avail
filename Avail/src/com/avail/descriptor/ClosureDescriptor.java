@@ -283,7 +283,7 @@ extends Descriptor
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(constantResult)));
 		writer.primitiveNumber(
-			Primitive.prim340_PushConstant_ignoreArgs.primitiveNumber);
+			Primitive.prim340_PushConstant.primitiveNumber);
 		final AvailObject code = writer.compiledCode();
 		final AvailObject closure =
 			ClosureDescriptor.create (
