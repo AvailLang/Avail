@@ -169,13 +169,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return VARIABLE_USE_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return VARIABLE_USE_NODE.o();
 	}
@@ -195,7 +189,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.token().equals(another.token())
 			&& object.declaration().equals(another.declaration())
 			&& object.isLastUse() == another.isLastUse();
@@ -235,8 +229,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject theToken,
 		final AvailObject declaration)
 	{
-		assert theToken.isInstanceOfSubtypeOf(TOKEN.o());
-		assert declaration.isInstanceOfSubtypeOf(DECLARATION_NODE.o());
+		assert theToken.isInstanceOfKind(TOKEN.o());
+		assert declaration.isInstanceOfKind(DECLARATION_NODE.o());
 
 		final AvailObject newUse = mutable().create();
 		newUse.token(theToken);

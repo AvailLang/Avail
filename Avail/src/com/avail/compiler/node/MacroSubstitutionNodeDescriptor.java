@@ -58,7 +58,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@linkplain CyclicTypeDescriptor true name} of the macro that was
+		 * The {@linkplain AtomDescriptor true name} of the macro that was
 		 * invoked to produce this {@linkplain MacroSubstitutionNodeDescriptor
 		 * macro substitution node}.
 		 */
@@ -123,16 +123,9 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
-		return object.outputParseNode().type();
-	}
-
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
-	{
-		return object.outputParseNode().exactType();
+		return object.outputParseNode().kind();
 	}
 
 

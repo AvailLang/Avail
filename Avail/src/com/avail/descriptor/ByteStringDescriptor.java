@@ -82,7 +82,12 @@ extends TupleDescriptor
 		aStream.append('"');
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
 		{
-			aStream.append((char) object.rawByteForCharacterAt(i));
+			final char c = (char) object.rawByteForCharacterAt(i);
+			if (c == '\"' || c == '\\')
+			{
+				aStream.append('\\');
+			}
+			aStream.append(c);
 		}
 		aStream.append('"');
 	}
@@ -180,49 +185,6 @@ extends TupleDescriptor
 	@Override
 	public boolean o_IsString (final @NotNull AvailObject object)
 	{
-		return true;
-	}
-
-	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
-	{
-		//  Answer whether object is an instance of a subtype of aType.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.  Note that because object is a string,
-		//  it is already known that each element is a character.
-
-		if (aType.equals(VOID_TYPE.o()))
-		{
-			return true;
-		}
-		if (aType.equals(ALL.o()))
-		{
-			return true;
-		}
-		if (!aType.isTupleType())
-		{
-			return false;
-		}
-		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
-		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
-		{
-			return false;
-		}
-		//  tuple's size is out of range.
-		//
-		//  Make sure the element types accept character, up to my actual size.
-		final AvailObject typeTuple = aType.typeTuple();
-		final int limit = min(object.tupleSize(), (typeTuple.tupleSize() + 1));
-		for (int i = 1; i <= limit; i++)
-		{
-			if (!CHARACTER.o().isSubtypeOf(aType.typeAtIndex(i)))
-			{
-				return false;
-			}
-		}
 		return true;
 	}
 
@@ -443,7 +405,7 @@ extends TupleDescriptor
 		if (!isMutable)
 		{
 			error("This descriptor should be mutable");
-			return VoidDescriptor.voidObject();
+			return NullDescriptor.nullObject();
 		}
 		assert (size + unusedBytesOfLastWord & 3) == 0;
 		final AvailObject result = this.create(size + 3 >> 2);

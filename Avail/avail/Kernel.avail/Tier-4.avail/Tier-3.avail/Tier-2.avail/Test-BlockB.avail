@@ -59,3 +59,11 @@ Assert [x : all | [y : all | <<x>,<y>>;];]("hello")(123) = <<"hello">, <123>>;
 z : integer := 123;
 Assert cast z into [x : [100..200] | x;] = 123;
 
+/* Test its strengthened result type. */
+blockT ::= [cast z into [x : [100..200] | x;] otherwise [456;];] type;
+t ::= blockT result;
+Print t;
+Assert t <= [100..456];
+Assert 100 type <= t;
+Assert 456 type <= t;
+Assert 123 type <= t;

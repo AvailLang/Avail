@@ -194,7 +194,7 @@ public class AvailCodeGenerator
 			final AvailObject argDeclType = entry.getKey().declaredType();
 			if (i <= numArgs)
 			{
-				assert argDeclType.isInstanceOfSubtypeOf(TYPE.o());
+				assert argDeclType.isInstanceOfKind(TYPE.o());
 				argsArray[i - 1] = argDeclType;
 			}
 			else

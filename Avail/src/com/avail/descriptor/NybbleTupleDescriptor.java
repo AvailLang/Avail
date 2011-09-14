@@ -223,18 +223,18 @@ extends TupleDescriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		// Answer whether object is an instance of a subtype of aType.  Don't
 		// generate an approximate type and do the comparison, because the
 		// approximate type will just send this message recursively.
-		if (aType.equals(VOID_TYPE.o()))
+		if (aType.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aType.equals(ALL.o()))
+		if (aType.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -244,7 +244,7 @@ extends TupleDescriptor
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
-		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
+		if (!size.isInstanceOf(aType.sizeRange()))
 		{
 			return false;
 		}
@@ -253,7 +253,7 @@ extends TupleDescriptor
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOfSubtypeOf(aType.typeAtIndex(i)))
+			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -265,7 +265,7 @@ extends TupleDescriptor
 		}
 		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
 			{
 				return false;
 			}
@@ -413,7 +413,8 @@ extends TupleDescriptor
 		//  Ok, clobber the object in place...
 		object.rawNybbleAtPut(nybbleIndex, newValueObject.extractNybble());
 		object.hashOrZero(0);
-		//  ...invalidate the hash value.  Probably cheaper than computing the difference or even testing for an actual change.
+		//  ...invalidate the hash value.  Probably cheaper than computing the
+		// difference or even testing for an actual change.
 		return object;
 	}
 
@@ -510,7 +511,7 @@ extends TupleDescriptor
 	public static AvailObject mutableObjectOfSize (
 		final int size)
 	{
-		NybbleTupleDescriptor descriptor = isMutableSize(true, size);
+		final NybbleTupleDescriptor descriptor = isMutableSize(true, size);
 		assert (size + descriptor.unusedNybblesOfLastWord & 7) == 0;
 		final AvailObject result = descriptor.create((size + 7) / 8);
 		return result;

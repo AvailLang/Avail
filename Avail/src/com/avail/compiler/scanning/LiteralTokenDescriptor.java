@@ -112,13 +112,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return LITERAL_TOKEN.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return LITERAL_TOKEN.o();
 	}

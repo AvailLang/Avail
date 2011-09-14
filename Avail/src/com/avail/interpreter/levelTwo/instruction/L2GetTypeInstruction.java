@@ -103,7 +103,7 @@ extends L2Instruction
 			// Apply the rule of metacovariance. It says that given types T1
 			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 			// true for all types in Avail.
-			final AvailObject meta = type.type();
+			final AvailObject meta = type.kind();
 			translator.registerTypeAtPut(destinationRegister, meta);
 		}
 		else
@@ -114,7 +114,7 @@ extends L2Instruction
 		{
 			translator.registerConstantAtPut(
 				destinationRegister,
-				translator.registerConstantAt(sourceRegister).type());
+				translator.registerConstantAt(sourceRegister).kind());
 		}
 		else
 		{

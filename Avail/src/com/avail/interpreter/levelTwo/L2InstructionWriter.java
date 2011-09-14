@@ -102,6 +102,7 @@ public class L2InstructionWriter
 			if (byteArray[i] != 0)
 			{
 				allBytes = false;
+				break;
 			}
 		}
 		AvailObject words;

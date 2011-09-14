@@ -67,7 +67,7 @@ extends AvailException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 * @param cause
-	 *        The promixal {@linkplain Throwable cause} of the {@linkplain
+	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
 	 *        AvailException exception}.
 	 */
 	public ArithmeticException (

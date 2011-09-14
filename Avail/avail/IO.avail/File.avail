@@ -58,7 +58,7 @@ privateHandle ::= lookup "handle";
 Method "handle" is [privateHandle;];
 
 "File" is explicit subtype of Object with
-	[handle->cyclicType];
+	[handle->atom];
 
 
 /* Instance creation... */
@@ -106,14 +106,14 @@ Method "Unlink_from filesystem" is [filename : string |
 /* Basic accessing... */
 
 Method "_position" is [file: File |
-	[handle : cyclicType |
+	[handle : atom |
 		Primitive 167 (failureCode : natural number);
 		Failed;
 	] : [0..INF] (file -> handle);
 ] : [0..INF];
 
 Method "_size" is [file : File |
-	[handle : cyclicType |
+	[handle : atom |
 		Primitive 166 (failureCode : natural number);
 		Failed;
 	] : [0..INF] (file -> handle);
@@ -124,14 +124,14 @@ Method "_is at end" is [file : File |
 ] : boolean;
 
 Method "_go to_" is [file : File, newPosition : [0..INF] |
-	[handle : cyclicType, newPosition : [0..INF] |
+	[handle : atom, newPosition : [0..INF] |
 		Primitive 168 (failureCode : natural number);
 		Failed;
 	] : void (file -> handle, newPosition);
 ] : void;
 
 Method "Close_" is [file : File |
-	[handle : cyclicType |
+	[handle : atom |
 		Primitive 163 (failureCode : natural number);
 		Failed;
 	] : void (file -> handle);

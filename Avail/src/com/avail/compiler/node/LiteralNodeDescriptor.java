@@ -92,17 +92,11 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject token = object.token();
 		assert token.tokenType() == TokenType.LITERAL;
 		final AvailObject literal = token.literal();
-		return literal.type().makeImmutable();
+		return InstanceTypeDescriptor.withInstance(literal).makeImmutable();
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return Types.LITERAL_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return Types.LITERAL_NODE.o();
 	}
@@ -119,7 +113,7 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.token().equals(another.token());
 	}
 
@@ -162,8 +156,8 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	 */
 	public static AvailObject fromToken (final @NotNull AvailObject token)
 	{
-		assert token.isInstanceOfSubtypeOf(Types.LITERAL_TOKEN.o());
-		AvailObject node = mutable().create();
+		assert token.isInstanceOfKind(Types.LITERAL_TOKEN.o());
+		final AvailObject node = mutable().create();
 		node.token(token);
 		node.makeImmutable();
 		return node;

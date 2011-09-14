@@ -173,13 +173,7 @@ extends Descriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return TOKEN.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return TOKEN.o();
 	}
@@ -199,7 +193,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.string().equals(another.string())
 			&& object.start() == another.start()
 			&& object.tokenType() == another.tokenType();

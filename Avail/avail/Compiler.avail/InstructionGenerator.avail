@@ -182,7 +182,7 @@ Method "_increase stack by_" is [gen : Instruction Generator, count : whole numb
 
 Method "_call_arg count_type_" is [
 		gen : Instruction Generator,
-		msgName : cyclicType,
+		msgName : atom,
 		count : whole number
 		resultType : type |
 	gen add instruction
@@ -310,7 +310,7 @@ Method "_set outer_" is [
 
 Method "_super call_arg count_" is [
 		gen : Instruction Generator,
-		msgName : cyclicType,
+		msgName : atom,
 		count : whole number,
 		resultType : type |
 	gen add instruction

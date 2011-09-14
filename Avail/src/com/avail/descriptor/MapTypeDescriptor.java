@@ -50,30 +50,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_KeyType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.KEY_TYPE, value);
-	}
-
-	@Override
-	public void o_SizeRange (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
-	}
-
-	@Override
-	public void o_ValueType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.VALUE_TYPE, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_KeyType (
 		final @NotNull AvailObject object)
 	{
@@ -141,15 +117,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return MAP_TYPE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -163,30 +130,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
-		if (!object.keyType().isHashAvailable())
-		{
-			return false;
-		}
-		if (!object.valueType().isHashAvailable())
-		{
-			return false;
-		}
-		if (!object.sizeRange().isHashAvailable())
-		{
-			return false;
-		}
-		return true;
-	}
-
-	@Override
 	public boolean o_IsMapType (
 		final @NotNull AvailObject object)
 	{
@@ -194,12 +137,12 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
-		return MAP_TYPE.o();
+		return TYPE.o();
 	}
 
 	@Override
@@ -305,37 +248,107 @@ extends TypeDescriptor
 		return sizesHash * 3 + keyTypeHash * 5 + valueTypeHash * 13;
 	}
 
+
+	/**
+	 * The most general map type.
+	 */
+	private static AvailObject MostGeneralType;
+
+	/**
+	 * The metatype for all map types.
+	 */
+	private static AvailObject Meta;
+
+	/**
+	 * Answer the metatype for all map types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
+	}
+
+	public static void clearWellKnownObjects ()
+	{
+		MostGeneralType = null;
+		Meta = null;
+	}
+
+	public static void createWellKnownObjects ()
+	{
+		MostGeneralType = mapTypeForSizesKeyTypeValueType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ANY.o(),
+			ANY.o());
+		MostGeneralType.makeImmutable();
+		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta.makeImmutable();
+	}
+
+
+	/**
+	 * Construct a new map type with the specified permitted range of number of
+	 * elements, the specified types of keys, and the specified types of values.
+	 * Canonicalize the values for singularities, such as the size range being
+	 * zero (in which case the key type and value type are reduced to
+	 * terminates).
+	 *
+	 * @param sizeRange
+	 *            An {@linkplain IntegerRangeTypeDescriptor integer range type}
+	 *            specifying the permitted sizes of a map of the proposed type.
+	 * @param keyType
+	 *            The type of all keys of maps of the proposed type.
+	 * @param valueType
+	 *            The type of all values of maps of the proposed type.
+	 * @return
+	 */
 	public static AvailObject mapTypeForSizesKeyTypeValueType (
-		final @NotNull AvailObject sizes,
+		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject keyType,
 		final @NotNull AvailObject valueType)
 	{
-		if (sizes.equals(TERMINATES.o()))
+		if (sizeRange.equals(TerminatesTypeDescriptor.terminates()))
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
-		assert sizes.lowerBound().isFinite();
-		assert IntegerDescriptor.zero().lessOrEqual(sizes.lowerBound());
-		assert sizes.upperBound().isFinite() || !sizes.upperInclusive();
-		AvailObject result = mutable().create();
-		if (sizes.upperBound().equals(IntegerDescriptor.zero()))
+
+		assert sizeRange.lowerBound().isFinite();
+		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
+		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
+
+		final AvailObject sizeRangeKind = sizeRange.isAbstractUnionType()
+			? sizeRange.computeSuperkind()
+			: sizeRange;
+
+		final AvailObject newSizeRange;
+		final AvailObject newKeyType;
+		final AvailObject newValueType;
+		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
 		{
-			result.sizeRange(sizes);
-			result.keyType(TERMINATES.o());
-			result.valueType(TERMINATES.o());
+			newSizeRange = sizeRangeKind;
+			newKeyType = TerminatesTypeDescriptor.terminates();
+			newValueType = TerminatesTypeDescriptor.terminates();
 		}
-		else if (keyType.equals(TERMINATES.o()) || valueType.equals(TERMINATES.o()))
+		else if (keyType.equals(TerminatesTypeDescriptor.terminates())
+			|| valueType.equals(TerminatesTypeDescriptor.terminates()))
 		{
-			result.sizeRange(IntegerRangeTypeDescriptor.singleInteger(IntegerDescriptor.zero()));
-			result.keyType(TERMINATES.o());
-			result.valueType(TERMINATES.o());
+			newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
+				IntegerDescriptor.zero());
+			newKeyType = TerminatesTypeDescriptor.terminates();
+			newValueType = TerminatesTypeDescriptor.terminates();
 		}
 		else
 		{
-			result.sizeRange(sizes);
-			result.keyType(keyType);
-			result.valueType(valueType);
+			newSizeRange = sizeRangeKind;
+			newKeyType = keyType;
+			newValueType = valueType;
 		}
+
+		final AvailObject result = mutable().create();
+		result.objectSlotPut(ObjectSlots.SIZE_RANGE, newSizeRange);
+		result.objectSlotPut(ObjectSlots.KEY_TYPE, newKeyType);
+		result.objectSlotPut(ObjectSlots.VALUE_TYPE, newValueType);
 		return result;
 	}
 

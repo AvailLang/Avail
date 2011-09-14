@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * Continuation types are the types of {@linkplain ContinuationDescriptor
@@ -55,11 +56,12 @@ import com.avail.interpreter.Primitive;
  *
  * <p>
  * TODO: Continuation types should be parameterizable with generalized closure
- * types.  This would allow prim58 (restart with same args) to be performed even
- * if the specific argument types were not known, but prim56 (restart with new
- * args) would be forbidden.  Prim57 (Exit with value) would be unaffected.
- * Make sure to update type computations and type compatibility tests
- * appropriately to accommodate the contained generalized closure types.
+ * types.  This would allow prim58 (restart with the same arguments) to be
+ * performed even if the specific argument types were not known, but prim56
+ * (restart with new arguments) would be forbidden.  Prim57 (Exit with value)
+ * would be unaffected.  Make sure to update type computations and type
+ * compatibility tests appropriately to accommodate the contained generalized
+ * closure types.
  * </p>
  *
  * <p>
@@ -71,7 +73,8 @@ import com.avail.interpreter.Primitive;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ContinuationTypeDescriptor extends TypeDescriptor
+public class ContinuationTypeDescriptor
+extends TypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -137,13 +140,6 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return Types.CONTINUATION_TYPE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -151,19 +147,12 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		return object.closureType().isHashAvailable();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
-		return Types.CONTINUATION_TYPE.o();
+		return TYPE.o();
 	}
 
 	@Override
@@ -193,17 +182,11 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 	{
 		final AvailObject subClosureType = aContinuationType.closureType();
 		final AvailObject superClosureType = object.closureType();
-		if (subClosureType.numArgs() != superClosureType.numArgs())
-		{
-			return false;
-		}
-		if (!superClosureType.returnType().isSubtypeOf(
-			subClosureType.returnType()))
-		{
-			return false;
-		}
-		return superClosureType.argsTupleType().isSubtypeOf(
-			subClosureType.argsTupleType());
+		return
+		superClosureType.returnType().isSubtypeOf(
+			subClosureType.returnType())
+			&& superClosureType.argsTupleType().isSubtypeOf(
+				subClosureType.argsTupleType());
 	}
 
 	@Override
@@ -235,7 +218,7 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		}
 		if (closType1.numArgs() != closType2.numArgs())
 		{
-			return Types.TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		final AvailObject intersection = ClosureTypeDescriptor.create(
 			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
@@ -268,16 +251,13 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		final AvailObject closType2 = aContinuationType.closureType();
 		if (closType1.equals(closType2))
 		{
+			// Optimization only
 			return object;
-		}
-		if (closType1.numArgs() != closType2.numArgs())
-		{
-			return Types.CONTINUATION.o();
 		}
 		final AvailObject union = ClosureTypeDescriptor.create(
 			closType1.argsTupleType().typeIntersection(
 				closType2.argsTupleType()),
-			closType1.returnType().typeIntersection(closType2.returnType()));
+				closType1.returnType().typeIntersection(closType2.returnType()));
 		return forClosureType(union);
 	}
 
@@ -301,6 +281,56 @@ public class ContinuationTypeDescriptor extends TypeDescriptor
 		result.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
 		result.makeImmutable();
 		return result;
+	}
+
+	/**
+	 * @return
+	 */
+	public static AvailObject mostGeneralType ()
+	{
+		return MostGeneralType;
+	}
+
+	/**
+	 * The most general continuation type.  Since continuation types are
+	 * contravariant by argument types and contravariant by return type, the
+	 * most general type is the one taking terminates as the arguments list
+	 * (i.e., not specific enough to be able to call it), and having the return
+	 * type terminates.
+	 */
+	private static AvailObject MostGeneralType;
+
+	/**
+	 * The metatype for all continuation types.  In particular, it's just the
+	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
+	 * #MostGeneralType most general continuation type}.
+	 */
+	private static AvailObject Meta;
+
+	/**
+	 * Answer the metatype for all continuation types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
+	}
+
+	public static void clearWellKnownObjects ()
+	{
+		MostGeneralType = null;
+		Meta = null;
+	}
+
+	public static void createWellKnownObjects ()
+	{
+		MostGeneralType = forClosureType(
+			ClosureTypeDescriptor.forReturnType(
+				TerminatesTypeDescriptor.terminates()));
+		MostGeneralType.makeImmutable();
+		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta.makeImmutable();
 	}
 
 	/**

@@ -45,25 +45,18 @@ Body
 
 /* Answer the type of the object. */
 
-Forward "_type" for [all]->type;
 
 Method "_type" is [a : all |
 	Primitive 30;
 ] : type
+requires [aT : type |
+	true;
+]
 returns [aT : type |
 	/* This clause ensures metacovariant typing is always available.  Thus, if
 	   T1 and T2 are types with T1<=T2, then T1 type <= T2 type as well.  */
-	aT type;
-];
-
-Method "_type" is [c : closure |
 	Primitive 30;
-] : type
-returns [cT : closureType |
-	/* Even with metacovariance, we have to specialize to express the fact
-	   that every closure has an instance of closureType as its type. */
-	closureType;
-];
+] : type;
 
 
 /* Compute the nearest common ancestor of two types. */

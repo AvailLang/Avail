@@ -293,7 +293,7 @@ extends Descriptor
 		{
 			aStream.append("Map:");
 		}
-		for (Entry entry : object.mapIterable())
+		for (final Entry entry : object.mapIterable())
 		{
 			if (size > 1)
 			{
@@ -357,7 +357,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
@@ -365,11 +365,11 @@ extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(VOID_TYPE.o()))
+		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(ALL.o()))
+		if (aTypeObject.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -379,7 +379,7 @@ extends Descriptor
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.fromInt(object.mapSize());
-		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		if (!size.isInstanceOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
@@ -393,38 +393,19 @@ extends Descriptor
 			key = object.keyAtIndex(i);
 			if (!key.equalsVoidOrBlank())
 			{
-				if (!key.isInstanceOfSubtypeOf(keyTypeObject))
+				if (!key.isInstanceOf(keyTypeObject))
 				{
 					return false;
 				}
 				value = object.valueAtIndex(i);
 				if (!value.equalsVoidOrBlank()
-						&& !value.isInstanceOfSubtypeOf(valueTypeObject))
+						&& !value.isInstanceOf(valueTypeObject))
 				{
 					return false;
 				}
 			}
 		}
 		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final AvailObject object)
-	{
-		//  Answer the object's type.
-
-		AvailObject keyType = TERMINATES.o();
-		AvailObject valueType = TERMINATES.o();
-		for (Entry entry : object.mapIterable())
-		{
-			keyType = keyType.typeUnion(entry.key.type());
-			valueType = valueType.typeUnion(entry.value.type());
-		}
-		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerDescriptor.fromInt(object.mapSize()).type(),
-			keyType,
-			valueType);
 	}
 
 	@Override
@@ -437,38 +418,22 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
+	public @NotNull AvailObject o_Kind (
 		final AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-		//
-		//  This is ONLY overridden here for the garbage collector's use.  It probably
-		//  slows down the garbage collector in some cases.
-
-		for (int i = 1, end = object.capacity(); i <= end; i++)
+		AvailObject keyType = TerminatesTypeDescriptor.terminates();
+		AvailObject valueType = TerminatesTypeDescriptor.terminates();
+		for (final Entry entry : object.mapIterable())
 		{
-			if (!object.keyAtIndex(i).isHashAvailable())
-			{
-				return false;
-			}
-			if (!object.valueAtIndex(i).isHashAvailable())
-			{
-				return false;
-			}
+			// TODO: [TLS] Need to visit and fix all noninstanceType() sends --
+			// including this one!
+			keyType = keyType.typeUnion(entry.key.kind());
+			valueType = valueType.typeUnion(entry.value.kind());
 		}
-		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
-		final AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
+		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			IntegerDescriptor.fromInt(object.mapSize()).kind(),
+			keyType,
+			valueType);
 	}
 
 	@Override
@@ -511,7 +476,7 @@ extends Descriptor
 			if (slotObject.equalsVoid())
 			{
 				error("Key not found in map", object);
-				return VoidDescriptor.voidObject();
+				return NullDescriptor.nullObject();
 			}
 			if (slotObject.equals(keyObject))
 			{
@@ -544,7 +509,7 @@ extends Descriptor
 		final AvailObject result = MapDescriptor.newWithCapacity(object.mapSize() * 2 + 5);
 		//  Start new map just over 50% free (with no blanks).
 		CanAllocateObjects(false);
-		for (Entry entry : object.mapIterable())
+		for (final Entry entry : object.mapIterable())
 		{
 			result.privateMapAtPut(entry.key, entry.value);
 		}
@@ -648,7 +613,7 @@ extends Descriptor
 		CanAllocateObjects(false);
 		for (int i = 1, end = object.mapSize(); i <= end; i++)
 		{
-			result.tupleAtPut(i, VoidDescriptor.voidObject());
+			result.tupleAtPut(i, NullDescriptor.nullObject());
 		}
 		result.hashOrZero(0);
 		int targetIndex = 1;
@@ -693,7 +658,7 @@ extends Descriptor
 		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
 		//  Also, computing the key's hash value should not cause an allocation.
 
-		assert keyObject.isHashAvailable() & !keyObject.equalsVoidOrBlank() & isMutable;
+		assert !keyObject.equalsVoidOrBlank() & isMutable;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
@@ -712,7 +677,7 @@ extends Descriptor
 					object.internalHash()
 					^ h0 + object.valueAtIndex(probe).hash() * 23);
 				object.keyAtIndexPut(probe, BlankDescriptor.blank());
-				object.valueAtIndexPut(probe, VoidDescriptor.voidObject());
+				object.valueAtIndexPut(probe, NullDescriptor.nullObject());
 				object.mapSize(object.mapSize() - 1);
 				object.numBlanks(object.numBlanks() + 1);
 				AvailObject.unlock(object);
@@ -739,7 +704,7 @@ extends Descriptor
 		//  room for the new element.  Also, computing the key's hash value should not cause
 		//  an allocation.
 
-		assert keyObject.isHashAvailable() & !keyObject.equalsVoidOrBlank() & isMutable;
+		assert !keyObject.equalsVoidOrBlank() & isMutable;
 		assert (object.mapSize() + object.numBlanks()) * 4 <= object.capacity() * 3;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
@@ -866,7 +831,7 @@ extends Descriptor
 		result.numBlanks(0);
 		for (int i = 1; i <= capacity * 2; i++)
 		{
-			result.dataAtIndexPut(i, VoidDescriptor.voidObject());
+			result.dataAtIndexPut(i, NullDescriptor.nullObject());
 		}
 		return result;
 	}

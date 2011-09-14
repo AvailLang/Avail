@@ -70,27 +70,25 @@ returns [tType : tupleType |
 tupleOfType ::= Special Object 73;
 
 Method "private tuple type for sizes_like_default_" is [
-		sizeRange : integerType,
+		sizeRange : whole number type,
 		typeTuple : tupleOfType,
 		defaultType : type |
 	/* Construct a new tuple type.  Defined here privately with weak input types... */
-	Primitive 137 (failureCode : natural number);
-	Failed;
+	Primitive 137;
 ] : tupleType;
 
 
 /* Tuple type constructor... */
 
 Method "tuple_like_default_" is [
-		sizeRange : integerType,
+		sizeRange : whole number type,
 		typeTuple : (private tuple type for sizes whole number like <> default (type)),
 		defaultType : type |
 	/* Construct a new tuple type.  Redefined here publicly for stronger input types... */
-	Primitive 137 (failureCode : natural number);
-	Failed;
+	Primitive 137;
 ] : tupleType;
 
-Method "tuple_of_" is [sizeRange : integerType, elementType : type |
+Method "tuple_of_" is [sizeRange : whole number type, elementType : type |
 	tuple sizeRange
 	like <>
 	default elementType;
@@ -108,11 +106,12 @@ Method "tuple of_" is [elementType : type |
 
 Method "_leading types" is [tt: tupleType |
 	Primitive 139;
-] : tuple [0..INF) like <> default type;
+] : tuple whole number like <> default type;
 
 Method "_default type" is [tt : tupleType |
 	Primitive 140;
 ] : type;
+
 
 
 setOfString ::= Special Object 75;
@@ -132,14 +131,14 @@ returns [t : tupleType |
 
 Method "_sizes" is [tt : tupleType |
 	Primitive 138;
-] : integerType;
+] : whole number type;
 
 Method "_sizes lower bound" is [tt : tupleType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF);
 	* &result ?:= (tt sizes) lower bound;
 	result;
-] : [0..INF);
+] : whole number;
 
 Method "_sizes upper bound" is [tt : tupleType |
 	/* This is syntactically overloaded for a stronger return type. */
@@ -165,8 +164,7 @@ returns [tT : tupleType |
 /* Another tuple type constructor... */
 
 Method "tuple like_" is [elementTypes : tuple of type |
-	size ::= ||elementTypes||;
-	tuple [size..size]
+	tuple ||elementTypes|| type
 		like elementTypes
 		default terminates;
 ] : tupleType;

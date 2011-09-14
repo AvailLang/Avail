@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.AtomDescriptor.IntegerSlots;
 
 /**
  * My {@linkplain AvailObject object instances} are containers which can hold
@@ -109,7 +110,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE);
@@ -151,26 +152,19 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
-		return object.type();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-
-		int hash = object.hashOrZero();
-		while (hash == 0)
+		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		if (hash == 0)
 		{
-			hash = hashGenerator.nextInt();
+			do
+			{
+				hash = hashGenerator.nextInt();
+			}
+			while (hash == 0);
+			object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, hash);
 		}
-		object.hashOrZero(hash);
 		return hash;
 	}
 
@@ -181,18 +175,8 @@ extends Descriptor
 		// If I am being frozen (a container), I don't need to freeze my current
 		// value.  I do, on the other hand, have to freeze my type object.
 		object.descriptor(ContainerDescriptor.immutable());
-		object.type().makeImmutable();
+		object.kind().makeImmutable();
 		return object;
-	}
-
-	@Override
-	public void o_InnerType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject innerType)
-	{
-		//  Initialize my type based on the given inner type.
-
-		object.type(ContainerTypeDescriptor.wrapInnerType(innerType));
 	}
 
 	@Override
@@ -200,7 +184,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newValue)
 	{
-		if (!newValue.isInstanceOfSubtypeOf(object.type().innerType()))
+		if (!newValue.isInstanceOf(object.kind().innerType()))
 		{
 			error("container can't hold that value (wrong type)");
 		}
@@ -213,7 +197,7 @@ extends Descriptor
 	{
 		// Clear the container (make it have no current value).
 		// Eventually, the previous contents should drop a reference.
-		object.value(VoidDescriptor.voidObject());
+		object.value(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -226,7 +210,7 @@ extends Descriptor
 		if (value.equalsVoid())
 		{
 			error("container has no value yet");
-			return VoidDescriptor.voidObject();
+			return NullDescriptor.nullObject();
 		}
 		return value;
 	}
@@ -280,9 +264,9 @@ extends Descriptor
 		final @NotNull AvailObject outerType)
 	{
 		final AvailObject result = mutable().create();
-		result.type(outerType);
-		result.hashOrZero(0);
-		result.value(VoidDescriptor.voidObject());
+		result.objectSlotPut(ObjectSlots.TYPE, outerType);
+		result.integerSlotPut(IntegerSlots.HASH_OR_ZERO, 0);
+		result.value(NullDescriptor.nullObject());
 		return result;
 	}
 

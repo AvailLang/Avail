@@ -94,14 +94,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
-	{
-		return MARKER_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (
+	public AvailObject o_Kind (
 			final AvailObject object)
 	{
 		return MARKER_NODE.o();
@@ -129,7 +122,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.markerValue().equals(another.markerValue());
 	}
 

@@ -32,28 +32,96 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
+import java.util.List;
 import com.avail.annotations.NotNull;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class TerminatesTypeDescriptor
-extends PrimitiveTypeDescriptor
+extends AbstractUnionTypeDescriptor
 {
-	/**
-	 * The layout of integer slots for my instances.
-	 */
-	public enum IntegerSlots
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
 	{
-		HASH
+		builder.append("terminates");
 	}
 
 	/**
-	 * The layout of object slots for my instances.
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * An instance type is only equal to another instance type, and only when
+	 * they refer to equal instances.
+	 * </p>
 	 */
-	public enum ObjectSlots
+	@Override
+	public boolean o_Equals (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
 	{
-		NAME,
-		PARENT,
-		MY_TYPE
+		final boolean equal = another.equalsUnionTypeWithSet(
+			SetDescriptor.empty());
+		if (equal)
+		{
+			another.becomeIndirectionTo(object);
+		}
+		return equal;
+	}
+
+	/**
+	 * @param aSet
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsUnionTypeWithSet (
+		final AvailObject object,
+		final AvailObject aSet)
+	{
+		return aSet.setSize() == 0;
+	}
+
+	/**
+	 * Compute the type intersection of the object which is the terminates type,
+	 * and the argument, which may be any type.
+	 *
+	 * @param object
+	 *            The terminates type.
+	 * @param another
+	 *            Another type.
+	 * @return
+	 *            The most general type that is a subtype of both object and
+	 *            another.
+	 */
+	final @NotNull AvailObject computeIntersectionWith (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		// Easy -- it's always the type terminates.
+		return object;
+	}
+
+	/**
+	 * Compute the type union of the object which is the terminates type, and
+	 * the argument, which may be any type.
+	 *
+	 * @param object
+	 *            The terminates type.
+	 * @param another
+	 *            Another type.
+	 * @return
+	 *            The most specific type that is a supertype of both object and
+	 *            another.
+	 */
+	@NotNull AvailObject computeUnionWith (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		// Easy -- it's always the other type.
+		assert another.isType();
+		return another;
 	}
 
 	@Override
@@ -99,7 +167,7 @@ extends PrimitiveTypeDescriptor
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
 
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -109,7 +177,7 @@ extends PrimitiveTypeDescriptor
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
 		//  terminates, answer the degenerate integerType called terminates.
 
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -119,7 +187,7 @@ extends PrimitiveTypeDescriptor
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
 		//  terminates, answer terminates.
 
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -131,7 +199,7 @@ extends PrimitiveTypeDescriptor
 		//  terminates if the index is out of bounds, which is always because I'm the degenerate
 		//  tupleType called terminates.
 
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -144,7 +212,7 @@ extends PrimitiveTypeDescriptor
 		//  Answer terminates if the index is out of bounds, which is always because I'm the degenerate
 		//  tupleType called terminates.
 
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -153,7 +221,7 @@ extends PrimitiveTypeDescriptor
 	{
 		//  To support the tupleType protocol, I must answer terminates now.
 
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -170,9 +238,8 @@ extends PrimitiveTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (type terminates) is a subtype of aType (should also be a type).
-		//  Always true, but make sure aType is really a type.
-
+		// Check if object (terminates) is a subtype of aType (should also be a
+		// type).  Always true, but make sure aType is really a type.
 		return aType.isSupertypeOfTerminates();
 	}
 
@@ -185,41 +252,6 @@ extends PrimitiveTypeDescriptor
 		//  Never true, because terminates is the most specific type.
 
 		return false;
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		//  Answer the most general type that is still at least as specific as these.
-		//  That would always be terminates.
-
-		assert another.isType();
-		return object;
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		//  Answer the most specific type that still includes both of these.
-		//  That would be the other type, not terminates.
-
-		assert another.isType();
-		return another;
-	}
-
-	@Override
-	public boolean o_IsCyclicType (
-		final @NotNull AvailObject object)
-	{
-		//  Because terminates is a subtype of all other types, it is even considered
-		//  a cyclic type.  That does not mean terminates' type is terminates, though
-		//  (it's terminatesType).
-
-		return true;
 	}
 
 	@Override
@@ -263,13 +295,41 @@ extends PrimitiveTypeDescriptor
 		// as a closure type, it can take any number of arguments of any type
 		// (since there are no complying closure instances).
 
-		return TupleTypeDescriptor.mostGeneralTupleType();
+		return TupleTypeDescriptor.mostGeneralType();
 	}
 
 
-	// TODO [MvG]: Lots and lots and lots of meta-specific singularities need to
-	// be added here, so that terminates type can sincerely be considered an
-	// instance of every metatype.
+	/**
+	 * The unique object that represents the type with no instances.
+	 */
+	private static AvailObject terminates;
+
+	/**
+	 * Answer the unique type that has no instances.
+	 *
+	 * @return The type {@code terminates}.
+	 */
+	public static AvailObject terminates ()
+	{
+		return terminates;
+	}
+
+	/**
+	 * Create the unique object that represents the type with no instances.
+	 */
+	static void createWellKnownObjects ()
+	{
+		terminates = mutable().create();
+	}
+
+	/**
+	 * Discard any statically held objects.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		terminates = null;
+	}
+
 
 
 	/**
@@ -315,4 +375,326 @@ extends PrimitiveTypeDescriptor
 	{
 		return immutable;
 	}
+
+	@Override
+	public AvailObject o_Instances (final AvailObject object)
+	{
+		return SetDescriptor.empty();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Even though terminates is a union-y type (and the most specific one), it
+	 * technically "is" also a kind (a non-union-y type).  Thus, it's still
+	 * technically correct to return terminates as the nearest kind.  Code that
+	 * relies on this operation <em>not</em> returning a union-y type should
+	 * deal with this one special case with correspondingly special logic.
+	 * </p>
+	 */
+	@Override
+	public AvailObject o_ComputeSuperkind (final AvailObject object)
+	{
+		return object;
+	}
+
+	@Override
+	public AvailObject o_FieldTypeMap (final AvailObject object)
+	{
+		// TODO It's unclear what to return here.  Maybe raise an unchecked
+		// exception.
+		return null;
+	}
+
+	@Override
+	public int o_Hash (final AvailObject object)
+	{
+		return 0x4a22a80a;
+	}
+
+	@Override
+	public boolean o_HasObjectInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSetType (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_AcceptsArgTypesFromClosureType (
+		final AvailObject object,
+		final AvailObject closureType)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_AcceptsArgumentTypesFromContinuation (
+		final AvailObject object,
+		final AvailObject continuation,
+		final int stackp,
+		final int numArgs)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_AcceptsListOfArgTypes (
+		final AvailObject object,
+		final List<AvailObject> argTypes)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_AcceptsListOfArgValues (
+		final AvailObject object,
+		final List<AvailObject> argValues)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_AcceptsTupleOfArgTypes (
+		final AvailObject object,
+		final AvailObject argTypes)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_AcceptsTupleOfArguments (
+		final AvailObject object,
+		final AvailObject arguments)
+	{
+		return true;
+	}
+
+	@Override
+	public AvailObject o_CheckedExceptions (final AvailObject object)
+	{
+		return SetDescriptor.empty();
+	}
+
+	@Override
+	public AvailObject o_ClosureType (final AvailObject object)
+	{
+		return object;
+	}
+
+	@Override
+	public AvailObject o_ContentType (final AvailObject object)
+	{
+		return object;
+	}
+
+	@Override
+	public boolean o_CouldEverBeInvokedWith (
+		final AvailObject object,
+		final List<AvailObject> argTypes)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_IsBetterRepresentationThan (
+		final AvailObject object,
+		final AvailObject anotherObject)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean o_IsBetterRepresentationThanTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType)
+	{
+		return true;
+	}
+
+
+	@Override
+	public boolean o_IsInstanceOf (
+		final AvailObject object,
+		final AvailObject aType)
+	{
+		// Bottom is an instance of every metatype except for itself.
+		assert aType.isType();
+		if (object.equals(aType))
+		{
+			// Terminates is not an instance of itself.
+			return false;
+		}
+		// Terminates is an instance of Top and Any.
+		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
+		{
+			return true;
+		}
+		// Terminates is an instance of every meta (everything that inherits
+		// from TYPE).
+		return aType.isSubtypeOf(TYPE.o());
+	}
+
+	@Override
+	public boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final AvailObject aType)
+	{
+		assert !aType.equals(terminates);
+		return aType.equals(TOP.o())
+			|| aType.equals(ANY.o())
+			|| aType.isSubtypeOf(TYPE.o());
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfClosureType (
+		final AvailObject object,
+		final AvailObject aClosureType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfContainerType (
+		final AvailObject object,
+		final AvailObject aContainerType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfContinuationType (
+		final AvailObject object,
+		final AvailObject aContinuationType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfCompiledCodeType (
+		final AvailObject object,
+		final AvailObject aContinuationType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfIntegerRangeType (
+		final AvailObject object,
+		final AvailObject anIntegerRangeType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfMapType (
+		final AvailObject object,
+		final AvailObject aMapType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfObjectType (
+		final AvailObject object,
+		final AvailObject aLazyObjectType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfSetType (
+		final AvailObject object,
+		final AvailObject aSetType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType)
+	{
+		return false;
+	}
+
+	@Override
+	public AvailObject o_MyType (final AvailObject object)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AvailObject o_Name (final AvailObject object)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AvailObject o_Parent (final AvailObject object)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AvailObject o_ReturnType (final AvailObject object)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AvailObject o_TypeIntersectionOfContinuationType (
+		final AvailObject object,
+		final AvailObject aContinuationType)
+	{
+		return object;
+	}
+
+	@Override
+	public AvailObject o_TypeIntersectionOfCompiledCodeType (
+		final AvailObject object,
+		final AvailObject aCompiledCodeType)
+	{
+		return object;
+	}
+
+	@Override
+	public AvailObject o_TypeUnionOfContinuationType (
+		final AvailObject object,
+		final AvailObject aContinuationType)
+	{
+		return aContinuationType;
+	}
+
+	@Override
+	public AvailObject o_TypeUnionOfCompiledCodeType (
+		final AvailObject object,
+		final AvailObject aCompiledCodeType)
+	{
+		return aCompiledCodeType;
+	}
+
+	/**
+	 * Terminates is an empty union type, so the answer is no.
+	 */
+	@Override
+	public boolean o_AbstractUnionTypeIncludesInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		return false;
+	}
+
+
 }

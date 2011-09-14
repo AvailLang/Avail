@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 
 /**
- * A tuple type can be the {@linkplain AvailObject#type() type} of a {@linkplain
+ * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain
  * TupleDescriptor tuple}, or something more general.  It has a canonical form
  * consisting of three pieces of information:
  * <ul>
@@ -88,30 +88,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_DefaultType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.DEFAULT_TYPE, value);
-	}
-
-	@Override
-	public void o_SizeRange (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
-	}
-
-	@Override
-	public void o_TypeTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.TYPE_TUPLE, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
@@ -146,7 +122,7 @@ extends TypeDescriptor
 			if (object.sizeRange().equals(
 				IntegerRangeTypeDescriptor.wholeNumbers()))
 			{
-				if (object.defaultType().equals(ALL.o()))
+				if (object.defaultType().equals(ANY.o()))
 				{
 					aStream.append("tuple");
 					return;
@@ -264,15 +240,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return TUPLE_TYPE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -284,29 +251,10 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		if (!object.sizeRange().isHashAvailable())
-		{
-			return false;
-		}
-		if (!object.typeTuple().isHashAvailable())
-		{
-			return false;
-		}
-		if (!object.defaultType().isHashAvailable())
-		{
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
-		final @NotNull AvailObject object)
-	{
-		return TUPLE_TYPE.o();
+		return TYPE.o();
 	}
 
 	@Override
@@ -318,12 +266,12 @@ extends TypeDescriptor
 		// me.  Answer terminates if the index is out of bounds.
 		if (index <= 0)
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.lessThan(IntegerDescriptor.fromInt(index)))
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		final AvailObject leading = object.typeTuple();
 		if (index <= leading.tupleSize())
@@ -355,12 +303,12 @@ extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.isFinite() && startIndex > upper.extractInt())
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		final AvailObject leading = object.typeTuple();
 		final int interestingLimit = leading.tupleSize() + 1;
@@ -483,9 +431,9 @@ extends TypeDescriptor
 			final AvailObject intersectionObject =
 				object.typeAtIndex(i).typeIntersection(
 					aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(TERMINATES.o()))
+			if (intersectionObject.equals(TerminatesTypeDescriptor.terminates()))
 			{
-				return TERMINATES.o();
+				return TerminatesTypeDescriptor.terminates();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -498,13 +446,13 @@ extends TypeDescriptor
 		final AvailObject newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
-		if (newDefault.equals(TERMINATES.o()))
+		if (newDefault.equals(TerminatesTypeDescriptor.terminates()))
 		{
 			final AvailObject newLeadingSizeObject =
 				IntegerDescriptor.fromInt(newLeadingSize);
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
-				return TERMINATES.o();
+				return TerminatesTypeDescriptor.terminates();
 			}
 			if (newLeadingSizeObject.lessThan(newSizesObject.upperBound()))
 			{
@@ -593,6 +541,79 @@ extends TypeDescriptor
 
 
 	/**
+	 * The most general tuple type.
+	 */
+	private static AvailObject MostGeneralType;
+
+	/**
+	 * Answer the most general tuple type.  This is the supertype of all other
+	 * tuple types.
+	 *
+	 * @return The most general tuple type.
+	 */
+	public static AvailObject mostGeneralType ()
+	{
+		return MostGeneralType;
+	}
+
+
+	/**
+	 * The most general string type (i.e., tuples of characters).
+	 */
+	private static AvailObject StringType;
+
+	/**
+	 * Answer the most general string type.  This type subsumes strings of any
+	 * size.
+	 *
+	 * @return The string type.
+	 */
+	public static AvailObject stringTupleType ()
+	{
+		return StringType;
+	}
+
+
+	/**
+	 * The metatype for all tuple types.
+	 */
+	private static AvailObject Meta;
+
+	/**
+	 * Answer the metatype for all tuple types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
+	}
+
+	public static void clearWellKnownObjects ()
+	{
+		MostGeneralType = null;
+		StringType = null;
+		Meta = null;
+	}
+
+	public static void createWellKnownObjects ()
+	{
+		MostGeneralType = tupleTypeForSizesTypesDefaultType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			TupleDescriptor.empty(),
+			ANY.o());
+		MostGeneralType.makeImmutable();
+		StringType = tupleTypeForSizesTypesDefaultType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			TupleDescriptor.empty(),
+			CHARACTER.o());
+		StringType.makeImmutable();
+		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta.makeImmutable();
+	}
+
+
+	/**
 	 * Create the tuple type specified by the arguments.  The size range
 	 * indicates the allowable tuple sizes for conforming tuples, the type tuple
 	 * indicates the types of leading elements (if a conforming tuple is long
@@ -609,14 +630,14 @@ extends TypeDescriptor
 	 * @param defaultType The types of remaining elements of conforming tuples.
 	 * @return A canonized tuple type with the specified properties.
 	 */
-	public static AvailObject tupleTypeForSizesTypesDefaultType (
+	public static @NotNull AvailObject tupleTypeForSizesTypesDefaultType (
 		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject typeTuple,
 		final @NotNull AvailObject defaultType)
 	{
-		if (sizeRange.equals(TERMINATES.o()))
+		if (sizeRange.equals(TerminatesTypeDescriptor.terminates()))
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
@@ -627,7 +648,7 @@ extends TypeDescriptor
 		{
 			assert typeTuple.tupleSize() == 0;
 			return privateTupleTypeForSizesTypesDefaultType(
-				sizeRange, typeTuple, TERMINATES.o());
+				sizeRange, typeTuple, TerminatesTypeDescriptor.terminates());
 		}
 		if (sizeRange.upperInclusive()
 				&& sizeRange.upperBound().extractInt() == typeTuple.tupleSize())
@@ -671,7 +692,7 @@ extends TypeDescriptor
 	 * @param defaultType The types of remaining elements of conforming tuples.
 	 * @return A tuple type with the specified properties.
 	 */
-	static AvailObject privateTupleTypeForSizesTypesDefaultType (
+	private static AvailObject privateTupleTypeForSizesTypesDefaultType (
 		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject typeTuple,
 		final @NotNull AvailObject defaultType)
@@ -679,54 +700,22 @@ extends TypeDescriptor
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 		assert sizeRange.lowerBound().extractInt() >= 0;
+
+		final AvailObject sizeRangeKind = sizeRange.isAbstractUnionType()
+			? sizeRange.computeSuperkind()
+			: sizeRange;
 		final int limit = min(
-			sizeRange.lowerBound().extractInt(),
+			sizeRangeKind.lowerBound().extractInt(),
 			typeTuple.tupleSize());
 		for (int i = 1; i <= limit; i++)
 		{
-			assert typeTuple.tupleAt(i).isInstanceOfSubtypeOf(TYPE.o());
+			assert typeTuple.tupleAt(i).isInstanceOfKind(TYPE.o());
 		}
 		final AvailObject result = mutable().create();
-		result.sizeRange(sizeRange);
-		result.typeTuple(typeTuple);
-		result.defaultType(defaultType);
+		result.objectSlotPut(ObjectSlots.SIZE_RANGE, sizeRangeKind);
+		result.objectSlotPut(ObjectSlots.TYPE_TUPLE, typeTuple);
+		result.objectSlotPut(ObjectSlots.DEFAULT_TYPE, defaultType);
 		return result;
-	}
-
-	/**
-	 * Answer the most general tuple type.  This is the supertype of all other
-	 * tuple types.
-	 *
-	 * @return The most general tuple type.
-	 */
-	public static AvailObject mostGeneralTupleType ()
-	{
-		return tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.create(
-				IntegerDescriptor.zero(),
-				true,
-				InfinityDescriptor.positiveInfinity(),
-				false),
-			TupleDescriptor.empty(),
-			ALL.o());
-	}
-
-	/**
-	 * Answer the most general string type.  This type subsumes strings of any
-	 * size.
-	 *
-	 * @return The string type.
-	 */
-	public static AvailObject stringTupleType ()
-	{
-		return tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.create(
-				IntegerDescriptor.zero(),
-				true,
-				InfinityDescriptor.positiveInfinity(),
-				false),
-			TupleDescriptor.empty(),
-			CHARACTER.o());
 	}
 
 	/**
@@ -753,7 +742,7 @@ extends TypeDescriptor
 		final int typeTupleHash,
 		final int defaultTypeHash)
 	{
-		return sizesHash *13 + defaultTypeHash * 11 + typeTupleHash * 7;
+		return sizesHash * 13 + defaultTypeHash * 11 + typeTupleHash * 7;
 	}
 
 	/**

@@ -163,7 +163,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aClosureType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return ALL.o().isSubtypeOf(object);
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -181,19 +181,19 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		//  A primitive type is a supertype of a continuation type if it is a supertype of continuation.
-
-		return CONTINUATION.o().isSubtypeOf(object);
+		// A primitive type is a supertype of a continuation type if it is a
+		// supertype of ANY.
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfCyclicType (
+	public boolean o_IsSupertypeOfCompiledCodeType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCyclicType)
+		final @NotNull AvailObject aCompiledCodeType)
 	{
-		//  Only the primitive type 'cyclicType' and its ancestors are ancestors of a cyclic type.
-
-		return CYCLIC_TYPE.o().isSubtypeOf(object);
+		// A primitive type is a supertype of a compiled code type if it is a
+		// supertype of ANY.
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -203,7 +203,7 @@ extends TypeDescriptor
 	{
 		//  Parent of the top integer range type is all, so continue searching there.
 
-		return ALL.o().isSubtypeOf(object);
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -214,24 +214,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aMapType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return ALL.o().isSubtypeOf(object);
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMeta)
-	{
-		//  Check if I'm a supertype of the given lazy object meta.  Only type and its
-		//  ancestors are supertypes of an object meta.
-
-		if (anObjectMeta.objectMetaLevels().upperBound().equals(
-			IntegerDescriptor.one()))
-		{
-			return TYPE.o().isSubtypeOf(object);
-		}
-
-		return META.o().isSubtypeOf(object);
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -242,7 +225,7 @@ extends TypeDescriptor
 		//  Check if I'm a supertype of the given eager object type.  Only all and its
 		//  ancestors are supertypes of an object type.
 
-		return ALL.o().isSubtypeOf(object);
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -267,7 +250,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aSetType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return ALL.o().isSubtypeOf(object);
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -278,7 +261,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aTupleType if and only if this
 		//  primitive type is a supertype of 'all'.
 
-		return ALL.o().isSubtypeOf(object);
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -286,8 +269,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return object;
@@ -298,9 +279,25 @@ extends TypeDescriptor
 		}
 		if (object.isSubtypeOf(TYPE.o()) && another.isSubtypeOf(TYPE.o()))
 		{
-			return TERMINATES_TYPE.o();
+			// Keep in mind that we've already determined neither is a subtype
+			// of the other, but they're both metatypes.
+			if ((object.equals(META.o()) || object.equals(UNION_TYPE.o()))
+				&& (another.equals(META.o()) || another.equals(UNION_TYPE.o())))
+			{
+				// Intersect UNION_TYPE and META.  Consider what it takes to be
+				// an instance of both.  If x is an instance of UNION_TYPE then
+				// it's a union of a finite list of instances or hierarchies.
+				// If x is an instance of META then x is the type of a type.
+				// Therefore such an x must be a specialization of TOP's type.
+				// So the intersection is TOP's type's type.
+				return InstanceTypeDescriptor.withInstance(
+					InstanceTypeDescriptor.withInstance(
+						TOP.o()));
+			}
+			return InstanceTypeDescriptor.withInstance(
+				TerminatesTypeDescriptor.terminates());
 		}
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -310,7 +307,7 @@ extends TypeDescriptor
 	{
 		if (object.isSubtypeOf(TYPE.o()))
 		{
-			return TERMINATES_TYPE.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		return super.o_TypeIntersectionOfMeta(object, someMeta);
 	}
@@ -320,8 +317,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that still includes both of these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -330,24 +325,20 @@ extends TypeDescriptor
 		{
 			return object;
 		}
+		if (another.isAbstractUnionType())
+		{
+			// Note that at this point neither one can be terminates, since that
+			// would always have been detected as a subtype of the other.
+			assert !another.equals(TerminatesTypeDescriptor.terminates());
+			return another.computeSuperkind().typeUnion(object);
+		}
 		return object.parent().typeUnion(another);
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
-		return object.myType();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
-		final @NotNull AvailObject object)
-	{
-		//  Answer object's type.
-
 		return object.myType();
 	}
 

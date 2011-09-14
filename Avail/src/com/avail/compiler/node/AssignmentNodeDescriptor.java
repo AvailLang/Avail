@@ -119,13 +119,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return ASSIGNMENT_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return ASSIGNMENT_NODE.o();
 	}
@@ -144,7 +138,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.variable().equals(another.variable())
 			&& object.expression().equals(another.expression());
 	}

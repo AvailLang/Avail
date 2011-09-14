@@ -238,7 +238,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
@@ -246,11 +246,11 @@ extends Descriptor
 		// Don't generate an approximate type and do the comparison, because the
 		// approximate type will defer to this very method.
 
-		if (aTypeObject.equals(VOID_TYPE.o()))
+		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(ALL.o()))
+		if (aTypeObject.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -261,7 +261,7 @@ extends Descriptor
 		// See if it's an acceptable size...
 		final int tupleSize = object.tupleSize();
 		final AvailObject sizeObject = IntegerDescriptor.fromInt(tupleSize);
-		if (!sizeObject.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		if (!sizeObject.isInstanceOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
@@ -270,45 +270,24 @@ extends Descriptor
 		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOfSubtypeOf(
+			if (!object.tupleAt(i).isInstanceOf(
 				aTypeObject.typeAtIndex(i)))
 			{
 				return false;
 			}
 		}
 		final AvailObject defaultTypeObject = aTypeObject.defaultType();
-		if (!ALL.o().isSubtypeOf(defaultTypeObject))
+		if (!ANY.o().isSubtypeOf(defaultTypeObject))
 		{
 			for (int i = breakIndex + 1; i <= tupleSize; i++)
 			{
-				if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+				if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
 				{
 					return false;
 				}
 			}
 		}
 		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (final AvailObject object)
-	{
-		// Answer the object's type. Not very efficient - should cache the type
-		// inside the object.
-
-		final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
-		final int tupleSize = object.tupleSize();
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			tupleOfTypes.tupleAtPuttingCanDestroy(
-				i,
-				object.tupleAt(i).type(),
-				true);
-		}
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerDescriptor.fromInt(object.tupleSize()).type(),
-			tupleOfTypes,
-			TERMINATES.o());
 	}
 
 	@Override
@@ -330,9 +309,21 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (final AvailObject object)
+	public @NotNull AvailObject o_Kind (final AvailObject object)
 	{
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
+		final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
+		final int tupleSize = object.tupleSize();
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			tupleOfTypes.tupleAtPuttingCanDestroy(
+				i,
+				InstanceTypeDescriptor.withInstance(object.tupleAt(i)),
+				true);
+		}
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			IntegerDescriptor.fromInt(object.tupleSize()).kind(),
+			tupleOfTypes,
+			TerminatesTypeDescriptor.terminates());
 	}
 
 	@Override
@@ -522,7 +513,7 @@ extends Descriptor
 					{
 						sub.setSubtupleForZoneTo(
 							originalZone,
-							VoidDescriptor.voidObject());
+							NullDescriptor.nullObject());
 					}
 					zone++;
 				}
@@ -541,7 +532,7 @@ extends Descriptor
 				}
 				if (canDestroy && isMutable())
 				{
-					object.tupleAtPut(i, VoidDescriptor.voidObject());
+					object.tupleAtPut(i, NullDescriptor.nullObject());
 				}
 			}
 		}
@@ -647,7 +638,7 @@ extends Descriptor
 		error(
 			"Subclass responsibility: Object:tupleAt: in Avail.TupleDescriptor",
 			object);
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -664,7 +655,7 @@ extends Descriptor
 		error(
 			"Subclass responsibility: Object:tupleAt:putting:canDestroy: in Avail.TupleDescriptor",
 			object);
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -681,15 +672,13 @@ extends Descriptor
 	@Override
 	public @NotNull AvailObject o_AsSet (final AvailObject object)
 	{
-		// Convert object to a set.
+		// Convert the tuple to a set.
 
 		AvailObject result = SetDescriptor.empty();
-		AvailObject.lock(object);
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			result = result.setWithElementCanDestroy(object.tupleAt(i), true);
 		}
-		AvailObject.unlock(object);
 		return result;
 	}
 
@@ -951,7 +940,7 @@ extends Descriptor
 		final AvailObject ... elements)
 	{
 		AvailObject tuple;
-		int size = elements.length;
+		final int size = elements.length;
 		tuple = ObjectTupleDescriptor.mutable().create(size);
 		for (int i = 1; i <= size; i++)
 		{

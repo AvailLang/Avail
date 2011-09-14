@@ -190,7 +190,8 @@ Method "integer range_plus_" is [a : integerType, b : integerType |
 	    logic is that some call site using this calculation to propagate
 	    the types is unaware that an operation will always fail, so we
 	    feed that information back as a kindness. */
-	if {a,b} = {[-INF..-INF],[INF..INF]} then [
+	if {{a lower bound,a upper bound},{b lower bound, b upper bound}}
+			= {{-INF},{INF}} then [
 		terminates;
 	] else [
 		/* The range calculation below is ok with respect to infinite bounds,
@@ -210,7 +211,8 @@ Method "integer range_times_" is [aT : integerType, bT : integerType |
 	    fail at runtime (i.e., when actual integers are supplied), be nice and
 	    tell the call site that the result has type terminates. */
 
-	if {aT,bT} = {0 type, INF type} | {aT,bT} = {0 type, -INF type} then [
+	ranges ::= {{aT lower bound,aT upper bound},{bT lower bound,bT upper bound}};
+	if ranges = {{0}, {INF}} | ranges = {{0}, {-INF}} then [
 		terminates;
 	] else [
 
@@ -221,8 +223,8 @@ Method "integer range_times_" is [aT : integerType, bT : integerType |
 		   zero by an infinity (even if it's an exclusive boundary), which would
 		   be an exception.  */
 
-		negAs : integerType := type intersection of aT and [0 private- INF .. 0 private- 1];
-		negBs : integerType := type intersection of bT and [0 private- INF .. 0 private- 1];
+		negAs : integerType := type intersection of aT and [-INF..-1];
+		negBs : integerType := type intersection of bT and [-INF..-1];
 		posAs : integerType := type intersection of aT and [1..INF];
 		posBs : integerType := type intersection of bT and [1..INF];
 		range : integerType := terminates;
@@ -258,9 +260,9 @@ Method "integer range_times_" is [aT : integerType, bT : integerType |
 					inclusive negAs lower inclusive & negBs lower inclusive;
 				];
 		];
-		if [0..0] <= aT | [0..0] <= bT then [
+		if 0 type <= aT | 0 type <= bT then [
 			/* Force zero to be included in final range... */
-			range := type union of range and [0..0];
+			range := type union of range and 0 type;
 		];
 		range;
 	];
@@ -341,9 +343,9 @@ returns [aT : integerType, bT : integerType |
 
 
 /* Some sanity checks... */
-Assert [3*5;] type = []->[15..15];
-Assert [x : [-3..11]; y : [-5..3]; x * y;] type = []->[-55..33];
-Assert [x : [-11..3]; y : [-5..3]; x * y;] type = []->[-33..55];
+Assert [3*5;] type <= []->[15..15];
+Assert [x : [-3..11]; y : [-5..3]; x * y;] type <= []->[-55..33];
+Assert [x : [-11..3]; y : [-5..3]; x * y;] type <= []->[-33..55];
 
 
 Method "_/_" is [a : extended integer, b : extended integer |

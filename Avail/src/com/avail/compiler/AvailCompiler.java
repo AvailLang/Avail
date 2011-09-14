@@ -118,7 +118,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 							{
 								if (!outermost
 									|| expression.expressionType().equals(
-										VOID_TYPE.o()))
+										TOP.o()))
 								{
 									whenFoundStatement.value(
 										afterExpression.afterToken(),
@@ -373,7 +373,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
 							final ParserState afterArgWithDeclaration =
-								newArg.isInstanceOfSubtypeOf(
+								newArg.isInstanceOfKind(
 										Types.DECLARATION_NODE.o())
 									? afterArg.withDeclaration(newArg)
 									: afterArg;
@@ -737,7 +737,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 				argumentExpressions.size());
 			for (AvailObject argExpr : argumentExpressions)
 			{
-				argumentNodeTypes.add(argExpr.type());
+				argumentNodeTypes.add(argExpr.kind());
 			}
 			impSet.validateArgumentTypesInterpreterIfFail(
 				argumentNodeTypes,
@@ -803,7 +803,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 				final AvailObject replacement = interpreter.runClosureArguments(
 					newClosure,
 					Collections.<AvailObject> emptyList());
-				if (replacement.isInstanceOfSubtypeOf(PARSE_NODE.o()))
+				if (replacement.isInstanceOfKind(PARSE_NODE.o()))
 				{
 					final AvailObject substitution =
 						MacroSubstitutionNodeDescriptor.mutable().create();
@@ -835,13 +835,13 @@ public class AvailCompiler extends AbstractAvailCompiler
 		// It invokes a method (not a macro).
 		for (AvailObject arg : argumentExpressions)
 		{
-			if (arg.expressionType().equals(TERMINATES.o()))
+			if (arg.expressionType().equals(TerminatesTypeDescriptor.terminates()))
 			{
 				stateAfterCall.expected(
 					"argument to have type other than terminates");
 				return;
 			}
-			if (arg.expressionType().equals(VOID_TYPE.o()))
+			if (arg.expressionType().equals(TOP.o()))
 			{
 				stateAfterCall.expected(
 					"argument to have type other than void");
@@ -1086,7 +1086,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 		attempt(start, continuation, node);
 
 		// Don't wrap it if its type is void.
-		if (node.expressionType().equals(VOID_TYPE.o()))
+		if (node.expressionType().equals(TOP.o()))
 		{
 			return;
 		}

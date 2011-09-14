@@ -81,21 +81,17 @@ extends TupleDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("\"");
+		aStream.append('"');
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			final char c = (char)object.rawShortForCharacterAt(i);
-			if (c == '\"' || c == '\'' || c == '\\')
+			if (c == '\"' || c == '\\')
 			{
 				aStream.append('\\');
-				aStream.append(c);
 			}
-			else
-			{
-				aStream.append((char)object.rawShortForCharacterAt(i));
-			}
+			aStream.append(c);
 		}
-		aStream.append('\"');
+		aStream.append('"');
 	}
 
 	/**
@@ -195,50 +191,6 @@ extends TupleDescriptor
 	@Override
 	public boolean o_IsString (final @NotNull AvailObject object)
 	{
-		return true;
-	}
-
-	/**
-	 * Answer whether object is an instance of a subtype of aType.  Don't
-	 * generate an approximate type and do the comparison, because the
-	 * approximate type will just send this message recursively.  Note that
-	 * because object is a string, it is already known that each element is a
-	 * character.
-	 */
-	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
-	{
-		if (aType.equals(VOID_TYPE.o()))
-		{
-			return true;
-		}
-		if (aType.equals(ALL.o()))
-		{
-			return true;
-		}
-		if (!aType.isTupleType())
-		{
-			return false;
-		}
-		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
-		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
-		{
-			// This tuple's size is out of range.
-			return false;
-		}
-		//  Make sure the element types accept character, up to my actual size.
-		final AvailObject typeTuple = aType.typeTuple();
-		final int limit = min(object.tupleSize(), (typeTuple.tupleSize() + 1));
-		for (int i = 1; i <= limit; i++)
-		{
-			if (!CHARACTER.o().isSubtypeOf(aType.typeAtIndex(i)))
-			{
-				return false;
-			}
-		}
 		return true;
 	}
 

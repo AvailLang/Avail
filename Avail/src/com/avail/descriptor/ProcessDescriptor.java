@@ -104,17 +104,18 @@ extends Descriptor
 		NAME,
 
 		/**
-		 * A map from {@linkplain CyclicTypeDescriptor cyclic types} to values.
-		 * Each process has its own unique such map, which allows processes to
-		 * record process-specific values.
+		 * A map from {@linkplain AtomDescriptor atoms} to values.  Each process
+		 * has its own unique such map, which allows processes to record
+		 * process-specific values.  The atom identities ensure modularity and
+		 * non-interference of these keys.
 		 */
 		PROCESS_GLOBALS,
 
 		/**
 		 * Not yet implement.  This will be a block that should be invoked after
 		 * the process executes each nybblecode.  Using {@linkplain
-		 * VoidDescriptor the void object} here means run without this special
-		 * single-stepping mode enabled.
+		 * TopTypeDescriptor the void object} here means run without this
+		 * special single-stepping mode enabled.
 		 */
 		BREAKPOINT_BLOCK
 	}
@@ -129,12 +130,12 @@ extends Descriptor
 		 * The process is running or waiting for another process to yield.
 		 */
 		RUNNING,
-	
+
 		/**
 		 * The process has been suspended (always on a semaphore).
 		 */
 		SUSPENDED,
-	
+
 		/**
 		 * The process has terminated.  This state is permanent.
 		 */
@@ -158,7 +159,7 @@ extends Descriptor
 		@BitField(shift=0, bits=1)
 		static final BitField OUT_OF_GAS =
 			bitField(InterruptRequestFlag.class, "OUT_OF_GAS");
-	
+
 		/**
 		 * Either this process's priority has been lowered or another process's
 		 * priority has been increased.  Either way, a higher priority process
@@ -316,26 +317,19 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return Types.PROCESS.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit hash value.
-
-		int hash = object.hashOrZero();
-		while (hash == 0)
+		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		if (hash == 0)
 		{
-			hash = hashGenerator.nextInt();
+			do
+			{
+				hash = hashGenerator.nextInt();
+			}
+			while (hash == 0);
+			object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, hash);
 		}
-		object.hashOrZero(hash);
 		return hash;
 	}
 
@@ -353,11 +347,9 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
 		return Types.PROCESS.o();
 	}
 
@@ -371,9 +363,9 @@ extends Descriptor
 	public int o_GetInteger (
 		final @NotNull AvailObject object)
 	{
-		AvailObject contObject = object.continuation();
+		final AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
-		AvailObject nybbles = contObject.nybbles();
+		final AvailObject nybbles = contObject.nybbles();
 		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
 		int value = 0;
 		pc++;

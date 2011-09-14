@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
 import static java.lang.Integer.bitCount;
 import com.avail.annotations.NotNull;
 
@@ -175,17 +174,17 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	public AvailObject o_BinUnionType (
+	public AvailObject o_BinUnionKind (
 			final AvailObject object)
 	{
 		AvailObject union = object.binUnionTypeOrVoid();
 		if (union.equalsVoid())
 		{
-			union = object.binElementAt(1).binUnionType();
-			int limit = object.variableObjectSlotsCount();
+			union = object.binElementAt(1).binUnionKind();
+			final int limit = object.variableObjectSlotsCount();
 			for (int i = 2; i <= limit; i++)
 			{
-				union = union.typeUnion(object.binElementAt(i).binUnionType());
+				union = union.typeUnion(object.binElementAt(i).binUnionKind());
 			}
 			object.binUnionTypeOrVoid(union);
 		}
@@ -236,7 +235,7 @@ extends SetBinDescriptor
 			unionType = object.binUnionTypeOrVoid();
 			if (!unionType.equalsVoid())
 			{
-				unionType = unionType.typeUnion(elementObject.type());
+				unionType = unionType.typeUnion(elementObject.kind());
 			}
 			final int newSize = object.binSize() + delta;
 			if (canDestroy & isMutable)
@@ -273,7 +272,7 @@ extends SetBinDescriptor
 		unionType = object.binUnionTypeOrVoid();
 		if (!unionType.equalsVoid())
 		{
-			unionType = unionType.typeUnion(elementObject.type());
+			unionType = unionType.typeUnion(elementObject.kind());
 		}
 		objectToModify = HashedSetBinDescriptor.isMutableLevel(true, _level)
 			.create(objectEntryCount + 1);
@@ -356,18 +355,18 @@ extends SetBinDescriptor
 		{
 			if (objectEntryCount == 1)
 			{
-				return VoidDescriptor.voidObject();
+				return NullDescriptor.nullObject();
 			}
 			// Calculate the union type before allocating the new bin, so we
 			// don't have to worry about a partially initialized object during a
 			// type computation which may require memory allocation.
-			AvailObject newUnionType = TERMINATES.o();
+			AvailObject newUnionType = TerminatesTypeDescriptor.terminates();
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
 				if (index != physicalIndex)
 				{
 					newUnionType = newUnionType.typeUnion(
-						object.binElementAt(index).binUnionType());
+						object.binElementAt(index).binUnionKind());
 				}
 			}
 			result = HashedSetBinDescriptor.isMutableLevel(true, _level).create(
@@ -378,7 +377,7 @@ extends SetBinDescriptor
 			result.bitVector(vector ^ bitShift(1,logicalIndex));
 			for (int index = objectEntryCount - 1; index >= 1; index--)
 			{
-				result.binElementAtPut(index, VoidDescriptor.voidObject());
+				result.binElementAtPut(index, NullDescriptor.nullObject());
 			}
 			int writeIndex = 1;
 			for (int readIndex = 1; readIndex <= objectEntryCount; readIndex++)
@@ -405,7 +404,7 @@ extends SetBinDescriptor
 				objectEntryCount);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrVoid(VoidDescriptor.voidObject());
+			result.binUnionTypeOrVoid(NullDescriptor.nullObject());
 			result.bitVector(vector);
 			for (int index = 1; index <= objectEntryCount; index++)
 			{

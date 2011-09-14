@@ -88,19 +88,13 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		AvailObject statements = object.statements();
+		final AvailObject statements = object.statements();
 		assert statements.tupleSize() > 0;
 		return statements.tupleAt(statements.tupleSize()).expressionType();
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return Types.SEQUENCE_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return Types.SEQUENCE_NODE.o();
 	}
@@ -116,7 +110,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.statements().equals(another.statements());
 	}
 
@@ -140,7 +134,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		for (AvailObject statement : object.statements())
+		for (final AvailObject statement : object.statements())
 		{
 			statement.emitEffectOn(codeGenerator);
 		}
@@ -168,7 +162,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		for (AvailObject statement : object.statements())
+		for (final AvailObject statement : object.statements())
 		{
 			aBlock.value(statement);
 		}
@@ -191,7 +185,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
-		for (AvailObject statement : object.statements())
+		for (final AvailObject statement : object.statements())
 		{
 			statement.flattenStatementsInto(accumulatedStatements);
 		}

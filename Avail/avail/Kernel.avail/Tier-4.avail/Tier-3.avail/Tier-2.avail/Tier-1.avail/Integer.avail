@@ -40,42 +40,62 @@ Names
 	"_lower inclusive", "_lower bound",
 	"_upper inclusive", "_upper bound",
 	"INF", "_is finite", "_is infinite",
-	"byte"
+	"byte",
+	"_as range"
 Body
-
-
 
 /* This module defines pre-arithmetic integer operations.  Start with definitions
    of range type operations, starting with some helpers... */
 
-Method "_basicType" is [x : all |
+
+Method "⊶[...]->_" is [result : type |
+	Primitive 39;
+] : closureType;
+
+Method "⊶Forward_for_"
+is [
+		name : string,
+		blockType : closureType |
+	/* Declare method without body (for recursion / mutual recursion).  Must be
+	   followed in same module by a legitimate definition. */
+	Primitive 252 (failureCode : natural number);
+	Failed;
+] : void;
+
+Method "⊶Method_is_requires_returns_"
+is [
+		name : string,
+		body : ⊶[...]-> void,
+		requires: ⊶[...]-> boolean,
+		returns : ⊶[...]-> type |
+	Primitive 254 (failureCode : natural number);
+	Failed;
+] : void;
+
+
+⊶Method "_type" is [x : all |
 	Primitive 30;
-] :  type;
-
-Method "range from_inclusive_to_inclusive_" is [
-		min : extended integer,
-		inclusive1 : boolean,
-		max : extended integer,
-		inclusive2 : boolean |
-	Primitive 7;
-] : integerType;
+] :  type
+requires [xt : type |
+	true;
+]
+returns [xt : type |
+	Primitive 30;
+] : type; /* Really a meta, but it doesn't matter here. */
 
 
-Method "[_.._]" is [min : extended integer, max : extended integer |
-	range from min inclusive true to max inclusive true;
-] : integerType;
+tupleOfType ::= Special Object 73;
 
-Method "[_.._)" is [min : extended integer, max : extended integer |
-	range from min inclusive true to max inclusive false;
-] : integerType;
+Method "⊶block type taking_and returning_" is [args : tupleOfType, ret : type |
+	Primitive 34;
+] : closureType;
 
-Method "(_.._]" is [min : extended integer, max : extended integer |
-	range from min inclusive false to max inclusive true;
-] : integerType;
+Method "⊶[«_‡,»]->_" is [types : tupleOfType, result : type |
+	⊶block type taking types and returning result;
+] : closureType;
 
-Method "(_.._)" is [min : extended integer, max : extended integer |
-	range from min inclusive false to max inclusive false;
-] : integerType;
+
+
 
 Method "_lower bound" is [range : integerType |
 	Primitive 8;
@@ -86,12 +106,109 @@ Method "_upper bound" is [range : integerType |
 ] : extended integer;
 
 Method "_lower inclusive" is [range : integerType |
-	range lower bound basicType <= range;   /* The <= is the subtype relation. */
+	/* The <= is the subtype relation. */
+	range lower bound type <= range;   
 ] : boolean;
 
 Method "_upper inclusive" is [range : integerType |
-	range upper bound basicType <= range;   /* The <= is the subtype relation. */
+	range upper bound type <= range;   /* The <= is the subtype relation. */
 ] : boolean;
+
+⊶Forward "range from_inclusive_to_inclusive_" for ⊶[
+		extended integer,
+		boolean,
+		extended integer,
+		boolean
+	] -> integerType;
+
+⊶Method "range from_inclusive_to_inclusive_" is [
+		min : extended integer,
+		inclusive1 : boolean,
+		max : extended integer,
+		inclusive2 : boolean |
+	Primitive 7;
+] : integerType
+requires [
+		minT : extended integer type,
+		inclusive1T : boolean type,
+		maxT : extended integer type,
+		inclusive2T : boolean type |
+	true;
+]
+returns [
+		minT : extended integer type,
+		inclusive1T : boolean type,
+		maxT : extended integer type,
+		inclusive2T : boolean type |
+	range ::= range
+		from minT lower bound
+		inclusive minT lower inclusive
+		to maxT upper bound
+		inclusive maxT upper inclusive;
+	range type;
+];
+
+
+⊶Method "[_.._]" is [min : extended integer, max : extended integer |
+	range from min inclusive true to max inclusive true;
+] : integerType
+requires [minT : extended integer type, maxT : extended integer type |
+	true;
+]
+returns [minT : extended integer type, maxT : extended integer type |
+	range ::= range
+		from minT lower bound
+		inclusive true
+		to maxT upper bound
+		inclusive true;
+	range type;
+];
+
+⊶Method "[_.._)" is [min : extended integer, max : extended integer |
+	range from min inclusive true to max inclusive false;
+] : integerType
+requires [minT : extended integer type, maxT : extended integer type |
+	true;
+]
+returns [minT : extended integer type, maxT : extended integer type |
+	range ::= range
+		from minT lower bound
+		inclusive true
+		to maxT upper bound
+		inclusive false;
+	range type;
+];
+
+⊶Method "(_.._]" is [min : extended integer, max : extended integer |
+	range from min inclusive false to max inclusive true;
+] : integerType
+requires [minT : extended integer type, maxT : extended integer type |
+	true;
+]
+returns [minT : extended integer type, maxT : extended integer type |
+	range ::= range
+		from minT lower bound
+		inclusive false
+		to maxT upper bound
+		inclusive true;
+	range type;
+];
+
+⊶Method "(_.._)" is [min : extended integer, max : extended integer |
+	range from min inclusive false to max inclusive false;
+] : integerType
+requires [minT : extended integer type, maxT : extended integer type |
+	true;
+]
+returns [minT : extended integer type, maxT : extended integer type |
+	range ::= range
+		from minT lower bound
+		inclusive false
+		to maxT upper bound
+		inclusive false;
+	range type;
+];
+
 
 
 
@@ -135,4 +252,17 @@ Method "byte" is [
 	[0..255];
 ] : integerType;
 
-
+/**
+ * Convert the argument into an integer range.  It may already be a simple range
+ * or it may be something more specific, such as a union type consisting
+ * entirely of extended integers.  If the argument is terminates, answer
+ * terminates, which isn't technically a mere range but is needed for the
+ * degenerate cases.
+ */
+Method "_as range" is [inputRange : integerType |
+	range
+		from inputRange lower bound
+		inclusive inputRange lower inclusive
+		to inputRange upper bound
+		inclusive inputRange upper inclusive;
+]; 

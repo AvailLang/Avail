@@ -34,11 +34,134 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.List;
 import com.avail.annotations.NotNull;
 
 public abstract class TypeDescriptor
-extends Descriptor
+extends AbstractTypeDescriptor
 {
+	public enum Types
+	{
+		TOP(null, "TYPE", TopTypeDescriptor.mutable()),
+		ANY(TOP, "TYPE"),
+		ATOM(ANY),
+		CHARACTER(ANY),
+		CONTAINER(ANY, "CONTAINER_TYPE"),
+		DOUBLE(ANY),
+		FLOAT(ANY),
+		IMPLEMENTATION_SET(ANY),
+		MESSAGE_BUNDLE(ANY),
+		MESSAGE_BUNDLE_TREE(ANY),
+
+		PARSE_NODE(ANY),
+		MARKER_NODE(PARSE_NODE),
+		EXPRESSION_NODE(PARSE_NODE),
+		ASSIGNMENT_NODE(EXPRESSION_NODE),
+		BLOCK_NODE(EXPRESSION_NODE),
+		LITERAL_NODE(EXPRESSION_NODE),
+		REFERENCE_NODE(EXPRESSION_NODE),
+		SEND_NODE(EXPRESSION_NODE),
+		SEQUENCE_NODE(EXPRESSION_NODE),
+		SUPER_CAST_NODE(EXPRESSION_NODE),
+		TUPLE_NODE(EXPRESSION_NODE),
+		VARIABLE_USE_NODE(EXPRESSION_NODE),
+		DECLARATION_NODE(EXPRESSION_NODE),
+		ARGUMENT_NODE(DECLARATION_NODE),
+		LABEL_NODE(DECLARATION_NODE),
+		LOCAL_VARIABLE_NODE(DECLARATION_NODE),
+		LOCAL_CONSTANT_NODE(DECLARATION_NODE),
+		MODULE_VARIABLE_NODE(DECLARATION_NODE),
+		MODULE_CONSTANT_NODE(DECLARATION_NODE),
+
+		TOKEN(ANY),
+		LITERAL_TOKEN(TOKEN),
+
+		SIGNATURE(ANY),
+		ABSTRACT_SIGNATURE(SIGNATURE),
+		FORWARD_SIGNATURE(SIGNATURE),
+		METHOD_SIGNATURE(SIGNATURE),
+		MACRO_SIGNATURE(SIGNATURE),
+
+		OBJECT(ANY),
+		PROCESS(ANY),
+		TYPE(ANY, "META"),
+		CONTAINER_TYPE(TYPE, "META"),
+		META(TYPE, "META"),
+		UNION_TYPE(TYPE, "META");
+
+		public final Types parent;
+		protected final String myTypeName;
+		protected final AbstractTypeDescriptor descriptor;
+		private AvailObject o;
+
+
+		/**
+		 * Construct a new {@linkplain Types} instance with the specified
+		 * parent, the name of the new type's type, and the descriptor to use.
+		 *
+		 * @param parent The new type's parent.
+		 * @param myTypeName The new type's type's name.
+		 * @param descriptor The descriptor for the new type.
+		 */
+		Types (
+			final @NotNull Types parent,
+			final @NotNull String myTypeName,
+			final @NotNull AbstractTypeDescriptor descriptor)
+		{
+			this.parent = parent;
+			this.myTypeName = myTypeName;
+			this.descriptor = descriptor;
+		}
+
+		/**
+		 * Construct a new {@linkplain Types} instance with the specified
+		 * parent and the name of the new type's type.  Use a
+		 * {@link PrimitiveTypeDescriptor} for the new type's descriptor.
+		 *
+		 * @param parent The new type's parent.
+		 * @param myTypeName The new type's type's name.
+		 */
+		Types (final Types parent, final String myTypeName)
+		{
+			this(
+				parent,
+				myTypeName,
+				PrimitiveTypeDescriptor.mutable());
+		}
+
+		/**
+		 * Construct a new {@linkplain Types} instance with the specified
+		 * parent.  Use {@linkplain #TYPE} for the new type's type, and use
+		 * {@link PrimitiveTypeDescriptor} for the new type's descriptor.
+		 *
+		 * @param parent The new type's parent.
+		 */
+		Types (final Types parent)
+		{
+			this(parent,"TYPE");
+		}
+
+		/**
+		 * Answer the {@link AvailObject} representing this Avail type.
+		 *
+		 * @return The actual {@linkplain TypeDescriptor type}, an AvailObject.
+		 */
+		public @NotNull AvailObject o ()
+		{
+			return o;
+		}
+
+		/**
+		 * Set the AvailObject held by this enumeration.
+		 *
+		 * @param object An AvailObject or null.
+		 */
+		void set_o (final AvailObject object)
+		{
+			this.o = object;
+		}
+	}
+
 	@Override
 	public boolean o_Equals (
 		final @NotNull AvailObject object,
@@ -51,8 +174,21 @@ extends Descriptor
 		 */
 
 		return another.isType()
-		&& object.isSubtypeOf(another)
-		&& another.isSubtypeOf(object);
+			&& object.isSubtypeOf(another)
+			&& another.isSubtypeOf(object);
+	}
+
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	@Override
+	public boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final AvailObject aType)
+	{
+		return object.kind().isSubtypeOf(aType);
 	}
 
 	@Override
@@ -101,11 +237,11 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfCyclicType (
+	public boolean o_IsSupertypeOfCompiledCodeType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCyclicType)
+		final @NotNull AvailObject aCompiledCodeType)
 	{
-		//  Redefined for subclasses.
+		//  GENERATED pure (abstract) method.
 
 		return false;
 	}
@@ -126,18 +262,6 @@ extends Descriptor
 		final @NotNull AvailObject aMapType)
 	{
 		//  Redefined for subclasses.
-
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMeta)
-	{
-		/* Check if I'm a supertype of the given object meta.  Redefined for
-		 * subclasses.
-		 */
 
 		return false;
 	}
@@ -190,28 +314,11 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		error("Subclass responsibility: Object:typeIntersection: in Avail.TypeDescriptor", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -219,11 +326,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -231,23 +334,15 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfCyclicType (
+	public @NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCyclicType)
+		final @NotNull AvailObject aCompiledCodeType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return object.typeIntersectionOfMeta(aCyclicType);
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -255,11 +350,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -267,11 +358,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -284,19 +371,7 @@ extends Descriptor
 		 * terminates, we must be very careful to override this properly.
 		 */
 
-		return TERMINATES.o();
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMeta)
-	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return object.typeIntersectionOfMeta(anObjectMeta);
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -304,11 +379,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -316,11 +387,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -328,23 +395,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.
-		 */
-
-		return TERMINATES.o();
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		/* Answer the most specific type that still includes both of these.
-		 */
-
-		error("Subclass responsibility: Object:typeUnion: in Avail.TypeDescriptor", object);
-		return VoidDescriptor.voidObject();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -352,11 +403,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
-		return object.typeUnion(ALL.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -364,10 +411,6 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
 		return object.typeUnion(CONTAINER.o());
 	}
 
@@ -376,23 +419,15 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
-		return object.typeUnion(CONTINUATION.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfCyclicType (
+	public @NotNull AvailObject o_TypeUnionOfCompiledCodeType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCyclicType)
+		final @NotNull AvailObject aCompiledCodeType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
-		return object.typeUnion(CYCLIC_TYPE.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -400,11 +435,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
-		return object.typeUnion(ALL.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -412,24 +443,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
-		return object.typeUnion(ALL.o());
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectMeta)
-	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.  Because type 'objectType' is an objectMeta, not a primitive
-		 * type.
-		 */
-
-		return object.typeUnion(TYPE.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -437,11 +451,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEagerObjectType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.  Because type 'object' is also an objectType.
-		 */
-
-		return object.typeUnion(ALL.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -449,11 +459,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.
-		 */
-
-		return object.typeUnion(ALL.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -465,154 +471,299 @@ extends Descriptor
 		 * these.  This is just above extended integer, the most general integer
 		 * range.
 		 */
-
-		return object.typeUnion(ALL.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfTerminates (
-		final @NotNull AvailObject object)
+	public boolean o_AcceptsArgTypesFromClosureType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject closureType)
 	{
-		/* All types are supertypes of terminates.  This method only exists so
-		 * that nontypes will cause a doesNotUnderstand: message to occur.
-		 * Otherwise true would be embedded in
-		 * TerminatesTypeDescriptor>>Object:isSubtypeOf:.
-		 */
-
-		return true;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfVoid (
-		final @NotNull AvailObject object)
-	{
-		/* Only void is a supertype of void.  Overridden in VoidTypeDescriptor.
-		 */
-
+		unsupportedOperation();
 		return false;
 	}
 
 	@Override
-	public boolean o_IsType (
-		final @NotNull AvailObject object)
+	public boolean o_AcceptsArgumentTypesFromContinuation (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject continuation,
+		final int stackp,
+		final int numArgs)
 	{
-		return true;
+		unsupportedOperation();
+		return false;
 	}
 
-	// Startup/shutdown
-
-	public enum Types
+	@Override
+	public boolean o_AcceptsListOfArgTypes (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes)
 	{
-		VOID_TYPE(null, "TYPE", VoidTypeDescriptor.mutable()),
-		ALL(VOID_TYPE, "TYPE"),
-		BOOLEAN(ALL),
-		TRUE_TYPE(BOOLEAN),
-		FALSE_TYPE(BOOLEAN),
-		CHARACTER(ALL),
-		COMPILED_CODE(ALL),
-		CONTAINER(ALL, "CONTAINER_TYPE"),
-		CONTINUATION(ALL),
-		DOUBLE(ALL),
-		FLOAT(ALL),
-		IMPLEMENTATION_SET(ALL),
-		MESSAGE_BUNDLE(ALL),
-		MESSAGE_BUNDLE_TREE(ALL),
+		unsupportedOperation();
+		return false;
+	}
 
-		PARSE_NODE(ALL),
-		MARKER_NODE(PARSE_NODE),
-		EXPRESSION_NODE(PARSE_NODE),
-		ASSIGNMENT_NODE(EXPRESSION_NODE),
-		BLOCK_NODE(EXPRESSION_NODE),
-		LITERAL_NODE(EXPRESSION_NODE),
-		REFERENCE_NODE(EXPRESSION_NODE),
-		SEND_NODE(EXPRESSION_NODE),
-		SEQUENCE_NODE(EXPRESSION_NODE),
-		SUPER_CAST_NODE(EXPRESSION_NODE),
-		TUPLE_NODE(EXPRESSION_NODE),
-		VARIABLE_USE_NODE(EXPRESSION_NODE),
-		DECLARATION_NODE(EXPRESSION_NODE),
-		ARGUMENT_NODE(DECLARATION_NODE),
-		LABEL_NODE(DECLARATION_NODE),
-		LOCAL_VARIABLE_NODE(DECLARATION_NODE),
-		LOCAL_CONSTANT_NODE(DECLARATION_NODE),
-		MODULE_VARIABLE_NODE(DECLARATION_NODE),
-		MODULE_CONSTANT_NODE(DECLARATION_NODE),
+	@Override
+	public boolean o_AcceptsListOfArgValues (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argValues)
+	{
+		unsupportedOperation();
+		return false;
+	}
 
-		TOKEN(ALL),
-		LITERAL_TOKEN(TOKEN),
+	@Override
+	public boolean o_AcceptsTupleOfArgTypes (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject argTypes)
+	{
+		unsupportedOperation();
+		return false;
+	}
 
-		PROCESS(ALL),
-		SEMAPHORE(ALL),
-		SIGNATURE(ALL),
-		ABSTRACT_SIGNATURE(SIGNATURE),
-		FORWARD_SIGNATURE(SIGNATURE),
-		METHOD_SIGNATURE(SIGNATURE),
-		MACRO_SIGNATURE(SIGNATURE),
-		TYPE(ALL, "META"),
-		INTEGER_TYPE(TYPE, "META"),
-		MAP_TYPE(TYPE, "META"),
-		META(TYPE, "META"),
-		CYCLIC_TYPE(META, "CYCLIC_TYPE"),
-		CONTAINER_TYPE(TYPE, "META"),
-		CONTINUATION_TYPE(TYPE, "META"),
-		PRIMITIVE_TYPE(TYPE, "META"),
-		CLOSURE_TYPE(PRIMITIVE_TYPE, "META"),
-		SET_TYPE(TYPE, "META"),
-		TUPLE_TYPE(TYPE, "META"),
-		TERMINATES_TYPE(
-			null,
-			"TERMINATES_TYPE",
-			TerminatesMetaDescriptor.mutable()),
-		TERMINATES(
-			null,
-			"TERMINATES_TYPE",
-			TerminatesTypeDescriptor.mutable());
+	@Override
+	public boolean o_AcceptsTupleOfArguments (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject arguments)
+	{
+		unsupportedOperation();
+		return false;
+	}
 
-		public final Types parent;
-		protected final String myTypeName;
-		protected final AbstractDescriptor descriptor;
-		private AvailObject o;
+	@Override
+	public @NotNull AvailObject o_ArgsTupleType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
 
-		// Constructors
-		Types (
-			final @NotNull Types parent,
-			final @NotNull String myTypeName,
-			final @NotNull AbstractDescriptor descriptor)
-		{
-			this.parent = parent;
-			this.myTypeName = myTypeName;
-			this.descriptor = descriptor;
-		}
+	@Override
+	public @NotNull AvailObject o_CheckedExceptions (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
 
-		Types (final Types parent, final String myTypeName)
-		{
-			this(
-				parent,
-				myTypeName,
-				PrimitiveTypeDescriptor.mutable());
-		}
+	@Override
+	public @NotNull AvailObject o_ClosureType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
 
-		Types (final Types parent)
-		{
-			this(parent,"PRIMITIVE_TYPE");
-		}
+	@Override
+	public @NotNull AvailObject o_ContentType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
 
-		public @NotNull AvailObject o ()
-		{
-			return o;
-		}
+	@Override
+	public boolean o_CouldEverBeInvokedWith (
+		final @NotNull AvailObject object,
+		final @NotNull List<AvailObject> argTypes)
+	{
+		unsupportedOperation();
+		return false;
+	}
 
-		void o (final AvailObject object)
-		{
-			this.o = object;
-		}
+	@Override
+	public @NotNull AvailObject o_DefaultType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_FieldTypeMap (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public boolean o_HasObjectInstance (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject potentialInstance)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsBetterRepresentationThan (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anotherObject)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	@Override
+	public boolean o_IsBetterRepresentationThanTupleType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	@Override
+	public boolean o_IsIntegerRangeType (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsMapType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSetType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsTupleType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public @NotNull AvailObject o_KeyType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_LowerBound (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public boolean o_LowerInclusive (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	@Override
+	public @NotNull AvailObject o_MyType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_Name (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_Parent (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_ReturnType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_SizeRange (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeAtIndex (
+		final @NotNull AvailObject object,
+		final int index)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeTuple (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_UnionOfTypesAtThrough (
+		final @NotNull AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public @NotNull AvailObject o_UpperBound (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public boolean o_UpperInclusive (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	@Override
+	public @NotNull AvailObject o_ValueType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
 	}
 
 	static void createWellKnownObjects ()
 	{
-		//  Default implementation - subclasses may need more variations.
-
-		final AvailObject voidObject = VoidDescriptor.voidObject();
+		final AvailObject voidObject = NullDescriptor.nullObject();
 		assert voidObject != null;
 
 		// Build all the objects with void fields.
@@ -624,7 +775,7 @@ extends Descriptor
 			o.parent(voidObject);
 			o.myType(voidObject);
 			o.hash(spec.name().hashCode());
-			spec.o(o);
+			spec.set_o(o);
 		}
 		// Connect and name the objects.
 		for (final Types spec : Types.values())
@@ -648,8 +799,7 @@ extends Descriptor
 			if (spec.parent != null)
 			{
 				assert spec.o().isSubtypeOf(spec.parent.o());
-				assert spec.o().type().isSubtypeOf(
-					spec.parent.o().type());
+				assert spec.o().isInstanceOfKind(spec.parent.o().kind());
 			}
 		}
 	}
@@ -658,7 +808,7 @@ extends Descriptor
 	{
 		for (final Types spec : Types.values())
 		{
-			spec.o(null);
+			spec.set_o(null);
 		}
 	}
 
@@ -673,4 +823,8 @@ extends Descriptor
 	{
 		super(isMutable);
 	}
+
+
+
+
 }

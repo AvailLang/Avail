@@ -39,6 +39,8 @@ Uses
 	"Continuation",
 	"Integer"
 Names
+	"«_‡then»",
+	"splice_",
 	"_do_",
 	"_collect_",
 	"_select_",
@@ -53,8 +55,6 @@ Names
 	"_[_]",
 	"_[_->_]",
 	"_[_.._->_]",
-	"«_‡then»",
-	"splice_",
 	"_[_.._]",
 	"_[.._]",
 	"_[_..]",
@@ -84,22 +84,56 @@ Forward "_[_->_]" for [tuple, natural number, all]->tuple;
 {"«_‡then»"} can't have <{"«_‡then»"}>;
 
 
+
+/* Helper function for computing types of concatenations. */
+
+Method "concatenate tuple type_and_" is [
+		tt1 : tupleType,
+		tt2 : tupleType |
+	Primitive 144;
+] : tupleType;
+
+Method "«_‡then»" is [tuples : tuple of tuple |
+	Primitive 136;
+] : tuple
+returns [outerTupleType : tupleType |
+	output : tupleType := tuple like <>;
+	exactSize : whole number := outerTupleType sizes lower bound;
+	Assert exactSize = outerTupleType sizes upper bound;
+	index : natural number := 1;
+	While [index <= exactSize;] loop [
+		output := concatenate tuple type clearing*&output
+			and cast outerTupleType[index] into [t : tupleType | t;];
+		index := index + 1;
+	];
+	output;
+]; 
+
+
+
 /* Iteration... */
+
+iterationRequiresBlock ::= [tType : tupleType, blkType : closureType |
+	union ::= type union of tType default type and
+		union of types in tType leading types;
+	if not union <= blkType[1] then [
+		Fail parse "block requires an instance of "
+			then blkType[1] as basic string
+			then ", but might be passed an instance of "
+			then union as basic string;];
+	true;
+] : boolean;
 
 Method "_do_" is [tup : tuple, blk : [terminates]->void |
 	1 to ||tup|| do [i : natural number |
 		blk apply <tup[i]>;
 	];
 ] : void
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-]
+requires iterationRequiresBlock
 returns [tType : tupleType, blkType : closureType |
 	/* This is kind of neat.  Normally the result type is void (to indicate
 	   no return value).  In the case that the block always terminates
-	   and there is at least one item in the tuple for sure, the invocation
+	   *and* there is at least one item in the tuple for sure, the invocation
 	   of _do_ will also always terminate.  */
 	if tType sizes lower bound > 0 & [blkType result = terminates;] then [
 		terminates;
@@ -116,11 +150,7 @@ Method "_collect_" is [t : tuple, blk : [terminates]->all |
 	];
 	result;
 ] : tuple
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-]
+requires iterationRequiresBlock
 returns [tType : tupleType, blkType : closureType |
 	tuple tType sizes
 		like <>
@@ -138,11 +168,7 @@ Method "_select_" is [t : tuple, blk : [terminates]->boolean |
 	];
 	result;
 ] : tuple
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-]
+requires iterationRequiresBlock
 returns [tType : tupleType, blkType : closureType |
 	union ::= type union of tType default type and
 		union of types in tType leading types;
@@ -166,11 +192,7 @@ Method "_reject_" is [t : tuple, blk : [terminates]->boolean |
 	];
 	result;
 ] : tuple
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-]
+requires iterationRequiresBlock
 returns [tType : tupleType, blkType : closureType |
 	union ::= type union of tType default type and
 		union of types in tType leading types;
@@ -194,11 +216,7 @@ Method "_all_" is [t : tuple, blk : [terminates]->boolean |
 	];
 	index > ||t||;
 ] : boolean
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-];
+requires iterationRequiresBlock;
 
 
 Method "_any_" is [t : tuple, blk : [terminates]->boolean |
@@ -210,11 +228,7 @@ Method "_any_" is [t : tuple, blk : [terminates]->boolean |
 	];
 	index <= ||t||;
 ] : boolean
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-];
+requires iterationRequiresBlock;
 
 
 Method "_sum_" is [t : tuple, blk : [terminates]->extended integer |
@@ -222,11 +236,7 @@ Method "_sum_" is [t : tuple, blk : [terminates]->extended integer |
 	t do [ element : all | sum := sum + blk apply <element>; ];
 	sum;
 ] : extended integer
-requires [tType : tupleType, blkType : closureType |
-	union ::= type union of tType default type and
-		union of types in tType leading types;
-	union <= blkType[1];
-]
+requires iterationRequiresBlock
 returns [tType : tupleType, blkType : closureType |
 	blkResultType ::= cast blkType result into [intT : integerType | intT; ];
 	integer range tType sizes times blkResultType;
@@ -389,14 +399,6 @@ Method "type of subtuple_from range_to range_" is [
 ] : tupleType;
 
 
-/* Helper function for computing types of concatenations. */
-
-Method "concatenate tuple type_and_" is [
-		tt1 : tupleType,
-		tt2 : tupleType |
-	Primitive 144;
-] : tupleType;
-
 
 /* Replacement... */
 
@@ -425,12 +427,8 @@ returns [tType : tupleType, iType : integerType, vType : type |
 		/* Finite extension - countably many indices are weakened to vType... */
 		if upper > || leading || & not vType <= default then [
 			weaker ::= type union of default and vType;
-			newLeading ::= leading then
+			leading ::= leading then
 				(|| leading || + 1 to upper collect [x : integer | weaker;]);
-			/* "«_‡then»" is still too weak, so cast newLeading back to a tuple
-			   of type.  It'll be defined more strongly once it's defined below.
-			 */
-			cast newLeading into [x : tuple of type | leading := x;];
 		];
 	] otherwise [
 		/* Infinite extension - all indices >= lower bound are weakened to
@@ -462,23 +460,6 @@ requires [tvt : containerType, it : integerType, vt : type |
 ];
 
 
-
-Method "«_‡then»" is [tuples : tuple of tuple |
-	Primitive 136;
-] : tuple
-returns [outerTupleType : tupleType |
-	output : tupleType := tuple like <>;
-	exactSize : whole number := outerTupleType sizes lower bound;
-	Assert exactSize = outerTupleType sizes upper bound;
-	index : natural number := 1;
-	While [index <= exactSize;]
-	loop [
-		output := concatenate tuple type clearing*&output
-			and cast outerTupleType[index] into [t : tupleType | t;];
-		index := index + 1;
-	];
-	output;
-]; 
 
 Method "splice_" is [tupleOfTuples : tuple of tuple |
 	/* Concatenate a tuple of tuples into one big tuple. */

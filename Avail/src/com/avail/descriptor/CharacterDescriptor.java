@@ -81,7 +81,7 @@ extends Descriptor
 		byteCharacters = new AvailObject[256];
 		for (int i = 0; i <= 255; i++)
 		{
-			AvailObject object = mutable().create();
+			final AvailObject object = mutable().create();
 			object.codePoint(i);
 			object.makeImmutable();
 			byteCharacters[i] = object;
@@ -112,7 +112,7 @@ extends Descriptor
 			return byteCharacters[codePoint];
 		}
 
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.codePoint(codePoint);
 		result.makeImmutable();
 		return result;
@@ -234,16 +234,9 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject o_ExactType (final @NotNull AvailObject object)
-	{
-		return CHARACTER.o();
-	}
-
-	@Override
-	@ThreadSafe
 	public int o_Hash (final @NotNull AvailObject object)
 	{
-		int codePoint = object.codePoint();
+		final int codePoint = object.codePoint();
 		if (codePoint >= 0 && codePoint <= 255)
 		{
 			return hashesOfByteCharacters[codePoint];
@@ -260,7 +253,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject o_Type (final @NotNull AvailObject object)
+	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return CHARACTER.o();
 	}
@@ -276,7 +269,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		int codePoint = object.codePoint();
+		final int codePoint = object.codePoint();
 		switch (Character.getType(codePoint))
 		{
 			case Character.COMBINING_SPACING_MARK:

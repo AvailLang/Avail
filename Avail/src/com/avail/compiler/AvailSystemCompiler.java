@@ -105,111 +105,113 @@ extends AbstractAvailCompiler
 		final Con<AvailObject> continuation)
 	{
 		assert !(outermost & canBeLabel);
-		tryIfUnambiguousThen(start, new Con<Con<AvailObject>>(
-			"Detect ambiguity")
-		{
-			@Override
-			public void value (
-				final ParserState ignored,
-				final Con<AvailObject> whenFoundStatement)
+		tryIfUnambiguousThen(
+			start,
+			new Con<Con<AvailObject>>("Detect ambiguity")
 			{
-				parseDeclarationThen(start, new Con<AvailObject>(
-					"Semicolon after declaration")
+				@Override
+				public void value (
+					final ParserState ignored,
+					final Con<AvailObject> whenFoundStatement)
 				{
-					@Override
-					public void value (
-						final ParserState afterDeclaration,
-						final AvailObject declaration)
-					{
-						if (afterDeclaration.peekToken(
-							SEMICOLON,
-							"; to end declaration statement"))
-						{
-							ParserState afterSemicolon =
-								afterDeclaration.afterToken();
-							if (outermost)
-							{
-								afterSemicolon = new ParserState(
-									afterSemicolon.position,
-									new AvailCompilerScopeStack(null, null));
-							}
-							whenFoundStatement.value(
-								afterSemicolon,
-								declaration);
-						}
-					}
-				});
-				parseAssignmentThen(
-					start,
-					new Con<AvailObject>("Semicolon after assignment")
-					{
-						@Override
-						public void value (
-							final ParserState afterAssignment,
-							final AvailObject assignment)
-						{
-							if (afterAssignment.peekToken(
-								SEMICOLON,
-								"; to end assignment statement"))
-							{
-								whenFoundStatement.value(
-									afterAssignment.afterToken(),
-									assignment);
-							}
-						}
-					});
-				parseExpressionThen(start, new Con<AvailObject>(
-					"Semicolon after expression")
-				{
-					@Override
-					public void value (
-						final ParserState afterExpression,
-						final AvailObject expression)
-					{
-						if (!afterExpression.peekToken(
-							SEMICOLON,
-							"; to end statement"))
-						{
-							return;
-						}
-						if (!outermost
-							|| expression.expressionType().equals(
-								VOID_TYPE.o()))
-						{
-							whenFoundStatement.value(
-								afterExpression.afterToken(),
-								expression);
-						}
-						else
-						{
-							afterExpression.expected(
-								"outer level statement to have void type");
-						}
-					}
-				});
-				if (canBeLabel)
-				{
-					parseLabelThen(start, new Con<AvailObject>(
-						"Semicolon after label")
+					parseDeclarationThen(start, new Con<AvailObject>(
+						"Semicolon after declaration")
 					{
 						@Override
 						public void value (
 							final ParserState afterDeclaration,
-							final AvailObject label)
+							final AvailObject declaration)
 						{
 							if (afterDeclaration.peekToken(
 								SEMICOLON,
-								"; to end label statement"))
+								"; to end declaration statement"))
 							{
+								ParserState afterSemicolon =
+									afterDeclaration.afterToken();
+								if (outermost)
+								{
+									afterSemicolon = new ParserState(
+										afterSemicolon.position,
+										new AvailCompilerScopeStack(
+											null, null));
+								}
 								whenFoundStatement.value(
-									afterDeclaration.afterToken(),
-									label);
+									afterSemicolon,
+									declaration);
 							}
 						}
 					});
+					parseAssignmentThen(
+						start,
+						new Con<AvailObject>("Semicolon after assignment")
+						{
+							@Override
+							public void value (
+								final ParserState afterAssignment,
+								final AvailObject assignment)
+							{
+								if (afterAssignment.peekToken(
+									SEMICOLON,
+									"; to end assignment statement"))
+								{
+									whenFoundStatement.value(
+										afterAssignment.afterToken(),
+										assignment);
+								}
+							}
+						});
+					parseExpressionThen(start, new Con<AvailObject>(
+						"Semicolon after expression")
+					{
+						@Override
+						public void value (
+							final ParserState afterExpression,
+							final AvailObject expression)
+						{
+							if (!afterExpression.peekToken(
+								SEMICOLON,
+								"; to end statement"))
+							{
+								return;
+							}
+							if (!outermost
+								|| expression.expressionType().equals(
+									TOP.o()))
+							{
+								whenFoundStatement.value(
+									afterExpression.afterToken(),
+									expression);
+							}
+							else
+							{
+								afterExpression.expected(
+									"outer level statement to have void type");
+							}
+						}
+					});
+					if (canBeLabel)
+					{
+						parseLabelThen(start, new Con<AvailObject>(
+							"Semicolon after label")
+						{
+							@Override
+							public void value (
+								final ParserState afterDeclaration,
+								final AvailObject label)
+							{
+								if (afterDeclaration.peekToken(
+									SEMICOLON,
+									"; to end label statement"))
+								{
+									whenFoundStatement.value(
+										afterDeclaration.afterToken(),
+										label);
+								}
+							}
+						});
+					}
 				}
-			}
-		},
+			},
 			continuation);
 	}
 
@@ -374,7 +376,7 @@ extends AbstractAvailCompiler
 			{
 				parseAndEvaluateExpressionYieldingInstanceOfThen(
 					afterColon,
-					CONTINUATION_TYPE.o(),
+					ContinuationTypeDescriptor.meta(),
 					new Con<AvailObject>("Check label type expression")
 					{
 						@Override
@@ -469,8 +471,8 @@ extends AbstractAvailCompiler
 					final ParserState afterType,
 					final AvailObject type)
 				{
-					if (type.equals(VOID_TYPE.o())
-							|| type.equals(TERMINATES.o()))
+					if (type.equals(TOP.o())
+							|| type.equals(TerminatesTypeDescriptor.terminates()))
 					{
 						afterType.expected(
 							"a type for the variable other than"
@@ -525,8 +527,19 @@ extends AbstractAvailCompiler
 							else
 							{
 								afterInit.expected(
-									"initializing expression's type to "
-									+ "agree with declared type");
+									new Generator<String>()
+									{
+										@Override
+										public String value()
+										{
+											return String.format(
+												"initializing expression's "
+												+ "type (%s) to agree with "
+												+ "declared type (%s)",
+												initExpr.expressionType(),
+												type);
+										};
+									});
 							}
 						}
 					});
@@ -571,8 +584,8 @@ extends AbstractAvailCompiler
 					final @NotNull ParserState afterType,
 					final @NotNull AvailObject type)
 				{
-					if (type.equals(VOID_TYPE.o())
-							|| type.equals(TERMINATES.o()))
+					if (type.equals(TOP.o())
+							|| type.equals(TerminatesTypeDescriptor.terminates()))
 					{
 						afterType.expected(
 							"a type for the variable other than"
@@ -683,7 +696,7 @@ extends AbstractAvailCompiler
 		final AvailObject localName = start.peekToken();
 		if (localName.tokenType() != KEYWORD)
 		{
-			start.expected(": then block argument type");
+			start.expected("block argument name then : and type");
 			return;
 		}
 		final ParserState afterArgName = start.afterToken();
@@ -701,12 +714,12 @@ extends AbstractAvailCompiler
 					final ParserState afterArgType,
 					final AvailObject type)
 				{
-					if (type.equals(VOID_TYPE.o()))
+					if (type.equals(TOP.o()))
 					{
 						afterArgType.expected(
 							"a type for the argument other than void");
 					}
-					else if (type.equals(TERMINATES.o()))
+					else if (type.equals(TerminatesTypeDescriptor.terminates()))
 					{
 						afterArgType.expected(
 							"a type for the argument other than terminates");
@@ -858,9 +871,9 @@ extends AbstractAvailCompiler
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);
-			if (stmt.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
+			if (stmt.isInstanceOfKind(DECLARATION_NODE.o()))
 			{
-				lastStatementType.value = VOID_TYPE.o();
+				lastStatementType.value = TOP.o();
 			}
 			else
 			{
@@ -869,7 +882,7 @@ extends AbstractAvailCompiler
 		}
 		else
 		{
-			lastStatementType.value = VOID_TYPE.o();
+			lastStatementType.value = TOP.o();
 		}
 
 		final ParserState stateOutsideBlock = new ParserState(
@@ -884,7 +897,7 @@ extends AbstractAvailCompiler
 		}
 		boolean blockTypeGood = true;
 		if (statements.size() > 0
-				&& statements.get(0).isInstanceOfSubtypeOf(LABEL_NODE.o()))
+				&& statements.get(0).isInstanceOfKind(LABEL_NODE.o()))
 		{
 			final AvailObject labelNode = statements.get(0);
 			final AvailObject labelClosureType =
@@ -963,7 +976,9 @@ extends AbstractAvailCompiler
 									return
 										"block type ("
 										+ explicitBlockType
-										+ ") to agree with primitive's "
+										+ ") to agree with primitive "
+										+ thePrimitive.name()
+										+ "'s "
 										+ "intrinsic type ("
 										+ intrinsicType
 										+ ")";
@@ -995,7 +1010,7 @@ extends AbstractAvailCompiler
 
 					boolean blockTypeGood2 = true;
 					if (statements.size() > 0
-						&& statements.get(0).isInstanceOfSubtypeOf(
+						&& statements.get(0).isInstanceOfKind(
 							LABEL_NODE.o()))
 					{
 						final AvailObject labelNode = statements.get(0);
@@ -1675,12 +1690,12 @@ extends AbstractAvailCompiler
 		// It invokes a method (not a macro).
 		for (final AvailObject arg : argumentExpressions)
 		{
-			if (arg.expressionType().equals(TERMINATES.o()))
+			if (arg.expressionType().equals(TerminatesTypeDescriptor.terminates()))
 			{
 				start.expected("argument to have type other than terminates");
 				return;
 			}
-			if (arg.expressionType().equals(VOID_TYPE.o()))
+			if (arg.expressionType().equals(TOP.o()))
 			{
 				start.expected("argument to have type other than void");
 				return;
@@ -1919,7 +1934,7 @@ extends AbstractAvailCompiler
 		attempt(start, continuation, node);
 
 		// Don't wrap it if its type is void.
-		if (node.expressionType().equals(VOID_TYPE.o()))
+		if (node.expressionType().equals(TOP.o()))
 		{
 			return;
 		}
@@ -1988,7 +2003,7 @@ extends AbstractAvailCompiler
 		final ParserState afterPrimitiveKeyword = start.afterToken();
 		final AvailObject token = afterPrimitiveKeyword.peekToken();
 		if (token.tokenType() != LITERAL
-				|| !token.literal().isInstanceOfSubtypeOf(
+				|| !token.literal().isInstanceOfKind(
 					IntegerRangeTypeDescriptor.unsignedShorts())
 				|| token.literal().extractInt() == 0)
 		{
@@ -2362,14 +2377,14 @@ extends AbstractAvailCompiler
 		{
 			final AvailObject lastStatement =
 				statements.get(statements.size() - 1);
-			if (lastStatement.expressionType().equals(TERMINATES.o()))
+			if (lastStatement.expressionType().equals(TerminatesTypeDescriptor.terminates()))
 			{
 				start.expected(
 					"end of statements, since this one always terminates");
 				return;
 			}
-			if (!lastStatement.expressionType().equals(VOID_TYPE.o())
-				&& !lastStatement.isInstanceOfSubtypeOf(ASSIGNMENT_NODE.o()))
+			if (!lastStatement.expressionType().equals(TOP.o())
+				&& !lastStatement.isInstanceOfKind(ASSIGNMENT_NODE.o()))
 			{
 				start.expected(new Generator<String>()
 				{

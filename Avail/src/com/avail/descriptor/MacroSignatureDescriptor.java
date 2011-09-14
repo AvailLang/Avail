@@ -36,8 +36,10 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.node.TupleNodeDescriptor;
+import com.avail.compiler.node.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
+import com.avail.utility.*;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -87,12 +89,14 @@ extends SignatureDescriptor
 	 * object to keep things simple.
 	 */
 	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter anAvailInterpreter)
+		final @NotNull AvailObject impSet,
+		final @NotNull Interpreter anAvailInterpreter,
+		final Continuation1<Generator<String>> failBlock)
 	{
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -118,15 +122,7 @@ extends SignatureDescriptor
 	public @NotNull AvailObject o_BodySignature (
 		final @NotNull AvailObject object)
 	{
-		return object.bodyBlock().type();
-	}
-
-	@Override
-	public void o_BodyBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.BODY_BLOCK, value);
+		return object.bodyBlock().kind();
 	}
 
 	@Override
@@ -134,13 +130,6 @@ extends SignatureDescriptor
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BODY_BLOCK);
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return MACRO_SIGNATURE.o();
 	}
 
 	@Override
@@ -152,7 +141,7 @@ extends SignatureDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return MACRO_SIGNATURE.o();
@@ -164,6 +153,30 @@ extends SignatureDescriptor
 	{
 		return true;
 	}
+
+
+	/**
+	 * Create a new macro signature from the provided argument.
+	 *
+	 * @param bodyBlock
+	 *            The body of the signature.  This will be invoked when a call
+	 *            site is compiled, passing the sub<em>expressions</em> (
+	 *            {@linkplain ParseNodeDescriptor parse nodes}) as arguments.
+	 * @return
+	 *            A macro signature.
+	 * @throws SignatureException
+	 *            If the signature is malformed.
+	 */
+	public static AvailObject create (
+		final @NotNull AvailObject bodyBlock)
+	throws SignatureException
+	{
+		final AvailObject instance = mutable().create();
+		instance.objectSlotPut(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.makeImmutable();
+		return instance;
+	}
+
 
 	/**
 	 * Construct a new {@link MacroSignatureDescriptor}.

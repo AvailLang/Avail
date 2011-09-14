@@ -217,75 +217,6 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_LiteralAtPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotAtPut(ObjectSlots.LITERAL_AT_, subscript, value);
-	}
-
-	@Override
-	public void o_NumFloats (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.bitSlotPut(
-			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
-			NumIntegersAndDoubles.NUM_DOUBLES,
-			value);
-	}
-
-	@Override
-	public void o_NumIntegers (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.bitSlotPut(
-			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
-			NumIntegersAndDoubles.NUM_INTEGERS,
-			value);
-	}
-
-	@Override
-	public void o_NumObjects (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.bitSlotPut(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.NUM_OBJECTS,
-			value);
-	}
-
-	@Override
-	public void o_Validity (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.bitSlotPut(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.VALID,
-			value);
-	}
-
-	@Override
-	public void o_Vectors (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.VECTORS, value);
-	}
-
-	@Override
-	public void o_Wordcodes (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.WORDCODES, value);
-	}
-
-	@Override
 	public int o_Index (
 		final @NotNull AvailObject object)
 	{
@@ -317,15 +248,6 @@ extends Descriptor
 		return object.bitSlot(
 			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
 			NumObjectsAndFlags.NUM_OBJECTS);
-	}
-
-	@Override
-	public int o_Validity (
-		final @NotNull AvailObject object)
-	{
-		return object.bitSlot(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.VALID);
 	}
 
 	@Override
@@ -412,15 +334,10 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final boolean aBoolean)
 	{
-		object.validity(((object.validity() & -3) + (aBoolean ? 2 : 0)));
-	}
-
-	@Override
-	public void o_IsValid (
-		final @NotNull AvailObject object,
-		final boolean aBoolean)
-	{
-		object.validity(((object.validity() & -2) + (aBoolean ? 1 : 0)));
+		object.bitSlotPut(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.SAVED,
+			aBoolean ? 1 : 0);
 	}
 
 	@Override
@@ -698,18 +615,37 @@ extends Descriptor
 		wordcodesTuple.makeImmutable();
 		final AvailObject chunk = mutable().create(listOfLiterals.size());
 		AvailObject.lock(chunk);
-		chunk.vectors(vectorTuplesTuple);
-		chunk.numObjects(numObjects);
-		chunk.numIntegers(numIntegers);
-		chunk.numFloats(numFloats);
-		chunk.wordcodes(wordcodesTuple);
+		// A new chunk starts out saved.
+		chunk.bitSlotPut(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.SAVED,
+			1);
+		// A new chunk starts out valid.
+		chunk.bitSlotPut(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.VALID,
+			1);
+		chunk.objectSlotPut(ObjectSlots.VECTORS, vectorTuplesTuple);
+		chunk.bitSlotPut(
+			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+			NumObjectsAndFlags.NUM_OBJECTS,
+			numObjects);
+		chunk.bitSlotPut(
+			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
+			NumIntegersAndDoubles.NUM_INTEGERS,
+			numIntegers);
+		chunk.bitSlotPut(
+			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
+			NumIntegersAndDoubles.NUM_DOUBLES,
+			numFloats);
+		chunk.objectSlotPut(ObjectSlots.WORDCODES, wordcodesTuple);
 		for (int i = 1; i <= listOfLiterals.size(); i++)
 		{
-			chunk.literalAtPut(i, listOfLiterals.get(i - 1));
+			chunk.objectSlotAtPut(ObjectSlots.LITERAL_AT_,
+				i,
+				listOfLiterals.get(i - 1));
 		}
-		// A new chunk starts out saved and valid.
-		chunk.isSaved(true);
-		chunk.isValid(true);
+
 		final int index;
 		final Reference<? extends AvailObject> weaklyTypedRecycledReference =
 			WeakChunkReference.RecyclingQueue.poll();
@@ -721,7 +657,8 @@ extends Descriptor
 			// clean it up if necessary.
 			final WeakChunkReference oldReference =
 				(WeakChunkReference)weaklyTypedRecycledReference;
-			for (final AvailObject impSet : oldReference.contingentImplementationSets)
+			for (final AvailObject impSet
+				: oldReference.contingentImplementationSets)
 			{
 				impSet.removeDependentChunkIndex(oldReference.index);
 			}
@@ -785,12 +722,18 @@ extends Descriptor
 		final AvailObject chunk = ref.get();
 		if (chunk != null)
 		{
-			chunk.isValid(false);
-			chunk.wordcodes(TupleDescriptor.empty());
-			chunk.vectors(TupleDescriptor.empty());
+			chunk.bitSlotPut(
+				IntegerSlots.NUM_OBJECTS_AND_FLAGS,
+				NumObjectsAndFlags.VALID,
+				0);
+			chunk.objectSlotPut(ObjectSlots.WORDCODES, TupleDescriptor.empty());
+			chunk.objectSlotPut(ObjectSlots.VECTORS, TupleDescriptor.empty());
 			for (int i = chunk.variableObjectSlotsCount(); i >= 1; i--)
 			{
-				chunk.literalAtPut(i, VoidDescriptor.voidObject());
+				chunk.objectSlotAtPut(
+					ObjectSlots.LITERAL_AT_,
+					i,
+					NullDescriptor.nullObject());
 			}
 		}
 		final Set<AvailObject> impSets = ref.contingentImplementationSets;

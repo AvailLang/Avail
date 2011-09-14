@@ -291,7 +291,7 @@ implements L2OperationDispatcher
 				pointerAt(closureRegister()).code().numArgsAndLocalsAndStack());
 			final AvailObject popped = pointerAt(stackp);
 			// Clear the stack slot
-			pointerAtPut(stackp, VoidDescriptor.voidObject());
+			pointerAtPut(stackp, NullDescriptor.nullObject());
 			integerAtPut(stackpRegister(), stackp + 1);
 			return popped;
 		}
@@ -388,7 +388,7 @@ implements L2OperationDispatcher
 		{
 			final int localIndex = argumentRegister(getInteger());
 			final AvailObject local = pointerAt(localIndex);
-			pointerAtPut(localIndex, VoidDescriptor.voidObject());
+			pointerAtPut(localIndex, NullDescriptor.nullObject());
 			push(local);
 		}
 
@@ -786,7 +786,7 @@ implements L2OperationDispatcher
 			final int deepStackp = integerAt(stackpRegister() + depth);
 			final AvailObject value = pointerAt(deepStackp);
 			value.makeImmutable();
-			push(value.type());
+			push(value.kind());
 		}
 
 		/**
@@ -827,7 +827,7 @@ implements L2OperationDispatcher
 			final AvailObject caller = pointerAt(callerRegister());
 			final AvailObject value = pop();
 			final AvailObject closure = pointerAt(closureRegister());
-			assert value.isInstanceOfSubtypeOf(
+			assert value.isInstanceOf(
 					closure.code().closureType().returnType())
 				: "Return type from method disagrees with declaration";
 			if (caller.equalsVoid())
@@ -837,28 +837,23 @@ implements L2OperationDispatcher
 			}
 			prepareToExecuteContinuation(caller);
 			final AvailObject expectedType = pop();
-			if (!value.isInstanceOfSubtypeOf(expectedType))
+			if (!value.isInstanceOf(expectedType))
 			{
-				error("Return value does not agree with expected type");
+				error(String.format(
+					"Return value (%s) does not agree with expected type (%s)",
+					value,
+					expectedType));
 			}
 			push(value);
 		}
 	};
 
 
-	/**
-	 * Exit the current {@linkplain ProcessDescriptor process} with the
-	 * specified result.
-	 *
-	 * @param finalObject
-	 *            The {@link AvailObject} that is the final result of running
-	 *            the {@linkplain ProcessDescriptor process}.
-	 *
-	 */
-	void exitProcessWith (final AvailObject finalObject)
+	@Override
+	public void exitProcessWith (final AvailObject finalObject)
 	{
 		process.executionState(ExecutionState.TERMINATED);
-		process.continuation(VoidDescriptor.voidObject());
+		process.continuation(NullDescriptor.nullObject());
 		exitNow = true;
 		exitValue = finalObject;
 		pointerAtPut(callerRegister(), null);
@@ -1111,12 +1106,12 @@ implements L2OperationDispatcher
 	{
 		if (continuation.equalsVoid())
 		{
-			chunk = VoidDescriptor.voidObject();
-			chunkWords = VoidDescriptor.voidObject();
-			chunkVectors = VoidDescriptor.voidObject();
+			chunk = NullDescriptor.nullObject();
+			chunkWords = NullDescriptor.nullObject();
+			chunkVectors = NullDescriptor.nullObject();
 			offset(0);
-			pointerAtPut(callerRegister(), VoidDescriptor.voidObject());
-			pointerAtPut(closureRegister(), VoidDescriptor.voidObject());
+			pointerAtPut(callerRegister(), NullDescriptor.nullObject());
+			pointerAtPut(closureRegister(), NullDescriptor.nullObject());
 			return;
 		}
 		AvailObject chunkToInvoke = continuation.levelTwoChunk();
@@ -1230,8 +1225,8 @@ implements L2OperationDispatcher
 			if (continuation.closure().code().primitiveNumber() == 200)
 			{
 				final AvailObject handler = continuation.argOrLocalOrStackAt(2);
-				if (exceptionValue.isInstanceOfSubtypeOf(
-					handler.type().argsTupleType().typeAtIndex(1)))
+				if (exceptionValue.isInstanceOf(
+					handler.kind().argsTupleType().typeAtIndex(1)))
 				{
 					assert !handler.equalsVoid();
 					prepareToExecuteContinuation(continuation);
@@ -1339,7 +1334,7 @@ implements L2OperationDispatcher
 		// Void the stack slots...
 		for (int i = 1; i <= numStackSlots; i++)
 		{
-			pointerAtPut(dest, VoidDescriptor.voidObject());
+			pointerAtPut(dest, NullDescriptor.nullObject());
 			dest++;
 		}
 	}
@@ -1399,10 +1394,10 @@ implements L2OperationDispatcher
 		final AvailObject closure,
 		final List<AvailObject> arguments)
 	{
-		pointerAtPut(callerRegister(), VoidDescriptor.voidObject());
-		pointerAtPut(closureRegister(), VoidDescriptor.voidObject());
+		pointerAtPut(callerRegister(), NullDescriptor.nullObject());
+		pointerAtPut(closureRegister(), NullDescriptor.nullObject());
 		// Keep the process's current continuation void during execution.
-		process.continuation(VoidDescriptor.voidObject());
+		process.continuation(NullDescriptor.nullObject());
 
 		final Result result = invokeClosureArguments(closure, arguments);
 		if (result == SUCCESS)
@@ -1620,7 +1615,7 @@ implements L2OperationDispatcher
 	public void L2_doClearObject_ ()
 	{
 		final int clearIndex = nextWord();
-		pointerAtPut(clearIndex, VoidDescriptor.voidObject());
+		pointerAtPut(clearIndex, NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -2119,7 +2114,7 @@ implements L2OperationDispatcher
 		final int typeConstIndex = nextWord();
 		final AvailObject value = pointerAt(valueIndex);
 		final AvailObject type = chunk().literalAt(typeConstIndex);
-		if (value.isInstanceOfSubtypeOf(type))
+		if (value.isInstanceOf(type))
 		{
 			offset(doIndex);
 		}
@@ -2183,7 +2178,7 @@ implements L2OperationDispatcher
 		final int continuationIndex = nextWord();
 		process.continuation(pointerAt(continuationIndex));
 		process.interruptRequestFlag(interruptRequestFlag);
-		exitValue = VoidDescriptor.voidObject();
+		exitValue = NullDescriptor.nullObject();
 		exitNow = true;
 	}
 
@@ -2350,7 +2345,7 @@ implements L2OperationDispatcher
 	{
 		final int srcIndex = nextWord();
 		final int destIndex = nextWord();
-		pointerAtPut(destIndex, pointerAt(srcIndex).type());
+		pointerAtPut(destIndex, pointerAt(srcIndex).kind());
 	}
 
 	@Override
@@ -2522,8 +2517,9 @@ implements L2OperationDispatcher
 		prepareToExecuteContinuation(caller);
 		final int callerStackpIndex = argumentRegister(caller.stackp());
 		final AvailObject expectedType = pointerAt(callerStackpIndex);
-		if (!valueObject.isInstanceOfSubtypeOf(expectedType))
+		if (!valueObject.isInstanceOf(expectedType))
 		{
+
 			error("Return value does not agree with expected type");
 		}
 		pointerAtPut(callerStackpIndex, valueObject);
@@ -2671,9 +2667,15 @@ implements L2OperationDispatcher
 						argumentRegister(caller.stackp());
 					final AvailObject expectedType =
 						pointerAt(callerStackpIndex);
-					if (!primitiveResult.isInstanceOfSubtypeOf(expectedType))
+					if (!primitiveResult.isInstanceOf(expectedType))
 					{
-						error("Return value does not agree with expected type");
+						// TODO: [MvG] Remove after debugging.
+						primitiveResult.isInstanceOf(expectedType);
+						error(String.format(
+							"Return value (%s) does not agree with "
+							+ "expected type (%s)",
+							primitiveResult,
+							expectedType));
 					}
 					pointerAtPut(callerStackpIndex, primitiveResult);
 					return;

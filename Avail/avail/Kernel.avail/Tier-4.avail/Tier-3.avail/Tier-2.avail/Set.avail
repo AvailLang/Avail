@@ -151,7 +151,12 @@ Method "_do_" is [s : set, blk : [terminates]->void |
 	];
 ] : void
 requires [st : setType, bt : closureType |
-	st content type <= bt[1];
+	if not st content type <= bt[1] then [
+		Fail parse "block requires an instance of "
+			then bt[1] as basic string
+			then ", but might be passed an instance of "
+			then st content type as basic string;];
+	true;
 ];
 
 

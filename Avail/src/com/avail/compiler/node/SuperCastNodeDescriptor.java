@@ -122,13 +122,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return SUPER_CAST_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return SUPER_CAST_NODE.o();
 	}
@@ -147,7 +141,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.expression().equals(another.expression())
 			&& object.superCastType().equals(another.superCastType());
 	}
@@ -194,7 +188,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
 	{
-		if (!parent.type().equals(SEND_NODE.o()))
+		if (!parent.kind().equals(SEND_NODE.o()))
 		{
 			error("Only use superCast notation as a message argument");
 		}

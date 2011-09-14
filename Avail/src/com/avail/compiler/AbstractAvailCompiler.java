@@ -45,6 +45,7 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -118,7 +119,7 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess List<AvailObject> usedModules;
 
 	/**
-	 * The {@linkplain CyclicTypeDescriptor names} defined and exported by the
+	 * The {@linkplain AtomDescriptor names} defined and exported by the
 	 * {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
 	@InnerAccess List<AvailObject> exportedNames;
@@ -542,7 +543,7 @@ public abstract class AbstractAvailCompiler
 		AvailObject peekStringLiteral ()
 		{
 			final AvailObject token = peekToken();
-			if (token.isInstanceOfSubtypeOf(LITERAL_TOKEN.o()))
+			if (token.isInstanceOfKind(LITERAL_TOKEN.o()))
 			{
 				return token;
 			}
@@ -840,7 +841,7 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public AvailObject value (final AvailObject child)
 				{
-					assert child.isInstanceOfSubtypeOf(PARSE_NODE.o());
+					assert child.isInstanceOfKind(PARSE_NODE.o());
 					return treeMapWithParent(
 						child,
 						aBlock,
@@ -884,7 +885,7 @@ public abstract class AbstractAvailCompiler
 			@Override
 			public void value (final AvailObject child)
 			{
-				assert child.isInstanceOfSubtypeOf(PARSE_NODE.o());
+				assert child.isInstanceOfKind(PARSE_NODE.o());
 				treeDoWithParent(
 					child,
 					aBlock,
@@ -926,8 +927,6 @@ public abstract class AbstractAvailCompiler
 	 * {@link #greatExpectations} are the things that were expected but not
 	 * found at that position. This seems to work very well in practice.
 	 *
-	 * @param state
-	 *            Where the error occurred.
 	 * @param qualifiedName
 	 *            The {@linkplain ModuleName qualified name} of the
 	 *            {@linkplain ModuleDescriptor source module}.
@@ -935,10 +934,46 @@ public abstract class AbstractAvailCompiler
 	 *             Always thrown.
 	 */
 	void reportError (
-		final ParserState state,
 		final @NotNull ModuleName qualifiedName) throws AvailCompilerException
 	{
-		final long charPos = tokens.get(greatestGuess).start();
+		reportError(
+			qualifiedName,
+			tokens.get(greatestGuess),
+			"Expected...",
+			greatExpectations);
+	}
+
+	/**
+	 * Report an error by throwing an {@link AvailCompilerException}. The
+	 * exception encapsulates the {@linkplain ModuleName module name} of the
+	 * {@linkplain ModuleDescriptor module} undergoing compilation, the error
+	 * string, and the text position. This position is the rightmost position
+	 * encountered during the parse, and the error strings in
+	 * {@link #greatExpectations} are the things that were expected but not
+	 * found at that position. This seems to work very well in practice.
+	 *
+	 * @param token
+	 *            Where the error occurred.
+	 * @param qualifiedName
+	 *            The {@linkplain ModuleName qualified name} of the
+	 *            {@linkplain ModuleDescriptor source module}.
+	 * @param banner
+	 *            The string that introduces the problem text.
+	 * @param problems
+	 *            A list of {@linkplain Generator generators} that may be
+	 *            invoked to produce problem strings.
+	 * @throws AvailCompilerException
+	 *             Always thrown.
+	 */
+	void reportError (
+		final @NotNull ModuleName qualifiedName,
+		final @NotNull AvailObject token,
+		final @NotNull String banner,
+		final @NotNull List<Generator<String>> problems)
+	throws AvailCompilerException
+	{
+		assert problems.size() > 0 : "Bug - empty problem list";
+		final long charPos = token.start();
 		final String sourceUpToError = source.substring(0, (int) charPos);
 		final int startOfPreviousLine = sourceUpToError.lastIndexOf('\n') + 1;
 		final StringBuilder text = new StringBuilder(100);
@@ -968,12 +1003,11 @@ public abstract class AbstractAvailCompiler
 				}
 			}
 		}
-		text.append("^-- Expected...");
+		text.append(String.format("^-- %s", banner));
 		text.append("\n>>>---------------------------------------------------------------------");
-		assert greatExpectations.size() > 0 : "Bug - empty expectation list";
 		final Set<String> alreadySeen = new HashSet<String>(
-			greatExpectations.size());
-		for (final Generator<String> generator : greatExpectations)
+			problems.size());
+		for (final Generator<String> generator : problems)
 		{
 			final String str = generator.value();
 			if (!alreadySeen.contains(str))
@@ -1112,7 +1146,7 @@ public abstract class AbstractAvailCompiler
 			Collections.<AvailObject>emptyList(),
 			(short) 0,
 			Collections.singletonList(expressionNode),
-			VOID_TYPE.o(),
+			TOP.o(),
 			SetDescriptor.empty());
 		validate(block);
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
@@ -1253,7 +1287,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void evaluateModuleStatement (final AvailObject expr)
 	{
-		if (!expr.isInstanceOfSubtypeOf(DECLARATION_NODE.o()))
+		if (!expr.isInstanceOfKind(DECLARATION_NODE.o()))
 		{
 			evaluate(expr);
 			return;
@@ -1354,9 +1388,7 @@ public abstract class AbstractAvailCompiler
 		state.value = parseHeader(qualifiedName, false);
 		if (state.value == null)
 		{
-			reportError(new ParserState(0, new AvailCompilerScopeStack(
-				null,
-				null)), qualifiedName);
+			reportError(qualifiedName);
 			assert false;
 		}
 		if (!state.value.atEnd())
@@ -1383,7 +1415,7 @@ public abstract class AbstractAvailCompiler
 				state.value.expected(
 					"module \"" + ref.qualifiedName()
 					+ "\" to be loaded already");
-				reportError(state.value, qualifiedName);
+				reportError(qualifiedName);
 				assert false;
 			}
 
@@ -1398,7 +1430,7 @@ public abstract class AbstractAvailCompiler
 					state.value.expected(
 						"module \"" + ref.qualifiedName()
 						+ "\" to export \"" + strName + "\"");
-					reportError(state.value, qualifiedName);
+					reportError(qualifiedName);
 					assert false;
 				}
 				final AvailObject trueNames = mod.names().mapAt(strName);
@@ -1423,7 +1455,7 @@ public abstract class AbstractAvailCompiler
 				state.value.expected(
 					"module \"" + ref.qualifiedName()
 					+ "\" to be loaded already");
-				reportError(state.value, qualifiedName);
+				reportError(qualifiedName);
 				assert false;
 			}
 
@@ -1438,7 +1470,7 @@ public abstract class AbstractAvailCompiler
 					state.value.expected(
 						"module \"" + ref.qualifiedName()
 						+ "\" to export \"" + strName + "\"");
-					reportError(state.value, qualifiedName);
+					reportError(qualifiedName);
 					assert false;
 				}
 				final AvailObject trueNames = mod.names().mapAt(strName);
@@ -1452,7 +1484,7 @@ public abstract class AbstractAvailCompiler
 		{
 			assert stringObject.isString();
 			final AvailObject trueNameObject =
-				CyclicTypeDescriptor.create(stringObject);
+				AtomDescriptor.create(stringObject);
 			module.atNameAdd(stringObject, trueNameObject);
 			module.atNewNamePut(stringObject, trueNameObject);
 		}
@@ -1488,7 +1520,7 @@ public abstract class AbstractAvailCompiler
 
 			if (interpretation.value == null)
 			{
-				reportError(state.value, qualifiedName);
+				reportError(qualifiedName);
 				assert false;
 			}
 			// Clear the section of the fragment cache associated with the
@@ -1497,7 +1529,27 @@ public abstract class AbstractAvailCompiler
 			// Now execute the statement so defining words have a chance to
 			// run. This lets the defined words be used in subsequent code.
 			// It's even callable in later statements and type expressions.
-			evaluateModuleStatement(interpretation.value);
+			try
+			{
+				evaluateModuleStatement(interpretation.value);
+			}
+			catch (final AvailAssertionFailedException e)
+			{
+				reportError(
+					qualifiedName,
+					tokens.get(state.value.position - 1),
+					"Assertion failed...",
+					Collections.<Generator<String>>singletonList(
+						new Generator<String>()
+						{
+							@Override
+							public @NotNull String value ()
+							{
+								return e.assertionString().asNativeString();
+							}
+						}));
+
+			}
 			if (!state.value.atEnd())
 			{
 				final AvailObject token = tokens.get(state.value.position - 1);
@@ -1533,9 +1585,7 @@ public abstract class AbstractAvailCompiler
 			interpreter.runtime().moduleNameResolver().resolve(qualifiedName);
 		if (parseHeader(resolvedName, true) == null)
 		{
-			reportError(
-				new ParserState(0, new AvailCompilerScopeStack(null, null)),
-				resolvedName);
+			reportError(resolvedName);
 			assert false;
 		}
 	}
@@ -1628,13 +1678,29 @@ public abstract class AbstractAvailCompiler
 								+ ") must not contain internal whitespace");
 						return null;
 					}
-					if (pragmaKey.equals("bootstrapDefiningMethod"))
+					try
 					{
-						interpreter.bootstrapDefiningMethod(pragmaValue);
+						if (pragmaKey.equals("bootstrapDefiningMethod"))
+						{
+							interpreter.bootstrapDefiningMethod(pragmaValue);
+						}
+						else if (pragmaKey.equals("bootstrapSpecialObject"))
+						{
+							interpreter.bootstrapSpecialObject(pragmaValue);
+						}
 					}
-					else if (pragmaKey.equals("bootstrapSpecialObject"))
+					catch (final SignatureException e)
 					{
-						interpreter.bootstrapSpecialObject(pragmaValue);
+						state.expected(new Generator<String>()
+						{
+							@Override
+							public String value ()
+							{
+								return "Malformed signature during bootstrap: "
+									+ e.getMessage();
+							}
+						});
+						return null;
 					}
 				}
 			}
@@ -1801,7 +1867,7 @@ public abstract class AbstractAvailCompiler
 				{
 					// A unique, longest type-correct expression was found.
 					final AvailObject value = evaluate(expression);
-					if (value.isInstanceOfSubtypeOf(someType))
+					if (value.isInstanceOf(someType))
 					{
 						assert afterExpression.scopeStack ==
 							startWithoutScope.scopeStack

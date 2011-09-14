@@ -36,7 +36,10 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.AvailCompilerException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.utility.*;
 
 public class MethodSignatureDescriptor
 extends SignatureDescriptor
@@ -52,38 +55,37 @@ extends SignatureDescriptor
 	}
 
 	@Override
-	public void o_BodyBlockRequiresBlockReturnsBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject bb,
-		final @NotNull AvailObject rqb,
-		final @NotNull AvailObject rtb)
-	{
-		//  Set my blocks.  Also verify metacovariance and metacontravariance here.
-
-		object.bodyBlock(bb);
-		object.requiresBlock(rqb);
-		object.returnsBlock(rtb);
-		object.ensureMetacovariant();
-	}
-
-	@Override
-	public AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+	public AvailObject o_ComputeReturnTypeFromArgumentTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter anAvailInterpreter)
+		final @NotNull AvailObject impSet,
+		final @NotNull Interpreter interpreter,
+		final Continuation1<Generator<String>> failBlock)
 	{
-		//  We simply run the 'returns' block, passing in the static argument types from the call site.
-
-		final AvailObject result = anAvailInterpreter.runClosureArguments(
+		// We simply run the 'returns' block, passing in the static argument
+		// types from the call site.
+		final AvailObject result = interpreter.runClosureArguments(
 			object.returnsBlock(),
 			argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
 		{
-			error(
-				"The 'returns' block should produce a type more specific "
-				+ "than the body's basic return type",
-				object);
-			return VoidDescriptor.voidObject();
+			failBlock.value(
+				new Generator<String>()
+				{
+
+					@Override
+					public String value ()
+					{
+						return String.format(
+							"The 'returns' block of %s should produce a type "
+							+ "more specific than the body's basic return "
+							+ "type%n(produced = %s, expected = %s)",
+							impSet.name().name(),
+							result,
+							object.bodySignature().returnType());
+					}
+				});
+			return NullDescriptor.nullObject();
 		}
 		return result;
 	}
@@ -109,31 +111,7 @@ extends SignatureDescriptor
 	{
 		//  Answer my signature.
 
-		return object.bodyBlock().type();
-	}
-
-	@Override
-	public void o_BodyBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.BODY_BLOCK, value);
-	}
-
-	@Override
-	public void o_RequiresBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, value);
-	}
-
-	@Override
-	public void o_ReturnsBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.RETURNS_BLOCK, value);
+		return object.bodyBlock().kind();
 	}
 
 	@Override
@@ -158,15 +136,6 @@ extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
-		return METHOD_SIGNATURE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -177,7 +146,7 @@ extends SignatureDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
+	public AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -191,6 +160,46 @@ extends SignatureDescriptor
 	{
 		return true;
 	}
+
+
+	/**
+	 * Create a new method signature from the provided arguments.
+	 *
+	 * @param bodyBlock
+	 *            The body of the signature.  This will be invoked when the
+	 *            message is sent, assuming the argument types match and there
+	 *            is no more specific version.
+	 * @param requiresBlock
+	 *            The requires block of the signature.  This is run when a call
+	 *            site is compiled with matching static argument types.  The
+	 *            argument types are passed to this block and it should return
+	 *            true if they are mutually acceptable.
+	 * @param returnsBlock
+	 *            The returns block of the signature.  This is run when a call
+	 *            site is compiled with matching static argument types.  The
+	 *            argument types are passed to this block as for the
+	 *            requiresBlock, but it returns the static type for the result
+	 *            of the call for this call site.  This type is used as the
+	 *            static result type of the call.  The return value is checked
+	 *            against this expected return type at runtime.
+	 * @return
+	 *            A method signature.
+	 */
+	public static AvailObject create (
+		final @NotNull AvailObject bodyBlock,
+		final @NotNull AvailObject requiresBlock,
+		final @NotNull AvailObject returnsBlock)
+	throws SignatureException
+	{
+		final AvailObject instance = mutable().create();
+		instance.objectSlotPut(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, requiresBlock);
+		instance.objectSlotPut(ObjectSlots.RETURNS_BLOCK, returnsBlock);
+		instance.makeImmutable();
+		instance.ensureMetacovariant();
+		return instance;
+	}
+
 
 	/**
 	 * Construct a new {@link MethodSignatureDescriptor}.

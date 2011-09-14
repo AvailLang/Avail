@@ -34,7 +34,7 @@ package com.avail.compiler.node;
 
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TypeDescriptor.Types.VOID_TYPE;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.List;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
@@ -592,7 +592,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return VOID_TYPE.o();
+		return TOP.o();
 	}
 
 
@@ -619,18 +619,11 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitEffectOn(codeGenerator);
-		codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+		codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
 	}
 
 	@Override
-	public AvailObject o_Type (
-			final AvailObject object)
-	{
-		return object.declarationKind().primitiveType();
-	}
-
-	@Override
-	public AvailObject o_ExactType (
+	public AvailObject o_Kind (
 			final AvailObject object)
 	{
 		return object.declarationKind().primitiveType();
@@ -691,7 +684,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		AvailObject expression = object.initializationExpression();
+		final AvailObject expression = object.initializationExpression();
 		if (!expression.equalsVoid())
 		{
 			aBlock.value(expression);
@@ -740,10 +733,10 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the entity being declared, or {@linkplain
-	 *        VoidDescriptor#voidObject() the void object} if none.
+	 *        NullDescriptor#nullObject() the void object} if none.
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
-	 *        being defined, or {@linkplain VoidDescriptor#voidObject() the void
+	 *        being defined, or {@linkplain NullDescriptor#nullObject() the void
 	 *        object} if none.
 	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
 	 */
@@ -783,8 +776,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			ARGUMENT,
 			token,
 			declaredType,
-			VoidDescriptor.voidObject(),
-			VoidDescriptor.voidObject());
+			NullDescriptor.nullObject(),
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -800,7 +793,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the local variable, or {@linkplain
-	 *        VoidDescriptor#voidObject() the void object} if none.
+	 *        NullDescriptor#nullObject() the void object} if none.
 	 * @return The new local variable declaration.
 	 */
 	public static AvailObject newVariable (
@@ -813,7 +806,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			token,
 			declaredType,
 			initializationExpression,
-			VoidDescriptor.voidObject());
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -837,8 +830,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			LOCAL_VARIABLE,
 			token,
 			declaredType,
-			VoidDescriptor.voidObject(),
-			VoidDescriptor.voidObject());
+			NullDescriptor.nullObject(),
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -862,7 +855,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			token,
 			initializationExpression.expressionType(),
 			initializationExpression,
-			VoidDescriptor.voidObject());
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -888,8 +881,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			LABEL,
 			token,
 			declaredType,
-			VoidDescriptor.voidObject(),
-			VoidDescriptor.voidObject());
+			NullDescriptor.nullObject(),
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -912,8 +905,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		return newDeclaration(
 			MODULE_VARIABLE,
 			token,
-			literalObject.type().innerType(),
-			VoidDescriptor.voidObject(),
+			literalObject.kind().innerType(),
+			NullDescriptor.nullObject(),
 			literalObject);
 	}
 
@@ -936,8 +929,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		return newDeclaration(
 			MODULE_CONSTANT,
 			token,
-			literalObject.type(),
-			VoidDescriptor.voidObject(),
+			InstanceTypeDescriptor.withInstance(literalObject),
+			NullDescriptor.nullObject(),
 			literalObject);
 	}
 

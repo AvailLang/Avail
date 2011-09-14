@@ -32,11 +32,11 @@
 
 package com.avail.exceptions;
 
-import com.avail.descriptor.CyclicTypeDescriptor;
+import com.avail.descriptor.AtomDescriptor;
 
 /**
  * An {@code AmbiguousNameException} is thrown when a simple string name could
- * represent multiple {@linkplain CyclicTypeDescriptor true names}.
+ * represent multiple {@linkplain AtomDescriptor true names}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */

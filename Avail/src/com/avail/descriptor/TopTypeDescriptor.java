@@ -1,5 +1,5 @@
 /**
- * descriptor/VoidTypeDescriptor.java
+ * descriptor/TopTypeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -36,11 +36,11 @@ import com.avail.annotations.*;
 
 /**
  * {@code VoidType} implements the type of the {@linkplain
- * VoidDescriptor#voidObject() void object}.
+ * NullDescriptor#nullObject() void object}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class VoidTypeDescriptor
+public class TopTypeDescriptor
 extends PrimitiveTypeDescriptor
 {
 	/**
@@ -69,7 +69,8 @@ extends PrimitiveTypeDescriptor
 	{
 		//  Check if object (the type void) is a subtype of aType (may also be
 		// void).
-		return aType.isSupertypeOfVoid();
+		assert aType.isType();
+		return aType.traversed().sameAddressAs(object);
 	}
 
 	@Override
@@ -83,38 +84,30 @@ extends PrimitiveTypeDescriptor
 		return true;
 	}
 
-	@Override
-	@ThreadSafe
-	public boolean o_IsSupertypeOfVoid (final @NotNull AvailObject object)
-	{
-		//  Only void is a supertype of void.
-		return true;
-	}
-
 
 	/**
-	 * Construct a new {@link VoidTypeDescriptor}.
+	 * Construct a new {@link TopTypeDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected VoidTypeDescriptor (final boolean isMutable)
+	protected TopTypeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 
 	/**
-	 * The mutable {@link VoidTypeDescriptor}.
+	 * The mutable {@link TopTypeDescriptor}.
 	 */
-	private final static VoidTypeDescriptor mutable =
-		new VoidTypeDescriptor(true);
+	private final static TopTypeDescriptor mutable =
+		new TopTypeDescriptor(true);
 
 	/**
-	 * Answer a mutable {@link VoidTypeDescriptor}.
+	 * Answer a mutable {@link TopTypeDescriptor}.
 	 *
-	 * @return A mutable {@link VoidTypeDescriptor}.
+	 * @return A mutable {@link TopTypeDescriptor}.
 	 */
 	@ThreadSafe
 	/**
@@ -122,21 +115,21 @@ extends PrimitiveTypeDescriptor
 	 *
 	 * @return The mutable {@link VoidTypeDescriptor}.
 	 */
-	public static VoidTypeDescriptor mutable ()
+	public static TopTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link VoidTypeDescriptor}.
+	 * The immutable {@link TopTypeDescriptor}.
 	 */
-	private final static VoidTypeDescriptor immutable =
-		new VoidTypeDescriptor(false);
+	private final static TopTypeDescriptor immutable =
+		new TopTypeDescriptor(false);
 
 	/**
-	 * Answer an immutable {@link VoidTypeDescriptor}.
+	 * Answer an immutable {@link TopTypeDescriptor}.
 	 *
-	 * @return An immutable {@link VoidTypeDescriptor}.
+	 * @return An immutable {@link TopTypeDescriptor}.
 	 */
 	@ThreadSafe
 	/**
@@ -144,7 +137,7 @@ extends PrimitiveTypeDescriptor
 	 *
 	 * @return The immutable {@link VoidTypeDescriptor}.
 	 */
-	public static VoidTypeDescriptor immutable ()
+	public static TopTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

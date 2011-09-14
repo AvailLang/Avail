@@ -72,12 +72,12 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
 	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
 	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
-	 * always the {@link VoidDescriptor#voidObject() void} object.
+	 * always the {@link NullDescriptor#nullObject() void} object.
 	 */
 	@Override
 	public AvailObject o_ApparentSendName (final AvailObject object)
 	{
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**

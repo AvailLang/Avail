@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
+import com.avail.utility.*;
 
 /**
  * This is a forward declaration of a method.  An actual method must be declared
@@ -67,15 +69,6 @@ extends SignatureDescriptor
 		SIGNATURE
 	}
 
-	@Override
-	public void o_BodySignature (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject signature)
-	{
-		object.signature(signature);
-		object.ensureMetacovariant();
-	}
-
 	/**
 	 * This is just a forward declaration, so just say the actual
 	 * implementation's result will agree with our signature's return type.
@@ -86,10 +79,12 @@ extends SignatureDescriptor
 	 * suffice.
 	 */
 	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter anAvailInterpreter)
+		final @NotNull AvailObject impSet,
+		final @NotNull Interpreter anAvailInterpreter,
+		final Continuation1<Generator<String>> failBlock)
 	{
 		return object.bodySignature().returnType();
 	}
@@ -119,25 +114,10 @@ extends SignatureDescriptor
 	}
 
 	@Override
-	public void o_Signature (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.SIGNATURE, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_Signature (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIGNATURE);
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return Types.FORWARD_SIGNATURE.o();
 	}
 
 	@Override
@@ -149,7 +129,7 @@ extends SignatureDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return Types.FORWARD_SIGNATURE.o();
@@ -170,9 +150,33 @@ extends SignatureDescriptor
 	@Override
 	public void o_EnsureMetacovariant (
 		final @NotNull AvailObject object)
+	throws SignatureException
 	{
 		return;
 	}
+
+
+	/**
+	 * Create a forward declaration signature for the given {@linkplain
+	 * ClosureTypeDescriptor closure type}.
+	 *
+	 * @param bodySignature
+	 *            The closure type at which this signature should occur within
+	 *            an {@linkplain ImplementationSetDescriptor implementation
+	 *            set}.
+	 * @return
+	 *            The new forward declaration signature.
+	 */
+	public static AvailObject create (final AvailObject bodySignature)
+	throws SignatureException
+	{
+		final AvailObject instance = mutable().create();
+		instance.objectSlotPut(ObjectSlots.SIGNATURE, bodySignature);
+		instance.makeImmutable();
+		instance.ensureMetacovariant();
+		return instance;
+	}
+
 
 	/**
 	 * Construct a new {@link ForwardSignatureDescriptor}.

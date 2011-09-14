@@ -95,7 +95,7 @@ extends L2Instruction
 	@Override
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		translator.registerTypeAtPut(destinationRegister, literal.type());
+		translator.registerTypeAtPut(destinationRegister, literal.kind());
 		translator.registerConstantAtPut(destinationRegister, literal);
 	}
 }

@@ -58,14 +58,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_InnerType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.INNER_TYPE, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_InnerType (
 		final @NotNull AvailObject object)
 	{
@@ -108,13 +100,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return CONTAINER_TYPE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -122,19 +107,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		// Answer whether this object's hash value can be computed without
-		// creating new objects.  This method is used by the garbage collector
-		// to decide which objects to attempt to coalesce.  The garbage
-		// collector uses the hash values to find objects that it is likely can
-		// be coalesced together.
-		return object.innerType().isHashAvailable();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -188,7 +161,7 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -231,8 +204,10 @@ extends TypeDescriptor
 	public static @NotNull AvailObject wrapInnerType (
 		final @NotNull AvailObject innerType)
 	{
-		AvailObject result = mutable().create();
-		result.innerType(innerType.makeImmutable());
+		final AvailObject result = mutable().create();
+		result.objectSlotPut(
+			ObjectSlots.INNER_TYPE,
+			innerType.makeImmutable());
 		result.makeImmutable();
 		return result;
 	}

@@ -33,12 +33,11 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
 import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -301,7 +300,7 @@ public class MessageSplitter
 		@Override
 		public void checkType (final AvailObject argumentType)
 		{
-			if (argumentType.equals(TERMINATES.o()))
+			if (argumentType.equals(TerminatesTypeDescriptor.terminates()))
 			{
 				error("Method argument type should not be \"terminates\".");
 			}
@@ -458,11 +457,11 @@ public class MessageSplitter
 		int underscoreCount ()
 		{
 			int count = 0;
-			for (Expression expr : expressionsBeforeDagger)
+			for (final Expression expr : expressionsBeforeDagger)
 			{
 				count += expr.underscoreCount();
 			}
-			for (Expression expr : expressionsAfterDagger)
+			for (final Expression expr : expressionsAfterDagger)
 			{
 				count += expr.underscoreCount();
 			}
@@ -614,15 +613,12 @@ public class MessageSplitter
 			boolean first = true;
 			for (final String s : strings)
 			{
-				if (first)
-				{
-					first = false;
-				}
-				else
+				if (!first)
 				{
 					builder.append(", ");
 				}
 				builder.append(s);
+				first = false;
 			}
 			builder.append(")");
 			return builder.toString();
@@ -637,7 +633,7 @@ public class MessageSplitter
 		public void checkType (final AvailObject argumentType)
 		{
 			// Always expect a tuple of solutions here.
-			if (argumentType.equals(TERMINATES.o()))
+			if (argumentType.equals(TerminatesTypeDescriptor.terminates()))
 			{
 				error("Method argument type should not be \"terminates\".");
 			}
@@ -758,13 +754,12 @@ public class MessageSplitter
 			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
-				assert availObject.isInstanceOfSubtypeOf(Types.TUPLE_NODE.o());
+				assert availObject.isInstanceOfKind(TUPLE_NODE.o());
 				argumentsIterator = availObject.expressionsTuple().iterator();
 			}
 			else
 			{
-				assert availObject.isInstanceOfSubtypeOf(
-					Types.EXPRESSION_NODE.o());
+				assert availObject.isInstanceOfKind(EXPRESSION_NODE.o());
 				final List<AvailObject> argumentNodes =
 					Collections.singletonList(availObject);
 				argumentsIterator = argumentNodes.iterator();

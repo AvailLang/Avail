@@ -131,13 +131,13 @@ extends SetBinDescriptor
 		{
 			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
 			int bitVector = bitShift(1,bitPosition);
-			AvailObject unionType = elementObject.type();
+			AvailObject unionType = elementObject.kind();
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final AvailObject element = object.binElementAt(i);
 				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
 				bitVector |= bitShift(1,bitPosition);
-				unionType = unionType.typeUnion(element.type());
+				unionType = unionType.typeUnion(element.kind());
 			}
 		final int newSize = bitCount(bitVector);
 			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
@@ -148,7 +148,7 @@ extends SetBinDescriptor
 			result.bitVector(bitVector);
 			for (int i = 1; i <= newSize; i++)
 			{
-				result.binElementAtPut(i, VoidDescriptor.voidObject());
+				result.binElementAtPut(i, NullDescriptor.nullObject());
 			}
 			AvailObject localAddResult;
 			for (int i = 0; i <= oldSize; i++)
@@ -189,7 +189,7 @@ extends SetBinDescriptor
 			for (int i = 1; i <= oldSize; i++)
 			{
 				result.binElementAtPut(i, object.binElementAt(i));
-				object.binElementAtPut(i, VoidDescriptor.voidObject());
+				object.binElementAtPut(i, NullDescriptor.nullObject());
 			}
 		}
 		else if (isMutable)
@@ -261,7 +261,7 @@ extends SetBinDescriptor
 				{
 					result.binElementAtPut(
 						initIndex,
-						VoidDescriptor.voidObject());
+						NullDescriptor.nullObject());
 				}
 				for (int copyIndex = 1; copyIndex < searchIndex; copyIndex++)
 				{
@@ -348,19 +348,19 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_BinUnionType (
+	public @NotNull AvailObject o_BinUnionKind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the union of the types of this bin's elements.  I'm supposed
 		//  to be small, so recalculate it per request.
 
-		AvailObject unionType = object.binElementAt(1).type();
+		AvailObject unionKind = object.binElementAt(1).kind();
 		final int limit = object.variableObjectSlotsCount();
 		for (int index = 2; index <= limit; index++)
 		{
-			unionType = unionType.typeUnion(object.binElementAt(index).type());
+			unionKind = unionKind.typeUnion(object.binElementAt(index).kind());
 		}
-		return unionType;
+		return unionKind;
 	}
 
 	static byte numberOfLevels ()

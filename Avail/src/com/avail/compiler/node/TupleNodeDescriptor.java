@@ -122,19 +122,19 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 				expressionsTuple.tupleSize());
 			for (final AvailObject expression : expressionsTuple)
 			{
-				AvailObject expressionType = expression.expressionType();
-				if (expressionType.equals(Types.TERMINATES.o()))
+				final AvailObject expressionType = expression.expressionType();
+				if (expressionType.equals(TerminatesTypeDescriptor.terminates()))
 				{
-					return Types.TERMINATES.o();
+					return TerminatesTypeDescriptor.terminates();
 				}
 				types.add(expressionType);
 			}
-			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInteger(
-				IntegerDescriptor.fromInt(types.size()));
+			final AvailObject sizes = IntegerRangeTypeDescriptor.singleInt(
+				types.size());
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
 				TupleDescriptor.fromList(types),
-				Types.TERMINATES.o());
+				TerminatesTypeDescriptor.terminates());
 			tupleType.makeImmutable();
 			object.tupleType(tupleType);
 		}
@@ -142,18 +142,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
-		//  Answer the object's type.
-
-		return Types.TUPLE_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
-	{
-		//  Answer the object's type.
-
 		return Types.TUPLE_NODE.o();
 	}
 
@@ -168,7 +158,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.expressionsTuple().equals(another.expressionsTuple());
 	}
 
@@ -207,7 +197,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		for (AvailObject expression : object.expressionsTuple())
+		for (final AvailObject expression : object.expressionsTuple())
 		{
 			aBlock.value(expression);
 		}
@@ -268,7 +258,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	{
 		final AvailObject instance = mutable().create();
 		instance.expressionsTuple(expressions);
-		instance.tupleType(VoidDescriptor.voidObject());
+		instance.tupleType(NullDescriptor.nullObject());
 		return instance;
 	}
 

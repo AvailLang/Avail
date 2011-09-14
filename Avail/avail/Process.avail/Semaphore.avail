@@ -60,12 +60,16 @@ Method "wait for_" is [sem : Semaphore |
 	   for other reasons (simulated timeout, deadlock victim, explicit
 	   termination), an appropriate exception must be raised within this
 	   process immediately. */
+/*
 	Primitive 28 (failureCode : natural number);
+*/
 	Failed;
 ] : void;
 
 Method "signal_" is [sem : Semaphore |
+/*
 	Primitive 29 (failureCode : natural number);
+*/
 	Failed;
 ] : void;
 

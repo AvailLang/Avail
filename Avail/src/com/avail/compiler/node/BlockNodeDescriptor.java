@@ -39,7 +39,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -184,14 +184,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
-	{
-		return BLOCK_NODE.o();
-	}
-
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
 		return BLOCK_NODE.o();
 	}
@@ -263,7 +256,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.argumentsTuple().equals(another.argumentsTuple())
 			&& object.statementsTuple().equals(another.statementsTuple())
 			&& object.resultType().equals(another.resultType())
@@ -306,7 +299,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
 		{
-			if (maybeLabel.isInstanceOfSubtypeOf(LABEL_NODE.o()))
+			if (maybeLabel.isInstanceOfKind(LABEL_NODE.o()))
 			{
 				labels.add(maybeLabel);
 			}
@@ -327,8 +320,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
 		{
-			if (maybeLocal.type().isSubtypeOf(DECLARATION_NODE.o())
-				&& !maybeLocal.type().isSubtypeOf(LABEL_NODE.o()))
+			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.o())
+				&& !maybeLocal.isInstanceOfKind(LABEL_NODE.o()))
 			{
 				locals.add(maybeLocal);
 			}
@@ -422,7 +415,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final int statementsCount = statementsTuple.tupleSize();
 		if (statementsCount == 0)
 		{
-			codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+			codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
 		}
 		else
 		{
@@ -433,16 +426,16 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 			final AvailObject lastStatement =
 				statementsTuple.tupleAt(statementsCount);
-			final AvailObject lastStatementType = lastStatement.type();
+			final AvailObject lastStatementType = lastStatement.kind();
 			if (lastStatementType.isSubtypeOf(LABEL_NODE.o())
 				|| lastStatementType.isSubtypeOf(ASSIGNMENT_NODE.o())
-						&& object.resultType().equals(VOID_TYPE.o()))
+						&& object.resultType().equals(TOP.o()))
 			{
 				// Either the block 1) ends with the label declaration or
 				// 2) is void-valued and ends with an assignment. Push the void
 				// object as the return value.
 				lastStatement.emitEffectOn(codeGenerator);
-				codeGenerator.emitPushLiteral(VoidDescriptor.voidObject());
+				codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
 			}
 			else
 			{
@@ -491,7 +484,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
 		{
 			final AvailObject statement = flattenedStatements.get(index);
-			if (statement.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
+			if (statement.isInstanceOfKind(LITERAL_NODE.o()))
 			{
 				flattenedStatements.remove(index);
 			}
@@ -511,7 +504,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			resultType);
 		block.objectSlotPut(
 			ObjectSlots.NEEDED_VARIABLES,
-			VoidDescriptor.voidObject());
+			NullDescriptor.nullObject());
 		block.objectSlotPut(
 			ObjectSlots.CHECKED_EXCEPTIONS,
 			checkedExceptions);
@@ -537,9 +530,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			@Override
 			public void value (final AvailObject node)
 			{
-				assert !node.isInstanceOfSubtypeOf(SEQUENCE_NODE.o())
+				assert !node.isInstanceOfKind(SEQUENCE_NODE.o())
 				: "Sequence nodes should have been eliminated by this point";
-				if (node.type().equals(BLOCK_NODE.o()))
+				if (node.kind().equals(BLOCK_NODE.o()))
 				{
 					for (final AvailObject declaration : node.neededVariables())
 					{
@@ -551,7 +544,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 					return;
 				}
 				node.childrenDo(this);
-				if (node.type().equals(VARIABLE_USE_NODE.o()))
+				if (node.kind().equals(VARIABLE_USE_NODE.o()))
 				{
 					final AvailObject declaration = node.declaration();
 					if (!providedByMe.contains(declaration)

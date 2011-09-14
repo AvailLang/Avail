@@ -111,14 +111,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_CheckedExceptions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.CHECKED_EXCEPTIONS, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
@@ -138,14 +130,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE);
-	}
-
-	@Override
-	public void o_ArgsTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject tupleType)
-	{
-		object.objectSlotPut(ObjectSlots.ARGS_TUPLE_TYPE, tupleType);
 	}
 
 	@Override
@@ -234,7 +218,7 @@ extends TypeDescriptor
 		aStream.append('[');
 		final List<AvailObject> list = new ArrayList<AvailObject>();
 		final AvailObject tupleType = object.argsTupleType();
-		if (tupleType.equals(TERMINATES.o()))
+		if (tupleType.equals(TerminatesTypeDescriptor.terminates()))
 		{
 			aStream.append("...");
 		}
@@ -344,13 +328,6 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return CLOSURE_TYPE.o();
-	}
-
 	/**
 	 * The hash value is stored raw in the object's {@linkplain
 	 * IntegerSlots#HASH_OR_ZERO hashOrZero} slot if it has been computed,
@@ -376,34 +353,10 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return CLOSURE_TYPE.o();
-	}
-
-	/**
-	 * Answer a mutable copy of me. Always copy me, even if I was already
-	 * mutable. Make my subobjects immutable because they will be shared
-	 * between the existing and new objects.
-	 */
-	@Override
-	public @NotNull AvailObject o_CopyMutable (
-		final @NotNull AvailObject object)
-	{
-		if (isMutable)
-		{
-			object.makeSubobjectsImmutable();
-		}
-		final AvailObject clone = mutable().create();
-		clone.objectSlotPut(ObjectSlots.ARGS_TUPLE_TYPE,
-			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
-		clone.objectSlotPut(ObjectSlots.CHECKED_EXCEPTIONS,
-			object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS));
-		clone.objectSlotPut(ObjectSlots.RETURN_TYPE,
-			object.objectSlot(ObjectSlots.RETURN_TYPE));
-		clone.hashOrZero(object.hashOrZero());
-		return clone;
+		return TYPE.o();
 	}
 
 	/**
@@ -480,7 +433,7 @@ extends TypeDescriptor
 		for (int i = 1, end = argValues.size(); i <= end; i++)
 		{
 			final AvailObject arg = argValues.get(i - 1);
-			if (!arg.isInstanceOfSubtypeOf(tupleType.typeAtIndex(i)))
+			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -522,7 +475,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject arguments)
 	{
-		return arguments.isInstanceOfSubtypeOf(object.argsTupleType());
+		return arguments.isInstanceOf(object.argsTupleType());
 	}
 
 	/**
@@ -546,7 +499,7 @@ extends TypeDescriptor
 			final AvailObject actualType = argTypes.get(i - 1);
 			final AvailObject intersection =
 				argType.typeIntersection(actualType);
-			if (intersection.equals(TERMINATES.o()))
+			if (intersection.equals(TerminatesTypeDescriptor.terminates()))
 			{
 				return false;
 			}
@@ -585,21 +538,17 @@ extends TypeDescriptor
 		{
 			return false;
 		}
+		each_outer:
 		for (final AvailObject outer : aClosureType.checkedExceptions())
 		{
-			boolean anyCompatible = false;
 			for (final AvailObject inner : object.checkedExceptions())
 			{
 				if (outer.isSubtypeOf(inner))
 				{
-					anyCompatible = true;
-					break;
+					continue each_outer;
 				}
 			}
-			if (!anyCompatible)
-			{
-				return false;
-			}
+			return false;
 		}
 		return object.argsTupleType().isSubtypeOf(aClosureType.argsTupleType());
 	}
@@ -625,22 +574,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		return object.typeIntersectionOfClosureTypeCanDestroy(
-			aClosureType, false);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType,
-		final boolean canDestroy)
-	{
-		if (!canDestroy || !isMutable)
-		{
-			return object.copyMutable().typeIntersectionOfClosureTypeCanDestroy(
-				aClosureType, true);
-		}
-
 		final AvailObject tupleTypeUnion =
 			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
 				aClosureType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
@@ -657,11 +590,10 @@ extends TypeDescriptor
 			}
 		}
 		exceptions = normalizeExceptionSet(exceptions);
-		object.argsTupleType(tupleTypeUnion);
-		object.checkedExceptions(exceptions);
-		object.returnType(returnType);
-		object.hashOrZero(0);
-		return object;
+		return createWithArgumentTupleType(
+			tupleTypeUnion,
+			returnType,
+			exceptions);
 	}
 
 	@Override
@@ -685,21 +617,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		return object.typeUnionOfClosureTypeCanDestroy(aClosureType, false);
-	}
-
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureTypeCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType,
-		final boolean canDestroy)
-	{
-		if (!canDestroy || !isMutable)
-		{
-			return object.copyMutable().typeUnionOfClosureTypeCanDestroy(
-				aClosureType, true);
-		}
-
+		// Subobjects may be shared with result.
+		object.makeSubobjectsImmutable();
 		final AvailObject tupleTypeIntersection =
 			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
 				aClosureType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
@@ -708,11 +627,10 @@ extends TypeDescriptor
 		final AvailObject exceptions = normalizeExceptionSet(
 			object.checkedExceptions().setUnionCanDestroy(
 				aClosureType.checkedExceptions(), true));
-		object.argsTupleType(tupleTypeIntersection);
-		object.checkedExceptions(exceptions);
-		object.returnType(returnType);
-		object.hashOrZero(0);
-		return object;
+		return createWithArgumentTupleType(
+			tupleTypeIntersection,
+			returnType,
+			exceptions);
 	}
 
 	/**
@@ -739,7 +657,7 @@ extends TypeDescriptor
 		// exception. If the element is terminates, then exclude it.
 		if (exceptionSet.setSize() == 1)
 		{
-			if (exceptionSet.iterator().next().equals(TERMINATES.o()))
+			if (exceptionSet.iterator().next().equals(TerminatesTypeDescriptor.terminates()))
 			{
 				return SetDescriptor.empty();
 			}
@@ -749,25 +667,21 @@ extends TypeDescriptor
 		// Actually normalize the set. That is, eliminate types for which a
 		// supertype is already present. Also, eliminate terminates.
 		AvailObject normalizedSet = SetDescriptor.empty();
+		each_outer:
 		for (final AvailObject outer : exceptionSet)
 		{
-			if (!outer.equals(TERMINATES.o()))
+			if (!outer.equals(TerminatesTypeDescriptor.terminates()))
 			{
-				boolean subsumed = false;
 				for (final AvailObject inner : exceptionSet)
 				{
 					if (outer.isSubtypeOf(inner))
 					{
-						subsumed = true;
-						break;
+						continue each_outer;
 					}
 				}
-				if (!subsumed)
-				{
-					normalizedSet = normalizedSet.setWithElementCanDestroy(
-						outer,
-						true);
-				}
+				normalizedSet = normalizedSet.setWithElementCanDestroy(
+					outer,
+					true);
 			}
 		}
 
@@ -800,7 +714,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject returnType,
 		final @NotNull AvailObject exceptionSet)
 	{
-		assert argsTupleType.isInstanceOfSubtypeOf(TUPLE_TYPE.o());
+		assert argsTupleType.isTupleType();
 		final AvailObject exceptionsReduced =
 			normalizeExceptionSet(exceptionSet);
 		final AvailObject type = mutable().create();
@@ -837,10 +751,10 @@ extends TypeDescriptor
 	{
 		final AvailObject tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.singleInteger(
-					IntegerDescriptor.fromInt(argTypes.tupleSize())),
+				IntegerRangeTypeDescriptor.singleInt(
+					argTypes.tupleSize()),
 				argTypes,
-				TERMINATES.o());
+				TerminatesTypeDescriptor.terminates());
 		return createWithArgumentTupleType(tupleType, returnType, exceptionSet);
 	}
 
@@ -883,7 +797,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject returnType)
 	{
 		return createWithArgumentTupleType(
-			TERMINATES.o(),
+			TerminatesTypeDescriptor.terminates(),
 			returnType,
 			SetDescriptor.empty());//TODO: Probably should allow any exception.
 	}
@@ -891,7 +805,12 @@ extends TypeDescriptor
 	/**
 	 * The most general {@linkplain ClosureTypeDescriptor closure type}.
 	 */
-	private static AvailObject TopInstance;
+	private static AvailObject MostGeneralType;
+
+	/**
+	 * The metatype of all closure types.
+	 */
+	private static AvailObject Meta;
 
 	/**
 	 * Create the top (i.e., most general) {@linkplain ClosureTypeDescriptor
@@ -899,7 +818,10 @@ extends TypeDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		TopInstance = forReturnType(VOID_TYPE.o());
+		MostGeneralType = forReturnType(TOP.o());
+		MostGeneralType.makeImmutable();
+		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta.makeImmutable();
 	}
 
 	/**
@@ -907,7 +829,8 @@ extends TypeDescriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		TopInstance = null;
+		MostGeneralType = null;
+		Meta = null;
 	}
 
 	/**
@@ -916,9 +839,21 @@ extends TypeDescriptor
 	 *
 	 * @return The closure type "[...]->void".
 	 */
-	public static AvailObject topInstance ()
+	public static AvailObject mostGeneralType ()
 	{
-		return TopInstance;
+		return MostGeneralType;
+	}
+
+	/**
+	 * Answer the metatype for all closure types.  This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on the {@linkplain
+	 * #mostGeneralType() most general type}.
+	 *
+	 * @return The closure type "[...]->void".
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
 	}
 
 

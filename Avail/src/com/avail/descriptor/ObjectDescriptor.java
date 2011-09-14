@@ -82,7 +82,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
@@ -90,35 +90,15 @@ extends Descriptor
 		//  an approximate type and do the comparison, because the approximate type
 		//  will just send this message recursively.
 
-		if (aTypeObject.equals(VOID_TYPE.o()))
+		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(ALL.o()))
+		if (aTypeObject.equals(ANY.o()))
 		{
 			return true;
 		}
 		return aTypeObject.hasObjectInstance(object);
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		// Answer the object's type.
-
-		object.makeImmutable();
-		final AvailObject valueMap = object.fieldMap();
-		AvailObject typeMap = MapDescriptor.newWithCapacity(
-			valueMap.capacity());
-		for (final MapDescriptor.Entry entry : valueMap.mapIterable())
-		{
-			typeMap = typeMap.mapAtPuttingCanDestroy(
-				entry.key,
-				entry.value.type(),
-				true);
-		}
-		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
 	@Override
@@ -131,29 +111,26 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
-		return object.fieldMap().isHashAvailable();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
+		object.makeImmutable();
+		final AvailObject valueMap = object.fieldMap();
+		AvailObject typeMap = MapDescriptor.newWithCapacity(
+			valueMap.capacity());
+		for (final MapDescriptor.Entry entry : valueMap.mapIterable())
+		{
+			typeMap = typeMap.mapAtPuttingCanDestroy(
+				entry.key,
+				entry.value.kind(),
+				true);
+		}
+		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
 	public static AvailObject objectFromMap (final AvailObject map)
 	{
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.fieldMap(map);
 		return result;
 	}

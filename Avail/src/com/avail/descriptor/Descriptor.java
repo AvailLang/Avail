@@ -39,6 +39,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
@@ -283,7 +284,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -293,7 +294,7 @@ extends AbstractDescriptor
 		final boolean canDestroy)
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -411,7 +412,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -484,74 +485,6 @@ extends AbstractDescriptor
 	public void o_BitVector (
 		final AvailObject object,
 		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_BodyBlock (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param bb
-	 * @param rqb
-	 * @param rtb
-	 */
-	@Override
-	public void o_BodyBlockRequiresBlockReturnsBlock (
-		final AvailObject object,
-		final AvailObject bb,
-		final AvailObject rqb,
-		final AvailObject rtb)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param signature
-	 */
-	@Override
-	public void o_BodySignature (
-		final AvailObject object,
-		final AvailObject signature)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param bs
-	 * @param rqb
-	 * @param rtb
-	 */
-	@Override
-	public void o_BodySignatureRequiresBlockReturnsBlock (
-		final AvailObject object,
-		final AvailObject bs,
-		final AvailObject rqb,
-		final AvailObject rtb)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -841,15 +774,17 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
 		final AvailObject object,
 		final List<AvailObject> argTypes,
-		final Interpreter anAvailInterpreter)
+		final @NotNull AvailObject impSet,
+		final Interpreter anAvailInterpreter,
+		final Continuation1<Generator<String>> failBlock)
 	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -865,7 +800,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -874,21 +809,6 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ConstantBindings (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ContentType (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -947,7 +867,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -968,24 +888,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param positiveTuple
-	 * @param possibilities
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_CreateTestingTreeWithPositiveMatchesRemainingPossibilities (
-		final AvailObject object,
-		final AvailObject positiveTuple,
-		final AvailObject possibilities)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -997,7 +899,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1013,34 +915,6 @@ extends AbstractDescriptor
 	{
 		//  GENERATED pure (abstract) method.
 
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_DefaultType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_DependentChunkIndices (
-		final AvailObject object,
-		final AvailObject value)
-	{
 		unsupportedOperation();
 		return;
 	}
@@ -1068,7 +942,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -1079,7 +953,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -1090,7 +964,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1106,7 +980,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1252,21 +1126,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_FirstTupleType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param zone
 	 * @param newSubtuple
 	 * @param startSubtupleIndex
@@ -1284,7 +1143,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1417,21 +1276,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ImplementationsTuple (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param messageBundle
 	 * @return
 	 */
@@ -1443,7 +1287,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1452,7 +1296,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_Includes (
+	public boolean o_IncludesImplementation (
 		final AvailObject object,
 		final AvailObject imp)
 	{
@@ -1483,36 +1327,6 @@ extends AbstractDescriptor
 	public void o_Index (
 		final AvailObject object,
 		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_InnerType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Instance (
-		final AvailObject object,
-		final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -1662,13 +1476,13 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aCyclicType
+	 * @param aCompiledCodeType
 	 * @return
 	 */
 	@Override
-	public boolean o_IsSupertypeOfCyclicType (
+	public boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCyclicType)
+		final AvailObject aCompiledCodeType)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -1701,22 +1515,6 @@ extends AbstractDescriptor
 	public boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param anObjectMeta
-	 * @return
-	 */
-	@Override
-	public boolean o_IsSupertypeOfObjectMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -1790,21 +1588,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aBoolean
-	 */
-	@Override
-	public void o_IsValid (
-		final AvailObject object,
-		final boolean aBoolean)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param argTypes
 	 * @param interpreter
 	 * @return
@@ -1834,7 +1617,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1847,21 +1630,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index,
 		final AvailObject keyObject)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_KeyType (
-		final AvailObject object,
-		final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -1944,24 +1712,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	@Override
-	public void o_LiteralAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -1977,7 +1728,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2010,7 +1761,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2026,7 +1777,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2044,7 +1795,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2060,7 +1811,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2076,7 +1827,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2092,22 +1843,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_LowerBound (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2123,7 +1859,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2143,7 +1879,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2176,7 +1912,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2232,7 +1968,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -2243,7 +1979,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -2254,22 +1990,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_MyObjectType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2380,51 +2101,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_NumFloats (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_NumIntegers (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_NumObjects (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -2452,24 +2128,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param tupleOfOuterTypes
-	 * @param tupleOfLocalContainerTypes
-	 */
-	@Override
-	public void o_OuterTypesLocalTypes (
-		final AvailObject object,
-		final AvailObject tupleOfOuterTypes,
-		final AvailObject tupleOfLocalContainerTypes)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2485,7 +2144,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2543,7 +2202,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2574,7 +2233,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2590,7 +2249,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2608,7 +2267,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2624,7 +2283,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2642,7 +2301,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2651,21 +2310,6 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_PrivateNames (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_PrivateTestingTree (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -2965,21 +2609,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_RequiresBlock (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param forwardImplementation
 	 * @param methodName
 	 */
@@ -3001,21 +2630,6 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Restrictions (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ReturnsBlock (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -3057,21 +2671,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_SecondTupleType (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param otherSet
 	 * @param canDestroy
 	 * @return
@@ -3085,7 +2684,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3103,22 +2702,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_SetSize (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3153,7 +2737,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3186,7 +2770,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3204,22 +2788,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Signature (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3258,21 +2827,6 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_SizeRange (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_LazySpecialActions (
 		final AvailObject object,
 		final AvailObject value)
@@ -3294,7 +2848,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3412,7 +2966,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3430,7 +2984,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3446,7 +3000,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -3457,7 +3011,7 @@ extends AbstractDescriptor
 		throws ArithmeticException
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3506,7 +3060,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3522,7 +3076,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3538,7 +3092,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3575,7 +3129,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3622,7 +3176,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3638,7 +3192,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3654,25 +3208,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param aClosureType
-	 * @param canDestroy
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureTypeCanDestroy (
-		final AvailObject object,
-		final AvailObject aClosureType,
-		final boolean canDestroy)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3688,7 +3224,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3704,23 +3240,23 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
 	 * @param object
-	 * @param aCyclicType
+	 * @param aCompiledCodeType
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfCyclicType (
+	public @NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCyclicType)
+		final AvailObject aCompiledCodeType)
 	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3736,7 +3272,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3752,7 +3288,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3768,23 +3304,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param anObjectMeta
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3800,7 +3320,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3816,7 +3336,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3832,22 +3352,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_TypeTuple (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3863,7 +3368,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3879,25 +3384,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param aClosureType
-	 * @param canDestroy
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureTypeCanDestroy (
-		final AvailObject object,
-		final AvailObject aClosureType,
-		final boolean canDestroy)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3913,7 +3400,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3929,23 +3416,23 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
 	 * @param object
-	 * @param aCyclicType
+	 * @param aCompiledCodeType
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfCyclicType (
+	public @NotNull AvailObject o_TypeUnionOfCompiledCodeType (
 		final AvailObject object,
-		final AvailObject aCyclicType)
+		final AvailObject aCompiledCodeType)
 	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3961,7 +3448,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3977,23 +3464,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param anObjectMeta
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectMeta (
-		final AvailObject object,
-		final AvailObject anObjectMeta)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4009,7 +3480,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4025,7 +3496,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4041,7 +3512,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4074,7 +3545,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4112,21 +3583,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_UpperBound (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param argTypes
 	 * @param anAvailInterpreter
 	 * @param failBlock
@@ -4142,22 +3598,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Validity (
-		final AvailObject object,
-		final int value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4188,7 +3629,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4201,21 +3642,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index,
 		final AvailObject valueObject)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ValueType (
-		final AvailObject object,
-		final AvailObject value)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -4243,37 +3669,7 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_Vectors (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
 	public void o_VisibleNames (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Wordcodes (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -4324,7 +3720,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4338,7 +3734,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4352,34 +3748,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_BecomeExactType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 */
-	@Override
-	public void o_BecomeRealTupleType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return;
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4421,7 +3790,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4435,7 +3804,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4449,7 +3818,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4463,7 +3832,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4517,7 +3886,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4531,7 +3900,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4545,7 +3914,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4571,7 +3940,7 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4585,7 +3954,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4599,7 +3968,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4613,7 +3982,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4627,7 +3996,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4641,7 +4010,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4655,21 +4024,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_CopyMutable (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4683,7 +4038,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4695,7 +4050,7 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4731,6 +4086,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_EnsureMetacovariant (
 		final AvailObject object)
+	throws SignatureException
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -4749,7 +4105,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4895,7 +4251,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4909,7 +4265,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4923,21 +4279,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_FirstTupleType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4965,7 +4307,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5007,7 +4349,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5019,7 +4361,7 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5047,21 +4389,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_Instance (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5223,20 +4551,6 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsSupertypeOfVoid (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public boolean o_IsValid (
 		final AvailObject object)
 	{
@@ -5271,7 +4585,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5285,7 +4599,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5325,7 +4639,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5339,7 +4653,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5395,7 +4709,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5409,7 +4723,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5423,21 +4737,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_MyObjectType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5451,7 +4751,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5465,7 +4765,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5479,7 +4779,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5493,7 +4793,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5507,7 +4807,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5665,7 +4965,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5679,7 +4979,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5735,7 +5035,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5749,7 +5049,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5763,7 +5063,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5803,7 +5103,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5817,7 +5117,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5831,7 +5131,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5845,7 +5145,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5859,21 +5159,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_SecondTupleType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5901,7 +5187,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5915,7 +5201,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5927,7 +5213,7 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -5994,7 +5280,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6008,7 +5294,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6063,7 +5349,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6077,7 +5363,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6091,7 +5377,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6113,27 +5399,13 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public int o_Validity (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public @NotNull AvailObject o_Value (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6147,7 +5419,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6161,7 +5433,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6175,7 +5447,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6189,7 +5461,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6216,7 +5488,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -6244,7 +5516,7 @@ extends AbstractDescriptor
 		//  GENERATED pure (abstract) method.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 
@@ -6402,6 +5674,21 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsContinuationType (
+		final AvailObject object,
+		final AvailObject aType)
+	{
+		//  GENERATED pure (abstract) method.
+
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsCompiledCodeType (
 		final AvailObject object,
 		final AvailObject aType)
 	{
@@ -6662,27 +5949,14 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		// Answer whether object is an instance of a subtype of aType.  Don't
-		// generate an approximate type and do the comparison, because the
-		// approximate type will simply send this message to the object.
-		return object.exactType().isSubtypeOf(aType);
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public boolean o_CanComputeHashOfType (
-		final AvailObject object)
-	{
-		//  Answer whether object supports the #hashOfType protocol.
-
-		return false;
+		// Strengthened in TypeDescriptor to support covariance of instance
+		// types.
+		return aType.equalsInstanceTypeFor(object)
+			|| object.kind().isSubtypeOf(aType);
 	}
 
 	/**
@@ -6693,32 +5967,6 @@ extends AbstractDescriptor
 	public boolean o_EqualsBlank (
 		final AvailObject object)
 	{
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public boolean o_EqualsFalse (
-		final AvailObject object)
-	{
-		//  Answer true if this is the Avail false object, which it isn't.
-
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public boolean o_EqualsTrue (
-		final AvailObject object)
-	{
-		//  Answer true if this is the Avail true object, which it isn't.
-
 		return false;
 	}
 
@@ -6749,20 +5997,6 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final AvailObject object)
-	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-
-		unsupportedOperation();
-		return VoidDescriptor.voidObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public int o_Hash (
 		final AvailObject object)
 	{
@@ -6782,22 +6016,6 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return false;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public boolean o_IsHashAvailable (
-		final AvailObject object)
-	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
-		return true;
 	}
 
 	/**
@@ -6838,13 +6056,13 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final AvailObject object)
 	{
 		//  Answer the object's type.
 
 		unsupportedOperation();
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 
@@ -7099,7 +6317,7 @@ extends AbstractDescriptor
 
 		if (object.equals(elementObject))
 		{
-			return VoidDescriptor.voidObject();
+			return NullDescriptor.nullObject();
 		}
 		if (!canDestroy)
 		{
@@ -7239,7 +6457,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsCyclicType (
+	public boolean o_IsAtom (
 		final AvailObject object)
 	{
 		return false;
@@ -7788,10 +7006,10 @@ extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_BinUnionType (final AvailObject object)
+	public AvailObject o_BinUnionKind (final AvailObject object)
 	{
 		// Ordinary (non-bin, non-void) objects act as set bins of size one.
-		return object.type();
+		return object.kind();
 	}
 
 
@@ -7936,37 +7154,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ObjectMetaLevels (
-		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return null;
-	}
-
-	@Override
-	public void o_ObjectMetaLevels (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		unsupportedOperation();
-	}
-
-	@Override
 	public @NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
-
-	@Override
-	public void o_CheckedExceptions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		unsupportedOperation();
-	}
-
 
 	@Override
 	public boolean o_IsInt (
@@ -7984,35 +7177,6 @@ extends AbstractDescriptor
 	}
 
 
-	/**
-	 * @param object
-	 * @param lowInc
-	 */
-	@Override
-	public void o_LowerInclusive (
-		final AvailObject object,
-		final boolean lowInc)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-
-	/**
-	 * @param object
-	 * @param lowInc
-	 * @param highInc
-	 */
-	@Override
-	public void o_UpperInclusive (
-		final AvailObject object,
-		final boolean highInc)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-
 	@Override
 	public AvailObject o_ArgsTupleType (final AvailObject object)
 	{
@@ -8022,10 +7186,66 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_ArgsTupleType (
+	public boolean o_EqualsInstanceTypeFor (
 		final AvailObject object,
-		final AvailObject tupleType)
+		final AvailObject anObject)
+	{
+		return false;
+	}
+
+
+	@Override
+	public AvailObject o_Instances (
+		final AvailObject object)
 	{
 		unsupportedOperation();
+		return null;
 	}
+
+
+	@Override
+	public boolean o_EqualsUnionTypeWithSet (
+		final AvailObject object,
+		final AvailObject set)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsAbstractUnionType (final AvailObject object)
+	{
+		return false;
+	}
+
+
+	@Override
+	public boolean o_IsInstanceOf (
+		final AvailObject object,
+		final AvailObject aType)
+	{
+		if (aType.isAbstractUnionType())
+		{
+			return aType.abstractUnionTypeIncludesInstance(object);
+		}
+		return object.isInstanceOfKind(aType);
+	}
+
+
+	@Override
+	public boolean o_AbstractUnionTypeIncludesInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+
+	@Override
+	public AvailObject o_ComputeSuperkind (final AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
 }

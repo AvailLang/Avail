@@ -265,9 +265,9 @@ public class L1Decompiler implements L1OperationDispatcher
 		for (final AvailObject outer : theOuters)
 		{
 			assert
-				outer.type() == REFERENCE_NODE.o()
-				|| outer.type() == VARIABLE_USE_NODE.o()
-				|| outer.type() == LITERAL_NODE.o();
+				outer.kind() == REFERENCE_NODE.o()
+				|| outer.kind() == VARIABLE_USE_NODE.o()
+				|| outer.kind() == LITERAL_NODE.o();
 		}
 		final AvailObject blockNode =
 			new L1Decompiler().parseWithOuterVarsTempGenerator(
@@ -312,7 +312,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject use;
 		final int outerIndex = getInteger();
 		final AvailObject outer = outers.get(outerIndex - 1);
-		if (outer.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
+		if (outer.isInstanceOfKind(LITERAL_NODE.o()))
 		{
 			pushExpression(outer);
 			return;
@@ -384,7 +384,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPushLiteral ()
 	{
 		final AvailObject value = code.literalAt(getInteger());
-		if (value.isInstanceOfSubtypeOf(ClosureTypeDescriptor.topInstance()))
+		if (value.isInstanceOfKind(ClosureTypeDescriptor.mostGeneralType()))
 		{
 			final List<AvailObject> closureOuters =
 				new ArrayList<AvailObject>(value.numOuterVars());
@@ -477,7 +477,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			// code generator didn't do what we expected.  Remove that bogus
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
-			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
 			assert duplicateExpression.markerValue().equalsVoid();
 			expressionStack.add(assignmentNode);
 		}
@@ -489,20 +489,20 @@ public class L1Decompiler implements L1OperationDispatcher
 		final AvailObject variableUse;
 		final AvailObject outerExpr = outers.get(getInteger() - 1);
 		final AvailObject outerDecl;
-		if (outerExpr.isInstanceOfSubtypeOf(LITERAL_NODE.o()))
+		if (outerExpr.isInstanceOfKind(LITERAL_NODE.o()))
 		{
 			// Writing into a synthetic literal (a byproduct of decompiling a
 			// block without decompiling its outer scopes).
 			final AvailObject token = outerExpr.token();
 			final AvailObject variableObject = token.literal();
-			assert variableObject.isInstanceOfSubtypeOf(CONTAINER.o());
+			assert variableObject.isInstanceOfKind(CONTAINER.o());
 			outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 				token,
 				variableObject);
 		}
 		else
 		{
-			assert outerExpr.isInstanceOfSubtypeOf(REFERENCE_NODE.o());
+			assert outerExpr.isInstanceOfKind(REFERENCE_NODE.o());
 			outerDecl = outerExpr.variable().declaration();
 		}
 		variableUse = VariableUseNodeDescriptor.newUse(
@@ -523,7 +523,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			// code generator didn't do what we expected.  Remove that bogus
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
-			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
 			assert duplicateExpression.markerValue().equalsVoid();
 			expressionStack.add(assignmentNode);
 		}
@@ -538,7 +538,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	 *
 	 * <p>Pop the expression (that represents the right hand side of the
 	 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
-	 * whose markerValue is the {@linkplain VoidDescriptor#voidObject() void
+	 * whose markerValue is the {@linkplain NullDescriptor#nullObject() void
 	 * object}, then push the right-hand side expression back onto the
 	 * expression stack.</p>
 	 */
@@ -547,7 +547,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject rightSide = popExpression();
 		final AvailObject marker = MarkerNodeDescriptor.mutable().create();
-		marker.markerValue(VoidDescriptor.voidObject());
+		marker.markerValue(NullDescriptor.nullObject());
 		pushExpression(marker);
 		pushExpression(rightSide);
 	}
@@ -588,7 +588,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		AvailObject label;
 		if (statements.size() > 0
-			&& statements.get(0).isInstanceOfSubtypeOf(DECLARATION_NODE.o())
+			&& statements.get(0).isInstanceOfKind(DECLARATION_NODE.o())
 			&& statements.get(0).declarationKind() == LABEL)
 		{
 			label = statements.get(0);
@@ -656,7 +656,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			// code generator didn't do what we expected.  Remove that bogus
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
-			assert duplicateExpression.isInstanceOfSubtypeOf(MARKER_NODE.o());
+			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
 			assert duplicateExpression.markerValue().equalsVoid();
 			expressionStack.add(assignmentNode);
 		}
@@ -688,7 +688,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final AvailObject typeLiteralNode = types.get(i);
 			if (typeLiteralNode != null)
 			{
-				assert typeLiteralNode.isInstanceOfSubtypeOf(LITERAL_NODE.o());
+				assert typeLiteralNode.isInstanceOfKind(LITERAL_NODE.o());
 				final AvailObject superCast =
 					SuperCastNodeDescriptor.mutable().create();
 				superCast.expression(callArgs.get(i));

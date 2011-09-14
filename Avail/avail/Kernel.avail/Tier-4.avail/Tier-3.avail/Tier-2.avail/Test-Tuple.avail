@@ -86,33 +86,33 @@ Assert 16r"Abc123" = 11256099;
 Assert 123 radix 10 = "123";
 
 Assert [<1,2,3>;] type
-	= []->tuple like <[1..1],[2..2],[3..3]>;
+	<= []->tuple like <[1..1],[2..2],[3..3]>;
 Assert [<1,2> then <3,4>;] type
-	= []->tuple like <[1..1],[2..2],[3..3],[4..4]>;
+	<= []->tuple like <[1..1],[2..2],[3..3],[4..4]>;
 Assert [<1,2> then <3,4> then <5,6>;] type
-	= []->tuple like <[1..1],[2..2],[3..3],[4..4],[5..5],[6..6]>;
+	<= []->tuple like <[1..1],[2..2],[3..3],[4..4],[5..5],[6..6]>;
 Assert [splice <<1,2>,<3,4>,<5,6>>;] type
-	= []->tuple like <[1..1],[2..2],[3..3],[4..4],[5..5],[6..6]>;
+	<= []->tuple like <[1..1],[2..2],[3..3],[4..4],[5..5],[6..6]>;
 
 x : type union of <50,2> type and <50,2,3,4> type;
 y : tuple [5..INF) like <[10..10],[20..20]> default [30..30];
 
 Assert [x;] type
-	= []->tuple [2..4] like <[50..50],[2..2],[3..3],[4..4]> default terminates;
+	<= []->tuple [2..4] like <[50..50],[2..2],[3..3],[4..4]> default terminates;
 Assert [x then x;] type
-	= []->tuple [4..8] like <
+	<= []->tuple [4..8] like <
 		[50..50],[2..2],[3..50],[2..50],
 		[2..50],[2..4],[3..4],[4..4]> default terminates;
 Assert [x then y;] type
-	= []->tuple [7..INF) like <
+	<= []->tuple [7..INF) like <
 		[50..50],[2..2],[3..10],[4..20],
 		[10..30],[20..30],[30..30]> default [30..30];
 Assert [y then x;] type
-	= []->tuple [7..INF) like <
+	<= []->tuple [7..INF) like <
 		[10..10],[20..20],[30..30],[30..30],[30..30],
 		[30..50],[2..50]> default [2..50];
 Assert [y then y;] type
-	= []->tuple [10..INF) like <
+	<= []->tuple [10..INF) like <
 		[10..10],[20..20],[30..30],[30..30],[30..30],
 		[10..30],[10..30],[10..30]> default [10..30];
 
@@ -126,11 +126,11 @@ t5 : [splice t5a;] type result;
 
 /* Note the approximation that must be produced here... */
 Assert [t5;] type result
-	= tuple [2..INF) like <
+	<= tuple [2..INF) like <
 		[14..14],[15..15]> default [14..15];
 
 Assert [splice <t1,t2,t3,t4,t5>;] type result
-	= tuple [15..INF) like <
+	<= tuple [15..INF) like <
 		[1..1],[2..2],[3..3],[4..4],
 		[4..5],[4..6],[4..7],[5..7],[6..8],[7..9],[7..10],[7..12],
 		[8..13],[9..14],[10..15],[11..15]> default [11..15];

@@ -96,17 +96,13 @@ extends TupleDescriptor
 			for (int i = 1, end = object.tupleSize(); i <= end; i++)
 			{
 				final char c = (char) object.tupleAt(i).codePoint();
-				if (c == '\"' || c == '\'' || c == '\\')
+				if (c == '\"' || c == '\\')
 				{
 					aStream.append('\\');
-					aStream.append(c);
 				}
-				else
-				{
-					aStream.append(c);
-				}
+				aStream.append(c);
 			}
-			aStream.append('\"');
+			aStream.append('"');
 		}
 		else
 		{
@@ -406,25 +402,6 @@ extends TupleDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		if (object.hashOrZero() != 0)
-		{
-			return true;
-		}
-		for (int zone = 1, end = object.numberOfZones(); zone <= end; zone++)
-		{
-			if (!object.subtupleForZone(zone).isHashAvailable())
-			{
-				return false;
-			}
-		}
-		// Conservative approximation
-		return true;
-	}
-
-	@Override
 	public int o_EndOfZone (
 		final @NotNull AvailObject object,
 		final int zone)
@@ -691,7 +668,7 @@ extends TupleDescriptor
 		if (index < 1 || index > object.tupleSize())
 		{
 			error("Out of bounds access to SpliceTuple", object);
-			return VoidDescriptor.voidObject();
+			return NullDescriptor.nullObject();
 		}
 		final int zoneIndex = object.zoneForIndex(index);
 		final AvailObject subtuple = object.subtupleForZone(zoneIndex);
@@ -734,8 +711,8 @@ extends TupleDescriptor
 				true);
 		}
 		final int zoneIndex = object.zoneForIndex(index);
-		AvailObject oldSubtuple = object.subtupleForZone(zoneIndex);
-		AvailObject newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
+		final AvailObject oldSubtuple = object.subtupleForZone(zoneIndex);
+		final AvailObject newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
 			object.translateToZone(index, zoneIndex),
 			newValueObject,
 			canDestroy);

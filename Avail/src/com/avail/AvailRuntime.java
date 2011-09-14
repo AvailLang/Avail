@@ -115,47 +115,48 @@ public final class AvailRuntime
 	 */
 	{
 		// Basic types
-		specialObjects[1] = ALL.o();
-		specialObjects[2] = BOOLEAN.o();
+		specialObjects[1] = ANY.o();
+		specialObjects[2] = UnionTypeDescriptor.booleanObject();
 		specialObjects[3] = CHARACTER.o();
-		specialObjects[4] = ClosureTypeDescriptor.forReturnType(VOID_TYPE.o());
-		specialObjects[5] = CLOSURE_TYPE.o();
-		specialObjects[6] = COMPILED_CODE.o();
+		specialObjects[4] = ClosureTypeDescriptor.mostGeneralType();
+		specialObjects[5] = ClosureTypeDescriptor.meta();
+		specialObjects[6] = CompiledCodeTypeDescriptor.mostGeneralType();
 		specialObjects[7] = CONTAINER.o();
 		specialObjects[8] = CONTAINER_TYPE.o();
-		specialObjects[9] = CONTINUATION.o();
-		specialObjects[10] = CONTINUATION_TYPE.o();
-		specialObjects[11] = CYCLIC_TYPE.o();
+		specialObjects[9] = ContinuationTypeDescriptor.mostGeneralType();
+		specialObjects[10] = ContinuationTypeDescriptor.meta();
+		specialObjects[11] = ATOM.o();
 		specialObjects[12] = DOUBLE.o();
-		specialObjects[13] =
-			IntegerRangeTypeDescriptor.extendedIntegers().makeImmutable();
-		specialObjects[14] = FALSE_TYPE.o();
+		specialObjects[13] = IntegerRangeTypeDescriptor.extendedIntegers();
+		specialObjects[14] = InstanceTypeDescriptor.withInstance(
+			AtomDescriptor.falseObject());
 		specialObjects[15] = FLOAT.o();
 		//16
-		specialObjects[17] =
-			IntegerRangeTypeDescriptor.integers().makeImmutable();
-		specialObjects[18] = INTEGER_TYPE.o();
-		specialObjects[19] = MAP_TYPE.o();
+		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
+		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
+		specialObjects[19] = InstanceTypeDescriptor.withInstance(
+			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				ANY.o(),
+				ANY.o()));
 		specialObjects[20] = META.o();
-		//21
-		//22
-		specialObjects[23] = ObjectTypeDescriptor.objectTypeFromMap(
-			MapDescriptor.empty()).type().makeImmutable();
-		specialObjects[24] = PRIMITIVE_TYPE.o();
+		specialObjects[21] = UNION_TYPE.o();
+		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
+		specialObjects[23] = ObjectTypeDescriptor.meta();
+		//24 (PRIMITIVE_TYPE)
 		specialObjects[25] = PROCESS.o();
-		specialObjects[26] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.wholeNumbers(), ALL.o())
-				.makeImmutable();
-		specialObjects[27] = SET_TYPE.o();
+		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
+		specialObjects[27] = SetTypeDescriptor.meta();
 		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
-		specialObjects[29] = TERMINATES.o();
-		specialObjects[30] = TERMINATES_TYPE.o();
-		specialObjects[31] = TRUE_TYPE.o();
-		specialObjects[32] =
-			TupleTypeDescriptor.mostGeneralTupleType().makeImmutable();
-		specialObjects[33] = TUPLE_TYPE.o();
+		specialObjects[29] = TerminatesTypeDescriptor.terminates();
+		specialObjects[30] = InstanceTypeDescriptor.withInstance(
+			TerminatesTypeDescriptor.terminates());
+		specialObjects[31] = InstanceTypeDescriptor.withInstance(
+			AtomDescriptor.trueObject());
+		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
+		specialObjects[33] = TupleTypeDescriptor.meta();
 		specialObjects[34] = TYPE.o();
-		specialObjects[35] = VOID_TYPE.o();
+		specialObjects[35] = TOP.o();
 		specialObjects[36] =
 			IntegerRangeTypeDescriptor.wholeNumbers();
 		specialObjects[37] =
@@ -193,8 +194,8 @@ public final class AvailRuntime
 		specialObjects[67] = MODULE_CONSTANT_NODE.o();
 
 		// Booleans
-		specialObjects[70] = BooleanDescriptor.objectFrom(true);
-		specialObjects[71] = BooleanDescriptor.objectFrom(false);
+		specialObjects[70] = AtomDescriptor.trueObject();
+		specialObjects[71] = AtomDescriptor.falseObject();
 
 		// Bootstrap helpers
 		// tuple of string...
@@ -223,6 +224,13 @@ public final class AvailRuntime
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringTupleType());
 
+		for (final AvailObject object : specialObjects)
+		{
+			if (object != null)
+			{
+				object.makeImmutable();
+			}
+		}
 	}
 
 	/**
@@ -265,7 +273,7 @@ public final class AvailRuntime
 			// Add all visible message bundles to the root message bundle tree.
 			for (final AvailObject name : aModule.visibleNames())
 			{
-				assert name.isCyclicType();
+				assert name.isAtom();
 				final MessageSplitter splitter =
 					new MessageSplitter(name.name());
 				final AvailObject messageParts = splitter.messageParts();
@@ -347,24 +355,24 @@ public final class AvailRuntime
 	/**
 	 * The {@linkplain MethodDescriptor methods} currently known to the
 	 * {@linkplain AvailRuntime runtime}: a {@linkplain MapDescriptor map} from
-	 * {@linkplain CyclicTypeDescriptor method name} to {@linkplain
+	 * {@linkplain AtomDescriptor method name} to {@linkplain
 	 * ImplementationSetDescriptor implementation set}.
 	 */
 	private @NotNull AvailObject methods = MapDescriptor.empty();
 
 	/**
 	 * Are there any {@linkplain ImplementationSetDescriptor methods} bound to
-	 * the specified {@linkplain CyclicTypeDescriptor selector}?
+	 * the specified {@linkplain AtomDescriptor selector}?
 	 *
-	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
+	 * @param selector A {@linkplain AtomDescriptor selector}.
 	 * @return {@code true} if there are {@linkplain ImplementationSetDescriptor
-	 *         methods} bound to the specified {@linkplain CyclicTypeDescriptor
-	 *         selector}, {@code false} otherwise.
+	 *         methods} bound to the specified {@linkplain
+	 *         AtomDescriptor selector}, {@code false} otherwise.
 	 */
 	@ThreadSafe
 	public boolean hasMethodsAt (final @NotNull AvailObject selector)
 	{
-		assert selector.isCyclicType();
+		assert selector.isAtom();
 
 		runtimeLock.readLock().lock();
 		try
@@ -379,10 +387,10 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
-	 * bound to the specified {@linkplain CyclicTypeDescriptor method name}.
+	 * bound to the specified {@linkplain AtomDescriptor method name}.
 	 * If necessary, then create a new implementation set and bind it.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
 	 */
 	@ThreadSafe
@@ -414,20 +422,20 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
-	 * bound to the specified {@linkplain CyclicTypeDescriptor selector}.  If
+	 * bound to the specified {@linkplain AtomDescriptor selector}.  If
 	 * there is no implementation set with that selector, answer {@linkplain
-	 * VoidDescriptor the void object}.
+	 * NullDescriptor the void object}.
 	 *
 	 * @param selector
-	 *            A {@linkplain CyclicTypeDescriptor selector}.
+	 *            A {@linkplain AtomDescriptor selector}.
 	 * @return
 	 *            An {@linkplain ImplementationSetDescriptor implementation set}
-	 *            or {@linkplain VoidDescriptor the void object}.
+	 *            or {@linkplain NullDescriptor the void object}.
 	 */
 	@ThreadSafe
 	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)
 	{
-		assert selector.isCyclicType();
+		assert selector.isAtom();
 
 		runtimeLock.readLock().lock();
 		try
@@ -436,7 +444,7 @@ public final class AvailRuntime
 			{
 				return methods.mapAt(selector);
 			}
-			return VoidDescriptor.voidObject();
+			return NullDescriptor.nullObject();
 		}
 		finally
 		{
@@ -446,12 +454,12 @@ public final class AvailRuntime
 
 	/**
 	 * Unbind the specified implementation from the {@linkplain
-	 * CyclicTypeDescriptor selector}. If no implementations remain in the
+	 * AtomDescriptor selector}. If no implementations remain in the
 	 * {@linkplain ImplementationSetDescriptor implementation set}, then
 	 * forget the selector from the method dictionary and the {@linkplain
 	 * #rootBundleTree() root message bundle tree}.
 	 *
-	 * @param selector A {@linkplain CyclicTypeDescriptor selector}.
+	 * @param selector A {@linkplain AtomDescriptor selector}.
 	 * @param implementation An implementation.
 	 */
 	@ThreadSafe
@@ -459,7 +467,7 @@ public final class AvailRuntime
 		final @NotNull AvailObject selector,
 		final @NotNull AvailObject implementation)
 	{
-		assert selector.isCyclicType();
+		assert selector.isAtom();
 
 		runtimeLock.writeLock().lock();
 		try
@@ -487,7 +495,7 @@ public final class AvailRuntime
 	/**
 	 * A {@linkplain MapDescriptor map} from MessageBundle to a {@linkplain
 	 * TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of {@linkplain
-	 * CyclicTypeDescriptor cyclic types}.
+	 * AtomDescriptor atoms} (the messages' true names).
 	 */
 	private @NotNull AvailObject restrictions = MapDescriptor.empty();
 
@@ -565,11 +573,11 @@ public final class AvailRuntime
 			final AvailObject difference = tuple.tupleAt(i).setMinusCanDestroy(
 				restrictionsToRemove.tupleAt(i),
 				true);
-			tuple = tuple.tupleAtPuttingCanDestroy(
-				i,
-				difference,
-				true);
-			allEmpty = allEmpty && difference.setSize() == 0;
+			tuple = tuple.tupleAtPuttingCanDestroy(i, difference, true);
+			if (difference.setSize() != 0)
+			{
+				allEmpty = false;
+			}
 		}
 		if (allEmpty)
 		{
@@ -661,14 +669,14 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
+	 * A mapping from {@linkplain AtomDescriptor keys} to {@link
 	 * RandomAccessFile}s open for reading.
 	 */
 	private final Map<AvailObject, RandomAccessFile> openReadableFiles =
 		new HashMap<AvailObject, RandomAccessFile>();
 
 	/**
-	 * A mapping from {@linkplain CyclicTypeDescriptor keys} to {@link
+	 * A mapping from {@linkplain AtomDescriptor keys} to {@link
 	 * RandomAccessFile}s open for writing.
 	 */
 	private final Map<AvailObject, RandomAccessFile> openWritableFiles =
@@ -676,102 +684,102 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the open readable {@linkplain RandomAccessFile file} associated
-	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
+	 * with the specified {@linkplain AtomDescriptor handle}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
-	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
-	 *         such association exists.
+	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
+	 *         association exists.
 	 */
 	public RandomAccessFile getReadableFile (final @NotNull AvailObject handle)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		return openReadableFiles.get(handle);
 	}
 
 	/**
-	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
-	 * open readable {@linkplain RandomAccessFile file}.
+	 * Associate the specified {@linkplain AtomDescriptor handle} with
+	 * the open readable {@linkplain RandomAccessFile file}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
 	public void putReadableFile (
 		final @NotNull AvailObject handle,
 		final @NotNull RandomAccessFile file)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		openReadableFiles.put(handle, file);
 	}
 
 	/**
 	 * Remove the association between the specified {@linkplain
-	 * CyclicTypeDescriptor handle} and its open readable {@linkplain
+	 * AtomDescriptor handle} and its open readable {@linkplain
 	 * RandomAccessFile file}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 */
 	public void forgetReadableFile (final @NotNull AvailObject handle)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		openReadableFiles.remove(handle);
 	}
 
 	/**
 	 * Answer the open writable {@linkplain RandomAccessFile file} associated
-	 * with the specified {@linkplain CyclicTypeDescriptor handle}.
+	 * with the specified {@linkplain AtomDescriptor handle}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
-	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
-	 *         such association exists.
+	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
+	 *         association exists.
 	 */
 	public RandomAccessFile getWritableFile (final @NotNull AvailObject handle)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		return openWritableFiles.get(handle);
 	}
 
 	/**
-	 * Associate the specified {@linkplain CyclicTypeDescriptor handle} with the
-	 * open writable {@linkplain RandomAccessFile file}.
+	 * Associate the specified {@linkplain AtomDescriptor handle} with
+	 * the open writable {@linkplain RandomAccessFile file}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
 	public void putWritableFile (
 		final @NotNull AvailObject handle,
 		final @NotNull RandomAccessFile file)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		openWritableFiles.put(handle, file);
 	}
 
 	/**
 	 * Remove the association between the specified {@linkplain
-	 * CyclicTypeDescriptor handle} and its open writable {@linkplain
+	 * AtomDescriptor handle} and its open writable {@linkplain
 	 * RandomAccessFile file}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 */
 	public void forgetWritableFile (final @NotNull AvailObject handle)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		openWritableFiles.remove(handle);
 	}
 
 	/**
 	 * Answer the open {@linkplain RandomAccessFile file} associated with the
-	 * specified {@linkplain CyclicTypeDescriptor handle}.
+	 * specified {@linkplain AtomDescriptor handle}.
 	 *
-	 * @param handle A {@linkplain CyclicTypeDescriptor handle}.
+	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 * @return The open {@linkplain RandomAccessFile file} associated with the
-	 *         {@linkplain CyclicTypeDescriptor cycle}, or {@code null} if no
-	 *         such association exists.
+	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
+	 *         association exists.
 	 */
 	public RandomAccessFile getOpenFile (final @NotNull AvailObject handle)
 	{
-		assert handle.isCyclicType();
+		assert handle.isAtom();
 		final RandomAccessFile file = openReadableFiles.get(handle);
 		if (file != null)
 		{

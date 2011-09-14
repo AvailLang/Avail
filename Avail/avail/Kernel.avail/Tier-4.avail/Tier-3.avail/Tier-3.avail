@@ -34,7 +34,8 @@ System Module "Tier-3"
 Extends
 	"Tier-2",
 	"Exception",
-	"Object"
+	"Object",
+	"UnionType"
 Uses
 	"Test"
 Names

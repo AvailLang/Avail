@@ -32,7 +32,9 @@
 
 package com.avail.test;
 
+import static org.junit.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
+import java.io.PrintStream;
 import java.util.*;
 import org.junit.*;
 import com.avail.descriptor.*;
@@ -129,19 +131,7 @@ public class TypeConsistencyTest
 		/**
 		 * The list of all currently defined {@linkplain Node type nodes}.
 		 */
-		private static final List<Node> values = new ArrayList<Node>();
-
-		/**
-		 * Return the list of all currently defined {@linkplain Node type
-		 * nodes}.
-		 *
-		 * @return Every {@link Node} that has been defined thus far.
-		 */
-		static List<Node> values ()
-		{
-			return values;
-		}
-
+		static final List<Node> values = new ArrayList<Node>();
 
 		/**
 		 * A mapping from {@link TypeDescriptor.Types} to their corresponding
@@ -152,10 +142,7 @@ public class TypeConsistencyTest
 
 		static
 		{
-			// Include all primitive types except TERMINATES_TYPE and
-			// TERMINATES, which will be added specially at the end.
-			primitiveTypes.put(Types.TERMINATES_TYPE, null);
-			primitiveTypes.put(Types.TERMINATES, null);
+			// Include all primitive types.
 			for (final Types type : Types.values())
 			{
 				if (!primitiveTypes.containsKey(type))
@@ -184,11 +171,11 @@ public class TypeConsistencyTest
 		/** The type {@code tuple} */
 		final static Node TUPLE = new Node(
 			"TUPLE",
-			primitiveTypes.get(Types.ALL))
+			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
-				return TupleTypeDescriptor.mostGeneralTupleType();
+				return TupleTypeDescriptor.mostGeneralType();
 			}
 		};
 
@@ -209,7 +196,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return ByteStringDescriptor.from("x").type();
+				return ByteStringDescriptor.from("x").kind();
 			}
 		};
 
@@ -218,31 +205,29 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return TupleDescriptor.empty().type();
+				return TupleDescriptor.empty().kind();
 			}
 		};
 
 		/** The type {@code set} */
 		final static Node SET = new Node(
 			"SET",
-			primitiveTypes.get(Types.ALL))
+			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
-				return SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					Types.ALL.o());
+				return SetTypeDescriptor.mostGeneralType();
 			}
 		};
 
 		/** The most general closure type. */
 		final static Node MOST_GENERAL_CLOSURE = new Node(
 			"MOST_GENERAL_CLOSURE",
-			primitiveTypes.get(Types.ALL))
+			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.forReturnType(Types.VOID_TYPE.o());
+				return ClosureTypeDescriptor.mostGeneralType();
 			}
 		};
 
@@ -303,8 +288,8 @@ public class TypeConsistencyTest
 			@Override AvailObject get ()
 			{
 				return ClosureTypeDescriptor.createWithArgumentTupleType(
-					TupleTypeDescriptor.mostGeneralTupleType(),
-					Types.TERMINATES.o(),
+					TupleTypeDescriptor.mostGeneralType(),
+					TerminatesTypeDescriptor.terminates(),
 					SetDescriptor.empty());
 			}
 		};
@@ -312,7 +297,7 @@ public class TypeConsistencyTest
 		/** The primitive type representing the extended integers [-∞..∞]. */
 		final static Node EXTENDED_INTEGER = new Node(
 			"EXTENDED_INTEGER",
-			primitiveTypes.get(Types.ALL))
+			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
@@ -331,27 +316,184 @@ public class TypeConsistencyTest
 			}
 		};
 
-		/** A generated cyclic type. */
-		final static Node SOME_CYCLIC_TYPE = new Node(
-			"SOME_CYCLIC_TYPE",
-			primitiveTypes.get(Types.CYCLIC_TYPE))
+		/** Some {@linkplain AtomDescriptor atom}'s instance type. */
+		final static Node SOME_ATOM_TYPE = new Node(
+			"SOME_ATOM_TYPE",
+			primitiveTypes.get(Types.ATOM))
 		{
 			@Override AvailObject get ()
 			{
-				return CyclicTypeDescriptor.create(
-					ByteStringDescriptor.from("something"));
+				return InstanceTypeDescriptor.withInstance(
+					AtomDescriptor.create(
+						ByteStringDescriptor.from("something")));
 			}
 		};
 
-		/** A generated cyclic type distinct from {@link #SOME_CYCLIC_TYPE}. */
-		final static Node ANOTHER_CYCLIC_TYPE = new Node(
-			"ANOTHER_CYCLIC_TYPE",
-			primitiveTypes.get(Types.CYCLIC_TYPE))
+		/**
+		 * The instance type of an {@linkplain AtomDescriptor atom} different
+		 * from {@link #SOME_ATOM_TYPE}.
+		 */
+		final static Node ANOTHER_ATOM_TYPE = new Node(
+			"ANOTHER_ATOM_TYPE",
+			primitiveTypes.get(Types.ATOM))
 		{
 			@Override AvailObject get ()
 			{
-				return CyclicTypeDescriptor.create(
-					ByteStringDescriptor.from("another"));
+				return InstanceTypeDescriptor.withInstance(
+					AtomDescriptor.create(
+						ByteStringDescriptor.from("another")));
+			}
+		};
+
+		/**
+		 * The base {@linkplain ObjectTypeDescriptor object type}.
+		 */
+		final static Node OBJECT_TYPE = new Node(
+			"OBJECT_TYPE",
+			primitiveTypes.get(Types.ANY))
+		{
+			@Override AvailObject get ()
+			{
+				return ObjectTypeDescriptor.mostGeneralType();
+			}
+		};
+
+		/**
+		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
+		 */
+		final static Node NON_ROOT_OBJECT_TYPE = new Node(
+			"NON_ROOT_OBJECT_TYPE",
+			OBJECT_TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return ObjectTypeDescriptor.objectTypeFromMap(
+					MapDescriptor.empty().mapAtPuttingCanDestroy(
+						SOME_ATOM_TYPE.t,
+						TypeDescriptor.Types.ANY.o(),
+						false));
+			}
+		};
+
+		/**
+		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
+		 */
+		final static Node NON_ROOT_OBJECT_TYPE_WITH_INTEGERS = new Node(
+			"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
+			NON_ROOT_OBJECT_TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return ObjectTypeDescriptor.objectTypeFromMap(
+					MapDescriptor.empty().mapAtPuttingCanDestroy(
+						SOME_ATOM_TYPE.t,
+						IntegerRangeTypeDescriptor.integers(),
+						false));
+			}
+		};
+
+		/**
+		 * The metatype for closure types.
+		 */
+		final static Node CLOSURE_META = new Node(
+			"CLOSURE_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return ClosureTypeDescriptor.meta();
+			}
+		};
+
+		/**
+		 * The metatype for continuation types.
+		 */
+		final static Node CONTINUATION_META = new Node(
+			"CONTINUATION_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return ContinuationTypeDescriptor.meta();
+			}
+		};
+
+		/**
+		 * The metatype for integer types.
+		 */
+		final static Node INTEGER_META = new Node(
+			"INTEGER_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return IntegerRangeTypeDescriptor.meta();
+			}
+		};
+
+		/** The primitive type representing the metatype of whole numbers [0..∞). */
+		final static Node WHOLE_NUMBER_META = new Node(
+			"WHOLE_NUMBER_META",
+			INTEGER_META,
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return InstanceTypeDescriptor.withInstance(
+					IntegerRangeTypeDescriptor.wholeNumbers());
+			}
+		};
+
+		/** The primitive type representing the metametatype of the metatype of whole numbers [0..∞). */
+		final static Node WHOLE_NUMBER_META_META = new Node(
+			"WHOLE_NUMBER_META_META",
+			primitiveTypes.get(Types.META),
+			primitiveTypes.get(Types.UNION_TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return InstanceTypeDescriptor.withInstance(
+					InstanceTypeDescriptor.withInstance(
+						IntegerRangeTypeDescriptor.wholeNumbers()));
+			}
+		};
+
+		/**
+		 * The metatype for map types.
+		 */
+		final static Node MAP_META = new Node(
+			"MAP_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return MapTypeDescriptor.meta();
+			}
+		};
+
+		/**
+		 * The metatype for set types.
+		 */
+		final static Node SET_META = new Node(
+			"SET_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return SetTypeDescriptor.meta();
+			}
+		};
+
+		/**
+		 * The metatype for tuple types.
+		 */
+		final static Node TUPLE_META = new Node(
+			"TUPLE_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return TupleTypeDescriptor.meta();
 			}
 		};
 
@@ -359,20 +501,21 @@ public class TypeConsistencyTest
 		/** The type of {@code terminates}.  This is the most specific meta. */
 		final static Node TERMINATES_TYPE = new Node(
 			"TERMINATES_TYPE",
-			primitiveTypes.get(Types.CLOSURE_TYPE),
+			CLOSURE_META,
 			primitiveTypes.get(Types.CONTAINER_TYPE),
-			primitiveTypes.get(Types.CONTINUATION_TYPE),
-			primitiveTypes.get(Types.INTEGER_TYPE),
-			primitiveTypes.get(Types.MAP_TYPE),
-			primitiveTypes.get(Types.SET_TYPE),
-			primitiveTypes.get(Types.TUPLE_TYPE),
+			CONTINUATION_META,
+			WHOLE_NUMBER_META,
+			WHOLE_NUMBER_META_META,
+			MAP_META,
+			SET_META,
+			TUPLE_META,
 			primitiveTypes.get(Types.META),
-			SOME_CYCLIC_TYPE,
-			ANOTHER_CYCLIC_TYPE)
+			primitiveTypes.get(Types.UNION_TYPE))
 		{
 			@Override AvailObject get ()
 			{
-				return Types.TERMINATES_TYPE.o();
+				return InstanceTypeDescriptor.withInstance(
+					TerminatesTypeDescriptor.terminates());
 			}
 		};
 
@@ -384,7 +527,7 @@ public class TypeConsistencyTest
 
 		static
 		{
-			for (final Node existingType : values())
+			for (final Node existingType : values)
 			{
 				nonTerminatesTypes.add(existingType);
 			}
@@ -397,7 +540,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return Types.TERMINATES.o();
+				return TerminatesTypeDescriptor.terminates();
 			}
 		};
 
@@ -410,17 +553,39 @@ public class TypeConsistencyTest
 		/** The Avail {@link TypeDescriptor type} I represent in the graph. */
 		AvailObject t;
 
+		/** A unique 0-based index for this {@code Node}. */
+		final int index;
 
 		/** The supernodes in the graph. */
 		final Node [] supernodes;
 
 
 		/** The subnodes in the graph, as an {@link EnumSet}. */
-		Set<Node> subnodes;
+		private Set<Node> subnodes;
 
 
 		/** Every node descended from this on, as an {@link EnumSet}. */
 		Set<Node> allDescendants;
+
+		/**
+		 * A cache of type unions where I'm the left participant and the right
+		 * participant (a Node) supplies its index for accessing the array.
+		 */
+		private AvailObject unionCache[];
+
+		/**
+		 * A cache of type intersections where I'm the left participant and the
+		 * right participant (a Node) supplies its index for accessing the
+		 * array.
+		 */
+		private AvailObject intersectionCache[];
+
+		/**
+		 * A cache of subtype tests where I'm the proposed subtype and the
+		 * argument is the proposed supertype.  The value stored indicates if
+		 * I am a subtype of the argument.
+		 */
+		private Boolean subtypeCache[];
 
 		/**
 		 * Construct a new {@link Node}, capturing a varargs list of known
@@ -437,6 +602,7 @@ public class TypeConsistencyTest
 		{
 			this.name = name;
 			this.supernodes = supernodes;
+			this.index = values.size();
 			values.add(this);
 		}
 
@@ -449,23 +615,24 @@ public class TypeConsistencyTest
 		 * Also build the inverse and (downwards) transitive closure at each
 		 * node of the graph, since they're independent of how the actual types
 		 * are related.  Discrepancies between the graph information and the
-		 * actual types is resolved in TypeConstincyTest#testGraphModel().
+		 * actual types is resolved in {@link
+		 * TypeConsistencyTest#testGraphModel()}.
 		 */
 		static
 		{
-			for (final Node node : values())
+			for (final Node node : values)
 			{
 				node.subnodes = new HashSet<Node>();
 				node.allDescendants = new HashSet<Node>();
 			}
-			for (final Node node : values())
+			for (final Node node : values)
 			{
 				for (final Node supernode : node.supernodes)
 				{
 					supernode.subnodes.add(node);
 				}
 			}
-			for (final Node node : values())
+			for (final Node node : values)
 			{
 				node.allDescendants.add(node);
 				node.allDescendants.addAll(node.subnodes);
@@ -474,7 +641,7 @@ public class TypeConsistencyTest
 			do
 			{
 				changed = false;
-				for (final Node node : values())
+				for (final Node node : values)
 				{
 					for (final Node subnode : node.subnodes)
 					{
@@ -498,6 +665,76 @@ public class TypeConsistencyTest
 		abstract AvailObject get ();
 
 
+		/**
+		 * Lookup or compute and cache the type union of the receiver's {@link
+		 * #t} and the argument's {@code t}.
+		 *
+		 * @param rightNode
+		 *            The {@linkplain Node} for the right side of the union.
+		 * @return
+		 *            The {@linkplain AvailObject#typeUnion(AvailObject) type
+		 *            union} of the receiver's {@link #t} and the argument's
+		 *            {@code t}.
+		 */
+		AvailObject union (final Node rightNode)
+		{
+			final int rightIndex = rightNode.index;
+			AvailObject union = unionCache[rightIndex];
+			if (union == null)
+			{
+				union = t.typeUnion(rightNode.t).makeImmutable();
+				unionCache[rightIndex] = union;
+			}
+			return union;
+		}
+
+		/**
+		 * Lookup or compute and cache the type intersection of the receiver's
+		 * {@link #t} and the argument's {@code t}.
+		 *
+		 * @param rightNode
+		 *            The {@linkplain Node} for the right side of the
+		 *            intersection.
+		 * @return
+		 *            The {@linkplain AvailObject#typeIntersection(AvailObject)
+		 *            type intersection} of the receiver's {@link #t} and the
+		 *            argument's {@code t}.
+		 */
+		AvailObject intersect (final Node rightNode)
+		{
+			final int rightIndex = rightNode.index;
+			AvailObject intersection = intersectionCache[rightIndex];
+			if (intersection == null)
+			{
+				intersection = t.typeIntersection(rightNode.t).makeImmutable();
+				intersectionCache[rightIndex] = intersection;
+			}
+			return intersection;
+		}
+
+		/**
+		 * Lookup or compute and cache whether the receiver's {@link #t} is a
+		 * subtype of the argument's {@code t}.
+		 *
+		 * @param rightNode
+		 *            The {@linkplain Node} for the right side of the subtype
+		 *            test.
+		 * @return
+		 *            Whether the receiver's {@link #t} is a subtype of the
+		 *            argument's {@code t}.
+		 */
+		boolean subtype (final Node rightNode)
+		{
+			final int rightIndex = rightNode.index;
+			Boolean subtype = subtypeCache[rightIndex];
+			if (subtype == null)
+			{
+				subtype = t.isSubtypeOf(rightNode.t);
+				subtypeCache[rightIndex] = subtype;
+			}
+			return subtype;
+		}
+
 		@Override
 		public String toString()
 		{
@@ -507,24 +744,32 @@ public class TypeConsistencyTest
 		/**
 		 * Record the actual type information into the graph.
 		 */
-		public static void createTypes()
+		static void createTypes ()
 		{
-			for (final Node node : values())
+			final int n = values.size();
+			for (final Node node : values)
 			{
 				node.t = node.get();
+				node.unionCache = new AvailObject[n];
+				node.intersectionCache = new AvailObject[n];
+				node.subtypeCache = new Boolean[n];
 			}
 		}
 
 		/**
 		 * Remove all type information from the graph, leaving the shape intact.
 		 */
-		public static void eraseTypes()
+		static void eraseTypes ()
 		{
-			for (final Node node : values())
+			for (final Node node : values)
 			{
 				node.t = null;
+				node.unionCache = null;
+				node.intersectionCache = null;
+				node.subtypeCache = null;
 			}
 		}
+
 	}
 
 
@@ -538,7 +783,91 @@ public class TypeConsistencyTest
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
 		Node.createTypes();
-		System.out.format("Checking %d types%n", Node.values().size());
+		System.out.format("Checking %d types%n", Node.values.size());
+
+		// dumpGraphTo(System.out);
+	}
+
+
+
+	/**
+	 * Output a machine-readable representation of the graph as a sequence of
+	 * lines of text.  First output the number of nodes, then the single-quoted
+	 * node names in some order.  Then output all edges as parethesis-enclosed
+	 * space-separated pairs of zero-based indices into the list of nodes.  The
+	 * first element is the subtype, the second is the supertype.  The graph has
+	 * not been reduced to eliminate redundant edges.
+	 *
+	 * <p>
+	 * The nodes include everything in {Node.values}, as well as all type unions
+	 * and type intersections of two or three of these base elements, including
+	 * the left and right associative versions in case the type system is
+	 * incorrect.
+	 * </p>
+	 *
+	 * @param out
+	 *            A PrintStream on which to dump a representation of the current
+	 *            type graph.
+	 */
+	public static void dumpGraphTo (final PrintStream out)
+	{
+		final Set<AvailObject> allTypes = new HashSet<AvailObject>();
+		for (final Node node : Node.values)
+		{
+			allTypes.add(node.t);
+		}
+		for (final Node t1 : Node.values)
+		{
+			for (final Node t2 : Node.values)
+			{
+				final AvailObject union12 = t1.union(t2);
+				allTypes.add(union12);
+				final AvailObject inter12 = t1.intersect(t2);
+				allTypes.add(inter12);
+				for (final Node t3 : Node.values)
+				{
+					allTypes.add(union12.typeUnion(t3.t));
+					allTypes.add(t3.t.typeUnion(union12));
+					allTypes.add(inter12.typeIntersection(t3.t));
+					allTypes.add(t3.t.typeIntersection(inter12));
+				}
+			}
+		}
+		final List<AvailObject> allTypesList = new ArrayList<AvailObject>(allTypes);
+		final Map<AvailObject,Integer> inverse = new HashMap<AvailObject,Integer>();
+		final String[] names = new String[allTypes.size()];
+		for (int i = 0; i < allTypesList.size(); i++)
+		{
+			inverse.put(allTypesList.get(i), i);
+		}
+		for (final Node node : Node.values)
+		{
+			names[inverse.get(node.t)] = "#" + node.name;
+		}
+		for (int i = 0; i < allTypesList.size(); i++)
+		{
+			if (names[i] == null)
+			{
+				names[i] = allTypesList.get(i).toString();
+			}
+		}
+
+		out.println(allTypesList.size());
+		for (int i1 = 0; i1 < allTypesList.size(); i1++)
+		{
+			out.println("\'" + names[i1] + "\'");
+		}
+		for (int i1 = 0; i1 < allTypes.size(); i1++)
+		{
+			for (int i2 = 0; i2 < allTypes.size(); i2++)
+			{
+				if (allTypesList.get(i1).isSubtypeOf(allTypesList.get(i2)))
+				{
+					out.println("(" + i1 + " " + i2 + ")");
+				}
+
+			}
+		}
 	}
 
 
@@ -555,20 +884,79 @@ public class TypeConsistencyTest
 
 
 	/**
+	 * Compare the first two arguments for {@linkplain Object#equals(Object)
+	 * equality}.  If unequal, use the supplied message pattern and message
+	 * arguments to construct an error message, then fail with it.
+	 *
+	 * @param a The first object to compare.
+	 * @param b The second object to compare.
+	 * @param messagePattern
+	 *            A format string for producing an error message in the event
+	 *            that the objects are not equal.
+	 * @param messageArguments
+	 *            A variable number of objects to describe via the
+	 *            messagePattern.
+	 */
+	void assertEQ (
+		final Object a,
+		final Object b,
+		final String messagePattern,
+		final Object... messageArguments)
+	{
+		if (!a.equals(b))
+		{
+			fail(String.format(messagePattern, messageArguments));
+		}
+	}
+
+	/**
+	 * Examine the first (boolean) argument.  If false, use the supplied message
+	 * pattern and message arguments to construct an error message, then fail
+	 * with it.
+	 *
+	 * @param bool
+	 *            The boolean which should be true for success.
+	 * @param messagePattern
+	 *            A format string for producing an error message in the event
+	 *            that the supplied boolean was false.
+	 * @param messageArguments
+	 *            A variable number of objects to describe via the
+	 *            messagePattern.
+	 */
+	void assertT (
+		final boolean bool,
+		final String messagePattern,
+		final Object... messageArguments)
+	{
+		if (!bool)
+		{
+			fail(String.format(messagePattern, messageArguments));
+		}
+	}
+
+	/**
 	 * Test that the {@linkplain Node#supernodes declared} subtype relations
 	 * actually hold the way the graph says they should.
 	 */
 	@Test
 	public void testGraphModel ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				assert x.t.isSubtypeOf(y.t) == y.allDescendants.contains(x)
-				: "graph model (not as declared): " + x + ", " + y;
-				assert (x == y) == x.t.equals(y.t)
-				: "graph model (not unique)" + x + ", " + y;
+				assertEQ(
+					y.allDescendants.contains(x),
+					x.subtype(y),
+					"graph model (not as declared): %s, %s",
+					x,
+					y);
+				assertEQ(
+					x == y,
+					x.t.equals(y.t),
+					"graph model (not unique) %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -582,10 +970,12 @@ public class TypeConsistencyTest
 	@Test
 	public void testSubtypeReflexivity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			assert x.t.isSubtypeOf(x.t)
-			: "subtype reflexivity: " + x;
+			assertT(
+				x.subtype(x),
+				"subtype reflexivity: %s",
+				x);
 		}
 	}
 
@@ -599,15 +989,19 @@ public class TypeConsistencyTest
 	@Test
 	public void testSubtypeTransitivity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				for (final Node z : Node.values())
+				for (final Node z : Node.values)
 				{
-					assert (!(x.t.isSubtypeOf(y.t) && y.t.isSubtypeOf(z.t)))
-						|| x.t.isSubtypeOf(z.t)
-					: "subtype transitivity: " + x + ", " + y + ", " + z;
+					assertT(
+						(!(x.subtype(y) && y.subtype(z)))
+							|| x.subtype(z),
+						"subtype transitivity: %s, %s, %s",
+						x,
+						y,
+						z);
 				}
 			}
 		}
@@ -622,13 +1016,16 @@ public class TypeConsistencyTest
 	@Test
 	public void testSubtypeAsymmetry ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				assert (x.t.isSubtypeOf(y.t) && y.t.isSubtypeOf(x.t))
-					== (x == y)
-				: "subtype asymmetry: " + x + ", " + y;
+				assertEQ(
+					x.subtype(y) && y.subtype(x),
+					x == y,
+					"subtype asymmetry: %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -642,12 +1039,15 @@ public class TypeConsistencyTest
 	@Test
 	public void testUnionClosure ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				assert x.t.typeUnion(y.t).isInstanceOfSubtypeOf(Types.TYPE.o())
-				: "union closure " + x + ", " + y;
+				assertT(
+					x.union(y).isInstanceOf(Types.TYPE.o()),
+					"union closure: %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -661,10 +1061,13 @@ public class TypeConsistencyTest
 	@Test
 	public void testUnionReflexivity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			assert x.t.typeUnion(x.t).equals(x.t)
-			: "union reflexivity: " + x;
+			assertEQ(
+				x.union(x),
+				x.t,
+				"union reflexivity: %s",
+				x);
 		}
 	}
 
@@ -677,12 +1080,16 @@ public class TypeConsistencyTest
 	@Test
 	public void testUnionCommutativity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				assert x.t.typeUnion(y.t).equals(y.t.typeUnion(x.t))
-				: "union commutativity: " + x + ", " + y;
+				assertEQ(
+					x.union(y),
+					y.union(x),
+					"union commutativity: %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -696,15 +1103,20 @@ public class TypeConsistencyTest
 	@Test
 	public void testUnionAssociativity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				for (final Node z : Node.values())
+				final AvailObject xy = x.union(y);
+				for (final Node z : Node.values)
 				{
-					assert x.t.typeUnion(y.t).typeUnion(z.t).equals(
-						x.t.typeUnion(y.t.typeUnion(z.t)))
-					: "union associativity: " + x + ", " + y + ", " + z;
+					assertEQ(
+						xy.typeUnion(z.t),
+						x.t.typeUnion(y.union(z)),
+						"union associativity: %s, %s, %s",
+						x,
+						y,
+						z);
 				}
 			}
 		}
@@ -720,13 +1132,15 @@ public class TypeConsistencyTest
 	@Test
 	public void testIntersectionClosure ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				assert x.t.typeIntersection(y.t).isInstanceOfSubtypeOf(
-					Types.TYPE.o())
-				: "intersection closure " + x + ", " + y;
+				assertT(
+					x.intersect(y).isInstanceOf(Types.TYPE.o()),
+					"intersection closure: %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -740,10 +1154,13 @@ public class TypeConsistencyTest
 	@Test
 	public void testIntersectionReflexivity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			assert x.t.typeIntersection(x.t).equals(x.t)
-			: "intersection reflexivity: " + x;
+			assertEQ(
+				x.intersect(x),
+				x.t,
+				"intersection reflexivity: %s",
+				x);
 		}
 	}
 
@@ -756,13 +1173,16 @@ public class TypeConsistencyTest
 	@Test
 	public void testIntersectionCommutativity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				assert x.t.typeIntersection(y.t).equals(
-					y.t.typeIntersection(x.t))
-				: "intersection commutativity: " + x + ", " + y;
+				assertEQ(
+					x.intersect(y),
+					y.intersect(x),
+					"intersection commutativity: %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -776,15 +1196,20 @@ public class TypeConsistencyTest
 	@Test
 	public void testIntersectionAssociativity ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				for (final Node z : Node.values())
+				final AvailObject xy = x.intersect(y);
+				for (final Node z : Node.values)
 				{
-					assert x.t.typeIntersection(y.t).typeIntersection(z.t)
-						.equals(x.t.typeIntersection(y.t.typeIntersection(z.t)))
-					: "intersection associativity: " + x + ", " + y + ", " + z;
+					assertEQ(
+						xy.typeIntersection(z.t),
+						x.t.typeIntersection(y.intersect(z)),
+						"intersection associativity: %s, %s, %s",
+						x,
+						y,
+						z);
 				}
 			}
 		}
@@ -799,9 +1224,9 @@ public class TypeConsistencyTest
 	@Test
 	public void testClosureResultCovariance ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
 				final AvailObject CoX = ClosureTypeDescriptor.create(
 					TupleDescriptor.empty(),
@@ -809,9 +1234,11 @@ public class TypeConsistencyTest
 				final AvailObject CoY = ClosureTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					y.t);
-				assert !x.t.isSubtypeOf(y.t) || CoX.isSubtypeOf(CoY)
-				: "covariance (closure result): " + x + ", " + y;
-;
+				assertT(
+					!x.subtype(y) || CoX.isSubtypeOf(CoY),
+					"covariance (closure result): %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -826,9 +1253,9 @@ public class TypeConsistencyTest
 	@Test
 	public void testTupleEntryCovariance ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
 				final AvailObject CoX =
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -840,8 +1267,11 @@ public class TypeConsistencyTest
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
 						y.t);
-				assert !x.t.isSubtypeOf(y.t) || CoX.isSubtypeOf(CoY)
-				: "covariance (tuple entries): " + x + ", " + y;
+				assertT(
+					!x.subtype(y) || CoX.isSubtypeOf(CoY),
+					"covariance (tuple entries): %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -856,20 +1286,23 @@ public class TypeConsistencyTest
 	@Test
 	public void testClosureArgumentContravariance ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
 				final AvailObject ConX = ClosureTypeDescriptor.create(
 					TupleDescriptor.from(
 						x.t),
-					Types.VOID_TYPE.o());
+					Types.TOP.o());
 				final AvailObject ConY = ClosureTypeDescriptor.create(
 					TupleDescriptor.from(
 						y.t),
-					Types.VOID_TYPE.o());
-				assert !x.t.isSubtypeOf(y.t) || ConY.isSubtypeOf(ConX)
-				: "contravariance (closure argument): " + x + ", " + y;
+					Types.TOP.o());
+				assertT(
+					!x.subtype(y) || ConY.isSubtypeOf(ConX),
+					"contravariance (closure argument): %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -885,14 +1318,17 @@ public class TypeConsistencyTest
 	@Test
 	public void testMetacovariance ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = x.t.type();
-				final AvailObject Ty = y.t.type();
-				assert !x.t.isSubtypeOf(y.t) || Tx.isSubtypeOf(Ty)
-				: "metacovariance: " + x + ", " + y;
+				final AvailObject Tx = InstanceTypeDescriptor.withInstance(x.t);
+				final AvailObject Ty = InstanceTypeDescriptor.withInstance(y.t);
+				assertT(
+					!x.subtype(y) || Tx.isSubtypeOf(Ty),
+					"metacovariance: %s, %s",
+					x,
+					y);
 			}
 		}
 	}
@@ -904,18 +1340,21 @@ public class TypeConsistencyTest
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &equiv; T(x)&ne;T(y))
 	 * </nobr></span>
 	 */
-	//TODO Enable this when meta smears are generalized to all metas.
 	//@Test
 	public void testMetavariance ()
 	{
-		for (final Node x : Node.values())
+		for (final Node x : Node.values)
 		{
-			for (final Node y : Node.values())
+			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = x.t.type();
-				final AvailObject Ty = y.t.type();
-				assert x.t.equals(y.t) == Tx.equals(Ty)
-				: "metavariance: " + x + ", " + y;
+				final AvailObject Tx = x.t.kind();
+				final AvailObject Ty = y.t.kind();
+				assertEQ(
+					x.t.equals(y.t),
+					Tx.equals(Ty),
+					"metavariance: %s, %s",
+					x,
+					y);
 			}
 		}
 	}

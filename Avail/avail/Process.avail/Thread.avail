@@ -93,13 +93,13 @@ Method "current process" is [
 	Failed;
 ] : process;
 
-Method "_[_]" is [p : process, key : cyclicType |
+Method "_[_]" is [p : process, key : atom |
 	/* Lookup a process variable. */
 	Primitive 26 (failureCode : natural number);
 	Failed;
 ] : all;
 
-Method "_[_]:=_" is [p : process, key : cyclicType, value : all |
+Method "_[_]:=_" is [p : process, key : atom, value : all |
 	/* Set a process variable. */
 	Primitive 27 (failureCode : natural number);
 	Failed;

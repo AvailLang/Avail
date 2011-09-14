@@ -84,7 +84,7 @@ extends Descriptor
 		AvailObject reduced = object.myRestrictions();
 		if (reduced.equals(obsoleteRestrictions))
 		{
-			object.myRestrictions(VoidDescriptor.voidObject());
+			object.myRestrictions(NullDescriptor.nullObject());
 			return;
 		}
 		for (int i = reduced.tupleSize(); i >= 1; i--)
@@ -107,7 +107,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		for (AvailObject setForArgument : object.myRestrictions())
+		for (final AvailObject setForArgument : object.myRestrictions())
 		{
 			if (setForArgument.setSize() > 0)
 			{
@@ -121,7 +121,7 @@ extends Descriptor
 	public void o_RemoveRestrictions (
 		final @NotNull AvailObject object)
 	{
-		object.myRestrictions(VoidDescriptor.voidObject());
+		object.myRestrictions(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -133,7 +133,7 @@ extends Descriptor
 		{
 			final AvailObject parts = object.messageParts();
 			int count = 0;
-			for (AvailObject part : parts)
+			for (final AvailObject part : parts)
 			{
 				if (part.equals(TupleDescriptor.underscoreTuple()))
 				{
@@ -243,16 +243,6 @@ extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	/**
-	 * Answer the object's type.  Don't answer an ApproximateType.
-	 */
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return MESSAGE_BUNDLE.o();
-	}
-
 	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
@@ -261,7 +251,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
@@ -272,8 +262,7 @@ extends Descriptor
 	 * given message.  Also use the provided tuple of message parts and parsing
 	 * instructions.
 	 *
-	 * @param message The message name, a {@link CyclicTypeDescriptor cyclic
-	 *                type}.
+	 * @param message The message name, an {@link AtomDescriptor atom}.
 	 * @param parts A tuple of strings constituting the message name.
 	 * @param instructions A tuple of integers encoding parsing instructions.
 	 * @return A new {@link MessageBundleDescriptor message bundle}.
@@ -283,11 +272,11 @@ extends Descriptor
 		final AvailObject parts,
 		final AvailObject instructions)
 	{
-		AvailObject result = mutable().create();
-		assert message.isCyclicType();
+		final AvailObject result = mutable().create();
+		assert message.isAtom();
 		result.message(message);
 		result.messageParts(parts);
-		result.myRestrictions(VoidDescriptor.voidObject());
+		result.myRestrictions(NullDescriptor.nullObject());
 		result.parsingInstructions(instructions);
 		result.makeImmutable();
 		return result;

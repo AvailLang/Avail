@@ -140,12 +140,12 @@ public enum AvailErrorCode
 	 * Cannot uniquely determine instance of metatype smear that includes first
 	 * level metatype.
 	 */
-	E_AMBIGUOUS_INSTANCE_OF_METATYPE_SMEAR (16),
+//	E_AMBIGUOUS_INSTANCE_OF_METATYPE_SMEAR (16),
 
 	/**
 	 * Metatypes must only have positive levels (>=1).
 	 */
-	E_NONPOSITIVE_METATYPE_LEVEL (17),
+//	E_NONPOSITIVE_METATYPE_LEVEL (17),
 
 	/**
 	 * A user-defined {@linkplain ObjectTypeDescriptor object type} has no
@@ -154,8 +154,8 @@ public enum AvailErrorCode
 	E_OBJECT_TYPE_HAS_NO_USER_DEFINED_NAME (18),
 
 	/**
-	 * No {@linkplain ImplementationSetDescriptor implementation set} exists
-	 * for the specified {@linkplain CyclicTypeDescriptor name}.
+	 * No {@linkplain ImplementationSetDescriptor implementation set} exists for
+	 * the specified {@linkplain AtomDescriptor name}.
 	 */
 	E_NO_IMPLEMENTATION_SET (19),
 
@@ -246,8 +246,8 @@ public enum AvailErrorCode
 	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE (34),
 
 	/**
-	 * There are multiple {@linkplain CyclicTypeDescriptor true names}
-	 * associated with the string.
+	 * There are multiple {@linkplain AtomDescriptor true names} associated with
+	 * the string.
 	 */
 	E_AMBIGUOUS_NAME (35),
 
@@ -255,12 +255,35 @@ public enum AvailErrorCode
 	 * Cannot assign to this {@linkplain DeclarationKind kind of declaration}.
 	 */
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT (36),
-	
+
 	/**
 	 * Cannot take a {@linkplain ReferenceNodeDescriptor reference} to this
 	 * {@linkplain DeclarationKind kind of declaration}.
 	 */
-	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37);
+	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37),
+
+	/**
+	 * Only primitive types have certain properties, such as a name, a parent,
+	 * and a type.  Well, other things can have names and types, but sometimes a
+	 * primitive type is supposed to be the thing being operated on.
+	 */
+	E_EXPECTED_PRIMITIVE_TYPE (38),
+
+	/**
+	 * A requires clause should accept all possible types of the arguments of
+	 * the corresponding body or signature.  This indicates that the requires
+	 * clause arguments are not general enough.
+	 */
+	E_REQUIRES_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT (39),
+
+	/**
+	 * A returns clause should accept all possible types of the arguments of
+	 * the corresponding body or signature.  This indicates that the returns
+	 * clause arguments are not general enough.
+	 */
+	E_RETURNS_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT (40);
+
+
 
 	/** The numeric error code. */
 	private final int code;

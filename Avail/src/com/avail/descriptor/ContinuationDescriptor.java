@@ -286,14 +286,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return ContinuationTypeDescriptor.forClosureType(
-			object.closure().type());
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -308,32 +300,11 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		if (!object.closure().isHashAvailable())
-		{
-			return false;
-		}
-		if (!object.caller().isHashAvailable())
-		{
-			return false;
-		}
-		for (int i = 1, end = object.numArgsAndLocalsAndStack(); i <= end; i++)
-		{
-			if (!object.argOrLocalOrStackAt(i).isHashAvailable())
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
-		final @NotNull AvailObject object)
-	{
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
+		return ContinuationTypeDescriptor.forClosureType(
+			object.closure().kind());
 	}
 
 	/**
@@ -555,7 +526,7 @@ extends Descriptor
 			1);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			cont.argOrLocalOrStackAtPut(i, VoidDescriptor.voidObject());
+			cont.argOrLocalOrStackAtPut(i, NullDescriptor.nullObject());
 		}
 		//  Set up arguments...
 		final int nArgs = args.size();
@@ -572,7 +543,7 @@ extends Descriptor
 			//  non-argument locals
 			cont.argOrLocalOrStackAtPut(
 				nArgs + i,
-				locals.get(i));
+				locals.get(i - 1));
 		}
 		return cont;
 	}

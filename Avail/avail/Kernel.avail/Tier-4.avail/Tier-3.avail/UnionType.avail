@@ -1,0 +1,141 @@
+/**
+ * .../Tier-3/UnionType.avail
+ * Copyright (c) 2011, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "UnionType"
+Extends
+Uses
+	"Tier-2"
+Names
+	"_instances",
+	"_instance",
+	"_unsafe instances",
+	"_unsafe instance"
+Body
+
+
+Method "_weak instances" is [u : unionType |
+	Primitive 29;
+] : set;
+
+
+Forward "_instances" for [unionType]->set;
+
+
+Method "_instances" is [u : unionType |
+	Primitive 29;
+] : set
+returns [uT : unionType type |
+	cast uT into [uuT : unionType |
+		unionOfMembershipTypes : set type := terminates;
+		anyTypes : boolean := false;
+		anyNonTypes : boolean := false;
+		commonElementType : type := terminates;
+		uuT instances do [weakMembershipType : all |
+			membershipType ::= cast weakMembershipType into [t : unionType | t;];
+			membershipType instances do [member : all |
+				cast member into [memberAsType : type |
+					commonElementType := type union of commonElementType and memberAsType;
+					anyTypes := true;]
+				otherwise [
+					anyNonTypes := true;];];
+			unionOfMembershipTypes := type union of unionOfMembershipTypes
+				and membershipType instances type;];
+		if anyTypes then [
+			if anyNonTypes then [
+				set;]
+			else [
+				set of (commonElementType type);];]
+		else [
+			if anyNonTypes then [
+				unionOfMembershipTypes;]
+			else [
+				{} type;];];
+	]
+	otherwise [set;];
+] : set type;
+
+
+P29 ::= [u : unionType | Primitive 29; ] :set;
+A ::= all type;
+B ::= tuple type;
+C ::= new atom "C";
+X ::= type union of (A type) and (B type);
+Y ::= C type;
+Print "X = " then X as basic string;
+Print "Y = " then Y as basic string;
+Print "X instances = " then P29(X) as basic string;
+Print "Y instances = " then P29(Y) as basic string;
+B : boolean := true;
+Print "(X or Y) instances = " then P29(if B then [X;] else [Y;]) as basic string;
+Print "_instances returns (X) : " then ([X instances;] type result as basic string);
+Print "_instances returns (Y) : " then ([Y instances;] type result as basic string);
+Print "_instances returns (X or Y) : " then ([(if B then [X;] else [Y;]) instances;] type result as basic string);
+Print "_instances returns (X) : " then ([X instances;] compiledCode as basic string);
+Print "_instances returns (Y) : " then ([Y instances;] compiledCode as basic string);
+Print "_instances returns (X or Y) : " then ([(if B then [X;] else [Y;]) instances;] compiledCode as basic string);
+Print X instances as basic string;
+Print Y instances as basic string;
+Print (if B then [X;] else [Y;]) instances as basic string;
+
+
+
+
+
+Method "_instance" is [u : unionType |
+	instances ::= u instances;
+	if ||instances|| not = 1 then [Crash "Too many elements in union";];
+	instances as tuple [1];
+] : all
+returns [uT : unionType type |
+	if uT = unionType then [
+		all;
+	] else [
+		union : unionType := terminates;
+		cast uT into [uuT : unionType |
+			uuT instances do [weakMembershipType : all |
+				membershipType ::= cast weakMembershipType into [t : unionType | t;];
+				union := type union of union and membershipType;];
+			union;];
+	];
+] : type;
+
+
+Method "_unsafe instances" is [t : type |
+	cast t into [u : unionType |
+		u instances;];
+] : set;
+
+
+Method "_unsafe instance" is [t : type |
+	cast t into [u : unionType |
+		u instance;];
+] : all;

@@ -42,7 +42,7 @@ Body
 
 /* Accessing primitive types. */
 
-Method "_name" is [pt : primType |
+Method "_name" is [pt : type |
 	Primitive 67;
 ] : string;
 

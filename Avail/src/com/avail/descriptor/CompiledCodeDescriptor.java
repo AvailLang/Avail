@@ -33,11 +33,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.CanAllocateObjects;
-import static com.avail.descriptor.TypeDescriptor.Types.COMPILED_CODE;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 
 public class CompiledCodeDescriptor
@@ -201,15 +201,6 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_LiteralAtPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotAtPut(ObjectSlots.LITERAL_AT_, subscript, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ClosureType (
 		final @NotNull AvailObject object)
 	{
@@ -292,17 +283,11 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return COMPILED_CODE.o();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
-		final @NotNull AvailObject object)
-	{
-		return COMPILED_CODE.o();
+		return CompiledCodeTypeDescriptor.forClosureType(
+			object.closureType());
 	}
 
 	@Override
@@ -349,43 +334,6 @@ extends Descriptor
 			- object.numLocals()
 			- object.numOuters()
 			+ index);
-	}
-
-	@Override
-	public void o_OuterTypesLocalTypes (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject tupleOfOuterTypes,
-		final @NotNull AvailObject tupleOfLocalContainerTypes)
-	{
-		// The literal frame has the literals used by the code, followed by the
-		// outer types, followed by the local variable types.
-
-		assert tupleOfOuterTypes.tupleSize() == object.numOuters()
-			: "Wrong number of outer types.";
-		assert tupleOfLocalContainerTypes.tupleSize() == object.numLocals()
-			: "Wrong number of local types.";
-		for (
-				int
-					src = 1,
-					dest = object.numLiterals()
-						- object.numLocals()
-						- object.numOuters() + 1,
-					end = object.numLiterals() - object.numLocals();
-				dest <= end;
-				dest++, src++)
-		{
-			object.literalAtPut(dest, tupleOfOuterTypes.tupleAt(src));
-		}
-		for (
-				int
-					src = 1,
-					dest = object.numLiterals() - object.numLocals() + 1,
-					end = object.numLiterals();
-				dest <= end;
-				dest++, src++)
-		{
-			object.literalAtPut(dest, tupleOfLocalContainerTypes.tupleAt(src));
-		}
 	}
 
 	@Override
@@ -565,10 +513,6 @@ extends Descriptor
 		assert argCounts.upperBound().extractInt() == numArgs;
 		final int literalsSize = literals.tupleSize();
 		final int outersSize = outerTypes.tupleSize();
-		final AvailObject code = mutable().create(
-			literalsSize + outersSize + locals);
-
-		CanAllocateObjects(false);
 
 		assert 0 <= numArgs && numArgs <= 0xFFFF;
 		assert 0 <= locals && locals <= 0xFFFF;
@@ -576,6 +520,12 @@ extends Descriptor
 		assert 0 <= slotCount && slotCount <= 0xFFFF;
 		assert 0 <= outersSize && outersSize <= 0xFFFF;
 		assert 0 <= primitive && primitive <= 0xFFFF;
+
+		final AvailObject code = mutable().create(
+			literalsSize + outersSize + locals);
+
+		CanAllocateObjects(false);
+
 		code.bitSlotPut(
 			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
 			HiNumLocalsLowNumArgs.NUM_LOCALS,
@@ -597,20 +547,33 @@ extends Descriptor
 		code.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
 		code.startingChunk(L2ChunkDescriptor.unoptimizedChunk());
 		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
+
+		// Fill in the literals.
 		int dest;
 		for (dest = 1; dest <= literalsSize; dest++)
 		{
-			code.literalAtPut(dest, literals.tupleAt(dest));
+			code.objectSlotAtPut(
+				ObjectSlots.LITERAL_AT_,
+				dest,
+				literals.tupleAt(dest));
 		}
-		for (int i = 1; i <= outersSize; i++, dest++)
+		for (int i = 1; i <= outersSize; i++)
 		{
-			code.literalAtPut(dest, outerTypes.tupleAt(i));
+			code.objectSlotAtPut(
+				ObjectSlots.LITERAL_AT_,
+				dest++,
+				outerTypes.tupleAt(i));
 		}
-		for (int i = 1; i <= locals; i++, dest++)
+		for (int i = 1; i <= locals; i++)
 		{
-			code.literalAtPut(dest, localTypes.tupleAt(i));
+			code.objectSlotAtPut(
+				ObjectSlots.LITERAL_AT_,
+				dest++,
+				localTypes.tupleAt(i));
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
+
+		// Compute the hash.
 		int hash = 0x0B085B25 + code.objectSlotsCount() + nybbles.hash()
 			^ numArgs * 4127;
 		hash += locals * 1237 + stack * 9131 + primitive * 1151;
@@ -627,8 +590,9 @@ extends Descriptor
 		{
 			hash = hash * 5 + localTypes.tupleAt(i).hash() ^ 0x01E37808;
 		}
-		code.hash(hash);
+		code.integerSlotPut(IntegerSlots.HASH, hash);
 		code.makeImmutable();
+
 		CanAllocateObjects(true);
 
 		return code;

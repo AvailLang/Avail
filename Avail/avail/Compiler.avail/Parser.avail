@@ -103,7 +103,7 @@ Forward "_parse expression then_" for [
 		Avail Parser, [Parse Node]->void]->void;
 Forward "_parse from_complete_incomplete_arguments so far_then_" for [
 		Avail Parser, natural number,
-		map from cyclicType to messageBundle,
+		map from atom to messageBundle,
 		map from string to messageBundleTree,
 		tuple of Parse Node, [Send Node]->void]->void;
 Forward "_parse label then_" for [
@@ -182,7 +182,7 @@ Method "_skip_then_" is [
 Method "complete messages starting with_" is [str : string |
 	Primitive 209 (failureCode : natural number);
 	Failed;
-] : map from cyclicType to messageBundle;
+] : map from atom to messageBundle;
 
 
 Method "incomplete messages starting with_" is [str : string |
@@ -664,7 +664,7 @@ Method "_parse leading argument send after_then_" is [
 Method "_parse from_complete_incomplete_arguments so far_then_" is [
 		p : Avail Parser,
 		keywordIndex : natural number,
-		complete : map from cyclicType to messageBundle,
+		complete : map from atom to messageBundle,
 		incomplete : map from string to messageBundleTree,
 		args : tuple of Parse Node,
 		c : [Send Node]->void |
@@ -677,8 +677,8 @@ Method "_parse from_complete_incomplete_arguments so far_then_" is [
 
 	if ||complete|| > 0 then [
 		argTypes ::= args collect [arg : Parse Node | arg result type;];
-		complete do [message : cyclicType, bundle : messageBundle |
-			$checkBundle : $[cyclicType, messageBundle]->void;
+		complete do [message : atom, bundle : messageBundle |
+			$checkBundle : $[atom, messageBundle]->void;
 			if ||bundle signatures|| > 0 then [
 				/* We have tested for the case where there are no implementations,
 				   and the bundle is only there to hold restrictions on *future*

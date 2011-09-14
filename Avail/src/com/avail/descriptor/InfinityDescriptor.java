@@ -141,15 +141,15 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		if (aType.equals(VOID_TYPE.o()))
+		if (aType.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aType.equals(ALL.o()))
+		if (aType.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -205,22 +205,6 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean o_CanComputeHashOfType (
-		final @NotNull AvailObject object)
-	{
-		// Answer whether object supports the #hashOfType protocol.
-		return true;
-	}
-
-	@Override
-	public AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		// Answer the object's type.
-		return IntegerRangeTypeDescriptor.singleInteger(object);
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -249,10 +233,10 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (
+	public AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
+		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
 	@Override

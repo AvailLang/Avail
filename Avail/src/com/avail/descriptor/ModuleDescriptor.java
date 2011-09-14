@@ -68,54 +68,53 @@ public class ModuleDescriptor extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@link CyclicTypeDescriptor cyclic
-		 * types} which act as true names.  The true names are identity-based
-		 * identifiers that prevent or at least clarify name conflicts.  This
-		 * field holds only those names that are newly added by this module.
+		 * ByteStringDescriptor strings} to {@link AtomDescriptor atoms} which
+		 * act as true names.  The true names are identity-based identifiers
+		 * that prevent or at least clarify name conflicts.  This field holds
+		 * only those names that are newly added by this module.
 		 */
 		NEW_NAMES,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@link CyclicTypeDescriptor cyclic
-		 * types} which act as true names.  The true names are identity-based
-		 * identifiers that prevent or at least clarify name conflicts.  This
-		 * field holds only those names that have been imported from other
-		 * modules.
+		 * ByteStringDescriptor strings} to {@link AtomDescriptor atoms} which
+		 * act as true names.  The true names are identity-based identifiers
+		 * that prevent or at least clarify name conflicts.  This field holds
+		 * only those names that have been imported from other modules.
 		 */
 		NAMES,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@link CyclicTypeDescriptor cyclic
-		 * types} which act as true names.  The true names are identity-based
-		 * identifiers that prevent or at least clarify name conflicts.  This
-		 * field holds only those names that are neither imported from another
-		 * module nor exported from the current module.
+		 * ByteStringDescriptor strings} to {@link AtomDescriptor atoms} which
+		 * act as true names.  The true names are identity-based identifiers
+		 * that prevent or at least clarify name conflicts.  This field holds
+		 * only those names that are neither imported from another module nor
+		 * exported from the current module.
 		 */
 		PRIVATE_NAMES,
 
 		/**
-		 * A {@linkplain SetDescriptor set} of {@linkplain CyclicTypeDescriptor
-		 * true names} that are visible within this module.
+		 * A {@linkplain SetDescriptor set} of {@linkplain AtomDescriptor true
+		 * names} that are visible within this module.
 		 */
 		VISIBLE_NAMES,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * CyclicTypeDescriptor true names} to {@linkplain SignatureDescriptor
-		 * signatures} which implement (or forward or declare abstract or
-		 * declare as a macro} that true name.
+		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
+		 * names} to {@linkplain SignatureDescriptor signatures} which implement
+		 * (or forward or declare abstract or declare as a macro} that true
+		 * name.
 		 */
 		METHODS,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from a parent {@linkplain
-		 * CyclicTypeDescriptor true names} to a {@linkplain
-		 * TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of child
-		 * true names.  An argument of a {@linkplain SendNodeDescriptor send}
-		 * of the parent true name must not be a send of a child name at the
-		 * corresponding argument position in the tuple.
+		 * AtomDescriptor true names} to a {@linkplain TupleDescriptor tuple} of
+		 * {@linkplain SetDescriptor sets} of child true names.  An argument of
+		 * a {@linkplain SendNodeDescriptor send} of the parent true name must
+		 * not be a send of a child name at the corresponding argument position
+		 * in the tuple.
 		 */
 		RESTRICTIONS,
 
@@ -286,9 +285,9 @@ public class ModuleDescriptor extends Descriptor
 	 *        The {@linkplain ForwardSignatureDescriptor forward declaration
 	 *        signature} to be removed.
 	 * @param methodName
-	 *        The {@linkplain CyclicTypeDescriptor true name} of the {@linkplain
-	 *        ForwardSignatureDescriptor forward declaration signature} being
-	 *        removed.
+	 *        The {@linkplain AtomDescriptor true name} of the
+	 *        {@linkplain ForwardSignatureDescriptor forward declaration
+	 *        signature} being removed.
 	 */
 	@Override
 	public void o_ResolvedForwardWithName (
@@ -296,8 +295,7 @@ public class ModuleDescriptor extends Descriptor
 		final @NotNull AvailObject forwardImplementation,
 		final @NotNull AvailObject methodName)
 	{
-		assert forwardImplementation.isInstanceOfSubtypeOf(
-			FORWARD_SIGNATURE.o());
+		assert forwardImplementation.isInstanceOfKind(FORWARD_SIGNATURE.o());
 		assert object.methods().hasKey(methodName);
 		AvailObject group = object.methods().mapAt(methodName);
 		assert group.hasElement(forwardImplementation);
@@ -315,10 +313,10 @@ public class ModuleDescriptor extends Descriptor
 	 *
 	 * @param object The module.
 	 * @param stringName
-	 *        A string whose corresponding {@linkplain CyclicTypeDescriptor true
-	 *        names} are to be looked up in this module.
+	 *        A string whose corresponding {@linkplain AtomDescriptor
+	 *        true names} are to be looked up in this module.
 	 * @return The {@linkplain SetDescriptor set} of {@linkplain
-	 *         CyclicTypeDescriptor true names} that have the given stringName
+	 *         AtomDescriptor true names} that have the given stringName
 	 *         and are visible in this module.
 	 */
 	@Override
@@ -546,9 +544,9 @@ public class ModuleDescriptor extends Descriptor
 	public void o_CleanUpAfterCompile (
 		final @NotNull AvailObject object)
 	{
-		object.variableBindings(VoidDescriptor.voidObject());
-		object.constantBindings(VoidDescriptor.voidObject());
-		object.filteredBundleTree(VoidDescriptor.voidObject());
+		object.variableBindings(NullDescriptor.nullObject());
+		object.constantBindings(NullDescriptor.nullObject());
+		object.filteredBundleTree(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -593,8 +591,8 @@ public class ModuleDescriptor extends Descriptor
 	public static @NotNull AvailObject newModule (
 		final AvailObject moduleName)
 	{
-		AvailObject emptyMap = MapDescriptor.empty();
-		AvailObject object = mutable().create();
+		final AvailObject emptyMap = MapDescriptor.empty();
+		final AvailObject object = mutable().create();
 		object.name(moduleName);
 		object.newNames(emptyMap);
 		object.names(emptyMap);

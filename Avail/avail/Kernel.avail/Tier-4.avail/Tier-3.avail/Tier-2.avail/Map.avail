@@ -92,7 +92,7 @@ Method "map" is [
 
 Method "_sizes" is [mt : mapType |
 	Primitive 88;
-] : integerType;
+] : whole number type;
 
 
 Method "_keyType" is [mt : mapType |
@@ -131,13 +131,16 @@ Method "_[_]" is [m : map, k : all |
 	Primitive 82 (failureCode : natural number);
 	Failed;
 ] : all
-returns [mt : mapType, kt : type |
+requires [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates then [
 		/* No value of the k argument could ever be in the map. */
-		terminates;
-	] else [
-		mt valueType;
+		Fail parse "Argument type is not compatible with map's key type";]
+	else [
+		true;
 	];
+]
+returns [mt : mapType, kt : type |
+	mt valueType;
 ];
 
 
@@ -238,5 +241,10 @@ Method "_do_" is [m : map , blk : [terminates, terminates]->void |
 	];
 ] : void
 requires [mt : mapType, bT : closureType |
-	mt keyType <= bT[1] & mt valueType <= bT[2];
+	if not mt keyType <= bT[1] & mt valueType <= bT[2] then [
+		Fail parse "block requires an instance of "
+			then bT[1] as basic string
+			then ", but might be passed an instance of "
+			then mt keyType as basic string;];
+	true;		
 ];

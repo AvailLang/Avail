@@ -40,10 +40,14 @@ Names
 Body
 
 
-/* A factory is a mechanism of constructing an object in (potentially) multiple steps.
-   Its purpose is to conceal the actual mechanisms involved in instantiation, while
-   providing the instantiation protocol that a traditional metaclass must implement,
-   but without shattering the Liskov substitutability criterion.  */
+/* A factory is a mechanism of constructing an object in (potentially) multiple
+   steps.  Its purpose is to conceal the actual mechanisms involved in
+   instantiation, while providing the instantiation protocol that a traditional
+   metaclass must implement, but without shattering the Liskov substitutability
+   criterion.  Some object oriented languages provide constructors for this
+   purpose, but they're generally unable to have a polymorphic result, making
+   them completely worthless in Avail.
+ */
 
 privateResultType ::= lookup "resultType";
 Method "resultType" is [privateResultType;];

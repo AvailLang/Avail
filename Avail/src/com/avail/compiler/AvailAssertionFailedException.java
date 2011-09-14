@@ -1,6 +1,6 @@
 /**
- * .../Tier-1/CyclicType.avail
- * Copyright (c) 2010, Mark van Gulik.
+ * com.avail.compiler/AvailAssertionFailedException.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "CyclicType"
-Extends
-	"Tier-0"
-Uses
-	"Tuple"
-Names
-	"new cyclic type_",
-	"_name"
-Body
+package com.avail.compiler;
 
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 
-Method "new cyclic type_" is [name : string |
-	Primitive 120;
-] : cyclicType;
+/**
+ * An {@code AvailAssertionFailedException} is thrown when an Avail assertion
+ * fails.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class AvailAssertionFailedException
+extends RuntimeException
+{
+	/**
+	 * The serial version identifier.
+	 */
+	private static final long serialVersionUID = -3945878927329358120L;
 
-Method "_name" is [ck : cyclicType |
-	Primitive 121;
-] : string;
+	/**
+	 * The {@linkplain ByteStringDescriptor error message} describing the
+	 * assertion.
+	 */
+	final AvailObject assertionString;
 
+	/**
+	 * Return the {@linkplain ByteStringDescriptor error message} describing the
+	 * assertion.
+	 *
+	 * @return The interpretation of the assertion.
+	 */
+	public @NotNull AvailObject assertionString ()
+	{
+		return assertionString;
+	}
+
+	/**
+	 * Construct a new {@link AvailAssertionFailedException}.
+	 *
+	 * @param assertionString
+	 *        The {@linkplain ByteStringDescriptor error message} describing the
+	 *        assertion.
+	 */
+	public AvailAssertionFailedException (
+		final @NotNull AvailObject assertionString)
+	{
+		this.assertionString = assertionString;
+	}
+}

@@ -67,12 +67,12 @@ Body
 
 /* This module deals with messages and methods.  Ok, quick overview.
    At compile time, message sends are looked up in the visible modules.
-   The result of this lookup is a cyclicType, which is looked up in another
-   map to produce an implementationSet.  Since cyclicTypes have identity,
+   The result of this lookup is a atom, which is looked up in another
+   map to produce an implementationSet.  Since atoms have identity,
    method hierarchies defined in unrelated modules won't interfere.  The
    implementationSet is plugged into the calling method's literal frame, and
    is used at runtime.  A fast search tree is lazily computed for each
-   implementationSet.  Also associated with the cyclicType is something
+   implementationSet.  Also associated with the atom is something
    called a messageBundle.  A messageBundle contains all the method
    implementations (called signatures), as well as the precedence rules
    defined for it.  You can get all signatures associated with the
@@ -115,7 +115,7 @@ Method "implementationSet" is [privateImplementationSet;] : primType;
 Method "_message" is [bundle : messageBundle |
 	Primitive 211 (failureCode : natural number);
 	Failed;
-] : cyclicType;
+] : atom;
 
 Method "_message parts" is [bundle : messageBundle |
 	Primitive 212 (failureCode : natural number);
@@ -135,7 +135,7 @@ Method "_has restrictions" is [bundle : messageBundle |
 Method "_restrictions" is [bundle : messageBundle |
 	Primitive 215 (failureCode : natural number);
 	Failed;
-] : tuple of set of cyclicType;
+] : tuple of set of atom;
 
 
 
@@ -189,7 +189,7 @@ Method "_complete" is [tree : messageBundleTree |
 	   in the tree.  Answer a map from messages to bundles. */
 	Primitive 207 (failureCode : natural number);
 	Failed;
-] : map from cyclicType to messageBundle;
+] : map from atom to messageBundle;
 
 Method "_incomplete" is [tree : messageBundleTree |
 	/* Answer the messages that are incomplete at this point
@@ -201,21 +201,21 @@ Method "_incomplete" is [tree : messageBundleTree |
 
 
 
-/* This method looks up a name (a cyclicType) and answers the
+/* This method looks up a name (a atom) and answers the
    implementationSet associated with it.  This is only needed for
    constructing new methods from within Avail... */
 
-Method "_implementation set" is [message : cyclicType |
+Method "_implementation set" is [message : atom |
 	Primitive 220 (failureCode : natural number);
 	Failed;
 ] : implementationSet;
 
 
-/* Extract the cyclicType associated with the implementationSet. */
+/* Extract the atom associated with the implementationSet. */
 
 Method "_name" is [impSet : implementationSet |
 	Primitive 221 (failureCode : natural number);
 	Failed;
-] : cyclicType;
+] : atom;
 
 

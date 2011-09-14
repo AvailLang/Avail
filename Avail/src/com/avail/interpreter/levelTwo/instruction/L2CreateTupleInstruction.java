@@ -86,7 +86,7 @@ extends L2Instruction
 	@Override
 	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		List<L2Register> result = new ArrayList<L2Register>(
+		final List<L2Register> result = new ArrayList<L2Register>(
 			sourceVector.registers().size());
 		result.addAll(sourceVector.registers());
 		return result;
@@ -112,7 +112,7 @@ extends L2Instruction
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
 		final int size = sourceVector.registers().size();
-		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
+		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).kind();
 		List<AvailObject> types;
 		types = new ArrayList<AvailObject>(sourceVector.registers().size());
 		for (final L2Register register : sourceVector.registers())
@@ -123,27 +123,27 @@ extends L2Instruction
 			}
 			else
 			{
-				types.add(ALL.o());
+				types.add(ANY.o());
 			}
 		}
 		final AvailObject tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRange,
 				TupleDescriptor.fromList(types),
-				TERMINATES.o());
+				TerminatesTypeDescriptor.terminates());
 		tupleType.makeImmutable();
 		translator.registerTypeAtPut(destinationRegister, tupleType);
 		if (sourceVector.allRegistersAreConstantsIn(translator))
 		{
-			List<AvailObject> constants = new ArrayList<AvailObject>(
+			final List<AvailObject> constants = new ArrayList<AvailObject>(
 				sourceVector.registers().size());
 			for (final L2Register register : sourceVector.registers())
 			{
 				constants.add(translator.registerConstantAt(register));
 			}
-			AvailObject tuple = TupleDescriptor.fromList(constants);
+			final AvailObject tuple = TupleDescriptor.fromList(constants);
 			tuple.makeImmutable();
-			assert tuple.isInstanceOfSubtypeOf(tupleType);
+			assert tuple.isInstanceOf(tupleType);
 			translator.registerConstantAtPut(destinationRegister, tuple);
 		}
 		else

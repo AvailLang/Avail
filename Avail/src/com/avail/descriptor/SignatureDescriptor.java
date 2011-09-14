@@ -34,83 +34,60 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.exceptions.*;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
+import com.avail.utility.*;
 
 public abstract class SignatureDescriptor
 extends Descriptor
 {
 
 	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypesInterpreter (
+	public abstract
+	@NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter anAvailInterpreter)
-	{
-		//  Determine the return type for a call site invoking this method or an override of it
-		//  (which is also constrained to support any specializations declared at this level).
-
-		error("Subclass responsibility: Object:computeReturnTypeFromArgumentTypes:interpreter: in Avail.SignatureDescriptor", object);
-		return VoidDescriptor.voidObject();
-	}
+		final @NotNull AvailObject impSet,
+		final @NotNull Interpreter anAvailInterpreter,
+		final Continuation1<Generator<String>> failBlock);
 
 	@Override
-	public boolean o_IsValidForArgumentTypesInterpreter (
+	public abstract boolean o_IsValidForArgumentTypesInterpreter (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter interpreter)
-	{
-		//  Determine if these argument types are appropriate at a call site.
-
-		error("Subclass responsibility: Object:isValidForArgumentTypes:interpreter: in Avail.SignatureDescriptor", object);
-		return false;
-	}
+		final @NotNull Interpreter interpreter);
 
 	@Override
-	public @NotNull AvailObject o_BodySignature (
-		final @NotNull AvailObject object)
-	{
-		//  Answer a closureType whose argument types reflect the position in the
-		//  multi-method hierarchy where this method resides.  The closureType's
-		//  return type is the return type promised when invoking this method with
-		//  matching arguments.
+	public abstract @NotNull AvailObject o_BodySignature (
+		final @NotNull AvailObject object);
 
-		error("Subclass responsibility: o_BodySignature: in Avail.SignatureDescriptor", object);
-		return VoidDescriptor.voidObject();
-	}
-
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare by address (identity) for now. Eventually we can introduce value
+	 * semantics.
+	 * </p>
+	 */
 	@Override
 	public boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Compare by address (identity) for now.  Eventually we can introduce value semantics.
-
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
-		//  should designate their own types.
-
-		error("Subclass responsibility: o_ExactType: in Avail.SignatureDescriptor", object);
-		return VoidDescriptor.voidObject();
-	}
+	public abstract int o_Hash (
+		final @NotNull AvailObject object);
 
 	@Override
-	public @NotNull AvailObject o_Type (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  I'm abstract and my subclasses are concrete, so they
-		//  should designate their own types.
-
-		error("Subclass responsibility: o_Type: in Avail.SignatureDescriptor", object);
-		return VoidDescriptor.voidObject();
-	}
+	public abstract @NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object);
 
 	@Override
 	public boolean o_IsAbstract (
@@ -143,6 +120,7 @@ extends Descriptor
 	@Override
 	public void o_EnsureMetacovariant (
 		final @NotNull AvailObject object)
+	throws SignatureException
 	{
 		// Make sure my requires clauses and returns clauses are expecting the
 		// right types, based on the declaration of the body.  Defaulted here,
@@ -152,28 +130,32 @@ extends Descriptor
 		final AvailObject req = object.requiresBlock();
 		final AvailObject ret = object.returnsBlock();
 		final int numArgs = req.code().numArgs();
-		assert IntegerDescriptor.fromInt(numArgs).type().equals(
+		assert IntegerDescriptor.fromInt(numArgs).kind().equals(
 			sig.argsTupleType().sizeRange())
 			: "Wrong number of arguments in requires block";
 		assert ret.code().numArgs() == numArgs
 			: "Wrong number of arguments in returns block.";
-		assert req.type().returnType().isSubtypeOf(BOOLEAN.o())
+		assert req.kind().returnType().isSubtypeOf(
+				UnionTypeDescriptor.booleanObject())
 			: "Wrong return type in requires block";
-		assert ret.type().returnType().isSubtypeOf(TYPE.o())
+		assert ret.kind().returnType().isSubtypeOf(TYPE.o())
 			: "Wrong return type in returns block";
 		for (int i = 1, end = numArgs; i <= end; i++)
 		{
 			final AvailObject bodyType = sig.argsTupleType().typeAtIndex(i);
-			final AvailObject bodyMeta = bodyType.type();
+			final AvailObject bodyMeta = InstanceTypeDescriptor.withInstance(
+				bodyType);
 			if (!bodyMeta.isSubtypeOf(
-				req.type().argsTupleType().typeAtIndex(i)))
+				req.kind().argsTupleType().typeAtIndex(i)))
 			{
-				error("Argument of requires clause was not metacovariant");
+				throw new SignatureException(
+					E_REQUIRES_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT);
 			}
 			if (!bodyMeta.isSubtypeOf(
-				ret.type().argsTupleType().typeAtIndex(i)))
+				ret.kind().argsTupleType().typeAtIndex(i)))
 			{
-				error("Argument of returns clause was not metacovariant");
+				throw new SignatureException(
+					E_RETURNS_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT);
 			}
 		}
 	}

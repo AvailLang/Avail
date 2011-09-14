@@ -161,8 +161,8 @@ extends ExtendedNumberDescriptor
 		}
 		for (int i = 1; i <= slotsCount; i++)
 		{
-			int a = object.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, i);
-			int b = anAvailInteger.integerSlotAt(
+			final int a = object.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, i);
+			final int b = anAvailInteger.integerSlotAt(
 				IntegerSlots.RAW_SIGNED_INT_AT_,
 				i);
 			if (a != b)
@@ -243,11 +243,11 @@ extends ExtendedNumberDescriptor
 	 * approximate type will just send this message recursively.
 	 */
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		if (aType.equals(VOID_TYPE.o()) || aType.equals(ALL.o()))
+		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -325,21 +325,6 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public boolean o_CanComputeHashOfType (
-		final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final AvailObject object)
-	{
-		object.makeImmutable();
-		return IntegerRangeTypeDescriptor.singleInteger(object);
-	}
-
-	@Override
 	public int o_Hash (
 		final AvailObject object)
 	{
@@ -370,10 +355,11 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final AvailObject object)
 	{
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable());
+		object.makeImmutable();
+		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
 	@Override

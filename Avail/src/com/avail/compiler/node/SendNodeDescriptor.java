@@ -33,10 +33,10 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -147,15 +147,9 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	public AvailObject o_Type (final AvailObject object)
+	public AvailObject o_Kind (final AvailObject object)
 	{
-		return Types.SEND_NODE.o();
-	}
-
-	@Override
-	public AvailObject o_ExactType (final AvailObject object)
-	{
-		return Types.SEND_NODE.o();
+		return SEND_NODE.o();
 	}
 
 	@Override
@@ -173,7 +167,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		return object.type().equals(another.type())
+		return object.kind().equals(another.kind())
 			&& object.arguments().equals(another.arguments())
 			&& object.implementationSet().equals(another.implementationSet())
 			&& object.returnType().equals(another.returnType());
@@ -196,7 +190,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		for (final AvailObject argNode : arguments)
 		{
 			argNode.emitValueOn(codeGenerator);
-			if (argNode.type().isSubtypeOf(Types.SUPER_CAST_NODE.o()))
+			if (argNode.isInstanceOfKind(SUPER_CAST_NODE.o()))
 			{
 				anyCasts = true;
 			}
@@ -207,7 +201,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		{
 			for (final AvailObject argNode : arguments)
 			{
-				if (argNode.type().isSubtypeOf(Types.SUPER_CAST_NODE.o()))
+				if (argNode.isInstanceOfKind(SUPER_CAST_NODE.o()))
 				{
 					codeGenerator.emitPushLiteral(argNode.expressionType());
 				}
@@ -253,7 +247,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
-		for (AvailObject argument : object.arguments())
+		for (final AvailObject argument : object.arguments())
 		{
 			aBlock.value(argument);
 		}
@@ -270,6 +264,12 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
+	/**
+	 * If set to true, print send nodes with extra notation to help visually
+	 * sort out ambiguous parses.
+	 */
+	final static boolean nicePrinting = true;
+
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -277,7 +277,6 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		final boolean nicePrinting = true;  // convenient switch
 		if (nicePrinting)
 		{
 			final MessageSplitter splitter = new MessageSplitter(

@@ -136,6 +136,20 @@ public abstract class Interpreter
 		return primitiveCompiledCodeBeingAttempted;
 	}
 
+
+
+	/**
+	 * Exit the current {@linkplain ProcessDescriptor process} with the
+	 * specified result.
+	 *
+	 * @param finalObject
+	 *            The {@link AvailObject} that is the final result of running
+	 *            the {@linkplain ProcessDescriptor process}.
+	 *
+	 */
+	public abstract void exitProcessWith (final AvailObject finalObject);
+
+
 	/**
 	 * Construct a new {@link Interpreter}.
 	 *
@@ -172,20 +186,21 @@ public abstract class Interpreter
 	 * stubbed implementation in the module's method dictionary, and add it to
 	 * the list of methods needing to be declared later in this module.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature A {@linkplain MethodSignatureDescriptor method
 	 *                      signature}.
+	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void atAddForwardStubFor (
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject bodySignature)
+	throws SignatureException
 	{
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
 		//  Add the stubbed method implementation.
-		final AvailObject newImp = ForwardSignatureDescriptor.mutable().create();
-		newImp.bodySignature(bodySignature);
-		newImp.makeImmutable();
+		final AvailObject newImp = ForwardSignatureDescriptor.create(
+			bodySignature);
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		final AvailObject impsTuple = imps.implementationsTuple();
@@ -218,7 +233,7 @@ public abstract class Interpreter
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
 			newImp,
 			true);
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		final AvailObject message = methodName.name();
 		final MessageSplitter splitter = new MessageSplitter(message);
 		module.filteredBundleTree().includeBundle(
@@ -233,23 +248,24 @@ public abstract class Interpreter
 	 * the first implementation is encountered, so set them to 'no restrictions'
 	 * if they're not set already.
 	 *
-	 * @param methodName The method's name, a {@link CyclicTypeDescriptor cyclic
-	 *                   type}.
+	 * @param methodName The method's name, an {@link AtomDescriptor atom}.
 	 * @param method A {@link ClosureDescriptor method}.
+	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void atAddMethodBody (
 		final AvailObject methodName,
 		final AvailObject method)
+	throws SignatureException
 	{
 		final int numArgs = method.code().numArgs();
 		final AvailObject returnsBlock =
 			ClosureDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
-				method.type().returnType());
+				method.kind().returnType());
 		final AvailObject requiresBlock =
 			ClosureDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
-				BooleanDescriptor.objectFrom(true));
+				AtomDescriptor.trueObject());
 		atAddMethodBodyRequiresBlockReturnsBlock(
 			methodName,
 			method,
@@ -264,15 +280,19 @@ public abstract class Interpreter
 	 * if they're not set already.
 	 *
 	 * @param methodName
-	 *        The macro's name, a {@link CyclicTypeDescriptor cyclic type}.
+	 *            The macro's name, an {@link AtomDescriptor atom}.
 	 * @param macroBody
-	 *        A {@link ClosureDescriptor closure} that manipulates parse nodes.
+	 *            A {@link ClosureDescriptor closure} that manipulates parse
+	 *            nodes.
+	 * @throws SignatureException
+	 *            If the resulting signature is malformed.
 	 */
 	public void atAddMacroBody (
 		final AvailObject methodName,
 		final AvailObject macroBody)
+	throws SignatureException
 	{
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		assert macroBody.isClosure();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
@@ -283,12 +303,10 @@ public abstract class Interpreter
 		methodName.makeImmutable();
 		macroBody.makeImmutable();
 		//  Add the macro implementation.
-		final AvailObject newImp = MacroSignatureDescriptor.mutable().create();
-		newImp.bodyBlock(macroBody);
-		newImp.makeImmutable();
+		final AvailObject newImp = MacroSignatureDescriptor.create(macroBody);
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
-		final AvailObject macroBodyType = macroBody.type();
+		final AvailObject macroBodyType = macroBody.kind();
 		for (final AvailObject existingImp : imps.implementationsTuple())
 		{
 			final AvailObject existingType = existingImp.bodySignature();
@@ -328,7 +346,7 @@ public abstract class Interpreter
 	 * transforming the call-site-specific argument type information into a
 	 * return type for the method.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param bodyBlock The {@linkplain ClosureDescriptor body block}.
 	 * @param requiresBlock The {@linkplain ClosureDescriptor requires block}.
 	 * @param returnsBlock The {@linkplain ClosureDescriptor returns block}.
@@ -338,8 +356,9 @@ public abstract class Interpreter
 		final @NotNull AvailObject bodyBlock,
 		final @NotNull AvailObject requiresBlock,
 		final @NotNull AvailObject returnsBlock)
+	throws AvailRejectedParseException, SignatureException
 	{
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		assert bodyBlock.isClosure();
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
@@ -358,15 +377,13 @@ public abstract class Interpreter
 		requiresBlock.makeImmutable();
 		returnsBlock.makeImmutable();
 		//  Add the method implementation.
-		final AvailObject newImp = MethodSignatureDescriptor.mutable().create();
-		newImp.bodyBlockRequiresBlockReturnsBlock(
+		final AvailObject newImp = MethodSignatureDescriptor.create(
 			bodyBlock,
 			requiresBlock,
 			returnsBlock);
-		newImp.makeImmutable();
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
-		final AvailObject bodySignature = bodyBlock.type();
+		final AvailObject bodySignature = bodyBlock.kind();
 		AvailObject forward = null;
 		final AvailObject impsTuple = imps.implementationsTuple();
 		for (final AvailObject existingImp : impsTuple)
@@ -406,7 +423,7 @@ public abstract class Interpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		imps.addImplementation(newImp);
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		module.filteredBundleTree().includeBundle(
 			MessageBundleDescriptor.newBundle(
 				methodName,
@@ -424,19 +441,21 @@ public abstract class Interpreter
 	 * call-site-specific argument type information into a return type for the
 	 * method.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature The {@linkplain MethodSignatureDescriptor method
 	 *                      signature}.
 	 * @param requiresBlock The {@linkplain ClosureDescriptor requires block}.
 	 * @param returnsBlock The {@linkplain ClosureDescriptor returns block}.
+	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void atDeclareAbstractSignatureRequiresBlockReturnsBlock (
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject bodySignature,
 		final @NotNull AvailObject requiresBlock,
 		final @NotNull AvailObject returnsBlock)
+	throws SignatureException
 	{
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		assert requiresBlock.isClosure();
 		assert returnsBlock.isClosure();
 
@@ -461,12 +480,10 @@ public abstract class Interpreter
 		requiresBlock.makeImmutable();
 		returnsBlock.makeImmutable();
 		//  Add the method implementation.
-		final AvailObject newImp = AbstractSignatureDescriptor.mutable().create();
-		newImp.bodySignatureRequiresBlockReturnsBlock(
+		final AvailObject newImp = AbstractSignatureDescriptor.create(
 			bodySignature,
 			requiresBlock,
 			returnsBlock);
-		newImp.makeImmutable();
 		module.atAddMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		AvailObject forward = null;
@@ -523,7 +540,7 @@ public abstract class Interpreter
 	 * <{'_+_'} , {'_+_' , '_*_'}> for the '_*_' operator makes * bind tighter
 	 * than + and also groups multiple *'s left-to-right.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param illegalArgMsgs The {@linkplain TupleDescriptor restrictions}.
 	 */
 	public void atDisallowArgumentMessages (
@@ -538,7 +555,7 @@ public abstract class Interpreter
 		final int numArgs = splitter.numberOfUnderscores();
 		assert numArgs == illegalArgMsgs.tupleSize()
 			: "Wrong number of entries in restriction tuple.";
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		// Fix precedence.
 		final AvailObject bundle =
 			module.filteredBundleTree().includeBundle(
@@ -565,23 +582,30 @@ public abstract class Interpreter
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(VoidDescriptor.voidObject())));
+				writer.addLiteral(NullDescriptor.nullObject())));
 		writer.argumentTypes(
 			TupleTypeDescriptor.stringTupleType(),
-			ClosureTypeDescriptor.topInstance());
+			ClosureTypeDescriptor.mostGeneralType());
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
-		writer.returnType(VOID_TYPE.o());
+		writer.returnType(TOP.o());
 		final AvailObject newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple = ByteStringDescriptor.from(
 			defineMethodName);
-		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
+		final AvailObject realName = AtomDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
-		atAddMethodBody(realName, newClosure);
+		try
+		{
+			atAddMethodBody(realName, newClosure);
+		}
+		catch (final SignatureException e)
+		{
+			error("Malformed signature during bootstrap");
+		}
 	}
 
 	/**
@@ -595,9 +619,9 @@ public abstract class Interpreter
 	 */
 	public void bootstrapSpecialObject (
 		final @NotNull String specialObjectName)
+	throws SignatureException
 	{
-		//  Define the special object method.
-
+		//  Define the method for extracting special objects known to the VM.
 		assert module != null;
 		final AvailObject naturalNumbers =
 			IntegerRangeTypeDescriptor.create(
@@ -609,18 +633,18 @@ public abstract class Interpreter
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(VoidDescriptor.voidObject())));
+				writer.addLiteral(NullDescriptor.nullObject())));
 		writer.argumentTypes(naturalNumbers);
 		writer.primitiveNumber(
 			Primitive.prim240_SpecialObject.primitiveNumber);
-		writer.returnType(ALL.o());
+		writer.returnType(ANY.o());
 		final AvailObject newClosure = ClosureDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newClosure.makeImmutable();
 		final AvailObject nameTuple =
 			ByteStringDescriptor.from(specialObjectName);
-		final AvailObject realName = CyclicTypeDescriptor.create(nameTuple);
+		final AvailObject realName = AtomDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
 		atAddMethodBody(realName, newClosure);
@@ -694,12 +718,12 @@ public abstract class Interpreter
 	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
 	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
-	 * {@linkplain CyclicTypeDescriptor true name} associated with the string,
+	 * {@linkplain AtomDescriptor true name} associated with the string,
 	 * creating the true name if necessary. A local true name always hides other
 	 * true names.
 	 *
 	 * @param stringName An Avail {@linkplain TupleDescriptor string}.
-	 * @return A {@linkplain CyclicTypeDescriptor true name}.
+	 * @return A {@linkplain AtomDescriptor true name}.
 	 * @throws AmbiguousNameException
 	 *         If the string could represent several different true names.
 	 */
@@ -713,7 +737,7 @@ public abstract class Interpreter
 		AvailObject trueName;
 		if (who.setSize() == 0)
 		{
-			trueName = CyclicTypeDescriptor.create(stringName);
+			trueName = AtomDescriptor.create(stringName);
 			trueName.makeImmutable();
 			module.atPrivateNameAdd(stringName, trueName);
 			return trueName;
@@ -741,13 +765,13 @@ public abstract class Interpreter
 	 * forward now.
 	 *
 	 * @param aForward A forward declaration.
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 */
 	public void resolvedForwardWithName (
 		final @NotNull AvailObject aForward,
 		final @NotNull AvailObject methodName)
 	{
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 
 		if (!runtime.hasMethodsAt(methodName))
 		{
@@ -761,7 +785,7 @@ public abstract class Interpreter
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
-		if (!impSet.includes(aForward))
+		if (!impSet.includesImplementation(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
@@ -774,16 +798,17 @@ public abstract class Interpreter
 
 	/**
 	 * Unbind the specified implementation from the {@linkplain
-	 * CyclicTypeDescriptor selector}.
+	 * AtomDescriptor method name}.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor selector}.
-	 * @param implementation An implementation.
+	 * @param methodName The {@linkplain AtomDescriptor true name} of a
+	 *                   method.
+	 * @param implementation An {@link SignatureDescriptor implementation}.
 	 */
 	public void removeMethodNamedImplementation (
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject implementation)
 	{
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 
 		if (implementation.isForward())
 		{
@@ -813,7 +838,7 @@ public abstract class Interpreter
 	 * Return a {@link String} describing the problem, or null if there was no
 	 * problem.
 	 *
-	 * @param methodName A {@linkplain CyclicTypeDescriptor method name}.
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
 	 *                 of the message send.
 	 * @return A message {@linkPlain String} or null if successful.
@@ -822,7 +847,7 @@ public abstract class Interpreter
 		final @NotNull AvailObject methodName,
 		final @NotNull List<AvailObject> argTypes)
 	{
-		assert methodName.isCyclicType();
+		assert methodName.isAtom();
 		final AvailObject implementations = runtime.methodsAt(methodName);
 		assert !implementations.equalsVoid();
 		final List<AvailObject> matching =
@@ -861,7 +886,7 @@ public abstract class Interpreter
 	 * than one).
 	 *
 	 * @param methodName
-	 *        A {@linkplain CyclicTypeDescriptor method name}.
+	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param argumentExpressions
 	 *        The {@linkplain TypeDescriptor types} of the arguments of the
 	 *        message send.
@@ -895,10 +920,10 @@ public abstract class Interpreter
 			System.currentTimeMillis(),
 			process.hash())));
 		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
-		process.continuation(VoidDescriptor.voidObject());
+		process.continuation(NullDescriptor.nullObject());
 		process.executionState(ExecutionState.RUNNING);
 		process.interruptRequestFlag(0);
-		process.breakpointBlock(VoidDescriptor.voidObject());
+		process.breakpointBlock(NullDescriptor.nullObject());
 		process.processGlobals(MapDescriptor.empty());
 	}
 
@@ -1068,4 +1093,13 @@ public abstract class Interpreter
 	public abstract AvailObject runClosureArguments (
 		AvailObject aClosure,
 		List<AvailObject> arguments);
+
+	@Override
+	public String toString ()
+	{
+		return String.format(
+			"%s [%s]",
+			getClass().getSimpleName(),
+			process().name());
+	}
 }

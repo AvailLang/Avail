@@ -34,7 +34,8 @@ System Module "Test-ObjectTypes"
 Extends
 Uses
 	"Tier-2",
-	"Object"
+	"Object",
+	"UnionType"
 Names
 Body
 
@@ -56,13 +57,13 @@ T ::= [a->integer][b->integer] as objectType;
 [
 	o : T;
 	o := T new with <<a,123>,<b,456>,<c,789>>;
-	Assert o type = [a->[123..123]][b->[456..456]][c->[789..789]] as objectType;
+	Assert o type <= [a->[123..123]][b->[456..456]][c->[789..789]] as objectType;
 ]();
 
 [
 	anObj ::= Object new with <<a,{10,11,20}>>;
 	anObjType ::= anObj type;
-	Assert anObjType = [a->set [3..3] of [10..20]] as objectType;
+	Assert anObjType <= [a->set [3..3] of [10..20]] as objectType;
 ]();
 
 [

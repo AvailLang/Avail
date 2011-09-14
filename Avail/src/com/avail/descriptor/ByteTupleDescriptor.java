@@ -214,15 +214,15 @@ extends TupleDescriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		if (aType.equals(VOID_TYPE.o()))
+		if (aType.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aType.equals(ALL.o()))
+		if (aType.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -232,7 +232,7 @@ extends TupleDescriptor
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
-		if (!size.isInstanceOfSubtypeOf(aType.sizeRange()))
+		if (!size.isInstanceOf(aType.sizeRange()))
 		{
 			return false;
 		}
@@ -241,7 +241,7 @@ extends TupleDescriptor
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOfSubtypeOf(aType.typeAtIndex(i)))
+			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
 			{
 				return false;
 			}
@@ -253,7 +253,7 @@ extends TupleDescriptor
 		}
 		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOfSubtypeOf(defaultTypeObject))
+			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
 			{
 				return false;
 			}
@@ -431,7 +431,7 @@ extends TupleDescriptor
 	public static @NotNull AvailObject mutableObjectOfSize (
 		final int size)
 	{
-		ByteTupleDescriptor descriptor = isMutableSize(true, size);
+		final ByteTupleDescriptor descriptor = isMutableSize(true, size);
 		assert (size + descriptor.unusedBytesOfLastWord & 3) == 0;
 		return descriptor.create(size + 3 >> 2);
 	}

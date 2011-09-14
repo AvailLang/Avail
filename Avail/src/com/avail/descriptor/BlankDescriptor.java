@@ -81,16 +81,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		error("The blank object has no type", object);
-		return VoidDescriptor.voidObject();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -102,13 +92,13 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
 		error("The blank object has no type", object);
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	/**

@@ -42,9 +42,9 @@ Body
 x ::= lookup "x";
 y ::= lookup "y";
 
-w : map [1..2] from cyclicType to [10..20];
+w : map [1..2] from atom to [10..20];
 w := [x->10][y->20];
-pt : map whole number from cyclicType to all;
+pt : map whole number from atom to all;
 pt := w;
 w2 : map whole number from all to all;
 w2 := w;

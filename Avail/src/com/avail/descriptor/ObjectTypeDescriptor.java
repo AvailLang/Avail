@@ -32,8 +32,8 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TERMINATES;
 import static java.lang.Math.min;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.NotNull;
 
 /**
@@ -51,7 +51,7 @@ extends TypeDescriptor
 	{
 		/**
 		 * A {@linkplain MapTypeDescriptor map} from {@linkplain
-		 * CyclicTypeDescriptor field names} to their declared {@linkplain
+		 * AtomDescriptor field names} to their declared {@linkplain
 		 * TypeDescriptor types}.
 		 */
 		FIELD_TYPE_MAP
@@ -68,26 +68,19 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		AvailObject.lock(typeMap);
-		for (int i1 = 1, end = typeMap.capacity(); i1 <= end; i1++)
+		for (final MapDescriptor.Entry entry : typeMap.mapIterable())
 		{
-			final AvailObject key = typeMap.keyAtIndex(i1);
-			if (!key.equalsVoidOrBlank())
+			final AvailObject fieldKey = entry.key;
+			final AvailObject fieldType = entry.value;
+			if (!instMap.hasKey(fieldKey))
 			{
-				final AvailObject fieldType = typeMap.valueAtIndex(i1);
-				if (!instMap.hasKey(key))
-				{
-					AvailObject.unlock(typeMap);
-					return false;
-				}
-				if (!instMap.mapAt(key).isInstanceOfSubtypeOf(fieldType))
-				{
-					AvailObject.unlock(typeMap);
-					return false;
-				}
+				return false;
+			}
+			if (!instMap.mapAt(fieldKey).isInstanceOf(fieldType))
+			{
+				return false;
 			}
 		}
-		AvailObject.unlock(typeMap);
 		return true;
 	}
 
@@ -107,39 +100,17 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (final @NotNull AvailObject object)
-	{
-		object.makeImmutable();
-		return ObjectMetaDescriptor.fromObjectTypeAndLevel(
-			object, IntegerDescriptor.one().type());
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
 	}
 
-	/**
-	 * Answer whether this object's hash value can be computed without creating
-	 * new objects. This method is used by the garbage collector to decide which
-	 * objects to attempt to coalesce.  The garbage collector uses the hash
-	 * values to find objects that it is likely can be coalesced together.
-	 */
 	@Override
-	public boolean o_IsHashAvailable (final @NotNull AvailObject object)
-	{
-		return object.fieldTypeMap().isHashAvailable();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		object.makeImmutable();
-		return ObjectMetaDescriptor.fromObjectTypeAndLevel(
-			object, IntegerDescriptor.one().type());
+		return TYPE.o();
 	}
 
 	@Override
@@ -161,26 +132,19 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		AvailObject.lock(m1);
-		for (int i1 = 1, end = m1.capacity(); i1 <= end; i1++)
+		for (final MapDescriptor.Entry entry : m1.mapIterable())
 		{
-			final AvailObject key = m1.keyAtIndex(i1);
-			if (!key.equalsVoidOrBlank())
+			final AvailObject fieldKey = entry.key;
+			final AvailObject fieldType = entry.value;
+			if (!m2.hasKey(fieldKey))
 			{
-				final AvailObject v1 = m1.valueAtIndex(i1);
-				if (!m2.hasKey(key))
-				{
-					AvailObject.unlock(m1);
-					return false;
-				}
-				if (!m2.mapAt(key).isSubtypeOf(v1))
-				{
-					AvailObject.unlock(m1);
-					return false;
-				}
+				return false;
+			}
+			if (!m2.mapAt(fieldKey).isSubtypeOf(fieldType))
+			{
+				return false;
 			}
 		}
-		AvailObject.unlock(m1);
 		return true;
 	}
 
@@ -221,9 +185,9 @@ extends TypeDescriptor
 			if (map2.hasKey(key))
 			{
 				type = type.typeIntersection(map2.mapAt(key));
-				if (type.equals(TERMINATES.o()))
+				if (type.equals(TerminatesTypeDescriptor.terminates()))
 				{
-					return TERMINATES.o();
+					return TerminatesTypeDescriptor.terminates();
 				}
 			}
 			resultMap = resultMap.mapAtPuttingCanDestroy(
@@ -234,7 +198,7 @@ extends TypeDescriptor
 		for (final MapDescriptor.Entry entry : map2.mapIterable())
 		{
 			final AvailObject key = entry.key;
-			AvailObject type = entry.value;
+			final AvailObject type = entry.value;
 			if (!map1.hasKey(key))
 			{
 				resultMap = resultMap.mapAtPuttingCanDestroy(
@@ -293,21 +257,79 @@ extends TypeDescriptor
 
 	/**
 	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
-	 * {@linkplain MapDescriptor map} from {@linkplain CyclicTypeDescriptor
-	 * keys} to {@linkplain TypeDescriptor types}.
+	 * {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
+	 * atoms}' {@linkplain InstanceTypeDescriptor instance types} to {@linkplain
+	 * TypeDescriptor types}.
 	 *
 	 * @param map
 	 *        The {@linkplain MapDescriptor map} from {@linkplain
-	 *        CyclicTypeDescriptor keys} to {@linkplain TypeDescriptor types}.
+	 *        AtomDescriptor key} {@linkplain InstanceTypeDescriptor types} to
+	 *        {@linkplain TypeDescriptor types}.
 	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
 	 */
 	public static AvailObject objectTypeFromMap (
 		final @NotNull AvailObject map)
 	{
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.fieldTypeMap(map);
 		return result;
 	}
+
+
+	/**
+	 * The most general {@linkplain ObjectTypeDescriptor object type}.
+	 */
+	private static AvailObject MostGeneralType;
+
+	/**
+	 * The metatype of all object types.
+	 */
+	private static AvailObject Meta;
+
+	/**
+	 * Create the top (i.e., most general) {@linkplain ObjectTypeDescriptor
+	 * object type}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		MostGeneralType = objectTypeFromMap(MapDescriptor.empty());
+		MostGeneralType.makeImmutable();
+		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta.makeImmutable();
+	}
+
+	/**
+	 * Clear any static references to publicly accessible objects.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		MostGeneralType = null;
+		Meta = null;
+	}
+
+	/**
+	 * Answer the top (i.e., most general) {@linkplain ObjectTypeDescriptor
+	 * object type}.
+	 *
+	 * @return The object type that makes no constraints on its fields.
+	 */
+	public static AvailObject mostGeneralType ()
+	{
+		return MostGeneralType;
+	}
+
+	/**
+	 * Answer the metatype for all object types.  This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on the {@linkplain
+	 * #mostGeneralType() most general type}.
+	 *
+	 * @return The type of the most general object type.
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
+	}
+
 
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.

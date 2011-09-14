@@ -49,36 +49,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_FirstTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.FIRST_TUPLE_TYPE, value);
-	}
-
-	@Override
-	public void o_SecondTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.SECOND_TUPLE_TYPE, value);
-	}
-
-	@Override
-	public @NotNull AvailObject o_FirstTupleType (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE);
-	}
-
-	@Override
-	public @NotNull AvailObject o_SecondTupleType (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE);
-	}
-
-	@Override
 	public boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
@@ -133,15 +103,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return TUPLE_TYPE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -149,29 +110,17 @@ extends TypeDescriptor
 		//  statistically different for different objects.  This requires an object creation, so
 		//  don't call it from the garbage collector.
 
-		object.becomeRealTupleType();
+		becomeRealTupleType(object);
 		return object.hash();
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
-		return false;
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
-		return TUPLE_TYPE.o();
+		return TYPE.o();
 	}
 
 	@Override
@@ -184,35 +133,35 @@ extends TypeDescriptor
 
 		if (index <= 0)
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 
 		final AvailObject firstUpper =
-			object.firstTupleType().sizeRange().upperBound();
+			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange().upperBound();
 		final AvailObject secondUpper =
-			object.secondTupleType().sizeRange().upperBound();
-		AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
+			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange().upperBound();
+		final AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
 			secondUpper, false);
 		if (totalUpper.isFinite())
 		{
 			final AvailObject indexObject = IntegerDescriptor.fromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
-				return TERMINATES.o();
+				return TerminatesTypeDescriptor.terminates();
 			}
 		}
 		final AvailObject firstLower =
-			object.firstTupleType().sizeRange().lowerBound();
+			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange().lowerBound();
 		if (index <= firstLower.extractInt())
 		{
-			return object.firstTupleType().typeAtIndex(index);
+			return object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
 		}
 		// Besides possibly being at a fixed offset within the firstTupleType,
 		// the index might represent a range of possible indices of the
 		// secondTupleType, depending on the spread between the first tuple
 		// type's lower and upper bounds. Compute the union of these types.
 		final AvailObject unionType =
-			object.firstTupleType().typeAtIndex(index);
+			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
 		int startIndex;
 		if (firstUpper.isFinite())
 		{
@@ -225,7 +174,7 @@ extends TypeDescriptor
 		final int endIndex = index - firstLower.extractInt();
 		assert endIndex >= startIndex;
 		return unionType.typeUnion(
-			object.secondTupleType().unionOfTypesAtThrough(
+			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
 				startIndex, endIndex));
 	}
 
@@ -247,40 +196,49 @@ extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		final AvailObject firstUpper =
-			object.firstTupleType().sizeRange().upperBound();
+			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
+				.sizeRange().upperBound();
 		final AvailObject secondUpper =
-			object.secondTupleType().sizeRange().upperBound();
-		AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
+			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE)
+				.sizeRange().upperBound();
+		final AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
 			secondUpper, false);
 		if (totalUpper.isFinite())
 		{
 			if (startIndex > totalUpper.extractInt())
 			{
-				return TERMINATES.o();
+				return TerminatesTypeDescriptor.terminates();
 			}
 		}
 		AvailObject unionType =
-			object.firstTupleType().unionOfTypesAtThrough(startIndex, endIndex);
+			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
+				.unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
 		final int endInSecond = endIndex
-			- object.firstTupleType().sizeRange().lowerBound().extractInt();
+			- object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
+				.sizeRange().lowerBound().extractInt();
 		unionType = unionType.typeUnion(
-			object.secondTupleType().unionOfTypesAtThrough(
-				startInSecond, endInSecond));
+			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE)
+				.unionOfTypesAtThrough(startInSecond, endInSecond));
 		return unionType;
 	}
 
-	@Override
-	public void o_BecomeRealTupleType (
+	/**
+	 * Expand me into an actual TupleTypeDescriptor, converting my storage into
+	 * an indirection object to the actual tupleType.  Answer void.
+	 *
+	 * @param object
+	 *            The {@link ConcatenatedTupleTypeDescriptor concatenated tuple
+	 *            type} to transform
+	 */
+	private void becomeRealTupleType (
 		final @NotNull AvailObject object)
 	{
-		//  Expand me into an actual TupleTypeDescriptor, converting my storage into
-		//  an indirection object to the actual tupleType.  Answer void.
-
-		final AvailObject part1 = object.firstTupleType();
+		final AvailObject part1 = object.objectSlot(
+			ObjectSlots.FIRST_TUPLE_TYPE);
 		final AvailObject size1 = part1.sizeRange().upperBound();
 		int limit1;
 		if (size1.isFinite())
@@ -289,9 +247,12 @@ extends TypeDescriptor
 		}
 		else
 		{
-			limit1 = max((part1.typeTuple().tupleSize() + 1), part1.sizeRange().lowerBound().extractInt());
+			limit1 = max(
+				part1.typeTuple().tupleSize() + 1,
+				part1.sizeRange().lowerBound().extractInt());
 		}
-		final AvailObject part2 = object.secondTupleType();
+		final AvailObject part2 = object.objectSlot(
+			ObjectSlots.SECOND_TUPLE_TYPE);
 		final AvailObject size2 = part2.sizeRange().upperBound();
 		int limit2;
 		if (size2.isFinite())
@@ -303,14 +264,17 @@ extends TypeDescriptor
 			limit2 = part2.typeTuple().tupleSize() + 1;
 		}
 		final int total = limit1 + limit2;
-		final AvailObject typeTuple = ObjectTupleDescriptor.mutable().create(total);
+		final AvailObject typeTuple =
+			ObjectTupleDescriptor.mutable().create(total);
 		AvailObject.lock(typeTuple);
 		for (int i = 1; i <= total; i++)
 		{
-			typeTuple.tupleAtPut(i, VoidDescriptor.voidObject());
+			typeTuple.tupleAtPut(i, NullDescriptor.nullObject());
 		}
 		//  Make it pointer-safe first.
-		final int section1 = min(part1.sizeRange().lowerBound().extractInt(), limit1);
+		final int section1 = min(
+			part1.sizeRange().lowerBound().extractInt(),
+			limit1);
 		for (int i = 1; i <= section1; i++)
 		{
 			typeTuple.tupleAtPut(i, part1.typeAtIndex(i));
@@ -319,10 +283,11 @@ extends TypeDescriptor
 		{
 			typeTuple.tupleAtPut(i, object.typeAtIndex(i));
 		}
-		final AvailObject newObject = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			object.sizeRange(),
-			typeTuple,
-			object.defaultType());
+		final AvailObject newObject =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				object.sizeRange(),
+				typeTuple,
+				object.defaultType());
 		AvailObject.unlock(typeTuple);
 		object.becomeIndirectionTo(newObject);
 	}
@@ -335,8 +300,8 @@ extends TypeDescriptor
 		//  this from within a garbage collection, as it may need to allocate space
 		//  for computing a type union.
 
-		final AvailObject a = object.firstTupleType();
-		final AvailObject b = object.secondTupleType();
+		final AvailObject a = object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE);
+		final AvailObject b = object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE);
 		final AvailObject bRange = b.sizeRange();
 		if (bRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
@@ -355,7 +320,8 @@ extends TypeDescriptor
 		{
 			highIndexInB = b.typeTuple().tupleSize() + 1;
 		}
-		final AvailObject unionType = a.defaultType().typeUnion(b.unionOfTypesAtThrough(1, highIndexInB));
+		final AvailObject unionType = a.defaultType().typeUnion(
+			b.unionOfTypesAtThrough(1, highIndexInB));
 		return unionType;
 	}
 
@@ -367,8 +333,8 @@ extends TypeDescriptor
 		// this can not be asked during a garbage collection because it
 		// allocates space for its answer.
 
-		final AvailObject a = object.firstTupleType().sizeRange();
-		final AvailObject b = object.secondTupleType().sizeRange();
+		final AvailObject a = object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange();
+		final AvailObject b = object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange();
 		final AvailObject upper = a.upperBound().noFailPlusCanDestroy(
 			b.upperBound(), false);
 		return IntegerRangeTypeDescriptor.create(
@@ -387,7 +353,7 @@ extends TypeDescriptor
 		//  of the tupleType, up to but not including where they all have the same type.
 		//  Don't run this from within a garbage collection, as it allocates objects.
 
-		object.becomeRealTupleType();
+		becomeRealTupleType(object);
 		return object.typeTuple();
 	}
 
@@ -498,9 +464,9 @@ extends TypeDescriptor
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
 			final AvailObject intersectionObject = object.typeAtIndex(i).typeIntersection(aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(TERMINATES.o()))
+			if (intersectionObject.equals(TerminatesTypeDescriptor.terminates()))
 			{
-				return TERMINATES.o();
+				return TerminatesTypeDescriptor.terminates();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -523,8 +489,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.isSubtypeOf(another))
 		{
 			return another;
@@ -541,9 +505,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		final AvailObject newSizesObject = object.sizeRange().typeUnion(aTupleType.sizeRange());
+		final AvailObject newSizesObject = object.sizeRange().typeUnion(
+			aTupleType.sizeRange());
 		final AvailObject lead1 = object.typeTuple();
 		final AvailObject lead2 = aTupleType.typeTuple();
 		AvailObject newLeading;
@@ -560,16 +523,19 @@ extends TypeDescriptor
 		final int newLeadingSize = newLeading.tupleSize();
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
-			final AvailObject unionObject = object.typeAtIndex(i).typeUnion(aTupleType.typeAtIndex(i));
+			final AvailObject unionObject = object.typeAtIndex(i).typeUnion(
+				aTupleType.typeAtIndex(i));
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
 				unionObject,
 				true);
 		}
-		//  Make sure entries in newLeading are immutable, as typeUnion: can answer one
-		//  of its arguments.
+		// Make sure entries in newLeading are immutable, as typeUnion can
+		// answer one of its arguments.
 		newLeading.makeSubobjectsImmutable();
-		final AvailObject newDefault = object.typeAtIndex(newLeadingSize + 1).typeUnion(aTupleType.typeAtIndex(newLeadingSize + 1));
+		final AvailObject newDefault =
+			object.typeAtIndex(newLeadingSize + 1).typeUnion(
+				aTupleType.typeAtIndex(newLeadingSize + 1));
 		//  safety until all primitives are destructive
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			newSizesObject,
@@ -586,19 +552,31 @@ extends TypeDescriptor
 		return true;
 	}
 
+	/**
+	 * Construct a lazy concatenated tuple type object to represent the type
+	 * that is the concatenation of the two tuple types.  Make the objects be
+	 * immutable, because the new type represents the concatenation of the
+	 * objects <em>at the time it was built</em>.
+	 *
+	 * @param firstObject
+	 *            The first tuple type to concatenate.
+	 * @param secondObject
+	 *            The second tuple type to concatenate.
+	 * @return
+	 *            An object repr
+	 */
 	public static @NotNull AvailObject concatenatingAnd (
 		final @NotNull AvailObject firstObject,
 		final @NotNull AvailObject secondObject)
 	{
-		//  Construct a lazy concateneated tuple type object to represent
-		//  the type that is the concatenation of the two tuple types.  Make
-		//  the objects be immutable, because the new type represents
-		//  the concatenation of the objects *at the time it was built*.
-
 		assert firstObject.isTupleType() && secondObject.isTupleType();
-		AvailObject result = mutable().create();
-		result.firstTupleType(firstObject.makeImmutable());
-		result.secondTupleType(secondObject.makeImmutable());
+		final AvailObject result = mutable().create();
+		result.objectSlotPut(
+			ObjectSlots.FIRST_TUPLE_TYPE,
+			firstObject.makeImmutable());
+		result.objectSlotPut(
+			ObjectSlots.SECOND_TUPLE_TYPE,
+			secondObject.makeImmutable());
 		return result;
 	}
 

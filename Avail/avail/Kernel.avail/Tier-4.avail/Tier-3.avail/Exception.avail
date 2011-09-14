@@ -34,7 +34,8 @@ System Module "Exception"
 Extends
 Uses
 	"Tier-2",
-	"Object"
+	"Object",
+	"UnionType"
 Names
 	"Exception",
 	"catch«_‡,»in_",
@@ -58,12 +59,18 @@ result ::= lookup "result";
 "Exception" is explicit subtype of Object with
 	result->all;
 
+Print Exception;
+Print result;
+Print Exception -> result;
+
+
 Method "_result" is [ex : Exception |
 	ex -> result;
 ]
 returns [exType : Exception type |
 	exType -> result;
 ];
+
 
 
 Method "_with_" is [et : Exception type, res : all |

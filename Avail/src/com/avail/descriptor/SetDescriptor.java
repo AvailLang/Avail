@@ -39,7 +39,7 @@ import com.avail.annotations.NotNull;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
- * Hash Tree.  If the set is empty, the root is {@linkplain VoidDescriptor the
+ * Hash Tree.  If the set is empty, the root is {@linkplain NullDescriptor the
  * void object}, which may not be a member of a set.  If the set has one
  * element, the root is the element itself.  If the set has two or more elements
  * then a {@linkplain SetBinDescriptor bin} must be used.  There are two types
@@ -133,19 +133,15 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfSubtypeOf (
+	public boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
-		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
-
-		if (aTypeObject.equals(VOID_TYPE.o()))
+		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;
 		}
-		if (aTypeObject.equals(ALL.o()))
+		if (aTypeObject.equals(ANY.o()))
 		{
 			return true;
 		}
@@ -155,26 +151,24 @@ public class SetDescriptor extends Descriptor
 		}
 		//  See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.fromInt(object.setSize());
-		if (!size.isInstanceOfSubtypeOf(aTypeObject.sizeRange()))
+		if (!size.isInstanceOf(aTypeObject.sizeRange()))
 		{
 			return false;
 		}
-		//  set's size is out of range.
-		return object.rootBin().binUnionType().isSubtypeOf(
-			aTypeObject.contentType());
-	}
-
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  Not very efficient - usually optimized out via '_type<=_'.
-
-		final int size = object.setSize();
-		final AvailObject sizeRange = IntegerDescriptor.fromInt(size).type();
-		final AvailObject unionType = object.rootBin().binUnionType();
-		unionType.makeImmutable();
-		return SetTypeDescriptor.setTypeForSizesContentType(sizeRange, unionType);
+		final AvailObject expectedContentType = aTypeObject.contentType();
+		if (expectedContentType.isAbstractUnionType())
+		{
+			// Check the complete membership.
+			for (final AvailObject member : object)
+			{
+				if (!member.isInstanceOf(expectedContentType))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return object.rootBin().binUnionKind().isSubtypeOf(expectedContentType);
 	}
 
 	@Override
@@ -195,12 +189,15 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
-		return ApproximateTypeDescriptor.withInstance(object.makeImmutable()).makeImmutable();
+		final int size = object.setSize();
+		final AvailObject sizeRange = InstanceTypeDescriptor.withInstance(
+			IntegerDescriptor.fromInt(size));
+		return SetTypeDescriptor.setTypeForSizesContentType(
+			sizeRange,
+			AbstractUnionTypeDescriptor.withInstances(object));
 	}
 
 	@Override
@@ -473,7 +470,7 @@ public class SetDescriptor extends Descriptor
 		public AvailObject next ()
 		{
 			assert !binStack.isEmpty();
-			AvailObject result = binStack.removeLast();
+			final AvailObject result = binStack.removeLast();
 			assert binStack.size() == subscriptStack.size();
 			while (true)
 			{
@@ -560,7 +557,7 @@ public class SetDescriptor extends Descriptor
 		//  Initialize my EmptySet class variable in addition to the usual classInstVars.
 
 		EmptySet = mutable().create();
-		EmptySet.rootBin(VoidDescriptor.voidObject());
+		EmptySet.rootBin(NullDescriptor.nullObject());
 		EmptySet.makeImmutable();
 	}
 
@@ -578,7 +575,7 @@ public class SetDescriptor extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ObjectMetaMetaDescriptor}.
+	 * Construct a new {@link SetDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable

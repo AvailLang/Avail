@@ -33,11 +33,11 @@
 System Module "Tier-1"
 Extends
 	"Tier-0",
+	"Atom",
 	"Boolean",
 	"Block",
 	"CompiledCode",
 	"Container",
-	"CyclicType",
 	"Integer",
 	"Method",
 	"PrimType",

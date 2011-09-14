@@ -86,7 +86,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
 			_objectSlots = new AvailObject[1];
-			_objectSlots[0] = VoidDescriptor.voidObject();
+			_objectSlots[0] = NullDescriptor.nullObject();
 		}
 		if (descriptor().isMutable())
 		{

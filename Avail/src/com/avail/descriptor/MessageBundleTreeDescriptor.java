@@ -187,14 +187,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  Don't answer an ApproximateType.
-		return MESSAGE_BUNDLE_TREE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -204,7 +196,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
@@ -260,7 +252,7 @@ extends Descriptor
 	/**
 	 * Copy the visible message bundles to the filteredBundleTree.  The Avail
 	 * {@linkplain SetDescriptor set} of visible names ({@linkplain
-	 * CyclicTypeDescriptor cyclicTypes}) is in {@code visibleNames}.
+	 * AtomDescriptor atoms}) is in {@code visibleNames}.
 	 */
 	@Override
 	public void o_CopyToRestrictedTo (
@@ -382,8 +374,8 @@ extends Descriptor
 		AvailObject specialMap = object.lazySpecialActions();
 		final int pc = object.parsingPc();
 		// Fail fast if someone messes with this during iteration.
-		object.unclassified(VoidDescriptor.voidObject());
-		for (MapDescriptor.Entry entry : unclassified.mapIterable())
+		object.unclassified(NullDescriptor.nullObject());
+		for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 		{
 			final AvailObject message = entry.key;
 			final AvailObject bundle = entry.value;
@@ -397,8 +389,8 @@ extends Descriptor
 			}
 			else
 			{
-				int instruction = instructions.tupleIntAt(pc);
-				int keywordIndex =
+				final int instruction = instructions.tupleIntAt(pc);
+				final int keywordIndex =
 					MessageSplitter.keywordIndexFromInstruction(instruction);
 				if (keywordIndex != 0)
 				{
@@ -424,9 +416,9 @@ extends Descriptor
 				{
 					// It's a special instruction.
 					AvailObject successors;
-					AvailObject instructionObject =
+					final AvailObject instructionObject =
 						IntegerDescriptor.fromInt(instruction);
-					List<Integer> nextPcs =
+					final List<Integer> nextPcs =
 						MessageSplitter.successorPcs(instruction, pc);
 					if (specialMap.hasKey(instructionObject))
 					{
@@ -434,9 +426,9 @@ extends Descriptor
 					}
 					else
 					{
-						List<AvailObject> successorsList =
+						final List<AvailObject> successorsList =
 							new ArrayList<AvailObject>(nextPcs.size());
-						for (int nextPc : nextPcs)
+						for (final int nextPc : nextPcs)
 						{
 							successorsList.add(newPc(nextPc));
 						}
@@ -448,7 +440,7 @@ extends Descriptor
 							true);
 					}
 					assert successors.tupleSize() == nextPcs.size();
-					for (AvailObject successor : successors)
+					for (final AvailObject successor : successors)
 					{
 						successor.includeBundle(bundle);
 					}
@@ -470,7 +462,7 @@ extends Descriptor
 	 */
 	public static AvailObject newPc(final int pc)
 	{
-		AvailObject result = mutable().create();
+		final AvailObject result = mutable().create();
 		result.parsingPc(pc);
 		result.allBundles(MapDescriptor.empty());
 		result.unclassified(MapDescriptor.empty());

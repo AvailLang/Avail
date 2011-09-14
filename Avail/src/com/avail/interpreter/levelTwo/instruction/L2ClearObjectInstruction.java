@@ -35,7 +35,7 @@ package com.avail.interpreter.levelTwo.instruction;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doClearObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.VoidDescriptor;
+import com.avail.descriptor.NullDescriptor;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
@@ -89,6 +89,6 @@ extends L2Instruction
 	{
 		translator.removeTypeForRegister(destinationRegister);
 		translator.registerConstantAtPut(
-			destinationRegister, VoidDescriptor.voidObject());
+			destinationRegister, NullDescriptor.nullObject());
 	}
 }

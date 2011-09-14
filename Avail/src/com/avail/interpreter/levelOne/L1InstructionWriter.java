@@ -78,7 +78,7 @@ public class L1InstructionWriter
 	public int createLocal (final AvailObject localType)
 	{
 		assert argumentTypes != null : "Must declare argument types before allocating locals";
-		assert localType.isInstanceOfSubtypeOf(TYPE.o());
+		assert localType.isInstanceOfKind(TYPE.o());
 		localTypes.add(localType);
 		return localTypes.size();
 	}

@@ -49,22 +49,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_ContentType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.CONTENT_TYPE, value);
-	}
-
-	@Override
-	public void o_SizeRange (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.SIZE_RANGE, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ContentType (
 		final @NotNull AvailObject object)
 	{
@@ -124,15 +108,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return SET_TYPE.o();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -143,32 +118,12 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
-		if (!object.sizeRange().isHashAvailable())
-		{
-			return false;
-		}
-		if (!object.contentType().isHashAvailable())
-		{
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
-		return SET_TYPE.o();
+		return TYPE.o();
 	}
 
 	@Override
@@ -215,9 +170,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		//  Answer the most general type that is still at least as specific as these.
-
-		return SetTypeDescriptor.setTypeForSizesContentType(object.sizeRange().typeIntersection(aSetType.sizeRange()), object.contentType().typeIntersection(aSetType.contentType()));
+		return SetTypeDescriptor.setTypeForSizesContentType(
+			object.sizeRange().typeIntersection(aSetType.sizeRange()),
+			object.contentType().typeIntersection(aSetType.contentType()));
 	}
 
 	@Override
@@ -225,8 +180,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
 		if (object.equals(another))
 		{
 			return object;
@@ -247,9 +200,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		//  Answer the most specific type that is still at least as general as these.
-
-		return SetTypeDescriptor.setTypeForSizesContentType(object.sizeRange().typeUnion(aSetType.sizeRange()), object.contentType().typeUnion(aSetType.contentType()));
+		return SetTypeDescriptor.setTypeForSizesContentType(
+			object.sizeRange().typeUnion(aSetType.sizeRange()),
+			object.contentType().typeUnion(aSetType.contentType()));
 	}
 
 	@Override
@@ -259,44 +212,114 @@ extends TypeDescriptor
 		return true;
 	}
 
+
+	/**
+	 * The most general set type.
+	 */
+	private static AvailObject MostGeneralType;
+
+	/**
+	 * Answer the most general set type.
+	 *
+	 * @return The most general set type.
+	 */
+	public static AvailObject mostGeneralType ()
+	{
+		return MostGeneralType;
+	}
+
+	/**
+	 * The metatype for all set types.
+	 */
+	private static AvailObject Meta;
+
+	/**
+	 * Answer the metatype for all set types.
+	 *
+	 * @return The statically referenced metatype.
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
+	}
+
+	public static void clearWellKnownObjects ()
+	{
+		MostGeneralType = null;
+		Meta = null;
+	}
+
+	public static void createWellKnownObjects ()
+	{
+		MostGeneralType = setTypeForSizesContentType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ANY.o());
+		MostGeneralType.makeImmutable();
+		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta.makeImmutable();
+	}
+
+
+	/**
+	 * Create a set type with the given range of sizes and content type.
+	 *
+	 * @param sizeRange
+	 *            The allowed sizes of my instances.
+	 * @param contentType
+	 *            The type that constrains my instances' elements.
+	 * @return
+	 *            An immutable set type as specified.
+	 */
 	public static @NotNull AvailObject setTypeForSizesContentType (
 		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject contentType)
 	{
-		if (sizeRange.equals(TERMINATES.o()))
+		if (sizeRange.equals(TerminatesTypeDescriptor.terminates()))
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
-		AvailObject result = mutable().create();
-		if (sizeRange.upperBound().equals(IntegerDescriptor.zero()))
+
+		final AvailObject sizeRangeKind = sizeRange.isAbstractUnionType()
+			? sizeRange.computeSuperkind()
+			: sizeRange;
+
+		final AvailObject newSizeRange;
+		final AvailObject newContentType;
+		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
 		{
-			result.sizeRange(sizeRange);
-			result.contentType(TERMINATES.o());
+			newSizeRange = sizeRangeKind;
+			newContentType = TerminatesTypeDescriptor.terminates();
 		}
-		else if (contentType.equals(TERMINATES.o()))
+		else if (contentType.equals(TerminatesTypeDescriptor.terminates()))
 		{
-			if (sizeRange.lowerBound().equals(IntegerDescriptor.zero()))
+			if (sizeRangeKind.lowerBound().equals(IntegerDescriptor.zero()))
 			{
-				//  sizeRange includes at least 0 and 1, but the content type is terminates, so no contents exist.
-				result.sizeRange(
-					IntegerRangeTypeDescriptor.singleInteger(
-						IntegerDescriptor.zero()));
-				result.contentType(TERMINATES.o());
+				// sizeRange includes at least 0 and 1, but the content type is
+				// terminates, so no contents exist.
+				newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
+					IntegerDescriptor.zero());
+				newContentType = TerminatesTypeDescriptor.terminates();
 			}
 			else
 			{
-				//  sizeRange does not include 0, and terminates is not the content type, so the whole type is inconsistent.  Answer terminates
-				return TERMINATES.o();
+				// sizeRange does not include 0, and terminates is not the
+				// content type, so the whole type is inconsistent.  Answer
+				// terminates.
+				return TerminatesTypeDescriptor.terminates();
 			}
 		}
 		else
 		{
-			result.sizeRange(sizeRange);
-			result.contentType(contentType);
+			newSizeRange = sizeRangeKind;
+			newContentType = contentType;
 		}
+		final AvailObject result = mutable().create();
+		result.objectSlotPut(ObjectSlots.SIZE_RANGE, newSizeRange);
+		result.objectSlotPut(ObjectSlots.CONTENT_TYPE, newContentType);
+		result.makeImmutable();
 		return result;
 	}
 

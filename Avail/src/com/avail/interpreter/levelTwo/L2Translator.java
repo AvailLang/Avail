@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.ALL;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.max;
@@ -371,7 +371,7 @@ public class L2Translator implements L1OperationDispatcher
 		for (final L2ObjectRegister arg : args)
 		{
 			AvailObject type;
-			type = registerHasTypeAt(arg) ? registerTypeAt(arg) : ALL.o();
+			type = registerHasTypeAt(arg) ? registerTypeAt(arg) : ANY.o();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
@@ -406,7 +406,7 @@ public class L2Translator implements L1OperationDispatcher
 			AvailObject type;
 			type = registerHasConstantAt(argTypeRegister)
 				? registerConstantAt(argTypeRegister)
-				: ALL.o();
+				: ANY.o();
 			argTypes.add(type);
 		}
 		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
@@ -576,6 +576,7 @@ public class L2Translator implements L1OperationDispatcher
 			if (!registerHasConstantAt(arg))
 			{
 				allConstants = false;
+				break;
 			}
 		}
 		final boolean canFold = allConstants && primitive.hasFlag(CanFold);
@@ -595,7 +596,7 @@ public class L2Translator implements L1OperationDispatcher
 			if (success == SUCCESS)
 			{
 				final AvailObject value = interpreter.primitiveResult();
-				if (value.isInstanceOfSubtypeOf(expectedType))
+				if (value.isInstanceOf(expectedType))
 				{
 					value.makeImmutable();
 					addInstruction(new L2LoadConstantInstruction(
@@ -694,7 +695,7 @@ public class L2Translator implements L1OperationDispatcher
 			if (folded != null)
 			{
 				// It was folded to a constant.
-				if (folded.isInstanceOfSubtypeOf(expectedType))
+				if (folded.isInstanceOf(expectedType))
 				{
 					return;
 				}
@@ -1172,7 +1173,7 @@ public class L2Translator implements L1OperationDispatcher
 			if (folded != null)
 			{
 				// It was folded to a constant.
-				if (folded.isInstanceOfSubtypeOf(expectedType))
+				if (folded.isInstanceOf(expectedType))
 				{
 					return;
 				}

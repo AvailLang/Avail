@@ -36,7 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.util.Arrays.fill;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 
 public class ClosureDescriptor
@@ -144,15 +144,6 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.  Simply asks the compiled code for the closureType.
-
-		return object.code().closureType();
-	}
-
-	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
@@ -178,35 +169,11 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer whether this object's hash value can be computed without creating
-	 * new objects.  This method is used by the garbage collector to decide
-	 * which objects to attempt to coalesce.  The garbage collector uses the
-	 * hash values to find objects that likely can be coalesced together.
-	 */
-	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		if (!object.code().isHashAvailable())
-		{
-			return false;
-		}
-		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
-		{
-			if (!object.outerVarAt(i).isHashAvailable())
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Answer the object's type.  Simply asks the compiled code for the
 	 * closureType.
 	 */
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return object.code().closureType();
@@ -242,7 +209,7 @@ extends Descriptor
 
 		if (isMutable)
 		{
-			object.outerVarAtPut(index, VoidDescriptor.voidObject());
+			object.outerVarAtPut(index, NullDescriptor.nullObject());
 			return true;
 		}
 		return false;
@@ -275,9 +242,9 @@ extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter();
 
 		final AvailObject [] argTypes = new AvailObject [numArgs];
-		fill(argTypes, ALL.o());
+		fill(argTypes, ANY.o());
 		writer.argumentTypes(argTypes);
-		writer.returnType(constantResult.type());
+		writer.returnType(InstanceTypeDescriptor.withInstance(constantResult));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
@@ -319,8 +286,7 @@ extends Descriptor
 		final AvailObject [] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
 		{
-			assert argTypes.tupleAt(i).isInstanceOfSubtypeOf(
-				TYPE.o());
+			assert argTypes.tupleAt(i).isInstanceOfKind(TYPE.o());
 			argTypesArray[i - 1] = argTypes.tupleAt(i);
 		}
 

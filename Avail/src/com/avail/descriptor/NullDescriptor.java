@@ -1,5 +1,5 @@
 /**
- * descriptor/VoidDescriptor.java
+ * descriptor/NullDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,19 +37,19 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * {@code VoidDescriptor} implements the Avail {@linkplain #voidObject() void
+ * {@code VoidDescriptor} implements the Avail {@linkplain #nullObject() void
  * object}, the sole instance of the invisible and uninstantiable root type.
  *
  * @author Mark van Gulik &lt;ghoul6@gmail.com&gt;
  */
-public class VoidDescriptor
+public class NullDescriptor
 extends Descriptor
 {
-	/** The sole instance of the {@linkplain #voidObject() void object}. */
+	/** The sole instance of the {@linkplain #nullObject() void object}. */
 	private static AvailObject soleInstance;
 
 	/**
-	 * Create the sole instance of the {@linkplain #voidObject() void object}.
+	 * Create the sole instance of the {@linkplain #nullObject() void object}.
 	 */
 	static void createWellKnownObjects ()
 	{
@@ -57,7 +57,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Discard the sole instance of the {@linkplain #voidObject() void object}.
+	 * Discard the sole instance of the {@linkplain #nullObject() void object}.
 	 */
 	static void clearWellKnownObjects ()
 	{
@@ -70,7 +70,7 @@ extends Descriptor
 	 * @return The sole instance of the void object.
 	 */
 	@ThreadSafe
-	public static @NotNull AvailObject voidObject ()
+	public static @NotNull AvailObject nullObject ()
 	{
 		return soleInstance;
 	}
@@ -102,14 +102,6 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		return VOID_TYPE.o();
-	}
-
-	@Override
-	@ThreadSafe
 	public int o_Hash (final @NotNull AvailObject object)
 	{
 		// The void object should hash to zero, because the only place it can
@@ -121,9 +113,9 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject o_Type (final @NotNull AvailObject object)
+	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		return VOID_TYPE.o();
+		return TOP.o();
 	}
 
 	@Override
@@ -167,7 +159,7 @@ extends Descriptor
 	{
 		// The void object is acting as a bin of size zero, so the answer must
 		// also be the void object.
-		return VoidDescriptor.voidObject();
+		return NullDescriptor.nullObject();
 	}
 
 	@Override
@@ -201,11 +193,11 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public @NotNull AvailObject o_BinUnionType (
+	public @NotNull AvailObject o_BinUnionKind (
 		final @NotNull AvailObject object)
 	{
 		// The void object acts as an empty bin.
-		return TERMINATES.o();
+		return TerminatesTypeDescriptor.terminates();
 	}
 
 	@Override
@@ -220,43 +212,43 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link VoidDescriptor}.
+	 * Construct a new {@link NullDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected VoidDescriptor (final boolean isMutable)
+	protected NullDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
-	/** The mutable {@link VoidDescriptor}. */
-	private final static @NotNull VoidDescriptor mutable =
-		new VoidDescriptor(true);
+	/** The mutable {@link NullDescriptor}. */
+	private final static @NotNull NullDescriptor mutable =
+		new NullDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link VoidDescriptor}.
+	 * Answer the mutable {@link NullDescriptor}.
 	 *
-	 * @return The mutable {@link VoidDescriptor}.
+	 * @return The mutable {@link NullDescriptor}.
 	 */
 	@ThreadSafe
-	public static VoidDescriptor mutable ()
+	public static NullDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The immutable {@link VoidDescriptor}. */
-	private final static VoidDescriptor immutable =
-		new VoidDescriptor(false);
+	/** The immutable {@link NullDescriptor}. */
+	private final static NullDescriptor immutable =
+		new NullDescriptor(false);
 
 	/**
-	 * Answer an immutable {@link VoidDescriptor}.
+	 * Answer an immutable {@link NullDescriptor}.
 	 *
-	 * @return An immutable {@link VoidDescriptor}.
+	 * @return An immutable {@link NullDescriptor}.
 	 */
 	@ThreadSafe
-	public static @NotNull VoidDescriptor immutable ()
+	public static @NotNull NullDescriptor immutable ()
 	{
 		return immutable;
 	}

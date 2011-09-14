@@ -105,22 +105,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public void o_LowerBound (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.LOWER_BOUND, value);
-	}
-
-	@Override
-	public void o_UpperBound (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.UPPER_BOUND, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
 	{
@@ -186,15 +170,6 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ExactType (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return INTEGER_TYPE.o();
-	}
-
 	/**
 	 * {@inheritDoc}
 	 *
@@ -219,32 +194,10 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Type (
+	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return INTEGER_TYPE.o();
-	}
-
-	@Override
-	public void o_LowerInclusive (
-		final @NotNull AvailObject object,
-		final boolean lowerInclusive)
-	{
-		object.bitSlotPut(
-			IntegerSlots.INCLUSIVE_FLAGS,
-			Flags.LowerInclusive,
-			lowerInclusive ? 1 : 0);
-	}
-
-	@Override
-	public void o_UpperInclusive (
-		final @NotNull AvailObject object,
-		final boolean upperInclusive)
-	{
-		object.bitSlotPut(
-			IntegerSlots.INCLUSIVE_FLAGS,
-			Flags.UpperInclusive,
-			upperInclusive ? 1 : 0);
+		return TYPE.o();
 	}
 
 	@Override
@@ -358,9 +311,7 @@ extends TypeDescriptor
 			maxObject = another.upperBound();
 			isMaxInc = another.upperInclusive();
 		}
-		//  at least two references now.
-		//
-		//  at least two references now.
+		// At least two references now.
 		return IntegerRangeTypeDescriptor.create(
 			minObject.makeImmutable(),
 			isMinInc,
@@ -465,48 +416,59 @@ extends TypeDescriptor
 	 */
 	static AvailObject WholeNumbers;
 
+	/**
+	 * The metatype for integers.  This is an {@linkplain InstanceTypeDescriptor
+	 * instance type} whose base instance is {@linkplain #ExtendedIntegers
+	 * extended integer}, and therefore has all integer range types as
+	 * instances.
+	 */
+	static AvailObject Meta;
+
 	static void createWellKnownObjects ()
 	{
 		Bytes = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromUnsignedByte((short)255),
-			true);
+			true).makeImmutable();
 		CharacterCodePoints = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt),
-			true);
+			true).makeImmutable();
 		ExtendedIntegers = create(
 			InfinityDescriptor.negativeInfinity(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
-			true);
+			true).makeImmutable();
 		Integers = create(
 			InfinityDescriptor.negativeInfinity(),
 			false,
 			InfinityDescriptor.positiveInfinity(),
-			false);
+			false).makeImmutable();
 		NaturalNumbers = create(
 			IntegerDescriptor.one(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
-			false);
+			false).makeImmutable();
 		Nybbles = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromUnsignedByte((short)15),
-			true);
+			true).makeImmutable();
 		UnsignedShorts = create(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromInt(65535),
-			true);
+			true).makeImmutable();
 		WholeNumbers = create(
 			IntegerDescriptor.zero(),
 			true,
 			InfinityDescriptor.positiveInfinity(),
-			false);
+			false).makeImmutable();
+
+		Meta = InstanceTypeDescriptor.withInstance(
+			ExtendedIntegers).makeImmutable();
 	}
 
 	static void clearWellKnownObjects ()
@@ -625,6 +587,17 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Return the metatype for all integer range types.
+	 *
+	 * @return The integer metatype.
+	 */
+	public static AvailObject meta ()
+	{
+		return Meta;
+	}
+
+
+	/**
 	 * Return a range consisting of a single integer or infinity.
 	 *
 	 * @param integerObject An Avail integer or infinity.
@@ -632,6 +605,20 @@ extends TypeDescriptor
 	 */
 	public static AvailObject singleInteger (final AvailObject integerObject)
 	{
+		integerObject.makeImmutable();
+		return IntegerRangeTypeDescriptor.create(
+			integerObject, true, integerObject, true);
+	}
+
+	/**
+	 * Return a range consisting of a single integer or infinity.
+	 *
+	 * @param anInt A Java <code>int</code>.
+	 * @return A range containing a single value.
+	 */
+	public static AvailObject singleInt (final int anInt)
+	{
+		final AvailObject integerObject = IntegerDescriptor.fromInt(anInt);
 		integerObject.makeImmutable();
 		return IntegerRangeTypeDescriptor.create(
 			integerObject, true, integerObject, true);
@@ -693,19 +680,26 @@ extends TypeDescriptor
 		}
 		if (high.lessThan(low))
 		{
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
 		if (high.equals(low) && (!highInc || !lowInc))
 		{
 			// Unusual cases such as [INF..INF) give preference to exclusion
 			// over inclusion.
-			return TERMINATES.o();
+			return TerminatesTypeDescriptor.terminates();
 		}
-		AvailObject result = mutable().create();
-		result.lowerBound(low);
-		result.upperBound(high);
-		result.lowerInclusive(lowInc);
-		result.upperInclusive(highInc);
+		final AvailObject result = mutable().create();
+		result.objectSlotPut(ObjectSlots.LOWER_BOUND, low);
+		result.objectSlotPut(ObjectSlots.UPPER_BOUND, high);
+		result.bitSlotPut(
+			IntegerSlots.INCLUSIVE_FLAGS,
+			Flags.LowerInclusive,
+			lowInc ? 1 : 0);
+		result.bitSlotPut(
+			IntegerSlots.INCLUSIVE_FLAGS,
+			Flags.UpperInclusive,
+			highInc ? 1 : 0);
+		result.makeImmutable();
 		return result;
 	}
 
@@ -724,7 +718,8 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	private final static IntegerRangeTypeDescriptor mutable = new IntegerRangeTypeDescriptor(true);
+	private final static IntegerRangeTypeDescriptor mutable =
+		new IntegerRangeTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link IntegerRangeTypeDescriptor}.
@@ -739,7 +734,8 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	private final static IntegerRangeTypeDescriptor immutable = new IntegerRangeTypeDescriptor(false);
+	private final static IntegerRangeTypeDescriptor immutable =
+		new IntegerRangeTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link IntegerRangeTypeDescriptor}.

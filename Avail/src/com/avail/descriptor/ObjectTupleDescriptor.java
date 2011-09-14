@@ -167,29 +167,6 @@ extends TupleDescriptor
 	}
 
 	@Override
-	public boolean o_IsHashAvailable (
-		final @NotNull AvailObject object)
-	{
-		//  Answer whether this object's hash value can be computed without creating
-		//  new objects.  This method is used by the garbage collector to decide which
-		//  objects to attempt to coalesce.  The garbage collector uses the hash values
-		//  to find objects that it is likely can be coalesced together.
-
-		if (object.hashOrZero() != 0)
-		{
-			return true;
-		}
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
-		{
-			if (!object.tupleAt(i).isHashAvailable())
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override
 	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
 		final @NotNull AvailObject object,
 		final int startIndex,
