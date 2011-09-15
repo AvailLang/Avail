@@ -779,7 +779,7 @@ public abstract class Interpreter
 			return;
 		}
 		final AvailObject impSet = runtime.methodsAt(methodName);
-		assert !impSet.equalsVoid();
+		assert !impSet.equalsTop();
 		if (!pendingForwards.hasElement(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
@@ -849,7 +849,7 @@ public abstract class Interpreter
 	{
 		assert methodName.isAtom();
 		final AvailObject implementations = runtime.methodsAt(methodName);
-		assert !implementations.equalsVoid();
+		assert !implementations.equalsTop();
 		final List<AvailObject> matching =
 			implementations.filterByTypes(argTypes);
 		if (matching.size() == 0)
@@ -900,7 +900,7 @@ public abstract class Interpreter
 		final @NotNull Continuation1<Generator<String>> failBlock)
 	{
 		final AvailObject impSet = runtime.methodsAt(methodName);
-		assert !impSet.equalsVoid();
+		assert !impSet.equalsTop();
 		final List<AvailObject> argTypes =
 			new ArrayList<AvailObject>(argumentExpressions.size());
 		for (final AvailObject argumentExpression : argumentExpressions)

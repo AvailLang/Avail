@@ -161,7 +161,7 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override

@@ -41,8 +41,8 @@ import com.avail.annotations.NotNull;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
- * representations are defined (not counting {@link TerminatesTypeDescriptor
- * terminates} and {@link IndirectionDescriptor transparent indirections}).  It
+ * representations are defined (not counting {@link BottomTypeDescriptor
+ * bottom} and {@link IndirectionDescriptor transparent indirections}).  It
  * defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which
  * must be defined in all subclasses.
  *
@@ -323,7 +323,7 @@ extends Descriptor
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			IntegerDescriptor.fromInt(object.tupleSize()).kind(),
 			tupleOfTypes,
-			TerminatesTypeDescriptor.terminates());
+			BottomTypeDescriptor.bottom());
 	}
 
 	@Override
@@ -558,7 +558,7 @@ extends Descriptor
 		// given tuple.  Overridden in ObjectTupleDescriptor so that if
 		// isMutable and canDestroy are true then the parts of the tuple outside
 		// the subrange will have their reference counts decremented (i.e.,
-		// destroyed if mutable) and those tuple slots will be set to void.
+		// destroyed if mutable) and those tuple slots will be set to top.
 
 		assert 1 <= start && start <= end + 1;
 		assert 0 <= end && end <= object.tupleSize();

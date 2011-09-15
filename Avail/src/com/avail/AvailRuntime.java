@@ -148,9 +148,9 @@ public final class AvailRuntime
 		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
 		specialObjects[27] = SetTypeDescriptor.meta();
 		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
-		specialObjects[29] = TerminatesTypeDescriptor.terminates();
+		specialObjects[29] = BottomTypeDescriptor.bottom();
 		specialObjects[30] = InstanceTypeDescriptor.withInstance(
-			TerminatesTypeDescriptor.terminates());
+			BottomTypeDescriptor.bottom());
 		specialObjects[31] = InstanceTypeDescriptor.withInstance(
 			AtomDescriptor.trueObject());
 		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
@@ -424,13 +424,13 @@ public final class AvailRuntime
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
 	 * bound to the specified {@linkplain AtomDescriptor selector}.  If
 	 * there is no implementation set with that selector, answer {@linkplain
-	 * NullDescriptor the void object}.
+	 * NullDescriptor the top object}.
 	 *
 	 * @param selector
 	 *            A {@linkplain AtomDescriptor selector}.
 	 * @return
 	 *            An {@linkplain ImplementationSetDescriptor implementation set}
-	 *            or {@linkplain NullDescriptor the void object}.
+	 *            or {@linkplain NullDescriptor the top object}.
 	 */
 	@ThreadSafe
 	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)

@@ -47,7 +47,7 @@ import com.avail.descriptor.UnionTypeDescriptor.ObjectSlots;
  * elements are always represented with a {@link UnionTypeDescriptor}.  Any
  * object present in this element set (or a subtype of an element that's a type)
  * is considered an instance of this union type.  The union type
- * with no elements (there's only one) uses TerminatesTypeDescriptor.
+ * with no elements (there's only one) uses BottomTypeDescriptor.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -58,7 +58,7 @@ extends AbstractTypeDescriptor
 	/**
 	 * Answer a new instance of this descriptor based on the set of objects that
 	 * will be considered instances of that type. Normalize the cases where the
-	 * set has zero or one elements to use {@link TerminatesTypeDescriptor} and
+	 * set has zero or one elements to use {@link BottomTypeDescriptor} and
 	 * {@link InstanceTypeDescriptor}, respectively. Leave out objects that are
 	 * types for which a supertype is also present.
 	 *
@@ -122,7 +122,7 @@ extends AbstractTypeDescriptor
 			{
 				return InstanceTypeDescriptor.withInstance(element);
 			}
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		assert instancesSet.setSize() > 1;
 		final AvailObject result = UnionTypeDescriptor.mutable().create();
@@ -158,7 +158,7 @@ extends AbstractTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * The nearest kind of any instance/union/terminates type is the {@linkplain
+	 * The nearest kind of any instance/union/bottom type is the {@linkplain
 	 * PrimitiveTypeDescriptor primitive} metatype called {@link
 	 * Types#UNION_TYPE UNION_TYPE}.
 	 * </p>
@@ -206,7 +206,7 @@ extends AbstractTypeDescriptor
 	/**
 	 * Answer the kind (i.e., a type that's not an abstract union type) that is
 	 * closest to this type.  Fail if the object is {@linkplain
-	 * TerminatesTypeDescriptor terminates}.
+	 * BottomTypeDescriptor bottom}.
 	 *
 	 * @param object
 	 *            The union type.
@@ -273,8 +273,8 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject someMeta)
 	{
 		// Answer the most general type that is still at least as specific as
-		// these.  Since metas intersect at terminatesType rather than
-		// terminates, we must be very careful to override this properly.
+		// these.  Since metas intersect at bottomType rather than
+		// bottom, we must be very careful to override this properly.
 		return computeIntersectionWith(object, someMeta);
 	}
 

@@ -315,14 +315,15 @@ implements L2OperationDispatcher
 
 
 		/**
-		 * [n] - Send the message at index n in the compiledCode's literals. Pop the
-		 * arguments for this message off the stack (the message itself knows how
-		 * many to expect). The first argument was pushed first, and is the deepest
-		 * on the stack. Use these arguments to look up the method dynamically.
-		 * Before invoking the method, push the void object onto the stack. Its
-		 * presence will help distinguish continuations produced by the pushLabel
+		 * [n] - Send the message at index n in the compiledCode's literals. Pop
+		 * the arguments for this message off the stack (the message itself
+		 * knows how many to expect). The first argument was pushed first, and
+		 * is the deepest on the stack. Use these arguments to look up the
+		 * method dynamically. Before invoking the method, push the {@linkplain
+		 * NullDescriptor#nullObject() top object} onto the stack. Its presence
+		 * will help distinguish continuations produced by the pushLabel
 		 * instruction from their senders. When the call completes (if ever) by
-		 * using an implicit return instruction, it will replace this void object
+		 * using an implicit return instruction, it will replace this top object
 		 * with the result of the call.
 		 */
 		@Override
@@ -338,7 +339,7 @@ implements L2OperationDispatcher
 			}
 			final AvailObject matching =
 				implementations.lookupByValuesFromList(argsBuffer);
-			if (matching.equalsVoid())
+			if (matching.equalsTop())
 			{
 				error("Ambiguous or invalid lookup");
 				return;
@@ -417,7 +418,7 @@ implements L2OperationDispatcher
 			final AvailObject closure = pointerAt(closureRegister());
 			final int outerIndex = getInteger();
 			final AvailObject outer = closure.outerVarAt(outerIndex);
-			if (outer.equalsVoid())
+			if (outer.equalsTop())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
@@ -446,7 +447,7 @@ implements L2OperationDispatcher
 			for (int i = numCopiedVars; i >= 1; i--)
 			{
 				final AvailObject value = pop();
-				assert !value.equalsVoid();
+				assert !value.equalsTop();
 				newClosure.outerVarAtPut(i, value);
 			}
 			/*
@@ -506,7 +507,7 @@ implements L2OperationDispatcher
 			final AvailObject closure = pointerAt(closureRegister());
 			final int outerIndex = getInteger();
 			final AvailObject outer = closure.outerVarAt(outerIndex);
-			if (outer.equalsVoid())
+			if (outer.equalsTop())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
@@ -557,7 +558,7 @@ implements L2OperationDispatcher
 			final AvailObject closure = pointerAt(closureRegister());
 			final int outerIndex = getInteger();
 			final AvailObject outerVariable = closure.outerVarAt(outerIndex);
-			if (outerVariable.equalsVoid())
+			if (outerVariable.equalsTop())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
@@ -609,7 +610,7 @@ implements L2OperationDispatcher
 			final int outerIndex = getInteger();
 			final AvailObject outerVariable = closure.outerVarAt(outerIndex);
 			final AvailObject outer = outerVariable.getValue();
-			if (outer.equalsVoid())
+			if (outer.equalsTop())
 			{
 				error("Someone prematurely erased this outer var");
 				return;
@@ -667,7 +668,7 @@ implements L2OperationDispatcher
 			// closure, and args.
 			newContinuation.makeSubobjectsImmutable();
 			// ...always a fresh copy, always mutable (uniquely owned).
-			assert newContinuation.caller().equalsVoid()
+			assert newContinuation.caller().equalsTop()
 				|| !newContinuation.caller().descriptor().isMutable()
 			: "Caller should freeze because two continuations can see it";
 			push(newContinuation);
@@ -713,7 +714,7 @@ implements L2OperationDispatcher
 		 * two. These types will be used for method lookup, rather than the
 		 * argument types. This supports a 'super'-like mechanism in the
 		 * presence of multimethods. Like the call instruction, all arguments
-		 * (and types) are popped, then a sentinel void object is pushed, and
+		 * (and types) are popped, then a sentinel top object is pushed, and
 		 * the looked up method is started. When the invoked method returns (via
 		 * an implicit return instruction), this sentinel will be replaced by
 		 * the result of the call.
@@ -732,7 +733,7 @@ implements L2OperationDispatcher
 			}
 			final AvailObject matching =
 				implementations.lookupByTypesFromList(argsBuffer);
-			if (matching.equalsVoid())
+			if (matching.equalsTop())
 			{
 				error("Ambiguous or invalid lookup");
 				return;
@@ -830,7 +831,7 @@ implements L2OperationDispatcher
 			assert value.isInstanceOf(
 					closure.code().closureType().returnType())
 				: "Return type from method disagrees with declaration";
-			if (caller.equalsVoid())
+			if (caller.equalsTop())
 			{
 				exitProcessWith(value);
 				return;
@@ -1104,7 +1105,7 @@ implements L2OperationDispatcher
 	@Override
 	public void prepareToExecuteContinuation (final AvailObject continuation)
 	{
-		if (continuation.equalsVoid())
+		if (continuation.equalsTop())
 		{
 			chunk = NullDescriptor.nullObject();
 			chunkWords = NullDescriptor.nullObject();
@@ -1220,7 +1221,7 @@ implements L2OperationDispatcher
 
 		final AvailObject exceptionValue = arguments.get(0);
 		AvailObject continuation = pointerAt(callerRegister());
-		while (!continuation.equalsVoid())
+		while (!continuation.equalsTop())
 		{
 			if (continuation.closure().code().primitiveNumber() == 200)
 			{
@@ -1228,7 +1229,7 @@ implements L2OperationDispatcher
 				if (exceptionValue.isInstanceOf(
 					handler.kind().argsTupleType().typeAtIndex(1)))
 				{
-					assert !handler.equalsVoid();
+					assert !handler.equalsTop();
 					prepareToExecuteContinuation(continuation);
 					return invokeClosureArguments(
 						handler,
@@ -1261,7 +1262,7 @@ implements L2OperationDispatcher
 			}
 		}
 		// Either it wasn't a primitive or the primitive failed.
-		if (!pointerAt(closureRegister()).equalsVoid())
+		if (!pointerAt(closureRegister()).equalsTop())
 		{
 			integerAtPut(pcRegister(), 1);
 			integerAtPut(
@@ -1325,7 +1326,7 @@ implements L2OperationDispatcher
 				ContainerDescriptor.forOuterType(code.localTypeAt(i)));
 			dest++;
 		}
-		// Void the stack slots...
+		// Void the stack slots (by filling them with the top object)...
 		for (int i = 1; i <= numStackSlots; i++)
 		{
 			pointerAtPut(dest, NullDescriptor.nullObject());
@@ -1424,7 +1425,7 @@ implements L2OperationDispatcher
 			{
 				final StringBuilder stackString = new StringBuilder();
 				AvailObject chain = pointerAt(callerRegister());
-				while (!chain.equalsVoid())
+				while (!chain.equalsTop())
 				{
 					stackString.insert(0, "->");
 					stackString.insert(0, argumentRegister(chain.stackp()));
@@ -1450,7 +1451,7 @@ implements L2OperationDispatcher
 	{
 		pointerAtPut(callerRegister(), NullDescriptor.nullObject());
 		pointerAtPut(closureRegister(), NullDescriptor.nullObject());
-		// Keep the process's current continuation void during execution.
+		// Keep the process's current continuation clear during execution.
 		process.continuation(NullDescriptor.nullObject());
 
 		final Result result = invokeClosureArguments(closure, arguments);
@@ -2338,7 +2339,7 @@ implements L2OperationDispatcher
 		final AvailObject selector = chunk().literalAt(selectorIndex);
 		final AvailObject signatureToCall =
 			selector.lookupByValuesFromList(argsBuffer);
-		if (signatureToCall.equalsVoid())
+		if (signatureToCall.equalsTop())
 		{
 			error("Unable to find unique implementation for call");
 			return;
@@ -2368,7 +2369,7 @@ implements L2OperationDispatcher
 		final AvailObject selector = chunk().literalAt(selectorIndex);
 		final AvailObject signatureToCall =
 			selector.lookupByValuesFromList(argsBuffer);
-		if (signatureToCall.equalsVoid())
+		if (signatureToCall.equalsTop())
 		{
 			error("Unable to find unique implementation for call");
 			return;
@@ -2420,7 +2421,7 @@ implements L2OperationDispatcher
 		final AvailObject selector = chunk().literalAt(selectorIndex);
 		final AvailObject signatureToCall = selector
 		.lookupByTypesFromList(argsBuffer);
-		if (signatureToCall.equalsVoid())
+		if (signatureToCall.equalsTop())
 		{
 			error("Unable to find unique implementation for call");
 			return;
@@ -2563,7 +2564,7 @@ implements L2OperationDispatcher
 
 		final AvailObject valueObject = pointerAt(valueIndex);
 		final AvailObject caller = pointerAt(continuationIndex);
-		if (caller.equalsVoid())
+		if (caller.equalsTop())
 		{
 			exitProcessWith(valueObject);
 			return;

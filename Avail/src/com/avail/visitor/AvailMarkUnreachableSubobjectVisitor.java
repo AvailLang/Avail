@@ -56,7 +56,7 @@ extends AvailSubobjectVisitor
 	 *
 	 * @param excludedObject
 	 *        The object within which to <em>avoid</em> marking subobjects as
-	 *        unreachable.  Use VoidDescriptor.voidObject() if no such object
+	 *        unreachable. Use NullDescriptor.nullObject() if no such object
 	 *        is necessary, as it's always already immutable.
 	 */
 	public AvailMarkUnreachableSubobjectVisitor (

@@ -278,7 +278,7 @@ public class TypeConsistencyTest
 			}
 		};
 
-		/** The most specific closure type, other than terminates. */
+		/** The most specific closure type, other than bottom. */
 		final static Node MOST_SPECIFIC_CLOSURE = new Node(
 			"MOST_SPECIFIC_CLOSURE",
 			NOTHING_TO_INT_CLOSURE,
@@ -289,7 +289,7 @@ public class TypeConsistencyTest
 			{
 				return ClosureTypeDescriptor.createWithArgumentTupleType(
 					TupleTypeDescriptor.mostGeneralType(),
-					TerminatesTypeDescriptor.terminates(),
+					BottomTypeDescriptor.bottom(),
 					SetDescriptor.empty());
 			}
 		};
@@ -498,9 +498,9 @@ public class TypeConsistencyTest
 		};
 
 
-		/** The type of {@code terminates}.  This is the most specific meta. */
-		final static Node TERMINATES_TYPE = new Node(
-			"TERMINATES_TYPE",
+		/** The type of {@code bottom}.  This is the most specific meta. */
+		final static Node BOTTOM_TYPE = new Node(
+			"BOTTOM_TYPE",
 			CLOSURE_META,
 			primitiveTypes.get(Types.CONTAINER_TYPE),
 			CONTINUATION_META,
@@ -515,32 +515,32 @@ public class TypeConsistencyTest
 			@Override AvailObject get ()
 			{
 				return InstanceTypeDescriptor.withInstance(
-					TerminatesTypeDescriptor.terminates());
+					BottomTypeDescriptor.bottom());
 			}
 		};
 
 		/**
-		 * The list of all {@link Node}s except TERMINATES.
+		 * The list of all {@link Node}s except BOTTOM.
 		 */
-		private final static List<Node> nonTerminatesTypes =
+		private final static List<Node> nonBottomTypes =
 			new ArrayList<Node>();
 
 		static
 		{
 			for (final Node existingType : values)
 			{
-				nonTerminatesTypes.add(existingType);
+				nonBottomTypes.add(existingType);
 			}
 		}
 
-		/** The type {@code terminates} */
-		final static Node TERMINATES = new Node(
-			"TERMINATES",
-			nonTerminatesTypes.toArray(new Node[0]))
+		/** The type {@code bottom} */
+		final static Node BOTTOM = new Node(
+			"BOTTOM",
+			nonBottomTypes.toArray(new Node[0]))
 		{
 			@Override AvailObject get ()
 			{
-				return TerminatesTypeDescriptor.terminates();
+				return BottomTypeDescriptor.bottom();
 			}
 		};
 

@@ -627,7 +627,7 @@ extends TypeDescriptor
 	/**
 	 * Create an integer range type.  Normalize it as necessary, converting
 	 * exclusive finite bounds into equivalent inclusive bounds.  An empty range
-	 * is always converted to {@linkplain TerminatesTypeDescriptor terminates}.
+	 * is always converted to {@linkplain BottomTypeDescriptor bottom}.
 	 *
 	 * @param lowerBound
 	 *            The lowest value inside (or just outside) the range.
@@ -680,13 +680,13 @@ extends TypeDescriptor
 		}
 		if (high.lessThan(low))
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		if (high.equals(low) && (!highInc || !lowInc))
 		{
 			// Unusual cases such as [INF..INF) give preference to exclusion
 			// over inclusion.
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject result = mutable().create();
 		result.objectSlotPut(ObjectSlots.LOWER_BOUND, low);

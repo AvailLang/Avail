@@ -295,9 +295,9 @@ extends TypeDescriptor
 						TOP.o()));
 			}
 			return InstanceTypeDescriptor.withInstance(
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -307,7 +307,7 @@ extends TypeDescriptor
 	{
 		if (object.isSubtypeOf(TYPE.o()))
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		return super.o_TypeIntersectionOfMeta(object, someMeta);
 	}
@@ -327,9 +327,9 @@ extends TypeDescriptor
 		}
 		if (another.isAbstractUnionType())
 		{
-			// Note that at this point neither one can be terminates, since that
+			// Note that at this point neither one can be bottom, since that
 			// would always have been detected as a subtype of the other.
-			assert !another.equals(TerminatesTypeDescriptor.terminates());
+			assert !another.equals(BottomTypeDescriptor.bottom());
 			return another.computeSuperkind().typeUnion(object);
 		}
 		return object.parent().typeUnion(another);

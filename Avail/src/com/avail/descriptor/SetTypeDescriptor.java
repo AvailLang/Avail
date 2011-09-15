@@ -274,9 +274,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject sizeRange,
 		final @NotNull AvailObject contentType)
 	{
-		if (sizeRange.equals(TerminatesTypeDescriptor.terminates()))
+		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
@@ -291,24 +291,24 @@ extends TypeDescriptor
 		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			newSizeRange = sizeRangeKind;
-			newContentType = TerminatesTypeDescriptor.terminates();
+			newContentType = BottomTypeDescriptor.bottom();
 		}
-		else if (contentType.equals(TerminatesTypeDescriptor.terminates()))
+		else if (contentType.equals(BottomTypeDescriptor.bottom()))
 		{
 			if (sizeRangeKind.lowerBound().equals(IntegerDescriptor.zero()))
 			{
 				// sizeRange includes at least 0 and 1, but the content type is
-				// terminates, so no contents exist.
+				// bottom, so no contents exist.
 				newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
 					IntegerDescriptor.zero());
-				newContentType = TerminatesTypeDescriptor.terminates();
+				newContentType = BottomTypeDescriptor.bottom();
 			}
 			else
 			{
-				// sizeRange does not include 0, and terminates is not the
+				// sizeRange does not include 0, and bottom is not the
 				// content type, so the whole type is inconsistent.  Answer
-				// terminates.
-				return TerminatesTypeDescriptor.terminates();
+				// bottom.
+				return BottomTypeDescriptor.bottom();
 			}
 		}
 		else

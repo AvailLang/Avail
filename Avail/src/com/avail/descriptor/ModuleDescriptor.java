@@ -125,7 +125,7 @@ public class ModuleDescriptor extends Descriptor
 		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE module
 		 * variables} are never accessible outside the module in which they are
 		 * defined, this slot is overwritten with {@linkplain
-		 * VoidDescriptor#voidObject() the void object} when module compilation
+		 * NullDescriptor#nullObject() the top object} when module compilation
 		 * is complete.
 		 */
 		VARIABLE_BINDINGS,
@@ -136,7 +136,7 @@ public class ModuleDescriptor extends Descriptor
 		 * {@linkplain DeclarationNodeDescriptor.DeclarationKind#MODULE_CONSTANT
 		 * module constants} are never accessible outside the module in which
 		 * they are defined, this slot is overwritten with {@linkplain
-		 * VoidDescriptor#voidObject() the void object} when module compilation
+		 * NullDescriptor#nullObject() the top object} when module compilation
 		 * is complete.
 		 */
 		CONSTANT_BINDINGS,
@@ -145,8 +145,8 @@ public class ModuleDescriptor extends Descriptor
 		 * The {@linkplain MessageBundleTreeDescriptor bundle tree} used to
 		 * parse multimethod {@linkplain SendNodeDescriptor sends} while
 		 * compiling this module.  When the module has been fully compiled, this
-		 * slot is overwritten with {@linkplain VoidDescriptor#voidObject() the
-		 * void object}.
+		 * slot is overwritten with {@linkplain NullDescriptor#nullObject() the
+		 * top object}.
 		 */
 		FILTERED_BUNDLE_TREE
 	}

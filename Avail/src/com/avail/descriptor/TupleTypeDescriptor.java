@@ -263,15 +263,15 @@ extends TypeDescriptor
 		final int index)
 	{
 		// Answer what type the given index would have in an object instance of
-		// me.  Answer terminates if the index is out of bounds.
+		// me.  Answer bottom if the index is out of bounds.
 		if (index <= 0)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.lessThan(IntegerDescriptor.fromInt(index)))
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject leading = object.typeTuple();
 		if (index <= leading.tupleSize())
@@ -286,7 +286,7 @@ extends TypeDescriptor
 	 *
 	 * <p>
 	 * Answer the union of the types that object's instances could have in the
-	 * given range of indices.  Out-of-range indices are treated as terminates,
+	 * given range of indices.  Out-of-range indices are treated as bottom,
 	 * which don't affect the union (unless all indices are out of range).
 	 * </p>
 	 */
@@ -303,12 +303,12 @@ extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.isFinite() && startIndex > upper.extractInt())
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject leading = object.typeTuple();
 		final int interestingLimit = leading.tupleSize() + 1;
@@ -431,9 +431,9 @@ extends TypeDescriptor
 			final AvailObject intersectionObject =
 				object.typeAtIndex(i).typeIntersection(
 					aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(TerminatesTypeDescriptor.terminates()))
+			if (intersectionObject.equals(BottomTypeDescriptor.bottom()))
 			{
-				return TerminatesTypeDescriptor.terminates();
+				return BottomTypeDescriptor.bottom();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -446,13 +446,13 @@ extends TypeDescriptor
 		final AvailObject newDefault =
 			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
-		if (newDefault.equals(TerminatesTypeDescriptor.terminates()))
+		if (newDefault.equals(BottomTypeDescriptor.bottom()))
 		{
 			final AvailObject newLeadingSizeObject =
 				IntegerDescriptor.fromInt(newLeadingSize);
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
-				return TerminatesTypeDescriptor.terminates();
+				return BottomTypeDescriptor.bottom();
 			}
 			if (newLeadingSizeObject.lessThan(newSizesObject.upperBound()))
 			{
@@ -621,7 +621,7 @@ extends TypeDescriptor
 	 * remaining elements.  Canonize the tuple type to the simplest
 	 * representation that includes exactly those tuples that a naive tuple type
 	 * constructed from these parameters would include.  In particular, if no
-	 * tuples are possible then answer terminates, otherwise remove any final
+	 * tuples are possible then answer bottom, otherwise remove any final
 	 * occurrences of the default from the end of the type tuple, trimming it to
 	 * no more than the maximum size in the range.
 	 *
@@ -635,9 +635,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject typeTuple,
 		final @NotNull AvailObject defaultType)
 	{
-		if (sizeRange.equals(TerminatesTypeDescriptor.terminates()))
+		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
@@ -648,7 +648,7 @@ extends TypeDescriptor
 		{
 			assert typeTuple.tupleSize() == 0;
 			return privateTupleTypeForSizesTypesDefaultType(
-				sizeRange, typeTuple, TerminatesTypeDescriptor.terminates());
+				sizeRange, typeTuple, BottomTypeDescriptor.bottom());
 		}
 		if (sizeRange.upperInclusive()
 				&& sizeRange.upperBound().extractInt() == typeTuple.tupleSize())

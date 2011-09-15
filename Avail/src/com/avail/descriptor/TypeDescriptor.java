@@ -285,8 +285,8 @@ extends AbstractTypeDescriptor
 	{
 		/* Check if object (some specialized type) is a supertype of
 		 * aPrimitiveType (some primitive type).  The only primitive type this
-		 * specialized type could be a supertype of is terminates, but
-		 * terminates doesn't dispatch this message.  Overridden in
+		 * specialized type could be a supertype of is bottom, but
+		 * bottom doesn't dispatch this message.  Overridden in
 		 * PrimitiveTypeDescriptor.
 		 */
 
@@ -318,7 +318,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -326,7 +326,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -334,7 +334,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -342,7 +342,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -350,7 +350,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -358,7 +358,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -367,11 +367,10 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject someMeta)
 	{
 		/* Answer the most general type that is still at least as specific as
-		 * these.  Since metatypes intersect at terminatesType rather than
-		 * terminates, we must be very careful to override this properly.
+		 * these.  Since metatypes intersect at bottom's type rather than
+		 * bottom, we must be very careful to override this properly.
 		 */
-
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -379,7 +378,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -387,7 +386,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -395,7 +394,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -763,17 +762,17 @@ extends AbstractTypeDescriptor
 
 	static void createWellKnownObjects ()
 	{
-		final AvailObject voidObject = NullDescriptor.nullObject();
-		assert voidObject != null;
+		final AvailObject nullObject = NullDescriptor.nullObject();
+		assert nullObject != null;
 
-		// Build all the objects with void fields.
+		// Build all the objects with top fields.
 		for (final Types spec : Types.values())
 		{
 			final AvailObject o = spec.descriptor.create();
 			assert o.descriptorId() != 0;
-			o.name(voidObject);
-			o.parent(voidObject);
-			o.myType(voidObject);
+			o.name(nullObject);
+			o.parent(nullObject);
+			o.myType(nullObject);
 			o.hash(spec.name().hashCode());
 			spec.set_o(o);
 		}
@@ -784,7 +783,7 @@ extends AbstractTypeDescriptor
 			o.name(ByteStringDescriptor.from(spec.name()));
 			o.parent(
 				spec.parent == null
-				? voidObject
+				? nullObject
 				: spec.parent.o());
 			o.myType(
 				Types.valueOf(spec.myTypeName).o());

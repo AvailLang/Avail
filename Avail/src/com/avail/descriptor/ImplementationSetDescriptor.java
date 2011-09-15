@@ -264,9 +264,9 @@ extends Descriptor
 	 * implementations that could be invoked at runtime at a call site with the
 	 * given static types.  This set is subject to change as new methods and
 	 * types are created.  If an argType and the corresponding argument type of
-	 * an implementation have no possible descendant except terminates, then
+	 * an implementation have no possible descendant except bottom, then
 	 * disallow the implementation (it could never actually be invoked because
-	 * terminates is uninstantiable).  Answer a {@link List list} of {@link
+	 * bottom is uninstantiable).  Answer a {@link List list} of {@link
 	 * MethodSignatureDescriptor method signatures}.
 	 * <p>
 	 * Don't do coverage analysis yet (i.e., determining if one method would
@@ -559,7 +559,7 @@ extends Descriptor
 		{
 			final int finalIndex = index;
 			if (argTypes.get(finalIndex - 1).equals(
-				TerminatesTypeDescriptor.terminates()))
+				BottomTypeDescriptor.bottom()))
 			{
 				failBlock.value(new Generator<String> ()
 				{
@@ -570,7 +570,7 @@ extends Descriptor
 							+ Integer.toString(finalIndex)
 							+ " of message \""
 							+ object.name().name().asNativeString()
-							+ "\" to have a type other than terminates";
+							+ "\" to have a type other than bottom";
 					}
 				});
 				return NullDescriptor.nullObject();
@@ -703,7 +703,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the cached privateTestingTree.  If there's a voidObject in that
+	 * Answer the cached privateTestingTree.  If there's a top object in that
 	 * slot, compute and cache the testing tree based on implementationsSet.
 	 * See {@linkplain #createTestingTree(AvailObject[], List, List, List)
 	 * createTestingTree(...)} for an interpretation of the resulting tuple of
@@ -714,7 +714,7 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		AvailObject result = object.privateTestingTree();
-		if (!result.equalsVoid())
+		if (!result.equalsTop())
 		{
 			return result;
 		}
@@ -878,7 +878,7 @@ extends Descriptor
 		// what was tested into the positive collection and out of the
 		// possibilities collection.  Also remove from the possibilities any
 		// signatures that are strictly disjoint from the tested signature.  By
-		// disjoint I mean that one or more arguments is terminates when the
+		// disjoint I mean that one or more arguments is bottom when the
 		// intersection of the signatures is computed.
 		List<Integer> newPossible = new ArrayList<Integer>(possible);
 		final List<Integer> newPositive = new ArrayList<Integer>(positives);
@@ -897,7 +897,7 @@ extends Descriptor
 				final AvailObject intersection =
 					sig.argsTupleType().typeIntersection(
 						bestSig.argsTupleType());
-				if (intersection.equals(TerminatesTypeDescriptor.terminates()))
+				if (intersection.equals(BottomTypeDescriptor.bottom()))
 				{
 					newPossible.remove(new Integer(index1));
 				}

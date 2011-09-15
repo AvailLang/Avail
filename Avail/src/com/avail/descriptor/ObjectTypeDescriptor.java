@@ -185,9 +185,9 @@ extends TypeDescriptor
 			if (map2.hasKey(key))
 			{
 				type = type.typeIntersection(map2.mapAt(key));
-				if (type.equals(TerminatesTypeDescriptor.terminates()))
+				if (type.equals(BottomTypeDescriptor.bottom()))
 				{
-					return TerminatesTypeDescriptor.terminates();
+					return BottomTypeDescriptor.bottom();
 				}
 			}
 			resultMap = resultMap.mapAtPuttingCanDestroy(

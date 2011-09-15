@@ -1,5 +1,5 @@
 /**
- * descriptor/TerminatesTypeDescriptor.java
+ * descriptor/BottomTypeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -36,7 +36,7 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
-public class TerminatesTypeDescriptor
+public class BottomTypeDescriptor
 extends AbstractUnionTypeDescriptor
 {
 	@Override
@@ -46,7 +46,7 @@ extends AbstractUnionTypeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append("terminates");
+		builder.append("bottom");
 	}
 
 	/**
@@ -84,11 +84,11 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Compute the type intersection of the object which is the terminates type,
+	 * Compute the type intersection of the object which is the bottom type,
 	 * and the argument, which may be any type.
 	 *
 	 * @param object
-	 *            The terminates type.
+	 *            The bottom type.
 	 * @param another
 	 *            Another type.
 	 * @return
@@ -99,16 +99,16 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		// Easy -- it's always the type terminates.
+		// Easy -- it's always the type bottom.
 		return object;
 	}
 
 	/**
-	 * Compute the type union of the object which is the terminates type, and
+	 * Compute the type union of the object which is the bottom type, and
 	 * the argument, which may be any type.
 	 *
 	 * @param object
-	 *            The terminates type.
+	 *            The bottom type.
 	 * @param another
 	 *            Another type.
 	 * @return
@@ -165,9 +165,9 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		//  Answer what type my keys are.  Since I'm the degenerate mapType called
-		//  terminates, answer terminates.
+		//  bottom, answer bottom.
 
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -175,9 +175,9 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		//  Answer what sizes my instances can be.  Since I'm the degenerate mapType called
-		//  terminates, answer the degenerate integerType called terminates.
+		//  bottom, answer the degenerate integerType called bottom.
 
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -185,9 +185,9 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		//  Answer what type my values are.  Since I'm the degenerate mapType called
-		//  terminates, answer terminates.
+		//  bottom, answer bottom.
 
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -196,10 +196,10 @@ extends AbstractUnionTypeDescriptor
 		final int index)
 	{
 		//  Answer what type the given index would have in an object instance of me.  Answer
-		//  terminates if the index is out of bounds, which is always because I'm the degenerate
-		//  tupleType called terminates.
+		//  bottom if the index is out of bounds, which is always because I'm the degenerate
+		//  tupleType called bottom.
 
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -209,19 +209,19 @@ extends AbstractUnionTypeDescriptor
 		final int endIndex)
 	{
 		//  Answer the union of the types the given indices would have in an object instance of me.
-		//  Answer terminates if the index is out of bounds, which is always because I'm the degenerate
-		//  tupleType called terminates.
+		//  Answer bottom if the index is out of bounds, which is always because I'm the degenerate
+		//  tupleType called bottom.
 
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
 	public @NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
-		//  To support the tupleType protocol, I must answer terminates now.
+		//  To support the tupleType protocol, I must answer bottom now.
 
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -238,9 +238,9 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		// Check if object (terminates) is a subtype of aType (should also be a
+		// Check if object (bottom) is a subtype of aType (should also be a
 		// type).  Always true, but make sure aType is really a type.
-		return aType.isSupertypeOfTerminates();
+		return aType.isSupertypeOfBottom();
 	}
 
 	@Override
@@ -248,8 +248,8 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
-		//  Check if object (terminates) is a supertype of aPrimitiveType (a primitive type).
-		//  Never true, because terminates is the most specific type.
+		//  Check if object (bottom) is a supertype of aPrimitiveType (a primitive type).
+		//  Never true, because bottom is the most specific type.
 
 		return false;
 	}
@@ -258,7 +258,7 @@ extends AbstractUnionTypeDescriptor
 	public boolean o_IsIntegerRangeType (
 		final @NotNull AvailObject object)
 	{
-		//  Because terminates is a subtype of all other types, it is even considered
+		//  Because bottom is a subtype of all other types, it is even considered
 		//  an integer range type - in particular, the degenerate integer type (INF..-INF).
 
 		return true;
@@ -268,9 +268,9 @@ extends AbstractUnionTypeDescriptor
 	public boolean o_IsMapType (
 		final @NotNull AvailObject object)
 	{
-		//  Because terminates is a subtype of all other types, it is even considered
+		//  Because bottom is a subtype of all other types, it is even considered
 		//  a map type - in particular, the degenerate map type.  Its sizeRange is
-		//  terminates, its keyType is terminates, and its valueType is terminates.
+		//  bottom, its keyType is bottom, and its valueType is bottom.
 
 		return true;
 	}
@@ -279,9 +279,9 @@ extends AbstractUnionTypeDescriptor
 	public boolean o_IsTupleType (
 		final @NotNull AvailObject object)
 	{
-		//  Because terminates is a subtype of all other types, it is even considered
+		//  Because bottom is a subtype of all other types, it is even considered
 		//  a tuple type - in particular, the degenerate tuple type.  Its sizeRange is
-		//  terminates, its typeTuple is <>, and its defaultType is terminates.
+		//  bottom, its typeTuple is <>, and its defaultType is bottom.
 
 		return true;
 	}
@@ -290,8 +290,8 @@ extends AbstractUnionTypeDescriptor
 	public AvailObject o_ArgsTupleType (
 		final @NotNull AvailObject object)
 	{
-		// Because terminates is a subtype of all other types, it is even
-		// considered a closure type.  In particular, if terminates is viewed
+		// Because bottom is a subtype of all other types, it is even
+		// considered a closure type.  In particular, if bottom is viewed
 		// as a closure type, it can take any number of arguments of any type
 		// (since there are no complying closure instances).
 
@@ -302,16 +302,16 @@ extends AbstractUnionTypeDescriptor
 	/**
 	 * The unique object that represents the type with no instances.
 	 */
-	private static AvailObject terminates;
+	private static AvailObject bottom;
 
 	/**
 	 * Answer the unique type that has no instances.
 	 *
-	 * @return The type {@code terminates}.
+	 * @return The type {@code bottom}.
 	 */
-	public static AvailObject terminates ()
+	public static AvailObject bottom ()
 	{
-		return terminates;
+		return bottom;
 	}
 
 	/**
@@ -319,7 +319,7 @@ extends AbstractUnionTypeDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		terminates = mutable().create();
+		bottom = mutable().create();
 	}
 
 	/**
@@ -327,51 +327,51 @@ extends AbstractUnionTypeDescriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		terminates = null;
+		bottom = null;
 	}
 
 
 
 	/**
-	 * Construct a new {@link TerminatesTypeDescriptor}.
+	 * Construct a new {@link BottomTypeDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected TerminatesTypeDescriptor (final boolean isMutable)
+	protected BottomTypeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link TerminatesTypeDescriptor}.
+	 * The mutable {@link BottomTypeDescriptor}.
 	 */
-	private final static TerminatesTypeDescriptor mutable =
-		new TerminatesTypeDescriptor(true);
+	private final static BottomTypeDescriptor mutable =
+		new BottomTypeDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link TerminatesTypeDescriptor}.
+	 * Answer the mutable {@link BottomTypeDescriptor}.
 	 *
-	 * @return The mutable {@link TerminatesTypeDescriptor}.
+	 * @return The mutable {@link BottomTypeDescriptor}.
 	 */
-	public static TerminatesTypeDescriptor mutable ()
+	public static BottomTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link TerminatesTypeDescriptor}.
+	 * The immutable {@link BottomTypeDescriptor}.
 	 */
-	private final static TerminatesTypeDescriptor immutable =
-		new TerminatesTypeDescriptor(false);
+	private final static BottomTypeDescriptor immutable =
+		new BottomTypeDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link TerminatesTypeDescriptor}.
+	 * Answer the immutable {@link BottomTypeDescriptor}.
 	 *
-	 * @return The immutable {@link TerminatesTypeDescriptor}.
+	 * @return The immutable {@link BottomTypeDescriptor}.
 	 */
-	public static TerminatesTypeDescriptor immutable ()
+	public static BottomTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -386,9 +386,9 @@ extends AbstractUnionTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Even though terminates is a union-y type (and the most specific one), it
+	 * Even though bottom is a union-y type (and the most specific one), it
 	 * technically "is" also a kind (a non-union-y type).  Thus, it's still
-	 * technically correct to return terminates as the nearest kind.  Code that
+	 * technically correct to return bottom as the nearest kind.  Code that
 	 * relies on this operation <em>not</em> returning a union-y type should
 	 * deal with this one special case with correspondingly special logic.
 	 * </p>
@@ -529,15 +529,15 @@ extends AbstractUnionTypeDescriptor
 		assert aType.isType();
 		if (object.equals(aType))
 		{
-			// Terminates is not an instance of itself.
+			// Bottom is not an instance of itself.
 			return false;
 		}
-		// Terminates is an instance of Top and Any.
+		// Bottom is an instance of top and any.
 		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
 		{
 			return true;
 		}
-		// Terminates is an instance of every meta (everything that inherits
+		// Bottom is an instance of every meta (everything that inherits
 		// from TYPE).
 		return aType.isSubtypeOf(TYPE.o());
 	}
@@ -547,7 +547,7 @@ extends AbstractUnionTypeDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		assert !aType.equals(terminates);
+		assert !aType.equals(bottom);
 		return aType.equals(TOP.o())
 			|| aType.equals(ANY.o())
 			|| aType.isSubtypeOf(TYPE.o());
@@ -686,7 +686,7 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Terminates is an empty union type, so the answer is no.
+	 * Bottom is an empty union type, so the answer is no.
 	 */
 	@Override
 	public boolean o_AbstractUnionTypeIncludesInstance (

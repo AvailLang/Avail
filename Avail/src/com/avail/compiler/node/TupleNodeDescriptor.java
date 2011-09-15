@@ -115,7 +115,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
 		AvailObject tupleType = object.tupleType();
-		if (tupleType.equalsVoid())
+		if (tupleType.equalsTop())
 		{
 			final AvailObject expressionsTuple = object.expressionsTuple();
 			final List<AvailObject> types = new ArrayList<AvailObject>(
@@ -123,9 +123,9 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			for (final AvailObject expression : expressionsTuple)
 			{
 				final AvailObject expressionType = expression.expressionType();
-				if (expressionType.equals(TerminatesTypeDescriptor.terminates()))
+				if (expressionType.equals(BottomTypeDescriptor.bottom()))
 				{
-					return TerminatesTypeDescriptor.terminates();
+					return BottomTypeDescriptor.bottom();
 				}
 				types.add(expressionType);
 			}
@@ -134,7 +134,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
 				TupleDescriptor.fromList(types),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 			tupleType.makeImmutable();
 			object.tupleType(tupleType);
 		}

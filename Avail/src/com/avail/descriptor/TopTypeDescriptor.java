@@ -35,8 +35,8 @@ package com.avail.descriptor;
 import com.avail.annotations.*;
 
 /**
- * {@code VoidType} implements the type of the {@linkplain
- * NullDescriptor#nullObject() void object}.
+ * {@code TopTypeDescriptor} implements the type of the {@linkplain
+ * NullDescriptor#nullObject() top object}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -67,8 +67,8 @@ extends PrimitiveTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (the type void) is a subtype of aType (may also be
-		// void).
+		// Check if object (the type top) is a subtype of aType (may also be
+		// top).
 		assert aType.isType();
 		return aType.traversed().sameAddressAs(object);
 	}
@@ -79,7 +79,7 @@ extends PrimitiveTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
-		//  Check if object (the type void) is a supertype of aPrimitiveType (a
+		// Check if object (the type top) is a supertype of aPrimitiveType (a
 		// primitive type). Always true.
 		return true;
 	}

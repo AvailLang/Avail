@@ -893,7 +893,7 @@ public class L2Translator implements L1OperationDispatcher
 	public void L1_doPushLastLocal ()
 	{
 		//  [n] - Push the argument (actual value) or local variable (the variable itself) indexed by n.
-		//  Since this is known to be the last use (nondebugger) of the argument or local, void that
+		//  Since this is known to be the last use (nondebugger) of the argument or local, clear that
 		//  slot of the current continuation.
 
 		final int localIndex = getInteger();
@@ -910,7 +910,7 @@ public class L2Translator implements L1OperationDispatcher
 	{
 		//  [n] - Push the outer variable indexed by n in the current closure.  If the variable is
 		//  mutable, clear it (no one will know).  If the variable and closure are both mutable,
-		//  remove the variable from the closure by voiding it.
+		//  remove the variable from the closure by clearing it.
 
 		final int outerIndex = getInteger();
 		stackp--;

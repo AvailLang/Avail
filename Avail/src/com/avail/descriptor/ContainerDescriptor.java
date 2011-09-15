@@ -184,7 +184,7 @@ extends Descriptor
 		// Answer the current value of the container.  Fail if no value is
 		// currently assigned.
 		final AvailObject value = object.objectSlot(ObjectSlots.VALUE);
-		if (value.equalsVoid())
+		if (value.equalsTop())
 		{
 			error("container has no value yet");
 			return NullDescriptor.nullObject();

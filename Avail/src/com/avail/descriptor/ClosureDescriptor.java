@@ -228,7 +228,7 @@ extends Descriptor
 	/**
 	 * Create a closure that accepts a specific number of arguments and always
 	 * returns the specified constant value.  The arguments may be of any type
-	 * (except void or terminates), and in fact the closure types them as "all".
+	 * (except top or bottom), and in fact the closure types them as "all".
 	 *
 	 * @param numArgs The number of arguments to accept.
 	 * @param constantResult The constant that the new closure should always

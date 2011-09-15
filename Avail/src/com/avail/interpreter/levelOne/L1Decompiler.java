@@ -473,12 +473,12 @@ public class L1Decompiler implements L1OperationDispatcher
 		}
 		else
 		{
-			// We had better see a marker with a void markerValue, otherwise the
+			// We had better see a marker with a top markerValue, otherwise the
 			// code generator didn't do what we expected.  Remove that bogus
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsVoid();
+			assert duplicateExpression.markerValue().equalsTop();
 			expressionStack.add(assignmentNode);
 		}
 	}
@@ -519,12 +519,12 @@ public class L1Decompiler implements L1OperationDispatcher
 		}
 		else
 		{
-			// We had better see a marker with a void markerValue, otherwise the
+			// We had better see a marker with a top markerValue, otherwise the
 			// code generator didn't do what we expected.  Remove that bogus
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsVoid();
+			assert duplicateExpression.markerValue().equalsTop();
 			expressionStack.add(assignmentNode);
 		}
 	}
@@ -652,12 +652,12 @@ public class L1Decompiler implements L1OperationDispatcher
 		}
 		else
 		{
-			// We had better see a marker with a void markerValue, otherwise the
+			// We had better see a marker with a top markerValue, otherwise the
 			// code generator didn't do what we expected.  Remove that bogus
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsVoid();
+			assert duplicateExpression.markerValue().equalsTop();
 			expressionStack.add(assignmentNode);
 		}
 	}

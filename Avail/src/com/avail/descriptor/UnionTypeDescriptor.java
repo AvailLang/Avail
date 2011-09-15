@@ -41,7 +41,7 @@ import com.avail.annotations.NotNull;
  * This descriptor family is used for union types with two or more instances
  * (i.e., union types for which two or more elements survive canonicalization).
  * For the case of one instance, see {@link InstanceTypeDescriptor}, and for the
- * case of zero instances, see {@link TerminatesTypeDescriptor}.
+ * case of zero instances, see {@link BottomTypeDescriptor}.
  *
  * <p>
  * A union type is created from a set of objects that are considered instances
@@ -123,9 +123,9 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	AvailObject getSuperkind (final @NotNull AvailObject object)
 	{
 		AvailObject cached = object.objectSlot(ObjectSlots.CACHED_SUPERKIND);
-		if (cached.equalsVoid())
+		if (cached.equalsTop())
 		{
-			cached = TerminatesTypeDescriptor.terminates();
+			cached = BottomTypeDescriptor.bottom();
 			for (final AvailObject instance : getInstances(object))
 			{
 				cached = cached.typeUnion(instance.kind());
@@ -250,7 +250,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 			// Create a new union type containing all non-type elements that are
 			// simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
-			// This should even correctly deal with terminates as an element.
+			// This should even correctly deal with bottom as an element.
 			final AvailObject otherElements = another.instances();
 			AvailObject myTypes = SetDescriptor.empty();
 			for (final AvailObject element : elements)
@@ -394,7 +394,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	{
 		// This is only intended for a TupleType stand-in. Answer what type the
 		// given index would have in an object instance of me. Answer
-		// terminates if the index is out of bounds.
+		// bottom if the index is out of bounds.
 		assert object.isTupleType();
 		return getSuperkind(object).typeAtIndex(index);
 	}
@@ -408,7 +408,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	{
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices. Out-of-range indices are treated as
-		// terminates, which don't affect the union (unless all indices are out
+		// bottom, which don't affect the union (unless all indices are out
 		// of range).
 		assert object.isTupleType();
 		return getSuperkind(object).unionOfTypesAtThrough(startIndex, endIndex);
@@ -596,7 +596,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		final AvailObject anotherObject)
 	{
 		// A union type with a cached superkind is pretty good.
-		return !object.objectSlot(ObjectSlots.CACHED_SUPERKIND).equalsVoid();
+		return !object.objectSlot(ObjectSlots.CACHED_SUPERKIND).equalsTop();
 	}
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 	@Override

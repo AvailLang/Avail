@@ -94,12 +94,13 @@ extends Descriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The continuation that invoked this one, or the {@link VoidDescriptor
-		 * void object} for the outermost continuation.  When a continuation is
-		 * not directly created by a {@linkplain L1Operation#L1Ext_doPushLabel
-		 * push-label instruction}, it will have a type pushed on it.  This type
-		 * is checked against any value that the callee attempts to return to
-		 * it.  This supports link-time type strengthening at call sites.
+		 * The continuation that invoked this one, or the {@linkplain
+		 * NullDescriptor#nullObject() top object} for the outermost
+		 * continuation. When a continuation is not directly created by a
+		 * {@linkplain L1Operation#L1Ext_doPushLabel push-label instruction}, it
+		 * will have a type pushed on it.  This type is checked against any
+		 * value that the callee attempts to return to it. This supports
+		 * link-time type strengthening at call sites.
 		 */
 		CALLER,
 

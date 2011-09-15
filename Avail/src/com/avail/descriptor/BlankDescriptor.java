@@ -74,7 +74,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_EqualsVoidOrBlank (
+	public boolean o_EqualsTopOrBlank (
 		final @NotNull AvailObject object)
 	{
 		return true;

@@ -192,10 +192,10 @@ extends Descriptor
 		final @NotNull AvailObject aTupleType);
 
 	@Override
-	public boolean o_IsSupertypeOfTerminates (
+	public boolean o_IsSupertypeOfBottom (
 		final @NotNull AvailObject object)
 	{
-		// All types are supertypes of terminates.  Anything that's not a type
+		// All types are supertypes of bottom.  Anything that's not a type
 		// will end the VM.
 		return true;
 	}

@@ -151,19 +151,19 @@ implements Iterable<AvailObject>
 	public boolean greaterThan (
 		final AvailObject another)
 	{
-		//  Translate >= into an inverted lessThan:.  This manual method simplifies renaming rules
-		//  greatly, and avoids the need for an Object:greaterThan: in the Descriptors.
-
-		// Reverse the arguments and dispatch to the argument's descriptor.
+		// Translate >= into an inverted lessThan:. This manual method
+		// simplifies renaming rules greatly, and avoids the need for an
+		// Object:greaterThan: in the Descriptors. Reverse the arguments and
+		// dispatch to the argument's descriptor.
 		return another.descriptor().o_LessThan(another, this);
 	}
 
 	public boolean greaterOrEqual (
 		final AvailObject another)
 	{
-		//  Translate >= into an inverted lessOrEqual:.  This manual method simplifies renaming rules
-		//  greatly, and avoids the need for an Object:greaterOrEqual: in the Descriptors.
-
+		// Translate >= into an inverted lessOrEqual:. This manual method
+		// simplifies renaming rules greatly, and avoids the need for an
+		// Object:greaterOrEqual: in the Descriptors.
 		// Reverse the arguments and dispatch to the argument's descriptor.
 		return another.descriptor().o_LessOrEqual(another, this);
 	}
@@ -174,8 +174,8 @@ implements Iterable<AvailObject>
 
 	public void assertObjectUnreachableIfMutable ()
 	{
-		//  Set up the object to report nice obvious errors if anyone ever accesses it again.
-
+		// Set up the object to report nice obvious errors if anyone ever
+		// accesses it again.
 		assertObjectUnreachableIfMutableExcept(NullDescriptor.nullObject());
 	}
 
@@ -553,7 +553,7 @@ implements Iterable<AvailObject>
 	public static void clearAllWellKnownObjects ()
 	{
 		NullDescriptor.clearWellKnownObjects();
-		TerminatesTypeDescriptor.clearWellKnownObjects();
+		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
 		BlankDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
@@ -580,7 +580,7 @@ implements Iterable<AvailObject>
 	public static void createAllWellKnownObjects ()
 	{
 		NullDescriptor.createWellKnownObjects();
-		TerminatesTypeDescriptor.createWellKnownObjects();
+		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
 		BlankDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
@@ -1036,18 +1036,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject binUnionTypeOrVoid ()
+	public AvailObject binUnionTypeOrTop ()
 	{
-		return descriptor().o_BinUnionTypeOrVoid(this);
+		return descriptor().o_BinUnionTypeOrTop(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void binUnionTypeOrVoid (
+	public void binUnionTypeOrTop (
 		final AvailObject value)
 	{
-		descriptor().o_BinUnionTypeOrVoid(this, value);
+		descriptor().o_BinUnionTypeOrTop(this, value);
 	}
 
 	/**
@@ -2042,17 +2042,17 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsVoid ()
+	public boolean equalsTop ()
 	{
-		return descriptor().o_EqualsVoid(this);
+		return descriptor().o_EqualsTop(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsVoidOrBlank ()
+	public boolean equalsTopOrBlank ()
 	{
-		return descriptor().o_EqualsVoidOrBlank(this);
+		return descriptor().o_EqualsTopOrBlank(this);
 	}
 
 	/**
@@ -2786,9 +2786,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfTerminates ()
+	public boolean isSupertypeOfBottom ()
 	{
-		return descriptor().o_IsSupertypeOfTerminates(this);
+		return descriptor().o_IsSupertypeOfBottom(this);
 	}
 
 	/**
@@ -5800,7 +5800,7 @@ implements Iterable<AvailObject>
 	 * receiver, but is not an {@linkplain AbstractUnionTypeDescriptor abstract
 	 * union type}.  Choose the most specific such type.  Fail if the receiver
 	 * is not itself an abstract union type.  Also fail if the receiver is
-	 * {@linkplain TerminatesTypeDescriptor terminates}.
+	 * {@linkplain BottomTypeDescriptor bottom}.
 	 *
 	 * @return The must specific non-union supertype.
 	 */

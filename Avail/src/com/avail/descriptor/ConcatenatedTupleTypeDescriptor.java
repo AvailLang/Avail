@@ -129,11 +129,11 @@ extends TypeDescriptor
 		final int index)
 	{
 		// Answer what type the given index would have in an object instance of
-		// me. Answer terminates if the index is definitely out of bounds.
+		// me. Answer bottom if the index is definitely out of bounds.
 
 		if (index <= 0)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 
 		final AvailObject firstUpper =
@@ -147,7 +147,7 @@ extends TypeDescriptor
 			final AvailObject indexObject = IntegerDescriptor.fromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
-				return TerminatesTypeDescriptor.terminates();
+				return BottomTypeDescriptor.bottom();
 			}
 		}
 		final AvailObject firstLower =
@@ -186,7 +186,7 @@ extends TypeDescriptor
 	{
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices. Out-of-range indices are treated as
-		// terminates, which don't affect the union (unless all indices are out
+		// bottom, which don't affect the union (unless all indices are out
 		// of range).
 
 		assert startIndex <= endIndex;
@@ -196,7 +196,7 @@ extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject firstUpper =
 			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
@@ -210,7 +210,7 @@ extends TypeDescriptor
 		{
 			if (startIndex > totalUpper.extractInt())
 			{
-				return TerminatesTypeDescriptor.terminates();
+				return BottomTypeDescriptor.bottom();
 			}
 		}
 		AvailObject unionType =
@@ -464,9 +464,9 @@ extends TypeDescriptor
 		for (int i = 1; i <= newLeadingSize; i++)
 		{
 			final AvailObject intersectionObject = object.typeAtIndex(i).typeIntersection(aTupleType.typeAtIndex(i));
-			if (intersectionObject.equals(TerminatesTypeDescriptor.terminates()))
+			if (intersectionObject.equals(BottomTypeDescriptor.bottom()))
 			{
-				return TerminatesTypeDescriptor.terminates();
+				return BottomTypeDescriptor.bottom();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,

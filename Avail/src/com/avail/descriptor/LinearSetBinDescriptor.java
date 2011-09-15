@@ -144,7 +144,7 @@ extends SetBinDescriptor
 				.create(newSize);
 			result.binHash(0);
 			result.binSize(0);
-			result.binUnionTypeOrVoid(unionType);
+			result.binUnionTypeOrTop(unionType);
 			result.bitVector(bitVector);
 			for (int i = 1; i <= newSize; i++)
 			{

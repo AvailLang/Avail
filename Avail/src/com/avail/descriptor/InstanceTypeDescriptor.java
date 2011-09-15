@@ -151,7 +151,7 @@ extends AbstractUnionTypeDescriptor
 			// Create a new union type containing all non-type elements that are
 			// simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
-			// This should even correctly deal with terminates as an element.
+			// This should even correctly deal with bottom as an element.
 			if (instance.isType())
 			{
 				for (final AvailObject anotherElement : another.instances())
@@ -180,18 +180,18 @@ extends AbstractUnionTypeDescriptor
 		}
 		if (set.setSize() == 0)
 		{
-			// Decide whether this should be terminates or terminates's type
+			// Decide whether this should be bottom or bottom's type
 			// based on whether object and another are both metas.  Note that
 			// object is a meta precisely when its instance is a type.  One more
-			// thing:  The special case of another being terminates should not
+			// thing:  The special case of another being bottom should not
 			// be treated as being a meta for our purposes, even though
-			// terminates technically is a meta.
+			// bottom technically is a meta.
 			if (instance.isType()
 				&& another.isInstanceOfKind(META.o())
-				&& !another.equals(TerminatesTypeDescriptor.terminates()))
+				&& !another.equals(BottomTypeDescriptor.bottom()))
 			{
 				return InstanceTypeDescriptor.withInstance(
-					TerminatesTypeDescriptor.terminates());
+					BottomTypeDescriptor.bottom());
 			}
 		}
 		return AbstractUnionTypeDescriptor.withInstances(set);
@@ -233,7 +233,7 @@ extends AbstractUnionTypeDescriptor
 		{
 			return object;
 		}
-		// Another isn't a union type or instance type or terminates, so reverse
+		// Another isn't a union type or instance type or bottom, so reverse
 		// the arguments.
 		recursion++;
 		try
@@ -380,14 +380,14 @@ extends AbstractUnionTypeDescriptor
 	{
 		// This is only intended for a TupleType stand-in.  Answer what type the
 		// given index would have in an object instance of me.  Answer
-		// terminates if the index is out of bounds.
+		// bottom if the index is out of bounds.
 		final AvailObject tuple = getInstance(object);
 		assert tuple.isTuple();
 		if (1 <= index && index <= tuple.tupleSize())
 		{
 			return withInstance(tuple.tupleAt(index));
 		}
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -398,19 +398,19 @@ extends AbstractUnionTypeDescriptor
 	{
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices.  Out-of-range indices are treated as
-		// terminates, which don't affect the union (unless all indices are out
+		// bottom, which don't affect the union (unless all indices are out
 		// of range).
 		final AvailObject tuple = getInstance(object);
 		assert tuple.isTuple();
 		assert startIndex <= endIndex;
 		if (endIndex <= 0)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final int upperIndex = tuple.tupleSize();
 		if (startIndex > upperIndex)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		if (startIndex == endIndex)
 		{
@@ -438,7 +438,7 @@ extends AbstractUnionTypeDescriptor
 		final int tupleSize = tuple.tupleSize();
 		if (tupleSize == 0)
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		return withInstance(tuple.tupleAt(tupleSize));
 	}
@@ -786,7 +786,7 @@ extends AbstractUnionTypeDescriptor
 		{
 			return object;
 		}
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
@@ -798,7 +798,7 @@ extends AbstractUnionTypeDescriptor
 		{
 			return object;
 		}
-		return TerminatesTypeDescriptor.terminates();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override

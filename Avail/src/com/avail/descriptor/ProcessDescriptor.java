@@ -114,7 +114,7 @@ extends Descriptor
 		/**
 		 * Not yet implement.  This will be a block that should be invoked after
 		 * the process executes each nybblecode.  Using {@linkplain
-		 * TopTypeDescriptor the void object} here means run without this
+		 * TopTypeDescriptor the top object} here means run without this
 		 * special single-stepping mode enabled.
 		 */
 		BREAKPOINT_BLOCK

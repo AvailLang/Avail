@@ -467,7 +467,7 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_BinUnionTypeOrVoid (
+	public void o_BinUnionTypeOrTop (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -4537,7 +4537,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsSupertypeOfTerminates (
+	public boolean o_IsSupertypeOfBottom (
 		final AvailObject object)
 	{
 		//  GENERATED pure (abstract) method.
@@ -5975,7 +5975,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_EqualsVoid (
+	public boolean o_EqualsTop (
 		final AvailObject object)
 	{
 		return false;
@@ -5986,7 +5986,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_EqualsVoidOrBlank (
+	public boolean o_EqualsTopOrBlank (
 		final AvailObject object)
 	{
 		return false;
@@ -6306,6 +6306,12 @@ extends AbstractDescriptor
 	}
 
 	/**
+	 * Remove elementObject from the bin object, if present. Answer the
+	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
+	 * In particular, an element is masquerading as a bin of size one, so the
+	 * answer must be either the object or top object (to indicate a size zero
+	 * bin).
+	 *
 	 * @param object
 	 * @param elementObject
 	 * @param elementObjectHash
@@ -6319,10 +6325,6 @@ extends AbstractDescriptor
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
-		//  Remove elementObject from the bin object, if present.  Answer the resulting bin.  The bin
-		//  may be modified if it's mutable and canDestroy.  In particular, an element is masquerading
-		//  as a bin of size one, so the answer must be either the object or voidObject (to indicate a size
-		//  zero bin).
 
 		if (object.equals(elementObject))
 		{
@@ -6336,6 +6338,11 @@ extends AbstractDescriptor
 	}
 
 	/**
+	 * Sets only use explicit bins for collisions, otherwise they store the
+	 * element itself. This works because a bin can't be an element of a set.
+	 * Likewise, the top object can't be a member of a set and is treated like
+	 * an empty bin.
+	 *
 	 * @param object
 	 * @param potentialSuperset
 	 * @return
@@ -6345,10 +6352,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject potentialSuperset)
 	{
-		//  Sets only use explicit bins for collisions, otherwise they store the element
-		//  itself.  This works because a bin can't be an element of a set.  Likewise,
-		//  the voidObject can't be a member of a set and is treated like an empty bin.
-
 		return potentialSuperset.hasElement(object);
 	}
 
@@ -6405,7 +6408,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_BinUnionTypeOrVoid (
+	public @NotNull AvailObject o_BinUnionTypeOrTop (
 		final AvailObject object)
 	{
 		unsupportedOperation();

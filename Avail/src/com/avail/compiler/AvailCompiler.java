@@ -128,7 +128,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 								{
 									afterExpression.expected(
 										"outer level statement "
-										+ "to have void type");
+										+ "to have top type");
 								}
 							}
 						});
@@ -647,7 +647,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 						// one from that to make it a List index.
 						assert successorTrees.tupleSize() == 1;
 						final int position = (instruction - 3 >> 3) - 1;
-						List<List<AvailObject>> newInnerArgs =
+						final List<List<AvailObject>> newInnerArgs =
 							new ArrayList<List<AvailObject>>(innerArgsSoFar);
 						while (position >= newInnerArgs.size())
 						{
@@ -723,19 +723,19 @@ public class AvailCompiler extends AbstractAvailCompiler
 		final AvailObject bundle, final Con<AvailObject> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-		AvailObject message = bundle.message();
+		final AvailObject message = bundle.message();
 		final AvailObject impSet = interpreter.runtime().methodsAt(message);
-		assert !impSet.equalsVoid();
-		AvailObject implementationsTuple = impSet.implementationsTuple();
+		assert !impSet.equalsTop();
+		final AvailObject implementationsTuple = impSet.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
 
 		if (implementationsTuple.tupleAt(1).isMacro())
 		{
 			// Macro definitions and non-macro definitions are not allowed to
 			// mix within an implementation set.
-			List<AvailObject> argumentNodeTypes = new ArrayList<AvailObject>(
+			final List<AvailObject> argumentNodeTypes = new ArrayList<AvailObject>(
 				argumentExpressions.size());
-			for (AvailObject argExpr : argumentExpressions)
+			for (final AvailObject argExpr : argumentExpressions)
 			{
 				argumentNodeTypes.add(argExpr.kind());
 			}
@@ -826,25 +826,25 @@ public class AvailCompiler extends AbstractAvailCompiler
 						+ ") to produce a parse node");
 				}
 			}
-			catch (AvailRejectedParseException e)
+			catch (final AvailRejectedParseException e)
 			{
 				stateAfterCall.expected(e.rejectionString().asNativeString());
 			}
 			return;
 		}
 		// It invokes a method (not a macro).
-		for (AvailObject arg : argumentExpressions)
+		for (final AvailObject arg : argumentExpressions)
 		{
-			if (arg.expressionType().equals(TerminatesTypeDescriptor.terminates()))
+			if (arg.expressionType().equals(BottomTypeDescriptor.bottom()))
 			{
 				stateAfterCall.expected(
-					"argument to have type other than terminates");
+					"argument to have type other than bottom");
 				return;
 			}
 			if (arg.expressionType().equals(TOP.o()))
 			{
 				stateAfterCall.expected(
-					"argument to have type other than void");
+					"argument to have type other than top");
 				return;
 			}
 		}
@@ -930,12 +930,12 @@ public class AvailCompiler extends AbstractAvailCompiler
 	{
 		for (int i = 1; i <= innerArguments.size(); i++)
 		{
-			List<AvailObject> argumentOccurrences = innerArguments.get(i - 1);
-			for (AvailObject argument : argumentOccurrences)
+			final List<AvailObject> argumentOccurrences = innerArguments.get(i - 1);
+			for (final AvailObject argument : argumentOccurrences)
 			{
 				final AvailObject argumentSendName =
 					argument.apparentSendName();
-				if (!argumentSendName.equalsVoid())
+				if (!argumentSendName.equalsTop())
 				{
 					final AvailObject restrictions =
 						bundle.restrictions().tupleAt(i);
@@ -982,7 +982,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 				builder.append("one of the following internal keywords:");
 				final List<String> sorted =
 					new ArrayList<String>(incomplete.mapSize());
-				for (MapDescriptor.Entry entry : incomplete.mapIterable())
+				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
 					sorted.add(entry.key.asNativeString());
 				}
@@ -1085,7 +1085,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 		// It's optional, so try it with no wrapping.
 		attempt(start, continuation, node);
 
-		// Don't wrap it if its type is void.
+		// Don't wrap it if its type is top.
 		if (node.expressionType().equals(TOP.o()))
 		{
 			return;

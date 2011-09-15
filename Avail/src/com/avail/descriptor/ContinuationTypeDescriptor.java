@@ -218,7 +218,7 @@ extends TypeDescriptor
 		}
 		if (closType1.numArgs() != closType2.numArgs())
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject intersection = ClosureTypeDescriptor.create(
 			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
@@ -294,9 +294,9 @@ extends TypeDescriptor
 	/**
 	 * The most general continuation type.  Since continuation types are
 	 * contravariant by argument types and contravariant by return type, the
-	 * most general type is the one taking terminates as the arguments list
+	 * most general type is the one taking bottom as the arguments list
 	 * (i.e., not specific enough to be able to call it), and having the return
-	 * type terminates.
+	 * type bottom.
 	 */
 	private static AvailObject MostGeneralType;
 
@@ -327,7 +327,7 @@ extends TypeDescriptor
 	{
 		MostGeneralType = forClosureType(
 			ClosureTypeDescriptor.forReturnType(
-				TerminatesTypeDescriptor.terminates()));
+				BottomTypeDescriptor.bottom()));
 		MostGeneralType.makeImmutable();
 		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
 		Meta.makeImmutable();

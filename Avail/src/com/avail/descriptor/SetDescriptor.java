@@ -40,7 +40,7 @@ import com.avail.annotations.NotNull;
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
  * Hash Tree.  If the set is empty, the root is {@linkplain NullDescriptor the
- * void object}, which may not be a member of a set.  If the set has one
+ * top object}, which may not be a member of a set.  If the set has one
  * element, the root is the element itself.  If the set has two or more elements
  * then a {@linkplain SetBinDescriptor bin} must be used.  There are two types
  * of bin, the {@linkplain LinearSetBinDescriptor linear bin} and the
@@ -448,7 +448,7 @@ public class SetDescriptor extends Descriptor
 		 */
 		private void followLeftmost (AvailObject binOrElement)
 		{
-			if (binOrElement.equalsVoid())
+			if (binOrElement.equalsTop())
 			{
 				assert binStack.isEmpty();
 				assert subscriptStack.isEmpty();

@@ -67,7 +67,7 @@ extends SetBinDescriptor
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.
-		 * If this is {@linkplain VoidDescriptor#voidObject() void}, then it can
+		 * If this is {@linkplain NullDescriptor#nullObject() top}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_UNION_TYPE_OR_VOID,
@@ -115,7 +115,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	public void o_BinUnionTypeOrVoid (
+	public void o_BinUnionTypeOrTop (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
@@ -145,7 +145,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_BinUnionTypeOrVoid (
+	public @NotNull AvailObject o_BinUnionTypeOrTop (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BIN_UNION_TYPE_OR_VOID);
@@ -184,8 +184,8 @@ extends SetBinDescriptor
 	public AvailObject o_BinUnionKind (
 			final AvailObject object)
 	{
-		AvailObject union = object.binUnionTypeOrVoid();
-		if (union.equalsVoid())
+		AvailObject union = object.binUnionTypeOrTop();
+		if (union.equalsTop())
 		{
 			union = object.binElementAt(1).binUnionKind();
 			final int limit = object.variableObjectSlotsCount();
@@ -193,7 +193,7 @@ extends SetBinDescriptor
 			{
 				union = union.typeUnion(object.binElementAt(i).binUnionKind());
 			}
-			object.binUnionTypeOrVoid(union);
+			object.binUnionTypeOrTop(union);
 		}
 		return union;
 	}
@@ -263,7 +263,7 @@ extends SetBinDescriptor
 			}
 			objectToModify.binHash(object.binHash() + hashDelta);
 			objectToModify.binSize(newSize);
-			objectToModify.binUnionTypeOrVoid(NullDescriptor.nullObject());
+			objectToModify.binUnionTypeOrTop(NullDescriptor.nullObject());
 			objectToModify.binElementAtPut(physicalIndex, entry);
 			return objectToModify;
 		}
@@ -271,8 +271,8 @@ extends SetBinDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		unionType = object.binUnionTypeOrVoid();
-		if (!unionType.equalsVoid())
+		unionType = object.binUnionTypeOrTop();
+		if (!unionType.equalsTop())
 		{
 			unionType = unionType.typeUnion(elementObject.kind());
 		}
@@ -280,7 +280,7 @@ extends SetBinDescriptor
 			.create(objectEntryCount + 1);
 		objectToModify.binHash(object.binHash() + elementObjectHash);
 		objectToModify.binSize(object.binSize() + 1);
-		objectToModify.binUnionTypeOrVoid(unionType);
+		objectToModify.binUnionTypeOrTop(unionType);
 		objectToModify.bitVector(vector | bitShift(1,logicalIndex));
 		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 		{
@@ -353,7 +353,7 @@ extends SetBinDescriptor
 		final int deltaHash = replacementEntry.binHash() - oldHash;
 		final int deltaSize = replacementEntry.binSize() - oldSize;
 		AvailObject result;
-		if (replacementEntry.equalsVoid())
+		if (replacementEntry.equalsTop())
 		{
 			if (objectEntryCount == 1)
 			{
@@ -362,7 +362,7 @@ extends SetBinDescriptor
 			// Calculate the union type before allocating the new bin, so we
 			// don't have to worry about a partially initialized object during a
 			// type computation which may require memory allocation.
-			AvailObject newUnionType = TerminatesTypeDescriptor.terminates();
+			AvailObject newUnionType = BottomTypeDescriptor.bottom();
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
 				if (index != physicalIndex)
@@ -375,7 +375,7 @@ extends SetBinDescriptor
 				objectEntryCount - 1);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrVoid(newUnionType);
+			result.binUnionTypeOrTop(newUnionType);
 			result.bitVector(vector ^ bitShift(1,logicalIndex));
 			for (int index = objectEntryCount - 1; index >= 1; index--)
 			{
@@ -406,7 +406,7 @@ extends SetBinDescriptor
 				objectEntryCount);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrVoid(NullDescriptor.nullObject());
+			result.binUnionTypeOrTop(NullDescriptor.nullObject());
 			result.bitVector(vector);
 			for (int index = 1; index <= objectEntryCount; index++)
 			{

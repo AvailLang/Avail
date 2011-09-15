@@ -833,7 +833,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_BinUnionTypeOrVoid (
+	public abstract void o_BinUnionTypeOrTop (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -3265,7 +3265,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfTerminates (
+	public abstract boolean o_IsSupertypeOfBottom (
 		final AvailObject object);
 
 	/**
@@ -3988,13 +3988,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsVoid (final AvailObject object);
+	public abstract boolean o_EqualsTop (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsVoidOrBlank (final AvailObject object);
+	public abstract boolean o_EqualsTopOrBlank (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4189,7 +4189,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_BinUnionTypeOrVoid (final AvailObject object);
+	public abstract AvailObject o_BinUnionTypeOrTop (final AvailObject object);
 
 	/**
 	 * @param object

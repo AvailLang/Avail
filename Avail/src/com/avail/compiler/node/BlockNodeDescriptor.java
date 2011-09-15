@@ -432,7 +432,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 						&& object.resultType().equals(TOP.o()))
 			{
 				// Either the block 1) ends with the label declaration or
-				// 2) is void-valued and ends with an assignment. Push the void
+				// 2) is top-valued and ends with an assignment. Push the top
 				// object as the return value.
 				lastStatement.emitEffectOn(codeGenerator);
 				codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
@@ -479,8 +479,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		{
 			statement.flattenStatementsInto(flattenedStatements);
 		}
-		// Remove useless statements that are just void literals, other than the
-		// final statement.  Actually remove any bare literals, not just void.
+		// Remove useless statements that are just top literals, other than the
+		// final statement.  Actually remove any bare literals, not just top.
 		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
 		{
 			final AvailObject statement = flattenedStatements.get(index);

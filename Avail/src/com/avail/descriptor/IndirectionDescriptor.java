@@ -444,11 +444,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_BinUnionTypeOrVoid (
+	public void o_BinUnionTypeOrTop (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).binUnionTypeOrVoid(value);
+		o_Traversed(object).binUnionTypeOrTop(value);
 	}
 
 	@Override
@@ -2446,9 +2446,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_BinUnionTypeOrVoid (final AvailObject object)
+	public @NotNull AvailObject o_BinUnionTypeOrTop (final AvailObject object)
 	{
-		return o_Traversed(object).binUnionTypeOrVoid();
+		return o_Traversed(object).binUnionTypeOrTop();
 	}
 
 	@Override
@@ -2616,15 +2616,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_EqualsVoid (final AvailObject object)
+	public boolean o_EqualsTop (final AvailObject object)
 	{
-		return o_Traversed(object).equalsVoid();
+		return o_Traversed(object).equalsTop();
 	}
 
 	@Override
-	public boolean o_EqualsVoidOrBlank (final AvailObject object)
+	public boolean o_EqualsTopOrBlank (final AvailObject object)
 	{
-		return o_Traversed(object).equalsVoidOrBlank();
+		return o_Traversed(object).equalsTopOrBlank();
 	}
 
 	@Override
@@ -2913,9 +2913,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfTerminates (final AvailObject object)
+	public boolean o_IsSupertypeOfBottom (final AvailObject object)
 	{
-		return o_Traversed(object).isSupertypeOfTerminates();
+		return o_Traversed(object).isSupertypeOfBottom();
 	}
 
 	@Override

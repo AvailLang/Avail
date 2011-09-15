@@ -294,15 +294,14 @@ public class MessageSplitter
 
 		/**
 		 * A simple underscore/ellipsis can be arbitrarily restricted, other
-		 * than when it is restricted to the uninstantiable type {@link
-		 * TypeDescriptor.Types#TERMINATES terminates}.
+		 * than when it is restricted to the uninstantiable type bottom.
 		 */
 		@Override
 		public void checkType (final AvailObject argumentType)
 		{
-			if (argumentType.equals(TerminatesTypeDescriptor.terminates()))
+			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
-				error("Method argument type should not be \"terminates\".");
+				error("Method argument type should not be \"bottom\".");
 			}
 			return;
 		}
@@ -633,9 +632,9 @@ public class MessageSplitter
 		public void checkType (final AvailObject argumentType)
 		{
 			// Always expect a tuple of solutions here.
-			if (argumentType.equals(TerminatesTypeDescriptor.terminates()))
+			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
-				error("Method argument type should not be \"terminates\".");
+				error("Method argument type should not be \"bottom\".");
 			}
 
 			if (!argumentType.isTupleType())

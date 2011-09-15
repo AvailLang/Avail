@@ -130,7 +130,7 @@ extends L2Instruction
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRange,
 				TupleDescriptor.fromList(types),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		tupleType.makeImmutable();
 		translator.registerTypeAtPut(destinationRegister, tupleType);
 		if (sourceVector.allRegistersAreConstantsIn(translator))

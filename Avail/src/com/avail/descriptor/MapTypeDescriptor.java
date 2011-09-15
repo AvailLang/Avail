@@ -292,7 +292,7 @@ extends TypeDescriptor
 	 * elements, the specified types of keys, and the specified types of values.
 	 * Canonicalize the values for singularities, such as the size range being
 	 * zero (in which case the key type and value type are reduced to
-	 * terminates).
+	 * bottom).
 	 *
 	 * @param sizeRange
 	 *            An {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -308,9 +308,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject keyType,
 		final @NotNull AvailObject valueType)
 	{
-		if (sizeRange.equals(TerminatesTypeDescriptor.terminates()))
+		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 
 		assert sizeRange.lowerBound().isFinite();
@@ -327,16 +327,16 @@ extends TypeDescriptor
 		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
 		{
 			newSizeRange = sizeRangeKind;
-			newKeyType = TerminatesTypeDescriptor.terminates();
-			newValueType = TerminatesTypeDescriptor.terminates();
+			newKeyType = BottomTypeDescriptor.bottom();
+			newValueType = BottomTypeDescriptor.bottom();
 		}
-		else if (keyType.equals(TerminatesTypeDescriptor.terminates())
-			|| valueType.equals(TerminatesTypeDescriptor.terminates()))
+		else if (keyType.equals(BottomTypeDescriptor.bottom())
+			|| valueType.equals(BottomTypeDescriptor.bottom()))
 		{
 			newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
 				IntegerDescriptor.zero());
-			newKeyType = TerminatesTypeDescriptor.terminates();
-			newValueType = TerminatesTypeDescriptor.terminates();
+			newKeyType = BottomTypeDescriptor.bottom();
+			newValueType = BottomTypeDescriptor.bottom();
 		}
 		else
 		{

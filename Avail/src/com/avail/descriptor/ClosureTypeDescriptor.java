@@ -218,7 +218,7 @@ extends TypeDescriptor
 		aStream.append('[');
 		final List<AvailObject> list = new ArrayList<AvailObject>();
 		final AvailObject tupleType = object.argsTupleType();
-		if (tupleType.equals(TerminatesTypeDescriptor.terminates()))
+		if (tupleType.equals(BottomTypeDescriptor.bottom()))
 		{
 			aStream.append("...");
 		}
@@ -481,7 +481,7 @@ extends TypeDescriptor
 	/**
 	 * Answer whether this method could ever be invoked with the given argument
 	 * types. Make sure to exclude methods where an argType and corresponding
-	 * method argument type have no common descendant except terminates. In that
+	 * method argument type have no common descendant except bottom. In that
 	 * case, no legal object could be passed that would cause the method to be
 	 * invoked. Don't check the number of arguments here.
 	 *
@@ -499,7 +499,7 @@ extends TypeDescriptor
 			final AvailObject actualType = argTypes.get(i - 1);
 			final AvailObject intersection =
 				argType.typeIntersection(actualType);
-			if (intersection.equals(TerminatesTypeDescriptor.terminates()))
+			if (intersection.equals(BottomTypeDescriptor.bottom()))
 			{
 				return false;
 			}
@@ -635,7 +635,7 @@ extends TypeDescriptor
 
 	/**
 	 * Normalize the specified exception {@linkplain SetDescriptor set} by
-	 * eliminating terminates and types for which a supertype is also present.
+	 * eliminating bottom and types for which a supertype is also present.
 	 *
 	 * @param exceptionSet
 	 *        An exception {@linkplain SetDescriptor set}. Must include only
@@ -654,10 +654,10 @@ extends TypeDescriptor
 		}
 
 		// This is probably the next most common case -- just one checked
-		// exception. If the element is terminates, then exclude it.
+		// exception. If the element is bottom, then exclude it.
 		if (exceptionSet.setSize() == 1)
 		{
-			if (exceptionSet.iterator().next().equals(TerminatesTypeDescriptor.terminates()))
+			if (exceptionSet.iterator().next().equals(BottomTypeDescriptor.bottom()))
 			{
 				return SetDescriptor.empty();
 			}
@@ -665,12 +665,12 @@ extends TypeDescriptor
 		}
 
 		// Actually normalize the set. That is, eliminate types for which a
-		// supertype is already present. Also, eliminate terminates.
+		// supertype is already present. Also, eliminate bottom.
 		AvailObject normalizedSet = SetDescriptor.empty();
 		each_outer:
 		for (final AvailObject outer : exceptionSet)
 		{
-			if (!outer.equals(TerminatesTypeDescriptor.terminates()))
+			if (!outer.equals(BottomTypeDescriptor.bottom()))
 			{
 				for (final AvailObject inner : exceptionSet)
 				{
@@ -754,7 +754,7 @@ extends TypeDescriptor
 				IntegerRangeTypeDescriptor.singleInt(
 					argTypes.tupleSize()),
 				argTypes,
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		return createWithArgumentTupleType(tupleType, returnType, exceptionSet);
 	}
 
@@ -797,7 +797,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject returnType)
 	{
 		return createWithArgumentTupleType(
-			TerminatesTypeDescriptor.terminates(),
+			BottomTypeDescriptor.bottom(),
 			returnType,
 			SetDescriptor.empty());//TODO: Probably should allow any exception.
 	}
@@ -837,7 +837,7 @@ extends TypeDescriptor
 	 * Answer the top (i.e., most general) {@linkplain ClosureTypeDescriptor
 	 * closure type}.
 	 *
-	 * @return The closure type "[...]->void".
+	 * @return The closure type "[...]->top".
 	 */
 	public static AvailObject mostGeneralType ()
 	{
@@ -849,7 +849,7 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} on the {@linkplain
 	 * #mostGeneralType() most general type}.
 	 *
-	 * @return The closure type "[...]->void".
+	 * @return The closure type "[...]->top".
 	 */
 	public static AvailObject meta ()
 	{

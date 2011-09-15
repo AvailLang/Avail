@@ -388,7 +388,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			final AvailObject value = var.value();
-			if (value.equalsVoid())
+			if (value.equalsTop())
 			{
 				return interpreter.primitiveFailure(
 					E_CANNOT_READ_UNASSIGNED_VARIABLE);
@@ -603,7 +603,7 @@ public enum Primitive
 			final AvailObject var = args.get(0);
 			return interpreter.primitiveSuccess(
 				AtomDescriptor.objectFromBoolean(
-					var.value().equalsVoid()));
+					var.value().equalsTop()));
 		}
 
 		@Override
@@ -633,7 +633,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			final AvailObject valueObject = var.value();
-			if (valueObject.equalsVoid())
+			if (valueObject.equalsTop())
 			{
 				return interpreter.primitiveFailure(
 					E_CANNOT_READ_UNASSIGNED_VARIABLE);
@@ -1168,7 +1168,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject tupleOfTypes = args.get(0);
-			AvailObject unionObject = TerminatesTypeDescriptor.terminates();
+			AvailObject unionObject = BottomTypeDescriptor.bottom();
 			for (final AvailObject aType : tupleOfTypes)
 			{
 				unionObject = unionObject.typeUnion(aType);
@@ -1204,7 +1204,7 @@ public enum Primitive
 			final AvailObject returnType = args.get(0);
 			return interpreter.primitiveSuccess(
 				ClosureTypeDescriptor.createWithArgumentTupleType(
-					TerminatesTypeDescriptor.terminates(),
+					BottomTypeDescriptor.bottom(),
 					returnType,
 					SetDescriptor.empty()));
 		}
@@ -1515,7 +1515,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			final AvailObject caller = con.caller();
-			if (caller.equalsVoid())
+			if (caller.equalsTop())
 			{
 				return interpreter.primitiveFailure(
 					E_CONTINUATION_HAS_NO_CALLER);
@@ -1690,7 +1690,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType(),
 					TupleTypeDescriptor.mostGeneralType()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	},
 
@@ -1723,7 +1723,7 @@ public enum Primitive
 			// continuation to always be mutable...
 			final AvailObject expectedType = con.closure().kind().returnType();
 			final AvailObject caller = con.caller();
-			if (caller.equalsVoid())
+			if (caller.equalsTop())
 			{
 				interpreter.exitProcessWith(result);
 				return CONTINUATION_CHANGED;
@@ -1758,7 +1758,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType(),
 					ANY.o()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	},
 
@@ -1811,7 +1811,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	},
 
@@ -1836,7 +1836,7 @@ public enum Primitive
 			for (int i = 1; i <= count; i++)
 			{
 				AvailObject entry = con.argOrLocalOrStackAt(i);
-				if (entry.equalsVoid())
+				if (entry.equalsTop())
 				{
 					entry = IntegerDescriptor.zero();
 				}
@@ -2194,7 +2194,7 @@ public enum Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ANY.o()),
 				ClosureTypeDescriptor.createWithArgumentTupleType(
-					TerminatesTypeDescriptor.terminates(),
+					BottomTypeDescriptor.bottom(),
 					ANY.o(),
 					SetDescriptor.empty()));
 		}
@@ -2224,7 +2224,7 @@ public enum Primitive
 			final AvailObject firstArg = args.get(2);
 			final AvailObject resultType = args.get(3);
 			final AvailObject impSet = interpreter.runtime().methodsAt(message);
-			if (impSet.equalsVoid())
+			if (impSet.equalsTop())
 			{
 				return interpreter.primitiveFailure(
 					E_NO_IMPLEMENTATION_SET);
@@ -2250,7 +2250,7 @@ public enum Primitive
 					ANY.o(),
 					TYPE.o()),
 				ClosureTypeDescriptor.createWithArgumentTupleType(
-					TerminatesTypeDescriptor.terminates(),
+					BottomTypeDescriptor.bottom(),
 					TOP.o(),
 					SetDescriptor.empty()));
 		}
@@ -2304,7 +2304,7 @@ public enum Primitive
 			for (int i = 1, end = aClosure.numOuterVars(); i <= end; i++)
 			{
 				final AvailObject outer = aClosure.outerVarAt(i);
-				if (outer.equalsVoid())
+				if (outer.equalsTop())
 				{
 					newTupleObject.tupleAtPut(i, IntegerDescriptor.zero());
 				}
@@ -2560,8 +2560,8 @@ public enum Primitive
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.singleInteger(
 						IntegerDescriptor.zero()),
-					TerminatesTypeDescriptor.terminates(),
-					TerminatesTypeDescriptor.terminates()));
+					BottomTypeDescriptor.bottom(),
+					BottomTypeDescriptor.bottom()));
 		}
 	},
 
@@ -3371,7 +3371,7 @@ public enum Primitive
 					IntegerRangeTypeDescriptor.singleInteger(
 						IntegerDescriptor.zero()),
 					TupleDescriptor.empty(),
-					TerminatesTypeDescriptor.terminates()));
+					BottomTypeDescriptor.bottom()));
 		}
 	},
 
@@ -3584,7 +3584,7 @@ public enum Primitive
 	 * <strong>Primitive 141:</strong> Answer the {@linkplain TypeDescriptor
 	 * type} for the given element of {@linkplain TupleDescriptor instances} of
 	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer
-	 * {@link TerminatesTypeDescriptor terminates} if out of range.
+	 * {@link BottomTypeDescriptor bottom} if out of range.
 	 */
 	prim141_TupleTypeAt(141, 2, CanFold, CannotFail)
 	{
@@ -3599,7 +3599,7 @@ public enum Primitive
 			if (!index.isInt())
 			{
 				return interpreter.primitiveSuccess(
-					TerminatesTypeDescriptor.terminates());
+					BottomTypeDescriptor.bottom());
 			}
 			return interpreter.primitiveSuccess(
 				tupleType.typeAtIndex(index.extractInt()));
@@ -3620,7 +3620,7 @@ public enum Primitive
 	 * <strong>Primitive 142:</strong> Answer a {@linkplain TupleDescriptor
 	 * tuple} of {@linkplain TypeDescriptor types} representing the types of the
 	 * given range of indices within the {@linkplain TupleTypeDescriptor tuple
-	 * type}. Use {@link TerminatesTypeDescriptor terminates} for indices out of
+	 * type}. Use {@link BottomTypeDescriptor bottom} for indices out of
 	 * range.
 	 */
 	prim142_TupleTypeSequenceOfTypes(142, 3, CanFold)
@@ -3681,7 +3681,7 @@ public enum Primitive
 	 * <strong>Primitive 143:</strong> Answer the {@linkplain TypeDescriptor
 	 * type} that is the union of the types within the given range of indices of
 	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer {@link
-	 * TerminatesTypeDescriptor terminates} if all the indices are out of range.
+	 * BottomTypeDescriptor bottom} if all the indices are out of range.
 	 */
 	prim143_TupleTypeAtThrough(143, 3, CanFold)
 	{
@@ -4795,7 +4795,7 @@ public enum Primitive
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				literal = cc.literalAt(i);
-				if (literal.equalsVoid())
+				if (literal.equalsTop())
 				{
 					literal = IntegerDescriptor.zero();
 				}
@@ -4954,7 +4954,7 @@ public enum Primitive
 						TOP.o()),
 					ClosureTypeDescriptor.create(
 						TupleDescriptor.from(
-							TerminatesTypeDescriptor.terminates()),
+							BottomTypeDescriptor.bottom()),
 						TOP.o())),
 				TOP.o());
 		}
@@ -4996,7 +4996,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	},
 
@@ -5214,7 +5214,7 @@ public enum Primitive
 			final AvailObject bundle = args.get(0);
 			final AvailObject implementationSet =
 				interpreter.runtime().methodsAt(bundle.message());
-			if (implementationSet.equalsVoid())
+			if (implementationSet.equalsTop())
 			{
 				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
 			}
@@ -5441,7 +5441,7 @@ public enum Primitive
 			final AvailObject trueName = args.get(0);
 			final AvailObject impSet =
 				interpreter.runtime().methodsAt(trueName);
-			if (impSet.equalsVoid())
+			if (impSet.equalsTop())
 			{
 				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
 			}
@@ -5948,7 +5948,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	},
 
@@ -7346,7 +7346,7 @@ public enum Primitive
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			// This primitive is suitable for any block signature.
-			return TerminatesTypeDescriptor.terminates();
+			return BottomTypeDescriptor.bottom();
 		}
 	},
 
@@ -7446,7 +7446,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	},
 
@@ -7489,7 +7489,7 @@ public enum Primitive
 			statementsList.add(assignment);
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.from("VoidAfterAssignment"));
+			token.string(ByteStringDescriptor.from("TopAfterAssignment"));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(NullDescriptor.nullObject());
@@ -7573,7 +7573,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(TupleTypeDescriptor.stringTupleType()),
-				TerminatesTypeDescriptor.terminates());
+				BottomTypeDescriptor.bottom());
 		}
 	};
 
@@ -7764,7 +7764,7 @@ public enum Primitive
 			final AvailObject argsTupleType =
 				cachedBlockTypeRestriction.argsTupleType();
 			final AvailObject sizeRange = argsTupleType.sizeRange();
-			assert cachedBlockTypeRestriction.equals(TerminatesTypeDescriptor.terminates())
+			assert cachedBlockTypeRestriction.equals(BottomTypeDescriptor.bottom())
 				|| (sizeRange.lowerBound().extractInt() == argCount()
 					&& sizeRange.upperBound().extractInt() == argCount());
 		}

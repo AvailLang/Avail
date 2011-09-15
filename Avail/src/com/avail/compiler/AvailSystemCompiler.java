@@ -188,7 +188,7 @@ extends AbstractAvailCompiler
 								{
 									afterExpression.expected(
 										"outer level statement "
-										+ "to have void type");
+										+ "to have top type");
 								}
 							}
 						});
@@ -486,11 +486,11 @@ extends AbstractAvailCompiler
 					final AvailObject type)
 				{
 					if (type.equals(TOP.o())
-						|| type.equals(TerminatesTypeDescriptor.terminates()))
+						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterType.expected(
 							"a type for the variable other than"
-							+ " void or terminates");
+							+ " top or bottom");
 						return;
 					}
 					// Try the simple declaration... var : type;
@@ -600,11 +600,11 @@ extends AbstractAvailCompiler
 					final @NotNull AvailObject type)
 				{
 					if (type.equals(TOP.o())
-						|| type.equals(TerminatesTypeDescriptor.terminates()))
+						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterType.expected(
 							"a type for the variable other than"
-							+ " void or terminates");
+							+ " top or bottom");
 						return;
 					}
 					final AvailObject declaration =
@@ -735,12 +735,12 @@ extends AbstractAvailCompiler
 					if (type.equals(TOP.o()))
 					{
 						afterArgType.expected(
-							"a type for the argument other than void");
+							"a type for the argument other than top");
 					}
-					else if (type.equals(TerminatesTypeDescriptor.terminates()))
+					else if (type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterArgType.expected(
-							"a type for the argument other than terminates");
+							"a type for the argument other than bottom");
 					}
 					else
 					{
@@ -1700,7 +1700,7 @@ extends AbstractAvailCompiler
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
 		final AvailObject impSet = interpreter.runtime().methodsAt(message);
-		assert !impSet.equalsVoid();
+		assert !impSet.equalsTop();
 		final AvailObject implementationsTuple = impSet.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
 
@@ -1724,14 +1724,14 @@ extends AbstractAvailCompiler
 		for (final AvailObject arg : argumentExpressions)
 		{
 			if (arg.expressionType().equals(
-				TerminatesTypeDescriptor.terminates()))
+				BottomTypeDescriptor.bottom()))
 			{
-				start.expected("argument to have type other than terminates");
+				start.expected("argument to have type other than bottom");
 				return;
 			}
 			if (arg.expressionType().equals(TOP.o()))
 			{
-				start.expected("argument to have type other than void");
+				start.expected("argument to have type other than top");
 				return;
 			}
 		}
@@ -1818,7 +1818,7 @@ extends AbstractAvailCompiler
 			{
 				final AvailObject argumentSendName =
 					argument.apparentSendName();
-				if (!argumentSendName.equalsVoid())
+				if (!argumentSendName.equalsTop())
 				{
 					final AvailObject restrictions =
 						bundle.restrictions().tupleAt(i);
@@ -1971,7 +1971,7 @@ extends AbstractAvailCompiler
 		// It's optional, so try it with no wrapping.
 		attempt(start, continuation, node);
 
-		// Don't wrap it if its type is void.
+		// Don't wrap it if its type is top.
 		if (node.expressionType().equals(TOP.o()))
 		{
 			return;
@@ -2422,10 +2422,10 @@ extends AbstractAvailCompiler
 			final AvailObject lastStatement =
 				statements.get(statements.size() - 1);
 			if (lastStatement.expressionType().equals(
-				TerminatesTypeDescriptor.terminates()))
+				BottomTypeDescriptor.bottom()))
 			{
 				start.expected(
-					"end of statements, since this one always terminates");
+					"end of statements, since this one always bottom");
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())
@@ -2439,7 +2439,7 @@ extends AbstractAvailCompiler
 						{
 							return String.format(
 								"non-last statement \"%s\" "
-								+ " to have type void, not \"%s\".",
+								+ " to have type top, not \"%s\".",
 								lastStatement,
 								lastStatement.expressionType());
 						}
