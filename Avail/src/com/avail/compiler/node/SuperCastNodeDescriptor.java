@@ -195,6 +195,29 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
+	/**
+	 * Create a new {@link SuperCastNodeDescriptor supercast node} representing
+	 * the specified expression weakened to the specified type for the purpose
+	 * of acting as an argument of a {@link SendNodeDescriptor send node}.
+	 *
+	 * @param expression
+	 *            The expression that will provide a value to use as an argument
+	 *            to a send at runtime.
+	 * @param superCastType
+	 *            The {@link TypeDescriptor type} to treat the argument as at
+	 *            runtime, for the purpose of deciding which method to invoke.
+	 * @return
+	 *            The resulting {@link SuperCastNodeDescriptor supercast node}
+	 */
+	public static AvailObject create (
+		final AvailObject expression,
+		final AvailObject superCastType)
+	{
+		final AvailObject cast = mutable().create();
+		cast.expression(expression);
+		cast.superCastType(superCastType);
+		return cast;
+	}
 
 
 	/**

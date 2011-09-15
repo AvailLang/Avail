@@ -36,7 +36,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_SIGNATURE;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.node.*;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 
 /**
  * A [@linkplain {@link ModuleDescriptor module} is the mechanism by which Avail
@@ -568,7 +568,7 @@ public class ModuleDescriptor extends Descriptor
 	@Override
 	public void o_RemoveFrom (
 		final @NotNull AvailObject object,
-		final @NotNull Interpreter anInterpreter)
+		final @NotNull L2Interpreter anInterpreter)
 	{
 		for (final AvailObject methodName : object.methods().keysAsArray())
 		{

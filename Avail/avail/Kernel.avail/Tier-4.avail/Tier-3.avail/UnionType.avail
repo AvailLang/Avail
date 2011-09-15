@@ -84,6 +84,7 @@ returns [uT : unionType type |
 ] : set type;
 
 
+/*
 P29 ::= [u : unionType | Primitive 29; ] :set;
 A ::= all type;
 B ::= tuple type;
@@ -105,7 +106,7 @@ Print "_instances returns (X or Y) : " then ([(if B then [X;] else [Y;]) instanc
 Print X instances as basic string;
 Print Y instances as basic string;
 Print (if B then [X;] else [Y;]) instances as basic string;
-
+*/
 
 
 

@@ -198,6 +198,18 @@ public abstract class AbstractAvailCompiler
 	 * Construct a suitable {@linkplain AbstractAvailCompiler compiler} to
 	 * parse the specified {@linkplain ModuleName module name}, using the given
 	 * {@linkplain L2Interpreter interpreter}.
+	 *
+	 * @param qualifiedName
+	 *            The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *            ModuleDescriptor module} being defined.
+	 * @param interpreter
+	 *            The {@link Interpreter} used to execute code during
+	 *            compilation.
+	 * @param stopAfterNamesToken
+	 *            Whether to stop parsing at the occurrence of the "NAMES"
+	 *            token.  This is an optimization for faster build analysis.
+	 * @return
+	 *            The new {@link AbstractAvailCompiler compiler}.
 	 */
 	static @NotNull AbstractAvailCompiler create (
 		final @NotNull ModuleName qualifiedName,
@@ -226,7 +238,7 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Construct a new {@link AbstractAvailCompiler} which will use the given
-	 * {@link Interpreter} to evaluate expressions.
+	 * {@link L2Interpreter} to evaluate expressions.
 	 *
 	 * @param interpreter
 	 *            The interpreter to be used for evaluating expressions.
@@ -315,52 +327,61 @@ public abstract class AbstractAvailCompiler
 		final Mutable<AvailObject> another = new Mutable<AvailObject>();
 		final Mutable<ParserState> where = new Mutable<ParserState>();
 		final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
-		attempt(new Continuation0()
-		{
-			@Override
-			public void value ()
+		attempt(
+			new Continuation0()
 			{
-				markerFired.value = true;
-			}
-		}, "Marker for try unambiguous", start.position);
-		attempt(start, tryBlock, new Con<AvailObject>("Unambiguous statement")
-		{
-			@Override
-			public void value (
-				final ParserState afterSolution,
-				final AvailObject aSolution)
-			{
-				if (count.value == 0)
+				@Override
+				public void value ()
 				{
-					solution.value = aSolution;
-					where.value = afterSolution;
+					markerFired.value = true;
 				}
-				else
+			},
+			"Marker for try if unambiguous",
+			start.position);
+		attempt(
+			start,
+			tryBlock,
+			new Con<AvailObject>("Unambiguous statement")
+			{
+				@Override
+				public void value (
+					final ParserState afterSolution,
+					final AvailObject aSolution)
 				{
-					if (aSolution == solution.value)
+					if (count.value == 0)
 					{
-						error("Same solution was presented twice!");
+						solution.value = aSolution;
+						where.value = afterSolution;
 					}
-					another.value = aSolution;
+					else
+					{
+						if (aSolution == solution.value)
+						{
+							error("Same solution was presented twice!");
+						}
+						another.value = aSolution;
+					}
+					count.value++;
 				}
-				count.value++;
-			}
-		});
+			});
 		while (!markerFired.value)
 		{
 			workStack.pop().value();
+		}
+		if (count.value == 0)
+		{
+			return;
 		}
 		if (count.value > 1)
 		{
 			// Indicate the problem on the last token of the ambiguous
 			// expression.
-			ambiguousInterpretationsAnd(new ParserState(
-				where.value.position - 1,
-				where.value.scopeStack), solution.value, another.value);
-			return;
-		}
-		if (count.value == 0)
-		{
+			ambiguousInterpretationsAnd(
+				new ParserState(
+					where.value.position - 1,
+					where.value.scopeStack),
+				solution.value,
+				another.value);
 			return;
 		}
 		assert count.value == 1;
@@ -562,9 +583,11 @@ public abstract class AbstractAvailCompiler
 		 */
 		ParserState withDeclaration (final AvailObject declaration)
 		{
-			return new ParserState(position, new AvailCompilerScopeStack(
-				declaration,
-				scopeStack));
+			return new ParserState(
+				position,
+				new AvailCompilerScopeStack(
+					declaration,
+					scopeStack));
 		}
 
 		/**
@@ -880,19 +903,20 @@ public abstract class AbstractAvailCompiler
 		final AvailObject parentNode,
 		final List<AvailObject> outerNodes)
 	{
-		object.childrenDo(new Continuation1<AvailObject>()
-		{
-			@Override
-			public void value (final AvailObject child)
+		object.childrenDo(
+			new Continuation1<AvailObject>()
 			{
-				assert child.isInstanceOfKind(PARSE_NODE.o());
-				treeDoWithParent(
-					child,
-					aBlock,
-					object,
-					outerNodes);
-			}
-		});
+				@Override
+				public void value (final AvailObject child)
+				{
+					assert child.isInstanceOfKind(PARSE_NODE.o());
+					treeDoWithParent(
+						child,
+						aBlock,
+						object,
+						outerNodes);
+				}
+			});
 		aBlock.value(
 			object,
 			parentNode,
@@ -1050,21 +1074,22 @@ public abstract class AbstractAvailCompiler
 		final AvailObject interpretation1,
 		final AvailObject interpretation2)
 	{
-		where.expected(new Generator<String>()
-		{
-			@Override
-			public String value ()
+		where.expected(
+			new Generator<String>()
 			{
-				final StringBuilder builder = new StringBuilder(200);
-				builder.append("unambiguous interpretation.  ");
-				builder.append("Here are two possible parsings...\n");
-				builder.append("\t");
-				builder.append(interpretation1.toString());
-				builder.append("\n\t");
-				builder.append(interpretation2.toString());
-				return builder.toString();
-			}
-		});
+				@Override
+				public String value ()
+				{
+					final StringBuilder builder = new StringBuilder(200);
+					builder.append("unambiguous interpretation.  ");
+					builder.append("Here are two possible parsings...\n");
+					builder.append("\t");
+					builder.append(interpretation1.toString());
+					builder.append("\n\t");
+					builder.append(interpretation2.toString());
+					return builder.toString();
+				}
+			});
 	}
 
 	/**
@@ -1084,14 +1109,7 @@ public abstract class AbstractAvailCompiler
 		final String description,
 		final int position)
 	{
-		workStack.push(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				continuation.value();
-			}
-		});
+		workStack.push(continuation);
 		if (workStack.size() > 1000)
 		{
 			throw new RuntimeException("Probable recursive parse error");
@@ -1127,7 +1145,8 @@ public abstract class AbstractAvailCompiler
 					continuation.value(here, argument);
 				}
 			},
-			continuation.description, here.position);
+			continuation.description,
+			here.position);
 	}
 
 	/**
@@ -1179,10 +1198,7 @@ public abstract class AbstractAvailCompiler
 		final List<AvailObject> blockStack = new ArrayList<AvailObject>(3);
 		treeDoWithParent(
 			blockNode,
-			new Continuation3<
-					AvailObject,
-					AvailObject,
-					List<AvailObject>>()
+			new Continuation3<AvailObject, AvailObject, List<AvailObject>>()
 			{
 				@Override
 				public void value (
@@ -1235,7 +1251,7 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Start definition of a {@linkplain ModuleDescriptor module}. The entire
-	 * definition can be rolled back because the {@linkplain Interpreter
+	 * definition can be rolled back because the {@linkplain L2Interpreter
 	 * interpreter}'s context module will contain all methods and precedence
 	 * rules defined between the transaction start and the rollback (or commit).
 	 * Committing simply clears this information.
@@ -1674,8 +1690,10 @@ public abstract class AbstractAvailCompiler
 						final ParserState badStringState = new ParserState(
 							state.position + (index - strings.size()) * 2 + 1,
 							state.scopeStack);
-						badStringState.expected("pragma key (" + pragmaKey
-								+ ") must not contain internal whitespace");
+						badStringState.expected(
+							"pragma key ("
+							+ pragmaKey
+							+ ") must not contain internal whitespace");
 						return null;
 					}
 					try
@@ -1691,15 +1709,16 @@ public abstract class AbstractAvailCompiler
 					}
 					catch (final SignatureException e)
 					{
-						state.expected(new Generator<String>()
-						{
-							@Override
-							public String value ()
+						state.expected(
+							new Generator<String>()
 							{
-								return "Malformed signature during bootstrap: "
-									+ e.getMessage();
-							}
-						});
+								@Override
+								public String value ()
+								{
+									return "Malformed signature during bootstrap: "
+										+ e.getMessage();
+								}
+							});
 						return null;
 					}
 				}
@@ -1879,9 +1898,12 @@ public abstract class AbstractAvailCompiler
 						// execution, and as such was excluded from seeing
 						// things that would be in scope for regular
 						// subexpressions at this point.
-						attempt(new ParserState(
-							afterExpression.position,
-							start.scopeStack), continuation, value);
+						attempt(
+							new ParserState(
+								afterExpression.position,
+								start.scopeStack),
+							continuation,
+							value);
 					}
 					else
 					{
@@ -1891,15 +1913,15 @@ public abstract class AbstractAvailCompiler
 				}
 				else
 				{
-					afterExpression.expected(new Generator<String>()
-					{
-						@Override
-						public String value ()
+					afterExpression.expected(
+						new Generator<String>()
 						{
-							return "expression to have type "
-								+ someType.toString();
-						}
-					});
+							@Override
+							public String value ()
+							{
+								return "expression to have type " + someType;
+							}
+						});
 				}
 			}
 		});

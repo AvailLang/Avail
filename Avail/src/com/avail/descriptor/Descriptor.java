@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.*;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
@@ -2554,7 +2554,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_RemoveFrom (
 		final AvailObject object,
-		final Interpreter anInterpreter)
+		final L2Interpreter anInterpreter)
 	{
 		//  GENERATED pure (abstract) method.
 
@@ -6038,17 +6038,26 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * @param object
+	 * A statically cached visitor instance to avoid having to create it at
+	 * runtime.
+	 */
+	final static AvailBeImmutableSubobjectVisitor beImmutableSubobjectVisitor =
+		new AvailBeImmutableSubobjectVisitor();
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Make my subobjects be immutable.  Don't change my own mutability state.
+	 * Also, ignore my mutability state, as it should be tested (and sometimes
+	 * set preemptively to immutable) prior to invoking this method.
+	 * </p>
 	 */
 	@Override
 	public void o_MakeSubobjectsImmutable (
 		final AvailObject object)
 	{
-		//  Make my subobjects be immutable.  Don't change my own mutability state.
-		//  Also, ignore my mutability state, as it should be tested (and sometimes set
-		//  preemptively to immutable) prior to invoking this method.
-
-		object.scanSubobjects(new AvailBeImmutableSubobjectVisitor());
+		object.scanSubobjects(beImmutableSubobjectVisitor);
 	}
 
 	/**

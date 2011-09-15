@@ -159,6 +159,13 @@ extends SetBinDescriptor
 	}
 
 	@Override
+	public boolean allowsImmutableToMutableReferenceInField (
+		final @NotNull Enum<?> e)
+	{
+		return e == ObjectSlots.BIN_UNION_TYPE_OR_VOID;
+	}
+
+	@Override
 	public @NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
@@ -232,11 +239,6 @@ extends SetBinDescriptor
 			}
 			//  The element had to be added.
 			final int hashDelta = entry.binHash() - previousHash;
-			unionType = object.binUnionTypeOrVoid();
-			if (!unionType.equalsVoid())
-			{
-				unionType = unionType.typeUnion(elementObject.kind());
-			}
 			final int newSize = object.binSize() + delta;
 			if (canDestroy & isMutable)
 			{
@@ -261,7 +263,7 @@ extends SetBinDescriptor
 			}
 			objectToModify.binHash(object.binHash() + hashDelta);
 			objectToModify.binSize(newSize);
-			objectToModify.binUnionTypeOrVoid(unionType);
+			objectToModify.binUnionTypeOrVoid(NullDescriptor.nullObject());
 			objectToModify.binElementAtPut(physicalIndex, entry);
 			return objectToModify;
 		}

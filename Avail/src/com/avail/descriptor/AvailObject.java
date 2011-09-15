@@ -3988,7 +3988,7 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public void removeFrom (
-		final Interpreter anInterpreter)
+		final L2Interpreter anInterpreter)
 	{
 		descriptor().o_RemoveFrom(this, anInterpreter);
 	}

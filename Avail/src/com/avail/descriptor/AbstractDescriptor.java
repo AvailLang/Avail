@@ -139,7 +139,7 @@ public abstract class AbstractDescriptor
 	 * @return The minimum number of object slots featured by an object using
 	 *         this {@linkplain AbstractDescriptor descriptor}.
 	 */
-	public int numberOfFixedObjectSlots ()
+	public final int numberOfFixedObjectSlots ()
 	{
 		return numberOfFixedObjectSlots;
 	}
@@ -161,7 +161,7 @@ public abstract class AbstractDescriptor
 	 * @return The minimum number of integer slots featured by an object using
 	 *         this {@linkplain AbstractDescriptor descriptor}.
 	 */
-	public int numberOfFixedIntegerSlots ()
+	public final int numberOfFixedIntegerSlots ()
 	{
 		return numberOfFixedIntegerSlots;
 	}
@@ -183,7 +183,7 @@ public abstract class AbstractDescriptor
 	 *         to have more than the {@linkplain #numberOfFixedObjectSlots()
 	 *         minimum number of object slots}, {@code false} otherwise.
 	 */
-	protected boolean hasVariableObjectSlots ()
+	protected final boolean hasVariableObjectSlots ()
 	{
 		return hasVariableObjectSlots;
 	}
@@ -206,7 +206,7 @@ public abstract class AbstractDescriptor
 	 *         to have more than the {@linkplain #numberOfFixedIntegerSlots()
 	 *         minimum number of integer slots}, {@code false} otherwise.
 	 */
-	protected boolean hasVariableIntegerSlots ()
+	protected final boolean hasVariableIntegerSlots ()
 	{
 		return hasVariableIntegerSlots;
 	}
@@ -2186,7 +2186,7 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract void o_RemoveFrom (
 		final AvailObject object,
-		final Interpreter anInterpreter);
+		final L2Interpreter anInterpreter);
 
 	/**
 	 * @param object

@@ -72,55 +72,11 @@ extends Descriptor
 		VALUE,
 
 		/**
-		 * The {@linkplain AvailObject type} of the {@linkplain
-		 * ContainerDescriptor container}.
+		 * The {@linkplain AvailObject kind} of the {@linkplain
+		 * ContainerDescriptor container}.  Note that this is always a
+		 * {@linkplain ContainerTypeDescriptor container type}.
 		 */
-		TYPE
-	}
-
-	@Override
-	public void o_HashOrZero (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
-	}
-
-	@Override
-	public void o_Type (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.TYPE, value);
-	}
-
-	@Override
-	public void o_Value (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.VALUE, value);
-	}
-
-	@Override
-	public int o_HashOrZero (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
-	}
-
-	@Override
-	public @NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.TYPE);
-	}
-
-	@Override
-	public @NotNull AvailObject o_Value (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.VALUE);
+		KIND
 	}
 
 	@Override
@@ -132,6 +88,20 @@ extends Descriptor
 	}
 
 	@Override
+	public @NotNull AvailObject o_Value (
+		final @NotNull AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.VALUE);
+	}
+
+	@Override
+	public @NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.KIND);
+	}
+
+	@Override
 	public boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
@@ -139,15 +109,21 @@ extends Descriptor
 		return another.equalsContainer(object);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Containers compare by address (Java object identity).  There's no need to
+	 * traverse the objects before comparing addresses, because this message was
+	 * a double-dispatch that would have skipped (and stripped) the indirection
+	 * objects in either path.
+	 * </p>
+	 */
 	@Override
 	public boolean o_EqualsContainer (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainer)
 	{
-		//  Containers compare by address (Smalltalk object identity).  No need to traverse the
-		//  objects before comparing addresses, because this message was a double-dispatch
-		//  that would have skipped (and stripped) the indirection objects in either path.
-
 		return object.sameAddressAs(aContainer);
 	}
 
@@ -173,9 +149,9 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		// If I am being frozen (a container), I don't need to freeze my current
-		// value.  I do, on the other hand, have to freeze my type object.
+		// value.  I do, on the other hand, have to freeze my kind object.
 		object.descriptor(ContainerDescriptor.immutable());
-		object.kind().makeImmutable();
+		object.objectSlot(ObjectSlots.KIND).makeImmutable();
 		return object;
 	}
 
@@ -184,11 +160,12 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newValue)
 	{
-		if (!newValue.isInstanceOf(object.kind().innerType()))
+		final AvailObject outerKind = object.objectSlot(ObjectSlots.KIND);
+		if (!newValue.isInstanceOf(outerKind.innerType()))
 		{
 			error("container can't hold that value (wrong type)");
 		}
-		object.value(newValue);
+		object.objectSlotPut(ObjectSlots.VALUE, newValue);
 	}
 
 	@Override
@@ -197,7 +174,7 @@ extends Descriptor
 	{
 		// Clear the container (make it have no current value).
 		// Eventually, the previous contents should drop a reference.
-		object.value(NullDescriptor.nullObject());
+		object.objectSlotPut(ObjectSlots.VALUE, NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -206,7 +183,7 @@ extends Descriptor
 	{
 		// Answer the current value of the container.  Fail if no value is
 		// currently assigned.
-		final AvailObject value = object.value();
+		final AvailObject value = object.objectSlot(ObjectSlots.VALUE);
 		if (value.equalsVoid())
 		{
 			error("container has no value yet");
@@ -215,21 +192,27 @@ extends Descriptor
 		return value;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * If I'm mutable, release me.  Otherwise make my contents immutable.  This
+	 * is used when a variable is being read 'for the last time', but it's
+	 * unknown whether the variable has already been shared.
+	 * </p>
+	 */
 	@Override
 	public void o_ReleaseVariableOrMakeContentsImmutable (
 		final @NotNull AvailObject object)
 	{
-		//  If I'm mutable, release me.  Otherwise make my contents immutable.  This
-		//  is used when a variable is being read 'for the last time', but it's unknown
-		//  whether the variable has already been shared.
-
+		final AvailObject value = object.objectSlot(ObjectSlots.VALUE);
 		if (isMutable)
 		{
-			object.assertObjectUnreachableIfMutableExcept(object.value());
+			object.assertObjectUnreachableIfMutableExcept(value);
 		}
 		else
 		{
-			object.value().makeImmutable();
+			value.makeImmutable();
 		}
 	}
 
@@ -264,9 +247,9 @@ extends Descriptor
 		final @NotNull AvailObject outerType)
 	{
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.TYPE, outerType);
+		result.objectSlotPut(ObjectSlots.KIND, outerType);
 		result.integerSlotPut(IntegerSlots.HASH_OR_ZERO, 0);
-		result.value(NullDescriptor.nullObject());
+		result.objectSlotPut(ObjectSlots.VALUE, NullDescriptor.nullObject());
 		return result;
 	}
 
@@ -290,7 +273,8 @@ extends Descriptor
 	/**
 	 * The mutable {@link ContainerDescriptor}.
 	 */
-	private final static ContainerDescriptor mutable = new ContainerDescriptor(true);
+	private final static ContainerDescriptor mutable =
+		new ContainerDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ContainerDescriptor}.
@@ -305,7 +289,8 @@ extends Descriptor
 	/**
 	 * The immutable {@link ContainerDescriptor}.
 	 */
-	private final static ContainerDescriptor immutable = new ContainerDescriptor(false);
+	private final static ContainerDescriptor immutable =
+		new ContainerDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ContainerDescriptor}.

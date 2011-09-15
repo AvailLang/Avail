@@ -1,6 +1,6 @@
 /**
  * visitor/AvailBeImmutableSubobjectVisitor.java
- * Copyright (c) 2010, Mark van Gulik.
+ * Copyright (c) 2010-2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

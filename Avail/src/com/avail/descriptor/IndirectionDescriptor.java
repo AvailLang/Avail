@@ -1817,7 +1817,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_RemoveFrom (
 		final @NotNull AvailObject object,
-		final @NotNull Interpreter anInterpreter)
+		final @NotNull L2Interpreter anInterpreter)
 	{
 		o_Traversed(object).removeFrom(anInterpreter);
 	}

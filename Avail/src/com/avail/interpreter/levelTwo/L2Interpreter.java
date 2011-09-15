@@ -1240,16 +1240,6 @@ implements L2OperationDispatcher
 		return primitiveFailure(E_UNHANDLED_EXCEPTION);
 	}
 
-	/**
-	 * Prepare the L2Interpreter to deal with executing the given closure. If
-	 * it's a primitive, attempt it first. If it succeeds and simply returns a
-	 * value, write that value into the calling continuation and return
-	 * primitiveSucceeded. If the primitive succeeded by causing the
-	 * continuation to change (e.g., block invocation, continuation restarting),
-	 * simply answer continuationChanged. Otherwise, invoke the closure (without
-	 * actually running any of its instructions yet), and answer
-	 * continuationChanged.
-	 */
 	@Override
 	public Result invokeClosureArguments (
 		final AvailObject aClosure,
@@ -1284,12 +1274,16 @@ implements L2OperationDispatcher
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
 	 * Prepare the L2Interpreter to deal with executing the given closure, using
 	 * the given arguments.  Also set up the new closure's locals.  Assume the
 	 * current context has already been reified.  If the closure is a primitive,
 	 * then it was already attempted and must have failed, so the failure value
 	 * must be in {@link #primitiveResult}.  The (Java) caller will deal with
 	 * that.
+	 * </p>
 	 */
 	@Override
 	public void invokeWithoutPrimitiveClosureArguments (
@@ -1337,6 +1331,66 @@ implements L2OperationDispatcher
 			pointerAtPut(dest, NullDescriptor.nullObject());
 			dest++;
 		}
+	}
+
+	/**
+	 * Start or complete execution of the specified closure.  The closure is
+	 * permitted to be primitive.  The current continuation must already have
+	 * been reified.
+	 *
+	 * @param theClosure
+	 *            The closure to invoke.
+	 */
+	void invokePossiblePrimitiveWithReifiedCaller (
+		final AvailObject theClosure)
+	{
+		final AvailObject theCode = theClosure.code();
+		final int primNum = theCode.primitiveNumber();
+		if (primNum != 0)
+		{
+			final Result primResult = attemptPrimitive(
+				primNum,
+				theCode,
+				argsBuffer);
+			switch (primResult)
+			{
+				case CONTINUATION_CHANGED:
+				case SUSPENDED:
+					return;
+				case SUCCESS:
+					final AvailObject caller = pointerAt(callerRegister());
+					prepareToExecuteContinuation(caller);
+					final int callerStackpIndex =
+						argumentRegister(caller.stackp());
+					final AvailObject expectedType =
+						pointerAt(callerStackpIndex);
+					if (!primitiveResult.isInstanceOf(expectedType))
+					{
+						// TODO: [MvG] Remove after debugging.
+						primitiveResult.isInstanceOf(expectedType);
+						error(String.format(
+							"Return value (%s) does not agree with "
+							+ "expected type (%s)",
+							primitiveResult,
+							expectedType));
+					}
+					pointerAtPut(callerStackpIndex, primitiveResult);
+					return;
+				case FAILURE:
+					invokeWithoutPrimitiveClosureArguments(
+						theClosure,
+						argsBuffer);
+					final int failureVariableIndex =
+						argumentRegister(theCode.numArgs() + 1);
+					final AvailObject failureVariable =
+						pointerAt(failureVariableIndex);
+					failureVariable.setValue(primitiveResult);
+					return;
+			}
+		}
+		invokeWithoutPrimitiveClosureArguments(
+			theClosure,
+			argsBuffer);
 	}
 
 	/**
@@ -2633,66 +2687,5 @@ implements L2OperationDispatcher
 			argsBuffer);
 		assert res == SUCCESS;
 		pointerAtPut(resultRegister, primitiveResult);
-	}
-
-
-	/**
-	 * Start or complete execution of the specified closure.  The closure is
-	 * permitted to be primitive.  The current continuation must already have
-	 * been reified.
-	 *
-	 * @param theClosure
-	 *            The closure to invoke.
-	 */
-	void invokePossiblePrimitiveWithReifiedCaller (
-		final AvailObject theClosure)
-	{
-		final AvailObject theCode = theClosure.code();
-		final int primNum = theCode.primitiveNumber();
-		if (primNum != 0)
-		{
-			final Result primResult = attemptPrimitive(
-				primNum,
-				theCode,
-				argsBuffer);
-			switch (primResult)
-			{
-				case CONTINUATION_CHANGED:
-				case SUSPENDED:
-					return;
-				case SUCCESS:
-					final AvailObject caller = pointerAt(callerRegister());
-					prepareToExecuteContinuation(caller);
-					final int callerStackpIndex =
-						argumentRegister(caller.stackp());
-					final AvailObject expectedType =
-						pointerAt(callerStackpIndex);
-					if (!primitiveResult.isInstanceOf(expectedType))
-					{
-						// TODO: [MvG] Remove after debugging.
-						primitiveResult.isInstanceOf(expectedType);
-						error(String.format(
-							"Return value (%s) does not agree with "
-							+ "expected type (%s)",
-							primitiveResult,
-							expectedType));
-					}
-					pointerAtPut(callerStackpIndex, primitiveResult);
-					return;
-				case FAILURE:
-					invokeWithoutPrimitiveClosureArguments(
-						theClosure,
-						argsBuffer);
-					final int failureVariableIndex =
-						argumentRegister(theCode.numArgs() + 1);
-					final AvailObject failureVariable =
-						pointerAt(failureVariableIndex);
-					failureVariable.setValue(primitiveResult);
-					return;
-			}
-		}
-		invokeWithoutPrimitiveClosureArguments(
-			theClosure,
-			argsBuffer);
 	}
 }

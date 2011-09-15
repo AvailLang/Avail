@@ -70,12 +70,12 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * slots and descriptor.
 	 */
 	@Override
-	public void becomeIndirectionTo (
-			final AvailObject anotherObject)
+	public final void becomeIndirectionTo (
+		final AvailObject anotherObject)
 	{
 		// verifyToSpaceAddress();
-		AvailObject traversed = traversed();
-		AvailObject anotherTraversed = anotherObject.traversed();
+		final AvailObject traversed = traversed();
+		final AvailObject anotherTraversed = anotherObject.traversed();
 		if (traversed.sameAddressAs(anotherTraversed))
 		{
 			return;
@@ -116,9 +116,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * @return The unsigned byte as a short.
 	 */
 	@Override
-	public short byteSlotAt (
-			final Enum<?> e,
-			final int byteSubscript)
+	public final short byteSlotAt (
+		final Enum<?> e,
+		final int byteSubscript)
 	{
 		// verifyToSpaceAddress();
 		final int word = _intSlots[e.ordinal() + (byteSubscript - 1) / 4];
@@ -135,7 +135,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
 	@Override
-	public void byteSlotAtPut (
+	public final void byteSlotAtPut (
 		final Enum<?> e,
 		final int byteSubscript,
 		final short aByte)
@@ -157,7 +157,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * currently allocated memory regions.
 	 */
 	@Override
-	public void checkValidAddress ()
+	public final void checkValidAddress ()
 	{
 		return;
 	}
@@ -169,56 +169,52 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public void descriptor (
-			final AbstractDescriptor aDescriptor)
+	public final void descriptor (
+		final AbstractDescriptor aDescriptor)
 	{
 		_descriptor = aDescriptor;
 	}
 
 	/**
-	 * Set up a freshly created {@link AvailObject} to have the specified
-	 * {@link Descriptor}, and the specified number of object and integer
-	 * slots.
+	 * Private constructor.
 	 *
 	 * @param theDescriptor This object's {@link Descriptor}.
 	 * @param objectSlotsSize The number of object slots to allocate.
 	 * @param intSlotsCount The number of integer slots to allocate.
-	 * @return This object.
 	 */
-	public AvailObject descriptorObjectSlotsSizeIntSlotsSize (
-			final AbstractDescriptor theDescriptor,
-			final int objectSlotsSize,
-			final int intSlotsCount)
+	private AvailObjectUsingArrays (
+		final AbstractDescriptor theDescriptor,
+		final int objectSlotsSize,
+		final int intSlotsCount)
 	{
 		_descriptor = theDescriptor;
 		_objectSlots = new AvailObject[objectSlotsSize];
 		_intSlots = new int[intSlotsCount];
-		return this;
 	}
 
 	@Override
-	public short descriptorId ()
+	public final short descriptorId ()
 	{
 		return _descriptor.id();
 	}
 
 	@Override
-	public void descriptorId (
-			final short anInteger)
+	public final void descriptorId (
+		final short anInteger)
 	{
 		_descriptor = AbstractDescriptor.allDescriptors.get(anInteger);
 		checkValidAddress();
 	}
 
 	@Override
-	public int objectSlotsCount ()
+	public final int objectSlotsCount ()
 	{
 		return _objectSlots.length;
 	}
 
 	@Override
-	public AvailObject objectSlot (
-			final Enum<?> e)
+	public final AvailObject objectSlot (
+		final Enum<?> e)
 	{
 		// Extract the object at the subscript implied by the enumeration
 		// value's ordinal().
@@ -229,9 +225,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public void objectSlotPut (
-			final Enum<?> e,
-			final AvailObject anAvailObject)
+	public final void objectSlotPut (
+		final Enum<?> e,
+		final AvailObject anAvailObject)
 	{
 		//  Store the object at the given byte-index.
 
@@ -241,9 +237,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public AvailObject objectSlotAt (
-			final Enum<?> e,
-			final int subscript)
+	public final AvailObject objectSlotAt (
+		final Enum<?> e,
+		final int subscript)
 	{
 		// verifyToSpaceAddress();
 		final AvailObject result = _objectSlots[e.ordinal() + subscript - 1];
@@ -252,10 +248,10 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public void objectSlotAtPut (
-			final Enum<?> e,
-			final int subscript,
-			final AvailObject anAvailObject)
+	public final void objectSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final AvailObject anAvailObject)
 	{
 		// verifyToSpaceAddress();
 		checkWriteForField(e);
@@ -263,23 +259,23 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public int integerSlotsCount ()
+	public final int integerSlotsCount ()
 	{
 		return _intSlots.length;
 	}
 
 	@Override
-	public int integerSlot (
-			final Enum<?> e)
+	public final int integerSlot (
+		final Enum<?> e)
 	{
 		// verifyToSpaceAddress();
 		return _intSlots[e.ordinal()];
 	}
 
 	@Override
-	public void integerSlotPut (
-			final Enum<?> e,
-			final int anInteger)
+	public final void integerSlotPut (
+		final Enum<?> e,
+		final int anInteger)
 	{
 		checkWriteForField(e);
 		// verifyToSpaceAddress();
@@ -287,9 +283,9 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public int integerSlotAt (
-			final Enum<?> e,
-			final int subscript)
+	public final int integerSlotAt (
+		final Enum<?> e,
+		final int subscript)
 	{
 		//  Extract an int using the given Enum value that identifies the field.
 
@@ -298,10 +294,10 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public void integerSlotAtPut (
-			final Enum<?> e,
-			final int subscript,
-			final int anInteger)
+	public final void integerSlotAtPut (
+		final Enum<?> e,
+		final int subscript,
+		final int anInteger)
 	{
 		//  Set an int using the given Enum value that identifies the field.
 
@@ -311,19 +307,19 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public int bitSlot (
+	public final int bitSlot (
 		final Enum<?> field,
 		final BitField bitField)
 	{
 		// verifyToSpaceAddress();
 		int value = _intSlots[field.ordinal()];
 		value >>>= bitField.shift();
-		int mask = ~(-1 << bitField.bits());
+		final int mask = ~(-1 << bitField.bits());
 		return value & mask;
 	}
 
 	@Override
-	public void bitSlotPut (
+	public final void bitSlotPut (
 		final Enum<?> field,
 		final BitField bitField,
 		final int anInteger)
@@ -331,15 +327,15 @@ final public class AvailObjectUsingArrays extends AvailObject
 		checkWriteForField(field);
 		// verifyToSpaceAddress();
 		int value = _intSlots[field.ordinal()];
-		int mask = ~(-1 << bitField.bits());
+		final int mask = ~(-1 << bitField.bits());
 		value &= ~(mask << bitField.shift());
 		value |= (anInteger & mask) << bitField.shift();
 		_intSlots[field.ordinal()] = value;
 	}
 
 	@Override
-	public boolean sameAddressAs (
-			final AvailObject anotherObject)
+	public final boolean sameAddressAs (
+		final AvailObject anotherObject)
 	{
 		//  Answer whether the objects occupy the same memory addresses.
 
@@ -349,7 +345,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public short shortSlotAt (
+	public final short shortSlotAt (
 		final Enum<?> e,
 		final int shortIndex)
 	{
@@ -362,7 +358,7 @@ final public class AvailObjectUsingArrays extends AvailObject
 	}
 
 	@Override
-	public void shortSlotAtPut (
+	public final void shortSlotAtPut (
 		final Enum<?> e,
 		final int shortIndex,
 		final short aShort)
@@ -393,8 +389,8 @@ final public class AvailObjectUsingArrays extends AvailObject
  	 * one slot for the target pointer.
  	 */
 	@Override
-	public void truncateWithFillerForNewIntegerSlotsCount (
-			final int newIntegerSlotsCount)
+	public final void truncateWithFillerForNewIntegerSlotsCount (
+		final int newIntegerSlotsCount)
 	{
 		// verifyToSpaceAddress();
 		// assert(objectSlotsCount > 0);
@@ -423,8 +419,8 @@ final public class AvailObjectUsingArrays extends AvailObject
 	 * one slot for the target pointer.
 	 */
 	@Override
-	public void truncateWithFillerForNewObjectSlotsCount (
-			final int newObjectSlotsCount)
+	public final void truncateWithFillerForNewObjectSlotsCount (
+		final int newObjectSlotsCount)
 	{
 
 		// verifyToSpaceAddress();
@@ -457,27 +453,23 @@ final public class AvailObjectUsingArrays extends AvailObject
 		{
 			integerSlotCount += size;
 		}
-		final AvailObjectUsingArrays object = new AvailObjectUsingArrays();
-		object.descriptorObjectSlotsSizeIntSlotsSize(
+		return new AvailObjectUsingArrays(
 			descriptor,
 			objectSlotCount,
 			integerSlotCount);
-		return object;
 	}
 
 	public static AvailObject newObjectIndexedIntegerIndexedDescriptor(
-			final int variableObjectSlots,
-			final int variableIntegerSlots,
-			final AbstractDescriptor descriptor)
+		final int variableObjectSlots,
+		final int variableIntegerSlots,
+		final AbstractDescriptor descriptor)
 	{
 		assert CanAllocateObjects();
 		assert descriptor.hasVariableObjectSlots() || variableObjectSlots == 0;
 		assert descriptor.hasVariableIntegerSlots() || variableIntegerSlots == 0;
-		final AvailObjectUsingArrays object = new AvailObjectUsingArrays();
-		object.descriptorObjectSlotsSizeIntSlotsSize(
+		return new AvailObjectUsingArrays(
 			descriptor,
 			descriptor.numberOfFixedObjectSlots() + variableObjectSlots,
 			descriptor.numberOfFixedIntegerSlots() + variableIntegerSlots);
-		return object;
 	}
 }
