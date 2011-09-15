@@ -424,13 +424,13 @@ public final class AvailRuntime
 	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
 	 * bound to the specified {@linkplain AtomDescriptor selector}.  If
 	 * there is no implementation set with that selector, answer {@linkplain
-	 * NullDescriptor the top object}.
+	 * NullDescriptor the null object}.
 	 *
 	 * @param selector
 	 *            A {@linkplain AtomDescriptor selector}.
 	 * @return
 	 *            An {@linkplain ImplementationSetDescriptor implementation set}
-	 *            or {@linkplain NullDescriptor the top object}.
+	 *            or {@linkplain NullDescriptor the null object}.
 	 */
 	@ThreadSafe
 	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)

@@ -58,7 +58,7 @@ extends Descriptor
 		assert restrictions.isTuple();
 		restrictions.makeImmutable();
 		AvailObject merged = object.myRestrictions();
-		if (merged.equalsTop())
+		if (merged.equalsNull())
 		{
 			object.myRestrictions(restrictions);
 			return;
@@ -103,7 +103,7 @@ extends Descriptor
 	public boolean o_HasRestrictions (
 		final @NotNull AvailObject object)
 	{
-		if (object.myRestrictions().equalsTop())
+		if (object.myRestrictions().equalsNull())
 		{
 			return false;
 		}
@@ -129,7 +129,7 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		AvailObject restrictions = object.myRestrictions();
-		if (restrictions.equalsTop())
+		if (restrictions.equalsNull())
 		{
 			final AvailObject parts = object.messageParts();
 			int count = 0;

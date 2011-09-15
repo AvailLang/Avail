@@ -185,7 +185,7 @@ extends SetBinDescriptor
 			final AvailObject object)
 	{
 		AvailObject union = object.binUnionTypeOrTop();
-		if (union.equalsTop())
+		if (union.equalsNull())
 		{
 			union = object.binElementAt(1).binUnionKind();
 			final int limit = object.variableObjectSlotsCount();
@@ -272,7 +272,7 @@ extends SetBinDescriptor
 			object.makeSubobjectsImmutable();
 		}
 		unionType = object.binUnionTypeOrTop();
-		if (!unionType.equalsTop())
+		if (!unionType.equalsNull())
 		{
 			unionType = unionType.typeUnion(elementObject.kind());
 		}
@@ -353,7 +353,7 @@ extends SetBinDescriptor
 		final int deltaHash = replacementEntry.binHash() - oldHash;
 		final int deltaSize = replacementEntry.binSize() - oldSize;
 		AvailObject result;
-		if (replacementEntry.equalsTop())
+		if (replacementEntry.equalsNull())
 		{
 			if (objectEntryCount == 1)
 			{

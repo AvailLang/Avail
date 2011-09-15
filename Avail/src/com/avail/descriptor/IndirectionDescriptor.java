@@ -2616,15 +2616,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_EqualsTop (final AvailObject object)
+	public boolean o_EqualsNull (final AvailObject object)
 	{
-		return o_Traversed(object).equalsTop();
+		return o_Traversed(object).equalsNull();
 	}
 
 	@Override
-	public boolean o_EqualsTopOrBlank (final AvailObject object)
+	public boolean o_EqualsNullOrBlank (final AvailObject object)
 	{
-		return o_Traversed(object).equalsTopOrBlank();
+		return o_Traversed(object).equalsNullOrBlank();
 	}
 
 	@Override

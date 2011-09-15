@@ -478,7 +478,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsTop();
+			assert duplicateExpression.markerValue().equalsNull();
 			expressionStack.add(assignmentNode);
 		}
 	}
@@ -524,7 +524,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsTop();
+			assert duplicateExpression.markerValue().equalsNull();
 			expressionStack.add(assignmentNode);
 		}
 	}
@@ -538,7 +538,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	 *
 	 * <p>Pop the expression (that represents the right hand side of the
 	 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
-	 * whose markerValue is the {@linkplain NullDescriptor#nullObject() void
+	 * whose markerValue is the {@linkplain NullDescriptor#nullObject() null
 	 * object}, then push the right-hand side expression back onto the
 	 * expression stack.</p>
 	 */
@@ -657,7 +657,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			// marker and replace it with the (embedded) assignment node itself.
 			final AvailObject duplicateExpression = popExpression();
 			assert duplicateExpression.isInstanceOfKind(MARKER_NODE.o());
-			assert duplicateExpression.markerValue().equalsTop();
+			assert duplicateExpression.markerValue().equalsNull();
 			expressionStack.add(assignmentNode);
 		}
 	}

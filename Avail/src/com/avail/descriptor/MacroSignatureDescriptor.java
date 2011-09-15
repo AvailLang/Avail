@@ -85,7 +85,7 @@ extends SignatureDescriptor
 	}
 
 	/**
-	 * This operation is not appropriate for a macro.  Just return the void
+	 * This operation is not appropriate for a macro.  Just return the null
 	 * object to keep things simple.
 	 */
 	@Override

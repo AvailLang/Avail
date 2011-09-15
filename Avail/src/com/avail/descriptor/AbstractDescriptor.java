@@ -3988,13 +3988,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsTop (final AvailObject object);
+	public abstract boolean o_EqualsNull (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsTopOrBlank (final AvailObject object);
+	public abstract boolean o_EqualsNullOrBlank (final AvailObject object);
 
 	/**
 	 * @param object

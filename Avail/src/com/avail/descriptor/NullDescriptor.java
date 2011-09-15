@@ -37,7 +37,7 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * {@code NullDescriptor} implements the Avail {@linkplain #nullObject() void
+ * {@code NullDescriptor} implements the Avail {@linkplain #nullObject() null
  * object}, the sole instance of the invisible and uninstantiable root type.
  *
  * @author Mark van Gulik &lt;ghoul6@gmail.com&gt;
@@ -45,11 +45,11 @@ import com.avail.annotations.*;
 public class NullDescriptor
 extends Descriptor
 {
-	/** The sole instance of the {@linkplain #nullObject() top object}. */
+	/** The sole instance of the {@linkplain #nullObject() null object}. */
 	private static AvailObject soleInstance;
 
 	/**
-	 * Create the sole instance of the {@linkplain #nullObject() top object}.
+	 * Create the sole instance of the {@linkplain #nullObject() null object}.
 	 */
 	static void createWellKnownObjects ()
 	{
@@ -57,7 +57,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Discard the sole instance of the {@linkplain #nullObject() top object}.
+	 * Discard the sole instance of the {@linkplain #nullObject() null object}.
 	 */
 	static void clearWellKnownObjects ()
 	{
@@ -65,9 +65,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the sole instance of the top object.
+	 * Answer the sole instance of the null object.
 	 *
-	 * @return The sole instance of the top object.
+	 * @return The sole instance of the null object.
 	 */
 	@ThreadSafe
 	public static @NotNull AvailObject nullObject ()
@@ -81,12 +81,12 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsTop();
+		return another.equalsNull();
 	}
 
 	@Override
 	@ThreadSafe
-	public boolean o_EqualsTop (final @NotNull AvailObject object)
+	public boolean o_EqualsNull (final @NotNull AvailObject object)
 	{
 		//  There is only one top.
 		return true;
@@ -94,7 +94,7 @@ extends Descriptor
 
 	@Override
 	@ThreadSafe
-	public boolean o_EqualsTopOrBlank (final @NotNull AvailObject object)
+	public boolean o_EqualsNullOrBlank (final @NotNull AvailObject object)
 	{
 		// There is only one top.
 		return true;
@@ -104,7 +104,7 @@ extends Descriptor
 	@ThreadSafe
 	public int o_Hash (final @NotNull AvailObject object)
 	{
-		// The top object should hash to zero, because the only place it can
+		// The null object should hash to zero, because the only place it can
 		// appear in a data structure is as a filler object.  This currently
 		// (as of July 1998) applies to sets, maps, containers, and
 		// continuations.
@@ -126,7 +126,7 @@ extends Descriptor
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		// The top object can't be an actual member of a set, so if one
+		// The null object can't be an actual member of a set, so if one
 		// receives this message it must be the rootBin of a set (empty by
 		// definition).  Answer the new element, which will become the new
 		// rootBin, indicating a set of size one.
@@ -157,8 +157,8 @@ extends Descriptor
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
-		// The top object is acting as a bin of size zero, so the answer must
-		// also be the top object.
+		// The null object is acting as a bin of size zero, so the answer must
+		// also be the null object.
 		return NullDescriptor.nullObject();
 	}
 
@@ -169,7 +169,7 @@ extends Descriptor
 		final @NotNull AvailObject mutableTuple,
 		final int startingIndex)
 	{
-		// The top object acts as an empty bin, so do nothing.
+		// The null object acts as an empty bin, so do nothing.
 		assert mutableTuple.descriptor().isMutable();
 		return startingIndex;
 	}
@@ -178,7 +178,7 @@ extends Descriptor
 	@ThreadSafe
 	public int o_BinHash (final @NotNull AvailObject object)
 	{
-		// The top object acting as a size-zero bin has a bin hash which is the
+		// The null object acting as a size-zero bin has a bin hash which is the
 		// sum of the elements' hashes, which in this case is zero.
 		return 0;
 	}
@@ -187,7 +187,7 @@ extends Descriptor
 	@ThreadSafe
 	public int o_BinSize (final @NotNull AvailObject object)
 	{
-		// The top object acts as an empty bin.
+		// The null object acts as an empty bin.
 		return 0;
 	}
 
@@ -196,7 +196,7 @@ extends Descriptor
 	public @NotNull AvailObject o_BinUnionKind (
 		final @NotNull AvailObject object)
 	{
-		// The top object acts as an empty bin.
+		// The null object acts as an empty bin.
 		return BottomTypeDescriptor.bottom();
 	}
 

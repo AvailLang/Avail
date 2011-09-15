@@ -86,7 +86,7 @@ extends Descriptor
 		 * locates the key slot.  If it contains the expected key, great.  If
 		 * it contains a {@linkplain BlankDescriptor blank}, continue the search
 		 * with the next pair of slots, wrapping if necessary.  If it contains
-		 * the {@linkplain NullDescriptor#nullObject() top object}, the key is
+		 * the {@linkplain NullDescriptor#nullObject() null object}, the key is
 		 * not present.
 		 */
 		DATA_AT_INDEX_
@@ -242,7 +242,7 @@ extends Descriptor
 				dataSubscript += 2;
 			}
 			while (dataSubscript <= dataCapacity
-				&& object.dataAtIndex(dataSubscript).equalsTopOrBlank());
+				&& object.dataAtIndex(dataSubscript).equalsNullOrBlank());
 		}
 
 		@Override
@@ -258,7 +258,7 @@ extends Descriptor
 			assert hasNext();
 			final AvailObject key = object.dataAtIndex(dataSubscript);
 			final AvailObject value = object.dataAtIndex(dataSubscript + 1);
-			assert !key.equalsTopOrBlank();
+			assert !key.equalsNullOrBlank();
 			advance();
 			return new Entry(key, value);
 		}
@@ -342,7 +342,7 @@ extends Descriptor
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			final AvailObject keyObject = object.keyAtIndex(i);
-			if (!keyObject.equalsTopOrBlank())
+			if (!keyObject.equalsNullOrBlank())
 			{
 				if (!aMap.hasKey(keyObject))
 				{
@@ -392,14 +392,14 @@ extends Descriptor
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			key = object.keyAtIndex(i);
-			if (!key.equalsTopOrBlank())
+			if (!key.equalsNullOrBlank())
 			{
 				if (!key.isInstanceOf(keyTypeObject))
 				{
 					return false;
 				}
 				value = object.valueAtIndex(i);
-				if (!value.equalsTopOrBlank()
+				if (!value.equalsNullOrBlank()
 						&& !value.isInstanceOf(valueTypeObject))
 				{
 					return false;
@@ -450,7 +450,7 @@ extends Descriptor
 		while (true)
 		{
 			final AvailObject slotObject = object.keyAtIndex(h);
-			if (slotObject.equalsTop())
+			if (slotObject.equalsNull())
 			{
 				return false;
 			}
@@ -474,7 +474,7 @@ extends Descriptor
 		while (true)
 		{
 			final AvailObject slotObject = object.keyAtIndex(h);
-			if (slotObject.equalsTop())
+			if (slotObject.equalsNull())
 			{
 				error("Key not found in map", object);
 				return NullDescriptor.nullObject();
@@ -591,7 +591,7 @@ extends Descriptor
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (!eachKeyObject.equalsTopOrBlank())
+			if (!eachKeyObject.equalsNullOrBlank())
 			{
 				result = result.setWithElementCanDestroy(eachKeyObject.makeImmutable(), true);
 			}
@@ -659,7 +659,7 @@ extends Descriptor
 		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
 		//  Also, computing the key's hash value should not cause an allocation.
 
-		assert !keyObject.equalsTopOrBlank() & isMutable;
+		assert !keyObject.equalsNullOrBlank() & isMutable;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
@@ -667,7 +667,7 @@ extends Descriptor
 		while (true)
 		{
 			final AvailObject slotValue = object.keyAtIndex(probe);
-			if (slotValue.equalsTop())
+			if (slotValue.equalsNull())
 			{
 				AvailObject.unlock(object);
 				return object;
@@ -705,7 +705,7 @@ extends Descriptor
 		//  room for the new element.  Also, computing the key's hash value should not cause
 		//  an allocation.
 
-		assert !keyObject.equalsTopOrBlank() & isMutable;
+		assert !keyObject.equalsNullOrBlank() & isMutable;
 		assert (object.mapSize() + object.numBlanks()) * 4 <= object.capacity() * 3;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
@@ -725,7 +725,7 @@ extends Descriptor
 				AvailObject.unlock(object);
 				return object;
 			}
-			if (slotValue.equalsTopOrBlank())
+			if (slotValue.equalsNullOrBlank())
 			{
 				object.keyAtIndexPut(probe, keyObject);
 				object.valueAtIndexPut(probe, valueObject);
@@ -776,7 +776,7 @@ extends Descriptor
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
 			final AvailObject eachKeyObject = object.keyAtIndex(i);
-			if (!eachKeyObject.equalsTopOrBlank())
+			if (!eachKeyObject.equalsNullOrBlank())
 			{
 				result.add(eachKeyObject.makeImmutable());
 			}

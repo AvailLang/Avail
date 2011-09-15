@@ -71,7 +71,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 		/**
 		 * The optional {@link ParseNodeDescriptor initialization expression},
-		 * or the {@link NullDescriptor#nullObject() top object} otherwise. Not
+		 * or the {@link NullDescriptor#nullObject() null object} otherwise. Not
 		 * applicable to all kinds of declarations.
 		 */
 		INITIALIZATION_EXPRESSION,
@@ -189,7 +189,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 				final AvailCodeGenerator codeGenerator)
 			{
 				final AvailObject expr = declarationNode.initializationExpression();
-				if (!expr.equalsTop())
+				if (!expr.equalsNull())
 				{
 					expr.emitValueOn(codeGenerator);
 					codeGenerator.emitSetLocalOrOuter(declarationNode);
@@ -233,7 +233,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 					builder,
 					recursionList,
 					indent + 1);
-				if (!object.initializationExpression().equalsTop())
+				if (!object.initializationExpression().equalsNull())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
@@ -671,7 +671,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject expression = object.initializationExpression();
-		if (!expression.equalsTop())
+		if (!expression.equalsNull())
 		{
 			expression = aBlock.value(expression);
 			object.initializationExpression(expression);
@@ -685,7 +685,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final Continuation1<AvailObject> aBlock)
 	{
 		final AvailObject expression = object.initializationExpression();
-		if (!expression.equalsTop())
+		if (!expression.equalsNull())
 		{
 			aBlock.value(expression);
 		}
@@ -733,7 +733,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the entity being declared, or {@linkplain
-	 *        NullDescriptor#nullObject() the top object} if none.
+	 *        NullDescriptor#nullObject() the null object} if none.
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
 	 *        being defined, or {@linkplain NullDescriptor#nullObject() the top
@@ -793,7 +793,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the local variable, or {@linkplain
-	 *        NullDescriptor#nullObject() the top object} if none.
+	 *        NullDescriptor#nullObject() the null object} if none.
 	 * @return The new local variable declaration.
 	 */
 	public static AvailObject newVariable (

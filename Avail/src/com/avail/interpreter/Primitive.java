@@ -388,7 +388,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			final AvailObject value = var.value();
-			if (value.equalsTop())
+			if (value.equalsNull())
 			{
 				return interpreter.primitiveFailure(
 					E_CANNOT_READ_UNASSIGNED_VARIABLE);
@@ -603,7 +603,7 @@ public enum Primitive
 			final AvailObject var = args.get(0);
 			return interpreter.primitiveSuccess(
 				AtomDescriptor.objectFromBoolean(
-					var.value().equalsTop()));
+					var.value().equalsNull()));
 		}
 
 		@Override
@@ -633,7 +633,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject var = args.get(0);
 			final AvailObject valueObject = var.value();
-			if (valueObject.equalsTop())
+			if (valueObject.equalsNull())
 			{
 				return interpreter.primitiveFailure(
 					E_CANNOT_READ_UNASSIGNED_VARIABLE);
@@ -1515,7 +1515,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			final AvailObject caller = con.caller();
-			if (caller.equalsTop())
+			if (caller.equalsNull())
 			{
 				return interpreter.primitiveFailure(
 					E_CONTINUATION_HAS_NO_CALLER);
@@ -1723,7 +1723,7 @@ public enum Primitive
 			// continuation to always be mutable...
 			final AvailObject expectedType = con.closure().kind().returnType();
 			final AvailObject caller = con.caller();
-			if (caller.equalsTop())
+			if (caller.equalsNull())
 			{
 				interpreter.exitProcessWith(result);
 				return CONTINUATION_CHANGED;
@@ -1836,7 +1836,7 @@ public enum Primitive
 			for (int i = 1; i <= count; i++)
 			{
 				AvailObject entry = con.argOrLocalOrStackAt(i);
-				if (entry.equalsTop())
+				if (entry.equalsNull())
 				{
 					entry = IntegerDescriptor.zero();
 				}
@@ -2224,7 +2224,7 @@ public enum Primitive
 			final AvailObject firstArg = args.get(2);
 			final AvailObject resultType = args.get(3);
 			final AvailObject impSet = interpreter.runtime().methodsAt(message);
-			if (impSet.equalsTop())
+			if (impSet.equalsNull())
 			{
 				return interpreter.primitiveFailure(
 					E_NO_IMPLEMENTATION_SET);
@@ -2304,7 +2304,7 @@ public enum Primitive
 			for (int i = 1, end = aClosure.numOuterVars(); i <= end; i++)
 			{
 				final AvailObject outer = aClosure.outerVarAt(i);
-				if (outer.equalsTop())
+				if (outer.equalsNull())
 				{
 					newTupleObject.tupleAtPut(i, IntegerDescriptor.zero());
 				}
@@ -4795,7 +4795,7 @@ public enum Primitive
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				literal = cc.literalAt(i);
-				if (literal.equalsTop())
+				if (literal.equalsNull())
 				{
 					literal = IntegerDescriptor.zero();
 				}
@@ -5214,7 +5214,7 @@ public enum Primitive
 			final AvailObject bundle = args.get(0);
 			final AvailObject implementationSet =
 				interpreter.runtime().methodsAt(bundle.message());
-			if (implementationSet.equalsTop())
+			if (implementationSet.equalsNull())
 			{
 				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
 			}
@@ -5441,7 +5441,7 @@ public enum Primitive
 			final AvailObject trueName = args.get(0);
 			final AvailObject impSet =
 				interpreter.runtime().methodsAt(trueName);
-			if (impSet.equalsTop())
+			if (impSet.equalsNull())
 			{
 				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
 			}

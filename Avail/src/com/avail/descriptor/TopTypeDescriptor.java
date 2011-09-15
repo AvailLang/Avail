@@ -36,7 +36,7 @@ import com.avail.annotations.*;
 
 /**
  * {@code TopTypeDescriptor} implements the type of the {@linkplain
- * NullDescriptor#nullObject() top object}.
+ * NullDescriptor#nullObject() null object}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

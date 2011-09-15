@@ -1700,7 +1700,7 @@ extends AbstractAvailCompiler
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
 		final AvailObject impSet = interpreter.runtime().methodsAt(message);
-		assert !impSet.equalsTop();
+		assert !impSet.equalsNull();
 		final AvailObject implementationsTuple = impSet.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
 
@@ -1818,7 +1818,7 @@ extends AbstractAvailCompiler
 			{
 				final AvailObject argumentSendName =
 					argument.apparentSendName();
-				if (!argumentSendName.equalsTop())
+				if (!argumentSendName.equalsNull())
 				{
 					final AvailObject restrictions =
 						bundle.restrictions().tupleAt(i);

@@ -703,7 +703,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the cached privateTestingTree.  If there's a top object in that
+	 * Answer the cached privateTestingTree.  If there's a null object in that
 	 * slot, compute and cache the testing tree based on implementationsSet.
 	 * See {@linkplain #createTestingTree(AvailObject[], List, List, List)
 	 * createTestingTree(...)} for an interpretation of the resulting tuple of
@@ -714,7 +714,7 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		AvailObject result = object.privateTestingTree();
-		if (!result.equalsTop())
+		if (!result.equalsNull())
 		{
 			return result;
 		}

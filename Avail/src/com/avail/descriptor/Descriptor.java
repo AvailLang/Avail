@@ -5975,7 +5975,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_EqualsTop (
+	public boolean o_EqualsNull (
 		final AvailObject object)
 	{
 		return false;
@@ -5986,7 +5986,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_EqualsTopOrBlank (
+	public boolean o_EqualsNullOrBlank (
 		final AvailObject object)
 	{
 		return false;
@@ -6309,7 +6309,7 @@ extends AbstractDescriptor
 	 * Remove elementObject from the bin object, if present. Answer the
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 * In particular, an element is masquerading as a bin of size one, so the
-	 * answer must be either the object or top object (to indicate a size zero
+	 * answer must be either the object or null object (to indicate a size zero
 	 * bin).
 	 *
 	 * @param object
@@ -6340,7 +6340,7 @@ extends AbstractDescriptor
 	/**
 	 * Sets only use explicit bins for collisions, otherwise they store the
 	 * element itself. This works because a bin can't be an element of a set.
-	 * Likewise, the top object can't be a member of a set and is treated like
+	 * Likewise, the null object can't be a member of a set and is treated like
 	 * an empty bin.
 	 *
 	 * @param object

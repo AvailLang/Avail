@@ -2042,17 +2042,17 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsTop ()
+	public boolean equalsNull ()
 	{
-		return descriptor().o_EqualsTop(this);
+		return descriptor().o_EqualsNull(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsTopOrBlank ()
+	public boolean equalsNullOrBlank ()
 	{
-		return descriptor().o_EqualsTopOrBlank(this);
+		return descriptor().o_EqualsNullOrBlank(this);
 	}
 
 	/**
