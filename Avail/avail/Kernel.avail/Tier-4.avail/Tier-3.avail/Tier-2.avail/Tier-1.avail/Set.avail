@@ -55,7 +55,7 @@ Body
 
 /* Set type construction / accessing */
 
-Method "set_of_" is [sizes : integerType, contentType : type |
+Method "set_of_" is [sizes : whole number type, contentType : type |
 	Primitive 111 (failureCode : natural number);
 	Failed;
 ] : setType;
@@ -70,7 +70,7 @@ Method "_content type" is [st : setType |
 
 Method "_sizes" is [st : setType |
 	Primitive 112;
-] : integerType;
+] : whole number type;
 
 
 /* Set manipulation primitives... */
@@ -111,7 +111,8 @@ returns [tt : tupleType |
 	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
 	maxSize ::= sizes upper bound;
 	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
-	set [minSize..maxSize private plus 1) of mergedType;
+	range ::= [minSize..maxSize private plus 1);
+	set (type intersection of range and whole number) of mergedType;
 ] : setType;
 
 <"_lower bound", "_upper bound"> as set can't have <<"_sizes"> as set>;
@@ -143,7 +144,8 @@ returns [tt : tupleType |
 	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
 	maxSize ::= sizes upper bound;
 	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
-	set [minSize..maxSize private plus 1) of mergedType;
+	range ::= [minSize..maxSize private plus 1);
+	set (type intersection of range and whole number) of mergedType;
 ] : setType;
 
 Assert ||{}|| = 0;

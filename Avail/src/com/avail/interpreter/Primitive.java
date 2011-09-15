@@ -724,8 +724,7 @@ public enum Primitive
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
 			final AvailObject processObject = args.get(0);
-			error("process suspend is not yet implemented");
-			return interpreter.primitiveFailure("zzz"); //TODO
+			return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
 		}
 
 		@Override
@@ -752,8 +751,7 @@ public enum Primitive
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
 			final AvailObject processObject = args.get(0);
-			error("process resume is not yet implemented");
-			return interpreter.primitiveFailure("zzz"); //TODO
+			return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
 		}
 
 		@Override
@@ -780,8 +778,7 @@ public enum Primitive
 			assert args.size() == 1;
 			@SuppressWarnings("unused")
 			final AvailObject processObject = args.get(0);
-			error("process terminate is not yet implemented");
-			return interpreter.primitiveFailure("zzz"); //TODO
+			return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
 		}
 
 		@Override
@@ -3079,11 +3076,8 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject sizeRange = args.get(0);
 			final AvailObject contentType = args.get(1);
-			if (sizeRange.lowerBound().lessThan(IntegerDescriptor.zero()))
-			{
-				interpreter.primitiveFailure(
-					"size range must be positive");
-			}
+			assert sizeRange.lowerBound().greaterOrEqual(
+				IntegerDescriptor.zero());
 			return interpreter.primitiveSuccess(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					sizeRange,
@@ -3095,7 +3089,8 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.meta(),
+					InstanceTypeDescriptor.withInstance(
+						IntegerRangeTypeDescriptor.wholeNumbers()),
 					TYPE.o()),
 				SetTypeDescriptor.meta());
 		}
@@ -3126,7 +3121,8 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.meta()),
-				IntegerRangeTypeDescriptor.meta());
+				InstanceTypeDescriptor.withInstance(
+					IntegerRangeTypeDescriptor.wholeNumbers()));
 		}
 	},
 
@@ -3396,8 +3392,7 @@ public enum Primitive
 			final AvailObject end = args.get(2);
 			if (!start.isInt() || !end.isInt())
 			{
-				return interpreter.primitiveFailure(
-					"subscript is out of range");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			final int startInt = start.extractInt();
 			final int endInt = end.extractInt();
@@ -3406,8 +3401,7 @@ public enum Primitive
 				|| endInt < 0
 				|| endInt > tuple.tupleSize())
 			{
-				return interpreter.primitiveFailure(
-					"subscript is out of range");
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
 			return interpreter.primitiveSuccess(
 				tuple.copyTupleFromToCanDestroy(

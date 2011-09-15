@@ -46,6 +46,9 @@ import com.avail.descriptor.*;
  */
 public enum AvailErrorCode
 {
+	/** The primitive is not implemented. */
+	E_NO_IMPLEMENTATION (-1),
+
 	/**
 	 * Operation is required to fail.
 	 */

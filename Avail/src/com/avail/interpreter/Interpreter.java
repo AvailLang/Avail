@@ -988,21 +988,6 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Set the resulting value of a primitive invocation to an Avail string
-	 * built from the specified Java {@linkplain String string}. Answer
-	 * primitive {@linkplain Result#FAILURE failure}.
-	 *
-	 * @param result
-	 *        The result of performing a {@linkplain Primitive primitive}.
-	 * @return Primitive {@linkplain Result#FAILURE failure}.
-	 */
-	public @NotNull Result primitiveFailure (final @NotNull String result)
-	{
-		primitiveResult = ByteStringDescriptor.from(result);
-		return FAILURE;
-	}
-
-	/**
 	 * Answer the result that a primitive invocation has produced.
 	 *
 	 * @return The result that was {@link #primitiveResult(AvailObject)
@@ -1012,7 +997,6 @@ public abstract class Interpreter
 	{
 		return primitiveResult;
 	}
-
 
 	/**
 	 * Invoke an Avail primitive.  The primitive number and arguments are
