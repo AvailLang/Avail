@@ -46,7 +46,6 @@ extends AbstractTypeDescriptor
 		ANY(TOP, "TYPE"),
 		ATOM(ANY),
 		CHARACTER(ANY),
-		CONTAINER(ANY, "CONTAINER_TYPE"),
 		DOUBLE(ANY),
 		FLOAT(ANY),
 		IMPLEMENTATION_SET(ANY),
@@ -85,9 +84,7 @@ extends AbstractTypeDescriptor
 		OBJECT(ANY),
 		PROCESS(ANY),
 		TYPE(ANY, "META"),
-		CONTAINER_TYPE(TYPE, "META"),
-		META(TYPE, "META"),
-		UNION_TYPE(TYPE, "META");
+		META(TYPE, "META");
 
 		public final Types parent;
 		protected final String myTypeName;
@@ -178,11 +175,6 @@ extends AbstractTypeDescriptor
 			&& another.isSubtypeOf(object);
 	}
 
-	/**
-	 * @param object
-	 * @param aType
-	 * @return
-	 */
 	@Override
 	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
@@ -199,8 +191,7 @@ extends AbstractTypeDescriptor
 		/* Check if object (a type) is a subtype of aType (should also be a
 		 * type).
 		 */
-
-		error("Subclass responsibility: Object:isSubtypeOf: in Avail.TypeDescriptor", object);
+		unsupportedOperation();
 		return false;
 	}
 
@@ -209,8 +200,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aClosureType)
 	{
-		//  Redefined for subclasses.
-
 		return false;
 	}
 
@@ -231,8 +220,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		return false;
 	}
 
@@ -241,8 +228,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		return false;
 	}
 
@@ -261,8 +246,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		//  Redefined for subclasses.
-
 		return false;
 	}
 
@@ -298,8 +281,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		//  Redefined for subclasses.
-
 		return false;
 	}
 
@@ -308,8 +289,14 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		//  Redefined for subclasses.
+		return false;
+	}
 
+	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aUnionMeta)
+	{
 		return false;
 	}
 
@@ -410,7 +397,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		return object.typeUnion(CONTAINER.o());
+		return object.typeUnion(ANY.o());
 	}
 
 	@Override
@@ -822,8 +809,4 @@ extends AbstractTypeDescriptor
 	{
 		super(isMutable);
 	}
-
-
-
-
 }

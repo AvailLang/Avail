@@ -179,11 +179,12 @@ Method "*_[_]:=_" is [mapVar : container, key : all, value : all |
 		into [m : map | m[key->value];];
 ] : void
 requires [mvt : containerType, kt : type, vt : type |
-	cast mvt contentType into [mt : mapType |
-		mt sizes upper bound = INF
-			& kt <= mt keyType
-			& vt <= mt valueType;]
-	otherwise [false;];
+	mvt readType = mvt writeType &
+		cast mvt readType into [mt : mapType |
+			mt sizes upper bound = INF
+				& kt <= mt keyType
+				& vt <= mt valueType;]
+		otherwise [false;];
 ];
 
 
@@ -194,10 +195,11 @@ Method "*_[_]:=nil" is [mapVar : container, k : all |
 requires [mvt : containerType, kt : type |
 	/* Allow nonexistent keys to be excluded.  Hence, don't check key
 	   types here. */
-	cast mvt contentType into [mt : mapType |
-		/* Make sure map can shrink arbitrarily small and still fit in variable. */
-		mt sizes lower bound = 0;]
-	otherwise [false;];
+	mvt readType = mvt writeType &
+		cast mvt readType into [mt : mapType |
+			/* Make sure map can shrink arbitrarily small and still fit in variable. */
+			mt sizes lower bound = 0;]
+		otherwise [false;];
 ];
 
 

@@ -495,7 +495,8 @@ public class L1Decompiler implements L1OperationDispatcher
 			// block without decompiling its outer scopes).
 			final AvailObject token = outerExpr.token();
 			final AvailObject variableObject = token.literal();
-			assert variableObject.isInstanceOfKind(CONTAINER.o());
+			assert variableObject.isInstanceOfKind(
+				ContainerTypeDescriptor.mostGeneralType());
 			outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 				token,
 				variableObject);
@@ -745,7 +746,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			token.start(0);
 			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
 				token,
-				code.localTypeAt(i).innerType());
+				code.localTypeAt(i).writeType());
 			locals.add(decl);
 		}
 	}

@@ -35,6 +35,7 @@ package com.avail.test;
 import static org.junit.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
 import java.io.PrintStream;
+import java.lang.reflect.Type;
 import java.util.*;
 import org.junit.*;
 import com.avail.descriptor.*;
@@ -217,6 +218,41 @@ public class TypeConsistencyTest
 			@Override AvailObject get ()
 			{
 				return SetTypeDescriptor.mostGeneralType();
+			}
+		};
+
+		/** The most general union metatype. */
+		final static Node UNION_META = new Node(
+			"UNION_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return UnionMetaDescriptor.mostGeneralType();
+			}
+		};
+
+		/** A union metatype parameterized over integers. */
+		final static Node UNION_OF_INTEGER_META = new Node(
+			"UNION_OF_INTEGER_META",
+			UNION_META)
+		{
+			@Override AvailObject get ()
+			{
+				return UnionMetaDescriptor.over(
+					IntegerRangeTypeDescriptor.integers());
+			}
+		};
+
+		/** A union metatype parameterized over types. */
+		final static Node UNION_OF_TYPE_META = new Node(
+			"UNION_OF_TYPE_META",
+			UNION_META,
+			primitiveTypes.get(Types.META))
+		{
+			@Override AvailObject get ()
+			{
+				return UnionMetaDescriptor.over(Types.TYPE.o());
 			}
 		};
 
@@ -447,14 +483,73 @@ public class TypeConsistencyTest
 		/** The primitive type representing the metametatype of the metatype of whole numbers [0..∞). */
 		final static Node WHOLE_NUMBER_META_META = new Node(
 			"WHOLE_NUMBER_META_META",
-			primitiveTypes.get(Types.META),
-			primitiveTypes.get(Types.UNION_TYPE))
+			UNION_OF_TYPE_META,
+			primitiveTypes.get(Types.META))
 		{
 			@Override AvailObject get ()
 			{
 				return InstanceTypeDescriptor.withInstance(
 					InstanceTypeDescriptor.withInstance(
 						IntegerRangeTypeDescriptor.wholeNumbers()));
+			}
+		};
+
+		/**
+		 * The most general {@linkplain ContainerTypeDescriptor container type}.
+		 */
+		final static Node ROOT_CONTAINER = new Node(
+			"ROOT_CONTAINER",
+			primitiveTypes.get(Types.ANY))
+		{
+			@Override AvailObject get ()
+			{
+				return ContainerTypeDescriptor.mostGeneralType();
+			}
+		};
+
+		/**
+		 * The {@linkplain ContainerTypeDescriptor type of container} which
+		 * holds {@linkplain IntegerDescriptor integers}.
+		 */
+		final static Node INT_CONTAINER = new Node(
+			"INT_CONTAINER",
+			ROOT_CONTAINER)
+		{
+			@Override AvailObject get ()
+			{
+				return ContainerTypeDescriptor.wrapInnerType(
+					IntegerRangeTypeDescriptor.integers());
+			}
+		};
+
+		/**
+		 * The {@linkplain ContainerTypeDescriptor type of container} which
+		 * holds only a particular atom.
+		 */
+		final static Node SOME_ATOM_CONTAINER = new Node(
+			"SOME_ATOM_CONTAINER",
+			ROOT_CONTAINER)
+		{
+			@Override AvailObject get ()
+			{
+				return ContainerTypeDescriptor.wrapInnerType(SOME_ATOM_TYPE.t);
+			}
+		};
+
+		/**
+		 * The most specific {@linkplain ContainerTypeDescriptor type of
+		 * container}, other than {@linkplain BottomTypeDescriptor bottom}.
+		 */
+		final static Node BOTTOM_CONTAINER = new Node(
+			"BOTTOM_CONTAINER",
+			INT_CONTAINER,
+			SOME_ATOM_CONTAINER)
+		{
+			@Override AvailObject get ()
+			{
+				return ContainerTypeDescriptor.fromReadAndWriteTypes(
+					BottomTypeDescriptor.bottom(),
+					Types.TOP.o());
 			}
 		};
 
@@ -497,20 +592,19 @@ public class TypeConsistencyTest
 			}
 		};
 
-
 		/** The type of {@code bottom}.  This is the most specific meta. */
 		final static Node BOTTOM_TYPE = new Node(
 			"BOTTOM_TYPE",
 			CLOSURE_META,
-			primitiveTypes.get(Types.CONTAINER_TYPE),
 			CONTINUATION_META,
 			WHOLE_NUMBER_META,
 			WHOLE_NUMBER_META_META,
 			MAP_META,
 			SET_META,
 			TUPLE_META,
-			primitiveTypes.get(Types.META),
-			primitiveTypes.get(Types.UNION_TYPE))
+			UNION_OF_INTEGER_META,
+			UNION_OF_TYPE_META,
+			primitiveTypes.get(Types.META))
 		{
 			@Override AvailObject get ()
 			{
@@ -945,12 +1039,17 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				assertEQ(
-					y.allDescendants.contains(x),
-					x.subtype(y),
-					"graph model (not as declared): %s, %s",
-					x,
-					y);
+				// TODO: Remove!
+				if (y.allDescendants.contains(x) != x.subtype(y))
+				{
+					x.t.isSubtypeOf(y.t);
+					assertEQ(
+						y.allDescendants.contains(x),
+						x.subtype(y),
+						"graph model (not as declared): %s, %s",
+						x,
+						y);
+				}
 				assertEQ(
 					x == y,
 					x.t.equals(y.t),
@@ -1084,12 +1183,18 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				assertEQ(
-					x.union(y),
-					y.union(x),
-					"union commutativity: %s, %s",
-					x,
-					y);
+				// TODO: [TLS] Remove guard.
+				if (!x.union(y).equals(y.union(x)))
+				{
+					x.t.typeUnion(y.t);
+					y.t.typeUnion(x.t);
+					assertEQ(
+						x.union(y),
+						y.union(x),
+						"union commutativity: %s, %s",
+						x,
+						y);
+				}
 			}
 		}
 	}
@@ -1177,12 +1282,18 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				assertEQ(
-					x.intersect(y),
-					y.intersect(x),
-					"intersection commutativity: %s, %s",
-					x,
-					y);
+				// TODO: Remove this guard.
+				if (!x.intersect(y).equals(y.intersect(x)))
+				{
+					x.t.typeIntersection(y.t);
+					y.t.typeIntersection(x.t);
+					assertEQ(
+						x.intersect(y),
+						y.intersect(x),
+						"intersection commutativity: %s, %s",
+						x,
+						y);
+				}
 			}
 		}
 	}
@@ -1203,13 +1314,20 @@ public class TypeConsistencyTest
 				final AvailObject xy = x.intersect(y);
 				for (final Node z : Node.values)
 				{
-					assertEQ(
-						xy.typeIntersection(z.t),
-						x.t.typeIntersection(y.intersect(z)),
-						"intersection associativity: %s, %s, %s",
-						x,
-						y,
-						z);
+					// TODO: [TLS] Remove this guard.
+					if (!xy.typeIntersection(z.t).equals(
+						x.t.typeIntersection(y.intersect(z))))
+					{
+						x.t.typeIntersection(y.t).typeIntersection(z.t);
+						x.t.typeIntersection(y.t.typeIntersection(z.t));
+						assertEQ(
+							xy.typeIntersection(z.t),
+							x.t.typeIntersection(y.intersect(z)),
+							"intersection associativity: %s, %s, %s",
+							x,
+							y,
+							z);
+					}
 				}
 			}
 		}
@@ -1349,6 +1467,7 @@ public class TypeConsistencyTest
 			{
 				final AvailObject Tx = x.t.kind();
 				final AvailObject Ty = y.t.kind();
+
 				assertEQ(
 					x.t.equals(y.t),
 					Tx.equals(Ty),

@@ -647,25 +647,6 @@ extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Besides the value returned by {@linkplain
-	 * AvailObject#nearestKindOfType(AvailObject)}, every union type (like this
-	 * one) is an instance of {@linkplain Types#UNION_TYPE UNION_TYPE} (and its
-	 * ancestors).
-	 * </p>
-	 */
-	@Override
-	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final AvailObject aType)
-	{
-		return UNION_TYPE.o().isSubtypeOf(aType)
-			|| getSuperkind(object).isInstanceOfKind(aType);
-	}
-
 	@Override
 	public boolean o_IsSupertypeOfClosureType (
 		final AvailObject object,
@@ -747,6 +728,14 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
+	{
+		return false;
+	}
+
+	@Override
 	public AvailObject o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
@@ -806,7 +795,8 @@ extends AbstractUnionTypeDescriptor
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
-		return getSuperkind(object).typeUnionOfContinuationType(aContinuationType);
+		return getSuperkind(object).typeUnionOfContinuationType(
+			aContinuationType);
 	}
 
 	@Override
@@ -814,7 +804,8 @@ extends AbstractUnionTypeDescriptor
 		final AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
-		return getSuperkind(object).typeUnionOfContinuationType(aCompiledCodeType);
+		return getSuperkind(object).typeUnionOfContinuationType(
+			aCompiledCodeType);
 	}
 
 	@Override
@@ -822,6 +813,22 @@ extends AbstractUnionTypeDescriptor
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	{
+		return getInstance(object).isAbstractUnionType();
+	}
+
+	@Override
+	public @NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
+	{
+		assert object.isUnionMeta();
+		final AvailObject instance = getInstance(object);
+		return instance.isAbstractUnionType()
+			? instance.computeSuperkind()
+			: instance;
 	}
 
 

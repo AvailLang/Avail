@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.ContainerTypeDescriptor.ObjectSlots;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class BottomTypeDescriptor
@@ -626,6 +627,14 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
+	{
+		return false;
+	}
+
+	@Override
 	public AvailObject o_MyType (final AvailObject object)
 	{
 		// TODO Auto-generated method stub
@@ -696,5 +705,29 @@ extends AbstractUnionTypeDescriptor
 		return false;
 	}
 
+	@Override
+	public @NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
+	{
+		return object;
+	}
 
+	@Override
+	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	public @NotNull AvailObject o_ReadType (
+		final @NotNull AvailObject object)
+	{
+		return TOP.o();
+	}
+
+	@Override
+	public @NotNull AvailObject o_WriteType (
+		final @NotNull AvailObject object)
+	{
+		return bottom;
+	}
 }

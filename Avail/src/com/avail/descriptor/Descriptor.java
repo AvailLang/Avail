@@ -142,8 +142,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject closureType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -161,8 +159,6 @@ extends AbstractDescriptor
 		final int stackp,
 		final int numArgs)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -177,8 +173,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -193,8 +187,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argValues)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -209,8 +201,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject argTypes)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -225,8 +215,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject arguments)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -240,8 +228,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -255,8 +241,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject implementation)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -270,8 +254,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject restrictions)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -308,8 +290,6 @@ extends AbstractDescriptor
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -325,8 +305,6 @@ extends AbstractDescriptor
 		final AvailObject methodName,
 		final AvailObject implementation)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -342,8 +320,6 @@ extends AbstractDescriptor
 		final AvailObject message,
 		final AvailObject bundle)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -359,8 +335,6 @@ extends AbstractDescriptor
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -376,8 +350,6 @@ extends AbstractDescriptor
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -393,8 +365,6 @@ extends AbstractDescriptor
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -409,8 +379,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -426,8 +394,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -441,8 +407,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -456,8 +420,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -471,8 +433,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -486,8 +446,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -501,8 +459,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -516,8 +472,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject bundleTree)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -531,8 +485,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -546,8 +498,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -561,8 +511,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -576,8 +524,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -598,8 +544,6 @@ extends AbstractDescriptor
 		final AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -620,8 +564,6 @@ extends AbstractDescriptor
 		final AvailObject aTuple,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -642,8 +584,6 @@ extends AbstractDescriptor
 		final AvailObject aByteString,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -664,8 +604,6 @@ extends AbstractDescriptor
 		final AvailObject aByteTuple,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -686,8 +624,6 @@ extends AbstractDescriptor
 		final AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -708,8 +644,6 @@ extends AbstractDescriptor
 		final AvailObject anObjectTuple,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -730,8 +664,6 @@ extends AbstractDescriptor
 		final AvailObject aTwoByteString,
 		final int startIndex2)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -761,8 +693,6 @@ extends AbstractDescriptor
 		final int start,
 		final int end)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -781,8 +711,6 @@ extends AbstractDescriptor
 		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -797,8 +725,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -812,8 +738,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -827,8 +751,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -844,8 +766,6 @@ extends AbstractDescriptor
 		final AvailObject filteredBundleTree,
 		final AvailObject visibleNames)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -864,8 +784,6 @@ extends AbstractDescriptor
 		final int end,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -880,8 +798,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -896,8 +812,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -913,8 +827,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -928,8 +840,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -977,8 +887,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -994,8 +902,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1010,8 +916,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int zone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -1026,8 +930,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int zone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -1041,8 +943,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final ExecutionState value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1057,8 +957,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -1072,8 +970,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1087,8 +983,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1103,8 +997,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return null;
 	}
@@ -1118,8 +1010,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1140,8 +1030,6 @@ extends AbstractDescriptor
 		final int startSubtupleIndex,
 		final int endOfZone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1156,8 +1044,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1172,8 +1058,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1188,8 +1072,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject elementObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1203,8 +1085,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1221,8 +1101,6 @@ extends AbstractDescriptor
 		final int startIndex,
 		final int endIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -1236,8 +1114,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1252,8 +1128,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1268,8 +1142,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argTypes)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return null;
 	}
@@ -1284,8 +1156,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject messageBundle)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1300,8 +1170,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject imp)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1328,8 +1196,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1343,8 +1209,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1358,8 +1222,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1373,8 +1235,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1388,8 +1248,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final boolean aBoolean)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1404,8 +1262,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1420,8 +1276,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1436,8 +1290,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1452,8 +1304,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1468,8 +1318,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1484,8 +1332,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1500,8 +1346,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1516,8 +1360,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1532,8 +1374,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1548,8 +1388,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aPrimitiveType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1564,8 +1402,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1580,8 +1416,20 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		//  GENERATED pure (abstract) method.
+		unsupportedOperation();
+		return false;
+	}
 
+	/**
+	 * @param object
+	 * @param aUnionMeta
+	 * @return
+	 */
+	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aUnionMeta)
+	{
 		unsupportedOperation();
 		return false;
 	}
@@ -1598,8 +1446,6 @@ extends AbstractDescriptor
 		final List<AvailObject> argTypes,
 		final Interpreter interpreter)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1614,8 +1460,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1631,8 +1475,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject keyObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1647,8 +1489,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1663,8 +1503,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -1693,8 +1531,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1709,8 +1545,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1725,8 +1559,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1742,8 +1574,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1758,8 +1588,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1774,8 +1602,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argumentTypeList)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1792,8 +1618,6 @@ extends AbstractDescriptor
 		final AvailObject continuation,
 		final int stackp)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1808,8 +1632,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject argumentTypeTuple)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1824,8 +1646,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<AvailObject> argumentList)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1840,8 +1660,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject argumentTuple)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1856,8 +1674,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1876,8 +1692,6 @@ extends AbstractDescriptor
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1891,8 +1705,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1909,8 +1721,6 @@ extends AbstractDescriptor
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -1924,8 +1734,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1939,8 +1747,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -1954,8 +1760,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2002,8 +1806,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2017,8 +1819,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2032,8 +1832,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2047,8 +1845,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2063,8 +1859,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject trueName)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -2078,8 +1872,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2093,8 +1885,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2109,8 +1899,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -2125,8 +1913,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2141,8 +1927,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2158,8 +1942,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2173,8 +1955,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2188,8 +1968,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2214,8 +1992,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2230,8 +2006,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject element)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2246,8 +2020,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject element)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2264,8 +2036,6 @@ extends AbstractDescriptor
 		final AvailObject element,
 		final int knownIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2280,8 +2050,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject keyObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2298,8 +2066,6 @@ extends AbstractDescriptor
 		final AvailObject keyObject,
 		final AvailObject valueObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2313,8 +2079,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2328,8 +2092,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2344,8 +2106,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2361,8 +2121,6 @@ extends AbstractDescriptor
 		final int index,
 		final short anInteger)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2377,8 +2135,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2394,8 +2150,6 @@ extends AbstractDescriptor
 		final int index,
 		final short anInteger)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2410,8 +2164,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2427,8 +2179,6 @@ extends AbstractDescriptor
 		final int index,
 		final byte aNybble)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2443,8 +2193,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2460,8 +2208,6 @@ extends AbstractDescriptor
 		final int index,
 		final short anInteger)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2476,8 +2222,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2493,8 +2237,6 @@ extends AbstractDescriptor
 		final int index,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2509,8 +2251,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2526,8 +2266,6 @@ extends AbstractDescriptor
 		final int index,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2541,8 +2279,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int aChunkIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2556,8 +2292,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final L2Interpreter anInterpreter)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2571,8 +2305,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject implementation)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2586,8 +2318,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject bundle)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -2601,8 +2331,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject obsoleteRestrictions)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2618,8 +2346,6 @@ extends AbstractDescriptor
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2633,8 +2359,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2648,8 +2372,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2663,8 +2385,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2681,8 +2401,6 @@ extends AbstractDescriptor
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2699,8 +2417,6 @@ extends AbstractDescriptor
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2716,8 +2432,6 @@ extends AbstractDescriptor
 		final int zoneIndex,
 		final AvailObject newTuple)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2734,8 +2448,6 @@ extends AbstractDescriptor
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2749,8 +2461,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject newValue)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2767,8 +2477,6 @@ extends AbstractDescriptor
 		final AvailObject newElementObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2785,8 +2493,6 @@ extends AbstractDescriptor
 		final AvailObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2800,8 +2506,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2816,8 +2520,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int zone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2845,8 +2547,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int slotIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2862,8 +2562,6 @@ extends AbstractDescriptor
 		final int slotIndex,
 		final AvailObject anObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2877,8 +2575,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2892,8 +2588,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2921,8 +2615,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int zone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2937,8 +2629,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int zone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -2952,8 +2642,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -2981,8 +2669,6 @@ extends AbstractDescriptor
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2997,8 +2683,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int zone)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3023,8 +2707,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final TokenDescriptor.TokenType value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3041,8 +2723,6 @@ extends AbstractDescriptor
 		final int tupleIndex,
 		final int zoneIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3057,8 +2737,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject stringName)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3073,8 +2751,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int newTupleSize)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3089,8 +2765,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3106,8 +2780,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject aNybbleObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3126,8 +2798,6 @@ extends AbstractDescriptor
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3142,8 +2812,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3157,8 +2825,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3173,8 +2839,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3189,8 +2853,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3205,8 +2867,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3221,8 +2881,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3237,8 +2895,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3253,8 +2909,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3269,8 +2923,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3285,8 +2937,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3317,8 +2967,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3333,8 +2981,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3349,8 +2995,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3365,8 +3009,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject another)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3381,8 +3023,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aClosureType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3397,8 +3037,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aContainerType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3413,8 +3051,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3429,8 +3065,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3445,8 +3079,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3461,8 +3093,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3477,8 +3107,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3493,8 +3121,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3509,8 +3135,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3524,8 +3148,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3542,8 +3164,6 @@ extends AbstractDescriptor
 		final int startIndex,
 		final int endIndex)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3558,8 +3178,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3575,8 +3193,6 @@ extends AbstractDescriptor
 		final int index,
 		final int value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3595,8 +3211,6 @@ extends AbstractDescriptor
 		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3610,8 +3224,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3626,8 +3238,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3643,8 +3253,6 @@ extends AbstractDescriptor
 		final int index,
 		final AvailObject valueObject)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3658,8 +3266,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3673,8 +3279,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject value)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3689,8 +3293,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3703,8 +3305,6 @@ extends AbstractDescriptor
 	public String o_AsNativeString (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return "";
 	}
@@ -3717,8 +3317,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_AsObject (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3731,8 +3329,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_AsSet (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3745,8 +3341,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_AsTuple (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3759,8 +3353,6 @@ extends AbstractDescriptor
 	public int o_BitsPerEntry (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3773,8 +3365,6 @@ extends AbstractDescriptor
 	public int o_BitVector (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3787,8 +3377,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_BodyBlock (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3801,8 +3389,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_BodySignature (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3815,8 +3401,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_BreakpointBlock (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3829,8 +3413,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Caller (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3843,8 +3425,6 @@ extends AbstractDescriptor
 	public int o_Capacity (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3856,8 +3436,6 @@ extends AbstractDescriptor
 	public void o_CleanUpAfterCompile (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3869,8 +3447,6 @@ extends AbstractDescriptor
 	public void o_ClearValue (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -3883,8 +3459,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Closure (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3897,8 +3471,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ClosureType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3911,8 +3483,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Code (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3925,8 +3495,6 @@ extends AbstractDescriptor
 	public int o_CodePoint (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -3951,8 +3519,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ConstantBindings (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3965,8 +3531,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ContentType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3979,8 +3543,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Continuation (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -3993,8 +3555,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_CopyAsMutableContinuation (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4007,8 +3567,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_CopyAsMutableObjectTuple (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4021,8 +3579,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_CopyAsMutableSpliceTuple (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4035,8 +3591,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_DefaultType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4061,8 +3615,6 @@ extends AbstractDescriptor
 	public int o_ParsingPc (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4074,8 +3626,6 @@ extends AbstractDescriptor
 	public void o_DisplayTestingTree (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -4088,8 +3638,6 @@ extends AbstractDescriptor
 		final AvailObject object)
 	throws SignatureException
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -4102,8 +3650,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_EnsureMutable (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4116,8 +3662,6 @@ extends AbstractDescriptor
 	public ExecutionState o_ExecutionState (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return null;
 	}
@@ -4130,8 +3674,6 @@ extends AbstractDescriptor
 	public void o_Expand (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 	}
 
@@ -4143,8 +3685,6 @@ extends AbstractDescriptor
 	public boolean o_ExtractBoolean (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4157,8 +3697,6 @@ extends AbstractDescriptor
 	public short o_ExtractByte (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4171,8 +3709,6 @@ extends AbstractDescriptor
 	public double o_ExtractDouble (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0.0d;
 	}
@@ -4185,8 +3721,6 @@ extends AbstractDescriptor
 	public float o_ExtractFloat (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0.0f;
 	}
@@ -4199,8 +3733,6 @@ extends AbstractDescriptor
 	public int o_ExtractInt (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4234,8 +3766,6 @@ extends AbstractDescriptor
 	public byte o_ExtractNybble (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4248,8 +3778,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_FieldMap (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4262,8 +3790,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_FieldTypeMap (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4276,8 +3802,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_FilteredBundleTree (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4290,8 +3814,6 @@ extends AbstractDescriptor
 	public int o_GetInteger (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4304,8 +3826,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_GetValue (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4318,8 +3838,6 @@ extends AbstractDescriptor
 	public int o_HashOrZero (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4332,8 +3850,6 @@ extends AbstractDescriptor
 	public boolean o_HasRestrictions (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4346,8 +3862,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ImplementationsTuple (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4372,24 +3886,8 @@ extends AbstractDescriptor
 	public int o_Index (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_InnerType (
-		final AvailObject object)
-	{
-		//  GENERATED pure (abstract) method.
-
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4400,8 +3898,6 @@ extends AbstractDescriptor
 	public int o_InternalHash (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4414,8 +3910,6 @@ extends AbstractDescriptor
 	public int o_InterruptRequestFlag (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4428,8 +3922,6 @@ extends AbstractDescriptor
 	public int o_InvocationCount (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4442,8 +3934,6 @@ extends AbstractDescriptor
 	public boolean o_IsAbstract (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4456,8 +3946,6 @@ extends AbstractDescriptor
 	public boolean o_IsFinite (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4470,8 +3958,6 @@ extends AbstractDescriptor
 	public boolean o_IsForward (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4484,8 +3970,6 @@ extends AbstractDescriptor
 	public boolean o_IsMethod (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4498,8 +3982,6 @@ extends AbstractDescriptor
 	public boolean o_IsPositive (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4512,8 +3994,6 @@ extends AbstractDescriptor
 	public boolean o_IsSaved (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4526,8 +4006,6 @@ extends AbstractDescriptor
 	public boolean o_IsSplice (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4540,8 +4018,6 @@ extends AbstractDescriptor
 	public boolean o_IsSupertypeOfBottom (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4554,8 +4030,6 @@ extends AbstractDescriptor
 	public boolean o_IsValid (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4568,8 +4042,6 @@ extends AbstractDescriptor
 	public List<AvailObject> o_KeysAsArray (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return null;
 	}
@@ -4582,8 +4054,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_KeysAsSet (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4596,8 +4066,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_KeyType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4622,8 +4090,6 @@ extends AbstractDescriptor
 	public int o_LevelTwoOffset (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4636,8 +4102,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Literal (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4650,8 +4114,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_LowerBound (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4664,8 +4126,6 @@ extends AbstractDescriptor
 	public boolean o_LowerInclusive (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -4678,8 +4138,6 @@ extends AbstractDescriptor
 	public int o_MapSize (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4692,8 +4150,6 @@ extends AbstractDescriptor
 	public int o_MaxStackDepth (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4706,8 +4162,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Message (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4720,8 +4174,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_MessageParts (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4734,8 +4186,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Methods (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4748,8 +4198,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_MyRestrictions (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4762,8 +4210,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_MyType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4776,8 +4222,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Name (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4790,8 +4234,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Names (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4804,8 +4246,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_NewNames (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4842,8 +4282,6 @@ extends AbstractDescriptor
 	public int o_NumberOfZones (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4856,8 +4294,6 @@ extends AbstractDescriptor
 	public int o_NumBlanks (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4870,8 +4306,6 @@ extends AbstractDescriptor
 	public int o_NumDoubles (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4884,8 +4318,6 @@ extends AbstractDescriptor
 	public int o_NumIntegers (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4922,8 +4354,6 @@ extends AbstractDescriptor
 	public int o_NumObjects (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4948,8 +4378,6 @@ extends AbstractDescriptor
 	public int o_NumOuterVars (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -4962,8 +4390,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Nybbles (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4976,8 +4402,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Parent (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -4990,8 +4414,6 @@ extends AbstractDescriptor
 	public int o_Pc (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5004,8 +4426,6 @@ extends AbstractDescriptor
 	public int o_PrimitiveNumber (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5018,8 +4438,6 @@ extends AbstractDescriptor
 	public AvailObject o_Priority (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return null;
 	}
@@ -5032,8 +4450,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_PrivateNames (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5046,8 +4462,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_PrivateTestingTree (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5060,8 +4474,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ProcessGlobals (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5073,8 +4485,6 @@ extends AbstractDescriptor
 	public void o_ReleaseVariableOrMakeContentsImmutable (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -5086,8 +4496,6 @@ extends AbstractDescriptor
 	public void o_RemoveRestrictions (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -5100,8 +4508,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_RequiresBlock (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5114,8 +4520,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Restrictions (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5128,8 +4532,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ReturnsBlock (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5142,8 +4544,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ReturnType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5156,8 +4556,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_RootBin (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5170,8 +4568,6 @@ extends AbstractDescriptor
 	public int o_SetSize (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5184,8 +4580,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Signature (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5198,8 +4592,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_SizeRange (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5224,8 +4616,6 @@ extends AbstractDescriptor
 	public int o_Stackp (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5238,8 +4628,6 @@ extends AbstractDescriptor
 	public int o_Start (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5263,8 +4651,6 @@ extends AbstractDescriptor
 	public void o_Step (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -5277,8 +4663,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_String (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5291,8 +4675,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_TestingTree (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5305,8 +4687,6 @@ extends AbstractDescriptor
 	public TokenDescriptor.TokenType o_TokenType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return null;
 	}
@@ -5318,8 +4698,6 @@ extends AbstractDescriptor
 	public void o_TrimExcessInts (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -5332,8 +4710,6 @@ extends AbstractDescriptor
 	public int o_TupleSize (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5346,8 +4722,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_TypeTuple (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5360,8 +4734,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Unclassified (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5374,8 +4746,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_UpperBound (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5388,8 +4758,6 @@ extends AbstractDescriptor
 	public boolean o_UpperInclusive (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return false;
 	}
@@ -5402,8 +4770,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Value (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5416,8 +4782,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ValuesAsTuple (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5430,8 +4794,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_ValueType (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5444,8 +4806,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_VariableBindings (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5458,8 +4818,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Vectors (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5471,8 +4829,6 @@ extends AbstractDescriptor
 	public void o_Verify (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return;
 	}
@@ -5485,8 +4841,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_VisibleNames (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5499,8 +4853,6 @@ extends AbstractDescriptor
 	public int o_InfinitySign (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return 0;
 	}
@@ -5513,8 +4865,6 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_Wordcodes (
 		final AvailObject object)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -5677,8 +5027,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		return false;
 	}
 
@@ -5692,8 +5040,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		//  GENERATED pure (abstract) method.
-
 		return false;
 	}
 
@@ -5953,10 +5299,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		// Strengthened in TypeDescriptor to support covariance of instance
-		// types.
-		return aType.equalsInstanceTypeFor(object)
-			|| object.kind().isSubtypeOf(aType);
+		return object.kind().isSubtypeOf(aType);
 	}
 
 	/**
@@ -7223,6 +6566,7 @@ extends AbstractDescriptor
 		return false;
 	}
 
+
 	@Override
 	public boolean o_IsAbstractUnionType (final AvailObject object)
 	{
@@ -7254,10 +6598,68 @@ extends AbstractDescriptor
 
 
 	@Override
-	public AvailObject o_ComputeSuperkind (final AvailObject object)
+	public @NotNull AvailObject o_ComputeSuperkind (final AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public AvailObject o_InnerKind (final AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_ReadType (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_WriteType (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
 }

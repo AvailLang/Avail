@@ -243,6 +243,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
+		assert another.isType();
 		AvailObject set = SetDescriptor.empty();
 		final AvailObject elements = object.instances();
 		if (another.isAbstractUnionType())
@@ -608,15 +609,6 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final AvailObject aType)
-	{
-		return UNION_TYPE.o().isSubtypeOf(aType)
-			|| getSuperkind(object).isInstanceOfKind(aType);
-	}
-
-	@Override
 	public boolean o_IsSupertypeOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType)
@@ -692,6 +684,14 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	public boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTupleType)
 	{
 		return false;
 	}
@@ -784,6 +784,34 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	public AvailObject o_ValueType (final AvailObject object)
 	{
 		return getSuperkind(object).valueType();
+	}
+
+	@Override
+	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	{
+		for (final AvailObject element : getInstances(object))
+		{
+			if (!element.isAbstractUnionType())
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public @NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
+	{
+		assert object.isUnionMeta();
+		AvailObject kindUnion = BottomTypeDescriptor.bottom();
+		for (final AvailObject instance : getInstances(object))
+		{
+			kindUnion = kindUnion.typeUnion(
+				instance.isAbstractUnionType()
+					? instance.computeSuperkind()
+					: instance);
+		}
+		return kindUnion;
 	}
 
 	/**

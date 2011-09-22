@@ -115,7 +115,7 @@ Method "new Label name_type_" is [n : string, t : continuationType |
 ];
 
 Method "new Global name_type_literal_" is [n : string, t : type, lit : container |
-	Assert lit type contentType <= t;
+	Assert lit type readType <= t;
 	Global new with <
 		<name, n>,
 		<myType, t>,

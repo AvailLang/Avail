@@ -449,14 +449,15 @@ Method "*_[_]:=_" is [tupleVar : &:tuple, i : natural number, v : all |
 	*tupleVar ?:= clearing* tupleVar [i->v];
 ] : void
 requires [tvt : containerType, it : integerType, vt : type |
-	cast tvt contentType into [tt : tupleType |
-		/* Make sure we can store back any possible result. */
-		vt <= union of types in
-			tt [(it lower bound max 1) min (||tt leading types|| + 1)
-				.. (it upper bound max 0) min (||tt leading types|| + 1)];
-	] otherwise [
-		false;
-	];
+	tvt readType = tvt writeType &
+		cast tvt readType into [tt : tupleType |
+			/* Make sure we can store back any possible result. */
+			vt <= union of types in
+				tt [(it lower bound max 1) min (||tt leading types|| + 1)
+					.. (it upper bound max 0) min (||tt leading types|| + 1)];
+		] otherwise [
+			false;
+		];
 ];
 
 

@@ -57,7 +57,7 @@ requires [varType : container type, argType : type |
 	else [
 		varTypeAsTypedContainer : containerType;
 		*&varTypeAsTypedContainer ?:= varType;
-		argType <= varTypeAsTypedContainer contentType;
+		argType <= varTypeAsTypedContainer writeType;
 	];
 ];
 
@@ -77,7 +77,7 @@ returns [varType : container type |
 		/* Use the downcasting assignment operator *_?:=_  */
 		varTypeAsTypedContainer : containerType;
 		*&varTypeAsTypedContainer ?:= varType;
-		varTypeAsTypedContainer contentType;
+		varTypeAsTypedContainer readType;
 	];
 ];
 
@@ -98,7 +98,7 @@ returns [varType : container type |
 		/* Use the downcasting assignment operator *_?:=_  */
 		varTypeAsTypedContainer : containerType;
 		*&varTypeAsTypedContainer ?:= varType;
-		varTypeAsTypedContainer contentType;
+		varTypeAsTypedContainer readType;
 	];
 ];
 

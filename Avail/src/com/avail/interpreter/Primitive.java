@@ -404,7 +404,7 @@ public enum Primitive
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
-				TupleDescriptor.from(CONTAINER.o()),
+				TupleDescriptor.from(ContainerTypeDescriptor.mostGeneralType()),
 				ANY.o());
 		}
 	},
@@ -423,7 +423,7 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject var = args.get(0);
 			final AvailObject value = args.get(1);
-			if (!value.isInstanceOf(var.kind().innerType()))
+			if (!value.isInstanceOf(var.kind().writeType()))
 			{
 				return interpreter.primitiveFailure(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
@@ -437,7 +437,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CONTAINER.o(),
+					ContainerTypeDescriptor.mostGeneralType(),
 					ANY.o()),
 				TOP.o());
 		}
@@ -464,7 +464,7 @@ public enum Primitive
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return ClosureTypeDescriptor.create(
-				TupleDescriptor.from(CONTAINER.o()),
+				TupleDescriptor.from(ContainerTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
 	},
@@ -492,15 +492,15 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				CONTAINER_TYPE.o());
+				ContainerTypeDescriptor.meta());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 14:</strong> Extract the inner type of a {@linkplain
+	 * <strong>Primitive 14:</strong> Extract the read type of a {@linkplain
 	 * ContainerTypeDescriptor variable type}.
 	 */
-	prim14_InnerType(14, 1, CanFold, CannotFail)
+	prim14_ContainerReadType(14, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -509,7 +509,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
-			return interpreter.primitiveSuccess(type.innerType());
+			return interpreter.primitiveSuccess(type.readType());
 		}
 
 		@Override
@@ -517,7 +517,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CONTAINER_TYPE.o()),
+					ContainerTypeDescriptor.meta()),
 				TYPE.o());
 		}
 	},
@@ -553,8 +553,8 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CONTAINER.o(),
-					CONTAINER.o()),
+					ContainerTypeDescriptor.mostGeneralType(),
+					ContainerTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
 	},
@@ -583,14 +583,14 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				CONTAINER.o());
+				ContainerTypeDescriptor.mostGeneralType());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 17:</strong> Answer {@linkplain TrueDescriptor true} if
-	 * the {@linkplain ContainerDescriptor variable} is unassigned (has no
-	 * value).
+	 * <strong>Primitive 17:</strong> Answer {@linkplain
+	 * AtomDescriptor#trueObject() true} if the {@linkplain ContainerDescriptor
+	 * variable} is unassigned (has no value).
 	 */
 	prim17_HasNoValue(17, 1, CanInline, CannotFail)
 	{
@@ -611,7 +611,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CONTAINER.o()),
+					ContainerTypeDescriptor.mostGeneralType()),
 				UnionTypeDescriptor.booleanObject());
 		}
 	},
@@ -648,10 +648,36 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					CONTAINER.o()),
+					ContainerTypeDescriptor.mostGeneralType()),
 				ANY.o());
 		}
 
+	},
+
+	/**
+	 * <strong>Primitive 19:</strong> Extract the write type of a {@linkplain
+	 * ContainerTypeDescriptor variable type}.
+	 */
+	prim14_ContainerWriteType(19, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject type = args.get(0);
+			return interpreter.primitiveSuccess(type.writeType());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.create(
+				TupleDescriptor.from(
+					ContainerTypeDescriptor.meta()),
+				TYPE.o());
+		}
 	},
 
 	/**
@@ -901,10 +927,9 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject value = args.get(0);
+			final AvailObject unionType = args.get(0);
 			return interpreter.primitiveSuccess(
-				value.instances());
-
+				unionType.instances());
 		}
 
 		@Override
@@ -912,7 +937,7 @@ public enum Primitive
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					UNION_TYPE.o()),
+					UnionMetaDescriptor.mostGeneralType()),
 				SetTypeDescriptor.mostGeneralType());
 		}
 	},
@@ -939,7 +964,7 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
-				UNION_TYPE.o());
+				UnionMetaDescriptor.mostGeneralType());
 		}
 	},
 
@@ -2011,7 +2036,7 @@ public enum Primitive
 	 * <strong>Primitive 65:</strong> Create a union type from the given set
 	 * of instances.
 	 */
-	prim65_CreateUnionType(65, 1, CanFold)
+	prim65_CreateUnionType(65, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2031,15 +2056,15 @@ public enum Primitive
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
-				UNION_TYPE.o());
+				UnionMetaDescriptor.mostGeneralType());
 		};
 	},
 
 	/**
-	 * <strong>Primitive 66:</strong> Answer the set of instances of a
-	 * {@linkplain AbstractUnionTypeDescriptor union type}.
+	 * <strong>Primitive 66:</strong> Create a union meta from the given inner
+	 * type.  The type will be canonized to the nearest kind.
 	 */
-	prim66_UnionTypeInstances(66, 1, CanFold)
+	prim66_CreateUnionMeta(66, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2047,18 +2072,19 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject unionType = args.get(0);
-			return interpreter.primitiveSuccess(unionType.instances());
+			final AvailObject innerType = args.get(0);
+			final AvailObject unionMeta = UnionMetaDescriptor.over(innerType);
+			return interpreter.primitiveSuccess(unionMeta);
 		}
 
 		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		protected @NotNull AvailObject privateBlockTypeRestriction()
 		{
 			return ClosureTypeDescriptor.create(
 				TupleDescriptor.from(
-					UNION_TYPE.o()),
-				SetTypeDescriptor.mostGeneralType());
-		}
+					TYPE.o()),
+				UnionMetaDescriptor.meta());
+		};
 	},
 
 	/**

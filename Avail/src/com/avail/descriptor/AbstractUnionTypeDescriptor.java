@@ -153,20 +153,13 @@ extends AbstractTypeDescriptor
 		return true;
 	}
 
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * The nearest kind of any instance/union/bottom type is the {@linkplain
-	 * PrimitiveTypeDescriptor primitive} metatype called {@link
-	 * Types#UNION_TYPE UNION_TYPE}.
-	 * </p>
-	 */
 	@Override
-	public final AvailObject o_Kind (final AvailObject object)
+	public abstract boolean o_IsUnionMeta (final @NotNull AvailObject object);
+
+	@Override
+	public final @NotNull AvailObject o_Kind (final AvailObject object)
 	{
-		return UNION_TYPE.o();
+		return UnionMetaDescriptor.over(object.computeSuperkind());
 	}
 
 	/**
@@ -411,6 +404,11 @@ extends AbstractTypeDescriptor
 		return object.isInstanceOfKind(aType);
 	}
 
+	@Override
+	public boolean o_IsInstanceOfKind (final AvailObject object, final AvailObject aType)
+	{
+		return object.kind().isSubtypeOf(aType);
+	}
 
 	@Override
 	public abstract @NotNull AvailObject o_FieldTypeMap (
@@ -542,11 +540,6 @@ extends AbstractTypeDescriptor
 		final AvailObject aTupleType);
 
 	@Override
-	public abstract boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final AvailObject aType);
-
-	@Override
 	public abstract boolean o_IsSupertypeOfClosureType (
 		final AvailObject object,
 		final AvailObject aClosureType);
@@ -593,6 +586,11 @@ extends AbstractTypeDescriptor
 
 	@Override
 	public abstract boolean o_IsSupertypeOfTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType);
+
+	@Override
+	public abstract boolean o_IsSupertypeOfUnionMeta (
 		final AvailObject object,
 		final AvailObject aTupleType);
 

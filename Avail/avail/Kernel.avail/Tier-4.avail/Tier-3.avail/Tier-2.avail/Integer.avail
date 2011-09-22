@@ -630,7 +630,8 @@ Method "_++" is [intCon : container |
 	*intCon ?:= cast clearing* intCon into [i : extended integer | i + 1;];
 ]
 requires [ct : containerType |
-	ct contentType <= extended integer;
+	ct readType <= extended integer
+		& ct writeType <= extended integer;
 ];
 
 
@@ -638,7 +639,8 @@ Method "_--" is [intCon : container |
 	*intCon ?:= cast clearing* intCon into [i : extended integer | i - 1;];
 ]
 requires [ct : container type |
-	ct contentType <= extended integer;
+	ct readType <= extended integer
+		& ct writeType <= extended integer;
 ];
 
 Method "nonpositive integer" is [

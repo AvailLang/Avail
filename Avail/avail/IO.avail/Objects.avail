@@ -212,8 +212,8 @@ decoder [t : tuple like <[16..16], string> |
 	/* new cyclic type t[2]; */];
 
 encoder [con : container |
-	if *con = nil then [<17, con type contentType>;]
-	else [<17, con type contentType, *con>;];]
+	if *con = nil then [<17, con type readType>;]
+	else [<17, con type readType, *con>;];]
 decoder [t : tuple [2..3] like <[17..17], type> default all |
 	/* Note - container values are fixed up in a second pass within Load_from_
 	   so that Dump_on_ can perform a topological sort.  The idea is to break cycles.

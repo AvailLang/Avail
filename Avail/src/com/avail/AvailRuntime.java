@@ -121,8 +121,8 @@ public final class AvailRuntime
 		specialObjects[4] = ClosureTypeDescriptor.mostGeneralType();
 		specialObjects[5] = ClosureTypeDescriptor.meta();
 		specialObjects[6] = CompiledCodeTypeDescriptor.mostGeneralType();
-		specialObjects[7] = CONTAINER.o();
-		specialObjects[8] = CONTAINER_TYPE.o();
+		specialObjects[7] = ContainerTypeDescriptor.mostGeneralType();
+		specialObjects[8] = ContainerTypeDescriptor.meta();
 		specialObjects[9] = ContinuationTypeDescriptor.mostGeneralType();
 		specialObjects[10] = ContinuationTypeDescriptor.meta();
 		specialObjects[11] = ATOM.o();
@@ -140,7 +140,7 @@ public final class AvailRuntime
 				ANY.o(),
 				ANY.o()));
 		specialObjects[20] = META.o();
-		specialObjects[21] = UNION_TYPE.o();
+		specialObjects[21] = UnionMetaDescriptor.mostGeneralType();
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
 		//24 (PRIMITIVE_TYPE)

@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CONTAINER;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doGetVariableClearing_destObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
@@ -102,16 +101,8 @@ extends L2Instruction
 		{
 			final AvailObject varType =
 				translator.registerTypeAt(sourceRegister);
-			if (varType.isSubtypeOf(CONTAINER.o())
-				&& !varType.equals(CONTAINER.o()))
-			{
-				translator.registerTypeAtPut(
-					destinationRegister, varType.innerType());
-			}
-			else
-			{
-				translator.removeTypeForRegister(destinationRegister);
-			}
+			translator.registerTypeAtPut(
+				destinationRegister, varType.readType());
 		}
 		else
 		{

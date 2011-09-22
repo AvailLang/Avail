@@ -1314,6 +1314,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aUnionMeta)
+	{
+		return o_Traversed(object).isSupertypeOfUnionMeta(aUnionMeta);
+	}
+
+	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
@@ -2757,12 +2765,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_InnerType (final AvailObject object)
-	{
-		return o_Traversed(object).innerType();
-	}
-
-	@Override
 	public int o_InternalHash (final AvailObject object)
 	{
 		return o_Traversed(object).internalHash();
@@ -3929,5 +3931,37 @@ extends AbstractDescriptor
 	public AvailObject o_ComputeSuperkind (final AvailObject object)
 	{
 		return o_Traversed(object).computeSuperkind();
+	}
+
+	@Override
+	public AvailObject o_InnerKind (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).innerKind();
+	}
+
+	@Override
+	public boolean o_EqualsUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return o_Traversed(object).equalsUnionMeta(another);
+	}
+
+	@Override
+	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isUnionMeta();
+	}
+
+	@Override
+	public AvailObject o_ReadType (final AvailObject object)
+	{
+		return o_Traversed(object).readType();
+	}
+
+	@Override
+	public AvailObject o_WriteType (final AvailObject object)
+	{
+		return o_Traversed(object).writeType();
 	}
 }

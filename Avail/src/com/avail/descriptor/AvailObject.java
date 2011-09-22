@@ -568,10 +568,13 @@ implements Iterable<AvailObject>
 		IntegerRangeTypeDescriptor.clearWellKnownObjects();
 		ClosureTypeDescriptor.clearWellKnownObjects();
 		ContinuationTypeDescriptor.clearWellKnownObjects();
+		CompiledCodeTypeDescriptor.clearWellKnownObjects();
 		MapTypeDescriptor.clearWellKnownObjects();
 		SetTypeDescriptor.clearWellKnownObjects();
 		TupleTypeDescriptor.clearWellKnownObjects();
 		L2ChunkDescriptor.clearWellKnownObjects();
+		ContainerTypeDescriptor.clearWellKnownObjects();
+		UnionMetaDescriptor.clearWellKnownObjects();
 	}
 
 	/**
@@ -600,6 +603,8 @@ implements Iterable<AvailObject>
 		SetTypeDescriptor.createWellKnownObjects();
 		TupleTypeDescriptor.createWellKnownObjects();
 		L2ChunkDescriptor.createWellKnownObjects();
+		ContainerTypeDescriptor.createWellKnownObjects();
+		UnionMetaDescriptor.createWellKnownObjects();
 	}
 
 	/**
@@ -2407,14 +2412,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject innerType ()
-	{
-		return descriptor().o_InnerType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public int internalHash ()
 	{
 		return descriptor().o_InternalHash(this);
@@ -2798,6 +2795,16 @@ implements Iterable<AvailObject>
 		final AvailObject aTupleType)
 	{
 		return descriptor().o_IsSupertypeOfTupleType(this, aTupleType);
+	}
+
+	/**
+	 * @param aUnionMeta
+	 * @return
+	 */
+	public boolean isSupertypeOfUnionMeta (
+		final @NotNull AvailObject aUnionMeta)
+	{
+		return descriptor().o_IsSupertypeOfUnionMeta(this, aUnionMeta);
 	}
 
 	/**
@@ -5856,5 +5863,51 @@ implements Iterable<AvailObject>
 		return descriptor().o_TypeUnionOfCompiledCodeType(
  			this,
  			aCompiledCodeType);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject innerKind ()
+	{
+		return descriptor().o_InnerKind(this);
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public @NotNull boolean equalsUnionMeta (final @NotNull AvailObject object)
+	{
+		return descriptor().o_EqualsUnionMeta(this, object);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isUnionMeta ()
+	{
+		return descriptor().o_IsUnionMeta(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject readType ()
+	{
+		return descriptor().o_ReadType(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject writeType ()
+	{
+		return descriptor().o_WriteType(this);
 	}
 }

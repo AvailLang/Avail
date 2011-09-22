@@ -905,7 +905,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		return newDeclaration(
 			MODULE_VARIABLE,
 			token,
-			literalObject.kind().innerType(),
+			literalObject.kind().readType(),
 			NullDescriptor.nullObject(),
 			literalObject);
 	}

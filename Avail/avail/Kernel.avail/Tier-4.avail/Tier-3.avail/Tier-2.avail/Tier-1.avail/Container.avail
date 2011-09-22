@@ -37,7 +37,8 @@ Uses
 Names
 	"*_?:=_",
 	"&:_",
-	"_contentType",
+	"_readType",
+	"_writeType",
 	"new container with content type_"
 Body
 
@@ -56,9 +57,15 @@ Method "&:_" is [t : type |
 ] : containerType;
 
 
-Method "_contentType" is [ct : containerType |
-	/* Answer the type of thing my instances can contain. */
+Method "_readType" is [ct : containerType |
+	/* Answer the type of thing my instances can supply. */
 	Primitive 14;
+] : type;
+
+
+Method "_writeType" is [ct : containerType |
+	/* Answer the type of thing my instances can be assigned. */
+	Primitive 19;
 ] : type;
 
 

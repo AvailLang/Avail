@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CONTAINER;
 import static com.avail.interpreter.levelTwo.L2Operation.L2_doSetVariable_sourceObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
@@ -128,15 +127,15 @@ extends L2Instruction
 		//  we use the fact that the compiler set up an assignment to a variable to indicate that the
 		//  variable really is a variable.
 
-		AvailObject varType;
+		final AvailObject varType;
 		if (translator.registerHasTypeAt(container))
 		{
-			varType = translator.registerTypeAt(container);
-			varType = varType.typeIntersection(CONTAINER.o());
+			varType = translator.registerTypeAt(container).typeIntersection(
+				ContainerTypeDescriptor.mostGeneralType());
 		}
 		else
 		{
-			varType = CONTAINER.o();
+			varType = ContainerTypeDescriptor.mostGeneralType();
 		}
 		translator.registerTypeAtPut(container, varType);
 	}

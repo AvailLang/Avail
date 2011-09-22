@@ -82,7 +82,7 @@ Method "new Decompiler for code_outers_" is [c : compiledCode, out : tuple of Va
 			localType ::= c literals[((||c literals|| - c numLocals) max 0) + i];
 			new Local
 				name "temp" then c numArgs + i decimal
-				type cast localType into [t : containerType | t contentType;];]>,
+				type cast localType into [t : containerType | t readType;];]>,
 		<exprStack, &theExprStack>
 	>;
 ] : Decompiler;

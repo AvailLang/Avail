@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AtomDescriptor.IntegerSlots;
 
 /**
  * My {@linkplain AvailObject object instances} are containers which can hold
@@ -161,7 +160,7 @@ extends Descriptor
 		final @NotNull AvailObject newValue)
 	{
 		final AvailObject outerKind = object.objectSlot(ObjectSlots.KIND);
-		if (!newValue.isInstanceOf(outerKind.innerType()))
+		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			error("container can't hold that value (wrong type)");
 		}

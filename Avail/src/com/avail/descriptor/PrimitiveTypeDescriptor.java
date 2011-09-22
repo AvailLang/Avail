@@ -161,7 +161,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject aClosureType)
 	{
 		//  This primitive type is a supertype of aClosureType if and only if this
-		//  primitive type is a supertype of 'all'.
+		//  primitive type is a supertype of ANY.
 
 		return ANY.o().isSubtypeOf(object);
 	}
@@ -171,9 +171,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		//  A primitive type is a supertype of a container type if it is a supertype of container.
-
-		return CONTAINER.o().isSubtypeOf(object);
+		// A primitive type is a supertype of a container type if it is a
+		// supertype of ANY.
+		return ANY.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -212,7 +212,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject aMapType)
 	{
 		//  This primitive type is a supertype of aMapType if and only if this
-		//  primitive type is a supertype of 'all'.
+		//  primitive type is a supertype of ANY.
 
 		return ANY.o().isSubtypeOf(object);
 	}
@@ -248,7 +248,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject aSetType)
 	{
 		//  This primitive type is a supertype of aSetType if and only if this
-		//  primitive type is a supertype of 'all'.
+		//  primitive type is a supertype of ANY.
 
 		return ANY.o().isSubtypeOf(object);
 	}
@@ -259,9 +259,21 @@ extends TypeDescriptor
 		final @NotNull AvailObject aTupleType)
 	{
 		//  This primitive type is a supertype of aTupleType if and only if this
-		//  primitive type is a supertype of 'all'.
+		//  primitive type is a supertype of ANY.
 
 		return ANY.o().isSubtypeOf(object);
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfUnionMeta (
+		final AvailObject object,
+		final AvailObject aUnionMeta)
+	{
+		if (aUnionMeta.innerKind().isSubtypeOf(TYPE.o()))
+		{
+			return META.o().isSubtypeOf(object);
+		}
+		return TYPE.o().isSubtypeOf(object);
 	}
 
 	@Override
@@ -277,39 +289,11 @@ extends TypeDescriptor
 		{
 			return another;
 		}
-		if (object.isSubtypeOf(TYPE.o()) && another.isSubtypeOf(TYPE.o()))
+		if (object.equals(META.o()))
 		{
-			// Keep in mind that we've already determined neither is a subtype
-			// of the other, but they're both metatypes.
-			if ((object.equals(META.o()) || object.equals(UNION_TYPE.o()))
-				&& (another.equals(META.o()) || another.equals(UNION_TYPE.o())))
-			{
-				// Intersect UNION_TYPE and META.  Consider what it takes to be
-				// an instance of both.  If x is an instance of UNION_TYPE then
-				// it's a union of a finite list of instances or hierarchies.
-				// If x is an instance of META then x is the type of a type.
-				// Therefore such an x must be a specialization of TOP's type.
-				// So the intersection is TOP's type's type.
-				return InstanceTypeDescriptor.withInstance(
-					InstanceTypeDescriptor.withInstance(
-						TOP.o()));
-			}
-			return InstanceTypeDescriptor.withInstance(
-				BottomTypeDescriptor.bottom());
+			return another.typeIntersectionOfMeta(object);
 		}
 		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override
-	public AvailObject o_TypeIntersectionOfMeta (
-		final AvailObject object,
-		final AvailObject someMeta)
-	{
-		if (object.isSubtypeOf(TYPE.o()))
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-		return super.o_TypeIntersectionOfMeta(object, someMeta);
 	}
 
 	@Override

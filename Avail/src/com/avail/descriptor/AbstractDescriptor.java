@@ -1550,6 +1550,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aUnionMeta
+	 * @return
+	 */
+	public abstract boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aUnionMeta);
+
+	/**
+	 * @param object
 	 * @param argTypes
 	 * @param interpreter
 	 * @return
@@ -3199,12 +3208,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_InnerType (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract int o_InternalHash (final AvailObject object);
 
 	/**
@@ -4842,5 +4845,40 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract AvailObject o_ComputeSuperkind (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_InnerKind (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	public abstract boolean o_EqualsUnionMeta (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsUnionMeta (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract @NotNull AvailObject o_ReadType (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract @NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object);
 }
