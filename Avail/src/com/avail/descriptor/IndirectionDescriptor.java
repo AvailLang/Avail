@@ -1014,20 +1014,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_FieldMap (final AvailObject object, final AvailObject value)
-	{
-		o_Traversed(object).fieldMap(value);
-	}
-
-	@Override
-	public void o_FieldTypeMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).fieldTypeMap(value);
-	}
-
-	@Override
 	public List<AvailObject> o_FilterByTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)

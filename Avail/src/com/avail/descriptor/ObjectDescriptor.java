@@ -47,14 +47,6 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_FieldMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.FIELD_MAP, value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_FieldMap (
 		final @NotNull AvailObject object)
 	{
@@ -122,7 +114,7 @@ extends Descriptor
 		{
 			typeMap = typeMap.mapAtPuttingCanDestroy(
 				entry.key,
-				entry.value.kind(),
+				InstanceTypeDescriptor.withInstance(entry.value),
 				true);
 		}
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
@@ -131,7 +123,7 @@ extends Descriptor
 	public static AvailObject objectFromMap (final AvailObject map)
 	{
 		final AvailObject result = mutable().create();
-		result.fieldMap(map);
+		result.objectSlotPut(ObjectSlots.FIELD_MAP, map);
 		return result;
 	}
 

@@ -2165,27 +2165,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void fieldMap (
-		final AvailObject value)
-	{
-		descriptor().o_FieldMap(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject fieldTypeMap ()
 	{
 		return descriptor().o_FieldTypeMap(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void fieldTypeMap (
-		final AvailObject value)
-	{
-		descriptor().o_FieldTypeMap(this, value);
 	}
 
 	/**

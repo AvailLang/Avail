@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots;
 import com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots;
@@ -179,6 +180,12 @@ extends Descriptor
 	 */
 	private static AvailObject FalseObject;
 
+	/**
+	 * The atom used as a property key under which to store information about
+	 * object type names.
+	 */
+	private static AvailObject ObjectTypeNamePropertyKey;
+
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -200,6 +207,17 @@ extends Descriptor
 		return FalseObject;
 	}
 
+	/**
+	 * Answer the atom used as a property key to hold a map of information
+	 * about {@linkplain AvailRuntime#setNameForType object type names}.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject objectTypeNamePropertyKey ()
+	{
+		return ObjectTypeNamePropertyKey;
+	}
+
 
 	/**
 	 * Create the true and false singletons.
@@ -208,6 +226,8 @@ extends Descriptor
 	{
 		TrueObject = create(ByteStringDescriptor.from("true"));
 		FalseObject = create(ByteStringDescriptor.from("false"));
+		ObjectTypeNamePropertyKey = create(
+			ByteStringDescriptor.from("objectNames"));
 	}
 
 	/**
@@ -217,6 +237,7 @@ extends Descriptor
 	{
 		TrueObject = null;
 		FalseObject = null;
+		ObjectTypeNamePropertyKey = null;
 	}
 
 	/**

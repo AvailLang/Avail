@@ -963,32 +963,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_FieldMap (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_FieldTypeMap (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param argTypes
 	 * @return
 	 */

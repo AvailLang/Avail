@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static java.lang.Math.min;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.NotNull;
+import com.avail.interpreter.Primitive;
 
 /**
  * TODO: Document this type!
@@ -82,14 +83,6 @@ extends TypeDescriptor
 			}
 		}
 		return true;
-	}
-
-	@Override
-	public void o_FieldTypeMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.FIELD_TYPE_MAP, value);
 	}
 
 	@Override
@@ -271,9 +264,104 @@ extends TypeDescriptor
 		final @NotNull AvailObject map)
 	{
 		final AvailObject result = mutable().create();
-		result.fieldTypeMap(map);
+		result.objectSlotPut(ObjectSlots.FIELD_TYPE_MAP, map);
 		return result;
 	}
+
+	/**
+	 * Assign a name to the specified {@linkplain ObjectTypeDescriptor
+	 * user-defined object type}.
+	 *
+	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
+	 *                     object type}.
+	 * @param aString A name.
+	 */
+	public static void setNameForType (
+		final @NotNull AvailObject anObjectType,
+		final @NotNull AvailObject aString)
+	{
+		assert aString.isString();
+		final AvailObject propertyKey =
+			AtomDescriptor.objectTypeNamePropertyKey();
+		for (final MapDescriptor.Entry entry
+			: anObjectType.fieldTypeMap().mapIterable())
+		{
+			final AvailObject atom = entry.key;
+			AvailObject namesMap = atom.getAtomProperty(propertyKey);
+			if (namesMap.equalsNull())
+			{
+				namesMap = MapDescriptor.empty();
+			}
+			namesMap = namesMap.mapAtPuttingCanDestroy(
+				anObjectType,
+				aString,
+				true);
+			atom.setAtomProperty(propertyKey, namesMap);
+		}
+	}
+
+	/**
+	 * Answer the user-assigned name of the specified {@linkplain
+	 * ObjectTypeDescriptor user-defined object type}.
+	 *
+	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
+	 *                     object type}.
+	 * @return The possible names of the {@linkplain ObjectTypeDescriptor
+	 *         user-defined object type}, excluding names for which a strictly
+	 *         more specific named type is known.
+	 */
+	public static AvailObject namesForType (
+		final @NotNull AvailObject anObjectType)
+	{
+		final AvailObject propertyKey =
+			AtomDescriptor.objectTypeNamePropertyKey();
+		AvailObject applicableTypesAndNames = MapDescriptor.empty();
+		for (final MapDescriptor.Entry entry
+			: anObjectType.fieldTypeMap().mapIterable())
+		{
+			final AvailObject map = entry.key.getAtomProperty(propertyKey);
+			if (!map.equalsNull())
+			{
+				for (final MapDescriptor.Entry innerEntry : map.mapIterable())
+				{
+					if (anObjectType.isSubtypeOf(innerEntry.key))
+					{
+						applicableTypesAndNames =
+							applicableTypesAndNames.mapAtPuttingCanDestroy(
+								innerEntry.key,
+								innerEntry.value,
+								true);
+					}
+				}
+			}
+		}
+		applicableTypesAndNames.makeImmutable();
+		AvailObject filtered = applicableTypesAndNames;
+		for (final MapDescriptor.Entry childEntry
+			: applicableTypesAndNames.mapIterable())
+		{
+			final AvailObject childType = childEntry.key;
+			for (final MapDescriptor.Entry parentEntry
+				: applicableTypesAndNames.mapIterable())
+			{
+				final AvailObject parentType = parentEntry.key;
+				if (!childType.equals(parentType)
+					&& childType.isSubtypeOf(parentType))
+				{
+					filtered = filtered.mapWithoutKeyCanDestroy(
+						parentType,
+						true);
+				}
+			}
+		}
+		AvailObject names = SetDescriptor.empty();
+		for (final MapDescriptor.Entry entry : filtered.mapIterable())
+		{
+			names = names.setWithElementCanDestroy(entry.value, true);
+		}
+		return names;
+	}
+
 
 
 	/**

@@ -621,47 +621,6 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * A {@linkplain MapDescriptor map} from {@linkplain ObjectTypeDescriptor
-	 * user-defined object types} to user-assigned names.
-	 */
-	private @NotNull
-	final AvailObject typeNames = MapDescriptor.empty();
-
-	/**
-	 * Answer the user-assigned name of the specified {@linkplain
-	 * ObjectTypeDescriptor user-defined object type}.
-	 *
-	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
-	 *                     object type}.
-	 * @return The name of the {@linkplain ObjectTypeDescriptor user-defined
-	 *         object type}, or {@code null} if the user-defined object type
-	 *         has not been assigned a name via {@linkplain
-	 *         Primitive#prim68_RecordNewTypeName primitive 68}.
-	 */
-	public AvailObject nameForType (final @NotNull AvailObject anObjectType)
-	{
-		return typeNames.hasKey(anObjectType)
-			? typeNames.mapAt(anObjectType)
-			: null;
-	}
-
-	/**
-	 * Assign a name to the specified {@linkplain ObjectTypeDescriptor
-	 * user-defined object type}.
-	 *
-	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
-	 *                     object type}.
-	 * @param aString A name.
-	 */
-	public void setNameForType (
-		final @NotNull AvailObject anObjectType,
-		final @NotNull AvailObject aString)
-	{
-		assert aString.isString();
-		typeNames.mapAtPuttingCanDestroy(anObjectType, aString, true);
-	}
-
-	/**
 	 * A mapping from {@linkplain AtomDescriptor keys} to {@link
 	 * RandomAccessFile}s open for reading.
 	 */

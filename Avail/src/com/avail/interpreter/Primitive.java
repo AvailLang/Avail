@@ -2132,14 +2132,12 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
-
 			final AvailObject userType = args.get(0);
 			final AvailObject name = args.get(1);
 
 			userType.makeImmutable();
 			name.makeImmutable();
-			interpreter.runtime().setNameForType(userType, name);
-
+			ObjectTypeDescriptor.setNameForType(userType, name);
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
 
@@ -2156,10 +2154,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 69:</strong> Answer the user-assigned name of the
-	 * specified {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 * <strong>Primitive 69:</strong> Answer the set of locally-most-specific
+	 * user-assigned names for the specified {@linkplain ObjectTypeDescriptor
+	 * user-defined object type}.
 	 */
-	prim69_TypeName(69, 1, CanInline)
+	prim69_TypeNames(69, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2169,14 +2168,9 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject userType = args.get(0);
 
-			final AvailObject name =
-				interpreter.runtime().nameForType(userType);
-			if (name == null)
-			{
-				return interpreter.primitiveFailure(
-					E_OBJECT_TYPE_HAS_NO_USER_DEFINED_NAME);
-			}
-			return interpreter.primitiveSuccess(name);
+			final AvailObject names =
+				ObjectTypeDescriptor.namesForType(userType);
+			return interpreter.primitiveSuccess(names);
 		}
 
 		@Override
@@ -2186,7 +2180,9 @@ public enum Primitive
 				TupleDescriptor.from(
 					InstanceTypeDescriptor.withInstance(
 						ObjectTypeDescriptor.mostGeneralType())),
-				TupleTypeDescriptor.stringTupleType());
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleTypeDescriptor.stringTupleType()));
 		}
 	},
 
@@ -2195,8 +2191,7 @@ public enum Primitive
 	 * closure} accepting {@code numArgs} arguments (each of type {@link
 	 * PrimitiveTypeDescriptor all}) and returning {@code constantResult}.
 	 */
-	prim70_CreateConstantBlock(
-		70, 2, CanFold, CannotFail)
+	prim70_CreateConstantBlock(70, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2236,8 +2231,7 @@ public enum Primitive
 	 * each applicable {@code requiresBlock}, and that the result type agrees
 	 * with each {@code returnsBlock}.
 	 */
-	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple(
-		71, 4, CanFold)
+	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple(71, 4, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (

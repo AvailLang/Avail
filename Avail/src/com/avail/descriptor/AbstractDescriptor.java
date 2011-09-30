@@ -1255,22 +1255,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	public abstract void o_FieldMap (
-		final AvailObject object,
-		final AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_FieldTypeMap (
-		final AvailObject object,
-		final AvailObject value);
-
-	/**
-	 * @param object
 	 * @param argTypes
 	 * @return
 	 */
