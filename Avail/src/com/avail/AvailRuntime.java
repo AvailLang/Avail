@@ -134,11 +134,7 @@ public final class AvailRuntime
 		//16
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
-		specialObjects[19] = InstanceTypeDescriptor.withInstance(
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ANY.o(),
-				ANY.o()));
+		specialObjects[19] = MapTypeDescriptor.meta();
 		specialObjects[20] = META.o();
 		specialObjects[21] = UnionMetaDescriptor.mostGeneralType();
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
@@ -157,12 +153,9 @@ public final class AvailRuntime
 		specialObjects[33] = TupleTypeDescriptor.meta();
 		specialObjects[34] = TYPE.o();
 		specialObjects[35] = TOP.o();
-		specialObjects[36] =
-			IntegerRangeTypeDescriptor.wholeNumbers();
-		specialObjects[37] =
-			IntegerRangeTypeDescriptor.naturalNumbers();
-		specialObjects[38] =
-			IntegerRangeTypeDescriptor.characterCodePoints();
+		specialObjects[36] = IntegerRangeTypeDescriptor.wholeNumbers();
+		specialObjects[37] = IntegerRangeTypeDescriptor.naturalNumbers();
+		specialObjects[38] = IntegerRangeTypeDescriptor.characterCodePoints();
 
 		// Code reflection
 		specialObjects[40] = MESSAGE_BUNDLE.o();

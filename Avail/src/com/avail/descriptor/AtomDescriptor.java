@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots;
+import com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -131,15 +133,15 @@ extends Descriptor
 		// Default printing.
 		aStream.append('$');
 		final String nativeName = object.name().asNativeString();
-		if (!nativeName.matches("\\w+"))
+		if (nativeName.matches("\\w+"))
 		{
-			aStream.append('"');
 			aStream.append(nativeName);
-			aStream.append('"');
 		}
 		else
 		{
+			aStream.append('"');
 			aStream.append(nativeName);
+			aStream.append('"');
 		}
 		aStream.append('[');
 		aStream.append(object.hash());
@@ -317,6 +319,28 @@ extends Descriptor
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Convert myself to an equivalent {@linkplain AtomWithPropertiesDescriptor
+	 * atom with properties}, then add the property to it.
+	 * </p>
+	 */
+	@Override
+	public void o_SetAtomProperty (
+		final AvailObject object,
+		final AvailObject key,
+		final AvailObject value)
+	{
+		final AvailObject substituteAtom =
+			AtomWithPropertiesDescriptor.createWithNameAndHash(
+				object.objectSlot(ObjectSlots.NAME),
+				object.integerSlot(IntegerSlots.HASH_OR_ZERO));
+		object.becomeIndirectionTo(substituteAtom);
+		substituteAtom.setAtomProperty(key, value);
+	}
+
+	/**
 	 * Construct a new {@link AtomDescriptor}.
 	 *
 	 * @param isMutable
@@ -358,5 +382,21 @@ extends Descriptor
 	public static AtomDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * This atom has no properties, so always answer {@linkplain
+	 * NullDescriptor#nullObject() the null object}.
+	 * </p>
+	 */
+	@Override
+	public AvailObject o_GetAtomProperty (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key)
+	{
+		return NullDescriptor.nullObject();
 	}
 }

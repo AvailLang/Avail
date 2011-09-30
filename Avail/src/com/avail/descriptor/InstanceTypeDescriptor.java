@@ -197,9 +197,6 @@ extends AbstractUnionTypeDescriptor
 		return AbstractUnionTypeDescriptor.withInstances(set);
 	}
 
-	//TODO: Hack
-	static int recursion = 0;
-
 	/**
 	 * Compute the type union of the object which is a union type, and
 	 * the argument, which may or may not be a union type (but must be a type).
@@ -235,19 +232,7 @@ extends AbstractUnionTypeDescriptor
 		}
 		// Another isn't a union type or instance type or bottom, so reverse
 		// the arguments.
-		recursion++;
-		try
-		{
-			if (recursion > 20)
-			{
-				System.out.println("Recursion in computeUnionWith");
-			}
-			return getSuperkind(object).typeUnion(another);
-		}
-		finally
-		{
-			recursion--;
-		}
+		return getSuperkind(object).typeUnion(another);
 	}
 
 	@Override

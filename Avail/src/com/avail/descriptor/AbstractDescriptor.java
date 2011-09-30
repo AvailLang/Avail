@@ -4800,7 +4800,8 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_Instances (AvailObject object);
+	public abstract @NotNull AvailObject o_Instances (
+		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -4808,8 +4809,8 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public boolean o_EqualsUnionTypeWithSet (
-		final AvailObject object,
-		final AvailObject aSet)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSet)
 	{
 		// TODO Auto-generated method stub
 		return false;
@@ -4820,7 +4821,7 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract boolean o_IsAbstractUnionType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -4828,8 +4829,8 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract boolean o_IsInstanceOf (
-		AvailObject object,
-		AvailObject aType);
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType);
 
 	/**
 	 * @param object
@@ -4837,8 +4838,8 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract boolean o_AbstractUnionTypeIncludesInstance (
-		AvailObject object,
-		AvailObject potentialInstance);
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject potentialInstance);
 
 	/**
 	 * @param object
@@ -4846,6 +4847,25 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract AvailObject o_ComputeSuperkind (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param value
+	 */
+	public abstract void o_SetAtomProperty (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final @NotNull AvailObject value);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @return
+	 */
+	public abstract @NotNull AvailObject o_GetAtomProperty (
+		AvailObject object,
+		AvailObject key);
 
 	/**
 	 * @param object

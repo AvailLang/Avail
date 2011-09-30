@@ -3934,6 +3934,23 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public void o_SetAtomProperty (
+		final AvailObject object,
+		final AvailObject key,
+		final AvailObject value)
+	{
+		o_Traversed(object).setAtomProperty(key, value);
+	}
+
+	@Override
+	public AvailObject o_GetAtomProperty (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key)
+	{
+		return o_Traversed(object).getAtomProperty(key);
+	}
+
+	@Override
 	public AvailObject o_InnerKind (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).innerKind();

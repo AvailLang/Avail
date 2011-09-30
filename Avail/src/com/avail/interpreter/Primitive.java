@@ -658,7 +658,7 @@ public enum Primitive
 	 * <strong>Primitive 19:</strong> Extract the write type of a {@linkplain
 	 * ContainerTypeDescriptor variable type}.
 	 */
-	prim14_ContainerWriteType(19, 1, CanFold, CannotFail)
+	prim19_ContainerWriteType(19, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3228,6 +3228,133 @@ public enum Primitive
 				TupleDescriptor.from(
 					ATOM.o()),
 				TupleTypeDescriptor.stringTupleType());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 122:</strong> Answer whether the first {@linkplain
+	 * AtomDescriptor atom} has a property whose property key is the second
+	 * atom.
+	 */
+	prim122_AtomHasProperty(122, 2, CanInline, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject atom = args.get(0);
+			final AvailObject propertyKey = args.get(1);
+			final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
+			return interpreter.primitiveSuccess(
+				AtomDescriptor.objectFromBoolean(!propertyValue.equalsNull()));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.create(
+				TupleDescriptor.from(
+					ATOM.o(),
+					ATOM.o()),
+				UnionTypeDescriptor.booleanObject());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 123:</strong> If the first {@linkplain AtomDescriptor
+	 * atom} has a property whose key is the second atom, then return the
+	 * corresponding property value, otherwise fail.
+	 */
+	prim123_AtomGetProperty(123, 2, CanInline)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject atom = args.get(0);
+			final AvailObject propertyKey = args.get(1);
+			final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
+			if (propertyValue.equalsNull())
+			{
+				return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
+			}
+			return interpreter.primitiveSuccess(propertyValue);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.create(
+				TupleDescriptor.from(
+					ATOM.o(),
+					ATOM.o()),
+				ANY.o());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 124:</strong> Within the first {@linkplain
+	 * AtomDescriptor atom}, associate the given property key (another atom)
+	 * and property value.  This is a destructive operation.
+	 */
+	prim124_AtomSetProperty(124, 3, CanInline, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 3;
+			final AvailObject atom = args.get(0);
+			final AvailObject propertyKey = args.get(1);
+			final AvailObject propertyValue = args.get(2);
+			atom.setAtomProperty(propertyKey, propertyValue);
+			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.create(
+				TupleDescriptor.from(
+					ATOM.o(),
+					ATOM.o(),
+					ANY.o()),
+				TOP.o());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 125:</strong> Within the first {@linkplain
+	 * AtomDescriptor atom}, remove the property with the given property key
+	 * (another atom).
+	 */
+	prim125_AtomRemoveProperty(125, 2, CanInline, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject atom = args.get(0);
+			final AvailObject propertyKey = args.get(1);
+			atom.setAtomProperty(propertyKey, NullDescriptor.nullObject());
+			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return ClosureTypeDescriptor.create(
+				TupleDescriptor.from(
+					ATOM.o(),
+					ATOM.o()),
+				TOP.o());
 		}
 	},
 

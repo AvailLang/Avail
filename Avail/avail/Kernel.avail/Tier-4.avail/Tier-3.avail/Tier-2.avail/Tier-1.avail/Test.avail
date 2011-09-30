@@ -33,6 +33,7 @@
 System Module "Test"
 Extends
 Uses
+	"Test-Atom",
 	"Test-Boolean",
 	"Test-Optimizer",
 	"Test-Precedence"

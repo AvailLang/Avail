@@ -1,5 +1,5 @@
 /**
- * .../Tier-1/Atom.avail
+ * .../Tier-1/Test-Atom.avail
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,51 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Atom"
+System Module "Test-Atom"
 Extends
-	"Tier-0"
 Uses
-	"Tuple"
+	"Tier-0",
+	"Atom",
+	"Boolean"
 Names
-	"new atom_",
-	"_name",
-	"_property[_]?",
-	"_property[_]",
-	"_property[_]:=_",
-	"_property[_]:=nil"
 Body
 
 
-Method "new atom_" is [name : string |
-	Primitive 120;
-] : atom;
+a ::= new atom "cheese";
+prop ::= new atom "prop";
+prop2 ::= new atom "prop2";
+Assert not a property[prop]?;
 
-Method "_name" is [a : atom |
-	Primitive 121;
-] : string;
+a property[prop] := 123;
+Assert a property[prop]?;
+Assert not a property[prop2]?;
+Assert a property[prop] = 123;
 
-Method "_property[_]?" is [
-		a : atom,
-		propertyKey : atom |
-	Primitive 122;
-] : boolean;
+a property[prop2] := 456;
+Assert a property[prop]?;
+Assert a property[prop2]?;
+Assert a property[prop] = 123;
+Assert a property[prop2] = 456;
 
-Method "_property[_]" is [
-		a : atom,
-		propertyKey : atom |
-	Primitive 123  (failureCode : natural number);
-	Failed;
-] : all;
+a property[prop] := nil;
+Assert not a property[prop]?;
+Assert a property[prop2]?;
+Assert a property[prop2] = 456;
 
-Method "_property[_]:=_" is [
-		a : atom,
-		propertyKey : atom,
-		propertyValue : all |
-	Primitive 124;
-] : void;
-
-Method "_property[_]:=nil" is [
-		a : atom,
-		propertyKey : atom |
-	Primitive 125;
-] : void;
+a property[prop2] := nil;
+Assert not a property[prop]?;
+Assert not a property[prop2]?;

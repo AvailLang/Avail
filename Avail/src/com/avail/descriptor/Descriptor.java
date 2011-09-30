@@ -6598,12 +6598,31 @@ extends AbstractDescriptor
 
 
 	@Override
-	public @NotNull AvailObject o_ComputeSuperkind (final AvailObject object)
+	public AvailObject o_ComputeSuperkind (
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
+	@Override
+	public void o_SetAtomProperty (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final @NotNull AvailObject value)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public AvailObject o_GetAtomProperty (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key)
+	{
+		unsupportedOperation();
+		return null;
+	}
 
 	/**
 	 * @param object

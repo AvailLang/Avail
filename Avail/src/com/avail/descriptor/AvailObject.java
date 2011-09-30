@@ -5867,6 +5867,30 @@ implements Iterable<AvailObject>
 
 
 	/**
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public void setAtomProperty (
+		final @NotNull AvailObject key,
+		final @NotNull AvailObject value)
+	{
+		descriptor().o_SetAtomProperty(this, key, value);
+	}
+
+
+	/**
+	 * @param key
+	 * @return
+	 */
+	public @NotNull AvailObject getAtomProperty (
+		final @NotNull AvailObject key)
+	{
+		return descriptor().o_GetAtomProperty(this, key);
+	}
+
+
+	/**
 	 * @return
 	 */
 	public @NotNull AvailObject innerKind ()
