@@ -43,11 +43,11 @@ Body
 
 
 "Iterator" is explicit subtype of Object with
-	elementType->[]->all;
+	elementType->[]->any;
 
 Abstract method "_is at end" for [Iterator]->boolean;
 
-Abstract method "next_" for [Iterator]->all
+Abstract method "next_" for [Iterator]->any
 returns [iterType : Iterator type |
 	iterType -> elementType result;
 ];
@@ -56,6 +56,6 @@ returns [iterType : Iterator type |
 Method "_do_" is [iter : Iterator, blk : [terminates]->void |
 	Until [iter is at end;] loop [blk apply <next iter>;];
 ]
-requires [iterType : Iterator type, bt : closureType |
+requires [iterType : Iterator type, bt : functionType |
 	iterType -> elementType result <= bt[1];
 ];

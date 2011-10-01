@@ -86,7 +86,7 @@ Method "map from_to_" is [
 
 
 Method "map" is [
-	map from all to all;
+	map from any to any;
 ] : mapType;
 
 
@@ -113,7 +113,7 @@ returns [mt : mapType |
 ];
 
 
-Method "_[_]?" is [m : map, k : all |
+Method "_[_]?" is [m : map, k : any |
 	/* Test if the key is present */
 	Primitive 81;
 ] : boolean
@@ -127,10 +127,10 @@ returns [mt : mapType, kt : type |
 ];
 
 
-Method "_[_]" is [m : map, k : all |
+Method "_[_]" is [m : map, k : any |
 	Primitive 82 (failureCode : natural number);
 	Failed;
-] : all
+] : any
 requires [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates then [
 		/* No value of the k argument could ever be in the map. */
@@ -144,7 +144,7 @@ returns [mt : mapType, kt : type |
 ];
 
 
-Method "_[_->_]" is [m : map, k : all, v : all |
+Method "_[_->_]" is [m : map, k : any, v : any |
 	/* Copy map but with k->v in it. */
 	Primitive 83;
 ] : map
@@ -155,7 +155,7 @@ returns [mt : mapType, kt : type, vt : type |
 ];
 
 
-Method "_[_->nil]" is [m : map, k : all |
+Method "_[_->nil]" is [m : map, k : any |
 	/* Copy map but without the given key. */
 	Primitive 84;
 ] : map
@@ -171,7 +171,7 @@ returns [mt : mapType, kt : type |
 
 /* Store-back forms... */
 
-Method "*_[_]:=_" is [mapVar : container, key : all, value : all |
+Method "*_[_]:=_" is [mapVar : container, key : any, value : any |
 	/* Copy map but with k->v in it.  Store back in mapVar. */
 	*mapVar ?:=
 		cast	
@@ -188,7 +188,7 @@ requires [mvt : containerType, kt : type, vt : type |
 ];
 
 
-Method "*_[_]:=nil" is [mapVar : container, k : all |
+Method "*_[_]:=nil" is [mapVar : container, k : any |
 	/* Copy map but without the given key.  Store back in mv. */
 	*mapVar ?:= cast *mapVar into [m : map | m[k->nil];];
 ] : void
@@ -212,7 +212,7 @@ Method "[->]" is [
 ] : map [0..0] from terminates to terminates;
 
 
-Method "[_->_]" is [k : all, v : all |
+Method "[_->_]" is [k : any, v : any |
 	/* Answer a map with a single key and value. */
 	[->][k->v];
 ] : map
@@ -238,11 +238,11 @@ returns [mt : mapType |
 ];
 
 Method "_do_" is [m : map , blk : [terminates, terminates]->void |
-	m keys do [key : all |
+	m keys do [key : any |
 		blk apply <key, m[key]>;
 	];
 ] : void
-requires [mt : mapType, bT : closureType |
+requires [mt : mapType, bT : functionType |
 	if not mt keyType <= bT[1] & mt valueType <= bT[2] then [
 		Fail parse "block requires an instance of "
 			then bT[1] as basic string

@@ -90,10 +90,10 @@ maxDepth ::= lookup "maxDepth";
 	localMap -> map from Variable to natural number,
 	outerTuple -> tuple of Variable,
 	outerMap -> map from Variable to natural number,
-	blockType -> closureType,
+	blockType -> functionType,
 	instructions -> & : tuple of Instruction,
 	labels -> tuple [0..1] of Label,
-	literals -> & : map from all to natural number,
+	literals -> & : map from any to natural number,
 	stackDepth -> & : integer,
 	maxDepth -> & : integer,
 	resultType -> []->compiledCode;
@@ -117,7 +117,7 @@ Method "_for arguments_primitive_locals_labels_outers_result type_" is [
 		res : type |
 	/* Construct an instruction generator initialized with this data. */
 	insts : tuple of Instruction := <>;
-	litMap : map from all to natural number := [->];
+	litMap : map from any to natural number := [->];
 	varMap : map from Variable to natural number := [->];
 	args do [v : Argument | *&varMap[v] := ||varMap|| + 1;];
 	locs do [v : Local | *&varMap[v] := ||varMap|| + 1;];
@@ -152,7 +152,7 @@ Method "_add instruction_" is [gen : Instruction Generator, instr : Instruction 
 	*gen instructions := *gen instructions then <instr>;
 ];
 
-Method "_index of literal_" is [gen : Instruction Generator, lit : all |
+Method "_index of literal_" is [gen : Instruction Generator, lit : any |
 	lits ::= gen literals;
 	if *lits [lit]? then [
 		*lits [lit];
@@ -202,12 +202,12 @@ Method "_close code_with outers_" is [
 			gen index of literal code
 		number of outers count;
 	gen decrease stack by count;   /* pop outers */
-	gen increase stack by 1;   /* push closure */
+	gen increase stack by 1;   /* push function */
 ];
 
 Method "_get literal_" is [
 		gen : Instruction Generator,
-		lit : all |
+		lit : any |
 	gen add instruction
 		new Get Literal Instruction literal index
 			gen index of literal lit;
@@ -260,7 +260,7 @@ Method "_push label" is [gen : Instruction Generator |
 
 Method "_push literal_" is [
 		gen : Instruction Generator,
-		lit : all |
+		lit : any |
 	gen add instruction
 		new Push Literal Instruction literal index
 			gen index of literal lit;
@@ -285,7 +285,7 @@ Method "_push outer_" is [
 
 Method "_set literal_" is [
 		gen : Instruction Generator,
-		lit : all |
+		lit : any |
 	gen add instruction
 		new Set Literal Instruction literal index
 			gen index of literal lit;
@@ -459,7 +459,7 @@ Method "_result" is [gen : Instruction Generator |
 	maxStack ::= cast *gen maxDepth into [x : whole number | x;];
 	/* Literals are 1-relative (for now). */
 	allLiterals : tuple := 1 to ||*gen literals||;
-	*gen literals do [lit : all, ind : whole number |
+	*gen literals do [lit : any, ind : whole number |
 		cast ind into [ind2 : natural number |
 			*& allLiterals := allLiterals[ind2->lit];];];
 	allLocals ::= gen localTuple [gen numArgs + 1 .. ||gen localTuple||];
@@ -473,7 +473,7 @@ Method "_result" is [gen : Instruction Generator |
 		||gen outerTuple|| outers
 		maxStack stack entries,
 		with nybbles nybbleGen result
-		closureType gen blockType
+		functionType gen blockType
 		primitive gen primitive
 		literals allLiterals then allOuterTypes then allLocalTypes;
 ];

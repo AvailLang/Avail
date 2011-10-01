@@ -44,9 +44,9 @@ y ::= lookup "y";
 
 w : map [1..2] from atom to [10..20];
 w := [x->10][y->20];
-pt : map whole number from atom to all;
+pt : map whole number from atom to any;
 pt := w;
-w2 : map whole number from all to all;
+w2 : map whole number from any to any;
 w2 := w;
 
 cat : map;

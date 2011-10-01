@@ -372,9 +372,9 @@ extends Descriptor
 					? NullDescriptor.nullObject()
 					: impsTuple.tupleAt(test);
 			}
-			final AvailObject closureType =
+			final AvailObject functionType =
 				impsTuple.tupleAt(test).bodySignature();
-			if (closureType.acceptsArgumentTypesFromContinuation(
+			if (functionType.acceptsArgumentTypesFromContinuation(
 				continuation,
 				stackp,
 				numArgs))
@@ -596,7 +596,7 @@ extends Descriptor
 					if (!imp.equals(other))
 					{
 						final AvailObject otherType = other.bodySignature();
-						if (!otherType.acceptsArgTypesFromClosureType(impType))
+						if (!otherType.acceptsArgTypesFromFunctionType(impType))
 						{
 							continue outer;
 						}
@@ -789,7 +789,7 @@ extends Descriptor
 				for (final int index2 : positives)
 				{
 					final AvailObject sig = imps[index2];
-					if (!sig.bodySignature().acceptsArgTypesFromClosureType(
+					if (!sig.bodySignature().acceptsArgTypesFromFunctionType(
 						imps[index1].bodySignature()))
 					{
 						continue outer_index;
@@ -820,7 +820,7 @@ extends Descriptor
 				{
 					allPossibleAreParents = allPossibleAreParents
 						&& imps[index2].bodySignature()
-							.acceptsArgTypesFromClosureType(possibility);
+							.acceptsArgTypesFromFunctionType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -835,7 +835,7 @@ extends Descriptor
 				{
 					allPossibleAreParents = allPossibleAreParents &&
 						imps[index2].bodySignature()
-							.acceptsArgTypesFromClosureType(possibility);
+							.acceptsArgTypesFromFunctionType(possibility);
 				}
 				possibleSolutionExists = allPossibleAreParents;
 			}
@@ -855,7 +855,7 @@ extends Descriptor
 			int falseCount = 0;
 			for (final int index2 : possible)
 			{
-				if (possibility.bodySignature().acceptsArgTypesFromClosureType(
+				if (possibility.bodySignature().acceptsArgTypesFromFunctionType(
 					imps[index2].bodySignature()))
 				{
 					trueCount++;
@@ -885,7 +885,7 @@ extends Descriptor
 		for (final int index1 : possible)
 		{
 			possibility = imps[index1];
-			if (possibility.bodySignature().acceptsArgTypesFromClosureType(
+			if (possibility.bodySignature().acceptsArgTypesFromFunctionType(
 				imps[bestIndex].bodySignature()))
 			{
 				newPositive.add(index1);
@@ -923,7 +923,7 @@ extends Descriptor
 		for (final int index1 : possible)
 		{
 			possibility = imps[index1];
-			if (imps[bestIndex].bodySignature().acceptsArgTypesFromClosureType(
+			if (imps[bestIndex].bodySignature().acceptsArgTypesFromFunctionType(
 				possibility.bodySignature()))
 			{
 				newPossible.remove(new Integer(index1));

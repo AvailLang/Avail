@@ -217,7 +217,7 @@ public abstract class Interpreter
 					+ " argument types");
 				return;
 			}
-			if (existingType.acceptsArgTypesFromClosureType(bodySignature))
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
 			{
 				if (!bodySignature.returnType().isSubtypeOf(
 					existingType.returnType()))
@@ -249,7 +249,7 @@ public abstract class Interpreter
 	 * if they're not set already.
 	 *
 	 * @param methodName The method's name, an {@link AtomDescriptor atom}.
-	 * @param method A {@link ClosureDescriptor method}.
+	 * @param method A {@link FunctionDescriptor method}.
 	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void atAddMethodBody (
@@ -259,11 +259,11 @@ public abstract class Interpreter
 	{
 		final int numArgs = method.code().numArgs();
 		final AvailObject returnsBlock =
-			ClosureDescriptor.createStubForNumArgsConstantResult(
+			FunctionDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
 				method.kind().returnType());
 		final AvailObject requiresBlock =
-			ClosureDescriptor.createStubForNumArgsConstantResult(
+			FunctionDescriptor.createStubForNumArgsConstantResult(
 				numArgs,
 				AtomDescriptor.trueObject());
 		atAddMethodBodyRequiresBlockReturnsBlock(
@@ -282,7 +282,7 @@ public abstract class Interpreter
 	 * @param methodName
 	 *            The macro's name, an {@link AtomDescriptor atom}.
 	 * @param macroBody
-	 *            A {@link ClosureDescriptor closure} that manipulates parse
+	 *            A {@link FunctionDescriptor function} that manipulates parse
 	 *            nodes.
 	 * @throws SignatureException
 	 *            If the resulting signature is malformed.
@@ -293,7 +293,7 @@ public abstract class Interpreter
 	throws SignatureException
 	{
 		assert methodName.isAtom();
-		assert macroBody.isClosure();
+		assert macroBody.isFunction();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
@@ -316,7 +316,7 @@ public abstract class Interpreter
 			{
 				error("Attempted to redefine macro with same argument types");
 			}
-			if (existingImp.bodySignature().acceptsArgTypesFromClosureType(
+			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
 				macroBodyType))
 			{
 				if (!macroBodyType.returnType().isSubtypeOf(
@@ -347,9 +347,9 @@ public abstract class Interpreter
 	 * return type for the method.
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param bodyBlock The {@linkplain ClosureDescriptor body block}.
-	 * @param requiresBlock The {@linkplain ClosureDescriptor requires block}.
-	 * @param returnsBlock The {@linkplain ClosureDescriptor returns block}.
+	 * @param bodyBlock The {@linkplain FunctionDescriptor body block}.
+	 * @param requiresBlock The {@linkplain FunctionDescriptor requires block}.
+	 * @param returnsBlock The {@linkplain FunctionDescriptor returns block}.
 	 */
 	public void atAddMethodBodyRequiresBlockReturnsBlock (
 		final @NotNull AvailObject methodName,
@@ -359,9 +359,9 @@ public abstract class Interpreter
 	throws AvailRejectedParseException, SignatureException
 	{
 		assert methodName.isAtom();
-		assert bodyBlock.isClosure();
-		assert requiresBlock.isClosure();
-		assert returnsBlock.isClosure();
+		assert bodyBlock.isFunction();
+		assert requiresBlock.isFunction();
+		assert returnsBlock.isFunction();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
@@ -405,7 +405,7 @@ public abstract class Interpreter
 					return;
 				}
 			}
-			if (existingImp.bodySignature().acceptsArgTypesFromClosureType(
+			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
 				bodySignature))
 			{
 				if (!bodySignature.returnType().isSubtypeOf(
@@ -444,8 +444,8 @@ public abstract class Interpreter
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature The {@linkplain MethodSignatureDescriptor method
 	 *                      signature}.
-	 * @param requiresBlock The {@linkplain ClosureDescriptor requires block}.
-	 * @param returnsBlock The {@linkplain ClosureDescriptor returns block}.
+	 * @param requiresBlock The {@linkplain FunctionDescriptor requires block}.
+	 * @param returnsBlock The {@linkplain FunctionDescriptor returns block}.
 	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void atDeclareAbstractSignatureRequiresBlockReturnsBlock (
@@ -456,8 +456,8 @@ public abstract class Interpreter
 	throws SignatureException
 	{
 		assert methodName.isAtom();
-		assert requiresBlock.isClosure();
-		assert returnsBlock.isClosure();
+		assert requiresBlock.isFunction();
+		assert returnsBlock.isFunction();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
@@ -508,7 +508,7 @@ public abstract class Interpreter
 			}
 			// TODO: [MvG] Allow the definitions to appear bottom up while still
 			// preserving covariance.
-			if (existingImp.bodySignature().acceptsArgTypesFromClosureType(
+			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
 				bodySignature))
 			{
 				if (!bodySignature.returnType().isSubtypeOf(
@@ -570,7 +570,7 @@ public abstract class Interpreter
 	/**
 	 * Create the two-argument defining method. The first parameter of the
 	 * method is the name, the second parameter is the {@linkplain
-	 * ClosureDescriptor block}.
+	 * FunctionDescriptor block}.
 	 *
 	 * @param defineMethodName The name of the defining method.
 	 */
@@ -585,14 +585,14 @@ public abstract class Interpreter
 				writer.addLiteral(NullDescriptor.nullObject())));
 		writer.argumentTypes(
 			TupleTypeDescriptor.stringTupleType(),
-			ClosureTypeDescriptor.mostGeneralType());
+			FunctionTypeDescriptor.mostGeneralType());
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
 		writer.returnType(TOP.o());
-		final AvailObject newClosure = ClosureDescriptor.create(
+		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
-		newClosure.makeImmutable();
+		newFunction.makeImmutable();
 		final AvailObject nameTuple = ByteStringDescriptor.from(
 			defineMethodName);
 		final AvailObject realName = AtomDescriptor.create(nameTuple);
@@ -600,7 +600,7 @@ public abstract class Interpreter
 		module.atNewNamePut(nameTuple, realName);
 		try
 		{
-			atAddMethodBody(realName, newClosure);
+			atAddMethodBody(realName, newFunction);
 		}
 		catch (final SignatureException e)
 		{
@@ -638,16 +638,16 @@ public abstract class Interpreter
 		writer.primitiveNumber(
 			Primitive.prim240_SpecialObject.primitiveNumber);
 		writer.returnType(ANY.o());
-		final AvailObject newClosure = ClosureDescriptor.create(
+		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
-		newClosure.makeImmutable();
+		newFunction.makeImmutable();
 		final AvailObject nameTuple =
 			ByteStringDescriptor.from(specialObjectName);
 		final AvailObject realName = AtomDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
-		atAddMethodBody(realName, newClosure);
+		atAddMethodBody(realName, newFunction);
 	}
 
 	/**
@@ -1046,8 +1046,8 @@ public abstract class Interpreter
 		return success;
 	}
 
-	public abstract Result invokeClosureArguments (
-		AvailObject aClosure,
+	public abstract Result invokeFunctionArguments (
+		AvailObject aFunction,
 		List<AvailObject> args);
 
 	/**
@@ -1062,20 +1062,20 @@ public abstract class Interpreter
 	public abstract Result searchForExceptionHandler (
 		List<AvailObject> args);
 
-	public abstract void invokeWithoutPrimitiveClosureArguments (
-		AvailObject aClosure,
+	public abstract void invokeWithoutPrimitiveFunctionArguments (
+		AvailObject aFunction,
 		List<AvailObject> args);
 
 	/**
-	 * Run the given closure with the provided arguments as a top-level action.
+	 * Run the given function with the provided arguments as a top-level action.
 	 * Run until the entire process completes, then return the result.
 	 *
-	 * @param aClosure A {@linkplain ClosureDescriptor closure} to run.
-	 * @param arguments The arguments for the closure.
-	 * @return The result of running the specified closure to completion.
+	 * @param aFunction A {@linkplain FunctionDescriptor function} to run.
+	 * @param arguments The arguments for the function.
+	 * @return The result of running the specified function to completion.
 	 */
-	public abstract AvailObject runClosureArguments (
-		AvailObject aClosure,
+	public abstract AvailObject runFunctionArguments (
+		AvailObject aFunction,
 		List<AvailObject> arguments);
 
 	@Override

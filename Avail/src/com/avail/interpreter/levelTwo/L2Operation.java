@@ -93,13 +93,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doMoveFromOuterVariable_ofClosureObject_destObject_ (
+	L2_doMoveFromOuterVariable_ofFunctionObject_destObject_ (
 		IMMEDIATE, READ_POINTER, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doMoveFromOuterVariable_ofClosureObject_destObject_();
+			operationDispatcher.L2_doMoveFromOuterVariable_ofFunctionObject_destObject_();
 		}
 	},
 
@@ -603,13 +603,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_ (
+	L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_ (
 		READ_POINTER, READ_POINTER, IMMEDIATE, IMMEDIATE, IMMEDIATE, READ_VECTOR, PC, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_();
+			operationDispatcher.L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_();
 		}
 	},
 
@@ -753,13 +753,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doCreateClosureFromCodeObject_outersVector_destObject_ (
+	L2_doCreateFunctionFromCodeObject_outersVector_destObject_ (
 		CONSTANT, READ_VECTOR, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateClosureFromCodeObject_outersVector_destObject_();
+			operationDispatcher.L2_doCreateFunctionFromCodeObject_outersVector_destObject_();
 		}
 	},
 

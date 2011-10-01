@@ -50,7 +50,7 @@ Pragma
 	 *
 	 * @param specialObjectNumber
 	 *        The "special object" identifier, a small integer. 1 for type
-	 *        {@code all}, 2 for {@code boolean}, etc.
+	 *        {@code any}, 2 for {@code boolean}, etc.
 	 * @see com.avail.AvailRuntime#specialObjects
 	 * @see com.avail.interpreter.Interpreter#bootstrapSpecialObject(String)
 	 */
@@ -58,13 +58,13 @@ Pragma
 	
 	/**
 	 * This is the primary defining method. It enables a developer to bind a
-	 * module local name to a closure.
+	 * module local name to a function.
 	 *
 	 * @param methodName
 	 *        A string, usually but not necessarily a string literal, that names
 	 *        the method within the module.
-	 * @param methodClosure
-	 *        The closure that implements the method.
+	 * @param methodFunction
+	 *        The function that implements the method.
 	 * @see com.avail.interpreter.Interpreter#bootstrapDefiningMethod(String)
 	 */
 	"bootstrapDefiningMethod = Method_is_"

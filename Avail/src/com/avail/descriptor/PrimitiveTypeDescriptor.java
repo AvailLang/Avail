@@ -156,11 +156,11 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		//  This primitive type is a supertype of aClosureType if and only if this
+		//  This primitive type is a supertype of aFunctionType if and only if this
 		//  primitive type is a supertype of ANY.
 
 		return ANY.o().isSubtypeOf(object);

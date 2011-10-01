@@ -608,12 +608,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param closureType
+	 * @param functionType
 	 * @return
 	 */
-	public abstract boolean o_AcceptsArgTypesFromClosureType (
+	public abstract boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject closureType);
+		final AvailObject functionType);
 
 	/**
 	 * @param object
@@ -873,7 +873,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Closure (
+	public abstract void o_Function (
 		final AvailObject object,
 		final AvailObject value);
 
@@ -1444,12 +1444,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfClosureType (
+	public abstract boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType);
+		final AvailObject aFunctionType);
 
 	/**
 	 * @param object
@@ -2603,12 +2603,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfClosureType (
+	public abstract AvailObject o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType);
+		final AvailObject aFunctionType);
 
 	/**
 	 * @param object
@@ -2702,12 +2702,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfClosureType (
+	public abstract AvailObject o_TypeUnionOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType);
+		final AvailObject aFunctionType);
 
 	/**
 	 * @param object
@@ -2964,13 +2964,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Closure (final AvailObject object);
+	public abstract AvailObject o_Function (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ClosureType (final AvailObject object);
+	public abstract AvailObject o_FunctionType (final AvailObject object);
 
 	/**
 	 * @param object
@@ -3724,21 +3724,21 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosure
+	 * @param aFunction
 	 * @return
 	 */
-	public abstract boolean o_EqualsClosure (
+	public abstract boolean o_EqualsFunction (
 		final AvailObject object,
-		final AvailObject aClosure);
+		final AvailObject aFunction);
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract boolean o_EqualsClosureType (
+	public abstract boolean o_EqualsFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType);
+		final AvailObject aFunctionType);
 
 	/**
 	 * @param object
@@ -3993,7 +3993,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsClosure (final AvailObject object);
+	public abstract boolean o_IsFunction (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4054,12 +4054,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosure
+	 * @param aFunction
 	 * @return
 	 */
 	public abstract boolean o_ContainsBlock (
 		final AvailObject object,
-		final AvailObject aClosure);
+		final AvailObject aFunction);
 
 	/**
 	 * @param object

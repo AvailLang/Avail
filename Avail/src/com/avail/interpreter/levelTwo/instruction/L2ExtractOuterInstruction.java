@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doMoveFromOuterVariable_ofClosureObject_destObject_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doMoveFromOuterVariable_ofFunctionObject_destObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2ExtractOuterInstruction} extracts a captured {@linkplain AvailObject
- * object} from the source {@linkplain ClosureDescriptor closure}.
+ * object} from the source {@linkplain FunctionDescriptor function}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -51,13 +51,13 @@ extends L2Instruction
 {
 	/**
 	 * The source {@linkplain L2ObjectRegister register} containing the
-	 * {@linkplain ClosureDescriptor closure}.
+	 * {@linkplain FunctionDescriptor function}.
 	 */
 	private final @NotNull L2ObjectRegister sourceRegister;
 
 	/**
 	 * The one-based index of the captured {@linkplain AvailObject object}
-	 * within the {@linkplain ClosureDescriptor closure}.
+	 * within the {@linkplain FunctionDescriptor function}.
 	 */
 	private final int outerIndex;
 
@@ -72,10 +72,10 @@ extends L2Instruction
 	 *
 	 * @param sourceRegister
 	 *        The source {@linkplain L2ObjectRegister register} containing the
-	 *        {@linkplain ClosureDescriptor closure}.
+	 *        {@linkplain FunctionDescriptor function}.
 	 * @param outerIndex
 	 *        The one-based index of the captured {@linkplain AvailObject
-	 *        object} within the {@linkplain ClosureDescriptor closure}.
+	 *        object} within the {@linkplain FunctionDescriptor function}.
 	 * @param destinationRegister
 	 *        The {@linkplain L2ObjectRegister register} into which the captured
 	 *        {@linkplain AvailObject object} will be written.
@@ -106,7 +106,7 @@ extends L2Instruction
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitL2Operation(
-			L2_doMoveFromOuterVariable_ofClosureObject_destObject_);
+			L2_doMoveFromOuterVariable_ofFunctionObject_destObject_);
 		codeGenerator.emitImmediate(outerIndex);
 		codeGenerator.emitObjectRegister(sourceRegister);
 		codeGenerator.emitObjectRegister(destinationRegister);
@@ -120,7 +120,7 @@ extends L2Instruction
 	 * parent code objects. That's because of the (eventual) coalescing garbage
 	 * collector, which can merge equal code objects. In different parent code
 	 * objects, the child code object may have different type expectations. This
-	 * isn't as bad as it seems, as {@linkplain ClosureDescriptor closures} are
+	 * isn't as bad as it seems, as {@linkplain FunctionDescriptor functions} are
 	 * very profitable to inline anyhow, greatly reducing occurrences of this
 	 * lack of type information.</p>
 	 */

@@ -80,7 +80,7 @@ Method "Define module variable_is_" is [name : string, var : container |
 ] : void;
 
 
-Method "Define module constant_is_" is [name : string, val : all |
+Method "Define module constant_is_" is [name : string, val : any |
 /*	Primitive 0 (failureCode : natural number);  */
 	Failed;
 ] : void;

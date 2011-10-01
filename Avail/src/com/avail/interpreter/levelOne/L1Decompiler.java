@@ -151,8 +151,8 @@ public class L1Decompiler implements L1OperationDispatcher
 			args,
 			code.primitiveNumber(),
 			statements,
-			aCodeObject.closureType().returnType(),
-			aCodeObject.closureType().checkedExceptions());
+			aCodeObject.functionType().returnType(),
+			aCodeObject.functionType().checkedExceptions());
 	}
 
 
@@ -384,12 +384,12 @@ public class L1Decompiler implements L1OperationDispatcher
 	public void L1_doPushLiteral ()
 	{
 		final AvailObject value = code.literalAt(getInteger());
-		if (value.isInstanceOfKind(ClosureTypeDescriptor.mostGeneralType()))
+		if (value.isInstanceOfKind(FunctionTypeDescriptor.mostGeneralType()))
 		{
-			final List<AvailObject> closureOuters =
+			final List<AvailObject> functionOuters =
 				new ArrayList<AvailObject>(value.numOuterVars());
 			// Due to stub-building primitives, it's possible for a non-clean
-			// closure to be a literal, so deal with it here.
+			// function to be a literal, so deal with it here.
 			for (int i = 1; i <= value.numOuterVars(); i++)
 			{
 				final AvailObject varObject = value.outerVarAt(i);
@@ -397,18 +397,18 @@ public class L1Decompiler implements L1OperationDispatcher
 					LiteralTokenDescriptor.mutable().create();
 				token.tokenType(TokenType.LITERAL);
 				token.string(ByteStringDescriptor.from(
-					"OuterOfUncleanConstantClosure#" + i));
+					"OuterOfUncleanConstantFunction#" + i));
 				token.start(0);
 				token.lineNumber(0);
 				token.literal(varObject);
 				final AvailObject literalNode =
 					LiteralNodeDescriptor.fromToken(token);
-				closureOuters.add(literalNode);
+				functionOuters.add(literalNode);
 			}
 			final AvailObject blockNode =
 				new L1Decompiler().parseWithOuterVarsTempGenerator(
 					value.code(),
-					closureOuters,
+					functionOuters,
 					tempGenerator);
 			pushExpression(blockNode);
 		}
@@ -535,7 +535,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	/**
 	 * The presence of the {@linkplain L1Operation operation} indicates that
 	 * an assignment is being used as a subexpression or final statement from a
-	 * non-void valued {@linkplain ClosureDescriptor block}.
+	 * non-void valued {@linkplain FunctionDescriptor block}.
 	 *
 	 * <p>Pop the expression (that represents the right hand side of the
 	 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
@@ -605,7 +605,7 @@ public class L1Decompiler implements L1OperationDispatcher
 
 			label = DeclarationNodeDescriptor.newLabel(
 				labelToken,
-				ContinuationTypeDescriptor.forClosureType(code.closureType()));
+				ContinuationTypeDescriptor.forFunctionType(code.functionType()));
 
 			statements.add(0, label);
 		}
@@ -724,7 +724,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		args = new ArrayList<AvailObject>(code.numArgs());
 		locals = new ArrayList<AvailObject>(code.numLocals());
-		final AvailObject tupleType = code.closureType().argsTupleType();
+		final AvailObject tupleType = code.functionType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final String argName = tempGenerator.value("arg");
@@ -754,15 +754,15 @@ public class L1Decompiler implements L1OperationDispatcher
 
 
 	/**
-	 * Parse the given statically constructed closure.  It treats outer
+	 * Parse the given statically constructed function.  It treats outer
 	 * variables as literals.  Answer the resulting {@link BlockNodeDescriptor
 	 * block}.
 	 *
-	 * @param aClosure The closure to decompile.
+	 * @param aFunction The function to decompile.
 	 * @return The {@link BlockNodeDescriptor block} that is the decompilation
-	 *         of the provided closure.
+	 *         of the provided function.
 	 */
-	public static AvailObject parse (final AvailObject aClosure)
+	public static AvailObject parse (final AvailObject aFunction)
 	{
 		final Map<String, Integer> counts = new HashMap<String, Integer>();
 		final Transformer1<String, String> generator =
@@ -778,11 +778,11 @@ public class L1Decompiler implements L1OperationDispatcher
 				}
 			};
 
-		final List<AvailObject> closureOuters =
-			new ArrayList<AvailObject>(aClosure.numOuterVars());
-		for (int i = 1; i <= aClosure.numOuterVars(); i++)
+		final List<AvailObject> functionOuters =
+			new ArrayList<AvailObject>(aFunction.numOuterVars());
+		for (int i = 1; i <= aFunction.numOuterVars(); i++)
 		{
-			final AvailObject varObject = aClosure.outerVarAt(i);
+			final AvailObject varObject = aFunction.outerVarAt(i);
 
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
@@ -792,11 +792,11 @@ public class L1Decompiler implements L1OperationDispatcher
 			token.literal(varObject);
 			final AvailObject literalNode =
 				LiteralNodeDescriptor.fromToken(token);
-			closureOuters.add(literalNode);
+			functionOuters.add(literalNode);
 		}
 		return new L1Decompiler().parseWithOuterVarsTempGenerator(
-			aClosure.code(),
-			closureOuters,
+			aFunction.code(),
+			functionOuters,
 			generator);
 	}
 }

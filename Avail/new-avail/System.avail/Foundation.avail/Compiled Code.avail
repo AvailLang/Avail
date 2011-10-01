@@ -1,0 +1,255 @@
+/**
+ * System/Foundation/Compiled Code
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * Provide basic operations to construct compiled code kinds and to query their
+ * properties. Provide convenient aliases for common compiled code kinds.
+ * Provide basic operations to query the properties of compiled codes.
+ *
+ * <p>Clients should import "Function" instead, as it extends this module (and
+ * offers the remaining operations not defined here because of bootstrap
+ * ordering issues).</p>
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+System Module "Compiled Code"
+Extends
+Uses
+	"Basic Types",
+	"Integer"
+Names
+	/* Kind aliases. */
+	"compiled code",
+	"primitive number",
+	
+	/* Metakind alias. */
+	"compiled code metakind",
+	
+	/* Kind constructors. */
+	"compiled code kind accepting type_and returning type_",
+	"¢[`…]→_",
+	"¢[«_‡,»]→_",
+	
+	/* Queries. */
+	"_'s argument count",
+	"_'s locals count",
+	"_'s outers count",
+	"_'s stack depth",
+	"_'s nybblecodes",
+	"_'s primitive number",
+	"_'s literals"
+Body
+
+/**
+ * Answer the most general compiled code kind.
+ *
+ * @param {@code ⊶¢[…]→⊤}.
+ */
+Method "compiled code" is
+[
+	⊶¢[…]→⊤;
+];
+
+/**
+ * Answer the most general compiled code metakind.
+ *
+ * @return {@code ⊶¢[…]→⊤'s type}.
+ */
+Method "compiled code metakind" is
+[
+	compiled code's type;
+];
+
+/**
+ * Construct a compiled code kind that accepts parameters whose types correspond
+ * to the specified tuple and that has the specified return type.
+ *
+ * @param parametersType
+ *        A tuple of types that corresponds to the parameter types.
+ * @param returnType
+ *        The return type.
+ * @return A compiled code kind.
+ */
+Method "compiled code kind accepting types_and returning type_" is
+[
+	parametersType : ⊶<type..|0..∞>,
+	returnType : type
+|
+	Primitive 34;
+] : compiled code metakind;
+
+/**
+ * Answer a compiled code kind that includes as instances all compiled codes
+ * whose return type is compatible with the specified type.
+ *
+ * @param returnType
+ *        A {@code type}.
+ * @return A compiled code kind.
+ */
+Method "¢[`…]→_" is
+[
+	returnType : type
+|
+	Primitive ???;
+] : compiled code metakind;
+
+/**
+ * Construct a compiled code kind from the specified parameter types and return
+ * type.
+ *
+ * @param parametersType
+ *        The parameter types (automatically accumulated by the compiler).
+ * @param returnType
+ *        The return type.
+ * @return A function kind.
+ */
+Method "¢[«_‡,»]→_" is
+[
+	parametersType : ⊶<type..|0..∞>,
+	returnType : type
+|
+	compiled code kind
+		accepting types parametersType
+		and returning type returnType;
+] : compiled code metakind;
+
+/**
+ * Answer the number of arguments required by the compiled code.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The number of arguments.
+ */
+Method "_'s argument count" is
+[
+	value : compiled code
+|
+	Primitive 180;
+] : whole number;
+
+/**
+ * Answer the maximum number of local variables created by any invocation of the
+ * compiled code.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The number of local variables.
+ */
+Method "_'s locals count" is
+[
+	value : compiled code
+|
+	Primitive 181;
+] : whole number;
+
+/**
+ * Answer the number of outer variables in functions derived from this compiled
+ * code.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The number of outer variables.
+ */
+Method "_'s outers count" is
+[
+	value : compiled code
+|
+	Primitive 182;
+] : whole number;
+
+/**
+ * Answer the maximum stack depth of any invocation of the compiled code.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The maximum stack depth.
+ */
+Method "_'s stack depth" is
+[
+	value : compiled code
+|
+	Primitive 183;
+] : whole number;
+
+/**
+ * Answer the Avail nybblecodes that define the behavior of the compiled code.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The Avail nybblecodes.
+ */
+Method "_'s nybblecodes" is
+[
+	value : compiled code
+|
+	Primitive 184;
+] : <[0..15]..|0..∞> /* TODO: Can't bootstrap this yet! */
+
+/**
+ * Answer the integral range of Avail primitive numbers.
+ *
+ * @return A 16-bit unsigned integer.
+ */
+Method "primitive number" is
+[
+	[0..65535];
+];
+
+/**
+ * Answer the Avail primitive number of the compiled code.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The Avail primitive number, or {@code 0} if there is no primitive
+ *         binding.
+ */
+Method "_'s primitive number" is
+[
+	value : compiled code
+|
+	Primitive 186;
+] : primitive number;
+
+/**
+ * Answer the literals corresponding to the local variables, outer variables,
+ * and embedded literals.
+ *
+ * @param value
+ *        A {@code compiled code}.
+ * @return The referenced literals.
+ */
+Method "_'s literals" is
+[
+	value : compiled code
+|
+	Primitive 187;
+] : <any..|0..∞> /* TODO: Can't bootstrap this yet! */

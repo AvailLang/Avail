@@ -51,9 +51,9 @@ Body
 
 Method "testMethod_is_«requires_»«returns_»" is [
         name : string,
-        body : closure,
-        requires : tuple [0..1] of closure,
-        returns : tuple [0..1] of closure |
+        body : function,
+        requires : tuple [0..1] of function,
+        returns : tuple [0..1] of function |
     Halt;
 ] : void;
 
@@ -79,7 +79,7 @@ Method "Add«_‡and»" is [
 Repeated parameters with nested repetitions:
 
 Method "Graph«vertex_«edge to_‡and»»" is [
-        pairs : tuple [0..INF) like <all, tuple> |
+        pairs : tuple [0..INF) like <any, tuple> |
     ...
 ] : Graph;
 

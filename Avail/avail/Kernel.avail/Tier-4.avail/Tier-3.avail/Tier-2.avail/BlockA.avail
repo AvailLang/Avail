@@ -54,29 +54,29 @@ Method "_apply_" is [block : [...]->void, args : tuple |
 	Primitive 40 (failureCode : natural number);
 	Crash "Bad argument during function application.";
 ] : void
-requires [closureT : closureType, argsT : tupleType |
-	/* The closure type is allowed to be too weak, so that this operation will
-	 * be useful as a kind of downcast mechanism.  If the closure type is not
+requires [functionT : functionType, argsT : tupleType |
+	/* The function type is allowed to be too weak, so that this operation will
+	 * be useful as a kind of downcast mechanism.  If the function type is not
 	 * consistent with the argument types (i.e., it is known statically that the
 	 * call will never work), then report the problem at compile time.  */
-	closureSizes ::= closureT arguments type sizes;
+	functionSizes ::= functionT arguments type sizes;
 	argsSizes ::= argsT sizes;
 	if argsSizes = terminates then [
 		Fail parse "Some argument expressions must terminate";
 	];
-	validSizes ::= type intersection of closureSizes and argsSizes;
-	if closureSizes not = terminates & validSizes = terminates then [
+	validSizes ::= type intersection of functionSizes and argsSizes;
+	if functionSizes not = terminates & validSizes = terminates then [
 		Fail parse "Number of arguments will always be wrong at this function application site";
 	];
 	/* I don't believe the argument types can be checked here in any meaningful
-	 * way.  If a closure argument is terminates, an actual closure can be
+	 * way.  If a function argument is terminates, an actual function can be
 	 * supplied at runtime that is broader for that (contravariant) argument --
-	 * in fact, any closure argument type can be broadened up to an "all", which
+	 * in fact, any function argument type can be broadened up to an "any", which
 	 * will accept any argument.
 	 */  
 	true;
 ] : boolean
-returns [ct : closureType, at : type |
+returns [ct : functionType, at : type |
 	ct result;
 ];
 
@@ -84,7 +84,7 @@ returns [ct : closureType, at : type |
 /* Type downcasting operation... */
 
 Method "cast_into_otherwise_" is [
-		value : all,
+		value : any,
 		blk1 : [terminates]->void,
 		blk2 : []-> void |
 	/* Attempt to call the first block, but if the dynamic type isn't right,
@@ -93,10 +93,10 @@ Method "cast_into_otherwise_" is [
 		blk1 apply <value>;
 	] else blk2;
 ] : void
-returns [valType : type, blk1Type : closureType, blk2Type : closureType |
+returns [valType : type, blk1Type : functionType, blk2Type : functionType |
 	type union of blk1Type result and blk2Type result;
 ]
-requires [valType : type, blk1Type : closureType, blk2Type : closureType |
+requires [valType : type, blk1Type : functionType, blk2Type : functionType |
 	if valType <= blk1Type[1] then [
 		Fail parse "Warning - unnecessary cast expression";
 	];
@@ -104,7 +104,7 @@ requires [valType : type, blk1Type : closureType, blk2Type : closureType |
 ];
 
 
-Method "cast_into_" is [value : all, block : [terminates]->void |
+Method "cast_into_" is [value : any, block : [terminates]->void |
 	/* Same as cast_into_otherwise_, but fail if type isn't right. */
 	if value type <= block type[1] then [
 		block apply <value>;
@@ -112,10 +112,10 @@ Method "cast_into_" is [value : all, block : [terminates]->void |
 		Crash <"Bad dynamic cast of a ", value type, " into a ", block type[1]>;
 	];
 ] : void
-returns [valType : type, blockType : closureType |
+returns [valType : type, blockType : functionType |
 	blockType result;
 ]
-requires [valType : type, blockType : closureType |
+requires [valType : type, blockType : functionType |
 	if valType <= blockType[1] then [
 		Fail parse "Warning - unnecessary cast expression";
 	];

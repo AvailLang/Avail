@@ -40,32 +40,32 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 /**
  * Continuation types are the types of {@linkplain ContinuationDescriptor
  * continuations}.  They contain information about the {@linkplain
- * ClosureTypeDescriptor types of closure} that can appear on the top stack
+ * FunctionTypeDescriptor types of function} that can appear on the top stack
  * frame for a continuation of this type.
  *
  * <p>
  * Continuations can be {@linkplain
  * Primitive#prim56_RestartContinuationWithArguments restarted}
  * with a new set of arguments, so continuation types are contravariant with
- * respect to their closure types' argument types.  Surprisingly, continuation
- * types are also contravariant with respect to their closure types' return
+ * respect to their function types' argument types.  Surprisingly, continuation
+ * types are also contravariant with respect to their function types' return
  * types.  This is due to the capability to {@linkplain
  * Primitive#prim57_ExitContinuationWithResult exit} a continuation
  * with a specific value.
  * </p>
  *
  * <p>
- * TODO: Continuation types should be parameterizable with generalized closure
+ * TODO: Continuation types should be parameterizable with generalized function
  * types.  This would allow prim58 (restart with the same arguments) to be
  * performed even if the specific argument types were not known, but prim56
  * (restart with new arguments) would be forbidden.  Prim57 (Exit with value)
  * would be unaffected.  Make sure to update type computations and type
  * compatibility tests appropriately to accommodate the contained generalized
- * closure types.
+ * function types.
  * </p>
  *
  * <p>
- * TODO: If/when closure types support checked exceptions we won't need to
+ * TODO: If/when function types support checked exceptions we won't need to
  * mention them in continuation types, since invoking a continuation in any way
  * (restart, exit, resume) causes exception obligations/permissions to be
  * instantly voided.
@@ -82,20 +82,20 @@ extends TypeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The type of closure that this {@linkplain ContinuationTypeDescriptor
+		 * The type of function that this {@linkplain ContinuationTypeDescriptor
 		 * continuation type} supports.  Continuation types are contravariant
-		 * with respect to the closure type's argument types, and, surprisingly,
-		 * they are also contravariant with respect to the closure type's return
+		 * with respect to the function type's argument types, and, surprisingly,
+		 * they are also contravariant with respect to the function type's return
 		 * type.
 		 */
-		CLOSURE_TYPE
+		FUNCTION_TYPE
 	}
 
 	@Override
-	public @NotNull AvailObject o_ClosureType (
+	public @NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
+		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
 	}
 
 	@Override
@@ -106,7 +106,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append('$');
-		object.closureType().printOnAvoidingIndent(
+		object.functionType().printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
@@ -124,7 +124,7 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Continuation types compare for equality by comparing their closureTypes.
+	 * Continuation types compare for equality by comparing their functionTypes.
 	 * </p>
 	 */
 	@Override
@@ -136,14 +136,14 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		return aType.closureType().equals(object.closureType());
+		return aType.functionType().equals(object.functionType());
 	}
 
 	@Override
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.closureType().hash() * 11 ^ 0x3E20409;
+		return object.functionType().hash() * 11 ^ 0x3E20409;
 	}
 
 	@Override
@@ -171,8 +171,8 @@ extends TypeDescriptor
 	 * them or to exit them, continuation subtypes must accept any values that
 	 * could be passed as arguments or as the return value to the supertype.
 	 * Therefore, continuation types must be contravariant with respect to the
-	 * contained closureType's arguments, and also contravariant with respect to
-	 * the contained closureType's result type.
+	 * contained functionType's arguments, and also contravariant with respect to
+	 * the contained functionType's result type.
 	 * </p>
 	 */
 	@Override
@@ -180,13 +180,13 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		final AvailObject subClosureType = aContinuationType.closureType();
-		final AvailObject superClosureType = object.closureType();
+		final AvailObject subFunctionType = aContinuationType.functionType();
+		final AvailObject superFunctionType = object.functionType();
 		return
-		superClosureType.returnType().isSubtypeOf(
-			subClosureType.returnType())
-			&& superClosureType.argsTupleType().isSubtypeOf(
-				subClosureType.argsTupleType());
+		superFunctionType.returnType().isSubtypeOf(
+			subFunctionType.returnType())
+			&& superFunctionType.argsTupleType().isSubtypeOf(
+				subFunctionType.argsTupleType());
 	}
 
 	@Override
@@ -210,8 +210,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		final AvailObject closType1 = object.closureType();
-		final AvailObject closType2 = aContinuationType.closureType();
+		final AvailObject closType1 = object.functionType();
+		final AvailObject closType2 = aContinuationType.functionType();
 		if (closType1.equals(closType2))
 		{
 			return object;
@@ -220,10 +220,10 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject intersection = ClosureTypeDescriptor.create(
+		final AvailObject intersection = FunctionTypeDescriptor.create(
 			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
 			closType1.returnType().typeUnion(closType2.returnType()));
-		return forClosureType(intersection);
+		return forFunctionType(intersection);
 	}
 
 	@Override
@@ -247,38 +247,38 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
-		final AvailObject closType1 = object.closureType();
-		final AvailObject closType2 = aContinuationType.closureType();
+		final AvailObject closType1 = object.functionType();
+		final AvailObject closType2 = aContinuationType.functionType();
 		if (closType1.equals(closType2))
 		{
 			// Optimization only
 			return object;
 		}
-		final AvailObject union = ClosureTypeDescriptor.create(
+		final AvailObject union = FunctionTypeDescriptor.create(
 			closType1.argsTupleType().typeIntersection(
 				closType2.argsTupleType()),
 				closType1.returnType().typeIntersection(closType2.returnType()));
-		return forClosureType(union);
+		return forFunctionType(union);
 	}
 
 	/**
 	 * Create a {@linkplain ContinuationTypeDescriptor continuation type} based
-	 * on the passed {@linkplain ClosureTypeDescriptor closure type}.  Ignore
-	 * the closure type's exception set.
+	 * on the passed {@linkplain FunctionTypeDescriptor function type}.  Ignore
+	 * the function type's exception set.
 	 *
-	 * @param closureType
-	 *            A {@linkplain ClosureTypeDescriptor closure type} on which to
+	 * @param functionType
+	 *            A {@linkplain FunctionTypeDescriptor function type} on which to
 	 *            base the new {@linkplain ContinuationTypeDescriptor
 	 *            continuation type}.
 	 * @return
 	 *            A new {@linkplain ContinuationTypeDescriptor}.
 	 */
-	public static @NotNull AvailObject forClosureType (
-		final @NotNull AvailObject closureType)
+	public static @NotNull AvailObject forFunctionType (
+		final @NotNull AvailObject functionType)
 	{
-		closureType.makeImmutable();
+		functionType.makeImmutable();
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
+		result.objectSlotPut(ObjectSlots.FUNCTION_TYPE, functionType);
 		result.makeImmutable();
 		return result;
 	}
@@ -325,8 +325,8 @@ extends TypeDescriptor
 
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = forClosureType(
-			ClosureTypeDescriptor.forReturnType(
+		MostGeneralType = forFunctionType(
+			FunctionTypeDescriptor.forReturnType(
 				BottomTypeDescriptor.bottom()));
 		MostGeneralType.makeImmutable();
 		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);

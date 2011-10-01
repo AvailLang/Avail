@@ -109,7 +109,7 @@ is [
 
 
 /** Defined early for bootstrapping. */
-Method "_type" is [a : all |
+Method "_type" is [a : any |
 	Primitive 30;
 ] : type
 requires [aT : type |
@@ -128,7 +128,7 @@ returns [aT : type |
  * doing them two different ways would be a shameful inconsistency.  Besides,
  * this is an excellent example of parametric result typing.
  */
-Method "(_)" is [arg : all |
+Method "(_)" is [arg : any |
 	arg;
 ] requires [argType : type |
 	true;
@@ -163,7 +163,7 @@ is [
 Method "Forward_for_"
 is [
 		name : string,
-		blockType : closureType |
+		blockType : functionType |
 	/* Declare method without body (for recursion / mutual recursion).  Must be
 	   followed in same module by a legitimate definition. */
 	Primitive 252 (failureCode : natural number);
@@ -182,7 +182,7 @@ is [
  */
 Method "Abstract method_for_requires_returns_" is [
 		name : string,
-		bodyType : closureType,
+		bodyType : functionType,
 		requires : [...]-> boolean,
 		returns : [...]-> type |
 	Primitive 251 (failureCode : natural number);
@@ -191,7 +191,7 @@ Method "Abstract method_for_requires_returns_" is [
 
 Method "Abstract method_for_returns_requires_" is [
 		name : string,
-		bodyType : closureType,
+		bodyType : functionType,
 		returns : [...]-> type,
 		requires : [...]-> boolean |
 	/* Switch the returns and requires clause order for convenience. */
@@ -202,7 +202,7 @@ Method "Abstract method_for_returns_requires_" is [
 
 Method "Abstract method_for_returns_" is [
 		name : string,
-		bodyType : closureType,
+		bodyType : functionType,
 		returns : [...]-> type |
 	/* Allow returns clause to be specified while omitting the requires clause. */
 	Abstract method name for bodyType
@@ -212,7 +212,7 @@ Method "Abstract method_for_returns_" is [
 
 Method "Abstract method_for_requires_" is [
 		name : string,
-		bodyType : closureType,
+		bodyType : functionType,
 		requires : [...]-> boolean |
 	/* Allow requires clause to be specified while omitting the returns clause. */
 	Abstract method name for bodyType
@@ -222,7 +222,7 @@ Method "Abstract method_for_requires_" is [
 
 Method "Abstract method_for_" is [
 		name : string,
-		bodyType : closureType |
+		bodyType : functionType |
 	/* Declare an abstract method with no specified returns clause or requires clause. */
 	Abstract method name for bodyType
 		requires stub for bodyType argument count arguments returning true

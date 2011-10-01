@@ -1,5 +1,5 @@
 /**
- * .../Tier-2/BlockB.avail
+ * System/Foundation/Basic Comparison
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,57 +30,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "BlockB"
+/**
+ * Provide access to the most basic comparison operations.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+System Module "Basic Comparison"
 Extends
 Uses
-	"Tier-1",
-	"BlockA",
-	"Continuation",
-	"Integer",
-	"Tuple"
+	"Basic Types" ("Method_is_", "any", "boolean", "type")
 Names
-	"stub block taking_and applying_to_and argument tuple returning_",
-	"name of block invoker",
-	"_(«_‡,»)"
+	/* Relations. */
+	"_=_",								/* Equality */
+	"_≤_"								/* Subtype relation */
 Body
 
+/**
+ * Compare two objects for equality.
+ *
+ * @param a
+ *        An arbitrary object.
+ * @param b
+ *        An arbitrary object.
+ * @return {@code true} if the arguments are equal, {@code false} otherwise.
+ */
+Method "_=_" is
+[
+	a : any,
+	b : any
+|
+	Primitive 60;
+] : boolean;
 
 /**
- * Block evaluation with a (chevron-group) tuple of arguments...
+ * Answer {@code true} if the first argument is an improper subtype of the
+ * second argument.
+ *
+ * @param a
+ *        An arbitrary type.
+ * @param b
+ *        An arbitrary type.
+ * @return {@code true} if the first argument is an improper subtype of the
+ *         second argument, {@code false} otherwise.
  */
-Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
-	block apply args;
-] : void
-requires [blkType : functionType, argsType : tupleType |
-	/* The arguments are a chevron group, so the exact count is known at the
-	 * call site.
-	 */
-	size ::= argsType sizes lower bound;
-	Assert size = argsType sizes upper bound;
-	if blkType arguments type sizes not = argsType sizes then [
-		Fail parse "Argument count could not be determined statically.";];
-	1 to size all [i : natural number |
-		argsType[i] <= blkType[i];];
-] : boolean
-returns [blkType : functionType, argsType : tupleType |
-	blkType result;
-];
-
-
-/**
- * Advanced stub building.  This is for when you *need* a block with
- * a particular signature, and it must invoke some code with the
- * arguments bundled in a tuple.
- */
-Method "stub block taking_and applying_to_and argument tuple returning_" is [
-		argTypes : tuple of type,
-		message : atom,
-		clientArg : any,
-		resultType : type |
-	Primitive 71 (failureCode : natural number);
-	Failed;
-] : [...]-> void;
-
-privateInvoker ::= lookup "_apply_";
-
-Method "name of block invoker" is [privateInvoker;];
+Method "_≤_" is
+[
+	a : type,
+	b : type
+|
+	Primitive 33;
+] : boolean;

@@ -72,7 +72,7 @@ public class AvailCodeGenerator
 	/**
 	 * A mapping from lexically captured variable/constant/argument/label
 	 * declarations to the index within the list of outer variables that must
-	 * be provided when creating a closure from the compiled code.
+	 * be provided when creating a function from the compiled code.
 	 */
 	Map<AvailObject, Integer> outerMap;
 
@@ -228,7 +228,7 @@ public class AvailCodeGenerator
 			nybbleTuple,
 			varMap.size() - numArgs,
 			maxDepth,
-			ClosureTypeDescriptor.create(
+			FunctionTypeDescriptor.create(
 				argsTuple,
 				resultType,
 				exceptionSet),
@@ -392,11 +392,11 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Create a closure from {@code CompiledCodeDescriptor compiled code} and
+	 * Create a function from {@code CompiledCodeDescriptor compiled code} and
 	 * the pushed outer (lexically bound) variables.
 	 *
 	 * @param compiledCode
-	 *        The code from which to make a closure.
+	 *        The code from which to make a function.
 	 * @param neededVariables
 	 *        A {@link TupleDescriptor tuple} of {@link
 	 *        DeclarationNodeDescriptor declarations} of variables that the code
@@ -416,7 +416,7 @@ public class AvailCodeGenerator
 			codeIndex));
 		// Copied variables are popped.
 		decreaseDepth(neededVariables.tupleSize());
-		// Closure is pushed.
+		// Function is pushed.
 		increaseDepth(1);
 	}
 

@@ -118,8 +118,8 @@ public final class AvailRuntime
 		specialObjects[1] = ANY.o();
 		specialObjects[2] = UnionTypeDescriptor.booleanObject();
 		specialObjects[3] = CHARACTER.o();
-		specialObjects[4] = ClosureTypeDescriptor.mostGeneralType();
-		specialObjects[5] = ClosureTypeDescriptor.meta();
+		specialObjects[4] = FunctionTypeDescriptor.mostGeneralType();
+		specialObjects[5] = FunctionTypeDescriptor.meta();
 		specialObjects[6] = CompiledCodeTypeDescriptor.mostGeneralType();
 		specialObjects[7] = ContainerTypeDescriptor.mostGeneralType();
 		specialObjects[8] = ContainerTypeDescriptor.meta();

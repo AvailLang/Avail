@@ -35,8 +35,6 @@
  */
 System Module "Foundation"
 Extends
-	"Basic Support",
-	"Special Objects"
 Uses
 Names
 Body

@@ -64,7 +64,7 @@ extends SignatureDescriptor
 	{
 		// We simply run the 'returns' block, passing in the static argument
 		// types from the call site.
-		final AvailObject result = interpreter.runClosureArguments(
+		final AvailObject result = interpreter.runFunctionArguments(
 			object.returnsBlock(),
 			argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
@@ -99,7 +99,7 @@ extends SignatureDescriptor
 		//  We simply run the 'requires' block, passing in the static arguments types from the call site.  The result of
 		//  the 'requires' block is an Avail boolean, which we convert before answering it.
 
-		final AvailObject result = interpreter.runClosureArguments(
+		final AvailObject result = interpreter.runFunctionArguments(
 			object.requiresBlock(),
 			argTypes);
 		return result.extractBoolean();

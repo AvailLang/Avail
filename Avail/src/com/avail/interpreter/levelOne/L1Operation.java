@@ -128,8 +128,8 @@ public enum L1Operation
 
 	/**
 	 * Push an outer variable, i.e. a variable lexically captured by the current
-	 * closure.  This should be the last use of the variable, so clear it from
-	 * the closure if the closure is still mutable.
+	 * function.  This should be the last use of the variable, so clear it from
+	 * the function if the function is still mutable.
 	 */
 	L1_doPushLastOuter(4, L1OperandType.OUTER)
 	{

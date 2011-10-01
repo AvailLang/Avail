@@ -77,7 +77,7 @@ Method "new Decompiler for code_outers_" is [c : compiledCode, out : tuple of Va
 		<args, 1 to c numArgs collect [i : natural number |
 			new Argument
 				name "arg" then i decimal
-				type c closureType[i];]>,
+				type c functionType[i];]>,
 		<locals, 1 to c numLocals collect [i : natural number |
 			localType ::= c literals[((||c literals|| - c numLocals) max 0) + i];
 			new Local

@@ -566,7 +566,7 @@ implements Iterable<AvailObject>
 		InfinityDescriptor.clearWellKnownObjects();
 		IntegerDescriptor.clearWellKnownObjects();
 		IntegerRangeTypeDescriptor.clearWellKnownObjects();
-		ClosureTypeDescriptor.clearWellKnownObjects();
+		FunctionTypeDescriptor.clearWellKnownObjects();
 		ContinuationTypeDescriptor.clearWellKnownObjects();
 		CompiledCodeTypeDescriptor.clearWellKnownObjects();
 		MapTypeDescriptor.clearWellKnownObjects();
@@ -596,7 +596,7 @@ implements Iterable<AvailObject>
 		InfinityDescriptor.createWellKnownObjects();
 		IntegerDescriptor.createWellKnownObjects();
 		IntegerRangeTypeDescriptor.createWellKnownObjects();
-		ClosureTypeDescriptor.createWellKnownObjects();
+		FunctionTypeDescriptor.createWellKnownObjects();
 		ContinuationTypeDescriptor.createWellKnownObjects();
 		CompiledCodeTypeDescriptor.createWellKnownObjects();
 		MapTypeDescriptor.createWellKnownObjects();
@@ -685,10 +685,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean acceptsArgTypesFromClosureType (
-		final AvailObject closureType)
+	public boolean acceptsArgTypesFromFunctionType (
+		final AvailObject functionType)
 	{
-		return descriptor().o_AcceptsArgTypesFromClosureType(this, closureType);
+		return descriptor().o_AcceptsArgTypesFromFunctionType(this, functionType);
 	}
 
 	/**
@@ -1166,26 +1166,26 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject closure ()
+	public AvailObject function ()
 	{
-		return descriptor().o_Closure(this);
+		return descriptor().o_Function(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void closure (
+	public void function (
 		final AvailObject value)
 	{
-		descriptor().o_Closure(this, value);
+		descriptor().o_Function(this, value);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject closureType ()
+	public AvailObject functionType ()
 	{
-		return descriptor().o_ClosureType(this);
+		return descriptor().o_FunctionType(this);
 	}
 
 	/**
@@ -1418,9 +1418,9 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public boolean containsBlock (
-		final AvailObject aClosure)
+		final AvailObject aFunction)
 	{
-		return descriptor().o_ContainsBlock(this, aClosure);
+		return descriptor().o_ContainsBlock(this, aFunction);
 	}
 
 	/**
@@ -1849,19 +1849,19 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsClosure (
-		final AvailObject aClosure)
+	public boolean equalsFunction (
+		final AvailObject aFunction)
 	{
-		return descriptor().o_EqualsClosure(this, aClosure);
+		return descriptor().o_EqualsFunction(this, aFunction);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsClosureType (
-		final AvailObject aClosureType)
+	public boolean equalsFunctionType (
+		final AvailObject aFunctionType)
 	{
-		return descriptor().o_EqualsClosureType(this, aClosureType);
+		return descriptor().o_EqualsFunctionType(this, aFunctionType);
 	}
 
 	/**
@@ -2516,9 +2516,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isClosure ()
+	public boolean isFunction ()
 	{
-		return descriptor().o_IsClosure(this);
+		return descriptor().o_IsFunction(this);
 	}
 
 	/**
@@ -2693,10 +2693,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfClosureType (
-		final AvailObject aClosureType)
+	public boolean isSupertypeOfFunctionType (
+		final AvailObject aFunctionType)
 	{
-		return descriptor().o_IsSupertypeOfClosureType(this, aClosureType);
+		return descriptor().o_IsSupertypeOfFunctionType(this, aFunctionType);
 	}
 
 	/**
@@ -4685,12 +4685,12 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeIntersectionOfClosureType (
-		final AvailObject aClosureType)
+	public AvailObject typeIntersectionOfFunctionType (
+		final AvailObject aFunctionType)
 	{
-		return descriptor().o_TypeIntersectionOfClosureType(
+		return descriptor().o_TypeIntersectionOfFunctionType(
 			this,
-			aClosureType);
+			aFunctionType);
 	}
 
 	/**
@@ -4785,10 +4785,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeUnionOfClosureType (
-		final AvailObject aClosureType)
+	public AvailObject typeUnionOfFunctionType (
+		final AvailObject aFunctionType)
 	{
-		return descriptor().o_TypeUnionOfClosureType(this, aClosureType);
+		return descriptor().o_TypeUnionOfFunctionType(this, aFunctionType);
 	}
 
 	/**

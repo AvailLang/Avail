@@ -38,70 +38,325 @@
 System Module "Basic Support"
 Extends
 Uses
-	"Special Objects"
+	"Basic Types"
 Names
-	/* Public methods. */
-	"Exit the current thread because_",
-	"Discard_",
-	"Reject the current parse because_",
-	"Method_is_and validates with_",
-	"bootstrap:_doesn't allow_",
-	"expression type of_",	
-	"(_)",
+	/* Definers. */
+	"⊶Method_is_and validates with_",
+
+	/* Semantic aliases for type hierarchy extrema. */
+	"nothing",
+	"does not return",
+
+	/* Procedure adapter. */
+	"Statement:_",
+
+	/* Extreme sanction. */
+	"Exit:_",
+	"Reject parse:_",
+	
+	/* Assertions. */
+	"Assert:_",
+	
+	/* Kind constructors. */
 	"<«_‡,»>",
-	"{«_‡,»}",
-	"_=_",
-	"_<=_",
-	"_≤_"
+	"⊶{«_‡,»}",
+	
+	/* Negative precedence. */
+	"⊶_doesn't allow_",
+	
+	/* Explicit grouping. */
+	"(_)",
+	
+	/* Strong type extraction. */
+	"_'s type",
+	"_'s expression type",
+	
+	/* Security (and completeness). */
+	"Seal_at_"
 Body
 
 /**
- * Explicitly disregard the specified argument. This is normally used to cast an
- * expression to void, thereby turning it into a statement.
+ * Semantic alias for {@code ⊤} intended to indicate that a function does not
+ * return a value, i.e. is procedure-like rather than function-like.
+ *
+ * @returns {@code ⊤}.
  */
-Method "Discard_" is
+Method "nothing" is
 [
-	unwanted : all |
-] : void;
+	⊤;
+] : ⊶⊤'s type;
 
 /**
- * <strong>Primitive 256:</strong> Exit the current thread. The specified
- * argument will be converted internally into a {@code string} and used to
- * report an error message.
+ * Semantic alias for {@code ⊥} intended to indicate that a function does not
+ * return, i.e. it either raises an exception, jumps into another continuation,
+ * or never relinquishes control back to the caller.
+ *
+ * @return {@code ⊥}.
+ */
+Method "does not return" is
+[
+	⊥;
+] : ⊶⊥'s type;
+
+/**
+ * Explicitly disregard the specified argument. This is normally used to cast an
+ * expression to {@code ⊤}, thereby turning it into a statement.
+ *
+ * @param unwanted
+ *        The argument to ignore.
+ */
+Method "Statement:_" is
+[
+	unwanted : any
+|
+	/* No implementation required. */
+] : nothing;
+
+/**
+ * Exit the current thread. The specified argument will be converted internally
+ * into a {@code string} and used to report an error message.
  *
  * @param reason
  *        An object whose display string will be captured for postmortem
  *        presentation.
  */
-Method "Exit the current thread because_" is
+Method "Exit:_" is
 [
-	postMortemHint : all |
-	
+	postMortemHint : any
+|
 	Primitive 256;
-] : terminates;
+] : does not return;
 
 /**
- * <strong>Primitive 352:</strong> Reject the parse currently underway. The
- * compiler should display the specified argument as the reason why the parse
- * aborted.
+ * Reject the parse currently underway. The compiler should display the
+ * specified argument as the reason why the parse aborted. This facility exists
+ * to support macros and call-site type checking.
  *
  * @param reason
  *        The reason why the current parse aborted.
  */
-Method "Reject the current parse because_" is
+Method "Reject parse:_" is
 [
-	reason : string |
-	
+	reason : string
+|
 	Primitive 352;
-] : terminates;
+] : does not return;
 
 /**
- * <strong>Primitive 255:</strong> Message precedence declaration with a tuple
- * of sets of messages to exclude for each argument position. Note that the
- * tuple's elements should correspond with occurrences of underscore in the
- * method names, *not* with the (top-level) arguments of the method. This
- * distinction is only apparent when chevron notation is used to accept
- * tuples of arguments.
+ * Assert that the specified argument is {@code true}.
+ *
+ * <p>Note that this implementation cooperates with a more specific
+ * implementation to provide complete coverage of {@code boolean}.</p>
+ *
+ * @param value
+ *        Specialization guarantees that this will actually be {@code true}.
+ */
+Method "Assert:_" is
+[
+	value : boolean
+|
+	/* No implementation required. */
+] : nothing;
+
+/**
+ * Assert that the specified argument is {@code true}.
+ *
+ * <p>Note that this implementation cooperates with a more general
+ * implementation to provide complete coverage of {@code boolean}.</p>
+ *
+ * @param value
+ *        {@code false}.
+ */
+Method "Assert:_" is
+[
+	value : false's type
+|
+	Exit: "assertion failed";
+] : does not return;
+
+/**
+ * Define a method. The parse nodes corresponding to the arguments will be
+ * checked at compile time against the specified call site validation function.
+ *
+ * @param methodName
+ *        The method name.
+ * @param implementation
+ *        The function that implements the method.
+ * @param validator
+ *        A function whose parameters correspond to the parse nodes of the
+ *        arguments at the call site at compile time. It should answer a type at
+ *        least as strong as the statically ascertained result type of the
+ *        implementation function. If the arguments are rejected, then the
+ *        function should call "Reject the current parse because_" to provide a
+ *        more specific rationale for argument rejection.
+ */
+Method "⊶Method_is_and validates with_" is
+[
+	methodName : string,
+	implementation : ⊶[…]→⊤,
+	validator: ⊶[…]→⊤
+|
+	Primitive ??? (unusedFailureCode : any);
+	Exit: "system error: primitive ??? failed";
+] : void;
+
+/**
+ * Bootstrap: This must not be called. Only the specialization defined on
+ * {@code parse node's type} must be called. This is provided only to simplify
+ * link-time strengthening of parse node kind parameterization.
+ *
+ * @param nodeKind
+ *        A parse node kind.
+ * @param expressionType
+ *        A type.
+ * @return A parse node kind.
+ */
+Method "⊶_⇒_" is
+[
+	nodeKind : any,
+	expressionType : type
+|
+	parse node's type;
+];
+
+/**
+ * Bootstrap: Answer a parse node kind that is parameterized by its static
+ * expression type.
+ *
+ * @param nodeKind
+ *        A parse node kind.
+ * @param expressionType
+ *        A type.
+ * @return A parse node kind.
+ */
+Method "⊶_⇒_" is
+[
+	nodeKind : parse node's type,
+	expressionType : type
+|
+	Primitive ???;
+] : parse node's type;
+
+/**
+ * Answer the expression type of the specified parse node.
+ *
+ * @param node
+ *        A parse node.
+ * @return The expression type of the argument.
+ */
+Method "_'s expression type" is
+[
+	node : parse node
+|
+	Primitive 351;
+] : type;
+
+/**
+ * Answer the type of the argument. The validation clause ensures
+ * metacovariance: {@code ∀T1,T2 ∈ type : T1's type ≤ T2's type}.
+ *
+ * @param o
+ *        An entity.
+ */
+Method "_'s type" is
+[
+	o : any
+|
+	Primitive 30;
+] : type
+and validates with
+[
+	argumentNode : parse node
+|
+	argumentNode's expression type;
+];
+
+/**
+ * Force a particular order of evaluation of a subexpression. This implements
+ * the standard mathematical notation of grouping parentheses.
+ *
+ * @param argument
+ *        An argument, usually the result of a multi-node subexpression.
+ * @returns The argument.
+ */
+⊶Method "(_)" is
+[
+	argument : any |
+	argument;
+]
+and validates with
+[
+	argumentNode : parse node
+|
+	argumentNode's expression type;
+];
+
+/**
+ * Answer a parse node kind that is parameterized by its static expression type.
+ *
+ * @param nodeKind
+ *        A parse node kind.
+ * @param expressionType
+ *        A type.
+ * @return A parse node kind.
+ */
+Method "_⇒_" is
+[
+	nodeKind : parse node's type,
+	resultType : type
+|
+	Primitive ???;
+] : parse node's type
+and validates with
+[
+	nodeKindNode : ⊶parse node ⇒ (parse node's type),
+	resultTypeNode : ⊶parse node ⇒ type
+|
+	⊶(nodeKindNode's expression type) ⇒ (resultTypeNode's expression type);
+];
+
+/**
+ * Construct a tuple from the argument subexpressions.
+ *
+ * @param argument
+ *        A tuple, constructed automatically by the parser during the processing
+ *        of the guillemets construct.
+ * @return A tuple.
+ */
+⊶Method "<«_‡,»>" is
+[
+	argument : ⊶<any..|0..∞>
+|
+	argument;
+]
+and validates with
+[
+	argumentNode : tuple node
+|
+	argumentNode's expression type;
+];
+
+/**
+ * Construct a set from the argument subexpressions.
+ *
+ * @param argument
+ *        A tuple, constructed automatically by the parser during the processing
+ *        of the guillemets construct.
+ * @return A set.
+ */
+Method "⊶{«_‡,»}" is
+[
+	argument : ⊶<any..|0..∞>
+|
+	Primitive 109;
+] : ⊶{any|0..∞};
+
+/**
+ * Message precedence declaration with a tuple of sets of messages to exclude
+ * for each argument position. Note that the tuple's elements should correspond
+ * with occurrences of underscore in the method names, *not* with the
+ * (top-level) arguments of the method. This distinction is only apparent when
+ * chevron notation is used to accept tuples of arguments.
  *
  * <p>Note that it is not desirable to express the restrictions positively. That
  * is, to define "_must have_" rather than "_doesn't allow_". Positive-space
@@ -117,96 +372,14 @@ Method "Reject the current parse because_" is
  *        the N-th underscore of each target method name. Each set contains
  *        method names that are not allowed at the N-th position.
  */
-Method "bootstrap:_doesn't allow_" is
+Method "⊶_doesn't allow_" is
 [
-	methodNames : bootstrap: set of string,
-	forbiddenSubexpressions : bootstrap: tuple of set of string |
-
-	Primitive 255 (unusedFailureCode : natural number);
-	Exit the current thread because "system error: primitive 255 failed";
-] : void;
-	
-/**
- * TODO: Replace ??? with the actual primitive number.
- *
- * <strong>Primitive ???:</strong> Define a method. The parse nodes
- * corresponding to the arguments will be checked at compile time against the
- * specified call site validation closure.
- *
- * @param methodName
- *        The method name.
- * @param implementation
- *        The closure that implements the method.
- * @param validator
- *        A closure whose parameters correspond to the parse nodes of the
- *        arguments at the call site at compile time. It should answer a type at
- *        least as strong as the statically ascertained result type of the
- *        implementation closure. If the arguments are rejected, then the
- *        closure should call "Reject the current parse because_" to provide a
- *        more specific rationale for argument rejection.
- */
-Method "Method_is_and validates with_" is
-[
-	methodName : string,
-	implementation : closure,
-	validator: closure |
-	
-	/* TODO: Replace ??? with the actual primitive number. */
-	Primitive ??? (unusedFailureCode : all);
-	Exit the current thread because "system error: primitive ??? failed";
-] : void;
-
-/**
- * <strong>Primitive 351:</strong> Answer the expression type of the specified
- * parse node.
- *
- * @param parseNode
- *        A parse node.
- * @return The expression type of the argument.
- */
-Method "expression type of_" is
-[
-	parseNode : parse node |
-	
-	Primitive 351 (unusedFailureCode : natural number);
-	Exit the current thread because "system error: primitive 351 failed";
-] : type;
-
-/**
- * Construct a tuple from the argument subexpressions.
- *
- * @param argument
- *        A tuple, constructed automatically by the parser during the processing
- *        of the guillemets construct.
- * @return A tuple.
- */
-Method "<«_‡,»>" is
-[
-	argument : tuple |
-	argument;
-]
-and validates with
-[
-	argumentType : tuple node |
-	expression type of argumentType;
-];
-
-/**
- * <strong>Primitive 109:</strong> Construct a set from the argument
- * subexpressions.
- *
- * @param argument
- *        A tuple, constructed automatically by the parser during the processing
- *        of the guillemets construct.
- * @return A set.
- */
-Method "{«_‡,»}" is
-[
-	argument : tuple |
-
-	Primitive 109 (unusedFailureCode : natural number);
-	Exit the current thread because "system error: primitive 109 failed";
-] : set;
+	methodNames : ⊶{string|0..∞},
+	forbiddenSubexpressions : ⊶<{string|0..∞}|0..∞>
+|
+	Primitive 255 (unusedFailureCode : ⊶[1..∞));
+	Exit: "system error: primitive 255 failed";
+] : nothing;
 
 /**
  * Single target message precedence declaration.
@@ -218,90 +391,32 @@ Method "{«_‡,»}" is
  *        the N-th underscore of each target method name. Each set contains
  *        method names that are not allowed at the N-th position.
  */
-Method "bootstrap:_doesn't allow_" is
+Method "⊶_doesn't allow_" is
 [
 	methodName : string,
-	forbiddenSubexpressions : tuple |
-	
-	{methodName} doesn't allow forbiddenSubexpressions;
-];
-
-/**
- * Force a particular order of evaluation of a subexpression. This implements
- * the standard mathematical notation of grouping parentheses.
- *
- * @param argument
- *        An argument, usually the result of a multi-node subexpression.
- * @returns The argument.
- */
-Method "(_)" is
-[
-	argument : all |
-	argument;
-]
-and validates with
-[
-	argumentType : type |
-	expression type of argumentType;
-];
+	forbiddenSubexpressions : ⊶<any..|0..∞>
+|
+	⊶{methodName} doesn't allow forbiddenSubexpressions;
+] : nothing;
 
 /* Disallow spurious parenthetical nesting. */
-bootstrap: "(_)" doesn't allow <{"(_)"}>;
+⊶"(_)" doesn't allow <⊶{"(_)"}>;
 
 /**
- * <strong>Primitive 60:</strong> Compare two objects for equality.
+ * Seal the multimethod at the specified locus in the implementation
+ * specialization hierarchy. That is, do not allow further definitions whose
+ * signatures are as or more specific than the one indicated.
  *
- * @param a
- *        An arbitrary object.
- * @param b
- *        An arbitrary object.
- * @return {@code true} if the arguments are equal, {@code false} otherwise.
+ * @param methodName
+ *        The method name.
+ * @param signature
+ *        A function kind.
  */
-Method "_=_" is
+Method "Seal_at_" is
 [
-	a : all,
-	b : all |
-	
-	Primitive 60 (unusedFailureCode : natural number);
-	Exit the current thread because "system error: primitive 60 failed";
-] : boolean;
-
-/**
- * <strong>Primitive 33:</strong> Answer {@code true} if the first argument is
- * an improper subtype of the second argument.
- *
- * @param a
- *        An arbitrary type.
- * @param b
- *        An arbitrary type.
- * @return {@code true} if the first argument is an improper subtype of the
- *         second argument, {@code false} otherwise.
- */
-Method "_≤_" is
-[
-	a : type,
-	b : type |
-	
-	Primitive 33 (unusedFailureCode : natural number);
-	Exit the current thread because "system error: primitive 33 failed";
-] : boolean;
-
-/**
- * Answer {@code true} if the first argument is an improper subtype of the
- * second argument. This is a convenience method for users who cannot easily
- * input Unicode characters.
- *
- * @param a
- *        An arbitrary type.
- * @param b
- *        An arbitrary type.
- * @return {@code true} if the first argument is an improper subtype of the
- *         second argument, {@code false} otherwise.
- */
-Method "_<=_" is
-[
-	a : type,
-	b : type |
-	
-	a ≤ b;
-] : boolean;
+	methodName : string,
+	signature : ⊶[…]→⊤
+|
+	Primitive ??? (unusedFailureCode : ⊶[1..∞));
+	Exit: "system error: primitive ??? failed";
+] : nothing; 

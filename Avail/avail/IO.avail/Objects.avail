@@ -52,7 +52,7 @@ primitiveTypes := <
 	trueType,
 	falseType,
 	character,
-	closure,
+	function,
 	compiledCode,
 	container,
 	continuation,
@@ -90,14 +90,14 @@ primitiveTypeIndices := [->];
 
 /* Basic algorithm... */
 
-Abstract method "_exploded" for [all] -> tuple;
-Abstract method "_imploded" for [tuple] -> all;
+Abstract method "_exploded" for [any] -> tuple;
+Abstract method "_imploded" for [tuple] -> any;
 
-Method "encoder_decoder_" is [encoder : [terminates]->tuple, decoder : [terminates]->all |
+Method "encoder_decoder_" is [encoder : [terminates]->tuple, decoder : [terminates]->any |
 	Method "_exploded" is encoder;
 	Method "_imploded" is decoder;
 ]: void
-requires [encT : closureType, decT : closureType |
+requires [encT : functionType, decT : functionType |
 	/* Make sure of a couple of things:  You get back the kind of thing you
 	   put in, and the decoder accepts everything the encoder produces.  */
 	decT result = encT[1]
@@ -133,19 +133,19 @@ decoder [t : tuple like <[5..5]> | true;];
 
 encoder [t : tuple |
 	<6> then t;
-] : tuple [1..INF) like <[6..7]> default all
-decoder [t : tuple [1..INF) like <[6..7]> default all |
+] : tuple [1..INF) like <[6..7]> default any
+decoder [t : tuple [1..INF) like <[6..7]> default any |
 	t[2..||t||];];
 
 encoder [t : string | <7> then t;]
 decoder [t : tuple [1..INF) like <[7..7]> default character | t[2..||t||];];
 
 encoder [s : set | <8> then s as tuple;]
-decoder [t : tuple [1..INF) like <[8..8]> default all | t[2..||t||] as set;];
+decoder [t : tuple [1..INF) like <[8..8]> default any | t[2..||t||] as set;];
 
 encoder [m : map |
-	<9> then splice (m keys as tuple collect [k : all | <k,m[k]>;]);]
-decoder [t : tuple [1..INF) like <[9..9]> default all |
+	<9> then splice (m keys as tuple collect [k : any | <k,m[k]>;]);]
+decoder [t : tuple [1..INF) like <[9..9]> default any |
 	m : map := [->];
 	i : natural number := 2;
 	While [
@@ -159,36 +159,36 @@ decoder [t : tuple [1..INF) like <[9..9]> default all |
 
 encoder [c : compiledCode |
 	<10, c numArgs, c numLocals, c numOuters, c stackSize,
-		c nybbles, c closureType, c primitive> then c literals;]
+		c nybbles, c functionType, c primitive> then c literals;]
 decoder [t : tuple [8..INF)
 		like <[10..10],
 			[0..INF), [0..INF), [0..INF), [0..INF),
-			tuple of [0..15], closureType, [0..65535]>
-		default all |
+			tuple of [0..15], functionType, [0..65535]>
+		default any |
 	compiledCode for
 		t[2] args
 		t[3] locals
 		t[4] outers
 		t[5] stack entries,
 		with nybbles t[6]
-		closureType t[7]
+		functionType t[7]
 		primitive t[8]
 		literals t[9..||t||];
 ];
 
-encoder [c : closure |
+encoder [c : function |
 	<11, c compiledCode> then c outerVars;]
-decoder [t : tuple [2..INF) like <[11..11], compiledCode> default all |
-	closure from t[2] outer variables t[3..||t||];];
+decoder [t : tuple [2..INF) like <[11..11], compiledCode> default any |
+	function from t[2] outer variables t[3..||t||];];
 
 encoder [t : type |
 	<12, primitiveTypeIndices[t]>;
-] : tuple [1..INF) like <[12..16]> default all
-decoder [t : tuple [1..INF) like <[12..16]> default all |
+] : tuple [1..INF) like <[12..16]> default any
+decoder [t : tuple [1..INF) like <[12..16]> default any |
 	cast t[2] into [n : natural number | primitiveTypes[n];];
 ];
 
-encoder [ct : closureType |
+encoder [ct : functionType |
 	<13, ct result> then (1 to ||ct|| collect [i : natural number | ct[i];]);]
 decoder [t : tuple [2..INF) like <[13..13]> default type |
 	block type taking t[3..||t||] and returning t[2];];
@@ -214,7 +214,7 @@ decoder [t : tuple like <[16..16], string> |
 encoder [con : container |
 	if *con = nil then [<17, con type readType>;]
 	else [<17, con type readType, *con>;];]
-decoder [t : tuple [2..3] like <[17..17], type> default all |
+decoder [t : tuple [2..3] like <[17..17], type> default any |
 	/* Note - container values are fixed up in a second pass within Load_from_
 	   so that Dump_on_ can perform a topological sort.  The idea is to break cycles.
 	   Since every cycle must pass through a container, well, you get the idea.  */

@@ -1156,7 +1156,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param expressionNode
 	 *            A {@link ParseNodeDescriptor parse node}.
-	 * @return The result of generating a {@link ClosureDescriptor closure} from
+	 * @return The result of generating a {@link FunctionDescriptor function} from
 	 *         the argument and evaluating it.
 	 */
 	AvailObject evaluate (final AvailObject expressionNode)
@@ -1172,16 +1172,16 @@ public abstract class AbstractAvailCompiler
 		final AvailObject compiledBlock = block.generate(codeGenerator);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
-		// code), so build a closure with no copied data.
+		// code), so build a function with no copied data.
 		assert compiledBlock.numOuters() == 0;
-		final AvailObject closure = ClosureDescriptor.create(
+		final AvailObject function = FunctionDescriptor.create(
 			compiledBlock,
 			TupleDescriptor.empty());
-		closure.makeImmutable();
+		function.makeImmutable();
 		List<AvailObject> args;
 		args = new ArrayList<AvailObject>();
-		final AvailObject result = interpreter.runClosureArguments(
-			closure,
+		final AvailObject result = interpreter.runFunctionArguments(
+			function,
 			args);
 		return result;
 	}

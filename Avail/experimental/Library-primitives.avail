@@ -68,4 +68,4 @@ Method "invoke primitive entry point_with arguments_" is [
 		arguments : tuple |
 	Primitive 263 (failureCode : natural number);
 	Failed;
-] : all;
+] : any;

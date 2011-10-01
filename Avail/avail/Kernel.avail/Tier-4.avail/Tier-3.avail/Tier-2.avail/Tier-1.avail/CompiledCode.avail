@@ -43,10 +43,10 @@ Names
 	"_numOuters",
 	"_stackSize",
 	"_nybbles",
-	"_closureType",
+	"_functionType",
 	"_literals",
 	"_primitive",
-	"compiledCode for_args_locals_outers_stack entries,with nybbles_closureType_primitive_literals_"
+	"compiledCode for_args_locals_outers_stack entries,with nybbles_functionType_primitive_literals_"
 Body
 
 
@@ -72,9 +72,9 @@ Method "_nybbles" is [cc : compiledCode |
 	Primitive 184;
 ] : tuple of [0..15];
 
-Method "_closureType" is [cc : compiledCode |
+Method "_functionType" is [cc : compiledCode |
 	Primitive 185;
-] : closureType;
+] : functionType;
 
 Method "_primitive" is [cc : compiledCode |
 	Primitive 186;
@@ -86,12 +86,12 @@ Method "_literals" is [cc : compiledCode |
 
 /* Construction... */
 
-Method "compiledCode for_locals_outers_stack entries,with nybbles_closureType_primitive_literals_" is [
+Method "compiledCode for_locals_outers_stack entries,with nybbles_functionType_primitive_literals_" is [
 		numLocals : whole number,
 		numOuters: whole number,
 		stackSize : whole number,
 		nybbles : tuple of [0..15],
-		closureType : closureType,
+		functionType : functionType,
 		prim : [0..65535],
 		literals : tuple |
 	Primitive 188 (failureCode : natural number);

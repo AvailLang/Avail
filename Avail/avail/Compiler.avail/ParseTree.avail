@@ -105,8 +105,8 @@ Method "_emit value on_" is [node : Block Node, gen : Instruction Generator |
 	];
 	code ::= subGen result;
 	if ||outers|| = 0 then [
-		/* Build the closure statically, and push it as a literal. */
-		lit ::= closure from code outer variables <>;
+		/* Build the function statically, and push it as a literal. */
+		lit ::= function from code outer variables <>;
 		gen push literal lit;
 	] else [
 		outers do [outer : Variable |
@@ -237,7 +237,7 @@ Method "generate zero argument block from_" is [node : Parse Node |
 		result type (node result type);
 	node emit value on gen;
 	code ::= gen result;
-	block ::= closure from code outer variables <>;
+	block ::= function from code outer variables <>;
 	cast block into [b : []->void | b;];
 ] : []->void;
 
@@ -245,12 +245,12 @@ Method "generate zero argument block from_" is [node : Parse Node |
 
 Method "evaluate_" is [node : Parse Node |
 	block ::= generate zero argument block from node;
-	cast block into [b : []->all |
+	cast block into [b : []->any |
 		b();
 	] otherwise [
 		Crash "That expression has void type (unsupported for evaluation).";
 	];
-] : all;
+] : any;
 
 Method "evaluate_" is [node : Declaration Node |
 	Crash "A declaration node has no value.";

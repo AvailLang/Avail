@@ -50,10 +50,10 @@ privateElementType ::= lookup "elementType";
 Method "elementType" is [privateElementType;];
 
 "Collection" is explicit subtype of Object with
-	elementType->[]->all;
+	elementType->[]->any;
 
 Abstract method "_do_" for [Collection, [terminates]->void]->void
-requires [cType : Collection type, blkType : closureType |
+requires [cType : Collection type, blkType : functionType |
 	cType -> elementType result <= blkType[1];
 ];
 
@@ -64,7 +64,7 @@ requires [cType : Collection type, blkType : closureType |
 "Collection Factory" is implicit subtype of Factory with
 	resultType->[]->Collection;
 
-Abstract method "_add_" for [Collection Factory, all]->void
+Abstract method "_add_" for [Collection Factory, any]->void
 requires [cfType : Collection Factory type, itemType : type |
 	collectionType ::= cfType -> resultType result;
 	elemType ::= collectionType -> elementType result;
@@ -72,7 +72,7 @@ requires [cfType : Collection Factory type, itemType : type |
 ];
 
 Method "_add all_" is [cf : Collection Factory, c : Collection |
-	c do [item : all | cf add item;];
+	c do [item : any | cf add item;];
 ] : void
 requires [cfType : Collection Factory type, cType : Collection type |
 	collectionType ::= cfType -> resultType result;

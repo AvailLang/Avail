@@ -44,7 +44,7 @@ Body
 
 /* Partial function application... */
 
-Method "_curry_" is [block : closure, arg : all |
+Method "_curry_" is [block : function, arg : any |
 	/* Perform a partial application of the given block.  That is, apply one
 	   argument to the block, producing a block that requires one less
 	   argument.  This is a common feature in functional languages, so it
@@ -55,18 +55,18 @@ Method "_curry_" is [block : closure, arg : all |
 		and applying name of block invoker
 		to [args : tuple | block2 apply <arg> then args;]
 		and argument tuple returning (bt result);
-] : closure
-requires [cT : closureType, aT : type |
+] : function
+requires [cT : functionType, aT : type |
 	/* Requires block to take one or more arguments, and for first argument
 	   type to agree with the passed argument.  */
-	cast cT into [cT2 : closureType |
+	cast cT into [cT2 : functionType |
 		||cT2|| >= 1 & [aT <= cT2[1];];
 	] otherwise [
 		false;
 	];
 ]
-returns [cT : closureType, aT : type |
-	cast cT into [cT2 : closureType |
+returns [cT : functionType, aT : type |
+	cast cT into [cT2 : functionType |
 		block type taking 2 to ||cT2|| collect [i : natural number | cT2[i];]
 			and returning (cT2 result);
 	];
@@ -75,7 +75,7 @@ returns [cT : closureType, aT : type |
 
 /* Partial function application... */
 
-Method "_taking arguments tupled" is [block : closure |
+Method "_taking arguments tupled" is [block : function |
 	/* Convert the block taking N arguments into a block taking one argument
 	   which is a tuple.  We can't just use "[t : tuple | block apply t;];", because
 	   the dynamic type must be correct, too.  */
@@ -90,8 +90,8 @@ Method "_taking arguments tupled" is [block : closure |
 		] and argument tuple returning block type result;
 	cast result into [x : [terminates]->void | x;];
 ] : [terminates]->void
-returns [ct : closureType |
-	cast ct into [ct2 : closureType |
+returns [ct : functionType |
+	cast ct into [ct2 : functionType |
 		block type taking
 			<tuple like 1 to ||ct2|| collect [i : natural number | ct2[i];]>
 		and returning (ct2 result);
@@ -139,7 +139,7 @@ Method "_curry of tupled block" is [blk : [terminates]->void |
 							];
 						]
 						and argument tuple returning blk type result;
-					cast inner into [in : [terminates]->all |
+					cast inner into [in : [terminates]->any |
 						in curry of tupled block;
 					];
 				] and argument tuple returning
@@ -157,7 +157,7 @@ Method "_curry of tupled block" is [blk : [terminates]->void |
 	];
 	cast result into [res : [terminates]->void | res;];
 ] : [terminates]->void
-returns [blkType : closureType |
+returns [blkType : functionType |
 	cast blkType[1] into [argType : tupleType |
 		if argType = terminates then [
 			/* Exact type is unknown, but this is a helper method, so we leave
@@ -170,7 +170,7 @@ returns [blkType : closureType |
 		];
 	];
 ]
-requires [blkType : closureType |
+requires [blkType : functionType |
 	||blkType|| = 1
 		& [
 			blkType[1] = terminates
@@ -179,7 +179,7 @@ requires [blkType : closureType |
 					argType sizes lower bound = argType sizes upper bound;
 				] otherwise [
 					/* Allow 'untyped' form to be used, in which it is known to
-					   be a closure of one argument, but the argument is typed
+					   be a function of one argument, but the argument is typed
 					   as something other than a tupleType.  This should still be
 					   safe, as we're defining a private second-order method
 					   here, which *defines* the type system. */
@@ -190,26 +190,26 @@ requires [blkType : closureType |
 ];
 
 
-Method "_curried" is [blk : closure |
+Method "_curried" is [blk : function |
 	/* Convert the block taking N arguments into a block taking one argument
 	   that returns a block taking one argument that returns... (N levels)... a block
-	   that returns the result of applying all these arguments at once to the
+	   that returns the result of applying any these arguments at once to the
 	   original block... */
 	blkTupled ::= blk taking arguments tupled;
 	blkTupled curry of tupled block;
 ] : [terminates]->void
-requires [ct : closureType |
+requires [ct : functionType |
 	/* Require static knowledge of the block's type, to statically prevent the
 	   use of a 0-argument block. */
-	cast ct into [ct2 : closureType |
+	cast ct into [ct2 : functionType |
 		||ct2|| >= 1;
 	] otherwise [
 		/* Static type of block was inadequate for currying. */
 		false;
 	];
 ]
-returns [ct : closureType |
-	cast ct into [ct2 : closureType |
+returns [ct : functionType |
+	cast ct into [ct2 : functionType |
 		blkType : type := ct2 result;
 		count : integer := ||ct2||;
 		Loop [

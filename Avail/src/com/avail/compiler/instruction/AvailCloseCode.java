@@ -33,13 +33,13 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailCloseCode;
-import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 /**
- * This instruction build a {@link ClosureDescriptor closure} from {@link
+ * This instruction build a {@link FunctionDescriptor function} from {@link
  * CompiledCodeDescriptor compiled code} and some pushed variables.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -48,8 +48,8 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 {
 	/**
 	 * The number of variables that have been pushed on the stack to be
-	 * captured as outer variables of the resulting {@link ClosureDescriptor
-	 * closure}.  
+	 * captured as outer variables of the resulting {@link FunctionDescriptor
+	 * function}.  
 	 */
 	int numCopiedVars;
 
@@ -58,7 +58,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	 * Construct a new {@link AvailCloseCode}.
 	 *
 	 * @param numCopiedVars The number of already-pushed variables to capture
-	 *                      in the closure as outer variables.
+	 *                      in the function as outer variables.
 	 * @param codeIndex The index of the compiled code in the literals.
 	 */
 	public AvailCloseCode (

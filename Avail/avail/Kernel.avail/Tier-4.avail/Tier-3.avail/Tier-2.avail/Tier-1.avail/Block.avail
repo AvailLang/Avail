@@ -46,18 +46,18 @@ Names
 	"_compiledCode",
 	"_outerVars",
 	"_argument count",
-	"closure from_outer variables_"
+	"function from_outer variables_"
 Body
 
 
 
 /**
- * Answer a closure type that includes as instances all closures that have the
+ * Answer a function type that includes as instances all functions that have the
  * specified return type.
  */
 Method "[...]->_" is [result : type |
 	Primitive 39;
-] : closureType;
+] : functionType;
 
 /**
  * Private method declaration helper (bootstrapping workaround).
@@ -88,20 +88,20 @@ returns [tt : tupleType |
 
 /* Block type constructors / extractors... */
 
-Method "_arguments type" is [ct : closureType |
+Method "_arguments type" is [ct : functionType |
 	Primitive 35;
 ] : tupleType;
 
-Method "_[_]" is [ct : closureType, index : natural number |
+Method "_[_]" is [ct : functionType, index : natural number |
 	Primitive 36 (failureCode : natural number);
 	Failed;
 ] : type;
 
 
 /**
- * Answer the return result type for this closure type.
+ * Answer the return result type for this function type.
  */
-Method "_result" is [ct : closureType |
+Method "_result" is [ct : functionType |
 	Primitive 37;
 ] : type;
 
@@ -109,28 +109,28 @@ tupleOfType ::= Special Object 73;
 
 Method "block type taking_and returning_" is [args : tupleOfType, ret : type |
 	Primitive 34;
-] : closureType;
+] : functionType;
 
 /**
- * Create a closure type.
+ * Create a function type.
  */
 Method "[«_‡,»]->_" is [types : tupleOfType, result : type |
 	block type taking types and returning result;
-] : closureType;
+] : functionType;
 
 
 /* Simple block stub construction... */
 
 Method "stub block taking_arguments and returning_" is [
 		n : whole number,
-		a : all |
+		a : any |
 	Primitive 70;
-] : [...]-> all;
+] : [...]-> any;
 
 
 /* Detailed accessing (for object dumping / loading). */
 
-Method "_compiledCode" is [c : closure |
+Method "_compiledCode" is [c : function |
 	Primitive 72;
 ] : compiledCode;
 
@@ -138,7 +138,7 @@ Method "_privateNumArgs" is [c : compiledCode |
 	Primitive 180;
 ] : whole number;
 
-Method "_argument count" is [c : closure |
+Method "_argument count" is [c : function |
 	c compiledCode privateNumArgs;
 ] : whole number;
 
@@ -155,12 +155,12 @@ Method "_privateUpperBound" is [range : integerType |
 ] : extended integer;
 
 /* Here's the implementation of the conditional downcast */
-Method "Private*_?:=_" is [var : container, arg : all |
+Method "Private*_?:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
 	Failed;
 ] : void;
 
-Method "_argument count" is [c : closureType |
+Method "_argument count" is [c : functionType |
 	argTypes ::= c arguments type;
 	sizes ::= argTypes privateSizes;
 	Assert sizes privateLowerBound = sizes privateUpperBound;
@@ -169,19 +169,19 @@ Method "_argument count" is [c : closureType |
 	result;
 ] : whole number;
 
-Method "_outerVars" is [c : closure |
+Method "_outerVars" is [c : function |
 	Primitive 73;
 ] : tuple;
 
 
 /**
- * Closure construction (for dumping/loading, but some day we could build all
+ * Function construction (for dumping/loading, but some day we could build all
  * the stub generation primitives this way).
  */
-Method "closure from_outer variables_" is [
+Method "function from_outer variables_" is [
 		c : compiledCode,
 		outers : tuple |
 	Primitive 74 (failureCode : natural number);
 	Failed;
-] : closure;
+] : function;
 

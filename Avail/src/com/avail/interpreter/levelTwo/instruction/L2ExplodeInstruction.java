@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.register.*;
 /**
  * {@code L2ExplodeInstruction} disassembles the source {@linkplain
  * ContinuationDescriptor continuation} by extracting its caller, {@linkplain
- * ClosureDescriptor closure}, and {@linkplain AvailObject slots} into the
+ * FunctionDescriptor function}, and {@linkplain AvailObject slots} into the
  * specified {@linkplain L2RegisterVector register vector}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -66,9 +66,9 @@ extends L2Instruction
 
 	/**
 	 * The destination {@linkplain L2ObjectRegister register} for the
-	 * {@linkplain ClosureDescriptor closure}.
+	 * {@linkplain FunctionDescriptor function}.
 	 */
-	private final @NotNull L2ObjectRegister closure;
+	private final @NotNull L2ObjectRegister function;
 
 	/**
 	 * The destination {@linkplain L2RegisterVector vector} for the {@linkplain
@@ -87,9 +87,9 @@ extends L2Instruction
 	 * @param caller
 	 *        The destination {@linkplain L2ObjectRegister register} for the
 	 *        {@linkplain ContinuationDescriptor caller}.
-	 * @param closure
+	 * @param function
 	 *        The destination {@linkplain L2ObjectRegister register} for the
-	 *        {@linkplain ClosureDescriptor closure}.
+	 *        {@linkplain FunctionDescriptor function}.
 	 * @param slotsVector
 	 *        The destination {@linkplain L2RegisterVector vector} for the
 	 *        {@linkplain AvailObject slots} of the {@linkplain
@@ -98,12 +98,12 @@ extends L2Instruction
 	public L2ExplodeInstruction (
 		final @NotNull L2ObjectRegister sourceRegister,
 		final @NotNull L2ObjectRegister caller,
-		final @NotNull L2ObjectRegister closure,
+		final @NotNull L2ObjectRegister function,
 		final @NotNull L2RegisterVector slotsVector)
 	{
 		this.sourceRegister = sourceRegister;
 		this.caller = caller;
-		this.closure = closure;
+		this.function = function;
 		this.slotsVector = slotsVector;
 	}
 
@@ -119,7 +119,7 @@ extends L2Instruction
 		List<L2Register> result = new ArrayList<L2Register>(
 			2 + slotsVector.registers().size());
 		result.add(caller);
-		result.add(closure);
+		result.add(function);
 		result.addAll(slotsVector.registers());
 		return result;
 	}
@@ -131,7 +131,7 @@ extends L2Instruction
 			L2_doExplodeContinuationObject);
 		codeGenerator.emitObjectRegister(sourceRegister);
 		codeGenerator.emitObjectRegister(caller);
-		codeGenerator.emitObjectRegister(closure);
+		codeGenerator.emitObjectRegister(function);
 		codeGenerator.emitVector(slotsVector);
 	}
 
@@ -146,7 +146,7 @@ extends L2Instruction
 		// adjusted with an expectation of a return value (of the appropriate
 		// type) on the stack.
 		//
-		// Clear all types, then set the sender and closure types (the slot
+		// Clear all types, then set the sender and function types (the slot
 		// types will be set by L2Translator>>doCall)...
 
 		translator.clearRegisterTypes();
@@ -154,7 +154,7 @@ extends L2Instruction
 		//    at: destSender identity put: TypeDescriptor continuation.
 		//
 		//  unused information
-		translator.registerTypeAtPut(closure, translator.code().closureType());
+		translator.registerTypeAtPut(function, translator.code().functionType());
 		translator.clearRegisterConstants();
 	}
 }

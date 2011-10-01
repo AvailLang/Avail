@@ -57,7 +57,7 @@ extends Descriptor
 
 		/**
 		 * A compound field consisting of the number of outer variables/values
-		 * to be captured by my {@linkplain ClosureDescriptor closures}, and
+		 * to be captured by my {@linkplain FunctionDescriptor functions}, and
 		 * the variable number of slots that should be allocated for a
 		 * {@linkplain ContinuationDescriptor continuation} running this code.
 		 */
@@ -101,10 +101,10 @@ extends Descriptor
 		NYBBLES,
 
 		/**
-		 * The {@linkplain ClosureTypeDescriptor type} of any closure
+		 * The {@linkplain FunctionTypeDescriptor type} of any function
 		 * based on this {@linkplain CompiledCodeDescriptor compiled code}.
 		 */
-		CLOSURE_TYPE,
+		FUNCTION_TYPE,
 
 		/**
 		 * The {@linkplain L2ChunkDescriptor level two chunk} to executed on
@@ -136,7 +136,7 @@ extends Descriptor
 	{
 		/**
 		 * The number of outer variables that must captured by my {@linkplain
-		 * ClosureDescriptor closures}.
+		 * FunctionDescriptor functions}.
 		 */
 		@BitField(shift=16, bits=16)
 		static final BitField NUM_OUTERS =
@@ -201,10 +201,10 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ClosureType (
+	public @NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
+		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
 	}
 
 	@Override
@@ -262,7 +262,7 @@ extends Descriptor
 				!= aCompiledCode.numArgsAndLocalsAndStack()
 			|| object.numLocals() != aCompiledCode.numLocals()
 			|| object.numArgs() != aCompiledCode.numArgs()
-			|| !object.closureType().equals(aCompiledCode.closureType()))
+			|| !object.functionType().equals(aCompiledCode.functionType()))
 		{
 			return false;
 		}
@@ -286,24 +286,24 @@ extends Descriptor
 	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return CompiledCodeTypeDescriptor.forClosureType(
-			object.closureType());
+		return CompiledCodeTypeDescriptor.forFunctionType(
+			object.functionType());
 	}
 
 	@Override
 	public boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosure)
+		final @NotNull AvailObject aFunction)
 	{
-		// Answer true if either I am aClosure's code or I contain aClosure or
+		// Answer true if either I am aFunction's code or I contain aFunction or
 		// its code.
-		if (object.sameAddressAs(aClosure.code().traversed()))
+		if (object.sameAddressAs(aFunction.code().traversed()))
 		{
 			return true;
 		}
 		for (int i = 1, end = object.numLiterals(); i <= end; i++)
 		{
-			if (object.literalAt(i).containsBlock(aClosure))
+			if (object.literalAt(i).containsBlock(aFunction))
 			{
 				return true;
 			}
@@ -479,7 +479,7 @@ extends Descriptor
 	 * @param nybbles The nybblecodes.
 	 * @param locals The number of local variables.
 	 * @param stack The maximum stack depth.
-	 * @param closureType The type that the code's closures will have.
+	 * @param functionType The type that the code's functions will have.
 	 * @param primitive Which primitive to invoke, or zero.
 	 * @param literals A tuple of literals.
 	 * @param localTypes A tuple of types of local variables.
@@ -490,7 +490,7 @@ extends Descriptor
 		final @NotNull AvailObject nybbles,
 		final int locals,
 		final int stack,
-		final @NotNull AvailObject closureType,
+		final @NotNull AvailObject functionType,
 		final int primitive,
 		final @NotNull AvailObject literals,
 		final @NotNull AvailObject localTypes,
@@ -504,11 +504,11 @@ extends Descriptor
 			final Primitive prim = Primitive.byPrimitiveNumber(primitive);
 			final AvailObject restrictionSignature =
 				prim.blockTypeRestriction();
-			assert restrictionSignature.isSubtypeOf(closureType);
+			assert restrictionSignature.isSubtypeOf(functionType);
 		}
 
 		assert localTypes.tupleSize() == locals;
-		final AvailObject argCounts = closureType.argsTupleType().sizeRange();
+		final AvailObject argCounts = functionType.argsTupleType().sizeRange();
 		final int numArgs = argCounts.lowerBound().extractInt();
 		assert argCounts.upperBound().extractInt() == numArgs;
 		final int literalsSize = literals.tupleSize();
@@ -544,7 +544,7 @@ extends Descriptor
 			outersSize);
 		code.integerSlotPut(IntegerSlots.PRIMITIVE_NUMBER, primitive);
 		code.objectSlotPut(ObjectSlots.NYBBLES, nybbles);
-		code.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
+		code.objectSlotPut(ObjectSlots.FUNCTION_TYPE, functionType);
 		code.startingChunk(L2ChunkDescriptor.unoptimizedChunk());
 		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
 
@@ -577,7 +577,7 @@ extends Descriptor
 		int hash = 0x0B085B25 + code.objectSlotsCount() + nybbles.hash()
 			^ numArgs * 4127;
 		hash += locals * 1237 + stack * 9131 + primitive * 1151;
-		hash ^= closureType.hash();
+		hash ^= functionType.hash();
 		for (int i = 1; i <= literalsSize; i++)
 		{
 			hash = hash * 2 + literals.tupleAt(i).hash() ^ 0x052B580B;

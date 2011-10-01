@@ -50,12 +50,12 @@ Body
 
 Method "⊶[...]->_" is [result : type |
 	Primitive 39;
-] : closureType;
+] : functionType;
 
 Method "⊶Forward_for_"
 is [
 		name : string,
-		blockType : closureType |
+		blockType : functionType |
 	/* Declare method without body (for recursion / mutual recursion).  Must be
 	   followed in same module by a legitimate definition. */
 	Primitive 252 (failureCode : natural number);
@@ -73,7 +73,7 @@ is [
 ] : void;
 
 
-⊶Method "_type" is [x : all |
+⊶Method "_type" is [x : any |
 	Primitive 30;
 ] :  type
 requires [xt : type |
@@ -88,11 +88,11 @@ tupleOfType ::= Special Object 73;
 
 Method "⊶block type taking_and returning_" is [args : tupleOfType, ret : type |
 	Primitive 34;
-] : closureType;
+] : functionType;
 
 Method "⊶[«_‡,»]->_" is [types : tupleOfType, result : type |
 	⊶block type taking types and returning result;
-] : closureType;
+] : functionType;
 
 
 

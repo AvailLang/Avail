@@ -127,7 +127,7 @@ public class L2Translator implements L1OperationDispatcher
 
 	/**
 	 * Trim all type and constant information to those that are preserved in
-	 * architectural registers.  These are the caller, the closure, and all
+	 * architectural registers.  These are the caller, the function, and all
 	 * continuation slots.
 	 */
 	public void restrictPropagationInformationToArchitecturalRegisters ()
@@ -135,7 +135,7 @@ public class L2Translator implements L1OperationDispatcher
 		final HashSet<L2RegisterIdentity> archRegs =
 			new HashSet<L2RegisterIdentity>();
 		archRegs.add(callerRegister().identity());
-		archRegs.add(closureRegister().identity());
+		archRegs.add(functionRegister().identity());
 		for (int i = 1; i <= code.numArgsAndLocalsAndStack(); i++)
 		{
 			archRegs.add(continuationSlotRegister(i).identity());
@@ -189,9 +189,9 @@ public class L2Translator implements L1OperationDispatcher
 	 * <p>
 	 * The architectural registers have a fixed numbering, which include the
 	 * {@link #callerRegister()} of the current block, the {@link
-	 * #closureRegister()} being executed.  The {@linkplain
+	 * #functionRegister()} being executed.  The {@linkplain
 	 * #localOrArgumentRegister(int) arguments and locals} come next, but they
-	 * are not pre-colored registers like the caller and closure registers.
+	 * are not pre-colored registers like the caller and function registers.
 	 * </p>
 	 *
 	 * @param registerNumber
@@ -227,13 +227,13 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
-	 * Answer the register reserved for holding the current context's closure.
+	 * Answer the register reserved for holding the current context's function.
 	 *
 	 * @return
 	 *            The {@link L2ObjectRegister} that holds the current context's
-	 *            closure.
+	 *            function.
 	 */
-	private L2ObjectRegister closureRegister ()
+	private L2ObjectRegister functionRegister ()
 	{
 		return architecturalRegister(2);
 	}
@@ -360,7 +360,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param args A {@link List} of {@link L2ObjectRegister registers} holding
 	 *             the actual constant values used to look up the implementation
 	 *             for the call.
-	 * @return A method body (a {@code ClosureDescriptor closure}) that
+	 * @return A method body (a {@code FunctionDescriptor function}) that
 	 *         exemplifies the primitive that should be inlined.
 	 */
 	private AvailObject primitiveToInlineForArgumentRegisters (
@@ -389,7 +389,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param argTypeRegisters A {@link List} of {@link L2ObjectRegister
 	 *                         registers} holding the types used to look up the
 	 *                         implementation for the call.
-	 * @return A method body (a {@code ClosureDescriptor closure}) that
+	 * @return A method body (a {@code FunctionDescriptor function}) that
 	 *         exemplifies the primitive that should be inlined.
 	 */
 	private AvailObject primitiveToInlineForArgumentTypeRegisters (
@@ -530,13 +530,13 @@ public class L2Translator implements L1OperationDispatcher
 	 * <p>Special case if the flag {@link Primitive.Flag#SpecialReturnConstant}
 	 * is specified:  Always fold it, since it's just a constant.</p>
 	 *
-	 * @param primitiveClosure
-	 *            A {@link ClosureDescriptor closure} for which its primitive
+	 * @param primitiveFunction
+	 *            A {@link FunctionDescriptor function} for which its primitive
 	 *            might be inlined, or even folded if possible.
 	 * @param impSet
 	 *            The implementation set containing the primitive to be invoked.
 	 * @param args
-	 *            The {@link List} of arguments to the primitive closure.
+	 *            The {@link List} of arguments to the primitive function.
 	 * @param expectedType
 	 *            The {@link TypeDescriptor type} of object that this primitive
 	 *            call site was expected to produce.
@@ -550,21 +550,21 @@ public class L2Translator implements L1OperationDispatcher
 	 *            The value if the primitive was folded, otherwise null.
 	 */
 	private AvailObject emitInlinePrimitiveAttempt (
-		final AvailObject primitiveClosure,
+		final AvailObject primitiveFunction,
 		final AvailObject impSet,
 		final List<L2ObjectRegister> args,
 		final AvailObject expectedType,
 		final L2ObjectRegister failureValueRegister,
 		final L2LabelInstruction successLabel)
 	{
-		final int primitiveNumber = primitiveClosure.code().primitiveNumber();
+		final int primitiveNumber = primitiveFunction.code().primitiveNumber();
 		final Primitive primitive =
 			Primitive.byPrimitiveNumber(primitiveNumber);
 		contingentImpSets.add(impSet);
 		if (primitive.hasFlag(SpecialReturnConstant))
 		{
 			// Use the first literal as the return value.
-			final AvailObject value = primitiveClosure.code().literalAt(1);
+			final AvailObject value = primitiveFunction.code().literalAt(1);
 			addInstruction(new L2LoadConstantInstruction(
 				value,
 				topOfStackRegister()));
@@ -591,7 +591,7 @@ public class L2Translator implements L1OperationDispatcher
 			}
 			final Result success = interpreter.attemptPrimitive(
 				primitiveNumber,
-				primitiveClosure.code(),
+				primitiveFunction.code(),
 				argValues);
 			if (success == SUCCESS)
 			{
@@ -678,15 +678,15 @@ public class L2Translator implements L1OperationDispatcher
 			code.numArgs() + code.numLocals() + stackp - 1,
 			expectedTypeReg);
 		final L2LabelInstruction postExplodeLabel = newLabel();
-		final AvailObject primClosure = primitiveToInlineForArgumentRegisters(
+		final AvailObject primFunction = primitiveToInlineForArgumentRegisters(
 			impSet,
 			args);
-		if (primClosure != null)
+		if (primFunction != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
 			final AvailObject folded = emitInlinePrimitiveAttempt(
-				primClosure,
+				primFunction,
 				impSet,
 				args,
 				expectedType,
@@ -720,14 +720,14 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(
 			new L2CreateContinuationInstruction(
 				callerRegister(),
-				closureRegister(),
+				functionRegister(),
 				pc,
 				stackp,
 				numSlots,
 				createVector(preSlots),
 				postCallLabel,
 				callerRegister()));
-		if (primClosure != null)
+		if (primFunction != null)
 		{
 			addInstruction(new L2CallAfterFailedPrimitiveInstruction(
 				impSet,
@@ -771,7 +771,7 @@ public class L2Translator implements L1OperationDispatcher
 	public void L1_doClose ()
 	{
 		//  [n,m] - Pop the top n items off the stack, and use them as outer variables in the
-		//  construction of a closure based on the compiledCode that's the literal at index m
+		//  construction of a function based on the compiledCode that's the literal at index m
 		//  of the current compiledCode.
 
 		final int count = getInteger();
@@ -783,14 +783,14 @@ public class L2Translator implements L1OperationDispatcher
 			stackp++;
 		}
 		stackp--;
-		addInstruction(new L2CreateClosureInstruction(
+		addInstruction(new L2CreateFunctionInstruction(
 			codeLiteral,
 			createVector(outers),
 			topOfStackRegister()));
 
-		// Now that the closure has been constructed, clear the slots that
+		// Now that the function has been constructed, clear the slots that
 		// were used for outer values (except the destination slot, which is
-		// being overwritten with the resulting closure anyhow).
+		// being overwritten with the resulting function anyhow).
 		for (int stackIndex = stackp + 1 - count; stackIndex <= stackp - 1; stackIndex++)
 		{
 			addInstruction(new L2ClearObjectInstruction(
@@ -835,12 +835,12 @@ public class L2Translator implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuter ()
 	{
-		//  [n] - Push the value of the outer variable indexed by n in the current closure.
+		//  [n] - Push the value of the outer variable indexed by n in the current function.
 
 		final int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction(
-			closureRegister(),
+			functionRegister(),
 			outerIndex,
 			topOfStackRegister()));
 		addInstruction(
@@ -850,14 +850,14 @@ public class L2Translator implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		//  [n] - Push the value of the outer variable indexed by n in the current closure.
+		//  [n] - Push the value of the outer variable indexed by n in the current function.
 		//  If the variable itself is mutable, clear it at this time - nobody will know.
 		//  Actually, right now we don't optimize this in level two, for simplicity.
 
 		final int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction(
-			closureRegister(),
+			functionRegister(),
 			outerIndex,
 			topOfStackRegister()));
 		addInstruction(new L2GetClearingInstruction(
@@ -908,14 +908,14 @@ public class L2Translator implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		//  [n] - Push the outer variable indexed by n in the current closure.  If the variable is
-		//  mutable, clear it (no one will know).  If the variable and closure are both mutable,
-		//  remove the variable from the closure by clearing it.
+		//  [n] - Push the outer variable indexed by n in the current function.  If the variable is
+		//  mutable, clear it (no one will know).  If the variable and function are both mutable,
+		//  remove the variable from the function by clearing it.
 
 		final int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction(
-			closureRegister(),
+			functionRegister(),
 			outerIndex,
 			topOfStackRegister()));
 		addInstruction(new L2MakeImmutableInstruction(
@@ -951,12 +951,12 @@ public class L2Translator implements L1OperationDispatcher
 	@Override
 	public void L1_doPushOuter ()
 	{
-		//  [n] - Push the outer variable indexed by n in the current closure.
+		//  [n] - Push the outer variable indexed by n in the current function.
 
 		final int outerIndex = getInteger();
 		stackp--;
 		addInstruction(new L2ExtractOuterInstruction(
-			closureRegister(),
+			functionRegister(),
 			outerIndex,
 			topOfStackRegister()));
 		addInstruction(new L2MakeImmutableInstruction(
@@ -977,14 +977,14 @@ public class L2Translator implements L1OperationDispatcher
 	@Override
 	public void L1_doSetOuter ()
 	{
-		//  [n] - Pop the stack and assign this value to the outer variable indexed by n in the current closure.
+		//  [n] - Pop the stack and assign this value to the outer variable indexed by n in the current function.
 
 		final int outerIndex = getInteger();
 		final L2ObjectRegister tempReg = newRegister();
 		addInstruction(new L2MakeImmutableInstruction(
 			topOfStackRegister()));
 		addInstruction(new L2ExtractOuterInstruction(
-			closureRegister(),
+			functionRegister(),
 			outerIndex,
 			tempReg));
 		addInstruction(new L2SetInstruction(tempReg, topOfStackRegister()));
@@ -1062,7 +1062,7 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		addInstruction(new L2CreateContinuationInstruction(
 			callerRegister(),
-			closureRegister(),
+			functionRegister(),
 			1,
 			code.maxStackDepth() + 1,
 			numSlots,
@@ -1070,7 +1070,7 @@ public class L2Translator implements L1OperationDispatcher
 			startLabel,
 			destReg));
 
-		// Freeze all fields of the new object, including its caller, closure,
+		// Freeze all fields of the new object, including its caller, function,
 		// and arguments.
 		addInstruction(new L2MakeSubobjectsImmutableInstruction(destReg));
 	}
@@ -1156,15 +1156,15 @@ public class L2Translator implements L1OperationDispatcher
 			code.numArgs() + code.numLocals() + stackp - 1,
 			expectedTypeReg);
 		final L2LabelInstruction postExplodeLabel = newLabel();
-		final AvailObject primClosure = primitiveToInlineForArgumentTypeRegisters(
+		final AvailObject primFunction = primitiveToInlineForArgumentTypeRegisters(
 			impSet,
 			argTypes);
-		if (primClosure != null)
+		if (primFunction != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
 			final AvailObject folded = emitInlinePrimitiveAttempt(
-				primClosure,
+				primFunction,
 				impSet,
 				args,
 				expectedType,
@@ -1199,7 +1199,7 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(
 			new L2CreateContinuationInstruction(
 				callerRegister(),
-				closureRegister(),
+				functionRegister(),
 				pc,
 				stackp,
 				numSlots,
@@ -1220,7 +1220,7 @@ public class L2Translator implements L1OperationDispatcher
 //		addInstruction(new L2ExplodeInstruction(
 //			callerRegister(),
 //			callerRegister(),
-//			closureRegister(),
+//			functionRegister(),
 //			createVector(postSlots)));
 		for (int i = 0; i < postSlots.size(); i++)
 		{
@@ -1387,7 +1387,7 @@ public class L2Translator implements L1OperationDispatcher
 
 		code = aCompiledCodeObject;
 		optimizationLevel = optLevel;
-		final AvailObject type = code.closureType();
+		final AvailObject type = code.functionType();
 		final AvailObject tupleType = type.argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{

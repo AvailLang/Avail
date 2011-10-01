@@ -59,9 +59,9 @@ returns [uT : unionType type |
 		anyTypes : boolean := false;
 		anyNonTypes : boolean := false;
 		commonElementType : type := terminates;
-		uuT instances do [weakMembershipType : all |
+		uuT instances do [weakMembershipType : any |
 			membershipType ::= cast weakMembershipType into [t : unionType | t;];
-			membershipType instances do [member : all |
+			membershipType instances do [member : any |
 				cast member into [memberAsType : type |
 					commonElementType := type union of commonElementType and memberAsType;
 					anyTypes := true;]
@@ -86,7 +86,7 @@ returns [uT : unionType type |
 
 /*
 P29 ::= [u : unionType | Primitive 29; ] :set;
-A ::= all type;
+A ::= any type;
 B ::= tuple type;
 C ::= new atom "C";
 X ::= type union of (A type) and (B type);
@@ -115,14 +115,14 @@ Method "_instance" is [u : unionType |
 	instances ::= u instances;
 	if ||instances|| not = 1 then [Crash "Too many elements in union";];
 	instances as tuple [1];
-] : all
+] : any
 returns [uT : unionType type |
 	if uT = unionType then [
-		all;
+		any;
 	] else [
 		union : unionType := terminates;
 		cast uT into [uuT : unionType |
-			uuT instances do [weakMembershipType : all |
+			uuT instances do [weakMembershipType : any |
 				membershipType ::= cast weakMembershipType into [t : unionType | t;];
 				union := type union of union and membershipType;];
 			union;];
@@ -139,4 +139,4 @@ Method "_unsafe instances" is [t : type |
 Method "_unsafe instance" is [t : type |
 	cast t into [u : unionType |
 		u instance;];
-] : all;
+] : any;

@@ -57,13 +57,13 @@ extends SignatureDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@linkplain ClosureTypeDescriptor closure type} for which this
+		 * The {@linkplain FunctionTypeDescriptor function type} for which this
 		 * signature is being specified.
 		 */
 		SIGNATURE,
 
 		/**
-		 * A {@linkplain ClosureDescriptor closure} that takes argument
+		 * A {@linkplain FunctionDescriptor function} that takes argument
 		 * {@linkplain TypeDescriptor types} at a call site and answers whether
 		 * this is a legal call. This is necessary because some usage conditions
 		 * on methods, even though they may be inherently static, cannot be
@@ -74,7 +74,7 @@ extends SignatureDescriptor
 		REQUIRES_BLOCK,
 
 		/**
-		 * A {@linkplain ClosureDescriptor closure} that maps argument
+		 * A {@linkplain FunctionDescriptor function} that maps argument
 		 * {@linkplain TypeDescriptor types} at a call site into a return type
 		 * for that call.
 		 */
@@ -95,7 +95,7 @@ extends SignatureDescriptor
 		final @NotNull Interpreter interpreter,
 		final Continuation1<Generator<String>> failBlock)
 	{
-		final AvailObject result = interpreter.runClosureArguments(
+		final AvailObject result = interpreter.runFunctionArguments(
 			object.returnsBlock(),
 			argTypes);
 		if (!result.isSubtypeOf(object.bodySignature().returnType()))
@@ -132,7 +132,7 @@ extends SignatureDescriptor
 		final @NotNull List<AvailObject> argTypes,
 		final @NotNull Interpreter interpreter)
 	{
-		final AvailObject result = interpreter.runClosureArguments(
+		final AvailObject result = interpreter.runFunctionArguments(
 			object.requiresBlock(),
 			argTypes);
 		// Make sure this is a valid Avail boolean, convert it to a Java
@@ -198,7 +198,7 @@ extends SignatureDescriptor
 	 * Create a new abstract method signature from the provided arguments.
 	 *
 	 * @param bodySignature
-	 *            The closure type at which this abstract method signature will
+	 *            The function type at which this abstract method signature will
 	 *            be stored in the hierarchy of multimethods.
 	 * @param requiresBlock
 	 *            The requires block of the signature.  This is run when a call

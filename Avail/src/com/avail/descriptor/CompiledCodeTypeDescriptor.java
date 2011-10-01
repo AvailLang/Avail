@@ -50,19 +50,19 @@ extends TypeDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The type of closure that this {@linkplain CompiledCodeTypeDescriptor
+		 * The type of function that this {@linkplain CompiledCodeTypeDescriptor
 		 * compiled code type} supports.  Compiled code types are contravariant
-		 * with respect to the closure type's argument types and covariant with
-		 * respect to the closure type's return type.
+		 * with respect to the function type's argument types and covariant with
+		 * respect to the function type's return type.
 		 */
-		CLOSURE_TYPE
+		FUNCTION_TYPE
 	}
 
 	@Override
-	public @NotNull AvailObject o_ClosureType (
+	public @NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CLOSURE_TYPE);
+		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append('¢');
-		object.closureType().printOnAvoidingIndent(
+		object.functionType().printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
@@ -83,7 +83,7 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Compiled code types compare for equality by comparing their closureTypes.
+	 * Compiled code types compare for equality by comparing their functionTypes.
 	 * </p>
 	 */
 	@Override
@@ -95,13 +95,13 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		return aType.closureType().equals(object.closureType());
+		return aType.functionType().equals(object.functionType());
 	}
 
 	@Override
 	public int o_Hash (final @NotNull AvailObject object)
 	{
-		return object.closureType().hash() * 71 ^ 0xA78B01C3;
+		return object.functionType().hash() * 71 ^ 0xA78B01C3;
 	}
 
 	@Override
@@ -125,7 +125,7 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Compiled code types exactly covary with their closure types.
+	 * Compiled code types exactly covary with their function types.
 	 * </p>
 	 */
 	@Override
@@ -133,9 +133,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
-		final AvailObject subClosureType = aCompiledCodeType.closureType();
-		final AvailObject superClosureType = object.closureType();
-		return subClosureType.isSubtypeOf(superClosureType);
+		final AvailObject subFunctionType = aCompiledCodeType.functionType();
+		final AvailObject superFunctionType = object.functionType();
+		return subFunctionType.isSubtypeOf(superFunctionType);
 	}
 
 	@Override
@@ -159,8 +159,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
-		final AvailObject closType1 = object.closureType();
-		final AvailObject closType2 = aCompiledCodeType.closureType();
+		final AvailObject closType1 = object.functionType();
+		final AvailObject closType2 = aCompiledCodeType.functionType();
 		if (closType1.equals(closType2))
 		{
 			return object;
@@ -169,10 +169,10 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject intersection = ClosureTypeDescriptor.create(
+		final AvailObject intersection = FunctionTypeDescriptor.create(
 			closType1.argsTupleType().typeUnion(closType2.argsTupleType()),
 			closType1.returnType().typeUnion(closType2.returnType()));
-		return forClosureType(intersection);
+		return forFunctionType(intersection);
 	}
 
 	@Override
@@ -196,38 +196,38 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
-		final AvailObject closType1 = object.closureType();
-		final AvailObject closType2 = aCompiledCodeType.closureType();
+		final AvailObject closType1 = object.functionType();
+		final AvailObject closType2 = aCompiledCodeType.functionType();
 		if (closType1.equals(closType2))
 		{
 			// Optimization only
 			return object;
 		}
-		final AvailObject union = ClosureTypeDescriptor.create(
+		final AvailObject union = FunctionTypeDescriptor.create(
 			closType1.argsTupleType().typeIntersection(
 				closType2.argsTupleType()),
 				closType1.returnType().typeIntersection(closType2.returnType()));
-		return forClosureType(union);
+		return forFunctionType(union);
 	}
 
 	/**
 	 * Create a {@linkplain CompiledCodeTypeDescriptor compiled code type} based
-	 * on the passed {@linkplain ClosureTypeDescriptor closure type}.  Ignore
-	 * the closure type's exception set.
+	 * on the passed {@linkplain FunctionTypeDescriptor function type}.  Ignore
+	 * the function type's exception set.
 	 *
-	 * @param closureType
-	 *            A {@linkplain ClosureTypeDescriptor closure type} on which to
+	 * @param functionType
+	 *            A {@linkplain FunctionTypeDescriptor function type} on which to
 	 *            base the new {@linkplain CompiledCodeTypeDescriptor
 	 *            compiled code type}.
 	 * @return
 	 *            A new {@linkplain CompiledCodeTypeDescriptor}.
 	 */
-	public static @NotNull AvailObject forClosureType (
-		final @NotNull AvailObject closureType)
+	public static @NotNull AvailObject forFunctionType (
+		final @NotNull AvailObject functionType)
 	{
-		closureType.makeImmutable();
+		functionType.makeImmutable();
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.CLOSURE_TYPE, closureType);
+		result.objectSlotPut(ObjectSlots.FUNCTION_TYPE, functionType);
 		result.makeImmutable();
 		return result;
 	}
@@ -274,8 +274,8 @@ extends TypeDescriptor
 
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = forClosureType(
-			ClosureTypeDescriptor.mostGeneralType());
+		MostGeneralType = forFunctionType(
+			FunctionTypeDescriptor.mostGeneralType());
 		MostGeneralType.makeImmutable();
 		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
 		Meta.makeImmutable();

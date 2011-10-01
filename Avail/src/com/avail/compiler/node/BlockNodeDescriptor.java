@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * My instances represent occurrences of blocks (closures) encountered in code.
+ * My instances represent occurrences of blocks (functions) encountered in code.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -200,7 +200,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		{
 			argumentTypes.add(argDeclaration.declaredType());
 		}
-		return ClosureTypeDescriptor.create(
+		return FunctionTypeDescriptor.create(
 			TupleDescriptor.fromList(argumentTypes),
 			object.resultType());
 	}
@@ -225,11 +225,11 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject compiledBlock = object.generate(newGenerator);
 		if (object.neededVariables().tupleSize() == 0)
 		{
-			final AvailObject closure = ClosureDescriptor.create(
+			final AvailObject function = FunctionDescriptor.create(
 				compiledBlock,
 				TupleDescriptor.empty());
-			closure.makeImmutable();
-			codeGenerator.emitPushLiteral(closure);
+			function.makeImmutable();
+			codeGenerator.emitPushLiteral(function);
 		}
 		else
 		{
@@ -381,7 +381,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	{
 		// Make sure our neededVariables list has up-to-date information about
 		// the outer variables that are accessed in me, because they have to be
-		// captured when a closure is made for me.
+		// captured when a function is made for me.
 
 		collectNeededVariablesOfOuterBlocks(object);
 	}
@@ -394,7 +394,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The {@link BlockNodeDescriptor block node}.
 	 * @param codeGenerator
 	 *            A {@link AvailCodeGenerator code generator}
-	 * @return An {@link AvailObject} of type {@link ClosureDescriptor closure}.
+	 * @return An {@link AvailObject} of type {@link FunctionDescriptor function}.
 	 */
 	@Override
 	public AvailObject o_Generate (
@@ -514,7 +514,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Figure out what outer variables will need to be captured when a closure
+	 * Figure out what outer variables will need to be captured when a function
 	 * for me is built.
 	 *
 	 * @param object The current {@linkplain BlockNodeDescriptor block node}.

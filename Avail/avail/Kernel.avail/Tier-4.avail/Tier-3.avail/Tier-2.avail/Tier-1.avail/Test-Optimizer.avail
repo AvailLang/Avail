@@ -37,7 +37,7 @@ Uses
 Names
 Body
 
-Method "Test_" is [x : all |
+Method "Test_" is [x : any |
 	Discard 10;
 	Discard 20;
 	Discard 30;
@@ -46,7 +46,7 @@ Method "Test_" is [x : all |
 	Discard 60;
 ];
 
-Method "TestTwo_" is [x : all |
+Method "TestTwo_" is [x : any |
 	Test 10;
 	Test 20;
 	Test 30;

@@ -35,9 +35,9 @@ Extends
 Uses
 	"Pragmas"
 Names
-	"all", "atom",
+	"any", "atom",
 	"boolean",
-	"character", "character code points", "closure", "closureType",
+	"character", "character code points", "function", "functionType",
 	"compiledCode", "container", "containerType", "continuation",
 	"continuationType",
 	"double",
@@ -92,8 +92,8 @@ Body
 privateAll                         ::= Special Object 1;
 privateBoolean                     ::= Special Object 2;
 privateCharacter                   ::= Special Object 3;
-privateClosure                     ::= Special Object 4;
-privateClosureType                 ::= Special Object 5;
+privateFunction                     ::= Special Object 4;
+privateFunctionType                 ::= Special Object 5;
 privateCompiledCode                ::= Special Object 6;
 privateContainer                   ::= Special Object 7;
 privateContainerType               ::= Special Object 8;
@@ -149,11 +149,11 @@ privateFalse                       ::= Special Object 71;
 
 
 /* First define all the primitive types... */
-Method "all"                    is [privateAll;];
+Method "any"                    is [privateAll;];
 Method "atom"                   is [privateAtom;];
 Method "boolean"                is [privateBoolean;];
 Method "character"              is [privateCharacter;];
-Method "closure"                is [privateClosure;];
+Method "function"                is [privateFunction;];
 Method "compiledCode"           is [privateCompiledCode;];
 Method "container"              is [privateContainer;];
 Method "continuation"           is [privateContinuation;];
@@ -179,7 +179,7 @@ Method "integerType"            is [privateIntegerType;];
 Method "tupleType"              is [privateTupleType;];
 Method "setType"                is [privateSetType;];
 Method "mapType"                is [privateMapType;];
-Method "closureType"            is [privateClosureType;];
+Method "functionType"            is [privateFunctionType;];
 Method "containerType"          is [privateContainerType;];
 Method "continuationType"       is [privateContinuationType;];
 Method "terminatesType"         is [privateTerminatesType;];
@@ -218,7 +218,7 @@ Method "false"                  is [privateFalse;];
 
 /* Totally raw bootstrap - deal with system failures. */
 
-Method "Crash_" is [finalClue : all |
+Method "Crash_" is [finalClue : any |
 	Primitive 256;
 	
 	/*
@@ -256,14 +256,14 @@ Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
 ] : void;
 
 
-Method "Print_" is [something : all |
+Method "Print_" is [something : any |
 	Primitive 258;
 ] : void;
 
 
 /* Explicitly disregard a return result */
 
-Method "Discard_" is [somethingToIgnore : all |
+Method "Discard_" is [somethingToIgnore : any |
 ] : void;
 
 
@@ -276,7 +276,7 @@ Method "Halt" is [
 
 /* General purpose primitive... */
 
-Method "_=_" is [a : all, b : all |
+Method "_=_" is [a : any, b : any |
 	Primitive 60;
 ] : boolean;
 
@@ -304,6 +304,6 @@ Method "Assert_:_" is [b : falseType, message : string |
 	Assertion Failed : message;
 ] : terminates;
 
-Method "_as basic string" is [o : all |
+Method "_as basic string" is [o : any |
 	Primitive 259;
 ] : string;

@@ -34,7 +34,7 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailInstruction;
-import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -44,8 +44,8 @@ import java.util.List;
 /**
  * I represent the use of a label.  When a label is used, it causes the current
  * {@link ContinuationDescriptor continuation} to be copied.  The copy is then
- * reset to the state that existed when the current {@link ClosureDescriptor
- * closure} started running, resetting the program counter, stack pointer, and
+ * reset to the state that existed when the current {@link FunctionDescriptor
+ * function} started running, resetting the program counter, stack pointer, and
  * stack slots, and creating new local variables.
  * <p>
  * The new continuation can subsequently be {@link

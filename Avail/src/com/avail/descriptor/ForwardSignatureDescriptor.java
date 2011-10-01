@@ -64,7 +64,7 @@ extends SignatureDescriptor
 	{
 		/**
 		 * The signature being forward-declared.  This is a {@linkplain
-		 * ClosureTypeDescriptor closure type}.
+		 * FunctionTypeDescriptor function type}.
 		 */
 		SIGNATURE
 	}
@@ -158,10 +158,10 @@ extends SignatureDescriptor
 
 	/**
 	 * Create a forward declaration signature for the given {@linkplain
-	 * ClosureTypeDescriptor closure type}.
+	 * FunctionTypeDescriptor function type}.
 	 *
 	 * @param bodySignature
-	 *            The closure type at which this signature should occur within
+	 *            The function type at which this signature should occur within
 	 *            an {@linkplain ImplementationSetDescriptor implementation
 	 *            set}.
 	 * @return

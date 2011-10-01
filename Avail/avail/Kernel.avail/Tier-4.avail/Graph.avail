@@ -60,8 +60,8 @@ predecessors ::= lookup "predecessors";
 
 "Graph" is explicit subtype of Object with
 	nodes -> set,
-	successors -> map from all to set,
-	predecessors -> map from all to set;
+	successors -> map from any to set,
+	predecessors -> map from any to set;
 
 Method "_nodes" is [g : Graph |
 	g -> nodes;
@@ -78,11 +78,11 @@ Rule [g : Graph |
 
 	s keys = n
 	& p keys = n
-	& n as tuple all [k : all |
+	& n as tuple all [k : any |
 		s[k] <= n
 		& p[k] <= n
-		& s[k] as tuple all [k2 : all | p[k2] includes k;]
-		& p[k] as tuple all [k2 : all | s[k2] includes k;];
+		& s[k] as tuple all [k2 : any | p[k2] includes k;]
+		& p[k] as tuple all [k2 : any | s[k2] includes k;];
 	];
 ];
 
@@ -109,7 +109,7 @@ Method "_Factory" is [graphType : Graph type |
 	gft ::= Factory altered with <
 			<resultType, []->graphType>,
 			<nodes, & : set>,
-			<successors, & : map from all to set>>;
+			<successors, & : map from any to set>>;
 	cast gft into [ft : Factory type | ft;];
 ] : Factory type
 returns [gtt : Graph type type |
@@ -122,7 +122,7 @@ Method "new_" is [gft : Graph Factory type |
 	graphType ::= gft -> resultType result;
 	nodeType ::= graphType -> nodes content type;
 	nodesVar : set := {};
-	succVar : map from all to set := [->];
+	succVar : map from any to set := [->];
 	graphTypeThunk ::= stub block taking <>
 		and applying name of block invoker
 		to [t : tuple | Halt;]
@@ -138,7 +138,7 @@ returns [gftt : Graph Factory type type |
 	gftt instance;
 ];
 
-Method "_add node_" is [gf : Graph Factory, node : all |
+Method "_add node_" is [gf : Graph Factory, node : any |
 	*gf -> nodes := *gf -> nodes with node;
 	* gf -> successors [node] := {};
 ] : void
@@ -147,7 +147,7 @@ requires [gft : Graph Factory type, nt : type |
 ];
 
 
-Method "_add edge from_to_" is [gf : Graph Factory, source : all, destination : all |
+Method "_add edge from_to_" is [gf : Graph Factory, source : any, destination : any |
 	Assert *gf -> nodes includes source;
 	Assert *gf -> nodes includes destination;
 	s ::= gf -> successors;
@@ -160,12 +160,12 @@ requires [gft : Graph Factory type, srcT : type, destT : type |
 
 
 Method "_result" is [gf : Graph Factory |
-	preds : map from all to set := [->];
-	*gf -> nodes do [n : all |
+	preds : map from any to set := [->];
+	*gf -> nodes do [n : any |
 		preds := preds [n -> {}];
 	];
-	*gf -> successors do [src : all, dests : set |
-		dests do [dest : all |
+	*gf -> successors do [src : any, dests : set |
+		dests do [dest : any |
 			*&preds [dest] := preds[dest] with src;
 		];
 	];

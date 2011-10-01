@@ -138,9 +138,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	public boolean o_AcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject closureType)
+		final AvailObject functionType)
 	{
 		unsupportedOperation();
 		return false;
@@ -494,7 +494,7 @@ extends AbstractDescriptor
 	 * @param value
 	 */
 	@Override
-	public void o_Closure (
+	public void o_Function (
 		final AvailObject object,
 		final AvailObject value)
 	{
@@ -1256,13 +1256,13 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType)
+		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
 		return false;
@@ -2833,13 +2833,13 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType)
+		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -2989,13 +2989,13 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureType (
+	public @NotNull AvailObject o_TypeUnionOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType)
+		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3430,7 +3430,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_Closure (
+	public @NotNull AvailObject o_Function (
 		final AvailObject object)
 	{
 		unsupportedOperation();
@@ -3442,7 +3442,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_ClosureType (
+	public @NotNull AvailObject o_FunctionType (
 		final AvailObject object)
 	{
 		unsupportedOperation();
@@ -4915,26 +4915,26 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosure
+	 * @param aFunction
 	 * @return
 	 */
 	@Override
-	public boolean o_EqualsClosure (
+	public boolean o_EqualsFunction (
 		final AvailObject object,
-		final AvailObject aClosure)
+		final AvailObject aFunction)
 	{
 		return false;
 	}
 
 	/**
 	 * @param object
-	 * @param aClosureType
+	 * @param aFunctionType
 	 * @return
 	 */
 	@Override
-	public boolean o_EqualsClosureType (
+	public boolean o_EqualsFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType)
+		final AvailObject aFunctionType)
 	{
 		return false;
 	}
@@ -5329,7 +5329,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public boolean o_IsClosure (
+	public boolean o_IsFunction (
 		final AvailObject object)
 	{
 		return false;
@@ -5454,16 +5454,16 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aClosure
+	 * @param aFunction
 	 * @return
 	 */
 	@Override
 	public boolean o_ContainsBlock (
 		final AvailObject object,
-		final AvailObject aClosure)
+		final AvailObject aFunction)
 	{
-		//  Answer true if either I am aClosure or I contain aClosure.  I only follow
-		//  the trail of literal compiledCode and closure objects, so this is a dead end.
+		//  Answer true if either I am aFunction or I contain aFunction.  I only follow
+		//  the trail of literal compiledCode and function objects, so this is a dead end.
 
 		return false;
 	}

@@ -69,7 +69,7 @@ import com.avail.descriptor.*;
  *         &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y&thinsp;&and;&thinsp;y&sube;x
  *         = (x=y))</td>
  * </tr><tr>
- *     <td>Union closure</td>
+ *     <td>Union function</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y&thinsp;&isin;&thinsp;T)</td>
  * </tr><tr>
  *     <td>Union reflexivity</td>
@@ -81,7 +81,7 @@ import com.avail.descriptor.*;
  *     <td>Union associativity</td>
  *     <td>&forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cup;y)&cup;z = x&cup;(y&cup;z)</td>
  * </tr><tr>
- *     <td>Intersection closure</td>
+ *     <td>Intersection function</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y&thinsp;&isin;&thinsp;T)</td>
  * </tr><tr>
  *     <td>Intersection reflexivity</td>
@@ -256,57 +256,57 @@ public class TypeConsistencyTest
 			}
 		};
 
-		/** The most general closure type. */
-		final static Node MOST_GENERAL_CLOSURE = new Node(
-			"MOST_GENERAL_CLOSURE",
+		/** The most general function type. */
+		final static Node MOST_GENERAL_FUNCTION = new Node(
+			"MOST_GENERAL_FUNCTION",
 			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.mostGeneralType();
+				return FunctionTypeDescriptor.mostGeneralType();
 			}
 		};
 
 		/**
-		 * The type for closures that accept no arguments and return an integer.
+		 * The type for functions that accept no arguments and return an integer.
 		 */
-		final static Node NOTHING_TO_INT_CLOSURE = new Node(
-			"NOTHING_TO_INT_CLOSURE",
-			MOST_GENERAL_CLOSURE)
+		final static Node NOTHING_TO_INT_FUNCTION = new Node(
+			"NOTHING_TO_INT_FUNCTION",
+			MOST_GENERAL_FUNCTION)
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.create(
+				return FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					IntegerRangeTypeDescriptor.integers());
 			}
 		};
 
 		/**
-		 * The type for closures that accept an integer and return an integer.
+		 * The type for functions that accept an integer and return an integer.
 		 */
-		final static Node INT_TO_INT_CLOSURE = new Node(
-			"INT_TO_INT_CLOSURE",
-			MOST_GENERAL_CLOSURE)
+		final static Node INT_TO_INT_FUNCTION = new Node(
+			"INT_TO_INT_FUNCTION",
+			MOST_GENERAL_FUNCTION)
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.create(
+				return FunctionTypeDescriptor.create(
 					TupleDescriptor.from(IntegerRangeTypeDescriptor.integers()),
 					IntegerRangeTypeDescriptor.integers());
 			}
 		};
 
 		/**
-		 * The type for closures that accept two integers and return an integer.
+		 * The type for functions that accept two integers and return an integer.
 		 */
-		final static Node INTS_TO_INT_CLOSURE = new Node(
-			"INTS_TO_INT_CLOSURE",
-			MOST_GENERAL_CLOSURE)
+		final static Node INTS_TO_INT_FUNCTION = new Node(
+			"INTS_TO_INT_FUNCTION",
+			MOST_GENERAL_FUNCTION)
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.create(
+				return FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						IntegerRangeTypeDescriptor.integers(),
 						IntegerRangeTypeDescriptor.integers()),
@@ -314,16 +314,16 @@ public class TypeConsistencyTest
 			}
 		};
 
-		/** The most specific closure type, other than bottom. */
-		final static Node MOST_SPECIFIC_CLOSURE = new Node(
-			"MOST_SPECIFIC_CLOSURE",
-			NOTHING_TO_INT_CLOSURE,
-			INT_TO_INT_CLOSURE,
-			INTS_TO_INT_CLOSURE)
+		/** The most specific function type, other than bottom. */
+		final static Node MOST_SPECIFIC_FUNCTION = new Node(
+			"MOST_SPECIFIC_FUNCTION",
+			NOTHING_TO_INT_FUNCTION,
+			INT_TO_INT_FUNCTION,
+			INTS_TO_INT_FUNCTION)
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.createWithArgumentTupleType(
+				return FunctionTypeDescriptor.createWithArgumentTupleType(
 					TupleTypeDescriptor.mostGeneralType(),
 					BottomTypeDescriptor.bottom(),
 					SetDescriptor.empty());
@@ -429,15 +429,15 @@ public class TypeConsistencyTest
 		};
 
 		/**
-		 * The metatype for closure types.
+		 * The metatype for function types.
 		 */
-		final static Node CLOSURE_META = new Node(
-			"CLOSURE_META",
+		final static Node FUNCTION_META = new Node(
+			"FUNCTION_META",
 			primitiveTypes.get(Types.TYPE))
 		{
 			@Override AvailObject get ()
 			{
-				return ClosureTypeDescriptor.meta();
+				return FunctionTypeDescriptor.meta();
 			}
 		};
 
@@ -595,7 +595,7 @@ public class TypeConsistencyTest
 		/** The type of {@code bottom}.  This is the most specific meta. */
 		final static Node BOTTOM_TYPE = new Node(
 			"BOTTOM_TYPE",
-			CLOSURE_META,
+			FUNCTION_META,
 			CONTINUATION_META,
 			WHOLE_NUMBER_META,
 			WHOLE_NUMBER_META_META,
@@ -706,7 +706,7 @@ public class TypeConsistencyTest
 		 * determine the number of enumeration values, which isn't known yet
 		 * when the constructors are still running.
 		 *
-		 * Also build the inverse and (downwards) transitive closure at each
+		 * Also build the inverse and (downwards) transitive function at each
 		 * node of the graph, since they're independent of how the actual types
 		 * are related.  Discrepancies between the graph information and the
 		 * actual types is resolved in {@link
@@ -1136,7 +1136,7 @@ public class TypeConsistencyTest
 	 * </nobr></span>
 	 */
 	@Test
-	public void testUnionClosure ()
+	public void testUnionFunction ()
 	{
 		for (final Node x : Node.values)
 		{
@@ -1144,7 +1144,7 @@ public class TypeConsistencyTest
 			{
 				assertT(
 					x.union(y).isInstanceOf(Types.TYPE.o()),
-					"union closure: %s, %s",
+					"union function: %s, %s",
 					x,
 					y);
 			}
@@ -1235,7 +1235,7 @@ public class TypeConsistencyTest
 	 * </nobr></span>
 	 */
 	@Test
-	public void testIntersectionClosure ()
+	public void testIntersectionFunction ()
 	{
 		for (final Node x : Node.values)
 		{
@@ -1243,7 +1243,7 @@ public class TypeConsistencyTest
 			{
 				assertT(
 					x.intersect(y).isInstanceOf(Types.TYPE.o()),
-					"intersection closure: %s, %s",
+					"intersection function: %s, %s",
 					x,
 					y);
 			}
@@ -1334,27 +1334,27 @@ public class TypeConsistencyTest
 	}
 
 	/**
-	 * Test that the subtype relation covaries with closure return type.
+	 * Test that the subtype relation covaries with function return type.
 	 * <span style="border-width:thin; border-style:solid"><nobr>
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Co(x)&sube;Co(y))
 	 * </nobr></span>
 	 */
 	@Test
-	public void testClosureResultCovariance ()
+	public void testFunctionResultCovariance ()
 	{
 		for (final Node x : Node.values)
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject CoX = ClosureTypeDescriptor.create(
+				final AvailObject CoX = FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					x.t);
-				final AvailObject CoY = ClosureTypeDescriptor.create(
+				final AvailObject CoY = FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					y.t);
 				assertT(
 					!x.subtype(y) || CoX.isSubtypeOf(CoY),
-					"covariance (closure result): %s, %s",
+					"covariance (function result): %s, %s",
 					x,
 					y);
 			}
@@ -1395,30 +1395,30 @@ public class TypeConsistencyTest
 	}
 
 	/**
-	 * Test that the subtype relation <em>contravaries</em> with closure
+	 * Test that the subtype relation <em>contravaries</em> with function
 	 * argument type.
 	 * <span style="border-width:thin; border-style:solid"><nobr>
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
 	 * </nobr></span>
 	 */
 	@Test
-	public void testClosureArgumentContravariance ()
+	public void testFunctionArgumentContravariance ()
 	{
 		for (final Node x : Node.values)
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject ConX = ClosureTypeDescriptor.create(
+				final AvailObject ConX = FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						x.t),
 					Types.TOP.o());
-				final AvailObject ConY = ClosureTypeDescriptor.create(
+				final AvailObject ConY = FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						y.t),
 					Types.TOP.o());
 				assertT(
 					!x.subtype(y) || ConY.isSubtypeOf(ConX),
-					"contravariance (closure argument): %s, %s",
+					"contravariance (function argument): %s, %s",
 					x,
 					y);
 			}

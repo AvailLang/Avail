@@ -222,11 +222,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_AcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject closureType)
+		final @NotNull AvailObject functionType)
 	{
-		return o_Traversed(object).acceptsArgTypesFromClosureType(closureType);
+		return o_Traversed(object).acceptsArgTypesFromFunctionType(functionType);
 	}
 
 	@Override
@@ -480,9 +480,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Closure (final AvailObject object, final AvailObject value)
+	public void o_Function (final AvailObject object, final AvailObject value)
 	{
-		o_Traversed(object).closure(value);
+		o_Traversed(object).function(value);
 	}
 
 	@Override
@@ -651,9 +651,9 @@ extends AbstractDescriptor
 	@Override
 	public boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosure)
+		final @NotNull AvailObject aFunction)
 	{
-		return o_Traversed(object).containsBlock(aClosure);
+		return o_Traversed(object).containsBlock(aFunction);
 	}
 
 	@Override
@@ -818,19 +818,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_EqualsClosure (
+	public boolean o_EqualsFunction (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosure)
+		final @NotNull AvailObject aFunction)
 	{
-		return o_Traversed(object).equalsClosure(aClosure);
+		return o_Traversed(object).equalsFunction(aFunction);
 	}
 
 	@Override
-	public boolean o_EqualsClosureType (
+	public boolean o_EqualsFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		return o_Traversed(object).equalsClosureType(aClosureType);
+		return o_Traversed(object).equalsFunctionType(aFunctionType);
 	}
 
 	@Override
@@ -1217,11 +1217,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		return o_Traversed(object).isSupertypeOfClosureType(aClosureType);
+		return o_Traversed(object).isSupertypeOfFunctionType(aFunctionType);
 	}
 
 	@Override
@@ -2148,12 +2148,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		return o_Traversed(object).typeIntersectionOfClosureType(
-			aClosureType);
+		return o_Traversed(object).typeIntersectionOfFunctionType(
+			aFunctionType);
 	}
 
 	@Override
@@ -2241,11 +2241,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureType (
+	public @NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		return o_Traversed(object).typeUnionOfClosureType(aClosureType);
+		return o_Traversed(object).typeUnionOfFunctionType(aFunctionType);
 	}
 
 	@Override
@@ -2500,15 +2500,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Closure (final AvailObject object)
+	public @NotNull AvailObject o_Function (final AvailObject object)
 	{
-		return o_Traversed(object).closure();
+		return o_Traversed(object).function();
 	}
 
 	@Override
-	public @NotNull AvailObject o_ClosureType (final AvailObject object)
+	public @NotNull AvailObject o_FunctionType (final AvailObject object)
 	{
-		return o_Traversed(object).closureType();
+		return o_Traversed(object).functionType();
 	}
 
 	@Override
@@ -2802,9 +2802,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsClosure (final AvailObject object)
+	public boolean o_IsFunction (final AvailObject object)
 	{
-		return o_Traversed(object).isClosure();
+		return o_Traversed(object).isFunction();
 	}
 
 	@Override

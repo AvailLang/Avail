@@ -507,11 +507,11 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_AcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject closureType)
+		final AvailObject functionType)
 	{
-		return getSuperkind(object).acceptsArgTypesFromClosureType(closureType);
+		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
 	}
 
 	@Override
@@ -572,9 +572,9 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ClosureType (final AvailObject object)
+	public AvailObject o_FunctionType (final AvailObject object)
 	{
-		return getSuperkind(object).closureType();
+		return getSuperkind(object).functionType();
 	}
 
 	@Override
@@ -609,9 +609,9 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType)
+		final AvailObject aFunctionType)
 	{
 		return false;
 	}

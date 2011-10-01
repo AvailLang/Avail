@@ -63,14 +63,14 @@ Rule [iter : Tuple Iterator |
 Method "_as Iterator" is [t : tuple |
 	pos : natural number := 1;
 	things : type := terminates;
-	t do [each : all | things := type union of things and each type;];
+	t do [each : any | things := type union of things and each type;];
 	/* The following code is experimental, and should be replaced by
 	   something with a more opaque encapsulation... */
 	thingsThunk ::= stub block taking <>
 		and applying name of block invoker
 		to [t : tuple | Halt;]
 		and argument tuple returning things;
-	thingsThunk2 ::= cast thingsThunk into [c : []->all | c;];
+	thingsThunk2 ::= cast thingsThunk into [c : []->any | c;];
 	Tuple Iterator new with <
 		<tupleField, t>,
 		<position, &pos>,

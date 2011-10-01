@@ -305,7 +305,7 @@ Method "_check block arguments_statements_result_" is [
 					block type taking (args collect [a : Argument Declaration Node |
 						a variable variable type;])
 					and returning result;
-				contType closureType = blockType;
+				contType functionType = blockType;
 			];
 		] otherwise [true;];
 	];
@@ -761,7 +761,7 @@ Method "_parse optional super cast after_then_" is [
 		c : [Parse Node]->void |
 	c(arg);  /* Try it without a cast */
 	p skip ":", ":" then [
-		p parse and evaluate expression then [exprValue : all |
+		p parse and evaluate expression then [exprValue : any |
 			cast exprValue into [castType : type |
 				if arg result type <= castType then [
 					c(new Super Cast Node

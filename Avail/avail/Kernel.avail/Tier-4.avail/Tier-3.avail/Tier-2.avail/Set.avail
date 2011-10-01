@@ -52,7 +52,7 @@ Body
 /* Set manipulation primitives... */
 
 
-Method "_includes_" is [s : set, elem : all |
+Method "_includes_" is [s : set, elem : any |
 	Primitive 101;
 ] : boolean;
 
@@ -117,7 +117,7 @@ returns [st1 : setType, st2 : setType |
 	];
 ];
 
-Method "_with_" is [s : set, element : all |
+Method "_with_" is [s : set, element : any |
 	Primitive 105;
 ] : set
 returns [st : setType, et : type |
@@ -125,7 +125,7 @@ returns [st : setType, et : type |
 		of type union of st content type and et;
 ];
 
-Method "_without_" is [s : set, element : all |
+Method "_without_" is [s : set, element : any |
 	Primitive 106;
 ] : set
 returns [st : setType, et : type |
@@ -146,11 +146,11 @@ Method "_<=_" is [s1 : set, s2 : set |
 
 
 Method "_do_" is [s : set, blk : [terminates]->void |
-	s as tuple do [element : all |
+	s as tuple do [element : any |
 		blk apply <element>;
 	];
 ] : void
-requires [st : setType, bt : closureType |
+requires [st : setType, bt : functionType |
 	if not st content type <= bt[1] then [
 		Fail parse "block requires an instance of "
 			then bt[1] as basic string

@@ -1,5 +1,5 @@
 /**
- * Kernel/Foundation/Exceptions
+ * System/Foundation/Arithmetic
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -31,13 +31,12 @@
  */
 
 /**
- * Define exceptions and basic exception handling.
- *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * TODO: Document this!
  */
-Module
-	"Exceptions"
+System Module "Tuple"
 Extends
 Uses
+	"Basic Types",
+	"Integer"
 Names
 Body

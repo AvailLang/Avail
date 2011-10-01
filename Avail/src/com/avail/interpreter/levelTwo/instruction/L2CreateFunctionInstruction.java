@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CreateClosureInstruction.java
+ * interpreter/levelTwo/instruction/L2CreateFunctionInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateClosureFromCodeObject_outersVector_destObject_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateFunctionFromCodeObject_outersVector_destObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -40,20 +40,20 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
- * {@code L2CreateClosureInstruction} writes a new {@linkplain ClosureDescriptor
- * closure} into the specified {@linkplain L2ObjectRegister register}. The
+ * {@code L2CreateFunctionInstruction} writes a new {@linkplain FunctionDescriptor
+ * function} into the specified {@linkplain L2ObjectRegister register}. The
  * {@linkplain CompiledCodeDescriptor compiled code} literal and the captured
  * values are made available at construction time.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2CreateClosureInstruction
+public final class L2CreateFunctionInstruction
 extends L2Instruction
 {
 	/**
 	 * The {@linkplain CompiledCodeDescriptor compiled code} that defines the
-	 * behavior of the {@linkplain ClosureDescriptor closure}.
+	 * behavior of the {@linkplain FunctionDescriptor function}.
 	 */
 	private final @NotNull AvailObject code;
 
@@ -62,24 +62,24 @@ extends L2Instruction
 
 	/**
 	 * The {@linkplain L2ObjectRegister register} into which the manufactured
-	 * {@linkplain ClosureDescriptor closure} will be written.
+	 * {@linkplain FunctionDescriptor function} will be written.
 	 */
 	private final @NotNull L2ObjectRegister destinationRegister;
 
 	/**
-	 * Construct a new {@link L2CreateClosureInstruction}.
+	 * Construct a new {@link L2CreateFunctionInstruction}.
 	 *
 	 * @param code
 	 *        The {@linkplain CompiledCodeDescriptor compiled code} that defines
-	 *        the behavior of the {@linkplain ClosureDescriptor closure}.
+	 *        the behavior of the {@linkplain FunctionDescriptor function}.
 	 * @param outersVector
 	 *        The captured {@linkplain AvailObject values}.
 	 * @param destinationRegister
 	 *        The {@linkplain L2ObjectRegister register} into which the
-	 *        manufactured {@linkplain ClosureDescriptor closure} will be
+	 *        manufactured {@linkplain FunctionDescriptor function} will be
 	 *        written.
 	 */
-	public L2CreateClosureInstruction (
+	public L2CreateFunctionInstruction (
 		final @NotNull AvailObject code,
 		final @NotNull L2RegisterVector outersVector,
 		final @NotNull L2ObjectRegister destinationRegister)
@@ -108,7 +108,7 @@ extends L2Instruction
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitL2Operation(
-			L2_doCreateClosureFromCodeObject_outersVector_destObject_);
+			L2_doCreateFunctionFromCodeObject_outersVector_destObject_);
 		codeGenerator.emitLiteral(code);
 		codeGenerator.emitVector(outersVector);
 		codeGenerator.emitObjectRegister(destinationRegister);
@@ -117,16 +117,16 @@ extends L2Instruction
 	@Override
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
 	{
-		translator.registerTypeAtPut(destinationRegister, code.closureType());
+		translator.registerTypeAtPut(destinationRegister, code.functionType());
 		if (outersVector.allRegistersAreConstantsIn(translator))
 		{
-			final AvailObject closure = ClosureDescriptor.mutable().create(
+			final AvailObject function = FunctionDescriptor.mutable().create(
 				outersVector.registers().size());
-			closure.code(code);
+			function.code(code);
 			int index = 1;
 			for (final L2ObjectRegister outer : outersVector)
 			{
-				closure.outerVarAtPut(
+				function.outerVarAtPut(
 					index++, translator.registerConstantAt(outer));
 			}
 		}

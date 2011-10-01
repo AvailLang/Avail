@@ -164,7 +164,7 @@ public enum AvailErrorCode
 
 	/**
 	 * The wrong number of outers were specified for creation of a {@linkplain
-	 * ClosureDescriptor closure} from {@linkplain CompiledCodeDescriptor
+	 * FunctionDescriptor function} from {@linkplain CompiledCodeDescriptor
 	 * compiled code}.
 	 */
 	E_WRONG_NUMBER_OF_OUTERS (20),
@@ -202,10 +202,10 @@ public enum AvailErrorCode
 	E_INVALID_PRIMITIVE_NUMBER (26),
 
 	/**
-	 * A primitive {@linkplain ClosureTypeDescriptor closure type} disagrees
-	 * with the primitive's {@linkplain ClosureDescriptor restriction closure}.
+	 * A primitive {@linkplain FunctionTypeDescriptor function type} disagrees
+	 * with the primitive's {@linkplain FunctionDescriptor restriction function}.
 	 */
-	E_CLOSURE_DISAGREES_WITH_PRIMITIVE_RESTRICTION (27),
+	E_FUNCTION_DISAGREES_WITH_PRIMITIVE_RESTRICTION (27),
 
 	/**
 	 * A local type literal is not actually a {@linkplain TypeDescriptor type}.
@@ -225,15 +225,15 @@ public enum AvailErrorCode
 
 	/**
 	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
-	 * support a {@linkplain ClosureDescriptor requires closure}.
+	 * support a {@linkplain FunctionDescriptor requires function}.
 	 */
-	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_CLOSURE (31),
+	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (31),
 
 	/**
 	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
-	 * support a {@linkplain ClosureDescriptor returns closure}.
+	 * support a {@linkplain FunctionDescriptor returns function}.
 	 */
-	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_CLOSURE (32),
+	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (32),
 
 	/**
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
@@ -243,7 +243,7 @@ public enum AvailErrorCode
 
 	/**
 	 * A {@linkplain MacroSignatureDescriptor macro} {@linkplain
-	 * ClosureDescriptor body} must restrict each parameter to be at least as
+	 * FunctionDescriptor body} must restrict each parameter to be at least as
 	 * specific as a {@linkplain ParseNodeDescriptor parse node}.
 	 */
 	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE (34),

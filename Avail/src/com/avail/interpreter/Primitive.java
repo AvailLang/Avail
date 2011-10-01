@@ -98,7 +98,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -133,7 +133,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -168,7 +168,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -204,7 +204,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -234,7 +234,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -264,7 +264,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -303,7 +303,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					UnionTypeDescriptor.booleanObject(),
@@ -334,7 +334,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.meta()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -362,7 +362,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.meta()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -403,7 +403,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(ContainerTypeDescriptor.mostGeneralType()),
 				ANY.o());
 		}
@@ -435,7 +435,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.mostGeneralType(),
 					ANY.o()),
@@ -463,7 +463,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(ContainerTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
@@ -489,7 +489,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				ContainerTypeDescriptor.meta());
@@ -515,7 +515,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.meta()),
 				TYPE.o());
@@ -551,7 +551,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.mostGeneralType(),
 					ContainerTypeDescriptor.mostGeneralType()),
@@ -580,7 +580,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				ContainerTypeDescriptor.mostGeneralType());
@@ -609,7 +609,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.mostGeneralType()),
 				UnionTypeDescriptor.booleanObject());
@@ -646,7 +646,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.mostGeneralType()),
 				ANY.o());
@@ -673,7 +673,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.meta()),
 				TYPE.o());
@@ -700,7 +700,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -728,7 +728,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
@@ -756,7 +756,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				TOP.o());
@@ -783,7 +783,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				TOP.o());
@@ -810,7 +810,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o()),
 				TOP.o());
@@ -836,7 +836,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
 				PROCESS.o());
 		}
@@ -870,7 +870,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o(),
 					ATOM.o()),
@@ -906,7 +906,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PROCESS.o(),
 					ATOM.o(),
@@ -935,7 +935,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					UnionMetaDescriptor.mostGeneralType()),
 				SetTypeDescriptor.mostGeneralType());
@@ -961,7 +961,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				UnionMetaDescriptor.mostGeneralType());
@@ -989,7 +989,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
@@ -1018,7 +1018,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
@@ -1048,7 +1048,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
@@ -1057,10 +1057,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 34:</strong> Create a closure type from a tuple of
+	 * <strong>Primitive 34:</strong> Create a function type from a tuple of
 	 * argument types and a return type.
 	 */
-	prim34_CreateClosureType(34, 2, CanFold, CannotFail)
+	prim34_CreateFunctionType(34, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1071,7 +1071,7 @@ public enum Primitive
 			final AvailObject argTypes = args.get(0);
 			final AvailObject returnType = args.get(1);
 			return interpreter.primitiveSuccess(
-				ClosureTypeDescriptor.create(
+				FunctionTypeDescriptor.create(
 					argTypes,
 					returnType));
 		}
@@ -1079,22 +1079,22 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
 						TYPE.o()),
 					TYPE.o()),
-				ClosureTypeDescriptor.meta());
+				FunctionTypeDescriptor.meta());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 35:</strong> Answer a tuple type describing the
-	 * arguments accepted by the closure type.
+	 * arguments accepted by the function type.
 	 */
-	prim35_ClosureTypeNumArgs(35, 1, CanFold, CannotFail)
+	prim35_FunctionTypeNumArgs(35, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1102,24 +1102,24 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject closureType = args.get(0);
+			final AvailObject functionType = args.get(0);
 			return interpreter.primitiveSuccess(
-				closureType.argsTupleType());
+				functionType.argsTupleType());
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.meta()),
+					FunctionTypeDescriptor.meta()),
 				TupleTypeDescriptor.meta());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 36:</strong> Answer the type of the argument at the
-	 * given index within the given closureType.
+	 * given index within the given functionType.
 	 */
 	prim36_ArgTypeAt(36, 2, CanFold)
 	{
@@ -1129,7 +1129,7 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			final AvailObject closureType = args.get(0);
+			final AvailObject functionType = args.get(0);
 			final AvailObject indexObject = args.get(1);
 
 			if (!indexObject.isInt())
@@ -1139,16 +1139,16 @@ public enum Primitive
 			}
 			final int index = indexObject.extractInt();
 			final AvailObject argumentType =
-				closureType.argsTupleType().typeAtIndex(index);
+				functionType.argsTupleType().typeAtIndex(index);
 			return interpreter.primitiveSuccess(argumentType);
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.meta(),
+					FunctionTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				TYPE.o());
 		}
@@ -1156,7 +1156,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 37:</strong> Answer the return type of the given
-	 * closureType.
+	 * functionType.
 	 */
 	prim37_ReturnType(37, 1, CanFold, CannotFail)
 	{
@@ -1166,16 +1166,16 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject closureType = args.get(0);
-			return interpreter.primitiveSuccess(closureType.returnType());
+			final AvailObject functionType = args.get(0);
+			return interpreter.primitiveSuccess(functionType.returnType());
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.meta()),
+					FunctionTypeDescriptor.meta()),
 				TYPE.o());
 		}
 	},
@@ -1204,7 +1204,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -1215,10 +1215,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 39:</strong> Answer the most general closure type with
+	 * <strong>Primitive 39:</strong> Answer the most general function type with
 	 * the given return type.
 	 */
-	prim39_CreateGeneralClosureType(39, 1, CanFold, CannotFail)
+	prim39_CreateGeneralFunctionType(39, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1228,7 +1228,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject returnType = args.get(0);
 			return interpreter.primitiveSuccess(
-				ClosureTypeDescriptor.createWithArgumentTupleType(
+				FunctionTypeDescriptor.createWithArgumentTupleType(
 					BottomTypeDescriptor.bottom(),
 					returnType,
 					SetDescriptor.empty()));
@@ -1237,15 +1237,15 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				ClosureTypeDescriptor.meta());
+				FunctionTypeDescriptor.meta());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 40:</strong> {@linkplain ClosureDescriptor Closure}
+	 * <strong>Primitive 40:</strong> {@linkplain FunctionDescriptor Function}
 	 * evaluation, given a {@linkplain TupleDescriptor tuple} of arguments.
 	 * Check the {@linkplain TypeDescriptor types} dynamically to prevent
 	 * corruption of the type system. Fail if the arguments are not of the
@@ -1282,7 +1282,7 @@ public enum Primitive
 				//  Transfer the argument into callArgs.
 				callArgs.add(anArg);
 			}
-			return interpreter.invokeClosureArguments(
+			return interpreter.invokeFunctionArguments(
 				block,
 				callArgs);
 		}
@@ -1290,9 +1290,9 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.mostGeneralType(),
+					FunctionTypeDescriptor.mostGeneralType(),
 					TupleTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
@@ -1300,7 +1300,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 43:</strong> Invoke either the {@link
-	 * ClosureDescriptor trueBlock} or the {@code falseBlock}, depending on
+	 * FunctionDescriptor trueBlock} or the {@code falseBlock}, depending on
 	 * {@linkplain UnionTypeDescriptor#booleanObject() aBoolean}.
 	 */
 	prim43_IfThenElse(43, 3, Invokes, CannotFail)
@@ -1318,11 +1318,11 @@ public enum Primitive
 			assert falseBlock.code().numArgs() == 0;
 			if (aBoolean.extractBoolean())
 			{
-				return interpreter.invokeClosureArguments (
+				return interpreter.invokeFunctionArguments (
 					trueBlock,
 					Collections.<AvailObject>emptyList());
 			}
-			return interpreter.invokeClosureArguments (
+			return interpreter.invokeFunctionArguments (
 				falseBlock,
 				Collections.<AvailObject>emptyList());
 		}
@@ -1330,13 +1330,13 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					UnionTypeDescriptor.booleanObject(),
-					ClosureTypeDescriptor.create(
+					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						TOP.o()),
-					ClosureTypeDescriptor.create(
+					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						TOP.o())),
 				TOP.o());
@@ -1344,7 +1344,7 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 44:</strong> Invoke the {@link ClosureDescriptor
+	 * <strong>Primitive 44:</strong> Invoke the {@link FunctionDescriptor
 	 * trueBlock} if {@linkplain UnionTypeDescriptor#booleanObject() aBoolean}
 	 * is true, otherwise just answer {@linkplain NullDescriptor#nullObject()
 	 * void}.
@@ -1362,7 +1362,7 @@ public enum Primitive
 			assert trueBlock.code().numArgs() == 0;
 			if (aBoolean.extractBoolean())
 			{
-				return interpreter.invokeClosureArguments (
+				return interpreter.invokeFunctionArguments (
 					trueBlock,
 					Collections.<AvailObject>emptyList());
 			}
@@ -1372,10 +1372,10 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					UnionTypeDescriptor.booleanObject(),
-					ClosureTypeDescriptor.create(
+					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						TOP.o())),
 				TOP.o());
@@ -1384,7 +1384,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 45:</strong> Run the zero-argument {@linkplain
-	 * ClosureDescriptor closure}, ignoring the leading {@linkplain
+	 * FunctionDescriptor function}, ignoring the leading {@linkplain
 	 * UnionTypeDescriptor#booleanObject() boolean} argument. This is used for
 	 * short-circuit evaluation.
 	 */
@@ -1400,7 +1400,7 @@ public enum Primitive
 			final AvailObject ignoredBool = args.get(0);
 			final AvailObject block = args.get(1);
 			assert block.code().numArgs() == 0;
-			return interpreter.invokeClosureArguments (
+			return interpreter.invokeFunctionArguments (
 				block,
 				Collections.<AvailObject>emptyList());
 		}
@@ -1408,10 +1408,10 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					UnionTypeDescriptor.booleanObject(),
-					ClosureTypeDescriptor.create(
+					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						UnionTypeDescriptor.booleanObject())),
 				UnionTypeDescriptor.booleanObject());
@@ -1433,15 +1433,15 @@ public enum Primitive
 		{
 			assert args.size() == 5;
 			final AvailObject callerHolder = args.get(0);
-			final AvailObject closure = args.get(1);
+			final AvailObject function = args.get(1);
 			final AvailObject pc = args.get(2);
 			final AvailObject stackp = args.get(3);
 			final AvailObject stack = args.get(4);
-			final AvailObject theCode = closure.code();
+			final AvailObject theCode = function.code();
 			final AvailObject cont = ContinuationDescriptor.mutable().create(
 				theCode.numArgsAndLocalsAndStack());
 			cont.caller(callerHolder.value());
-			cont.closure(closure);
+			cont.function(function);
 			cont.pc(pc.extractInt());
 			cont.stackp(stackp.extractInt());
 			cont.levelTwoChunkOffset(
@@ -1457,11 +1457,11 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.wrapInnerType(
 						ContinuationTypeDescriptor.mostGeneralType()),
-					ClosureTypeDescriptor.mostGeneralType(),
+					FunctionTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					TupleTypeDescriptor.mostGeneralType()),
@@ -1471,10 +1471,10 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 50:</strong> Answer the {@linkplain
-	 * ClosureTypeDescriptor closure type} corresponding to the given
+	 * FunctionTypeDescriptor function type} corresponding to the given
 	 * {@linkplain ContinuationTypeDescriptor continuation type}.
 	 */
-	prim50_ContinuationTypeToClosureType(
+	prim50_ContinuationTypeToFunctionType(
 		50, 1, CanFold, CannotFail)
 	{
 		@Override
@@ -1485,25 +1485,25 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject continuationType = args.get(0);
 			return interpreter.primitiveSuccess(
-				continuationType.closureType());
+				continuationType.functionType());
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.meta()),
-				ClosureTypeDescriptor.meta());
+				FunctionTypeDescriptor.meta());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 51:</strong> Answer a {@linkplain
 	 * ContinuationTypeDescriptor continuation type} that uses the
-	 * given {@linkplain ClosureTypeDescriptor closure type}.
+	 * given {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	prim51_ClosureTypeToContinuationType(51, 1, CanFold, CannotFail)
+	prim51_FunctionTypeToContinuationType(51, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1511,17 +1511,17 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject closureType = args.get(0);
+			final AvailObject functionType = args.get(0);
 			return interpreter.primitiveSuccess(
-				ContinuationTypeDescriptor.forClosureType(closureType));
+				ContinuationTypeDescriptor.forFunctionType(functionType));
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.meta()),
+					FunctionTypeDescriptor.meta()),
 				ContinuationTypeDescriptor.meta());
 		}
 	},
@@ -1551,7 +1551,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
 				ContinuationTypeDescriptor.mostGeneralType());
@@ -1559,10 +1559,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 53:</strong> Answer the {@linkplain ClosureDescriptor
-	 * closure} of a {@linkplain ContinuationDescriptor continuation}.
+	 * <strong>Primitive 53:</strong> Answer the {@linkplain FunctionDescriptor
+	 * function} of a {@linkplain ContinuationDescriptor continuation}.
 	 */
-	prim53_ContinuationClosure(53, 1, CanFold, CannotFail)
+	prim53_ContinuationFunction(53, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1571,16 +1571,16 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			return interpreter.primitiveSuccess(con.closure());
+			return interpreter.primitiveSuccess(con.function());
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
-				ClosureTypeDescriptor.mostGeneralType());
+				FunctionTypeDescriptor.mostGeneralType());
 		}
 	},
 
@@ -1588,7 +1588,7 @@ public enum Primitive
 	 * <strong>Primitive 54:</strong> Answer the program counter of a
 	 * {@linkplain ContinuationDescriptor continuation}. This is the index of
 	 * the current instruction in the continuation's {@linkplain
-	 * ClosureDescriptor closure}'s {@linkplain CompiledCodeDescriptor code}'s
+	 * FunctionDescriptor function}'s {@linkplain CompiledCodeDescriptor code}'s
 	 * {@linkplain TupleDescriptor tuple} of nybblecodes.
 	 */
 	prim54_ContinuationPC(54, 1, CanFold, CannotFail)
@@ -1607,7 +1607,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.naturalNumbers());
@@ -1638,7 +1638,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.naturalNumbers());
@@ -1653,7 +1653,7 @@ public enum Primitive
 	 * continuation has the expected return type already pushed on the stack,
 	 * and requires the return value, after checking against that type, to
 	 * overwrite the type in the stack (without affecting the stack depth). Fail
-	 * if the continuation's {@linkplain ClosureDescriptor closure} is not
+	 * if the continuation's {@linkplain FunctionDescriptor function} is not
 	 * capable of accepting the given arguments.
 	 */
 	prim56_RestartContinuationWithArguments(
@@ -1666,7 +1666,7 @@ public enum Primitive
 		{
 			assert args.size() == 2;
 			final AvailObject con = args.get(0);
-			final AvailObject code = con.closure().code();
+			final AvailObject code = con.function().code();
 			final AvailObject arguments = args.get(1);
 			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
 				: "Outer continuation should have been a label- rather than "
@@ -1681,14 +1681,14 @@ public enum Primitive
 			// (if necessary) because the interpreter requires the current
 			// continuation to always be mutable.
 			final AvailObject conCopy = con.ensureMutable();
-			final AvailObject itsCode = conCopy.closure().code();
+			final AvailObject itsCode = conCopy.function().code();
 			final int numArgs = itsCode.numArgs();
 			if (numArgs != arguments.tupleSize())
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
-			if (!itsCode.closureType().acceptsTupleOfArguments(arguments))
+			if (!itsCode.functionType().acceptsTupleOfArguments(arguments))
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_ARGUMENT_TYPE);
@@ -1711,7 +1711,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType(),
 					TupleTypeDescriptor.mostGeneralType()),
@@ -1746,7 +1746,7 @@ public enum Primitive
 			// reference is lost by this.  We go ahead and make a mutable copy
 			// (if necessary) because the interpreter requires the current
 			// continuation to always be mutable...
-			final AvailObject expectedType = con.closure().kind().returnType();
+			final AvailObject expectedType = con.function().kind().returnType();
 			final AvailObject caller = con.caller();
 			if (caller.equalsNull())
 			{
@@ -1779,7 +1779,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType(),
 					ANY.o()),
@@ -1803,7 +1803,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			final AvailObject code = con.closure().code();
+			final AvailObject code = con.function().code();
 			assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
 				: "Outer continuation should have been a label- rather than "
 					+ "call-continuation";
@@ -1818,7 +1818,7 @@ public enum Primitive
 			// (if necessary) because the interpreter requires the current
 			// continuation to always be mutable.
 			final AvailObject conCopy = con.ensureMutable();
-			final AvailObject itsCode = conCopy.closure().code();
+			final AvailObject itsCode = conCopy.function().code();
 			for (int i = 1, end = itsCode.numLocals(); i <= end; i++)
 			{
 				conCopy.argOrLocalOrStackAtPut(
@@ -1833,7 +1833,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
 				BottomTypeDescriptor.bottom());
@@ -1855,7 +1855,7 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
-			final int count = con.closure().code().numArgsAndLocalsAndStack();
+			final int count = con.function().code().numArgsAndLocalsAndStack();
 			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
 				count);
 			for (int i = 1; i <= count; i++)
@@ -1874,7 +1874,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.mostGeneralType());
@@ -1902,7 +1902,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o(),
 					ANY.o()),
@@ -1930,7 +1930,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -1959,7 +1959,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectTypeDescriptor.mostGeneralType()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -1991,7 +1991,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2022,7 +2022,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ObjectTypeDescriptor.meta()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -2053,7 +2053,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
 				UnionMetaDescriptor.mostGeneralType());
@@ -2080,7 +2080,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				UnionMetaDescriptor.meta());
@@ -2112,7 +2112,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
 				TupleTypeDescriptor.stringTupleType());
@@ -2144,7 +2144,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					InstanceTypeDescriptor.withInstance(
 						ObjectTypeDescriptor.mostGeneralType()),
@@ -2176,7 +2176,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					InstanceTypeDescriptor.withInstance(
 						ObjectTypeDescriptor.mostGeneralType())),
@@ -2187,8 +2187,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 70:</strong> Construct a {@linkplain ClosureDescriptor
-	 * closure} accepting {@code numArgs} arguments (each of type {@link
+	 * <strong>Primitive 70:</strong> Construct a {@linkplain FunctionDescriptor
+	 * function} accepting {@code numArgs} arguments (each of type {@link
 	 * PrimitiveTypeDescriptor all}) and returning {@code constantResult}.
 	 */
 	prim70_CreateConstantBlock(70, 2, CanFold, CannotFail)
@@ -2202,7 +2202,7 @@ public enum Primitive
 			final AvailObject numArgs = args.get(0);
 			final AvailObject constantResult = args.get(1);
 			return interpreter.primitiveSuccess(
-				ClosureDescriptor.createStubForNumArgsConstantResult(
+				FunctionDescriptor.createStubForNumArgsConstantResult(
 					numArgs.extractInt(),
 					constantResult));
 		}
@@ -2210,11 +2210,11 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ANY.o()),
-				ClosureTypeDescriptor.createWithArgumentTupleType(
+				FunctionTypeDescriptor.createWithArgumentTupleType(
 					BottomTypeDescriptor.bottom(),
 					ANY.o(),
 					SetDescriptor.empty()));
@@ -2222,8 +2222,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 71:</strong> Construct a {@linkplain ClosureDescriptor
-	 * closure} that takes arguments whose {@linkplain TypeDescriptor types} are
+	 * <strong>Primitive 71:</strong> Construct a {@linkplain FunctionDescriptor
+	 * function} that takes arguments whose {@linkplain TypeDescriptor types} are
 	 * specified in {@code argTypes}, and returns the result of invoking the
 	 * given {@linkplain AtomDescriptor message} with {@code firstArg} as the
 	 * first argument and the {@linkplain TupleDescriptor tuple} of arguments as
@@ -2250,7 +2250,7 @@ public enum Primitive
 					E_NO_IMPLEMENTATION_SET);
 			}
 			return interpreter.primitiveSuccess(
-				ClosureDescriptor.createStubWithArgTypes(
+				FunctionDescriptor.createStubWithArgTypes(
 					argTypes,
 					impSet,
 					firstArg,
@@ -2260,7 +2260,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2269,7 +2269,7 @@ public enum Primitive
 					ATOM.o(),
 					ANY.o(),
 					TYPE.o()),
-				ClosureTypeDescriptor.createWithArgumentTupleType(
+				FunctionTypeDescriptor.createWithArgumentTupleType(
 					BottomTypeDescriptor.bottom(),
 					TOP.o(),
 					SetDescriptor.empty()));
@@ -2279,9 +2279,9 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 72:</strong> Answer the {@linkplain
 	 * CompiledCodeDescriptor compiled code} within this {@linkplain
-	 * ClosureDescriptor closure}.
+	 * FunctionDescriptor function}.
 	 */
-	prim72_CompiledCodeOfClosure(72, 1, CanFold, CannotFail)
+	prim72_CompiledCodeOfFunction(72, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2289,24 +2289,24 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject aClosure = args.get(0);
-			return interpreter.primitiveSuccess(aClosure.code());
+			final AvailObject aFunction = args.get(0);
+			return interpreter.primitiveSuccess(aFunction.code());
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.mostGeneralType()),
+					FunctionTypeDescriptor.mostGeneralType()),
 				CompiledCodeTypeDescriptor.mostGeneralType());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 73:</strong> Answer the {@linkplain TupleDescriptor
-	 * tuple} of outer variables captured by this {@linkplain ClosureDescriptor
-	 * closure}.
+	 * tuple} of outer variables captured by this {@linkplain FunctionDescriptor
+	 * function}.
 	 */
 	prim73_OuterVariables(73, 1, CanFold, CannotFail)
 	{
@@ -2316,14 +2316,14 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject aClosure = args.get(0);
+			final AvailObject aFunction = args.get(0);
 			final AvailObject newTupleObject =
-				ObjectTupleDescriptor.mutable().create(aClosure.numOuterVars());
+				ObjectTupleDescriptor.mutable().create(aFunction.numOuterVars());
 			newTupleObject.hashOrZero(0);
 			CanAllocateObjects(false);
-			for (int i = 1, end = aClosure.numOuterVars(); i <= end; i++)
+			for (int i = 1, end = aFunction.numOuterVars(); i <= end; i++)
 			{
-				final AvailObject outer = aClosure.outerVarAt(i);
+				final AvailObject outer = aFunction.outerVarAt(i);
 				if (outer.equalsNull())
 				{
 					newTupleObject.tupleAtPut(i, IntegerDescriptor.zero());
@@ -2340,19 +2340,19 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.mostGeneralType()),
+					FunctionTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.mostGeneralType());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 74:</strong> Answer a {@linkplain ClosureDescriptor
-	 * closure} built from the {@linkplain CompiledCodeDescriptor compiled code}
+	 * <strong>Primitive 74:</strong> Answer a {@linkplain FunctionDescriptor
+	 * function} built from the {@linkplain CompiledCodeDescriptor compiled code}
 	 * and the outer variables.
 	 */
-	prim74_CreateClosure(74, 2, CanFold)
+	prim74_CreateFunction(74, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2368,17 +2368,17 @@ public enum Primitive
 					E_WRONG_NUMBER_OF_OUTERS);
 			}
 			return interpreter.primitiveSuccess(
-				ClosureDescriptor.create(compiledCode, outers));
+				FunctionDescriptor.create(compiledCode, outers));
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType(),
 					TupleTypeDescriptor.mostGeneralType()),
-				ClosureTypeDescriptor.mostGeneralType());
+				FunctionTypeDescriptor.mostGeneralType());
 		}
 	},
 
@@ -2403,7 +2403,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2434,7 +2434,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2469,7 +2469,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2506,7 +2506,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2543,7 +2543,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2575,7 +2575,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.singleInteger(
@@ -2604,7 +2604,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2644,7 +2644,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.meta(),
 					TYPE.o(),
@@ -2676,7 +2676,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.meta()),
 				InstanceTypeDescriptor.withInstance(
@@ -2703,7 +2703,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.meta()),
 				TYPE.o());
@@ -2729,7 +2729,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.meta()),
 				TYPE.o());
@@ -2756,7 +2756,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2786,7 +2786,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -2815,7 +2815,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					ANY.o()),
@@ -2844,7 +2844,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					SetTypeDescriptor.mostGeneralType()),
@@ -2873,7 +2873,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					SetTypeDescriptor.mostGeneralType()),
@@ -2902,7 +2902,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					SetTypeDescriptor.mostGeneralType()),
@@ -2932,7 +2932,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					ANY.o()),
@@ -2964,7 +2964,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					ANY.o()),
@@ -2994,7 +2994,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					SetTypeDescriptor.mostGeneralType()),
@@ -3020,7 +3020,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.singleInteger(
@@ -3048,7 +3048,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralType()),
 				SetTypeDescriptor.mostGeneralType());
@@ -3075,7 +3075,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.mostGeneralType());
@@ -3107,7 +3107,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					InstanceTypeDescriptor.withInstance(
 						IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -3138,7 +3138,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.meta()),
 				InstanceTypeDescriptor.withInstance(
@@ -3165,7 +3165,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.meta()),
 				TYPE.o());
@@ -3192,7 +3192,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				ATOM.o());
@@ -3218,7 +3218,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
 				TupleTypeDescriptor.stringTupleType());
@@ -3248,7 +3248,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					ATOM.o()),
@@ -3282,7 +3282,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					ATOM.o()),
@@ -3313,7 +3313,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					ATOM.o(),
@@ -3344,7 +3344,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					ATOM.o()),
@@ -3372,7 +3372,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -3409,7 +3409,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
@@ -3450,7 +3450,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3482,7 +3482,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3511,7 +3511,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3560,7 +3560,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3589,7 +3589,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -3627,7 +3627,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					InstanceTypeDescriptor.withInstance(
 						IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -3663,7 +3663,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta()),
 				InstanceTypeDescriptor.withInstance(
@@ -3691,7 +3691,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -3720,7 +3720,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta()),
 				TYPE.o());
@@ -3755,7 +3755,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
@@ -3812,7 +3812,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3860,7 +3860,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -3894,7 +3894,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta(),
 					TupleTypeDescriptor.meta()),
@@ -3941,7 +3941,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				ATOM.o());
@@ -3996,7 +3996,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					UnionTypeDescriptor.booleanObject()),
@@ -4044,7 +4044,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				ATOM.o());
@@ -4099,7 +4099,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
 				TOP.o());
@@ -4182,7 +4182,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -4248,7 +4248,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -4308,7 +4308,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4362,7 +4362,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4420,7 +4420,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -4472,7 +4472,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
 				TOP.o());
@@ -4511,7 +4511,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				UnionTypeDescriptor.booleanObject());
@@ -4550,7 +4550,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				UnionTypeDescriptor.booleanObject());
@@ -4589,7 +4589,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				UnionTypeDescriptor.booleanObject());
@@ -4628,7 +4628,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				UnionTypeDescriptor.booleanObject());
@@ -4672,7 +4672,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -4716,7 +4716,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				TOP.o());
@@ -4743,7 +4743,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4770,7 +4770,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4779,7 +4779,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 182:</strong> Answer the number of outer variables in
-	 * {@linkplain ClosureDescriptor closures} derived from this {@linkplain
+	 * {@linkplain FunctionDescriptor functions} derived from this {@linkplain
 	 * CompiledCodeDescriptor compiled code}.
 	 */
 	prim182_CompiledCodeNumOuters(182, 1, CanFold, CannotFail)
@@ -4798,7 +4798,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4826,7 +4826,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
@@ -4852,7 +4852,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -4864,10 +4864,10 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 185:</strong> Answer the {@linkplain
-	 * ClosureTypeDescriptor type of closure} this {@linkplain
+	 * FunctionTypeDescriptor type of function} this {@linkplain
 	 * CompiledCodeDescriptor compiled code} will be closed into.
 	 */
-	prim185_CompiledCodeClosureType(185, 1, CanFold, CannotFail)
+	prim185_CompiledCodeFunctionType(185, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -4876,16 +4876,16 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject cc = args.get(0);
-			return interpreter.primitiveSuccess(cc.closureType());
+			return interpreter.primitiveSuccess(cc.functionType());
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
-				ClosureTypeDescriptor.meta());
+				FunctionTypeDescriptor.meta());
 		}
 	},
 
@@ -4909,7 +4909,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.unsignedShorts());
@@ -4957,7 +4957,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CompiledCodeTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -4983,7 +4983,7 @@ public enum Primitive
 			final AvailObject outers = args.get(1);
 			final AvailObject stack = args.get(2);
 			final AvailObject nybs = args.get(3);
-			final AvailObject closureType = args.get(4);
+			final AvailObject functionType = args.get(4);
 			final AvailObject primitive = args.get(5);
 			final AvailObject allLiterals = args.get(6);
 
@@ -5002,10 +5002,10 @@ public enum Primitive
 				}
 				final AvailObject restrictionSignature =
 					prim.blockTypeRestriction();
-				if (!restrictionSignature.isSubtypeOf(closureType))
+				if (!restrictionSignature.isSubtypeOf(functionType))
 				{
 					return interpreter.primitiveFailure(
-						E_CLOSURE_DISAGREES_WITH_PRIMITIVE_RESTRICTION);
+						E_FUNCTION_DISAGREES_WITH_PRIMITIVE_RESTRICTION);
 				}
 			}
 
@@ -5042,7 +5042,7 @@ public enum Primitive
 					nybs,
 					nLocals,
 					stack.extractInt(),
-					closureType,
+					functionType,
 					primitive.extractInt(),
 					allLiterals.copyTupleFromToCanDestroy(
 						1,
@@ -5055,7 +5055,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -5064,7 +5064,7 @@ public enum Primitive
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
 						IntegerRangeTypeDescriptor.nybbles()),
-					ClosureTypeDescriptor.meta(),
+					FunctionTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.unsignedShorts(),
 					TupleTypeDescriptor.mostGeneralType()),
 				CompiledCodeTypeDescriptor.mostGeneralType());
@@ -5073,7 +5073,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 200:</strong> Always fail. The Avail failure code
-	 * invokes the {@linkplain ClosureDescriptor body block}. The handler block
+	 * invokes the {@linkplain FunctionDescriptor body block}. The handler block
 	 * is only invoked when an exception is raised.
 	 */
 	prim200_CatchException(200, 2, Unknown)
@@ -5094,12 +5094,12 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ClosureTypeDescriptor.create(
+					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						TOP.o()),
-					ClosureTypeDescriptor.create(
+					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(
 							BottomTypeDescriptor.bottom()),
 						TOP.o())),
@@ -5117,7 +5117,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 201:</strong> Raise an exception. Scan the stack of
 	 * {@linkplain ContinuationDescriptor continuations} until one is found for
-	 * a {@linkplain ClosureDescriptor closure} whose {@linkplain
+	 * a {@linkplain FunctionDescriptor function} whose {@linkplain
 	 * CompiledCodeDescriptor code} is {@linkplain
 	 * #prim200_CatchException primitive 200}.
 	 * Get that continuation's second argument (a handler block of one
@@ -5140,7 +5140,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				BottomTypeDescriptor.bottom());
@@ -5171,7 +5171,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE_TREE.o()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5204,7 +5204,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE_TREE.o()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5239,7 +5239,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5274,7 +5274,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -5305,7 +5305,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				ATOM.o());
@@ -5333,7 +5333,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -5374,7 +5374,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				SetTypeDescriptor.setTypeForSizesContentType(
@@ -5405,7 +5405,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				UnionTypeDescriptor.booleanObject());
@@ -5432,7 +5432,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -5446,8 +5446,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 216:</strong> Answer this {@linkplain
-	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor body}'s
-	 * {@linkplain ClosureTypeDescriptor type}.
+	 * SignatureDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
+	 * {@linkplain FunctionTypeDescriptor type}.
 	 */
 	prim216_SignatureBodyType(216, 1, CanFold, CannotFail)
 	{
@@ -5465,17 +5465,17 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
-				ClosureTypeDescriptor.meta());
+				FunctionTypeDescriptor.meta());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 217:</strong> Answer this {@linkplain
 	 * MethodSignatureDescriptor method signature}'s {@linkplain
-	 * ClosureDescriptor body}.
+	 * FunctionDescriptor body}.
 	 */
 	prim217_SignatureBodyBlock(217, 1, CanFold, CannotFail)
 	{
@@ -5493,17 +5493,17 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					METHOD_SIGNATURE.o()),
-				ClosureTypeDescriptor.mostGeneralType());
+				FunctionTypeDescriptor.mostGeneralType());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 218:</strong> Answer this {@linkplain
-	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor requires
-	 * closure}.
+	 * SignatureDescriptor signature}'s {@linkplain FunctionDescriptor requires
+	 * function}.
 	 */
 	prim218_SignatureRequiresBlock(218, 1, CanFold)
 	{
@@ -5522,24 +5522,24 @@ public enum Primitive
 					sig.requiresBlock().makeImmutable());
 			}
 			return interpreter.primitiveFailure(
-				E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_CLOSURE);
+				E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION);
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
-				ClosureTypeDescriptor.forReturnType(
+				FunctionTypeDescriptor.forReturnType(
 					UnionTypeDescriptor.booleanObject()));
 		}
 	},
 
 	/**
 	 * <strong>Primitive 219:</strong> Answer this {@linkplain
-	 * SignatureDescriptor signature}'s {@linkplain ClosureDescriptor returns
-	 * closure}.
+	 * SignatureDescriptor signature}'s {@linkplain FunctionDescriptor returns
+	 * function}.
 	 */
 	prim219_SignatureReturnsBlock(219, 1, CanFold)
 	{
@@ -5558,16 +5558,16 @@ public enum Primitive
 					sig.returnsBlock().makeImmutable());
 			}
 			return interpreter.primitiveFailure(
-				E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_CLOSURE);
+				E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION);
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SIGNATURE.o()),
-				ClosureTypeDescriptor.forReturnType(TYPE.o()));
+				FunctionTypeDescriptor.forReturnType(TYPE.o()));
 		}
 	},
 
@@ -5599,7 +5599,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
 				IMPLEMENTATION_SET.o());
@@ -5628,7 +5628,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IMPLEMENTATION_SET.o()),
 				ATOM.o());
@@ -5679,7 +5679,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				ANY.o());
@@ -5716,7 +5716,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				ATOM.o());
@@ -5765,10 +5765,10 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					ClosureTypeDescriptor.forReturnType(PARSE_NODE.o())),
+					FunctionTypeDescriptor.forReturnType(PARSE_NODE.o())),
 				TOP.o());
 		}
 	},
@@ -5796,7 +5796,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.unsignedShorts()),
 				UnionTypeDescriptor.booleanObject());
@@ -5822,7 +5822,7 @@ public enum Primitive
 			final AvailObject returnsBlock = args.get(3);
 
 			// TODO: [MvG] Check signature compatibility with requires and
-			// returns closures.
+			// returns functions.
 			try
 			{
 				interpreter.atDeclareAbstractSignatureRequiresBlockReturnsBlock(
@@ -5845,13 +5845,13 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					ClosureTypeDescriptor.meta(),
-					ClosureTypeDescriptor.forReturnType(
+					FunctionTypeDescriptor.meta(),
+					FunctionTypeDescriptor.forReturnType(
 						UnionTypeDescriptor.booleanObject()),
-					ClosureTypeDescriptor.forReturnType(
+					FunctionTypeDescriptor.forReturnType(
 						TYPE.o())),
 				TOP.o());
 		}
@@ -5894,10 +5894,10 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					ClosureTypeDescriptor.meta()),
+					FunctionTypeDescriptor.meta()),
 				TOP.o());
 		}
 	},
@@ -5938,10 +5938,10 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					ClosureTypeDescriptor.mostGeneralType()),
+					FunctionTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
 	},
@@ -5985,13 +5985,13 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					ClosureTypeDescriptor.mostGeneralType(),
-					ClosureTypeDescriptor.forReturnType(
+					FunctionTypeDescriptor.mostGeneralType(),
+					FunctionTypeDescriptor.forReturnType(
 						UnionTypeDescriptor.booleanObject()),
-					ClosureTypeDescriptor.forReturnType(TYPE.o())),
+					FunctionTypeDescriptor.forReturnType(TYPE.o())),
 				TOP.o());
 		}
 	},
@@ -6052,7 +6052,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.setTypeForSizesContentType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -6092,7 +6092,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				BottomTypeDescriptor.bottom());
@@ -6127,7 +6127,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
 				TOP.o());
 		}
@@ -6154,7 +6154,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				TOP.o());
@@ -6182,7 +6182,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
 				TupleTypeDescriptor.stringTupleType());
@@ -6220,7 +6220,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
 				ATOM.o());
 		}
@@ -6253,7 +6253,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -6269,7 +6269,7 @@ public enum Primitive
 	 * opaque handle that secretly contains:
 	 * <ol>
 	 * <li>the library's handle,</li>
-	 * <li>the closureType,</li>
+	 * <li>the functionType,</li>
 	 * <li>an ExternalProcedure (which can cache the function address when
 	 * invoked), and</li>
 	 * <li>Java code that accepts and returns Avail objects but invokes
@@ -6302,7 +6302,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -6317,7 +6317,7 @@ public enum Primitive
 	 * handle encapsulates:
 	 * <ol>
 	 * <li>an ExternalProcedure</li>
-	 * <li>a closureType</li>
+	 * <li>a functionType</li>
 	 * <li>the construct that encapsulates the library handle.</li>
 	 * </ol>
 	 */
@@ -6342,8 +6342,8 @@ public enum Primitive
 					convertExternalResultType: external type resultType baseType.
 				opaqueEntryPoint := Array
 					with: external
-					with: (ClosureTypeDescriptor
-						closureTypeForArgumentTypes: argTypesTuple
+					with: (FunctionTypeDescriptor
+						functionTypeForArgumentTypes: argTypesTuple
 						returnType: returnType)
 					with: opaqueLibrary.
 				entryPoints add: opaqueEntryPoint.
@@ -6354,7 +6354,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					TupleTypeDescriptor.stringTupleType()),
@@ -6363,10 +6363,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 264:</strong> Answer the closure type associated with
+	 * <strong>Primitive 264:</strong> Answer the function type associated with
 	 * the given entry point.
 	 */
-	prim264_EntryPointClosureType(264, 1, CanInline)
+	prim264_EntryPointFunctionType(264, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6384,10 +6384,10 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
-				ClosureTypeDescriptor.meta());
+				FunctionTypeDescriptor.meta());
 		}
 	},
 
@@ -6446,7 +6446,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o(),
 					TupleTypeDescriptor.mostGeneralType()),
@@ -6477,7 +6477,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -6511,7 +6511,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.integers(),
@@ -6540,7 +6540,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
 				UnionTypeDescriptor.booleanObject());
 		}
@@ -6570,7 +6570,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6602,7 +6602,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6634,7 +6634,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6670,7 +6670,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6701,7 +6701,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6732,7 +6732,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6762,7 +6762,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o()),
 				FLOAT.o());
@@ -6791,7 +6791,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o()),
 				FLOAT.o());
@@ -6827,7 +6827,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
@@ -6883,7 +6883,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -6938,7 +6938,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers()),
 				FLOAT.o());
@@ -6971,7 +6971,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
 					IntegerRangeTypeDescriptor.integers()),
@@ -7003,7 +7003,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7035,7 +7035,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7067,7 +7067,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7103,7 +7103,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7134,7 +7134,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7165,7 +7165,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7194,7 +7194,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o()),
 				DOUBLE.o());
@@ -7222,7 +7222,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o()),
 				DOUBLE.o());
@@ -7258,7 +7258,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
@@ -7314,7 +7314,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o()),
 				IntegerRangeTypeDescriptor.extendedIntegers());
@@ -7376,7 +7376,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers()),
 				DOUBLE.o());
@@ -7409,7 +7409,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					IntegerRangeTypeDescriptor.integers()),
@@ -7438,7 +7438,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					CHARACTER.o()),
 				IntegerRangeTypeDescriptor.characterCodePoints());
@@ -7466,7 +7466,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.characterCodePoints()),
 				CHARACTER.o());
@@ -7537,7 +7537,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o(),
 					PARSE_NODE.o()),
@@ -7564,7 +7564,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					PARSE_NODE.o()),
 				TYPE.o());
@@ -7590,7 +7590,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				BottomTypeDescriptor.bottom());
@@ -7651,7 +7651,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o(),
 					PARSE_NODE.o()),
@@ -7693,7 +7693,7 @@ public enum Primitive
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.o()),
 				REFERENCE_NODE.o());
@@ -7718,7 +7718,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateBlockTypeRestriction ()
 		{
-			return ClosureTypeDescriptor.create(
+			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(TupleTypeDescriptor.stringTupleType()),
 				BottomTypeDescriptor.bottom());
 		}
@@ -7801,7 +7801,7 @@ public enum Primitive
 		/**
 		 * UNUSED
 		 *
-		 * The primitive can invoke a closure.  If the closure is a
+		 * The primitive can invoke a function.  If the function is a
 		 * non-primitive (or a primitive that fails), the current continuation
 		 * must be reified before the call.
 		 */
@@ -7865,34 +7865,34 @@ public enum Primitive
 
 
 	/**
-	 * Return a closure type that restricts actual primitive blocks defined
+	 * Return a function type that restricts actual primitive blocks defined
 	 * using that primitive.  The actual block's argument types must be at least
-	 * as specific as this closure type's argument types, and the actual block's
-	 * return type must be at least as general as this closure type's return
+	 * as specific as this function type's argument types, and the actual block's
+	 * return type must be at least as general as this function type's return
 	 * type.  That's equivalent to the condition that the actual block's type is
-	 * a subtype of this closure type.
+	 * a subtype of this function type.
 	 *
 	 * @return
-	 *             A closure type that restricts the type of a block that uses
+	 *             A function type that restricts the type of a block that uses
 	 *             this primitive.
 	 */
 	protected abstract @NotNull AvailObject privateBlockTypeRestriction ();
 
 	/**
-	 * A {@linkplain ClosureTypeDescriptor closure type} that restricts the type
+	 * A {@linkplain FunctionTypeDescriptor function type} that restricts the type
 	 * of block that can use this primitive.  This is initialized lazily to the
 	 * value provided by {@link #privateBlockTypeRestriction()}, to avoid having
-	 * to compute this closure type multiple times.
+	 * to compute this function type multiple times.
 	 */
 	private AvailObject cachedBlockTypeRestriction;
 
 	/**
-	 * Return a closure type that restricts actual primitive blocks defined
+	 * Return a function type that restricts actual primitive blocks defined
 	 * using that primitive.  The actual block's argument types must be at least
-	 * as specific as this closure type's argument types, and the actual block's
-	 * return type must be at least as general as this closure type's return
+	 * as specific as this function type's argument types, and the actual block's
+	 * return type must be at least as general as this function type's return
 	 * type.  That's equivalent to the condition that the actual block's type is
-	 * a subtype of this closure type.
+	 * a subtype of this function type.
 	 *
 	 * <p>
 	 * Cache the value in this {@linkplain Primitive} so subsequent requests are
@@ -7900,7 +7900,7 @@ public enum Primitive
 	 * </p>
 	 *
 	 * @return
-	 *            A closure type that restricts the type of a block that uses
+	 *            A function type that restricts the type of a block that uses
 	 *            this primitive.
 	 */
 	public final @NotNull AvailObject blockTypeRestriction ()

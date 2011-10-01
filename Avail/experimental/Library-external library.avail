@@ -87,4 +87,4 @@ Method "_(«_‡,»)" is [
 		arguments : tuple |
 	invoke primitive entry point entryPoint -> privateHandle
 		with arguments arguments;
-] : all;
+] : any;

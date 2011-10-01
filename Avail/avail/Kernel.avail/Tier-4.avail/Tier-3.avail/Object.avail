@@ -60,7 +60,7 @@ privateObjectType ::= Special Object 23;
 Method "objectType" is [privateObjectType;] : privateObjectType type;
 Method "objectMeta" is [objectType type;];
 
-Method "fieldMap" is [map from atom to all;];
+Method "fieldMap" is [map from atom to any;];
 Method "fieldTypeMap" is [map from atom to type;];
 
 Method "_as objectType" is [m : fieldTypeMap |
@@ -130,9 +130,9 @@ Method "_as map" is [o : Object |
 
 Method "_new with_" is [
 		ot : objectType,
-		t : tuple of (tuple like <atom, all>) |
+		t : tuple of (tuple like <atom, any>) |
 	m : fieldMap := [->];
-	t do [pair : tuple like <atom, all> |
+	t do [pair : tuple like <atom, any> |
 		if m[pair[1]]? then [Crash "Duplicate key in ""_new with_"" argument.";];
 		*&m[pair[1]] := pair[2];
 	];
@@ -188,9 +188,9 @@ returns [oM : objectMeta, tT : tupleType |
 
 /* Incrementally constructing an object from another with changes. */
 
-Method "_altered with_" is [o : Object, t : tuple of (tuple like <atom, all>) |
+Method "_altered with_" is [o : Object, t : tuple of (tuple like <atom, any>) |
 	m : fieldMap := o as map;
-	t do [pair : tuple like <atom, all> |
+	t do [pair : tuple like <atom, any> |
 		*&m[pair[1]] := pair[2];
 	];
 	m as object;
@@ -240,7 +240,7 @@ Method "_altered with_" is [ot : Object type, t : tuple of (tuple like <atom, ty
 Method "Rule_" is [rule : [terminates]->boolean |
 	validationList := validationList then <rule>;
 ] : void
-requires [ruleT : closureType |
+requires [ruleT : functionType |
 	ruleT[1] type <= objectType;
 ];
 
@@ -258,13 +258,13 @@ requires [om : objectMeta, keyT : atom type |
 	   all instances can be looked up in the static object type. */
 	keyT type <= unionType & [
 		om instances as tuple all [ot : objectType |
-			keyT unsafe instances as tuple all [key : all |
+			keyT unsafe instances as tuple all [key : any |
 				ot as map [key]?;];];];
 ]
 returns [om : objectMeta, keyT : atom type |
 	result : type := terminates;
 	om instances do [ot : objectType |
-		keyT unsafe instances do [key : all |
+		keyT unsafe instances do [key : any |
 			strongKey : atom;
 			*&strongKey ?:= key;
 			result := type union of result and ot as map [strongKey];];];
@@ -273,19 +273,19 @@ returns [om : objectMeta, keyT : atom type |
 
 
 Method "_->_result" is [ot : objectType, key : atom |
-	cast ot as map [key] into [x : closureType | x result;];
+	cast ot as map [key] into [x : functionType | x result;];
 ] : type
 requires [om : objectMeta, keyT : atom type |
 	cast keyT
 		into [keyU : unionType |
 			||keyU instances|| = 1 & [
 				om instance as map [keyU instance]? & [
-					om instance as map [keyU instance] <= []->all;];];]
+					om instance as map [keyU instance] <= []->any;];];]
 		otherwise [false;];
 ]
 returns [om : objectMeta, keyT : atom type |
 	cast om instance as map [keyT unsafe instance]
-		into [x : closureType | x result type;];
+		into [x : functionType | x result type;];
 ];
 
 
@@ -298,11 +298,11 @@ Method "_->_" is [o : Object, key : atom |
 	   being accessed by an invocation of "_->_".  Thus, we know from the
 	   objectType precisely the type of the attribute value.  */
 	o as map [key];
-] : all
+] : any
 requires [ot : objectType, keyT : atom type |
 	keyT type <= unionType & [
 		keyT not = terminates & [
-			keyT unsafe instances as tuple all [shouldBeAtom : all |
+			keyT unsafe instances as tuple all [shouldBeAtom : any |
 				shouldBeAtom type <= atom;];];];
 ]
 returns [ot : objectType, keyT : atom type |
@@ -311,7 +311,7 @@ returns [ot : objectType, keyT : atom type |
 	cast keyT
 		into [keyU : unionType |
 			map ::= ot as map;
-			keyU instances do [shouldBeAtom : all |
+			keyU instances do [shouldBeAtom : any |
 				if map[shouldBeAtom]? then [
 					union := type union of union and map[shouldBeAtom];
 				] else [
@@ -324,8 +324,8 @@ Method "_->_result" is [o : Object, key : atom |
 	/* Since the objectType version of this has the same selector, we
 	   must define the same method here in case someone wants to
 	   use this particular pattern. */
-	cast o as map [key] into [x : closureType | x result;];
-] : all
+	cast o as map [key] into [x : functionType | x result;];
+] : any
 requires [ot : objectType, keyT : atom type |
 	cast keyT
 		into [keyU : unionType |
@@ -334,7 +334,7 @@ requires [ot : objectType, keyT : atom type |
 				exactAtom ::= atoms as tuple [1];
 				ot as map [exactAtom]?
 					& [
-						ot as map [exactAtom] <= closure;
+						ot as map [exactAtom] <= function;
 					];]
 			else [
 				Fail parse "Expected type of second argument of ""_->_result"" to be a specific atom type";];]
@@ -348,7 +348,7 @@ returns [ot : objectType, keyT : atom type |
 			if || atoms || = 1 then [
 				exactAtom ::= atoms as tuple [1];
 				if ot as map [exactAtom]? then [
-					cast ot as map [exactAtom] into [x : closureType | x result;];]
+					cast ot as map [exactAtom] into [x : functionType | x result;];]
 				else [
 					/* For lack of anything better.  Really should raise exception eventually. */
 					terminates;];]

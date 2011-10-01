@@ -46,7 +46,7 @@ Body
 /* Answer the type of the object. */
 
 
-Method "_type" is [a : all |
+Method "_type" is [a : any |
 	Primitive 30;
 ] : type
 requires [aT : type |

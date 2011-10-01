@@ -1,5 +1,5 @@
 /**
- * descriptor/ClosureDescriptor.java
+ * descriptor/FunctionDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -39,7 +39,16 @@ import com.avail.annotations.NotNull;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 
-public class ClosureDescriptor
+/**
+ * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
+ * a referencing environment that binds the code's free variables to variables
+ * defined in an outer lexical scope. In this way, a function constitutes a
+ * proper closure.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class FunctionDescriptor
 extends Descriptor
 {
 	/**
@@ -95,11 +104,11 @@ extends Descriptor
 	{
 		if (isMutable)
 		{
-			aStream.append("Mutable closure with code: ");
+			aStream.append("Mutable function with code: ");
 		}
 		else
 		{
-			aStream.append("Immutable closure with code: ");
+			aStream.append("Immutable function with code: ");
 		}
 		L1Decompiler.parse(object).printOnAvoidingIndent(
 			aStream,
@@ -112,34 +121,35 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsClosure(object);
+		return another.equalsFunction(object);
 	}
 
 	@Override
-	public boolean o_EqualsClosure (
+	public boolean o_EqualsFunction (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosure)
+		final @NotNull AvailObject aFunction)
 	{
-		if (!object.code().equals(aClosure.code()))
+		if (!object.code().equals(aFunction.code()))
 		{
 			return false;
 		}
-		if (object.numOuterVars() != aClosure.numOuterVars())
+		if (object.numOuterVars() != aFunction.numOuterVars())
 		{
 			return false;
 		}
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
-			if (!object.outerVarAt(i).equals(aClosure.outerVarAt(i)))
+			if (!object.outerVarAt(i).equals(aFunction.outerVarAt(i)))
 			{
 				return false;
 			}
 		}
-		//  They're equal (but occupy disjoint storage).  Replace one with an indirection to the other
-		//  to reduce storage costs and the frequency of detailed comparisons.
-		object.becomeIndirectionTo(aClosure);
-		aClosure.makeImmutable();
-		//  Now that there are at least two references to it
+		// They're equal (but occupy disjoint storage). Replace one with an
+		// indirection to the other to reduce storage costs and the frequency of
+		// detailed comparisons.
+		object.becomeIndirectionTo(aFunction);
+		aFunction.makeImmutable();
+		// Now that there are at least two references to it
 		return true;
 	}
 
@@ -147,11 +157,11 @@ extends Descriptor
 	public int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a 32-bit hash value.  If outer vars of mutable
-		//  closures can peel away when executed (last use of an outer var of a
-		//  mutable closure can clobber that var and replace the outerAt: entry with
-		//  0 or something), it's ok because nobody could know what the hash value
-		//  *used to be* for this closure.
+		// Answer a 32-bit hash value. If outer vars of mutable functions can
+		// peel away when executed (last use of an outer var of a mutable
+		// function can clobber that var and replace the OUTER_VAR_AT_ entry
+		// with 0 or something), it's ok because nobody could know what the hash
+		// value *used to be* for this function.
 
 		int hash = object.code().hash() ^ 0x1386D4F6;
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
@@ -162,37 +172,36 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsClosure (
+	public boolean o_IsFunction (
 		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	/**
-	 * Answer the object's type.  Simply asks the compiled code for the
-	 * closureType.
+	 * Answer the object's type. Simply asks the {@linkplain
+	 * CompiledCodeDescriptor compiled code} for the {@linkplain
+	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
 	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return object.code().closureType();
+		return object.code().functionType();
 	}
-
-	// operations-closure
 
 	@Override
 	public boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosure)
+		final @NotNull AvailObject aFunction)
 	{
-		//  Answer true if either I am aClosure or I contain aClosure.
+		//  Answer true if either I am aFunction or I contain aFunction.
 
-		if (object.equals(aClosure))
+		if (object.equals(aFunction))
 		{
 			return true;
 		}
-		return object.code().containsBlock(aClosure);
+		return object.code().containsBlock(aFunction);
 	}
 
 	@Override
@@ -200,12 +209,13 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  This one's kind of tricky.  An outer variable is being used by the interpreter (the
-		//  variable itself, but we don't yet know whether it will be passed around, or sent
-		//  the getValue or setValue message, or even just popped.  So don't destroy it
-		//  yet.  If this closure is mutable, unlink the outer variable from it (as the closure no
-		//  longer needs it in that case).  Answer true if it was mutable, otherwise false, so
-		//  the calling code knows what happened.
+		// This one's kind of tricky. An outer variable is being used by the
+		// interpreter (the variable itself, but we don't yet know whether it
+		// will be passed around, or sent the getValue or setValue message, or
+		// even just popped. So don't destroy it yet. If this function is
+		// mutable, unlink the outer variable from it (as the function no longer
+		// needs it in that case). Answer true if it was mutable, otherwise
+		// false, so the calling code knows what happened.
 
 		if (isMutable)
 		{
@@ -226,14 +236,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a closure that accepts a specific number of arguments and always
+	 * Create a function that accepts a specific number of arguments and always
 	 * returns the specified constant value.  The arguments may be of any type
-	 * (except top or bottom), and in fact the closure types them as "all".
+	 * (except top or bottom), and in fact the function types them as "any".
 	 *
 	 * @param numArgs The number of arguments to accept.
-	 * @param constantResult The constant that the new closure should always
+	 * @param constantResult The constant that the new function should always
 	 *                       produce.
-	 * @return A closure that takes N arguments and returns a constant.
+	 * @return A function that takes N arguments and returns a constant.
 	 */
 	public static AvailObject createStubForNumArgsConstantResult (
 		final int numArgs,
@@ -252,29 +262,29 @@ extends Descriptor
 		writer.primitiveNumber(
 			Primitive.prim340_PushConstant.primitiveNumber);
 		final AvailObject code = writer.compiledCode();
-		final AvailObject closure =
-			ClosureDescriptor.create (
+		final AvailObject function =
+			FunctionDescriptor.create (
 				code,
 				TupleDescriptor.empty());
-		closure.makeImmutable();
-		return closure;
+		function.makeImmutable();
+		return function;
 	}
 
 	/**
-	 * Create a closure that takes arguments of the specified types, then turns
+	 * Create a function that takes arguments of the specified types, then turns
 	 * around and sends a specific two-argument message.  The first argument of
 	 * that message is specified here, and the second argument is a list of the
-	 * arguments supplied to the closure we're creating.  Ensure the send
+	 * arguments supplied to the function we're creating.  Ensure the send
 	 * returns a value that complies with resultType.
 	 *
-	 * @param argTypes The types of arguments the new closure should accept.
-	 * @param implementationSet The two-argument message the new closure should
+	 * @param argTypes The types of arguments the new function should accept.
+	 * @param implementationSet The two-argument message the new function should
 	 *                          invoke.
 	 * @param firstArg The first argument to send to the two-argument message.
-	 * @param resultType The type that the invocation (and the new closure)
+	 * @param resultType The type that the invocation (and the new function)
 	 *                   should return.
-	 * @return A closure which accepts arguments of the given types and produces
-	 *         a value of the specified type.
+	 * @return A function which accepts arguments of the given types and
+	 *         produces a value of the specified type.
 	 */
 	public static AvailObject createStubWithArgTypes (
 		final @NotNull AvailObject argTypes,
@@ -310,20 +320,20 @@ extends Descriptor
 
 		final AvailObject code = writer.compiledCode();
 
-		final AvailObject closure =
-			ClosureDescriptor.create (
+		final AvailObject function =
+			FunctionDescriptor.create (
 				code,
 				TupleDescriptor.empty());
-		closure.makeImmutable();
-		return closure;
+		function.makeImmutable();
+		return function;
 	}
 
 	/**
-	 * Construct a closure with the given code and tuple of copied variables.
+	 * Construct a function with the given code and tuple of copied variables.
 	 *
-	 * @param code The code with which to build the closure.
+	 * @param code The code with which to build the function.
 	 * @param copiedTuple The outer variables and constants to enclose.
-	 * @return A closure.
+	 * @return A function.
 	 */
 	public static AvailObject create (
 		final @NotNull AvailObject code,
@@ -340,45 +350,45 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ClosureDescriptor}.
+	 * Construct a new {@link FunctionDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ClosureDescriptor (final boolean isMutable)
+	protected FunctionDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ClosureDescriptor}.
+	 * The mutable {@link FunctionDescriptor}.
 	 */
-	private final static ClosureDescriptor mutable =
-		new ClosureDescriptor(true);
+	private final static FunctionDescriptor mutable =
+		new FunctionDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ClosureDescriptor}.
+	 * Answer the mutable {@link FunctionDescriptor}.
 	 *
-	 * @return The mutable {@link ClosureDescriptor}.
+	 * @return The mutable {@link FunctionDescriptor}.
 	 */
-	public static ClosureDescriptor mutable ()
+	public static FunctionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ClosureDescriptor}.
+	 * The immutable {@link FunctionDescriptor}.
 	 */
-	private final static ClosureDescriptor immutable =
-		new ClosureDescriptor(false);
+	private final static FunctionDescriptor immutable =
+		new FunctionDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ClosureDescriptor}.
+	 * Answer the immutable {@link FunctionDescriptor}.
 	 *
-	 * @return The immutable {@link ClosureDescriptor}.
+	 * @return The immutable {@link FunctionDescriptor}.
 	 */
-	public static ClosureDescriptor immutable ()
+	public static FunctionDescriptor immutable ()
 	{
 		return immutable;
 	}

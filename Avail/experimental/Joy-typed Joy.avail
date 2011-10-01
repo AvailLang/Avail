@@ -39,7 +39,7 @@ Body
 /*  Define a trivial Joy interpreter, directly *embedded* in the Avail syntax. */
 
 /* Some useful types... */
-stack ::= tuple of all;
+stack ::= tuple of any;
 stackType ::= stack type;
 
 typePart ::= lookup "typePart";
@@ -74,7 +74,7 @@ Method "_with_" is [sT : stackType, toPush : tuple of type |
 
 
 /* Polymorphic utility for evaluation... */
-Method "_run_" is [a : all, s : stack |
+Method "_run_" is [a : any, s : stack |
 	/* Most objects just push themselves. */
 	<a> then  s;
 ]:stack;
@@ -85,13 +85,13 @@ Method "_run_" is [f : TypedFunct, s : stack |
 
 Method "_runAll_" is [quotation : tuple, s : stack |
 	s2 : stack := s;
-	quotation do [x : all | s2 := x run s2;];
+	quotation do [x : any | s2 := x run s2;];
 	s2;
 ];
 
 
 /* Polymorphic utility for type-checking... */
-Method "_check_" is [a : all, sT : stackType |
+Method "_check_" is [a : any, sT : stackType |
 	sT with <a type>;
 ];
 
@@ -143,7 +143,7 @@ Method "*" is [
 Method "[«_‡,»]" is [aTuple : tuple |
 	[s:stack |
 		s2 : stack := s;
-		aTuple do [x : all | s2 := x run s2;];
+		aTuple do [x : any | s2 := x run s2;];
 		s2;]
 	withType [sT:stackType | sT with <TypedFunct>;];];
 

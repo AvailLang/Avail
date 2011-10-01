@@ -34,7 +34,7 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
-import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -50,8 +50,8 @@ public class AvailGetOuterVariable extends AvailGetVariable
 	/**
 	 * Construct a new {@link AvailGetOuterVariable}.
 	 *
-	 * @param outerIndex The index of the variable in a {@link ClosureDescriptor
-	 *                   closure's} list of outer variables.
+	 * @param outerIndex The index of the variable in a {@link FunctionDescriptor
+	 *                   function's} list of outer variables.
 	 */
 	public AvailGetOuterVariable (int outerIndex)
 	{

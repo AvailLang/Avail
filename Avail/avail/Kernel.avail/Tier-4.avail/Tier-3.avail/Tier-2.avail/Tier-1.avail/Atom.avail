@@ -64,12 +64,12 @@ Method "_property[_]" is [
 		propertyKey : atom |
 	Primitive 123  (failureCode : natural number);
 	Failed;
-] : all;
+] : any;
 
 Method "_property[_]:=_" is [
 		a : atom,
 		propertyKey : atom,
-		propertyValue : all |
+		propertyValue : any |
 	Primitive 124;
 ] : void;
 

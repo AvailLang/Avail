@@ -39,15 +39,15 @@ Body
 /*  Define a trivial Joy interpreter, directly *embedded* in the Avail syntax. */
 
 /* Some useful types... */
-stack ::= tuple of all;
+stack ::= tuple of any;
 funct ::= [stack]->stack;
 
 /* Polymorphic utility for evaluation... */
-Method "_run_" is [a : all, s : stack | <a> then  s; ]:stack;
+Method "_run_" is [a : any, s : stack | <a> then  s; ]:stack;
 Method "_run_" is [f : funct, s : stack | f(s); ]:stack;
 Method "_runAll_" is [t : tuple, s : stack |
 	s2 : stack := s;
-	t do [x : all | s2 := x run s2; ];
+	t do [x : any | s2 := x run s2; ];
 	s2;
 ];
 

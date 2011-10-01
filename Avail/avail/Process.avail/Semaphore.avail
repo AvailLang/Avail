@@ -80,14 +80,14 @@ Method "_critical section_" is [sem : Semaphore, blk : []->void |
 	signal sem;
 ] : void;
 
-Method "_critical section_" is [sem : Semaphore, blk : []->all |
+Method "_critical section_" is [sem : Semaphore, blk : []->any |
 	/* Note - this is an override to allow the block's value to be used. */
 	wait for sem;
 	result ::= blk();
 	signal sem;
 	result;
-] : all
-returns [st : Semaphore type, blkt : closureType |
+] : any
+returns [st : Semaphore type, blkt : functionType |
 	blkt result;
 ];
 

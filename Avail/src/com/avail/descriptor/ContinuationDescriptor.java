@@ -105,10 +105,10 @@ extends Descriptor
 		CALLER,
 
 		/**
-		 * The {@linkplain ClosureDescriptor closure} being executed via this
+		 * The {@linkplain FunctionDescriptor function} being executed via this
 		 * continuation.
 		 */
-		CLOSURE,
+		FUNCTION,
 
 		/**
 		 * The {@linkplain L2ChunkDescriptor Level Two chunk} which can be
@@ -134,7 +134,7 @@ extends Descriptor
 	{
 		/**
 		 * The index into the current continuation's {@linkplain
-		 * ObjectSlots#CLOSURE closure's} compiled code's tuple of nybblecodes
+		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
 		@BitField(shift=16, bits=16)
@@ -161,11 +161,11 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_Closure (
+	public void o_Function (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.CLOSURE, value);
+		object.objectSlotPut(ObjectSlots.FUNCTION, value);
 	}
 
 	@Override
@@ -218,10 +218,10 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Closure (
+	public @NotNull AvailObject o_Function (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CLOSURE);
+		return object.objectSlot(ObjectSlots.FUNCTION);
 	}
 
 	@Override
@@ -263,7 +263,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		if (!object.closure().equals(aContinuation.closure()))
+		if (!object.function().equals(aContinuation.function()))
 		{
 			return false;
 		}
@@ -292,7 +292,7 @@ extends Descriptor
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();
-		h = h + object.closure().hash() + object.pc() * object.stackp();
+		h = h + object.function().hash() + object.pc() * object.stackp();
 		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			h = h * 23 + 0x221C9 ^ object.argOrLocalOrStackAt(i).hash();
@@ -304,8 +304,8 @@ extends Descriptor
 	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return ContinuationTypeDescriptor.forClosureType(
-			object.closure().kind());
+		return ContinuationTypeDescriptor.forFunctionType(
+			object.function().kind());
 	}
 
 	/**
@@ -434,7 +434,7 @@ extends Descriptor
 			object.variableObjectSlotsCount());
 		assert result.objectSlotsCount() == object.objectSlotsCount();
 		result.caller(object.caller());
-		result.closure(object.closure());
+		result.function(object.function());
 		result.pc(object.pc());
 		result.stackp(object.stackp());
 		result.levelTwoChunkOffset(
@@ -461,19 +461,19 @@ extends Descriptor
 	 * the first instruction (skipping the primitive indicator if necessary),
 	 * clear the stack, and set up all local variables.
 	 *
-	 * @param closure The closure being invoked.
+	 * @param function The function being invoked.
 	 * @param caller The calling continuation.
 	 * @param startingChunk The level two chunk to invoke.
 	 * @param args The List of arguments
 	 * @return The new continuation.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject closure,
+		final @NotNull AvailObject function,
 		final @NotNull AvailObject caller,
 		final @NotNull AvailObject startingChunk,
 		final @NotNull List<AvailObject> args)
 	{
-		final AvailObject code = closure.code();
+		final AvailObject code = function.code();
 		final List<AvailObject> locals = new ArrayList<AvailObject>(
 			code.numLocals());
 		final int nArgs = args.size();
@@ -486,7 +486,7 @@ extends Descriptor
 					code.localTypeAt(i)));
 		}
 		return create(
-			closure,
+			function,
 			caller,
 			startingChunk,
 			args,
@@ -499,7 +499,7 @@ extends Descriptor
 	 * the first instruction (skipping the primitive indicator if necessary),
 	 * clear the stack, and set up all local variables.
 	 *
-	 * @param closure The closure being invoked.
+	 * @param function The function being invoked.
 	 * @param caller The calling continuation.
 	 * @param startingChunk The level two chunk to invoke.
 	 * @param args The {@link List} of arguments
@@ -507,18 +507,18 @@ extends Descriptor
 	 * @return The new continuation.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject closure,
+		final @NotNull AvailObject function,
 		final @NotNull AvailObject caller,
 		final @NotNull AvailObject startingChunk,
 		final @NotNull List<AvailObject> args,
 		final @NotNull List<AvailObject> locals)
 	{
 		final ContinuationDescriptor descriptor = mutable();
-		final AvailObject code = closure.code();
+		final AvailObject code = function.code();
 		final AvailObject cont = descriptor.create(
 			code.numArgsAndLocalsAndStack());
 		cont.caller(caller);
-		cont.closure(closure);
+		cont.function(function);
 		cont.pc(1);
 		cont.stackp(
 			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);

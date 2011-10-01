@@ -34,13 +34,13 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
-import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
- * Set the value of a variable found in the closure's list of captured outer
+ * Set the value of a variable found in the function's list of captured outer
  * variables.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -51,8 +51,8 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 	/**
 	 * Construct a new {@link AvailSetOuterVariable}.
 	 *
-	 * @param outerIndex The index of the variable in a {@link ClosureDescriptor
-	 *                   closure's} outer variables.
+	 * @param outerIndex The index of the variable in a {@link FunctionDescriptor
+	 *                   function's} outer variables.
 	 */
 	public AvailSetOuterVariable (int outerIndex)
 	{

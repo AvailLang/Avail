@@ -97,9 +97,9 @@ Method "_[_]" is [p : process, key : atom |
 	/* Lookup a process variable. */
 	Primitive 26 (failureCode : natural number);
 	Failed;
-] : all;
+] : any;
 
-Method "_[_]:=_" is [p : process, key : atom, value : all |
+Method "_[_]:=_" is [p : process, key : atom, value : any |
 	/* Set a process variable. */
 	Primitive 27 (failureCode : natural number);
 	Failed;

@@ -63,7 +63,7 @@ is [
 	/* Conditionally evaluate either the trueBlock or the falseBlock. */
 	Primitive 43;
 ] : void
-returns [bt : type, tbt : closureType, fbt : closureType |
+returns [bt : type, tbt : functionType, fbt : functionType |
 	/* We have to use a local variable (result) because at this point
 	   the definition of if_then_else_ does not exist, and we are linking
 	   to it.  The rule is that the forward definition's return type is what
@@ -130,7 +130,7 @@ Method "_&_" is [a : trueType, b : trueType |
 
 
 Abstract method "_&_" for [boolean, []->boolean]->boolean
-returns [at : type, bt : closureType |
+returns [at : type, bt : functionType |
 	res : type := boolean;
 	if at = trueType then [res := bt result;];
 	if at = falseType then [res := falseType;];
@@ -143,7 +143,7 @@ Method "_&_" is [a : trueType, b : []->boolean |
 	/* Evaluate b because a leaves it contingent. */
 	Primitive 45;
 ] : boolean
-returns [at : type, bt : closureType |
+returns [at : type, bt : functionType |
 	bt result;
 ] : type;
 
@@ -171,7 +171,7 @@ Method "_|_" is [a : falseType, b : falseType |
 
 
 Abstract method "_|_" for [boolean,  []->boolean]->boolean
-returns [at : type, bt : closureType |
+returns [at : type, bt : functionType |
 	res : type := boolean;
 	if at = falseType then [res := bt result;];
 	if at = trueType then [res := trueType;];
@@ -189,7 +189,7 @@ Method "_|_" is [a : falseType, b :  []->boolean |
 	/* Evaluate b because a leaves it contingent. */
 	Primitive 45;
 ] : boolean
-returns [at : type, bt : closureType |
+returns [at : type, bt : functionType |
 	bt result;
 ] : type;
 
@@ -222,7 +222,7 @@ returns [at : type, bt : type |
 
 /* General purpose... */
 
-Method "_not=_" is [a : all, b : all |
+Method "_not=_" is [a : any, b : any |
 	not a = b;
 ] : boolean;
 

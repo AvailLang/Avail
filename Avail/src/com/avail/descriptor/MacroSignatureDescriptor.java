@@ -77,7 +77,7 @@ extends SignatureDescriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@link ClosureDescriptor closure} to invoke to transform the
+		 * The {@link FunctionDescriptor function} to invoke to transform the
 		 * argument parse nodes (and tuples of tuples and parse nodes) into a
 		 * suitable replacement parse node.
 		 */

@@ -1,0 +1,301 @@
+/**
+ * System/Foundation/Function
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * Provide basic operations to construct function kinds and compiled code kinds
+ * and to query their properties. Provide convenient aliases for common kinds.
+ * Provide basic operations to query the properties of kinds and instances.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+System Module "Function"
+Extends
+	"Compiled Code"
+Uses
+	"Basic Support",
+	"Basic Types",
+	"Integer"
+Names
+	/* Kind aliases. */
+	"function",
+	
+	/* Metakind aliases. */
+	"function metakind",
+	
+	/* Kind constructors. */
+	"function kind accepting types_and returning type_",
+	"[`…]→_",
+	"[«_‡,»]→_",
+	
+	/* Constructors. */
+	"compiled code from locals count_,outers count_,stack depth_,nybblecodes_,function type_,primitive number_,and literals_",
+	
+	/* Type queries. */
+	"_'s parameters type",
+	"_'s parameters type[_]",
+	"_'s return type",
+	
+	/* Function queries. */
+	"_'s compiled code",
+	"_'s outers",
+	
+	/* Compiled code queries. */
+	"_'s corresponding function type"
+Body
+
+/**
+ * Answer the most general function kind.
+ *
+ * @param {@code ⊶[…]→⊤}.
+ */
+Method "function" is
+[
+	⊶[…]→⊤;
+];
+
+/**
+ * Answer the most general function metakind.
+ *
+ * @return {@code ⊶[…]→⊤'s type}.
+ */
+Method "function metakind" is
+[
+	function's type;
+];
+
+/**
+ * Answer the type of the specified function kind's parameter tuple.
+ *
+ * @param functionKind
+ *        A function kind.
+ * @return The function kind's parameter tuple's type.
+ */
+Method "_'s parameters type" is
+[
+	functionKind : function metakind
+|
+	Primitive 35;
+] : ⊶<any..|0..∞>;
+
+/**
+ * Answer the type of the specified function kind's n-th parameter.
+ *
+ * @param functionKind
+ *        A function kind.
+ * @param n
+ *        The index into the parameter tuple.
+ * @return The function kind's n-th parameter's type.
+ */
+Method "_'s parameters type[_]" is
+[
+	functionKind : function metakind,
+	n : natural number
+|
+	Primitive 36 (failureCode : natural number);
+] : type;
+
+/**
+ * Answer the specified function's return type.
+ *
+ * @param functionKind
+ *        A function kind.
+ * @return The function kind's return type. 
+ */
+Method "_'s return type" is
+[
+	functionKind : function metakind
+|
+	Primitive 37;
+] : type;
+
+/**
+ * Construct a function kind that accepts parameters whose types correspond to
+ * the specified tuple and that has the specified return type.
+ *
+ * @param parametersType
+ *        A tuple of types that corresponds to the parameter types.
+ * @param returnType
+ *        The return type.
+ * @return A function kind.
+ */
+Method "function kind accepting types_and returning type_" is
+[
+	parametersType : ⊶<type..|0..∞>,
+	returnType : type
+|
+	Primitive 34;
+] : function metakind;
+
+/**
+ * Answer a function kind that includes as instances all functions whose return
+ * type is compatible with the specified type.
+ *
+ * @param returnType
+ *        A {@code type}.
+ * @return A function kind.
+ */
+Method "[`…]→_" is
+[
+	returnType : type
+|
+	Primitive 39;
+] : function metakind;
+
+/**
+ * Construct a function kind from the specified parameter types and return type.
+ *
+ * @param parametersType
+ *        The parameter types (automatically accumulated by the compiler).
+ * @param returnType
+ *        The return type.
+ * @return A function kind.
+ */
+Method "[«_‡,»]→_" is
+[
+	parametersType : ⊶<type..|0..∞>,
+	returnType : type
+|
+	function kind
+		accepting types parametersType
+		and returning type returnType;
+] : function metakind;
+
+/**
+ * Answer the specified function's compiled code.
+ *
+ * @param value
+ *        A function.
+ * @return The function's {@code compiled code}.
+ */
+Method "_'s compiled code" is
+[
+	value : function
+|
+	Primitive 72;
+] : compiled code
+and validates with
+[
+	node : parse node
+|
+	expressionType ::= node's expression type;
+	compiled code kind
+		accepting types expressionType's parameters type
+		and returning type expressionType's return type;
+];
+
+/**
+ * Answer the specified function's captured outer variables.
+ *
+ * @param value
+ *        A function.
+ * @return The function's outer variables.
+ */
+Method "_'s outers" is
+[
+	value : function
+|
+	Primitive 73;
+] : <any..|0..∞>; /* TODO: Can't bootstrap this yet! */
+
+/**
+ * Construct a compiled code from the specified pieces.
+ *
+ * @param localsCount
+ *        The number of local variables.
+ * @param outersCount
+ *        The number of outer variables.
+ * @param stackDepth
+ *        The maximum stack depth.
+ * @param nybblecodes
+ *        The Avail nybblecodes.
+ * @param functionType
+ *        The corresponding function type.
+ * @param primitiveNumber
+ *        The primitive number, or {@code 0} if not a primitive binding.
+ * @param literals
+ *        All literals. The types of the local variables and outer variables are
+ *        drawn from this tuple.
+ * @return A compiled code built from the arguments, whose type corresponds to
+ *         the specified function type.
+ */
+⊶Method
+"compiled code from locals count_,outers count_,stack depth_,nybblecodes_,function type_,primitive number_,and literals_"
+is
+[
+	localsCount : whole number,
+	outersCount : whole number,
+	stackDepth : whole number,
+	nybblecodes : <whole number..|0..∞>, /* TODO: Can't bootstrap this yet ... */
+	functionType : […]→⊤,
+	primitiveNumber : primitive number,
+	literals : <any..|0..∞> /* TODO: Can't bootstrap this yet ... */
+|
+	Primitive 188 (failureCode : natural number);
+] : compiled code
+and validates with
+[
+	localsCountNode : parse node,
+	outersCountNode : parse node,
+	stackDepthNode : parse node,
+	nybblecodesNode : parse node,
+	functionTypeNode : parse node,
+	primitiveNumberNode : parse node,
+	literalsNode : parse node
+|
+	expressionType ::= functionTypeNode's expression type;
+	compiled code kind
+		accepting types expressionType's parameters type
+		and returning type expressionType's return type;
+];
+
+/**
+ * Answer the function type that corresponds to the specified compiled code.
+ *
+ * @param value
+ *        A compiled code.
+ * @return The compiled code's corresponding function type.
+ */
+⊶Method "_'s corresponding function type" is
+[
+	value : compiled code
+|
+	Primitive 185;
+] : function metakind
+and validates with
+[
+	node : parse node
+|
+	expressionType ::= node's expression type;
+	function kind
+		accepting types expressionType's parameters type
+		and returning type expressionType's return type;
+];

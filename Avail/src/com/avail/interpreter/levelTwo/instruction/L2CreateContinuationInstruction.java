@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.instruction;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_;
+import static com.avail.interpreter.levelTwo.L2Operation.L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.register.*;
 /**
  * {@code L2CreateContinuationInstruction} creates a new {@linkplain
  * ContinuationDescriptor continuation} from a calling continuation, a
- * {@linkplain ClosureDescriptor closure}, a level one program counter and stack
+ * {@linkplain FunctionDescriptor function}, a level one program counter and stack
  * pointer, some slot information, and a level two program counter.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -59,9 +59,9 @@ extends L2Instruction
 
 	/**
 	 * The {@linkplain L2ObjectRegister register} containing the {@linkplain
-	 * ClosureDescriptor closure}.
+	 * FunctionDescriptor function}.
 	 */
-	private final @NotNull L2ObjectRegister closure;
+	private final @NotNull L2ObjectRegister function;
 
 	/** The level one Avail program counter. */
 	private final int pc;
@@ -94,9 +94,9 @@ extends L2Instruction
 	 * @param caller
 	 *        The {@linkplain L2ObjectRegister register} containing the calling
 	 *        {@linkplain ContinuationDescriptor continuation}.
-	 * @param closure
+	 * @param function
 	 *        The {@linkplain L2ObjectRegister register} containing the
-	 *        {@linkplain ClosureDescriptor closure}.
+	 *        {@linkplain FunctionDescriptor function}.
 	 * @param pc
 	 *        The level one Avail program counter.
 	 * @param stackp
@@ -116,7 +116,7 @@ extends L2Instruction
 	 */
 	public L2CreateContinuationInstruction  (
 		final @NotNull L2ObjectRegister caller,
-		final @NotNull L2ObjectRegister closure,
+		final @NotNull L2ObjectRegister function,
 		final int pc,
 		final int stackp,
 		final int size,
@@ -125,7 +125,7 @@ extends L2Instruction
 		final @NotNull L2ObjectRegister destinationRegister)
 	{
 		this.caller = caller;
-		this.closure = closure;
+		this.function = function;
 		this.pc = pc;
 		this.stackp = stackp;
 		this.size = size;
@@ -140,7 +140,7 @@ extends L2Instruction
 		final List<L2Register> result = new ArrayList<L2Register>(
 			2 + slotsVector.registers().size());
 		result.add(caller);
-		result.add(closure);
+		result.add(function);
 		result.addAll(slotsVector.registers());
 		return result;
 	}
@@ -155,9 +155,9 @@ extends L2Instruction
 	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitL2Operation(
-			L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_);
+			L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_);
 		codeGenerator.emitObjectRegister(caller);
-		codeGenerator.emitObjectRegister(closure);
+		codeGenerator.emitObjectRegister(function);
 		codeGenerator.emitImmediate(pc);
 		codeGenerator.emitImmediate(stackp);
 		codeGenerator.emitImmediate(size);
@@ -171,8 +171,8 @@ extends L2Instruction
 	{
 		translator.registerTypeAtPut(
 			destinationRegister,
-			ContinuationTypeDescriptor.forClosureType(
-				translator.code().closureType()));
+			ContinuationTypeDescriptor.forFunctionType(
+				translator.code().functionType()));
 		translator.removeConstantForRegister(destinationRegister);
 	}
 }

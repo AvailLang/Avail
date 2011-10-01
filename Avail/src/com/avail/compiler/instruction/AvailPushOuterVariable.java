@@ -34,7 +34,7 @@ package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
-import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -52,7 +52,7 @@ public class AvailPushOuterVariable extends AvailPushVariable
 	 * Construct a new {@link AvailPushOuterVariable}.
 	 *
 	 * @param variableIndex
-	 *        The index of the variable in a {@link ClosureDescriptor closure's}
+	 *        The index of the variable in a {@link FunctionDescriptor function's}
 	 *        captured outer variable.
 	 */
 	public AvailPushOuterVariable (int variableIndex)

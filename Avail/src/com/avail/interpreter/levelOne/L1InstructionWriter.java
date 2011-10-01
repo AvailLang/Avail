@@ -191,7 +191,7 @@ public class L1InstructionWriter
 			nybbles(),
 			localTypes.size(),
 			stackTracker.maxDepth(),
-			ClosureTypeDescriptor.create(
+			FunctionTypeDescriptor.create(
 				TupleDescriptor.fromList(argumentTypes),
 				returnType),
 			primitiveNumber,

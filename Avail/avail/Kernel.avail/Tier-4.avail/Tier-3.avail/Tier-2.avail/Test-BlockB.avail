@@ -44,14 +44,14 @@ Body
 
 Assert [123;] apply <> = 123;
 Assert [x : integer | <<x>>;] apply <123> = <<123>>;
-Assert [x : all, y : all | <<x>,<y>>;] apply <"hello", 123> = <<"hello">, <123>>;
+Assert [x : any, y : any | <<x>,<y>>;] apply <"hello", 123> = <<"hello">, <123>>;
 
 
 /* Test the block evaluation operations "_()" and "_(_)". */
 
 Assert [123;]() = 123;
 Assert [x : integer | <<x>>;] (123) = <<123>>;
-Assert [x : all | [y : all | <<x>,<y>>;];]("hello")(123) = <<"hello">, <123>>;
+Assert [x : any | [y : any | <<x>,<y>>;];]("hello")(123) = <<"hello">, <123>>;
 
 
 /* Test the "cast_into_" method. */

@@ -123,7 +123,7 @@ myType ::= lookup "myType";
 	"Tuple Node" is explicit subtype of Parse Node with
 			[expressions -> tuple of Parse Node];
 	"Literal Node" is explicit subtype of Parse Node with
-			[value -> all];
+			[value -> any];
 	"Reference Node" is explicit subtype of Parse Node with
 			[declaration -> Declaration Node];
 	"Send Node" is explicit subtype of Parse Node with
@@ -227,7 +227,7 @@ Method "new Constant Declaration Node variable_expression_" is [
 
 
 Method "new Literal Node value_" is [
-		val : all |
+		val : any |
 	Literal Node new with <
 		<value, val>
 	>;
@@ -382,7 +382,7 @@ Method "_result type" is [node : Block Node |
 			(node arguments collect [arg : Argument Declaration Node |
 				arg variable myType;])
 		and returning node returnType;
-] : closureType;
+] : functionType;
 
 Method "_result type" is [node : Tuple Node |
 	types ::= node expressions collect [item : Parse Node | item result type;];

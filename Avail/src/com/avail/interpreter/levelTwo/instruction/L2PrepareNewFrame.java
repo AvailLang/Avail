@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 /**
  * {@code L2CreateContinuationInstruction} creates a new {@linkplain
  * ContinuationDescriptor continuation} from a calling continuation, a
- * {@linkplain ClosureDescriptor closure}, a level one program counter and stack
+ * {@linkplain FunctionDescriptor function}, a level one program counter and stack
  * pointer, some slot information, and a level two program counter.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

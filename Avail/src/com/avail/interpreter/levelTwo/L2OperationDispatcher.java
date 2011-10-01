@@ -88,10 +88,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMoveFromOuterVariable_ofClosureObject_destObject_}
+	 * {@link L2Operation#L2_doMoveFromOuterVariable_ofFunctionObject_destObject_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMoveFromOuterVariable_ofClosureObject_destObject_ ();
+	public void L2_doMoveFromOuterVariable_ofFunctionObject_destObject_ ();
 
 	/**
 	 * Process an
@@ -445,10 +445,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_}
+	 * {@link L2Operation#L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateContinuationSender_closure_pc_stackp_size_slots_offset_dest_ ();
+	public void L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_ ();
 
 	/**
 	 * Process an
@@ -536,10 +536,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateClosureFromCodeObject_outersVector_destObject_}
+	 * {@link L2Operation#L2_doCreateFunctionFromCodeObject_outersVector_destObject_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateClosureFromCodeObject_outersVector_destObject_ ();
+	public void L2_doCreateFunctionFromCodeObject_outersVector_destObject_ ();
 
 	/**
 	 * Process an

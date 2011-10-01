@@ -1,5 +1,5 @@
 /**
- * descriptor/ClosureTypeDescriptor.java
+ * descriptor/FunctionTypeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,16 +37,16 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 
 /**
- * Closure types are the types of {@linkplain ClosureDescriptor closures}. They
- * contain information about the {@linkplain TypeDescriptor types} of arguments
- * that may be accepted, the types of {@linkplain AvailObject values} that may
- * be produced upon successful execution, and the types of exceptions that may
- * be raised to signal unsuccessful execution.
+ * Function types are the types of {@linkplain FunctionDescriptor functions}.
+ * They contain information about the {@linkplain TypeDescriptor types} of
+ * arguments that may be accepted, the types of {@linkplain AvailObject values}
+ * that may be produced upon successful execution, and the types of exceptions
+ * that may be raised to signal unsuccessful execution.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class ClosureTypeDescriptor
+public class FunctionTypeDescriptor
 extends TypeDescriptor
 {
 	/**
@@ -68,16 +68,16 @@ extends TypeDescriptor
 		/**
 		 * The normalized {@linkplain SetDescriptor set} of checked exceptions
 		 * that may be raised by message sends performed from within a
-		 * {@linkplain ClosureDescriptor closure} described by this {@linkplain
-		 * ClosureTypeDescriptor closure type}.
+		 * {@linkplain FunctionDescriptor function} described by this
+		 * {@linkplain FunctionTypeDescriptor function type}.
 		 */
 		CHECKED_EXCEPTIONS,
 
 		/**
 		 * The most general {@linkplain TypeDescriptor type} of {@linkplain
 		 * AvailObject value} that may be produced by a successful completion of
-		 * a {@linkplain ClosureDescriptor closure} described by this
-		 * {@linkplain ClosureTypeDescriptor closure type}.
+		 * a {@linkplain FunctionDescriptor function} described by this
+		 * {@linkplain FunctionTypeDescriptor function type}.
 		 */
 		RETURN_TYPE,
 
@@ -235,7 +235,8 @@ extends TypeDescriptor
 				}
 				if (!minObject.equals(maxObject))
 				{
-					// Add "..., opt1, opt2" etc. to show the optional arguments.
+					// Add "..., opt1, opt2" etc. to show the optional
+					// arguments.
 					list.add(null);
 					int max = tupleType.typeTuple().tupleSize() + 1;
 					max = Math.max(max, min + 1);
@@ -245,7 +246,8 @@ extends TypeDescriptor
 					}
 					if (!maxObject.equals(IntegerDescriptor.fromInt(max)))
 					{
-						// Add "..., 5" or whatever the max size is (or infinity).
+						// Add "..., 5" or whatever the max size is (or
+						// infinity).
 						list.add(null);
 						list.add(maxObject);
 					}
@@ -279,13 +281,13 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsClosureType(object);
+		return another.equalsFunctionType(object);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>Two {@linkplain ClosureTypeDescriptor closure types} are {@linkplain
+	 * <p>Two {@linkplain FunctionTypeDescriptor function types} are {@linkplain
 	 * AvailObject#equals(AvailObject) equal} IFF:</p>
 	 *
 	 * <p><ul>
@@ -298,7 +300,7 @@ extends TypeDescriptor
 	 * </ul></p>
 	 */
 	@Override
-	public boolean o_EqualsClosureType (
+	public boolean o_EqualsFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -361,23 +363,23 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
-	 * types} supported by the specified {@linkplain ClosureTypeDescriptor
-	 * closure type} are acceptable argument types for invoking a {@linkplain
-	 * ClosureDescriptor closure} whose type is the {@code object}.
+	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
+	 * function type} are acceptable argument types for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the {@code object}.
 	 */
 	@Override
-	public boolean o_AcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject closureType)
+		final @NotNull AvailObject functionType)
 	{
-		return closureType.argsTupleType().isSubtypeOf(object.argsTupleType());
+		return functionType.argsTupleType().isSubtypeOf(object.argsTupleType());
 	}
 
 	/**
 	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
 	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
 	 * Answer whether these arguments are acceptable for invoking a {@linkplain
-	 * ClosureDescriptor closure} whose type is the {@code object}.
+	 * FunctionDescriptor function} whose type is the {@code object}.
 	 */
 	@Override
 	public boolean o_AcceptsArgumentTypesFromContinuation (
@@ -401,7 +403,7 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain ClosureDescriptor closure} whose type
+	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
 	 * is the {@code object}.
 	 */
 	@Override
@@ -422,7 +424,7 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * ClosureDescriptor closure} whose type is the {@code object}.
+	 * FunctionDescriptor function} whose type is the {@code object}.
 	 */
 	@Override
 	public boolean o_AcceptsListOfArgValues (
@@ -443,10 +445,10 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain ClosureDescriptor closure} that is an
+	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
 	 * instance of {@code object}. There may be more entries in the {@linkplain
 	 * TupleDescriptor tuple} than are required by the {@linkplain
-	 * ClosureTypeDescriptor closure type}.
+	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
@@ -466,9 +468,9 @@ extends TypeDescriptor
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * ClosureDescriptor closure} that is an instance of {@code object}. There
+	 * FunctionDescriptor function} that is an instance of {@code object}. There
 	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
-	 * required by the {@linkplain ClosureTypeDescriptor closure type}.
+	 * required by the {@linkplain FunctionTypeDescriptor function type}.
 	 */
 	@Override
 	public boolean o_AcceptsTupleOfArguments (
@@ -512,13 +514,13 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		return aType.isSupertypeOfClosureType(object);
+		return aType.isSupertypeOfFunctionType(object);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * {@linkplain ClosureTypeDescriptor Closure types} are contravariant by
+	 * {@linkplain FunctionTypeDescriptor Function types} are contravariant by
 	 * {@linkplain AvailObject#argsTupleType() argument types}, covariant by
 	 * {@linkplain AvailObject#returnType() return type}, and covariant by
 	 * normalized {@linkplain AvailObject#checkedExceptions() raise types}. If
@@ -526,20 +528,20 @@ extends TypeDescriptor
 	 * incomparable (i.e., not a subclass).
 	 */
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		if (object.equals(aClosureType))
+		if (object.equals(aFunctionType))
 		{
 			return true;
 		}
-		if (!aClosureType.returnType().isSubtypeOf(object.returnType()))
+		if (!aFunctionType.returnType().isSubtypeOf(object.returnType()))
 		{
 			return false;
 		}
 		each_outer:
-		for (final AvailObject outer : aClosureType.checkedExceptions())
+		for (final AvailObject outer : aFunctionType.checkedExceptions())
 		{
 			for (final AvailObject inner : object.checkedExceptions())
 			{
@@ -550,7 +552,7 @@ extends TypeDescriptor
 			}
 			return false;
 		}
-		return object.argsTupleType().isSubtypeOf(aClosureType.argsTupleType());
+		return object.argsTupleType().isSubtypeOf(aFunctionType.argsTupleType());
 	}
 
 	@Override
@@ -566,23 +568,23 @@ extends TypeDescriptor
 		{
 			return another;
 		}
-		return another.typeIntersectionOfClosureType(object);
+		return another.typeIntersectionOfFunctionType(object);
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
 		final AvailObject tupleTypeUnion =
 			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
-				aClosureType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+				aFunctionType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
 		final AvailObject returnType =
-			object.returnType().typeIntersection(aClosureType.returnType());
+			object.returnType().typeIntersection(aFunctionType.returnType());
 		AvailObject exceptions = SetDescriptor.empty();
 		for (final AvailObject outer : object.checkedExceptions())
 		{
-			for (final AvailObject inner : aClosureType.checkedExceptions())
+			for (final AvailObject inner : aFunctionType.checkedExceptions())
 			{
 				exceptions = exceptions.setWithElementCanDestroy(
 					outer.typeIntersection(inner),
@@ -609,24 +611,24 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		return another.typeUnionOfClosureType(object);
+		return another.typeUnionOfFunctionType(object);
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureType (
+	public @NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
 		// Subobjects may be shared with result.
 		object.makeSubobjectsImmutable();
 		final AvailObject tupleTypeIntersection =
 			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
-				aClosureType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+				aFunctionType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
 		final AvailObject returnType =
-			object.returnType().typeUnion(aClosureType.returnType());
+			object.returnType().typeUnion(aFunctionType.returnType());
 		final AvailObject exceptions = normalizeExceptionSet(
 			object.checkedExceptions().setUnionCanDestroy(
-				aClosureType.checkedExceptions(), true));
+				aFunctionType.checkedExceptions(), true));
 		return createWithArgumentTupleType(
 			tupleTypeIntersection,
 			returnType,
@@ -657,7 +659,8 @@ extends TypeDescriptor
 		// exception. If the element is bottom, then exclude it.
 		if (exceptionSet.setSize() == 1)
 		{
-			if (exceptionSet.iterator().next().equals(BottomTypeDescriptor.bottom()))
+			if (exceptionSet.iterator().next().equals(
+				BottomTypeDescriptor.bottom()))
 			{
 				return SetDescriptor.empty();
 			}
@@ -689,10 +692,10 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
+	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
 	 * instances accept arguments which, if collected in a tuple, match the
 	 * specified {@linkplain TupleTypeDescriptor tuple type}.  The instances of
-	 * this closure type should also produce {@linkplain AvailObject values}
+	 * this function type should also produce {@linkplain AvailObject values}
 	 * that conform to the return type, and may only raise checked exceptions
 	 * whose instances are subtypes of one or more members of the supplied
 	 * exception set.
@@ -707,7 +710,7 @@ extends TypeDescriptor
 	 * @param exceptionSet
 	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
-	 * @return A {@linkplain ClosureTypeDescriptor closure type}.
+	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
 	public static @NotNull AvailObject createWithArgumentTupleType (
 		final @NotNull AvailObject argsTupleType,
@@ -727,7 +730,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
+	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
 	 * instances accept arguments of the specified {@linkplain TypeDescriptor
 	 * types}, produce {@linkplain AvailObject values} that conform to the
 	 * return type, and may only raise checked exceptions whose instances are
@@ -742,7 +745,7 @@ extends TypeDescriptor
 	 * @param exceptionSet
 	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
-	 * @return A {@linkplain ClosureTypeDescriptor closure type}.
+	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
 	public static @NotNull AvailObject create (
 		final @NotNull AvailObject argTypes,
@@ -759,7 +762,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
+	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
 	 * instances accept arguments of the specified {@linkplain TypeDescriptor
 	 * types}, produce {@linkplain AvailObject values} that conform to the
 	 * return type, and raise <em>no</em> checked exceptions.
@@ -770,7 +773,7 @@ extends TypeDescriptor
 	 * @param returnType
 	 *        The {@linkplain TypeDescriptor type} of value that an instance
 	 *        should produce.
-	 * @return A {@linkplain ClosureTypeDescriptor closure type}.
+	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
 	public static @NotNull AvailObject create (
 		final @NotNull AvailObject argTypes,
@@ -783,15 +786,15 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain ClosureTypeDescriptor closure type} whose
+	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
 	 * instances can't be invoked because they have an impossible number of
 	 * arguments specified.
 	 *
 	 * @param returnType
-	 *            The type of object returned by a closure that conforms to the
-	 *            {@linkplain ClosureTypeDescriptor closure type} being defined.
+	 *            The type of object returned by a function that conforms to the
+	 *            {@linkplain FunctionTypeDescriptor function type} being defined.
 	 * @return
-	 *            A {@linkplain ClosureTypeDescriptor closure type} that contains
+	 *            A {@linkplain FunctionTypeDescriptor function type}
 	 */
 	public static @NotNull AvailObject forReturnType (
 		final @NotNull AvailObject returnType)
@@ -803,18 +806,18 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most general {@linkplain ClosureTypeDescriptor closure type}.
+	 * The most general {@linkplain FunctionTypeDescriptor function type}.
 	 */
 	private static AvailObject MostGeneralType;
 
 	/**
-	 * The metatype of all closure types.
+	 * The metatype of any function types.
 	 */
 	private static AvailObject Meta;
 
 	/**
-	 * Create the top (i.e., most general) {@linkplain ClosureTypeDescriptor
-	 * closure type}.
+	 * Create the top (i.e., most general) {@linkplain FunctionTypeDescriptor
+	 * function type}.
 	 */
 	static void createWellKnownObjects ()
 	{
@@ -834,10 +837,10 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the top (i.e., most general) {@linkplain ClosureTypeDescriptor
-	 * closure type}.
+	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
+	 * function type}.
 	 *
-	 * @return The closure type "[...]->top".
+	 * @return The function type "[...]->top".
 	 */
 	public static AvailObject mostGeneralType ()
 	{
@@ -845,11 +848,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the metatype for all closure types.  This is just an {@linkplain
+	 * Answer the metatype for all function types.  This is just an {@linkplain
 	 * InstanceTypeDescriptor instance type} on the {@linkplain
 	 * #mostGeneralType() most general type}.
 	 *
-	 * @return The closure type "[...]->top".
+	 * @return The function type "[...]->top".
 	 */
 	public static AvailObject meta ()
 	{
@@ -858,45 +861,45 @@ extends TypeDescriptor
 
 
 	/**
-	 * Construct a new {@link ClosureTypeDescriptor}.
+	 * Construct a new {@link FunctionTypeDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ClosureTypeDescriptor (final boolean isMutable)
+	protected FunctionTypeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ClosureTypeDescriptor}.
+	 * The mutable {@link FunctionTypeDescriptor}.
 	 */
-	private final static ClosureTypeDescriptor mutable =
-		new ClosureTypeDescriptor(true);
+	private final static FunctionTypeDescriptor mutable =
+		new FunctionTypeDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ClosureTypeDescriptor}.
+	 * Answer the mutable {@link FunctionTypeDescriptor}.
 	 *
-	 * @return The mutable {@link ClosureTypeDescriptor}.
+	 * @return The mutable {@link FunctionTypeDescriptor}.
 	 */
-	public static ClosureTypeDescriptor mutable ()
+	public static FunctionTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ClosureTypeDescriptor}.
+	 * The immutable {@link FunctionTypeDescriptor}.
 	 */
-	private final static ClosureTypeDescriptor immutable =
-		new ClosureTypeDescriptor(false);
+	private final static FunctionTypeDescriptor immutable =
+		new FunctionTypeDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ClosureTypeDescriptor}.
+	 * Answer the immutable {@link FunctionTypeDescriptor}.
 	 *
-	 * @return The immutable {@link ClosureTypeDescriptor}.
+	 * @return The immutable {@link FunctionTypeDescriptor}.
 	 */
-	public static ClosureTypeDescriptor immutable ()
+	public static FunctionTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

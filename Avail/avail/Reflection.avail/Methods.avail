@@ -81,7 +81,7 @@ Body
    come in three flavors: methodSignature, abstractSignature, and
    forwardSignature.  A methodSignature is an actual implementation
    of a method, including its body, a requires block, and a returns block.
-   An abstractSignature just specifies what closureType the body would
+   An abstractSignature just specifies what functionType the body would
    be if there were one, which there isn't.  It's like subclassResponsibility.
    A forwardSignature corresponds with a forward declaration of a
    method - it must be replaced by a methodSignature by the end of
@@ -144,12 +144,12 @@ Method "_restrictions" is [bundle : messageBundle |
 Method "_bodyType" is [sig : signature |
 	Primitive 216 (failureCode : natural number);
 	Failed;
-] : closureType;
+] : functionType;
 
 Method "_body" is [methSig : methodSignature |
 	Primitive 217 (failureCode : natural number);
 	Failed;
-] : closure;
+] : function;
 
 Method "_requires block" is [sig : signature |
 	Primitive 218 (failureCode : natural number);

@@ -44,7 +44,7 @@ Body
 
 
 /* Here's the implementation of the conditional downcast */
-Method "*_?:=_" is [var : container, arg : all |
+Method "*_?:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
 	Failed;
 ] : void;

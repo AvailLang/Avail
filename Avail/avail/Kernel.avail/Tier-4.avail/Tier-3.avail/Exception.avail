@@ -57,7 +57,7 @@ Body
 result ::= lookup "result";
 
 "Exception" is explicit subtype of Object with
-	result->all;
+	result->any;
 
 Print Exception;
 Print result;
@@ -73,7 +73,7 @@ returns [exType : Exception type |
 
 
 
-Method "_with_" is [et : Exception type, res : all |
+Method "_with_" is [et : Exception type, res : any |
 	et new with <<result, res>>;
 ] : Exception
 returns [ett : Exception type type, resT : type |
@@ -91,7 +91,7 @@ Method "_evaluate with handler_" is [
 		handler : [terminates]->void |
 		
 	/* Primitive 200 is a special primitive.  When the Raise_ primitive is
-	   invoked, it scans the stack for a continuation whose closure's
+	   invoked, it scans the stack for a continuation whose function's
 	   code is primitive 200, and it invokes this continuation's second
 	   argument, the handler block, with the argument passed to Raise_.
 	   Aside from that, primitive 200 always fails, so the backup code
@@ -99,10 +99,10 @@ Method "_evaluate with handler_" is [
 	Primitive 200 (failureCode : 0 type);
 	body();
 ] : void
-returns [bt : closureType, ht : closureType |
+returns [bt : functionType, ht : functionType |
 	type union of bt result and ht result;
 ]
-requires [bt : closureType, ht : closureType |
+requires [bt : functionType, ht : functionType |
 	/* We require the exception handler to accept some subtype of
 	   Exception.  Only some handlers are applicable, therefore, based
 	   on the Exception subtype, so a dynamic check determines which
@@ -114,10 +114,10 @@ requires [bt : closureType, ht : closureType |
 Method "catch_in_" is [handler : [terminates]->void, body : []->void |
 	body evaluate with handler handler;
 ]
-returns [ht : closureType, bt : closureType |
+returns [ht : functionType, bt : functionType |
 	type union of ht result and bt result;
 ]
-requires [ht : closureType, bt : closureType |
+requires [ht : functionType, bt : functionType |
 	/* We require the exception handler to accept some subtype of
 	   Exception.  Only some handlers are applicable, therefore, based
 	   on the Exception subtype, so a dynamic check determines which
@@ -130,7 +130,7 @@ requires [ht : closureType, bt : closureType |
 /* Helper method... */
 
 Forward "handleTuple_do_" for [tuple of [terminates]->void, []->void]->void;
-Forward "handleTuple_do_" for [tuple of [terminates]->all, []->all]->all;
+Forward "handleTuple_do_" for [tuple of [terminates]->any, []->any]->any;
 
 Method "handleTuple_do_" is [
 		handlers : tuple of [terminates]->void,
@@ -146,8 +146,8 @@ Method "handleTuple_do_" is [
 ] : void;
 
 Method "handleTuple_do_" is [
-		handlers : tuple of [terminates]->all,
-		body : []->all |
+		handlers : tuple of [terminates]->any,
+		body : []->any |
 	/* Treat the last one as innermost.  This is an override for the case
 	   where the body and all handlers produce a result. */
 	if handlers = <> then
@@ -157,7 +157,7 @@ Method "handleTuple_do_" is [
 			handleTuple handlers[2..||handlers||] do body;
 		] evaluate with handler handlers[1];
 	];
-] : all;
+] : any;
 
 
 /**
@@ -169,17 +169,17 @@ Method "catch«_‡,»in_" is [
 		body : []->void |
 	handleTuple handlers do body;
 ] : void
-returns [handlersT : tupleType, bodyT : closureType |
+returns [handlersT : tupleType, bodyT : functionType |
 	merge : type := bodyT result;
 	merge := type union of bodyT result and
-		cast handlersT default type into [handlerT : closureType |
+		cast handlersT default type into [handlerT : functionType |
 			handlerT;
 		] otherwise [
 			void;
 		];
 	handlersT leading types do [t : type |
 		merge := type union of merge and
-			cast t into [handlerT : closureType |
+			cast t into [handlerT : functionType |
 				handlerT;
 			] otherwise [
 				void;
@@ -187,14 +187,14 @@ returns [handlersT : tupleType, bodyT : closureType |
 	];
 	merge;
 ]
-requires [handlersT : tupleType, bodyT : closureType |
+requires [handlersT : tupleType, bodyT : functionType |
 	/* We require each exception handler to accept some subtype of
 	   Exception.  Only some handlers are applicable, therefore, based
 	   on the Exception subtype, so a dynamic check determines which
 	   handlers to skip over.  */
 	union ::= type union of handlersT default type and
 		union of types in handlersT leading types;
-	cast union into [ut : closureType |
+	cast union into [ut : functionType |
 		ut [1] <= Exception;
 	] otherwise [
 		Fail parse "All the handler block types must be known statically.";

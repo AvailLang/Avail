@@ -196,9 +196,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
 		return false;
 	}
@@ -301,9 +301,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfClosureType (
+	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -385,9 +385,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfClosureType (
+	public @NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
 		return object.typeUnion(ANY.o());
 	}
@@ -461,9 +461,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public boolean o_AcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject closureType)
+		final @NotNull AvailObject functionType)
 	{
 		unsupportedOperation();
 		return false;
@@ -533,7 +533,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ClosureType (
+	public @NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();

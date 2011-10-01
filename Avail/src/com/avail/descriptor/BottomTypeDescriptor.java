@@ -292,9 +292,9 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		// Because bottom is a subtype of all other types, it is even
-		// considered a closure type.  In particular, if bottom is viewed
-		// as a closure type, it can take any number of arguments of any type
-		// (since there are no complying closure instances).
+		// considered a function type.  In particular, if bottom is viewed
+		// as a function type, it can take any number of arguments of any type
+		// (since there are no complying function instances).
 
 		return TupleTypeDescriptor.mostGeneralType();
 	}
@@ -429,9 +429,9 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_AcceptsArgTypesFromClosureType (
+	public boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject closureType)
+		final AvailObject functionType)
 	{
 		return true;
 	}
@@ -485,7 +485,7 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_ClosureType (final AvailObject object)
+	public AvailObject o_FunctionType (final AvailObject object)
 	{
 		return object;
 	}
@@ -555,9 +555,9 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfClosureType (
+	public boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType)
+		final AvailObject aFunctionType)
 	{
 		return false;
 	}

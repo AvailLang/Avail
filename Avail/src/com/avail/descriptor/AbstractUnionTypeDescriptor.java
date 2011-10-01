@@ -220,14 +220,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public final @NotNull AvailObject o_TypeIntersectionOfClosureType (
+	public final @NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
 		// Make sure the passed canDestroy flag is dropped and false is passed
 		// instead, because this object's layout isn't amenable to this kind of
 		// modification.
-		return computeIntersectionWith(object, aClosureType);
+		return computeIntersectionWith(object, aFunctionType);
 	}
 
 	@Override
@@ -311,11 +311,11 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public final @NotNull AvailObject o_TypeUnionOfClosureType (
+	public final @NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType)
+		final @NotNull AvailObject aFunctionType)
 	{
-		return computeUnionWith(object, aClosureType);
+		return computeUnionWith(object, aFunctionType);
 	}
 
 	@Override
@@ -477,9 +477,9 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object);
 
 	@Override
-	public abstract boolean o_AcceptsArgTypesFromClosureType (
+	public abstract boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
-		final AvailObject closureType);
+		final AvailObject functionType);
 
 	@Override
 	public abstract boolean o_AcceptsArgumentTypesFromContinuation (
@@ -517,7 +517,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object);
 
 	@Override
-	public abstract AvailObject o_ClosureType (
+	public abstract AvailObject o_FunctionType (
 		final AvailObject object);
 
 	@Override
@@ -540,9 +540,9 @@ extends AbstractTypeDescriptor
 		final AvailObject aTupleType);
 
 	@Override
-	public abstract boolean o_IsSupertypeOfClosureType (
+	public abstract boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
-		final AvailObject aClosureType);
+		final AvailObject aFunctionType);
 
 	@Override
 	public abstract boolean o_IsSupertypeOfContainerType (

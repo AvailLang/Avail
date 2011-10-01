@@ -38,9 +38,9 @@ public abstract class AbstractTypeDescriptor
 extends Descriptor
 {
 	@Override
-	public abstract boolean o_AcceptsArgTypesFromClosureType (
+	public abstract boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject closureType);
+		final @NotNull AvailObject functionType);
 
 	@Override
 	public abstract boolean o_AcceptsArgumentTypesFromContinuation (
@@ -78,7 +78,7 @@ extends Descriptor
 		final @NotNull AvailObject object);
 
 	@Override
-	public abstract @NotNull AvailObject o_ClosureType (
+	public abstract @NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object);
 
 	@Override
@@ -142,9 +142,9 @@ extends Descriptor
 		final @NotNull AvailObject aType);
 
 	@Override
-	public abstract boolean o_IsSupertypeOfClosureType (
+	public abstract boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType);
+		final @NotNull AvailObject aFunctionType);
 
 	@Override
 	public abstract boolean o_IsSupertypeOfContainerType (
@@ -257,9 +257,9 @@ extends Descriptor
 
 	@Override
 	public abstract
-	@NotNull AvailObject o_TypeIntersectionOfClosureType (
+	@NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType);
+		final @NotNull AvailObject aFunctionType);
 
 	@Override
 	public abstract @NotNull AvailObject o_TypeIntersectionOfContainerType (
@@ -315,9 +315,9 @@ extends Descriptor
 		final @NotNull AvailObject another);
 
 	@Override
-	public abstract @NotNull AvailObject o_TypeUnionOfClosureType (
+	public abstract @NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aClosureType);
+		final @NotNull AvailObject aFunctionType);
 
 	@Override
 	public abstract @NotNull AvailObject o_TypeUnionOfContainerType (

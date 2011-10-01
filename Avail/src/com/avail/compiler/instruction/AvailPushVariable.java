@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.ClosureDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
 
@@ -69,8 +69,8 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 	 * @param variableIndex
 	 *        The index that the variable will occupy at runtime, either within
 	 *        a {@link ContinuationDescriptor continuation} for arguments and
-	 *        locals, or in the outer variables of a {@link ClosureDescriptor
-	 *        closure}, or as a literal stored directly in {@link
+	 *        locals, or in the outer variables of a {@link FunctionDescriptor
+	 *        function}, or as a literal stored directly in {@link
 	 *        CompiledCodeDescriptor compiled code}.
 	 */
 	public AvailPushVariable (int variableIndex)

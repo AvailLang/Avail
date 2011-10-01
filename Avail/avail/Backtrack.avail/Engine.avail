@@ -95,7 +95,7 @@ Method "fail" is [
 
 
 
-Method "capture all_" is [blk : []->all |
+Method "capture all_" is [blk : []->any |
 	/* Answer a tuple containing all possible values of the block.  Invoke fail after
 	   getting each answer from the block to cause all internal maybes to be
 	   recontinued. */
@@ -107,12 +107,12 @@ Method "capture all_" is [blk : []->all |
 	];
 	soFar;
 ] : tuple
-returns [blkT : closureType |
+returns [blkT : functionType |
 	tuple of blkT result;
 ];
 
 
-Method "capture first_of_" is [n : whole number, blk : []->all |
+Method "capture first_of_" is [n : whole number, blk : []->any |
 	/* Answer a tuple containing the first n solutions of the block.  If fewer than n
 	   solutions can be provided by this block, answer as many as there were.  Invoke
 	   fail after the block provides each answer, to force it it to recontinue.  When this
@@ -138,7 +138,7 @@ Method "capture first_of_" is [n : whole number, blk : []->all |
 	current process [topRetry] := previousRetry;
 	soFar;
 ] : tuple
-returns [nT : integerType, blkT : closureType |
+returns [nT : integerType, blkT : functionType |
 	tuple [0..nT upper bound + 1) of blkT result;
 ];
 
@@ -147,14 +147,14 @@ returns [nT : integerType, blkT : closureType |
   turn, hence the name. */
 
 Method "each_" is [t : tuple |
-	$there : $[tuple]->all;
+	$there : $[tuple]->any;
 	1 to ||t|| do [i : natural number |
 		if maybe then [
 			Exit there with t[i];
 		];
 	];
 	fail;
-] : all
+] : any
 returns [tT : tupleType |
 	type union of (union of types in tT leading types) and (tT default type);
 ];

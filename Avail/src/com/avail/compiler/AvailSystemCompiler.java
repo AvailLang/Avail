@@ -758,7 +758,7 @@ extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a block (a closure).
+	 * Parse a block (a function).
 	 *
 	 * @param start
 	 *            Where to start parsing.
@@ -920,14 +920,14 @@ extends AbstractAvailCompiler
 				&& statements.get(0).isInstanceOfKind(LABEL_NODE.o()))
 		{
 			final AvailObject labelNode = statements.get(0);
-			final AvailObject labelClosureType =
-				labelNode.declaredType().closureType();
+			final AvailObject labelFunctionType =
+				labelNode.declaredType().functionType();
 			final AvailObject implicitBlockType =
-				ClosureTypeDescriptor.create(
+				FunctionTypeDescriptor.create(
 					TupleDescriptor.fromList(argumentTypesList),
 					lastStatementType.value,
 					SetDescriptor.empty());
-			blockTypeGood = labelClosureType.equals(implicitBlockType);
+			blockTypeGood = labelFunctionType.equals(implicitBlockType);
 		}
 
 		if (!blockTypeGood)
@@ -979,7 +979,7 @@ extends AbstractAvailCompiler
 					final AvailObject returnType)
 				{
 					final AvailObject explicitBlockType =
-						ClosureTypeDescriptor.create(
+						FunctionTypeDescriptor.create(
 							TupleDescriptor.fromList(argumentTypesList),
 							returnType);
 					if (thePrimitive != null)
@@ -1034,9 +1034,9 @@ extends AbstractAvailCompiler
 							LABEL_NODE.o()))
 					{
 						final AvailObject labelNode = statements.get(0);
-						final AvailObject labelClosureType =
-							labelNode.declaredType().closureType();
-						blockTypeGood2 = labelClosureType.equals(
+						final AvailObject labelFunctionType =
+							labelNode.declaredType().functionType();
+						blockTypeGood2 = labelFunctionType.equals(
 							explicitBlockType);
 					}
 					if (blockTypeGood2)

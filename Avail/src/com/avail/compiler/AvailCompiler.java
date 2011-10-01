@@ -779,7 +779,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 
 			// Construct code to invoke the method, since it might be a
 			// primitive and we can't invoke that directly as the outermost
-			// closure.
+			// function.
 			final L1InstructionWriter writer = new L1InstructionWriter();
 			for (final AvailObject arg : argumentExpressions)
 			{
@@ -794,14 +794,14 @@ public class AvailCompiler extends AbstractAvailCompiler
 			writer.argumentTypes();
 			writer.primitiveNumber(0);
 			writer.returnType(PARSE_NODE.o());
-			final AvailObject newClosure = ClosureDescriptor.create(
+			final AvailObject newFunction = FunctionDescriptor.create(
 				writer.compiledCode(),
 				TupleDescriptor.empty());
-			newClosure.makeImmutable();
+			newFunction.makeImmutable();
 			try
 			{
-				final AvailObject replacement = interpreter.runClosureArguments(
-					newClosure,
+				final AvailObject replacement = interpreter.runFunctionArguments(
+					newFunction,
 					Collections.<AvailObject> emptyList());
 				if (replacement.isInstanceOfKind(PARSE_NODE.o()))
 				{

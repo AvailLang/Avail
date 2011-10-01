@@ -59,7 +59,7 @@ shade ::= lookup "shade";
 
 "Fruit" is implicit subtype of Object with ripeness->integer;
 
-"Apple" is implicit subtype of Fruit with shade->all;
+"Apple" is implicit subtype of Fruit with shade->any;
 
 Fruit has fields <"ripeness">;
 Apple has fields <"shade">;

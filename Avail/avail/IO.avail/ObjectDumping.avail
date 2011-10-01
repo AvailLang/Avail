@@ -63,12 +63,12 @@ Method "Dump integer_to_" is [int : [0..INF), file : Output File |
 
 /* Public access... */
 
-Method "Dump_on_" is [it : all, file : Output File |
-	bigMap : map from all to [1..INF) := [->];
+Method "Dump_on_" is [it : any, file : Output File |
+	bigMap : map from any to [1..INF) := [->];
 	bigTuple : tuple := <>;
 	explosions : tuple of tuple := <>;
 	queue : tuple := <it>;
-	refCounts : map from all to [0..INF) := [->];
+	refCounts : map from any to [0..INF) := [->];
 
 	While [
 		||queue|| > 0;
@@ -94,7 +94,7 @@ Method "Dump_on_" is [it : all, file : Output File |
 	   effectively breaks all cycles, allowing a topological sort.  The loading
 	   process must do a second pass to set the values of containers, but
 	   that's easy.  */
-	bigTuple do [obj : all |
+	bigTuple do [obj : any |
 		cast obj into [c : container |
 			if not *c = nil then [
 				cast refCounts[*c] - 1 into [newC : [0..INF) |
@@ -109,7 +109,7 @@ Method "Dump_on_" is [it : all, file : Output File |
 
 	/* Compute bins based on number of (remaining) references... */
 	byRefCount : map from [0..INF) to set := [->];
-	refCounts do [obj : all, c : [0..INF) |
+	refCounts do [obj : any, c : [0..INF) |
 		While [
 			c >= ||byRefCount||;
 		] loop [
@@ -126,8 +126,8 @@ Method "Dump_on_" is [it : all, file : Output File |
 		layer ::= byRefCount [0] as tuple;
 		byRefCount := byRefCount [0 -> {}];
 		sortedObjects := layer then sortedObjects;   /* Bottom-up order */
-		layer do [obj : all |
-			explosions [bigMap [obj]] do [part : all |
+		layer do [obj : any |
+			explosions [bigMap [obj]] do [part : any |
 				if bigMap [part]? then [
 					oldCount ::= refCounts [part];
 					cast oldCount - 1 into [newCount : [0..INF) |
@@ -142,18 +142,18 @@ Method "Dump_on_" is [it : all, file : Output File |
 	];
 	Assert ||sortedObjects|| = ||bigMap||;
 
-	sortedMap : map from all to [1..INF) := [->];
+	sortedMap : map from any to [1..INF) := [->];
 	1 to ||sortedObjects|| do [index : [1..INF) |
 		sortedMap := sortedMap [sortedObjects [index] -> index];
 	];
 
 	Dump integer ||explosions|| to file;    /* Dump the number of objects */
 
-	sortedObjects do [obj : all |
+	sortedObjects do [obj : any |
 		internalIndex ::= bigMap[obj];
 		exp ::= explosions [internalIndex];
 		Dump integer ||exp|| to file;   /* Dump the size of this explosion tuple */
-		exp do [entry : all |
+		exp do [entry : any |
 			cast entry into [k : [0..INF) |
 				/* Dump a non-negative integer... */
 				Dump integer k * 2 to file;

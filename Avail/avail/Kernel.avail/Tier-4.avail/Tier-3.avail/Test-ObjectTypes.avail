@@ -49,7 +49,7 @@ c ::= lookup "c";
 
 [
 	X ::= [a->integer][b->integer] as objectType;
-	Y ::= [a->all] as objectType;
+	Y ::= [a->any] as objectType;
 	Assert X <= Y;  /* X is a subtype of Y */
 ]();
 

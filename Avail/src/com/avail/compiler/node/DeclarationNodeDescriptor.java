@@ -869,7 +869,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 *        The {@linkplain TypeDescriptor type} of the label being declared,
 	 *        which must be a {@linkplain ContinuationTypeDescriptor
 	 *        continuation type} whose contained {@linkplain
-	 *        ClosureTypeDescriptor closure type} agrees with the block in which
+	 *        FunctionTypeDescriptor function type} agrees with the block in which
 	 *        the label occurs.
 	 * @return The new label declaration.
 	 */
