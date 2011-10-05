@@ -317,7 +317,7 @@ extends Descriptor
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
 				i,
-				InstanceTypeDescriptor.withInstance(object.tupleAt(i)),
+				InstanceTypeDescriptor.on(object.tupleAt(i)),
 				true);
 		}
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(

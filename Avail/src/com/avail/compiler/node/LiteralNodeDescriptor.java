@@ -92,7 +92,7 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject token = object.token();
 		assert token.tokenType() == TokenType.LITERAL;
 		final AvailObject literal = token.literal();
-		return InstanceTypeDescriptor.withInstance(literal).makeImmutable();
+		return InstanceTypeDescriptor.on(literal).makeImmutable();
 	}
 
 	@Override

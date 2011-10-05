@@ -382,7 +382,7 @@ extends TypeDescriptor
 	{
 		MostGeneralType = objectTypeFromMap(MapDescriptor.empty());
 		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta = InstanceTypeDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 

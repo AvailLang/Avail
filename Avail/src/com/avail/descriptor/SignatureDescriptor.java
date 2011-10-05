@@ -143,7 +143,7 @@ extends Descriptor
 		for (int i = 1, end = numArgs; i <= end; i++)
 		{
 			final AvailObject bodyType = sig.argsTupleType().typeAtIndex(i);
-			final AvailObject bodyMeta = InstanceTypeDescriptor.withInstance(
+			final AvailObject bodyMeta = InstanceTypeDescriptor.on(
 				bodyType);
 			if (!bodyMeta.isSubtypeOf(
 				req.kind().argsTupleType().typeAtIndex(i)))

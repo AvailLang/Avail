@@ -67,13 +67,13 @@ Method "phony_+_" is
 	b : extended integer
 |
 	Primitive 1 (failureReason : natural number);
-	Print failureReason;
-	Print "Answering 0 instead.";
-	0;
+	/* Print failureReason; */
+	/* Print "Answering 666 instead."; */
+	666;
 ] : extended integer;
 
 Assert phony 1 + 2 = 3;
 Assert phony 2 + 2 = 4;
 Assert phony INF + INF = INF;
 Assert phony -INF + -INF = -INF;
-Assert phony INF + -INF = 0;
+Assert phony INF + -INF = 666;

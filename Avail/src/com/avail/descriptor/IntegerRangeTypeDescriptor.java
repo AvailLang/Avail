@@ -467,7 +467,7 @@ extends TypeDescriptor
 			InfinityDescriptor.positiveInfinity(),
 			false).makeImmutable();
 
-		Meta = InstanceTypeDescriptor.withInstance(
+		Meta = InstanceTypeDescriptor.on(
 			ExtendedIntegers).makeImmutable();
 	}
 

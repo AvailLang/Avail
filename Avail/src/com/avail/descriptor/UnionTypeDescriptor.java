@@ -32,7 +32,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 

@@ -823,7 +823,7 @@ extends TypeDescriptor
 	{
 		MostGeneralType = forReturnType(TOP.o());
 		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta = InstanceTypeDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 

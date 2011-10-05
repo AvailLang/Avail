@@ -114,7 +114,7 @@ extends Descriptor
 		{
 			typeMap = typeMap.mapAtPuttingCanDestroy(
 				entry.key,
-				InstanceTypeDescriptor.withInstance(entry.value),
+				InstanceTypeDescriptor.on(entry.value),
 				true);
 		}
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);

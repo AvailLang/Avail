@@ -955,7 +955,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject value = args.get(0);
 			return interpreter.primitiveSuccess(
-				InstanceTypeDescriptor.withInstance(value));
+				InstanceTypeDescriptor.on(value));
 		}
 
 		@Override
@@ -2146,7 +2146,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					InstanceTypeDescriptor.withInstance(
+					InstanceTypeDescriptor.on(
 						ObjectTypeDescriptor.mostGeneralType()),
 					TupleTypeDescriptor.stringTupleType()),
 				TOP.o());
@@ -2178,7 +2178,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					InstanceTypeDescriptor.withInstance(
+					InstanceTypeDescriptor.on(
 						ObjectTypeDescriptor.mostGeneralType())),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -2679,7 +2679,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.meta()),
-				InstanceTypeDescriptor.withInstance(
+				InstanceTypeDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers()));
 		}
 	},
@@ -3109,7 +3109,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					InstanceTypeDescriptor.withInstance(
+					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers()),
 					TYPE.o()),
 				SetTypeDescriptor.meta());
@@ -3141,7 +3141,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.meta()),
-				InstanceTypeDescriptor.withInstance(
+				InstanceTypeDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers()));
 		}
 	},
@@ -3629,7 +3629,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					InstanceTypeDescriptor.withInstance(
+					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers()),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -3666,7 +3666,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta()),
-				InstanceTypeDescriptor.withInstance(
+				InstanceTypeDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers()));
 		}
 	},
@@ -5109,7 +5109,7 @@ public enum Primitive
 		@Override
 		protected AvailObject privateFailureVariableType ()
 		{
-			return InstanceTypeDescriptor.withInstance(
+			return InstanceTypeDescriptor.on(
 				IntegerDescriptor.zero());
 		}
 	},

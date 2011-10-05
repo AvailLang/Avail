@@ -608,7 +608,7 @@ extends TypeDescriptor
 			TupleDescriptor.empty(),
 			CHARACTER.o());
 		StringType.makeImmutable();
-		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta = InstanceTypeDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 

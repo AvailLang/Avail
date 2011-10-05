@@ -128,7 +128,7 @@ public final class AvailRuntime
 		specialObjects[11] = ATOM.o();
 		specialObjects[12] = DOUBLE.o();
 		specialObjects[13] = IntegerRangeTypeDescriptor.extendedIntegers();
-		specialObjects[14] = InstanceTypeDescriptor.withInstance(
+		specialObjects[14] = InstanceTypeDescriptor.on(
 			AtomDescriptor.falseObject());
 		specialObjects[15] = FLOAT.o();
 		//16
@@ -145,9 +145,9 @@ public final class AvailRuntime
 		specialObjects[27] = SetTypeDescriptor.meta();
 		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
 		specialObjects[29] = BottomTypeDescriptor.bottom();
-		specialObjects[30] = InstanceTypeDescriptor.withInstance(
+		specialObjects[30] = InstanceTypeDescriptor.on(
 			BottomTypeDescriptor.bottom());
-		specialObjects[31] = InstanceTypeDescriptor.withInstance(
+		specialObjects[31] = InstanceTypeDescriptor.on(
 			AtomDescriptor.trueObject());
 		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
 		specialObjects[33] = TupleTypeDescriptor.meta();

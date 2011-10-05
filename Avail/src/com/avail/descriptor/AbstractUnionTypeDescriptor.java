@@ -32,10 +32,8 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.UnionTypeDescriptor.ObjectSlots;
 
 /**
@@ -54,88 +52,6 @@ import com.avail.descriptor.UnionTypeDescriptor.ObjectSlots;
 public abstract class AbstractUnionTypeDescriptor
 extends AbstractTypeDescriptor
 {
-
-	/**
-	 * Answer a new instance of this descriptor based on the set of objects that
-	 * will be considered instances of that type. Normalize the cases where the
-	 * set has zero or one elements to use {@link BottomTypeDescriptor} and
-	 * {@link InstanceTypeDescriptor}, respectively. Leave out objects that are
-	 * types for which a supertype is also present.
-	 *
-	 * @param instancesSet
-	 *            The {@linkplain SetDescriptor set} of objects which are to be
-	 *            instances of the new type.
-	 * @return An {@link AvailObject} representing the type whose instances are
-	 *         those objects specified in the argument.
-	 */
-	public static AvailObject withInstances (final AvailObject instancesSet)
-	{
-		int setSize = instancesSet.setSize();
-		AvailObject normalizedSet;
-		if (setSize >= 2)
-		{
-			AvailObject justTypes = SetDescriptor.empty();
-			normalizedSet = SetDescriptor.empty();
-			for (final AvailObject element : instancesSet)
-			{
-				if (element.isType())
-				{
-					justTypes = justTypes.setWithElementCanDestroy(
-						element,
-						true);
-				}
-				else
-				{
-					normalizedSet = normalizedSet.setWithElementCanDestroy(
-						element,
-						true);
-				}
-			}
-			outer: for (final AvailObject type : justTypes)
-			{
-				for (final AvailObject potentialSupertype : justTypes)
-				{
-					if (!type.equals(potentialSupertype)
-						&& type.isSubtypeOf(potentialSupertype))
-					{
-						continue outer;
-					}
-				}
-				normalizedSet = normalizedSet.setWithElementCanDestroy(
-					type,
-					true);
-			}
-			final int newSetSize = normalizedSet.setSize();
-			if (newSetSize == setSize)
-			{
-				normalizedSet = instancesSet;
-			}
-			setSize = newSetSize;
-		}
-		else
-		{
-			normalizedSet = instancesSet;
-		}
-		if (setSize <= 1)
-		{
-			for (final AvailObject element : normalizedSet)
-			{
-				return InstanceTypeDescriptor.withInstance(element);
-			}
-			return BottomTypeDescriptor.bottom();
-		}
-		assert instancesSet.setSize() > 1;
-		final AvailObject result = UnionTypeDescriptor.mutable().create();
-		result.objectSlotPut(
-			ObjectSlots.INSTANCES,
-			normalizedSet.makeImmutable());
-		result.objectSlotPut(
-			ObjectSlots.CACHED_SUPERKIND,
-			NullDescriptor.nullObject());
-		return result;
-	}
-
-
 
 	@Override
 	public abstract @NotNull AvailObject o_Instances (
@@ -642,6 +558,90 @@ extends AbstractTypeDescriptor
 	public abstract boolean o_AbstractUnionTypeIncludesInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance);
+
+	/**
+	 * Answer a new instance of this descriptor based on the set of objects that
+	 * will be considered instances of that type. Normalize the cases where the
+	 * set has zero or one elements to use {@link BottomTypeDescriptor} and
+	 * {@link InstanceTypeDescriptor}, respectively.
+	 *
+	 * <p>
+	 * Note that we also have to assure type union metainvariance, namely:
+	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y)).
+	 * Thus, if there are multiple instances which are types, use their type
+	 * union as a single member in place of them.
+	 * </p>
+	 *
+	 * @param instancesSet
+	 *            The {@linkplain SetDescriptor set} of objects which are to be
+	 *            instances of the new type.
+	 * @return An {@link AvailObject} representing the type whose instances are
+	 *         those objects specified in the argument.
+	 */
+	public static AvailObject withInstances (final AvailObject instancesSet)
+	{
+		int setSize = instancesSet.setSize();
+		AvailObject normalizedSet = instancesSet;
+		if (setSize >= 2)
+		{
+			boolean anyTypes = false;
+			for (final AvailObject element : instancesSet)
+			{
+				if (element.isType())
+				{
+					anyTypes = true;
+					break;
+				}
+			}
+			if (anyTypes)
+			{
+				AvailObject typesUnion = BottomTypeDescriptor.bottom();
+				normalizedSet = SetDescriptor.empty();
+				for (final AvailObject element : instancesSet)
+				{
+					if (element.isType())
+					{
+						typesUnion = typesUnion.typeUnion(element);
+					}
+					else
+					{
+						normalizedSet = normalizedSet.setWithElementCanDestroy(
+							element,
+							true);
+					}
+				}
+				normalizedSet = normalizedSet.setWithElementCanDestroy(
+					typesUnion,
+					true);
+				final int newSetSize = normalizedSet.setSize();
+				if (newSetSize == setSize)
+				{
+					assert normalizedSet.equals(instancesSet);
+					normalizedSet = instancesSet;
+				}
+				setSize = newSetSize;
+			}
+		}
+		if (setSize <= 1)
+		{
+			for (final AvailObject element : normalizedSet)
+			{
+				return InstanceTypeDescriptor.on(element);
+			}
+			return BottomTypeDescriptor.bottom();
+		}
+		assert instancesSet.setSize() > 1;
+		final AvailObject result = UnionTypeDescriptor.mutable().create();
+		result.objectSlotPut(
+			ObjectSlots.INSTANCES,
+			normalizedSet.makeImmutable());
+		result.objectSlotPut(
+			ObjectSlots.CACHED_SUPERKIND,
+			NullDescriptor.nullObject());
+		return result;
+	}
+
+
 
 	/**
 	 * Construct a new {@link AbstractUnionTypeDescriptor}.

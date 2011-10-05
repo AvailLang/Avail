@@ -355,7 +355,7 @@ extends TypeDescriptor
 		mostGeneralType = fromReadAndWriteTypes(
 			TOP.o(), BottomTypeDescriptor.bottom());
 		mostGeneralType.makeImmutable();
-		meta = InstanceTypeDescriptor.withInstance(mostGeneralType);
+		meta = InstanceTypeDescriptor.on(mostGeneralType);
 		meta.makeImmutable();
 	}
 }

@@ -190,7 +190,7 @@ extends AbstractUnionTypeDescriptor
 				&& another.isInstanceOfKind(META.o())
 				&& !another.equals(BottomTypeDescriptor.bottom()))
 			{
-				return InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
 					BottomTypeDescriptor.bottom());
 			}
 		}
@@ -241,22 +241,6 @@ extends AbstractUnionTypeDescriptor
 		return getSuperkind(object);
 	}
 
-
-	/**
-	 * Answer a new instance of this descriptor based on some object whose type
-	 * it will represent.
-	 *
-	 * @param instance The object whose type to represent.
-	 * @return An {@link AvailObject} representing the type of the argument.
-	 */
-	public static AvailObject withInstance (final AvailObject instance)
-	{
-		final AvailObject result = mutable().create();
-		result.objectSlotPut(
-			ObjectSlots.INSTANCE,
-			instance.makeImmutable());
-		return result;
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -370,7 +354,7 @@ extends AbstractUnionTypeDescriptor
 		assert tuple.isTuple();
 		if (1 <= index && index <= tuple.tupleSize())
 		{
-			return withInstance(tuple.tupleAt(index));
+			return on(tuple.tupleAt(index));
 		}
 		return BottomTypeDescriptor.bottom();
 	}
@@ -399,7 +383,7 @@ extends AbstractUnionTypeDescriptor
 		}
 		if (startIndex == endIndex)
 		{
-			return withInstance(tuple.tupleAt(startIndex));
+			return on(tuple.tupleAt(startIndex));
 		}
 		AvailObject set = SetDescriptor.empty();
 		for (
@@ -425,7 +409,7 @@ extends AbstractUnionTypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		return withInstance(tuple.tupleAt(tupleSize));
+		return on(tuple.tupleAt(tupleSize));
 	}
 
 	@Override
@@ -814,6 +798,23 @@ extends AbstractUnionTypeDescriptor
 		return instance.isAbstractUnionType()
 			? instance.computeSuperkind()
 			: instance;
+	}
+
+
+	/**
+	 * Answer a new instance of this descriptor based on some object whose type
+	 * it will represent.
+	 *
+	 * @param instance The object whose type to represent.
+	 * @return An {@link AvailObject} representing the type of the argument.
+	 */
+	public static AvailObject on (final AvailObject instance)
+	{
+		final AvailObject result = mutable().create();
+		result.objectSlotPut(
+			ObjectSlots.INSTANCE,
+			instance.makeImmutable());
+		return result;
 	}
 
 

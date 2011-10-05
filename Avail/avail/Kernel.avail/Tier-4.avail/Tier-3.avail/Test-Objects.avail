@@ -1,6 +1,6 @@
 /**
  * .../Tier-3/Test-Objects.avail
- * Copyright (c) 2010, Mark van Gulik.
+ * Copyright (c) 2010-2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,3 +102,17 @@ Assert newApple ripeness = 456 & newApple shade = "green" & newApple type <= App
 ripeApple ::= anApple altered with <<ripeness, 789>, <shade, "red">>;
 
 Assert ripeApple ripeness = 789 & ripeApple shade = "red" & ripeApple type <= Apple;
+
+Print newApple;
+Print newApple type names;
+Print ripeApple;
+Print ripeApple type names;
+
+"Pear" is explicit subtype of Fruit;
+
+"PearApple" is implicit subtype of Pear, Apple;
+
+Print Pear names;
+Print PearApple names;
+Print (type intersection of Pear and Apple) names;
+Print (type union of Pear and Apple) names;

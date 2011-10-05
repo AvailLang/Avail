@@ -329,7 +329,7 @@ extends TypeDescriptor
 			FunctionTypeDescriptor.forReturnType(
 				BottomTypeDescriptor.bottom()));
 		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.withInstance(MostGeneralType);
+		Meta = InstanceTypeDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 

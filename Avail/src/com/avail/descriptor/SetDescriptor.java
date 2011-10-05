@@ -193,7 +193,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		final int size = object.setSize();
-		final AvailObject sizeRange = InstanceTypeDescriptor.withInstance(
+		final AvailObject sizeRange = InstanceTypeDescriptor.on(
 			IntegerDescriptor.fromInt(size));
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			sizeRange,

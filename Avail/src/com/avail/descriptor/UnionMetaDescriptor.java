@@ -154,7 +154,7 @@ extends TypeDescriptor
 		{
 			if (another.isAbstractUnionType())
 			{
-				return InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
 					object.innerKind().typeIntersection(another.innerKind()));
 			}
 			return UnionMetaDescriptor.over(
@@ -162,7 +162,7 @@ extends TypeDescriptor
 		}
 		if (another.isSubtypeOf(TYPE.o()))
 		{
-			return InstanceTypeDescriptor.withInstance(
+			return InstanceTypeDescriptor.on(
 				BottomTypeDescriptor.bottom());
 		}
 		return BottomTypeDescriptor.bottom();
@@ -315,7 +315,7 @@ extends TypeDescriptor
 	{
 		mostGeneralType = over(ANY.o());
 		mostGeneralType.makeImmutable();
-		meta = InstanceTypeDescriptor.withInstance(mostGeneralType);
+		meta = InstanceTypeDescriptor.on(mostGeneralType);
 		meta.makeImmutable();
 	}
 }

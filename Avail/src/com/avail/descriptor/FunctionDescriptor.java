@@ -254,7 +254,7 @@ extends Descriptor
 		final AvailObject [] argTypes = new AvailObject [numArgs];
 		fill(argTypes, ANY.o());
 		writer.argumentTypes(argTypes);
-		writer.returnType(InstanceTypeDescriptor.withInstance(constantResult));
+		writer.returnType(InstanceTypeDescriptor.on(constantResult));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,

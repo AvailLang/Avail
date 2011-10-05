@@ -102,12 +102,14 @@ import com.avail.descriptor.*;
  *     <td>Metacovariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))</td>
  * </tr><tr>
- *     <td><em>Metavariance (preservation)*</em></td>
- *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &rarr; T(x)&ne;T(y))</td>
+ *     <td>Type union metainvariance</td>
+ *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))</td>
+ * </tr>
+ * </tr><tr>
+ *     <td>Type intersect metainvariance</td>
+ *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))</td>
  * </tr>
  * </table>
- * * It's unclear if metavariance is a useful property, but it prevents the
- * destruction of information in type-manipulating expressions.
  * </p>
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -359,7 +361,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
 						ByteStringDescriptor.from("something")));
 			}
@@ -375,7 +377,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
 						ByteStringDescriptor.from("another")));
 			}
@@ -429,6 +431,23 @@ public class TypeConsistencyTest
 		};
 
 		/**
+		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
+		 */
+		final static Node NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY = new Node(
+			"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
+			OBJECT_TYPE)
+		{
+			@Override AvailObject get ()
+			{
+				return ObjectTypeDescriptor.objectTypeFromMap(
+					MapDescriptor.empty().mapAtPuttingCanDestroy(
+						ANOTHER_ATOM_TYPE.t,
+						TypeDescriptor.Types.ANY.o(),
+						false));
+			}
+		};
+
+		/**
 		 * The metatype for function types.
 		 */
 		final static Node FUNCTION_META = new Node(
@@ -475,7 +494,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers());
 			}
 		};
@@ -488,8 +507,8 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.withInstance(
-					InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
+					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers()));
 			}
 		};
@@ -608,7 +627,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.withInstance(
+				return InstanceTypeDescriptor.on(
 					BottomTypeDescriptor.bottom());
 			}
 		};
@@ -1440,8 +1459,8 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = InstanceTypeDescriptor.withInstance(x.t);
-				final AvailObject Ty = InstanceTypeDescriptor.withInstance(y.t);
+				final AvailObject Tx = InstanceTypeDescriptor.on(x.t);
+				final AvailObject Ty = InstanceTypeDescriptor.on(y.t);
 				assertT(
 					!x.subtype(y) || Tx.isSubtypeOf(Ty),
 					"metacovariance: %s, %s",
@@ -1452,28 +1471,64 @@ public class TypeConsistencyTest
 	}
 
 	/**
-	 * Check that a type and a proper subtype are distinct after transformation
-	 * through the "type-of" mapping.
+	 * Check that the type union of two types' types is the same as the type of
+	 * their type union.  Namely,
 	 * <span style="border-width:thin; border-style:solid"><nobr>
-	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &equiv; T(x)&ne;T(y))
+	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))
 	 * </nobr></span>
 	 */
-	//@Test
-	public void testMetavariance ()
+	@Test
+	public void testTypeUnionMetainvariance ()
 	{
 		for (final Node x : Node.values)
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = x.t.kind();
-				final AvailObject Ty = y.t.kind();
-
+				final AvailObject Tx = InstanceTypeDescriptor.on(x.t);
+				final AvailObject Ty = InstanceTypeDescriptor.on(y.t);
+				final AvailObject xuy = x.t.typeUnion(y.t);
+				final AvailObject T_xuy = InstanceTypeDescriptor.on(xuy);
+				final AvailObject TxuTy = Tx.typeUnion(Ty);
 				assertEQ(
-					x.t.equals(y.t),
-					Tx.equals(Ty),
-					"metavariance: %s, %s",
+					T_xuy,
+					TxuTy,
+					"type union metainvariance: x=%s, y=%s, T(x∪y)=%s, T(x)∪T(y)=%s",
 					x,
-					y);
+					y,
+					T_xuy,
+					TxuTy);
+			}
+		}
+	}
+
+
+	/**
+	 * Check that the type intersection of two types' types is the same as the
+	 * type of their type intersection.  Namely,
+	 * <span style="border-width:thin; border-style:solid"><nobr>
+	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))
+	 * </nobr></span>
+	 */
+	@Test
+	public void testTypeIntersectionMetainvariance ()
+	{
+		for (final Node x : Node.values)
+		{
+			for (final Node y : Node.values)
+			{
+				final AvailObject Tx = InstanceTypeDescriptor.on(x.t);
+				final AvailObject Ty = InstanceTypeDescriptor.on(y.t);
+				final AvailObject xny = x.t.typeIntersection(y.t);
+				final AvailObject T_xny = InstanceTypeDescriptor.on(xny);
+				final AvailObject TxnTy = Tx.typeIntersection(Ty);
+				assertEQ(
+					T_xny,
+					TxnTy,
+					"type intersection metainvariance: x=%s, y=%s, T(x∩y)=%s, T(x)∩T(y)=%s",
+					x,
+					y,
+					T_xny,
+					TxnTy);
 			}
 		}
 	}
