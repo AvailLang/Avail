@@ -3957,14 +3957,28 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_ReadType (final AvailObject object)
+	public @NotNull AvailObject o_ReadType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).readType();
 	}
 
 	@Override
-	public AvailObject o_WriteType (final AvailObject object)
+	public @NotNull AvailObject o_WriteType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).writeType();
+	}
+
+	@Override
+	public void o_Versions (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		o_Traversed(object).versions(value);
+	}
+
+	@Override
+	public @NotNull AvailObject o_Versions (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).versions();
 	}
 }

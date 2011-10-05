@@ -40,7 +40,7 @@
  */
 System Module "Basic Types"
 Extends
-	"Origin" ("Method_is_")
+	"Origin" = ("Method_is_")
 Uses
 	"Origin"
 Names

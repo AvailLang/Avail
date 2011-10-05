@@ -31,6 +31,7 @@
  */
 
 System Module "Pragmas"
+Versions "dev"
 Pragma
 	"bootstrapDefiningMethod = Method_is_",
 	"bootstrapSpecialObject = Special Object_"

@@ -31,7 +31,9 @@
  */
 
 System Module "Basics"
+Versions "dev"
 Extends
+	"Pragmas" ("dev") = ("Method_is_")
 Uses
 	"Pragmas"
 Names
@@ -76,8 +78,6 @@ Names
 
 	"Failed", "Crash_", "Print_", "Discard_",
 	"Halt", "_can't have_", "_=_", "_<=_",
-	
-	"Method_is_",
 	
 	"Assert_",
 

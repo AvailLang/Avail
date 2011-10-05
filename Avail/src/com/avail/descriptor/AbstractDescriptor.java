@@ -4885,4 +4885,18 @@ public abstract class AbstractDescriptor
 	 */
 	public abstract @NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	public abstract void o_Versions (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_Versions (final @NotNull AvailObject object);
 }

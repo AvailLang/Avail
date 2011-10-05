@@ -50,11 +50,12 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
  * <li>variables and constants private to the module</li>
  * </ul>
  *
- * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class ModuleDescriptor extends Descriptor
+public class ModuleDescriptor
+extends Descriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -65,6 +66,12 @@ public class ModuleDescriptor extends Descriptor
 		 * ModuleDescriptor module}.
 		 */
 		NAME,
+
+		/**
+		 * The {@linkplain SetDescriptor set} of {@linkplain
+		 * ByteStringDescriptor versions} that this module alleges to support.
+		 */
+		VERSIONS,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
@@ -385,6 +392,14 @@ public class ModuleDescriptor extends Descriptor
 	}
 
 	@Override
+	public void o_Versions (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		object.objectSlotPut(ObjectSlots.VERSIONS, value);
+	}
+
+	@Override
 	public void o_Names (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -458,6 +473,13 @@ public class ModuleDescriptor extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
+	}
+
+	@Override
+	public @NotNull AvailObject o_Versions (
+		final @NotNull AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.VERSIONS);
 	}
 
 	@Override
@@ -592,12 +614,14 @@ public class ModuleDescriptor extends Descriptor
 		final AvailObject moduleName)
 	{
 		final AvailObject emptyMap = MapDescriptor.empty();
+		final AvailObject emptySet = SetDescriptor.empty();
 		final AvailObject object = mutable().create();
 		object.name(moduleName);
+		object.versions(emptySet);
 		object.newNames(emptyMap);
 		object.names(emptyMap);
 		object.privateNames(emptyMap);
-		object.visibleNames(SetDescriptor.empty());
+		object.visibleNames(emptySet);
 		object.methods(emptyMap);
 		object.restrictions(emptyMap);
 		object.variableBindings(emptyMap);
@@ -636,7 +660,8 @@ public class ModuleDescriptor extends Descriptor
 	/**
 	 * The immutable {@link ModuleDescriptor}.
 	 */
-	private final static ModuleDescriptor immutable = new ModuleDescriptor(false);
+	private final static ModuleDescriptor immutable =
+		new ModuleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ModuleDescriptor}.

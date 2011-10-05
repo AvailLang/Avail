@@ -5916,4 +5916,23 @@ implements Iterable<AvailObject>
 	{
 		return descriptor().o_WriteType(this);
 	}
+
+
+	/**
+	 * @param value
+	 * @return
+	 */
+	public void versions (final @NotNull AvailObject value)
+	{
+		descriptor().o_Versions(this, value);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject versions ()
+	{
+		return descriptor().o_Versions(this);
+	}
 }

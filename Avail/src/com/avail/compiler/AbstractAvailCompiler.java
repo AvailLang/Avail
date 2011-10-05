@@ -100,21 +100,28 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess AvailCompilerFragmentCache fragmentCache;
 
 	/**
+	 * The versions for which the module undergoing compilation guarantees
+	 * support.
+	 */
+	@InnerAccess List<AvailObject> versions;
+
+	/**
 	 * The {@linkplain ModuleDescriptor modules} extended by the module
 	 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
-	 * 2-tuple} whose first element is a module {@linkplain ByteStringDescriptor
-	 * name} and whose second element is the {@linkplain SetDescriptor set} of
-	 * {@linkplain MethodSignatureDescriptor method} names to import (and
-	 * re-export).
+	 * 3-tuple} whose first element is a module {@linkplain ByteStringDescriptor
+	 * name}, whose second element is the {@linkplain SetDescriptor set} of
+	 * {@linkplain MethodSignatureDescriptor method}, names to import (and
+	 * re-export), and whose third element is the set of conformant versions.
 	 */
 	@InnerAccess List<AvailObject> extendedModules;
 
 	/**
 	 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
-	 * compilation. Each element is a {@linkplain TupleDescriptor 2-tuple} whose
-	 * first element is a module {@linkplain ByteStringDescriptor name} and
-	 * whose second element is the {@linkplain SetDescriptor set} of {@linkplain
-	 * MethodSignatureDescriptor method} names to import.
+	 * compilation. Each element is a {@linkplain TupleDescriptor 3-tuple} whose
+	 * first element is a module {@linkplain ByteStringDescriptor name}, whose
+	 * second element is the {@linkplain SetDescriptor set} of {@linkplain
+	 * MethodSignatureDescriptor method} names to import, and whose third
+	 * element is the set of conformant versions.
 	 */
 	@InnerAccess List<AvailObject> usedModules;
 
@@ -144,52 +151,131 @@ public abstract class AbstractAvailCompiler
 		return false;
 	}
 
+	/**
+	 * These are the tokens that are understood by the Avail compilers. Most of
+	 * these tokens exist to support the {@linkplain AvailSystemCompiler
+	 * system compiler}, though a few (related to module headers) are needed
+	 * also by the {@linkplain AvailCompiler standard compiler}.
+	 */
 	enum ExpectedToken
 	{
+		/** Module header token. Must be the first token of a system module. */
 		SYSTEM("System", KEYWORD),
+
+		/** Module header token: Precedes the name of the defined module. */
 		MODULE("Module", KEYWORD),
+
+		/**
+		 * Module header token: Precedes the list of versions for which the
+		 * defined module guarantees compatibility.
+		 */
+		VERSIONS("Versions", KEYWORD),
+
+		/** Module header token: Precedes the list of pragma strings. */
 		PRAGMA("Pragma", KEYWORD),
+
+		/**
+		 * Module header token: Precedes the list of imported modules whose
+		 * (filtered) names should be re-exported to clients of the defined
+		 * module.
+		 */
 		EXTENDS("Extends", KEYWORD),
+
+		/**
+		 * Module header token: Precedes the list of imported modules whose
+		 * (filtered) names are imported only for the private use of the
+		 * defined module.
+		 */
 		USES("Uses", KEYWORD),
+
+		/**
+		 * Module header token: Precedes the list of names exported for use by
+		 * clients of the defined module.
+		 */
 		NAMES("Names", KEYWORD),
+
+		/** Module header token: Precedes the contents of the defined module. */
 		BODY("Body", KEYWORD),
+
+		/** Leads a primitive binding. */
 		PRIMITIVE("Primitive", KEYWORD),
 
+		/** Leads a label. */
 		DOLLAR_SIGN("$", OPERATOR),
+
+		/** Leads a reference. */
 		AMPERSAND("&", OPERATOR),
+
+		/** Module header token: Separates tokens. */
 		COMMA(",", OPERATOR),
+
+		/** Uses related to declaration and assignment. */
 		COLON(":", OPERATOR),
+
+		/** Uses related to declaration and assignment. */
 		EQUALS("=", OPERATOR),
+
+		/** Leads a lexical block. */
 		OPEN_SQUARE("[", OPERATOR),
+
+		/** Ends a lexical block. */
 		CLOSE_SQUARE("]", OPERATOR),
+
+		/** Leads a function body. */
 		VERTICAL_BAR("|", OPERATOR),
+
+		/** Leads an exception set. */
 		CARET("^", OPERATOR),
 
+		/** Module header token: Uses related to grouping. */
 		OPEN_PARENTHESIS("(", OPERATOR),
+
+		/** Module header token: Uses related to grouping. */
 		CLOSE_PARENTHESIS(")", OPERATOR),
 
+		/** End of statement. */
 		SEMICOLON(";", END_OF_STATEMENT);
 
+		/** The {@linkplain ByteStringDescriptor lexeme}. */
+		private final @NotNull AvailObject lexeme;
 
-		private final AvailObject string;
+		/** The {@linkplain TokenType token type}. */
+		private final @NotNull TokenType tokenType;
 
-		private final TokenType tokenType;
-
-		AvailObject string ()
+		/**
+		 * Answer the {@linkplain ByteStringDescriptor lexeme}.
+		 *
+		 * @return The lexeme.
+		 */
+		@NotNull AvailObject lexeme ()
 		{
-			return string;
+			return lexeme;
 		}
 
-		TokenType tokenType ()
+		/**
+		 * Answer the {@linkplain TokenType token type}.
+		 *
+		 * @return The token type.
+		 */
+		@NotNull TokenType tokenType ()
 		{
 			return tokenType;
 		}
 
+		/**
+		 * Construct a new {@link ExpectedToken}.
+		 *
+		 * @param lexeme
+		 *        The {@linkplain ByteStringDescriptor lexeme}, i.e. the text
+		 *        of the token.
+		 * @param tokenType
+		 *        The {@linkplain TokenType token type}.
+		 */
 		ExpectedToken (
-			@NotNull final String string,
-			@NotNull final TokenType tokenType)
+			final @NotNull String lexeme,
+			final @NotNull TokenType tokenType)
 		{
-			this.string = ByteStringDescriptor.from(string);
+			this.lexeme = ByteStringDescriptor.from(lexeme);
 			this.tokenType = tokenType;
 		}
 	}
@@ -200,16 +286,14 @@ public abstract class AbstractAvailCompiler
 	 * {@linkplain L2Interpreter interpreter}.
 	 *
 	 * @param qualifiedName
-	 *            The {@linkplain ModuleName qualified name} of the {@linkplain
-	 *            ModuleDescriptor module} being defined.
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor module} being defined.
 	 * @param interpreter
-	 *            The {@link Interpreter} used to execute code during
-	 *            compilation.
+	 *        The {@link Interpreter} used to execute code during compilation.
 	 * @param stopAfterNamesToken
-	 *            Whether to stop parsing at the occurrence of the "NAMES"
-	 *            token.  This is an optimization for faster build analysis.
-	 * @return
-	 *            The new {@link AbstractAvailCompiler compiler}.
+	 *        Whether to stop parsing at the occurrence of the "NAMES"
+	 *        token.  This is an optimization for faster build analysis.
+	 * @return The new {@link AbstractAvailCompiler compiler}.
 	 */
 	static @NotNull AbstractAvailCompiler create (
 		final @NotNull ModuleName qualifiedName,
@@ -225,7 +309,7 @@ public abstract class AbstractAvailCompiler
 			stopAfterNamesToken);
 		AbstractAvailCompiler compiler;
 		if (!tokens.isEmpty()
-			&& tokens.get(0).string().equals(SYSTEM.string()))
+			&& tokens.get(0).string().equals(SYSTEM.lexeme()))
 		{
 			compiler = new AvailSystemCompiler(interpreter, source, tokens);
 		}
@@ -241,16 +325,16 @@ public abstract class AbstractAvailCompiler
 	 * {@link L2Interpreter} to evaluate expressions.
 	 *
 	 * @param interpreter
-	 *            The interpreter to be used for evaluating expressions.
+	 *        The interpreter to be used for evaluating expressions.
 	 * @param source
-	 *            The source code {@linkplain ByteStringDescriptor string}.
+	 *        The source code {@linkplain ByteStringDescriptor string}.
 	 * @param tokens
-	 *            The list of {@linkplain TokenDescriptor tokens}.
+	 *        The list of {@linkplain TokenDescriptor tokens}.
 	 */
 	public AbstractAvailCompiler (
-		final L2Interpreter interpreter,
-		final String source,
-		final List<AvailObject> tokens)
+		final @NotNull L2Interpreter interpreter,
+		final @NotNull String source,
+		final @NotNull List<AvailObject> tokens)
 	{
 		this.interpreter = interpreter;
 		this.source = source;
@@ -258,28 +342,30 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * A stack of {@link Continuation0 continuations} that need to be explored
-	 * at some point.
+	 * A stack of {@linkplain Continuation0 continuations} that need to be
+	 * explored at some point.
 	 */
-	final Deque<Continuation0> workStack = new ArrayDeque<Continuation0>();
+	final @NotNull Deque<Continuation0> workStack =
+		new ArrayDeque<Continuation0>();
 
 	/**
 	 * This is actually a two-argument continuation, but it has only a single
-	 * type parameter because the first one is always the {@link ParserState}
-	 * that indicates where the continuation should continue parsing.
+	 * type parameter because the first one is always the {@linkplain
+	 * ParserState parser state} that indicates where the continuation should
+	 * continue parsing.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 * @param <AnswerType>
-	 *            The type of the second parameter of the
-	 *            {@link Con#value(ParserState, Object)} method.
+	 *        The type of the second parameter of the {@linkplain
+	 *        Con#value(ParserState, Object)} method.
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	abstract class Con<AnswerType> implements
-			Continuation2<ParserState, AnswerType>
+	abstract class Con<AnswerType>
+	implements Continuation2<ParserState, AnswerType>
 	{
 		/**
 		 * A debugging description of this continuation.
 		 */
-		final String description;
+		final @NotNull String description;
 
 		/**
 		 * Construct a new {@link AvailCompiler.Con} with the provided
@@ -288,19 +374,20 @@ public abstract class AbstractAvailCompiler
 		 * @param description
 		 *            The provided description.
 		 */
-		public Con (final String description)
+		public Con (final @NotNull String description)
 		{
 			this.description = description;
 		}
 
 		@Override
-		public String toString ()
+		public @NotNull String toString ()
 		{
 			return "Con(" + description + ")";
 		}
 
 		@Override
-		public abstract void value (ParserState state, AnswerType answer);
+		public abstract void value (
+			@NotNull ParserState state, @NotNull AnswerType answer);
 	}
 
 	/**
@@ -311,16 +398,16 @@ public abstract class AbstractAvailCompiler
 	 * expected.
 	 *
 	 * @param start
-	 *            Where to start parsing
+	 *        Where to start parsing
 	 * @param tryBlock
-	 *            The block to attempt.
+	 *        The block to attempt.
 	 * @param continuation
-	 *            What to do if exactly one result was produced.
+	 *        What to do if exactly one result was produced.
 	 */
 	void tryIfUnambiguousThen (
-		final ParserState start,
-		final Con<Con<AvailObject>> tryBlock,
-		final Con<AvailObject> continuation)
+		final @NotNull ParserState start,
+		final @NotNull Con<Con<AvailObject>> tryBlock,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		final Mutable<Integer> count = new Mutable<Integer>(0);
 		final Mutable<AvailObject> solution = new Mutable<AvailObject>();
@@ -412,7 +499,7 @@ public abstract class AbstractAvailCompiler
 		 * sequentially to resolve variables, but that's not likely to ever be a
 		 * bottleneck.
 		 */
-		final AvailCompilerScopeStack scopeStack;
+		final @NotNull AvailCompilerScopeStack scopeStack;
 
 		/**
 		 * Construct a new immutable {@link ParserState}.
@@ -423,8 +510,8 @@ public abstract class AbstractAvailCompiler
 		 *            The {@link AvailCompilerScopeStack}.
 		 */
 		ParserState (
-				final int position,
-				final AvailCompilerScopeStack scopeStack)
+			final int position,
+			final @NotNull AvailCompilerScopeStack scopeStack)
 		{
 			assert scopeStack != null;
 
@@ -451,7 +538,7 @@ public abstract class AbstractAvailCompiler
 		}
 
 		@Override
-		public String toString ()
+		public @NotNull String toString ()
 		{
 			return String.format(
 				"%s%n" + "\tPOSITION=%d%n" + "\tSCOPE_STACK = %s",
@@ -473,11 +560,12 @@ public abstract class AbstractAvailCompiler
 		}
 
 		/**
-		 * Answer the token at the current position.
+		 * Answer the {@linkplain TokenDescriptor token} at the current
+		 * position.
 		 *
 		 * @return The token.
 		 */
-		AvailObject peekToken ()
+		@NotNull AvailObject peekToken ()
 		{
 			assert !atEnd();
 			return tokens.get(position);
@@ -487,11 +575,10 @@ public abstract class AbstractAvailCompiler
 		 * Answer whether the current token has the specified type and content.
 		 *
 		 * @param expectedToken
-		 *            The {@link ExpectedToken expected token} to look for.
+		 *        The {@linkplain ExpectedToken expected token} to look for.
 		 * @return Whether the specified token was found.
 		 */
-		boolean peekToken (
-			final ExpectedToken expectedToken)
+		boolean peekToken (final @NotNull ExpectedToken expectedToken)
 		{
 			if (atEnd())
 			{
@@ -499,17 +586,17 @@ public abstract class AbstractAvailCompiler
 			}
 			final AvailObject token = peekToken();
 			return token.tokenType() == expectedToken.tokenType()
-				&& token.string().equals(expectedToken.string());
+				&& token.string().equals(expectedToken.lexeme());
 		}
 
 		/**
 		 * Answer whether the current token has the specified type and content.
 		 *
 		 * @param expectedToken
-		 *            The {@link ExpectedToken expected token} to look for.
+		 *        The {@linkplain ExpectedToken expected token} to look for.
 		 * @param expected
-		 *            A generator of a string message to record if the specified
-		 *            token is not present.
+		 *        A {@linkplain Generator generator} of a message to record if
+		 *        the specified token is not present.
 		 * @return Whether the specified token is present.
 		 */
 		boolean peekToken (
@@ -518,7 +605,7 @@ public abstract class AbstractAvailCompiler
 		{
 			final AvailObject token = peekToken();
 			final boolean found = token.tokenType() == expectedToken.tokenType()
-					&& token.string().equals(expectedToken.string());
+					&& token.string().equals(expectedToken.lexeme());
 			if (!found)
 			{
 				expected(expected);
@@ -530,14 +617,14 @@ public abstract class AbstractAvailCompiler
 		 * Answer whether the current token has the specified type and content.
 		 *
 		 * @param expectedToken
-		 *            The {@link ExpectedToken expected token} to look for.
+		 *        The {@link ExpectedToken expected token} to look for.
 		 * @param expected
-		 *            A message to record if the specified token is not present.
+		 *        A message to record if the specified token is not present.
 		 * @return Whether the specified token is present.
 		 */
 		boolean peekToken (
 			final @NotNull ExpectedToken expectedToken,
-			final String expected)
+			final @NotNull String expected)
 		{
 			return peekToken(expectedToken, generate(expected));
 		}
@@ -548,7 +635,7 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return A new parser state.
 		 */
-		ParserState afterToken ()
+		@NotNull ParserState afterToken ()
 		{
 			assert !atEnd();
 			return new ParserState(position + 1, scopeStack);
@@ -556,10 +643,10 @@ public abstract class AbstractAvailCompiler
 
 		/**
 		 * Parse a string literal. Answer the {@link LiteralTokenDescriptor
-		 * string literal token} if found, otherwise answer null.
+		 * string literal token} if found, otherwise answer {@code null}.
 		 *
 		 * @return The actual {@link LiteralTokenDescriptor literal token} or
-		 *         null.
+		 *         {@code null}.
 		 */
 		AvailObject peekStringLiteral ()
 		{
@@ -572,16 +659,16 @@ public abstract class AbstractAvailCompiler
 		}
 
 		/**
-		 * Return a new {@link ParserState} like this one, but with the given
-		 * declaration added.
+		 * Return a new {@linkplain ParserState parser state} like this one, but
+		 * with the given declaration added.
 		 *
 		 * @param declaration
-		 *            The {@link DeclarationNodeDescriptor declaration} to add
-		 *            to the resulting {@link AvailCompilerScopeStack scope
-		 *            stack}.
+		 *        The {@link DeclarationNodeDescriptor declaration} to add to
+		 *        the resulting {@link AvailCompilerScopeStack scope stack}.
 		 * @return The new parser state including the declaration.
 		 */
-		ParserState withDeclaration (final AvailObject declaration)
+		@NotNull ParserState withDeclaration (
+			final @NotNull AvailObject declaration)
 		{
 			return new ParserState(
 				position,
@@ -594,16 +681,18 @@ public abstract class AbstractAvailCompiler
 		 * Record an expectation at the current parse position. The expectations
 		 * captured at the rightmost parse position constitute the error message
 		 * in case the parse fails.
+		 *
 		 * <p>
 		 * The expectation is a {@link Generator Generator<String>}, in case
 		 * constructing a {@link String} would be prohibitive. There is also
 		 * {@link #expected(String) another} version of this method that accepts
 		 * a String directly.
+		 * </p>
 		 *
 		 * @param stringGenerator
-		 *            The {@code Generator<String>} to capture.
+		 *        The {@code Generator<String>} to capture.
 		 */
-		void expected (final Generator<String> stringGenerator)
+		void expected (final @NotNull Generator<String> stringGenerator)
 		{
 			// System.out.println(Integer.toString(position) + " expected " +
 			// stringBlock.value());
@@ -623,9 +712,9 @@ public abstract class AbstractAvailCompiler
 		 * Record an indication of what was expected at this parse position.
 		 *
 		 * @param aString
-		 *            The string to look up.
+		 *        The string to look up.
 		 */
-		void expected (final String aString)
+		void expected (final @NotNull String aString)
 		{
 			expected(generate(aString));
 		}
@@ -644,9 +733,9 @@ public abstract class AbstractAvailCompiler
 	 * </p>
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param stringTokens
-	 *            The initially empty list of strings to populate.
+	 *        The initially empty list of strings to populate.
 	 * @return The parser state after the list of strings, or null if the list
 	 *         of strings is malformed.
 	 */
@@ -694,9 +783,9 @@ public abstract class AbstractAvailCompiler
 	 * </p>
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param imports
-	 *            The initially empty list of imports to populate.
+	 *        The initially empty list of imports to populate.
 	 * @return The parser state after the list of imports, or {@code null} if
 	 *         the list of imports is malformed.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -716,27 +805,49 @@ public abstract class AbstractAvailCompiler
 				state.expected("another module name after comma");
 				return imports.isEmpty() ? state : null;
 			}
+
 			final AvailObject moduleName = token.literal();
 			state = state.afterToken();
+
+			final List<AvailObject> versions = new ArrayList<AvailObject>();
 			if (state.peekToken(OPEN_PARENTHESIS))
 			{
 				state = state.afterToken();
-				final List<AvailObject> names = new ArrayList<AvailObject>();
-				state = parseStringLiterals(state, names);
+				state = parseStringLiterals(state, versions);
 				if (!state.peekToken(
 					CLOSE_PARENTHESIS,
-					"a close parenthesis following imported method names"))
+					"a close parenthesis following acceptable versions"))
 				{
 					return null;
 				}
 				state = state.afterToken();
-				imports.add(TupleDescriptor.from(
-					moduleName, TupleDescriptor.fromList(names).asSet()));
 			}
-			else
+
+			final List<AvailObject> names = new ArrayList<AvailObject>();
+			if (state.peekToken(EQUALS))
 			{
-				imports.add(TupleDescriptor.from(moduleName));
+				state = state.afterToken();
+				if (!state.peekToken(
+					OPEN_PARENTHESIS,
+					"an open parenthesis preceding import list"))
+				{
+					return null;
+				}
+				state = state.afterToken();
+				state = parseStringLiterals(state, names);
+				if (!state.peekToken(
+					CLOSE_PARENTHESIS,
+					"a close parenthesis following import list"))
+				{
+					return null;
+				}
+				state = state.afterToken();
 			}
+
+			imports.add(TupleDescriptor.from(
+				moduleName,
+				TupleDescriptor.fromList(names).asSet(),
+				TupleDescriptor.fromList(versions).asSet()));
 		}
 		while (state.peekToken(COMMA) && (state = state.afterToken()) != null);
 
@@ -748,15 +859,14 @@ public abstract class AbstractAvailCompiler
 	 * specified by the fully-qualified {@linkplain ModuleName module name}.
 	 *
 	 * @param qualifiedName
-	 *            A fully-qualified {@linkplain ModuleName module name}.
+	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @param resolvedName
-	 *            The {@linkplain ResolvedModuleName resolved name} of the
-	 *            module.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module.
 	 * @return The module's {@linkplain String source code}.
 	 * @throws AvailCompilerException
-	 *             If source extraction failed for any reason.
+	 *         If source extraction failed for any reason.
 	 */
-	static @NotNull String extractSource (
+	private static @NotNull String extractSource (
 		final @NotNull ModuleName qualifiedName,
 		final @NotNull ResolvedModuleName resolvedName)
 	throws AvailCompilerException
@@ -805,17 +915,18 @@ public abstract class AbstractAvailCompiler
 	 * fully-qualified {@linkplain ModuleName module name}.
 	 *
 	 * @param source
-	 *            The {@linkplain String string} containing the module's source
-	 *            code.
+	 *        The {@linkplain String string} containing the module's source
+	 *        code.
 	 * @param stopAfterNamesToken
-	 *            Stop scanning after encountering the <em>Names</em> token?
+	 *         Stop scanning after encountering the <em>Names</em> token?
 	 * @return The {@linkplain ResolvedModuleName resolved module name}.
 	 * @throws AvailCompilerException
-	 *             If tokenization failed for any reason.
+	 *         If tokenization failed for any reason.
 	 */
 	static @NotNull List<AvailObject> tokenize (
-		final @NotNull String source,
-		final boolean stopAfterNamesToken) throws AvailCompilerException
+			final @NotNull String source,
+			final boolean stopAfterNamesToken)
+		throws AvailCompilerException
 	{
 		return new AvailScanner().scanString(source, stopAfterNamesToken);
 	}
@@ -827,31 +938,31 @@ public abstract class AbstractAvailCompiler
 	 * resulting tree.
 	 *
 	 * @param object
-	 *            The current {@linkplain ParseNodeDescriptor parse node}.
+	 *        The current {@linkplain ParseNodeDescriptor parse node}.
 	 * @param aBlock
-	 *            What to do with each descendant.
+	 *        What to do with each descendant.
 	 * @param parentNode
-	 *            This node's parent.
+	 *        This node's parent.
 	 * @param outerNodes
-	 *            The list of {@linkplain BlockNodeDescriptor blocks}
-	 *            surrounding this node, from outermost to innermost.
+	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
+	 *        this node, from outermost to innermost.
 	 * @param nodeMap
-	 *            The {@link Map} from old {@linkplain ParseNodeDescriptor
-	 *            parse nodes} to newly copied, mutable parse nodes.  This
-	 *            should ensure the consistency of declaration references.
+	 *        The {@link Map} from old {@linkplain ParseNodeDescriptor parse
+	 *        nodes} to newly copied, mutable parse nodes.  This should ensure
+	 *        the consistency of declaration references.
 	 * @return A replacement for this node, possibly this node itself.
 	 */
 	static AvailObject treeMapWithParent (
-		final AvailObject object,
-		final Transformer3<
+		final @NotNull AvailObject object,
+		final @NotNull Transformer3<
 				AvailObject,
 				AvailObject,
 				List<AvailObject>,
 				AvailObject>
 			aBlock,
-		final AvailObject parentNode,
-		final List<AvailObject> outerNodes,
-		final Map<AvailObject, AvailObject> nodeMap)
+		final @NotNull AvailObject parentNode,
+		final @NotNull List<AvailObject> outerNodes,
+		final @NotNull Map<AvailObject, AvailObject> nodeMap)
 	{
 		if (nodeMap.containsKey(object))
 		{
@@ -888,20 +999,21 @@ public abstract class AbstractAvailCompiler
 	 * node, its parent, and the list of enclosing block nodes.
 	 *
 	 * @param object
-	 *            The current {@linkplain ParseNodeDescriptor parse node}.
+	 *        The current {@linkplain ParseNodeDescriptor parse node}.
 	 * @param aBlock
-	 *            What to do with each descendant.
+	 *        What to do with each descendant.
 	 * @param parentNode
-	 *            This node's parent.
+	 *        This node's parent.
 	 * @param outerNodes
-	 *            The list of {@linkplain BlockNodeDescriptor blocks}
-	 *            surrounding this node, from outermost to innermost.
+	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
+	 *        this node, from outermost to innermost.
 	 */
 	static void treeDoWithParent (
-		final AvailObject object,
-		final Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
-		final AvailObject parentNode,
-		final List<AvailObject> outerNodes)
+		final @NotNull AvailObject object,
+		final @NotNull Continuation3<
+			AvailObject, AvailObject, List<AvailObject>> aBlock,
+		final @NotNull AvailObject parentNode,
+		final @NotNull List<AvailObject> outerNodes)
 	{
 		object.childrenDo(
 			new Continuation1<AvailObject>()
@@ -924,13 +1036,14 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Answer a {@linkplain Generator} that will produce the given string.
+	 * Answer a {@linkplain Generator generator} that will produce the given
+	 * string.
 	 *
 	 * @param string
-	 *            The exact string to generate.
+	 *        The exact string to generate.
 	 * @return A generator that produces the string that was provided.
 	 */
-	Generator<String> generate (final String string)
+	@NotNull Generator<String> generate (final @NotNull String string)
 	{
 		return new Generator<String>()
 		{
@@ -952,13 +1065,13 @@ public abstract class AbstractAvailCompiler
 	 * found at that position. This seems to work very well in practice.
 	 *
 	 * @param qualifiedName
-	 *            The {@linkplain ModuleName qualified name} of the
-	 *            {@linkplain ModuleDescriptor source module}.
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
-	 *             Always thrown.
+	 *        Always thrown.
 	 */
-	void reportError (
-		final @NotNull ModuleName qualifiedName) throws AvailCompilerException
+	void reportError (final @NotNull ModuleName qualifiedName)
+		throws AvailCompilerException
 	{
 		reportError(
 			qualifiedName,
@@ -977,24 +1090,24 @@ public abstract class AbstractAvailCompiler
 	 * found at that position. This seems to work very well in practice.
 	 *
 	 * @param token
-	 *            Where the error occurred.
+	 *        Where the error occurred.
 	 * @param qualifiedName
-	 *            The {@linkplain ModuleName qualified name} of the
-	 *            {@linkplain ModuleDescriptor source module}.
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor source module}.
 	 * @param banner
-	 *            The string that introduces the problem text.
+	 *        The string that introduces the problem text.
 	 * @param problems
-	 *            A list of {@linkplain Generator generators} that may be
-	 *            invoked to produce problem strings.
+	 *        A list of {@linkplain Generator generators} that may be
+	 *        invoked to produce problem strings.
 	 * @throws AvailCompilerException
-	 *             Always thrown.
+	 *         Always thrown.
 	 */
 	void reportError (
-		final @NotNull ModuleName qualifiedName,
-		final @NotNull AvailObject token,
-		final @NotNull String banner,
-		final @NotNull List<Generator<String>> problems)
-	throws AvailCompilerException
+			final @NotNull ModuleName qualifiedName,
+			final @NotNull AvailObject token,
+			final @NotNull String banner,
+			final @NotNull List<Generator<String>> problems)
+		throws AvailCompilerException
 	{
 		assert problems.size() > 0 : "Bug - empty problem list";
 		final long charPos = token.start();
@@ -1061,18 +1174,18 @@ public abstract class AbstractAvailCompiler
 	 * ways, but we stop after two as it's already an error. Report the error.
 	 *
 	 * @param where
-	 *            Where the expressions were parsed from.
+	 *        Where the expressions were parsed from.
 	 * @param interpretation1
-	 *            The first interpretation as a {@link ParseNodeDescriptor parse
-	 *            node}.
+	 *        The first interpretation as a {@link ParseNodeDescriptor parse
+	 *        node}.
 	 * @param interpretation2
-	 *            The second interpretation as a {@link ParseNodeDescriptor
-	 *            parse node}.
+	 *        The second interpretation as a {@link ParseNodeDescriptor parse
+	 *        node}.
 	 */
 	private void ambiguousInterpretationsAnd (
-		final ParserState where,
-		final AvailObject interpretation1,
-		final AvailObject interpretation2)
+		final @NotNull ParserState where,
+		final @NotNull AvailObject interpretation1,
+		final @NotNull AvailObject interpretation2)
 	{
 		where.expected(
 			new Generator<String>()
@@ -1098,15 +1211,15 @@ public abstract class AbstractAvailCompiler
 	 * they have to be run in the reverse order that they were pushed.
 	 *
 	 * @param continuation
-	 *            What to do at some point in the future.
+	 *        What to do at some point in the future.
 	 * @param description
-	 *            Debugging information about what is to be parsed.
+	 *        Debugging information about what is to be parsed.
 	 * @param position
-	 *            Debugging information about where the parse is happening.
+	 *        Debugging information about where the parse is happening.
 	 */
 	void attempt (
-		final Continuation0 continuation,
-		final String description,
+		final @NotNull Continuation0 continuation,
+		final @NotNull String description,
 		final int position)
 	{
 		workStack.push(continuation);
@@ -1117,24 +1230,24 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Wrap the {@link Continuation1 continuation of one argument} inside a
-	 * {@link Continuation0 continuation of zero arguments} and record that as
-	 * per {@link #attempt(Continuation0, String, int)}.
+	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
+	 * {@linkplain Continuation0 continuation of zero arguments} and record that
+	 * as per {@linkplain #attempt(Continuation0, String, int)}.
 	 *
 	 * @param <ArgType>
-	 *            The type of argument to the given continuation.
+	 *        The type of argument to the given continuation.
 	 * @param here
-	 *            Where to start parsing when the continuation runs.
+	 *        Where to start parsing when the continuation runs.
 	 * @param continuation
-	 *            What to execute with the passed argument.
+	 *        What to execute with the passed argument.
 	 * @param argument
-	 *            What to pass as an argument to the provided
-	 *            {@code Continuation1 one-argument continuation}.
+	 *        What to pass as an argument to the provided {@code Continuation1
+	 *        one-argument continuation}.
 	 */
 	<ArgType> void attempt (
-		final ParserState here,
-		final Con<ArgType> continuation,
-		final ArgType argument)
+		final @NotNull ParserState here,
+		final @NotNull Con<ArgType> continuation,
+		final @NotNull ArgType argument)
 	{
 		attempt(
 			new Continuation0()
@@ -1155,11 +1268,11 @@ public abstract class AbstractAvailCompiler
 	 * module variables and constants are in scope.
 	 *
 	 * @param expressionNode
-	 *            A {@link ParseNodeDescriptor parse node}.
-	 * @return The result of generating a {@link FunctionDescriptor function} from
-	 *         the argument and evaluating it.
+	 *        A {@link ParseNodeDescriptor parse node}.
+	 * @return The result of generating a {@link FunctionDescriptor function}
+	 *         from the argument and evaluating it.
 	 */
-	AvailObject evaluate (final AvailObject expressionNode)
+	@NotNull AvailObject evaluate (final @NotNull AvailObject expressionNode)
 	{
 		final AvailObject block = BlockNodeDescriptor.newBlockNode(
 			Collections.<AvailObject>emptyList(),
@@ -1191,9 +1304,9 @@ public abstract class AbstractAvailCompiler
 	 * appropriate exception if it is not.
 	 *
 	 * @param blockNode
-	 *            The block node to validate.
+	 *        The {@linkplain BlockNodeDescriptor block node} to validate.
 	 */
-	public void validate (final AvailObject blockNode)
+	public void validate (final @NotNull AvailObject blockNode)
 	{
 		final List<AvailObject> blockStack = new ArrayList<AvailObject>(3);
 		treeDoWithParent(
@@ -1228,14 +1341,14 @@ public abstract class AbstractAvailCompiler
 	 * found.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param name
-	 *            The name of the variable declaration for which to look.
+	 *        The name of the variable declaration for which to look.
 	 * @return The declaration or null.
 	 */
-	AvailObject lookupDeclaration (
-		final ParserState start,
-		final AvailObject name)
+	@NotNull AvailObject lookupDeclaration (
+		final @NotNull ParserState start,
+		final @NotNull AvailObject name)
 	{
 		AvailCompilerScopeStack scope = start.scopeStack;
 		while (scope.name() != null)
@@ -1257,9 +1370,9 @@ public abstract class AbstractAvailCompiler
 	 * Committing simply clears this information.
 	 *
 	 * @param moduleName
-	 *            The name of the {@linkplain ModuleDescriptor module}.
+	 *        The name of the {@linkplain ModuleDescriptor module}.
 	 */
-	void startModuleTransaction (final AvailObject moduleName)
+	void startModuleTransaction (final @NotNull AvailObject moduleName)
 	{
 		assert module == null;
 		module = ModuleDescriptor.newModule(moduleName);
@@ -1298,10 +1411,10 @@ public abstract class AbstractAvailCompiler
 	 * declared in the module's scope.
 	 *
 	 * @param expr
-	 *            The expression to compile and evaluate as a top-level
-	 *            statement in the module.
+	 *        The expression to compile and evaluate as a top-level statement in
+	 *        the module.
 	 */
-	void evaluateModuleStatement (final AvailObject expr)
+	void evaluateModuleStatement (final @NotNull AvailObject expr)
 	{
 		if (!expr.isInstanceOfKind(DECLARATION_NODE.o()))
 		{
@@ -1340,17 +1453,16 @@ public abstract class AbstractAvailCompiler
 	 * {@linkplain AvailRuntime runtime}.
 	 *
 	 * @param qualifiedName
-	 *            The {@linkplain ModuleName qualified name} of the
-	 *            {@linkplain ModuleDescriptor source module}.
+	 *        The {@linkplain ModuleName qualified name} of the {@linkplain
+	 *        ModuleDescriptor source module}.
 	 * @param aBlock
-	 *            A {@linkplain Continuation3 continuation} that accepts the
-	 *            {@linkplain ModuleName name} of the
-	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AbstractAvailCompiler compilation}, the position
-	 *            of the ongoing parse (in bytes), and the size of the module
-	 *            (in bytes).
+	 *        A {@linkplain Continuation3 continuation} that accepts the
+	 *        {@linkplain ModuleName name} of the {@linkplain ModuleDescriptor
+	 *        module} undergoing {@linkplain AbstractAvailCompiler compilation},
+	 *        the position of the ongoing parse (in bytes), and the size of the
+	 *        module (in bytes).
 	 * @throws AvailCompilerException
-	 *             If compilation fails.
+	 *         If compilation fails.
 	 */
 	public void parseModule (
 		final @NotNull ModuleName qualifiedName,
@@ -1384,8 +1496,8 @@ public abstract class AbstractAvailCompiler
 	 * {@linkplain TokenDescriptor token} stream.
 	 *
 	 * @param qualifiedName
-	 *            The {@linkplain ResolvedModuleName resolved name} of the
-	 *            {@linkplain ModuleDescriptor source module}.
+	 *        The {@linkplain ResolvedModuleName resolved name} of the
+	 *        {@linkplain ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
 	 *             If compilation fails.
 	 */
@@ -1401,7 +1513,7 @@ public abstract class AbstractAvailCompiler
 		greatestGuess = 0;
 		greatExpectations.clear();
 
-		state.value = parseHeader(qualifiedName, false);
+		state.value = parseModuleHeader(qualifiedName, false);
 		if (state.value == null)
 		{
 			reportError(qualifiedName);
@@ -1416,10 +1528,11 @@ public abstract class AbstractAvailCompiler
 				(long) token.start(),
 				sourceLength);
 		}
+		module.versions(TupleDescriptor.fromList(versions).asSet());
 		for (final AvailObject modImport : extendedModules)
 		{
 			assert modImport.isTuple();
-			assert modImport.tupleSize() > 0 && modImport.tupleSize() < 3;
+			assert modImport.tupleSize() == 3;
 
 			final ModuleName ref = resolver.canonicalNameFor(
 				qualifiedName.asSibling(
@@ -1436,7 +1549,25 @@ public abstract class AbstractAvailCompiler
 			}
 
 			final AvailObject mod = runtime.moduleAt(availRef);
-			final AvailObject modNames = modImport.tupleSize() == 2
+			final AvailObject reqVersions = modImport.tupleAt(3);
+			if (reqVersions.setSize() > 0)
+			{
+				final AvailObject modVersions = mod.versions();
+				final AvailObject intersection =
+					modVersions.setIntersectionCanDestroy(
+						reqVersions, false);
+				if (intersection.setSize() == 0)
+				{
+					state.value.expected(
+						"version compatibility; module \"" + ref.localName()
+						+ "\" guarantees versions " + modVersions
+						+ " but current module requires " + reqVersions);
+					reportError(qualifiedName);
+					assert false;
+				}
+			}
+
+			final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
 				? modImport.tupleAt(2)
 				: mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
@@ -1459,7 +1590,7 @@ public abstract class AbstractAvailCompiler
 		for (final AvailObject modImport : usedModules)
 		{
 			assert modImport.isTuple();
-			assert modImport.tupleSize() > 0 && modImport.tupleSize() < 3;
+			assert modImport.tupleSize() == 3;
 
 			final ModuleName ref = resolver.canonicalNameFor(
 				qualifiedName.asSibling(
@@ -1476,7 +1607,25 @@ public abstract class AbstractAvailCompiler
 			}
 
 			final AvailObject mod = runtime.moduleAt(availRef);
-			final AvailObject modNames = modImport.tupleSize() == 2
+			final AvailObject reqVersions = modImport.tupleAt(3);
+			if (reqVersions.setSize() > 0)
+			{
+				final AvailObject modVersions = mod.versions();
+				final AvailObject intersection =
+					modVersions.setIntersectionCanDestroy(
+						reqVersions, false);
+				if (intersection.setSize() == 0)
+				{
+					state.value.expected(
+						"version compatibility; module \"" + ref.localName()
+						+ "\" guarantees versions " + modVersions
+						+ " but current module requires " + reqVersions);
+					reportError(qualifiedName);
+					assert false;
+				}
+			}
+
+			final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
 				? modImport.tupleAt(2)
 				: mod.names().keysAsSet();
 			for (final AvailObject strName : modNames)
@@ -1581,25 +1730,25 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain ModuleDescriptor module} header from the specified
-	 * string. Populate {@link #extendedModules} and {@link #usedModules}.
+	 * Parse a {@linkplain ModuleDescriptor module} header for the specified
+	 * {@linkplain ModuleName module name}. Populate {@link #extendedModules}
+	 * and {@link #usedModules}.
 	 *
 	 * @param qualifiedName
-	 *            The expected module name.
+	 *        The expected module name.
 	 * @throws AvailCompilerException
-	 *             If compilation fails.
+	 *         If compilation fails.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	void parseModuleHeader (
-		final @NotNull ModuleName qualifiedName)
-	throws AvailCompilerException
+	void parseModuleHeader (final @NotNull ModuleName qualifiedName)
+		throws AvailCompilerException
 	{
 		progressBlock = null;
 		greatestGuess = -1;
 		greatExpectations.clear();
 		final ResolvedModuleName resolvedName =
 			interpreter.runtime().moduleNameResolver().resolve(qualifiedName);
-		if (parseHeader(resolvedName, true) == null)
+		if (parseModuleHeader(resolvedName, true) == null)
 		{
 			reportError(resolvedName);
 			assert false;
@@ -1617,17 +1766,18 @@ public abstract class AbstractAvailCompiler
 	 * </p>
 	 *
 	 * @param qualifiedName
-	 *            The expected module name.
+	 *        The expected module name.
 	 * @param dependenciesOnly
-	 *            Whether to do the bare minimum parsing required to determine
-	 *            the modules to which this one refers.
+	 *        Whether to do the bare minimum parsing required to determine
+	 *        the modules to which this one refers.
 	 * @return The state of parsing just after the header, or null if it failed.
 	 */
-	private ParserState parseHeader (
+	private ParserState parseModuleHeader (
 		final @NotNull ResolvedModuleName qualifiedName,
 		final boolean dependenciesOnly)
 	{
 		assert workStack.isEmpty();
+		versions = new ArrayList<AvailObject>();
 		extendedModules = new ArrayList<AvailObject>();
 		usedModules = new ArrayList<AvailObject>();
 		exportedNames = new ArrayList<AvailObject>();
@@ -1637,13 +1787,13 @@ public abstract class AbstractAvailCompiler
 
 		if (isSystemCompiler())
 		{
-			if (!state.peekToken(SYSTEM, "initial System keyword"))
+			if (!state.peekToken(SYSTEM, "System keyword"))
 			{
 				return null;
 			}
 			state = state.afterToken();
 		}
-		if (!state.peekToken(MODULE, "initial Module keyword"))
+		if (!state.peekToken(MODULE, "Module keyword"))
 		{
 			return null;
 		}
@@ -1665,6 +1815,14 @@ public abstract class AbstractAvailCompiler
 			}
 		}
 		state = state.afterToken();
+		if (state.peekToken(VERSIONS, "Versions keyword"))
+		{
+			state = parseStringLiterals(state.afterToken(), versions);
+			if (state == null)
+			{
+				return null;
+			}
+		}
 
 		if (state.peekToken(PRAGMA))
 		{
@@ -1781,13 +1939,13 @@ public abstract class AbstractAvailCompiler
 	 * were identical.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param originalContinuation
-	 *            What to do with the expression.
+	 *        What to do with the expression.
 	 */
 	void parseExpressionThen (
-		final ParserState start,
-		final Con<AvailObject> originalContinuation)
+		final @NotNull ParserState start,
+		final @NotNull Con<AvailObject> originalContinuation)
 	{
 		if (!fragmentCache.hasComputedForState(start))
 		{
@@ -1860,16 +2018,16 @@ public abstract class AbstractAvailCompiler
 	 * maximum length are possible.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param someType
-	 *            The type that the expression must return.
+	 *        The type that the expression must return.
 	 * @param continuation
-	 *            What to do with the result of expression evaluation.
+	 *        What to do with the result of expression evaluation.
 	 */
 	void parseAndEvaluateExpressionYieldingInstanceOfThen (
-		final ParserState start,
-		final AvailObject someType,
-		final Con<AvailObject> continuation)
+		final @NotNull ParserState start,
+		final @NotNull AvailObject someType,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		final ParserState startWithoutScope = new ParserState(
 			start.position,
@@ -1939,31 +2097,30 @@ public abstract class AbstractAvailCompiler
 	 * </p>
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param outermost
-	 *            Whether this statement is outermost in the module.
+	 *        Whether this statement is outermost in the module.
 	 * @param canBeLabel
-	 *            Whether this statement can be a label declaration.
+	 *        Whether this statement can be a label declaration.
 	 * @param continuation
-	 *            What to do with the unambiguous, parsed statement.
+	 *        What to do with the unambiguous, parsed statement.
 	 */
 	abstract void parseStatementAsOutermostCanBeLabelThen (
-		final ParserState start,
+		final @NotNull ParserState start,
 		final boolean outermost,
 		final boolean canBeLabel,
-		final Con<AvailObject> continuation);
+		final @NotNull Con<AvailObject> continuation);
 
 	/**
 	 * Parse an expression, without directly using the
 	 * {@linkplain #fragmentCache}.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param continuation
-	 *            What to do with the expression.
+	 *        What to do with the expression.
 	 */
 	abstract void parseExpressionUncachedThen (
-		final ParserState start,
-		final Con<AvailObject> continuation);
-
+		final @NotNull ParserState start,
+		final @NotNull Con<AvailObject> continuation);
 }

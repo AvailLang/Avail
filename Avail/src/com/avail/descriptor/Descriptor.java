@@ -6655,4 +6655,29 @@ extends AbstractDescriptor
 		unsupportedOperation();
 		return null;
 	}
+
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	@Override
+	public void o_Versions (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		unsupportedOperation();
+	}
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_Versions (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
 }
